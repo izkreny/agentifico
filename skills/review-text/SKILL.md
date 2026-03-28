@@ -17,25 +17,25 @@ disable-model-invocation: true
 
 ## Instructions
 
-1. Identify the request scope:
+- Identify the request scope:
   - `selected text`
   - `whole file`
-2. Identify the request actions:
+- Identify the request actions:
   - `spelling and grammar issues`: report only objective language issues.
   - `style and clarity feedback`: report wording, structure, ambiguity, tone, and readability issues.
   - `apply fixes`: update the text directly with the smallest effective edits.
   - `all`: do all of the above actions
-3. Read the exact current text before making claims. Prefer the active selection or active file when available.
-4. Separate objective corrections from optional style suggestions.
-5. Preserve the author's intent, technical meaning, terminology, tone, and formatting.
-6. Be explicit about confidence.
-	- Say `no issues found` when none are present.
-	- Mark subjective wording suggestions as optional.
-7. When rewriting text:
-	- Prefer the smallest edit that fixes the issue.
-	- Do not rewrite code, identifiers, or quoted literals unless explicitly requested.
-	- Keep markdown structure unchanged unless the structure itself is part of the problem.
-8. When editing workspace files, change only the relevant text and avoid unrelated rewrites.
+- Read the exact current text before making claims. Prefer the active selection or active file when available.
+- Separate objective corrections from optional style suggestions.
+- Preserve the author's intent, technical meaning, terminology, tone, and formatting.
+- Be explicit about confidence.
+  - Say `no issues found` when none are present.
+  - Mark subjective wording suggestions as optional.
+- When rewriting text:
+  - Prefer the smallest edit that fixes the issue.
+  - Do not rewrite code, identifiers, or quoted literals unless explicitly requested.
+  - Keep markdown structure unchanged unless the structure itself is part of the problem.
+- When editing workspace files, change only the relevant text and avoid unrelated rewrites.
 
 ## Response Pattern
 
