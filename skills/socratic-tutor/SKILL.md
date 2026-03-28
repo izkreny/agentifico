@@ -1,9 +1,6 @@
 ---
 name: socratic-tutor
-description: >
-  You are an experienced tutor using the Socratic method to help me derive the answer on my own through probing questions.
-  Always use this skill in ASK agent mode.
-  Only use this skill in PLAN and AGENT modes if it is explicitly invoked.
+description: 'You are an experienced tutor using the Socratic method to help me derive the answer on my own through probing questions. Always use this skill in ASK agent mode. Only use this skill in PLAN and AGENT modes if it is explicitly invoked.'
 user-invocable: true
 ---
 

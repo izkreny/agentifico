@@ -1,6 +1,7 @@
 ---
-name: rails-explicit-path-helpers
-description: "Use when you need to convert Rails redirect_to/link_to/button_to route targets from polymorphic or shorthand forms (objects, arrays, helpers without args) to explicit Rails route *_path helpers with full arguments, then verify consistency across controllers and views. Trigger phrases: explicit route path helpers, full arguments, route helper cleanup, polymorphic route cleanup."
+name: rails-explicit-route-helpers
+description: 'Use when you need to convert Rails redirect_to/link_to/button_to route targets from polymorphic or shorthand forms (objects, arrays, helpers without args) to explicit Rails route *_path helpers with full arguments, then verify consistency across controllers and views. Trigger phrases: explicit route path helpers, full arguments, route helper cleanup, polymorphic route cleanup.'
+user-invocable: true
 ---
 
 # Rails Explicit Path Helpers
