@@ -23,12 +23,20 @@ REFERENCE_HEADERS = [
   "daisyUI 5 components",
 ].freeze
 
-FRONTMATTER = <<~YAML
-  ---
-  name: daisyui-designer
-  description: 'Design UI with daisyUI 5 component classes for Tailwind CSS 4. Use for ERB views, HTML templates, component styling, responsive layouts, theme colors, and DaisyUI class names.'
-  ---
-YAML
+SKILL_FRONTMATTER =
+  <<~YAML
+    ---
+    name: daisyui-designer
+    description: 'Design UI with daisyUI 5 component classes for Tailwind CSS 4. Use for ERB views, HTML templates, component styling, responsive layouts, theme colors, and DaisyUI class names.'
+    ---
+  YAML
+
+SKILL_FOOTER =
+  <<~MARKDOWN
+    ## daisyUI 5 components
+
+    All daisyUI 5 components are documented in the [REFERENCE](references/REFERENCE.md) file.
+  MARKDOWN
 
 # --- Download ---
 
@@ -53,9 +61,13 @@ def strip_frontmatter(text)
   text.sub(/\A---.*?---\s*/m, "")
 end
 
+def strip_lists_from(text)
+  text.gsub(/^\s*-\s+.*\n?/, "")
+end
+
 def split_sections(body)
   chunks = body.split("\n## ")
-  intro  = chunks.shift # everything before the first ## heading
+  intro  = strip_lists_from(chunks.shift) # everything before the first ## heading
 
   sections = {}
   chunks.each do |chunk|
@@ -76,11 +88,12 @@ end
 # --- Assemble ---
 
 def build_skill_md(intro, sections)
-  parts = [FRONTMATTER, "\n", intro.strip, "\n"]
+  parts = [SKILL_FRONTMATTER, "\n", intro.strip, "\n"]
 
   SKILL_HEADERS.each do |header|
     parts << "\n## #{header}\n#{sections[header]}"
   end
+  parts += ["\n", SKILL_FOOTER]
 
   parts.join
 end

@@ -120,3 +120,7 @@ A CSS file with Tailwind CSS, daisyUI and a custom daisyUI theme looks like this
 - If you're generating a custom theme, do not include the comments from the example above. Just provide the code.
 
 People can use https://daisyui.com/theme-generator/ visual tool to create their own theme.
+
+## daisyUI 5 components
+
+All daisyUI 5 components are documented in the [REFERENCE](references/REFERENCE.md) file.
