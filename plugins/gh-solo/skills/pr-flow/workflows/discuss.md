@@ -100,7 +100,7 @@ Only these end a watch, and the owner needs to know `unwatch` at minimum. A `dis
 | | |
 |---|---|
 | `unwatch` | The explicit stop. Call `TaskStop` on the monitor and confirm it is gone |
-| The owner saying "we are done" | The review is over. Stop it before pushing anything. **"push for review" does not stop it** - a 5.2 push opens another round of threads, which is exactly what the watch is for |
+| The owner authorising the resolve and the push | The review is over. Stop it before pushing anything. There is no other way out of the round, so this is the only stop besides `unwatch` and the session ending |
 | The session ending | Monitors do not outlive it |
 
 **Say how to stop it in the same breath as arming it.** A background process the owner cannot confidently stop is worse than no background process, and they will not have this file open.
