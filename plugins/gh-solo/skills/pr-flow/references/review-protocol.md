@@ -90,7 +90,7 @@ The batch is one sentence from the owner - "resolve all and push", in that order
 - **Grep-able rather than inferred**, because it is an agent post and opens with the disclaimer, so the older test of "a body not opening with the disclaimer is the owner's" cannot find it.
 - **Id-naming**, because an authorisation covering `RF1` to `RF7` must not silently authorise resolving an `RF9` that was posted afterwards.
 - **What the batch covers:** every thread with no outstanding owner signal. That is the whole point of it - a thread the owner already approved was resolvable on its own, so an authorisation covering only those would do nothing.
-- **What it never covers:** a thread waiting on the owner from step 3, a thread they marked seen-and-unhappy, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
+- **What it never covers:** a thread waiting on the owner from step 3, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
 
 **This is the round's only push, and no words ask for an earlier one.** A push moves the diff, and GitHub recomputes every thread anchor the moment it lands, marking threads outdated beneath a reader part-way through. Holding the push is what keeps the threads anchored to the exact diff the owner is reading.
 
@@ -109,12 +109,10 @@ How they answer a thread at step 6. **Approval may be a word or a reaction; refu
 | Say "OK", "good", "cool" in the session, naming the finding | Accepted. A bare word naming nothing is not a signal on any thread |
 | React 👍 `THUMBS_UP` or ❤️ `HEART` | Accepted. Exact synonyms of each other and of the words above |
 | React 👀 `EYES` or 😕 `CONFUSED`, or write "explain" or "?!?" | One canned question, answered in the thread: *"I do not understand. Explain to me like a non-technical person, but use real code names."* The reaction and the word mean exactly the same thing, so neither gets a different answer from the other |
-| React 👎 `THUMBS_DOWN` | **Seen and not accepted. It authorises nothing.** No fix, no revert, no resolve, until they write what they want |
 | Write a reply | A discussion. `workflows/discuss.md` classifies and answers it |
 | Nothing, or any other reaction | No signal. Step 7's batch covers it |
 
-- **👎 acts on nothing on purpose.** It cannot be told apart from "the finding was wrong" versus "the fix was wrong", which need opposite responses, and a revert is a write to the branch. Its whole job is to separate *I looked and I am not happy* from *I have not looked*, which is a distinction step 7's batch has to make even though neither authorises work.
-- **The remaining reactions carry no meaning at all.** 😄 🎉 🚀 and anything else are no signal, not an unknown to stop and ask about.
+- **The remaining reactions carry no meaning at all.** 👎 😄 🎉 🚀 and anything else are no signal, not an unknown to stop and ask about.
 - **Which comment carries the reaction decides what it refers to**, since a thread holds the finding, the fix plan and the fix result. A question on the finding asks about the finding; on the fix plan, about the plan; on the fix result, about what changed.
 - **Only the owner's reactions count**, so a reaction is judged by who left it, never by the comment it sits on. Every agent post is made with the owner's credentials and so carries their login, which means no test on a *comment's* author can tell agent from human, and a mentor's 👍 is not an authorisation. `workflows/discuss.md` owns how they are read.
 

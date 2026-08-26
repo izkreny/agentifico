@@ -136,7 +136,6 @@ query($owner: String!, $repo: String!) {
 |---|---|
 | A reaction the protocol reads as accepted | Nothing in the thread. It is an approval, not a question, and it authorises the resolve at the protocol's step 7 |
 | A reaction the protocol reads as the canned question | Answer it in the thread, in the register the protocol names, exactly as though they had typed it |
-| A reaction the protocol reads as seen-and-not-accepted | Nothing, and no fix. It authorises no work; the thread waits for them to write what they want |
 | A reaction the protocol gives no meaning | Nothing. It is not a signal and not an unknown to ask about |
 
 **Sort threads whose last signal is a comment by what that comment does**, because the right response differs completely:
