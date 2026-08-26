@@ -120,7 +120,7 @@ How they answer a thread at step 6. **Approval may be a word or a reaction; refu
 
 ### Resolution rests on recorded authority
 
-Every thread ends resolved, and every resolution rests on recorded owner authority: one of three things: a reply of theirs in the thread, a reaction of theirs on it, or an authorisation comment naming its `RF{n}` id. Resolving is the orchestrator's act now, but the authority for it is never inferred and never lives only in a session - a session dies and `workflows/merge.md` still has to be able to check. Enforcement: `workflows/review.md` checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread, or on a resolved one with none of the three, naming its `file:line`.
+Every thread ends resolved, and every resolution rests on recorded owner authority: one of three things: a reply of theirs in the thread, a reaction of theirs on it, or an authorisation comment naming its `RF{n}` id. Resolving is the orchestrator's act, but the authority for it is never inferred and never lives only in a session - a session dies and `workflows/merge.md` still has to be able to check. Enforcement: `workflows/review.md` checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread, or on a resolved one with none of the three, naming its `file:line`.
 
 #### Recognising the owner takes two conditions
 
@@ -136,4 +136,4 @@ The `auto` and `go` chains arm it themselves on reaching step 6. That is an inst
 
 ### The unattended block is bounded only by its caps
 
-Steps 1 to 5 wait for nobody. Nothing in that block waits for a human, so a rule that would be self-correcting under supervision is not. That is why the caps route a twice-failed finding to the owner rather than to another attempt, and why the two kinds of finding at step 3 stop rather than proceed: an unattended flow needs its stops written down, because there is nobody there to apply judgement it forgot to ask for.
+Nothing in steps 1 to 5 waits for a human, so every stop in that block has to be written down: there is nobody there to apply judgement the rules forgot to ask for. That binds anything added to it later.
