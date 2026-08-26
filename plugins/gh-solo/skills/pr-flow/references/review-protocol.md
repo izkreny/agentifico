@@ -87,7 +87,7 @@ The batch is one sentence from the owner - "resolve all and push", in that order
 
 **The authorisation comment** carries a literal marker line a later reader can grep for, the owner's words, and every `RF{n}` id it covers.
 
-- **Grep-able rather than inferred**, because it is an agent post and opens with the disclaimer, so the older test of "a body not opening with the disclaimer is the owner's" cannot find it.
+- **Grep-able rather than inferred**, because it is an agent post and so opens with the disclaimer: nothing that recognises the owner by the *absence* of a disclaimer can find it, which is every reader that matters here.
 - **Id-naming**, because an authorisation covering `RF1` to `RF7` must not silently authorise resolving an `RF9` that was posted afterwards.
 - **What the batch covers:** every thread with no outstanding owner signal. That is the whole point of it - a thread the owner already approved was resolvable on its own, so an authorisation covering only those would do nothing.
 - **What it never covers:** a thread waiting on the owner from step 3, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
@@ -126,7 +126,7 @@ Every thread ends resolved, and every resolution rests on recorded owner authori
 
 Both must hold: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes everyone else, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials.
 
-**The older one-condition version is wrong.** Recognising an owner comment by its body not opening with the disclaimer was enough only while the owner was the sole human posting. A mentor's comment opens with no disclaimer either, so on that test alone a mentor's reply would satisfy this gate and vouch for a resolve the owner never made.
+**Testing the disclaimer alone is not enough**, tempting as it is, since it is the marker everything else here recognises agent posts by. A mentor's comment opens with no disclaimer either, so on that test alone a mentor's reply would satisfy this gate and vouch for a resolve the owner never made. The login condition is the one that excludes them.
 
 ### The watch survives the round
 
