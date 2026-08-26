@@ -73,13 +73,21 @@ The first step that waits for anything. They answer per thread, and the vocabula
 
 ### 7. Resolve and push, on the owner's word
 
-The batch is one sentence from them - "resolve all and push". Before resolving anything, post **one authorisation comment**: a literal marker line a later reader can grep for, the owner's words, and every `RF{n}` id it covers.
+The batch is one sentence from the owner - "resolve all and push". Four things follow, in one order, and the order is load-bearing:
+
+- **First the authorisation comment**, before anything is resolved or pushed.
+- **Then the push.**
+- **Then the checks**, waiting out anything pending.
+- **Resolve last, and only on green.**
+
+**Resolving last is what keeps a failure actionable.** Resolve first and CI only sees the fixes once every thread has already been authorised closed, so a red check leaves resolved threads on a red branch: `workflows/merge.md` refuses, and nothing is left open to say why. Red stops this step instead, with the threads untouched and the failure named. Reading `gh pr checks` before reporting a push as done is the standing convention in `SKILL.md` regardless.
+
+**The authorisation comment** carries a literal marker line a later reader can grep for, the owner's words, and every `RF{n}` id it covers.
 
 - **Grep-able rather than inferred**, because it is an agent post and opens with the disclaimer, so the older test of "a body not opening with the disclaimer is the owner's" cannot find it.
 - **Id-naming**, because an authorisation covering `RF1` to `RF7` must not silently authorise resolving an `RF9` that was posted afterwards.
 - **What the batch covers:** every thread with no outstanding owner signal. That is the whole point of it - a thread the owner already approved was resolvable on its own, so an authorisation covering only those would do nothing.
 - **What it never covers:** a thread waiting on the owner from step 3, a thread they marked seen-and-unhappy, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
-**The order inside this step is authorisation, push, checks, and only then resolve.** Resolving before the push would mean CI first sees the fixes after the owner has already authorised closing every thread, so a red check would leave resolved threads on a red branch, which `workflows/merge.md` then refuses with nothing left open to say why. Push, wait the checks out, and resolve only on green; a red check stops the step with the threads still open and the failure named, which is the state that can actually be acted on. Reading `gh pr checks` before reporting a push as done is the standing convention in `SKILL.md` regardless.
 
 **There is no push before this step, and no words that ask for one.** The owner reads the threads before the code, and everything they judge on is already there without a push: the fix plan carries the intended change as code, the fix result names the commit that landed and any departure from that plan, and the commits themselves are local in the repository they already have. What an earlier push would cost is in *Why the push waits*, and the owner asking for it changes who is to blame rather than what happens to the threads. Another review round is not a reason for one either: that is step 5, and a defect a fix introduced gets its own thread at step 3.
 
