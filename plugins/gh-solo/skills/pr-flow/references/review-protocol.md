@@ -79,9 +79,9 @@ The batch is one sentence from the owner - "resolve all and push", in that order
 - **Then the resolves.** To resolve a thread is to mark it Resolved on GitHub: the state change that collapses it and takes it off the open list.
 - **Then the push**, with `gh pr checks` read before it is reported done, per the standing convention in `SKILL.md`.
 
-**Resolving is a merge requirement, not a push requirement.** Nothing mechanically stops a branch being pushed with threads still open, and step 4's fix commits could have gone up at any point - they are held back to protect the owner's reading, which has nothing to do with resolution. What requires every thread resolved is conclusion A, enforced at `workflows/merge.md`'s door. So the resolve here closes out the round; it does not unlock anything.
+**Resolving every inline comment thread is a merge requirement, not a push requirement.** Nothing mechanically stops a branch being pushed with threads still open, and step 4's fix commits could have gone up at any point - they are held back to protect the owner's reading, which has nothing to do with resolution. What requires every thread resolved is *Resolution rests on recorded authority*, enforced at `workflows/merge.md`'s door. So the resolve here closes out the round; it does not unlock anything.
 
-**Resolving posts nothing**, which is why the authorisation comment exists: the resolve leaves no trace of whose decision it was, so without that comment a later reader, `workflows/merge.md` included, sees a closed thread and no evidence behind it.
+**Resolving an inline comment thread posts nothing**, which is why the authorisation comment exists: the resolve leaves no trace of whose decision it was, so without that comment a later reader, `workflows/merge.md` included, sees a closed thread and no evidence behind it.
 
 **A red check after the push reopens nothing.** Each finding is closed on its own evidence - the fix, the re-review's verdict, and the owner's word - none of which a CI failure contradicts. A red check against locally green gates is the two-environments finding per the standing convention in `SKILL.md`: it stops the merge until it is diagnosed, and what answers it is a new commit rather than a reopened thread.
 
@@ -92,13 +92,13 @@ The batch is one sentence from the owner - "resolve all and push", in that order
 - **What the batch covers:** every thread with no outstanding owner signal. That is the whole point of it - a thread the owner already approved was resolvable on its own, so an authorisation covering only those would do nothing.
 - **What it never covers:** a thread waiting on the owner from step 3, a thread they marked seen-and-unhappy, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
 
-**This is the round's only push, and no words ask for an earlier one.** A push moves the diff, and GitHub recomputes every thread anchor the moment it lands, marking threads outdated beneath a reader part-way through. That is what went wrong on the incident PR, with every then-existing rule obeyed, and holding the push until here is what keeps the threads anchored to the exact diff the owner is reading.
+**This is the round's only push, and no words ask for an earlier one.** A push moves the diff, and GitHub recomputes every thread anchor the moment it lands, marking threads outdated beneath a reader part-way through. Holding the push is what keeps the threads anchored to the exact diff the owner is reading.
 
 Nothing is lost by waiting, because everything the owner judges on is on the PR already: the fix plan carries the intended change as code, the fix result names the commit that landed and any departure from that plan, and the commits themselves are local in the repository they already have. The owner asking for an earlier push changes who is to blame rather than what happens to the threads. Another review round is not a reason for one either: that is step 5, and a defect a fix introduced gets its own thread at step 3.
 
 ### 8. Merge
 
-`workflows/merge.md`, whose gate is conclusion A.
+`workflows/merge.md`, whose thread gate is *Resolution rests on recorded authority*.
 
 ## The owner's vocabulary
 
@@ -120,10 +120,16 @@ How they answer a thread at step 6. **Approval may be a word or a reaction; refu
 
 ## The conclusions
 
-**A. Every thread ends resolved, and every resolution rests on recorded owner authority.** One of three things: a reply of theirs in the thread, a reaction of theirs on it, or an authorisation comment naming its `RF{n}` id. Resolving is the orchestrator's act now, but the authority for it is never inferred and never lives only in a session - a session dies and `workflows/merge.md` still has to be able to check. Enforcement: `workflows/review.md` checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread, or on a resolved one with none of the three, naming its `file:line`.
+### Resolution rests on recorded authority
+
+Every thread ends resolved, and every resolution rests on recorded owner authority: one of three things: a reply of theirs in the thread, a reaction of theirs on it, or an authorisation comment naming its `RF{n}` id. Resolving is the orchestrator's act now, but the authority for it is never inferred and never lives only in a session - a session dies and `workflows/merge.md` still has to be able to check. Enforcement: `workflows/review.md` checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread, or on a resolved one with none of the three, naming its `file:line`.
 
 **The test for "the owner said this" takes two conditions, and the older one-condition version is wrong.** Recognising an owner comment by its body not opening with the AI disclaimer was enough only while the owner was the sole human posting: a mentor's comment opens with no disclaimer either, so on that test alone a mentor's reply would satisfy this gate and vouch for a resolve the owner never made. So both must hold: the author's login **is** the repository owner's, and the body does **not** open with the disclaimer. The first excludes everyone else, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials.
 
-**B. The watch survives the round, and it watches reactions as well as words.** A vocabulary where approval can be a reaction is invisible to a watch that only polls comments, so the owner would react and nothing would ever wake - which reads as the agent ignoring them. It runs `persistent: true` and stops at step 7 or on `unwatch`, so the owner can react and receive answers concurrently rather than serialising the round. One stop, because there is only one path out of step 6. The `auto` and `go` chains arm it themselves when they reach step 6, which is not an exception to the only-the-literal-command rule in `workflows/discuss.md` but an instance of it: those are literal commands, and their premise is authorisation given in advance. The cost stays stated: a persistent watch is one nobody remembers arming, which is why every round report prints the armed state and the command that stops it, and why monitors die with the session regardless.
+### The watch survives the round
 
-**C. Steps 1 to 5 are unattended, and the caps in step 5 are the only thing bounding them.** Nothing in that block waits for a human, so a rule that would be self-correcting under supervision is not. That is why the caps route a twice-failed finding to the owner rather than to another attempt, and why the two kinds of finding at step 3 stop rather than proceed: an unattended flow needs its stops written down, because there is nobody there to apply judgement it forgot to ask for.
+It watches reactions as well as words. A vocabulary where approval can be a reaction is invisible to a watch that only polls comments, so the owner would react and nothing would ever wake - which reads as the agent ignoring them. It runs `persistent: true` and stops at step 7 or on `unwatch`, so the owner can react and receive answers concurrently rather than serialising the round. One stop, because there is only one path out of step 6. The `auto` and `go` chains arm it themselves when they reach step 6, which is not an exception to the only-the-literal-command rule in `workflows/discuss.md` but an instance of it: those are literal commands, and their premise is authorisation given in advance. The cost stays stated: a persistent watch is one nobody remembers arming, which is why every round report prints the armed state and the command that stops it, and why monitors die with the session regardless.
+
+### The unattended block is bounded only by its caps
+
+Steps 1 to 5 wait for nobody. Nothing in that block waits for a human, so a rule that would be self-correcting under supervision is not. That is why the caps route a twice-failed finding to the owner rather than to another attempt, and why the two kinds of finding at step 3 stop rather than proceed: an unattended flow needs its stops written down, because there is nobody there to apply judgement it forgot to ask for.
