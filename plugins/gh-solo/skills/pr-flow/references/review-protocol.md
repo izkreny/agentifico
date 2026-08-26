@@ -1,4 +1,6 @@
-The review round protocol. This file owns the sequence; each workflow keeps only its own mechanics and points here. It exists because a round on a real PR went wrong with every rule obeyed - fixes were pushed while the owner was mid-read, and the threads went outdated under them - so the sequence has to live in one place or it drifts.
+# Review round protocol
+
+**This file is the authority on the round: where a workflow disagrees with it, the workflow is wrong.** It owns the sequence; each workflow keeps only its own mechanics and points here. It exists because a round on a real PR went wrong with every rule obeyed - fixes were pushed while the owner was mid-read, and the threads went outdated under them - so the sequence has to live in one place or it drifts.
 
 ## The cast
 
