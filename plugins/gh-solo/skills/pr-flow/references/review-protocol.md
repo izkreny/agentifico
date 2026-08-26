@@ -73,14 +73,17 @@ The first step that waits for anything. They answer per thread, and the vocabula
 
 ### 7. Resolve and push, on the owner's word
 
-The batch is one sentence from the owner - "resolve all and push". Four things follow, in one order, and the order is load-bearing:
+The batch is one sentence from the owner - "resolve all and push", in that order, which is also the order this step runs in:
 
-- **First the authorisation comment**, before anything is resolved or pushed.
-- **Then the push.**
-- **Then the checks**, waiting out anything pending.
-- **Resolve last, and only on green.**
+- **First the authorisation comment**, before any thread is resolved.
+- **Then the resolves.** To resolve a thread is to mark it Resolved on GitHub: the state change that collapses it and takes it off the open list.
+- **Then the push**, with `gh pr checks` read before it is reported done, per the standing convention in `SKILL.md`.
 
-**Resolving last is what keeps a failure actionable.** Resolve first and CI only sees the fixes once every thread has already been authorised closed, so a red check leaves resolved threads on a red branch: `workflows/merge.md` refuses, and nothing is left open to say why. Red stops this step instead, with the threads untouched and the failure named. Reading `gh pr checks` before reporting a push as done is the standing convention in `SKILL.md` regardless.
+**Resolving is a merge requirement, not a push requirement.** Nothing mechanically stops a branch being pushed with threads still open, and step 4's fix commits could have gone up at any point - they are held back for the reason in *Why the push waits*, which is about the owner's reading rather than about resolution. What requires every thread resolved is conclusion A, enforced at `workflows/merge.md`'s door. So the resolve here closes out the round; it does not unlock anything.
+
+**Resolving posts nothing**, which is why the authorisation comment exists: the resolve leaves no trace of whose decision it was, so without that comment a later reader, `workflows/merge.md` included, sees a closed thread and no evidence behind it.
+
+**A red check after the push reopens nothing.** Each finding is closed on its own evidence - the fix, the re-review's verdict, and the owner's word - none of which a CI failure contradicts. A red check against locally green gates is the two-environments finding per the standing convention in `SKILL.md`: it stops the merge until it is diagnosed, and what answers it is a new commit rather than a reopened thread.
 
 **The authorisation comment** carries a literal marker line a later reader can grep for, the owner's words, and every `RF{n}` id it covers.
 
