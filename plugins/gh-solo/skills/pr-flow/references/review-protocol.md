@@ -126,7 +126,7 @@ Every thread ends resolved, and every resolution rests on recorded owner authori
 
 Both must hold: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes everyone else, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials.
 
-**Testing the disclaimer alone is not enough**, tempting as it is, since it is the marker everything else here recognises agent posts by. A mentor's comment opens with no disclaimer either, so on that test alone a mentor's reply would satisfy this gate and vouch for a resolve the owner never made. The login condition is the one that excludes them.
+**The disclaimer alone is not enough:** a mentor's comment carries none either, so the login is what excludes them.
 
 ### The watch survives the round
 

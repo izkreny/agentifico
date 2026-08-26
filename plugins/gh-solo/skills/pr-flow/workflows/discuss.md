@@ -91,11 +91,11 @@ Nothing about this is a preference:
 - **Every emitted record is deduplicated on its `id` plus its own timestamp.** The window overlaps by a second at every boundary: `last=$now` is stamped to whole seconds, `since` admits a record whose `updated_at` equals it, and `submitted_at > "$last"` treats two strings equal to the second as not-greater. So anything written inside the second that `$last` names is delivered in the cycle that finds it and again in the next one. Observed twice on the same PR, payloads byte-identical 32 seconds apart: a four-comment review at 20:43:21 and 20:43:53, a review body at 08:31:22 and 08:31:54. A strict `>` would trade the duplicate for a silent drop - a comment written after a cycle's request but inside its `$now` second would then never match again - so the overlap stays and `$seen` removes the repeat. The timestamp in the key is what lets a genuinely edited comment through a second time. This is not cosmetic: every emitted line is an order or a question, and `OK, fix it then` delivered twice invites the fix twice.
 - **Each record is flattened to one line before it is emitted.** `split("\n") | join(" ")` on the body slice. The dedupe reads one record per line, and a multi-line body would otherwise arrive as records with no key - and the 140-character slice only reads as a summary on one line anyway.
 - **`|| true` on the call, inside the braces.** One failed request must not kill the watch, and the braces keep the guard on the call rather than on the pipeline into `emit`, whose own exit status would otherwise mask it.
-- **`persistent: true`, with the cost stated.** This reverses an earlier rule here that capped the watch at a one-hour `timeout_ms` because a watch that outlives the reading session is a watch nobody remembers arming. That reasoning still holds and is the price paid - but one hour cannot span a review round, and the owner chose immediacy, per *The watch survives the round* in `references/review-protocol.md`. Mitigate instead of relying on a timeout: every round report prints the armed state, the 5.1 path stops the watch explicitly, and a monitor still dies with the session regardless.
+- **`persistent: true`, with the cost stated.** A watch that outlives the reading session is a watch nobody remembers arming, and that cost is real and accepted: a timeout short enough to prevent it - an hour, say - cannot span a review round, so it would expire mid-read and be worse than useless. The owner chose immediacy, per *The watch survives the round* in `references/review-protocol.md`. Mitigate rather than rely on a timeout: every round report prints the armed state, step 7 stops the watch explicitly, and a monitor dies with the session regardless.
 
 ### Stopping it
 
-Only these end a watch, and the owner needs to know `unwatch` at minimum. A `discuss` round does **not** stop it any more - per *The watch survives the round* in `references/review-protocol.md` it keeps running so comments posted mid-round still wake answers:
+Only these end a watch, and the owner needs to know `unwatch` at minimum. A `discuss` round does **not** stop it - per *The watch survives the round* in `references/review-protocol.md` it keeps running so comments posted mid-round still wake answers:
 
 | | |
 |---|---|
@@ -206,7 +206,7 @@ The same reasoning forbids the softer version: do not ask to resolve them, and d
 
 ## Step 4 - An order in a thread gets its fix, committed, never pushed
 
-An order inside a thread authorises the fix and the commit. **It does not authorise a push.** The owner is still reading the diff, and a push during a round marks threads outdated beneath a review that is part-way through - that is exactly what went wrong on the incident PR that produced `references/review-protocol.md`, with every then-existing rule obeyed. Fix, commit, reply in the thread, then stop; pushing happens only at the protocol's step 5, on the owner's words in the chat session.
+An order inside a thread authorises the fix and the commit. **It does not authorise a push.** The owner is still reading the diff, and a push during a round marks threads outdated beneath a review that is part-way through. Fix, commit, reply in the thread, then stop; pushing happens only at the protocol's step 7, on the owner's words in the chat session.
 
 About the fix and its reply:
 

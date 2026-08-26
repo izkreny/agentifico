@@ -39,7 +39,7 @@ Any gate in `## Verification` whose result the fixes could have changed is re-ru
 
 ## Step 5 - Hold the push
 
-**Do not push.** The owner may still be mid-read, and a push moves the diff and marks their threads outdated beneath them - the incident that produced the review-protocol reference in the `pr-flow` skill happened with every other rule obeyed. The commits wait locally until the owner says, in the session, "we are done" or "push for review"; the push, the CI read and what follows each are that protocol's step 5, owned by `pr-flow`.
+**Do not push.** The owner may still be mid-read, and a push moves the diff and marks their threads outdated beneath them. The commits wait locally until the owner says, in the session, "resolve all and push"; the resolve, the push and the CI read are that protocol's step 7, owned by `pr-flow`.
 
 ## Step 6 - Hand off
 
