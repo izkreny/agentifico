@@ -63,6 +63,17 @@ while true; do
   { gh api --paginate "repos/{owner}/{repo}/issues/<pr-number>/comments?since=$last" \
       --jq '.[] | select(.body | startswith("> 🤖") | not) |
             "\(.id)@\(.updated_at) \(.user.login)  conversation  \(.body[0:140] | split("\n") | join(" "))"' || true; } | emit
+  { gh api graphql -F owner='{owner}' -F repo='{repo}' -f query='
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number:<pr-number>) {
+            reviewThreads(first:100) { nodes { path line
+              comments(first:20) { nodes { databaseId
+                reactions(first:20) { nodes { content createdAt user { login } } } } } } } } } }' \
+      --jq ".data.repository.pullRequest.reviewThreads.nodes[] |
+            .path as \$p | .line as \$l | .comments.nodes[] | .databaseId as \$id |
+            .reactions.nodes[] | select(.createdAt > \"$last\") |
+            \"\(\$id)/\(.content)/\(.user.login)@\(.createdAt) \(.user.login)  \(\$p):\(\$l)  reacted \(.content)\"" || true; } | emit
   last=$now
   sleep 30
 done
@@ -75,6 +86,7 @@ Nothing about this is a preference:
 - **Poll every 30 seconds, not faster.** Reading a diff takes minutes, so a shorter interval multiplies polls without shortening the wait. The rate limits are not the reason — a `reviewThreads` query costs 1 point of 5000 an hour, and a conditional REST request that returns `304 Not Modified` costs nothing at all.
 - **Emit only new human comments - the owner's or the mentor's.** No heartbeat, no "still waiting", and never the workflow's own posts. Every emitted line becomes a message in the conversation, and a monitor that talks too much is stopped automatically - so the budget that actually binds is the context window, not GitHub.
 - **The disclaimer exclusion in the `--jq` is the only filter, and it is what keeps that true.** Every reply Step 2 posts is made with the owner's credentials and carries the owner's login, so a login test can never tell agent from human - without the `startswith` exclusion the watch would re-emit the workflow's own replies as fresh comments on the next poll, and the loop would answer itself. Filtering on "not the agent" instead of "the owner" is also what lets a mentor's comment wake a round; the emitted login says who wrote it.
+- **The reactions poll is the one GraphQL call in the loop, and it filters client-side too.** There is no `since` on it either, so `createdAt > "$last"` stands in, and its key is the comment's `databaseId` plus the content plus the reactor, which is unique per reaction. No agent ever reacts, so this poll needs no disclaimer exclusion; the emitted login is what says whether it was the owner or a mentor. **A reaction that is removed again is invisible to it** - the emit already happened - which is one more reason the standing rule below holds: an event is a notification, and Step 1's full read is the authority.
 - **The reviews poll filters client-side, because that endpoint has no `since` parameter.** The `submitted_at > "$last"` select inside double quotes is what stands in for it, and the double quoting is load-bearing: `$last` has to interpolate. The issue-comments call is the Conversation tab; `pulls/…/comments` and `issues/…/comments` are different endpoints that only sound alike, and dropping either reopens the blind spot this loop exists to close.
 - **Every emitted record is deduplicated on its `id` plus its own timestamp.** The window overlaps by a second at every boundary: `last=$now` is stamped to whole seconds, `since` admits a record whose `updated_at` equals it, and `submitted_at > "$last"` treats two strings equal to the second as not-greater. So anything written inside the second that `$last` names is delivered in the cycle that finds it and again in the next one. Observed twice on the same PR, payloads byte-identical 32 seconds apart: a four-comment review at 20:43:21 and 20:43:53, a review body at 08:31:22 and 08:31:54. A strict `>` would trade the duplicate for a silent drop - a comment written after a cycle's request but inside its `$now` second would then never match again - so the overlap stays and `$seen` removes the repeat. The timestamp in the key is what lets a genuinely edited comment through a second time. This is not cosmetic: every emitted line is an order or a question, and `OK, fix it then` delivered twice invites the fix twice.
 - **Each record is flattened to one line before it is emitted.** `split("\n") | join(" ")` on the body slice. The dedupe reads one record per line, and a multi-line body would otherwise arrive as records with no key - and the 140-character slice only reads as a summary on one line anyway.
@@ -106,14 +118,28 @@ query($owner: String!, $repo: String!) {
     pullRequest(number:<pr-number>) {
       reviewThreads(first:100) { nodes {
         id isResolved isOutdated path line
-        comments(first:20) { nodes { author { login } body } } } } } } }'
+        comments(first:20) { nodes { databaseId author { login } body
+          reactions(first:20) { nodes { content createdAt user { login } } } } } } } } } }'
 ```
+
+**Reactions travel in this same query, so they cost no extra request.** The owner answers a finding thread with a reaction as often as with a sentence - the vocabulary is in `references/review-protocol.md`, which owns it - so a round that read only bodies would walk past half of what they said, and they would watch an agent ignore them.
+
+**Read them through `reactions`, not `reactionGroups`.** Both carry who reacted, but `reactions` gives a plain `user` and a `createdAt` on each one, and the watch needs that timestamp to tell a reaction it has already emitted from a new one. `reactionGroups` exposes its reactors as a union, which is more work to read for nothing gained. `databaseId` is on each comment for the same reason: it is what a reaction is keyed against when deduplicating.
 
 **`owner` and `repo` travel as `-F` fields, never inside the query string.** `gh` substitutes the `{owner}`/`{repo}` placeholders only in the endpoint and in `-F` values; inside a `-f` string they go to GitHub as literal braces and the read fails with "could not resolve to a Repository". The reply mutation in Step 2 is the reverse case: `threadId` and `body` are literal strings, so they take `-f`, which never type-converts.
 
 **Read each thread as a unit, in order.** A reply's meaning comes from what it answers, and the same sentence means different things at the top of a thread and at the bottom of one.
 
-**Sort threads by what the owner's last comment does**, because the right response differs completely:
+**Classify by the owner's last signal in the thread, which may be a reaction rather than a comment.** A reaction is judged by who left it, never by the comment it sits on: every agent post is made with the owner's credentials and carries their login, so no test on a comment's author tells agent from human, and a mentor's reaction is not an authorisation. Which comment carries it decides what it refers to, since a finding thread holds the finding, the fix plan and the fix result. What each reaction means is `references/review-protocol.md`'s to say, and it is not restated here; what this workflow owes each one is below.
+
+| The owner's last signal | What to do |
+|---|---|
+| A reaction the protocol reads as accepted | Nothing in the thread. It is an approval, not a question, and it authorises the resolve at the protocol's step 7 |
+| A reaction the protocol reads as the canned question | Answer it in the thread, in the register the protocol names, exactly as though they had typed it |
+| A reaction the protocol reads as seen-and-not-accepted | Nothing, and no fix. It authorises no work; the thread waits for them to write what they want |
+| A reaction the protocol gives no meaning | Nothing. It is not a signal and not an unknown to ask about |
+
+**Sort threads whose last signal is a comment by what that comment does**, because the right response differs completely:
 
 | The owner's last comment | What it is | What to do |
 |---|---|---|
