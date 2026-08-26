@@ -1,0 +1,18 @@
+{
+  "description": "Confirm before a git push whose destination is the trunk, since this plugin's flow reaches the trunk only through a reviewed pull request's squash merge.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/ask-before-trunk-push.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking the push destination"
+          }
+        ]
+      }
+    ]
+  }
+}

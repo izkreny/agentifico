@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agentifico",
+  "description": "AI agent skills, instructions and gotchas.",
+  "owner": {
+    "name": "izkreny",
+    "url": "https://github.com/izkreny"
+  },
+  "plugins": [
+    {
+      "name": "gh-solo",
+      "source": "./plugins/gh-solo",
+      "description": "The solo maintainer's GitHub loop: an issue tracker, plan-first pull requests, implementation by subagent, review rounds and gated squash merges, all through the gh CLI.",
+      "category": "development",
+      "tags": ["github", "pull-requests", "code-review", "issue-tracker", "solo-developer"]
+    }
+  ]
+}
