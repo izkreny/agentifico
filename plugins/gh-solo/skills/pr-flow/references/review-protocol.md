@@ -50,7 +50,7 @@ One reply per finding saying what change would close it, with code in a plain fe
 
 ### 4. Fix, commit, report
 
-The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes, and **nothing is pushed**. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
+The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes, and **nothing is pushed** - step 7 is the round's only push, and says why. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
 
 - **Steps 3 and 4 are two posts and are never merged into one**, even though nothing reads them in between. The gap between the plan and the result is the only place a departure from the plan is visible; combined, it has nowhere to show.
 - **The fix workflow's carve-out applies to every fix in this block**: a fix the owner might independently reject gets its own commit. There it is the exception; here it is the rule, because nothing in this block has been judged yet.
@@ -79,7 +79,7 @@ The batch is one sentence from the owner - "resolve all and push", in that order
 - **Then the resolves.** To resolve a thread is to mark it Resolved on GitHub: the state change that collapses it and takes it off the open list.
 - **Then the push**, with `gh pr checks` read before it is reported done, per the standing convention in `SKILL.md`.
 
-**Resolving is a merge requirement, not a push requirement.** Nothing mechanically stops a branch being pushed with threads still open, and step 4's fix commits could have gone up at any point - they are held back for the reason in *Why the push waits*, which is about the owner's reading rather than about resolution. What requires every thread resolved is conclusion A, enforced at `workflows/merge.md`'s door. So the resolve here closes out the round; it does not unlock anything.
+**Resolving is a merge requirement, not a push requirement.** Nothing mechanically stops a branch being pushed with threads still open, and step 4's fix commits could have gone up at any point - they are held back to protect the owner's reading, which has nothing to do with resolution. What requires every thread resolved is conclusion A, enforced at `workflows/merge.md`'s door. So the resolve here closes out the round; it does not unlock anything.
 
 **Resolving posts nothing**, which is why the authorisation comment exists: the resolve leaves no trace of whose decision it was, so without that comment a later reader, `workflows/merge.md` included, sees a closed thread and no evidence behind it.
 
@@ -92,15 +92,13 @@ The batch is one sentence from the owner - "resolve all and push", in that order
 - **What the batch covers:** every thread with no outstanding owner signal. That is the whole point of it - a thread the owner already approved was resolvable on its own, so an authorisation covering only those would do nothing.
 - **What it never covers:** a thread waiting on the owner from step 3, a thread they marked seen-and-unhappy, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
 
-**There is no push before this step, and no words that ask for one.** The owner reads the threads before the code, and everything they judge on is already there without a push: the fix plan carries the intended change as code, the fix result names the commit that landed and any departure from that plan, and the commits themselves are local in the repository they already have. What an earlier push would cost is in *Why the push waits*, and the owner asking for it changes who is to blame rather than what happens to the threads. Another review round is not a reason for one either: that is step 5, and a defect a fix introduced gets its own thread at step 3.
+**This is the round's only push, and no words ask for an earlier one.** A push moves the diff, and GitHub recomputes every thread anchor the moment it lands, marking threads outdated beneath a reader part-way through. That is what went wrong on the incident PR, with every then-existing rule obeyed, and holding the push until here is what keeps the threads anchored to the exact diff the owner is reading.
+
+Nothing is lost by waiting, because everything the owner judges on is on the PR already: the fix plan carries the intended change as code, the fix result names the commit that landed and any departure from that plan, and the commits themselves are local in the repository they already have. The owner asking for an earlier push changes who is to blame rather than what happens to the threads. Another review round is not a reason for one either: that is step 5, and a defect a fix introduced gets its own thread at step 3.
 
 ### 8. Merge
 
 `workflows/merge.md`, whose gate is conclusion A.
-
-## Why the push waits
-
-A push moves the diff, and GitHub recomputes every thread anchor the moment it lands, marking threads outdated beneath a reader who is part-way through. That is what went wrong on the incident PR, with every then-existing rule obeyed, and it is why nothing before step 7 pushes. Holding the push is also what keeps the threads anchored to the exact diff the owner is reading.
 
 ## The owner's vocabulary
 
