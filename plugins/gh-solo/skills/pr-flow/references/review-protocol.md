@@ -2,44 +2,119 @@ The review round protocol. This file owns the sequence; each workflow keeps only
 
 ## The cast
 
-A **round** is one pass of review-then-discussion; there may be several. The **Reviewer** is one of the following, and only how the round starts and who gets notified differs:
+A **round** is one pass of review-then-judgement; there may be several.
 
-- **(a)** the `/code-review` subagent, invoked by the owner
-- **(b)** the owner, reading the diff themselves
-- **(c)** the owner's mentor
+Each cell below states its own rule, prohibitions included, so a row read out of its column still says what it means.
+
+| Who | Does | Never |
+|---|---|---|
+| **The owner** | Judges the findings, authorises the resolve and the push, reads the code last | Is never required to act before step 6 |
+| **The orchestrator** | Plans, implements, posts every comment, plans the fixes, fixes, replies, resolves, pushes | Never reviews its own diff, never alters a finding's text, never pushes before the owner authorises it |
+| **The reviewer** | Reads the diff, the plan, the issue and the standards, and produces findings | **Never suggests a fix**, never writes anything to the PR, never touches the working tree |
+| **A mentor** | Comments as a third party | Never holds authority, is never answered, never counts toward any gate |
+
+**Only the owner is answered, and only the owner's input authorises anything.** A mentor's comment, reaction or review is read and named in the round report, and then left alone: never answered in the thread, never treated as an order, never counted as the reply or the reaction a resolve rests on. This is not about whose advice is worth more. It is that authority here belongs to one person, and an agent that answers everyone turns a third party's opinion into work the owner never asked for, in their own repository, under their own login. Where a mentor's point deserves an answer, the owner gives it.
+
+**The orchestrator implements and also fixes.** That is deliberate: it already knows why each line is shaped as it is, so it will not undo something intentional the way a cold agent does. What it must never do is review its own work, which is why the reviewer is a separate agent with its own context.
+
+**The reviewer is a pure function: a PR number in, one findings file out.** It has no write access to the PR and no knowledge of the conventions below - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context from the PR and the repository rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence. `workflows/review.md` owns the spawn and the file's shape.
 
 ## The finding key
 
-- Every **agent-posted** finding carries, after the AI disclaimer line and the `via` line under it (per the standing convention in `SKILL.md`): an id `RF{number}` - `RF1`, `RF2`, no hyphen - and a severity in words with its emoji: 🔴 high, 🟡 medium, 🔵 low.
-- **Ids never restart for the life of the PR.** A new round's fresh findings continue from the highest id already on the PR, found by reading the existing threads. A follow-up thread posted after a step 5.2 push **reuses the id of the finding it answers** - the shared id is what joins the trail; the original thread gets no back-reference reply.
-- **Severity is mapped, never invented.** `/code-review` ranks in its own vocabulary; the mapping applied is stated in the round's record Review, which is also where each PR's observed vocabulary is recorded - read a real record rather than mapping from memory.
-- **Every agent-posted finding ends by saying what change would close it.** Most findings already do in their own words; one that only names the defect gets a final `Suggested fix:` paragraph when it is stamped or posted. The detection, the sourcing and the wording all belong to `workflows/review.md` Pass 2 - this key only makes the paragraph part of the finding format.
-- **Owner-posted findings carry none of this.** When the owner is the Reviewer their bare comments enter step 4 exactly the same way; ids and severities are mandatory for agent posts only.
+- **`RF{n}` ids are assigned by the orchestrator**, not the reviewer, which emits its own local index and nothing else. Continuing an id sequence needs the PR's existing threads, and that is state the reviewer needs for nothing else.
+- **Ids never restart for the life of the PR.** Before numbering, read the existing threads for the highest `RF{n}` already posted and continue from it. `RF3` must mean one thing on this PR forever, including in the fix-plan and fix-result replies that reuse it.
+- **Severity is `high`, `medium` or `low`, assigned by the reviewer**, and rendered with its emoji when posted: 🔴 high, 🟡 medium, 🔵 low. It is assigned rather than mapped: the reviewer's brief states the scale, so nothing has to translate one vocabulary into another and no finding can arrive without a level.
+- **Every finding carries a failure scenario**: concrete inputs or state, then the wrong output. This is what makes a finding falsifiable, and it is what the orchestrator checks before it changes any code.
+- **No finding says how to fix itself.** The reviewer is forbidden from suggesting a fix, because a suggested fix anchors the fixer, who knows the code better than the reviewer does. What closes a finding is decided at step 3 and stated there.
+- **Every agent post opens with the AI disclaimer and its `via` line**, per the standing conventions in `SKILL.md`. The header is the orchestrator's to apply, always - it is one convention with one owner, and a second copy of it inside the reviewer would drift.
+- **Owner-posted findings carry none of this.** When the owner or a mentor raises something themselves, it enters at step 6 as an ordinary comment; ids and severities are mandatory for agent posts only.
 
 ## The steps
 
-**0-1.** The Reviewer reviews the implemented code and produces findings, ranked by severity.
+Steps 1 to 5 run unattended, in one block. The owner's first involvement is step 6.
 
-**2.** The findings are posted as inline comments on the changed lines. When the Reviewer is the `/code-review` subagent, the orchestrating agent posts them only when `--comment` has degraded to printing - the repair form in `workflows/review.md`, since the flag degrades silently (anthropics/claude-code issue 88190).
+### 1. Review
 
-**3.** The Reviewer notifies the implementor: the mentor tags the owner in a submitted review; the owner says so in the session ("review is done"); for the subagent, the orchestrating agent tells the owner the findings are posted.
+The reviewer is spawned with the PR number and nothing else, and returns its findings file plus the text of the round's report. It posts nothing.
 
-**4.** The owner walks every finding and **replies in every thread before resolving it**. The reply's shape decides the agent's obligation - the full classification table is in `workflows/discuss.md` Step 1:
+### 2. Post
 
-- **4.1 A discussion** - back and forth in the thread until it reaches approve or refuse.
-- **4.2 An order** ("OK", "fix it", "drop it", "rewrite it") - the agent fixes, **commits, and replies in the thread** - disclaimer and `via` line first, like every agent post: the commit subject, the RF id, and that it is committed locally and not yet pushed. Never a sha - the owner does not use them, and a stacked branch's later `gh stack sync` rewrites them. **The agent does not push.**
-- **4.2.1 The `## Plan overview` is brought up to date in the same round when a fix changes what it describes.** The overview summarises what the branch does, so a fix that adds or removes a behaviour makes it wrong. Wherever the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `workflows/merge.md`, that text becomes the squash commit message on `main` and can never be corrected afterwards, so this is not a stale document, it is a permanently wrong commit message. The edit is a body edit, read-modify-write per the body-edit convention in `SKILL.md`, never a commit, and it stays within the overview's cap, per *Convention checks* in `workflows/review.md`. Name it in the round report next to the fix commits.
-- **4.3 A refusal** ("no", "nay", "skip it") - a short acknowledgement unless there is a strong counter-argument, then nothing. No fix is made.
+The orchestrator wraps each finding in the header and lands every thread *and* the record Review in **one** call to the reviews endpoint, then posts the reviewer's report as a Conversation comment - the same surface, and for the same reason, as the implementation record in the `implement` skill: it expects no answer, and nothing in this plugin answers that tab. One call, so a half-posted PR cannot happen: either the whole round is on the PR or none of it is. The finding text below the header is verbatim; only the header is generated. `workflows/review.md` owns the call and the script that builds and validates it.
 
-**5.** The round's fix commits sit local until the owner says, in the session:
+### 3. Plan the fix, in the thread
 
-- **5.1 "we are done" / "you can merge"** - first read the threads and check conclusion A *before* pushing: an unresolved thread, or one resolved without an owner reply, stops here with its `file:line` named - catching it after the push would mark the missed thread outdated before the owner walked it, and waste a CI cycle on a merge the gate would refuse anyway. All clear: push, wait for the checks to go green, then continue into `workflows/merge.md`, whose own gate re-checks at the door.
-- **5.2 "push for review" / "push changes for review"** - push, read the checks, then post **new inline threads on the lines the fixes changed**, one per fix, each reusing its finding's RF id and saying what changed. The posting form is the same one-call reviews-endpoint pattern as the repair form in `workflows/review.md`: a `comments` array anchored to the new head with `path`, `line`, `side`, each body opening with the disclaimer, its `via` line, and then the reused `RF{n}` and what changed, the review `body` a short index of the push. The originals are left alone; GitHub marks them outdated, which is correct and unavoidable after a push. This returns to step 4.
+One reply per finding saying what change would close it, with code in a plain fence.
 
-**Why the push waits:** a push moves the diff, and GitHub recomputes every thread anchor the moment it lands - a push during a round marks threads outdated beneath a review that is part-way through. That is what went wrong on the incident PR, with every then-existing rule obeyed.
+- **Never a `suggestion` fence.** GitHub renders those with a button that commits straight to the branch, which bypasses the local commit and breaks the push-hold in one click. It is exactly what suggests itself when the instruction is "post the fix with code", which is why the rule is stated at the point of temptation and enforced by the script at step 2.
+- **Two kinds of finding get no fix plan and wait for the owner instead:** one the reviewer flagged as needing their judgement, and one whose fix would change scope - new user-visible behaviour, a different interface, work the issue never asked for. The first is a property of the finding and only the reviewer can see it; the second is a property of the fix and only the orchestrator can. Each gets a reply naming which it is and why, and nothing else happens to it.
+
+### 4. Fix, commit, report
+
+The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes, and **nothing is pushed**. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
+
+- **Steps 3 and 4 are two posts and are never merged into one**, even though nothing reads them in between. The gap between the plan and the result is the only place a departure from the plan is visible; combined, it has nowhere to show.
+- **The fix workflow's carve-out applies to every fix in this block**: a fix the owner might independently reject gets its own commit. There it is the exception; here it is the rule, because nothing in this block has been judged yet.
+- Any gate in `## Verification` the fixes could have invalidated is re-run and re-ticked by whoever ran it, per the standing convention in `SKILL.md`.
+- **A fix that changes what the `## Plan overview` describes brings the overview up to date in the same round.** The overview summarises what the branch does, so a fix that adds or removes a behaviour makes it wrong - and wherever the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `workflows/merge.md`, that text becomes the squash commit message on `main` and can never be corrected afterwards. So this is not a stale document, it is a permanently wrong commit message. The edit is a body edit, read-modify-write per the body-edit convention in `SKILL.md`, never a commit, and it stays inside the overview's cap in *Convention checks*. Name it in the round report next to the fix commits.
+- The mechanics are the `implement` skill's fix workflow, run by the orchestrator rather than handed to anyone.
+
+### 5. Re-review, scoped
+
+The reviewer is spawned again with the fix diff, the findings list, and which commit claims which id. It answers two questions and no others: for each finding claimed closed, does this diff close it; and did any fix introduce a new defect. It returns verdicts to the orchestrator, which posts them into the threads.
+
+- **This closes a real hole:** the fixes were made by the author of the code under review, unsupervised, and nothing else checks that a fix actually closed its finding. A guard added on the wrong branch leaves every gate green and a thread asserting a closure that never happened.
+- **Nothing else is in scope.** No findings on untouched code, no style opinions, no re-opening a finding the owner already rejected. A full second review is where iteration counts explode, because each pass finds fresh nitpicks on code nobody asked about.
+- **A new defect gets its own record, and the first index is left alone.** One record Review per analysis is the standing rule and the re-review is an analysis, so it posts its own, indexing its own pass and the new `RF{n}` ids in it. Nothing goes stale, because no index ever claimed to cover a pass that had not happened when it was written, and no submitted record is rewritten to make it true.
+- **Both loops are capped, because no owner is watching.** A finding the re-review says is not closed gets **one** further plan-and-fix attempt; a second failure sends the thread to the owner instead, since two failures mean the finding is not understood and a third machine attempt costs more than reading it. A new defect the re-review raises gets a fix plan and a fix, and that fix is re-reviewed once, never recursively.
+
+### 6. The owner judges
+
+The first step that waits for anything. They answer per thread, and the vocabulary is below.
+
+### 7. Resolve and push, on the owner's word
+
+The batch is one sentence from them - "resolve all and push". Before resolving anything, post **one authorisation comment**: a literal marker line a later reader can grep for, the owner's words, and every `RF{n}` id it covers.
+
+- **Grep-able rather than inferred**, because it is an agent post and opens with the disclaimer, so the older test of "a body not opening with the disclaimer is the owner's" cannot find it.
+- **Id-naming**, because an authorisation covering `RF1` to `RF7` must not silently authorise resolving an `RF9` that was posted afterwards.
+- **What the batch covers:** every thread with no outstanding owner signal. That is the whole point of it - a thread the owner already approved was resolvable on its own, so an authorisation covering only those would do nothing.
+- **What it never covers:** a thread waiting on the owner from step 3, a thread they marked seen-and-unhappy, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
+- Then push, and read `gh pr checks` before reporting the push as done, per the standing convention in `SKILL.md`.
+
+### 7b. Push without resolving, on "push for review"
+
+The owner reads the threads before the code, so they may want the fixes visible on the PR while they are still judging. Those words push and nothing else: no authorisation comment, nothing resolved, and the round returns to step 6. GitHub marks the threads outdated, which is correct and unavoidable after any push, and does not resolve them - outdated-and-unresolved is exactly the list of "changed, not read by me yet". No follow-up threads are posted, because step 4 already said what each fix did in the thread that owns it.
+
+### 8. Merge
+
+`workflows/merge.md`, whose gate is conclusion A below.
+
+**Why the push waits until step 7:** a push moves the diff, and GitHub recomputes every thread anchor the moment it lands, marking threads outdated beneath a reader who is part-way through. That is what went wrong on the incident PR, with every then-existing rule obeyed. Holding the push is also what keeps the threads anchored to the exact diff the owner is reading.
+
+## The owner's vocabulary
+
+How they answer a thread at step 6. **Approval may be a word or a reaction; refusal must always be written.**
+
+| What they do | What it means |
+|---|---|
+| Say "OK", "good", "cool" in the session, naming the finding | Accepted. A bare word naming nothing is not a signal on any thread |
+| React 👍 `THUMBS_UP` or ❤️ `HEART` | Accepted. Exact synonyms of each other and of the words above |
+| React 👀 `EYES` or 😕 `CONFUSED`, or write "explain" or "?!?" | One canned question, answered in the thread: *"I do not understand. Explain to me like a non-technical person, but use real code names."* The reaction and the word mean exactly the same thing, so neither gets a different answer from the other |
+| React 👎 `THUMBS_DOWN` | **Seen and not accepted. It authorises nothing.** No fix, no revert, no resolve, until they write what they want |
+| Write a reply | A discussion. `workflows/discuss.md` classifies and answers it |
+| Nothing, or any other reaction | No signal. Step 7's batch covers it |
+
+- **👎 acts on nothing on purpose.** It cannot be told apart from "the finding was wrong" versus "the fix was wrong", which need opposite responses, and a revert is a write to the branch. Its whole job is to separate *I looked and I am not happy* from *I have not looked*, which is a distinction step 7's batch has to make even though neither authorises work.
+- **The remaining reactions carry no meaning at all.** 😄 🎉 🚀 and anything else are no signal, not an unknown to stop and ask about.
+- **Which comment carries the reaction decides what it refers to**, since a thread holds the finding, the fix plan and the fix result. A question on the finding asks about the finding; on the fix plan, about the plan; on the fix result, about what changed.
+- **Only the owner's reactions count**, so a reaction is judged by who left it, never by the comment it sits on. Every agent post is made with the owner's credentials and so carries their login, which means no test on a *comment's* author can tell agent from human, and a mentor's 👍 is not an authorisation. `workflows/discuss.md` owns how they are read.
 
 ## The conclusions
 
-**A. Every thread ends resolved, and no thread is resolved without an owner reply in it.** Resolution stays the owner's act alone, in the GitHub UI. Enforcement: `workflows/review.md` Pass 1 checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread or a thread resolved with no owner comment - the merge gate is the only place a browser-side resolve can be caught.
+**A. Every thread ends resolved, and every resolution rests on recorded owner authority.** One of three things: a reply of theirs in the thread, a reaction of theirs on it, or an authorisation comment naming its `RF{n}` id. Resolving is the orchestrator's act now, but the authority for it is never inferred and never lives only in a session - a session dies and `workflows/merge.md` still has to be able to check. Enforcement: `workflows/review.md` checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread, or on a resolved one with none of the three, naming its `file:line`.
 
-**B. The watch survives the round.** It runs `persistent: true` and stops only at step 5.1 or on `unwatch`, so the owner can comment and receive answers concurrently instead of serialising the round. A 5.2 push starts another round, so the watch keeps running through it. The cost is real and stays stated in `workflows/discuss.md`: a persistent watch is one nobody remembers arming, which is why every round report prints the armed state, the 5.1 path stops it explicitly, and monitors die with the session regardless.
+**The test for "the owner said this" takes two conditions, and the older one-condition version is wrong.** Recognising an owner comment by its body not opening with the AI disclaimer was enough only while the owner was the sole human posting: a mentor's comment opens with no disclaimer either, so on that test alone a mentor's reply would satisfy this gate and vouch for a resolve the owner never made. So both must hold: the author's login **is** the repository owner's, and the body does **not** open with the disclaimer. The first excludes everyone else, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials.
+
+**B. The watch survives the round, and it watches reactions as well as words.** A vocabulary where approval can be a reaction is invisible to a watch that only polls comments, so the owner would react and nothing would ever wake - which reads as the agent ignoring them. It runs `persistent: true` and stops at the batch resolve-and-push of step 7, or on `unwatch`, so the owner can react and receive answers concurrently rather than serialising the round. **Step 7b never stops it**: that push returns the round to step 6, which is precisely when the owner is still reacting and most needs an answer. The `auto` and `go` chains arm it themselves when they reach step 6, which is not an exception to the only-the-literal-command rule in `workflows/discuss.md` but an instance of it: those are literal commands, and their premise is authorisation given in advance. The cost stays stated: a persistent watch is one nobody remembers arming, which is why every round report prints the armed state and the command that stops it, and why monitors die with the session regardless.
+
+**C. Steps 1 to 5 are unattended, and the caps in step 5 are the only thing bounding them.** Nothing in that block waits for a human, so a rule that would be self-correcting under supervision is not. That is why the caps route a twice-failed finding to the owner rather than to another attempt, and why the two kinds of finding at step 3 stop rather than proceed: an unattended flow needs its stops written down, because there is nobody there to apply judgement it forgot to ask for.
