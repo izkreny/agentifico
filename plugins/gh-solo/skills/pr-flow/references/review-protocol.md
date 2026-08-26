@@ -130,7 +130,9 @@ Both must hold: the author's login **is** the repository owner's, and the body d
 
 ### The watch survives the round
 
-It watches reactions as well as words. A vocabulary where approval can be a reaction is invisible to a watch that only polls comments, so the owner would react and nothing would ever wake - which reads as the agent ignoring them. It runs `persistent: true` and stops at step 7 or on `unwatch`, so the owner can react and receive answers concurrently rather than serialising the round. One stop, because there is only one path out of step 6. The `auto` and `go` chains arm it themselves when they reach step 6, which is not an exception to the only-the-literal-command rule in `workflows/discuss.md` but an instance of it: those are literal commands, and their premise is authorisation given in advance. The cost stays stated: a persistent watch is one nobody remembers arming, which is why every round report prints the armed state and the command that stops it, and why monitors die with the session regardless.
+It watches reactions as well as words, because approval can be a reaction and a watch polling only comments would leave the owner reacting into silence. It stops at step 7 or on `unwatch`, and nowhere else, since step 7 is the only path out of step 6 - so the owner can react and be answered as they go rather than serialising the round.
+
+The `auto` and `go` chains arm it themselves on reaching step 6. That is an instance of the only-the-literal-command rule in `workflows/discuss.md` rather than an exception to it: those are literal commands, and their premise is authorisation given in advance. That workflow owns the mechanics and the cost.
 
 ### The unattended block is bounded only by its caps
 
