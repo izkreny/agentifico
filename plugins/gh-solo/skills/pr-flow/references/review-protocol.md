@@ -122,7 +122,11 @@ How they answer a thread at step 6. **Approval may be a word or a reaction; refu
 
 Every thread ends resolved, and every resolution rests on recorded owner authority: one of three things: a reply of theirs in the thread, a reaction of theirs on it, or an authorisation comment naming its `RF{n}` id. Resolving is the orchestrator's act now, but the authority for it is never inferred and never lives only in a session - a session dies and `workflows/merge.md` still has to be able to check. Enforcement: `workflows/review.md` checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread, or on a resolved one with none of the three, naming its `file:line`.
 
-**The test for "the owner said this" takes two conditions, and the older one-condition version is wrong.** Recognising an owner comment by its body not opening with the AI disclaimer was enough only while the owner was the sole human posting: a mentor's comment opens with no disclaimer either, so on that test alone a mentor's reply would satisfy this gate and vouch for a resolve the owner never made. So both must hold: the author's login **is** the repository owner's, and the body does **not** open with the disclaimer. The first excludes everyone else, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials.
+#### Recognising the owner takes two conditions
+
+Both must hold: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes everyone else, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials.
+
+**The older one-condition version is wrong.** Recognising an owner comment by its body not opening with the disclaimer was enough only while the owner was the sole human posting. A mentor's comment opens with no disclaimer either, so on that test alone a mentor's reply would satisfy this gate and vouch for a resolve the owner never made.
 
 ### The watch survives the round
 
