@@ -183,7 +183,7 @@ The load-bearing values in that shape, each with a trap:
 
 ## Rules
 
-- **Never merge a PR without a disclaimer-opening Review.** Array length proves nothing - inline discussion inflates `reviews` with empty-bodied containers. The gate is the point of the workflow.
+- **Never merge a PR without a round record Review**, recognised by its `via` line per Step 1 and never by the disclaimer, which every agent post carries including the convention check that runs before a round. Array length proves nothing either - inline discussion inflates `reviews` with empty-bodied containers. The gate is the point of the workflow.
 - **Never merge over an unresolved thread, or a thread resolved with none of the three evidence forms.** *Resolution rests on recorded authority* in `references/review-protocol.md`; this door is the only place it is enforceable.
 - **Never `git merge` or `git push` to `main` to land a branch.** The hard rule in `SKILL.md` holds here too; merging is `gh`'s job.
 - **Never omit the merge method** — `--squash` on `gh pr merge`, `--squash` on `gh stack merge`. Both fall back to something other than policy when it is left off.

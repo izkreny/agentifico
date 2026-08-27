@@ -1,6 +1,7 @@
 ---
 name: reviewer
-description: "Read a pull request's diff and produce a findings file, on a solo GitHub repository. Dispatched by the `pr-flow` skill's review workflow through the `reviewer` agent, which is the only thing that should invoke it. Never run it in a session that wrote the code under review: the independence of the read is the whole value, and a session reviewing its own work confirms its own reasoning instead."
+description: |
+  The procedure the `reviewer` agent follows once a review round has spawned it: what to read, the two axes, what every finding must carry, and the findings file it returns. Not a way to start a review - a round is started through the `pr-flow` skill, which spawns the agent that loads this. Loading it anywhere else, above all in a session that planned, wrote or fixed the code, produces a self-review, because that session has already reasoned its way to why every line looks the way it does.
 argument-hint: "<pr-number> | rescope <pr-number>"
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Write, Grep, Glob
 ---
@@ -42,7 +43,7 @@ You are handed a number rather than a summary, deliberately: evidence chosen by 
 
 1. **The pull request.** `gh pr view <pr-number> --json title,body,headRefName,baseRefName,commits,changedFiles`. The body carries `## Plan overview` and `## Verification`, and the `Closes #{issue-number}` line.
 2. **The diff.** `gh pr diff <pr-number>`. This is the object under review and the only thing your findings may be about.
-3. **The issue.** Take `{issue-number}` from the `Closes` line, and where that is missing, parse the branch name `{type}/GHI-{issue-number}_{slug}`: drop everything up to and including the first `/`, take everything before the first `_`, strip the `GHI-` prefix, so `feat/GHI-50_login-form` gives `50`. Then `gh issue view <issue-number> --json title,body,labels`. Its acceptance criteria are the spec axis's whole subject. **Say so plainly in your report if there is no issue**: the spec axis then has nothing to review against, and a spec verdict with no spec is a guess wearing a verdict's clothes.
+3. **The issue.** Take `{issue-number}` from the `Closes` line, and where that is missing, parse the branch name `{type}/GHI-{issue-number}_{slug}` - the same parse the `pr-flow` skill states for itself, copied here on purpose because you are forbidden from reading that skill: drop everything up to and including the first `/`, take everything before the first `_`, strip the `GHI-` prefix, so `feat/GHI-50_login-form` gives `50`. Then `gh issue view <issue-number> --json title,body,labels`. Its acceptance criteria are the spec axis's whole subject. **Say so plainly in your report if there is no issue**: the spec axis then has nothing to review against, and a spec verdict with no spec is a guess wearing a verdict's clothes.
 4. **The plan file**, linked from `## Plan overview`. It states what the branch intended to do and often carries a test list.
 5. **The repository's standards**, all repo-relative, in this precedence: the repository's own `AGENTS.md` or `CLAUDE.md`, then `.agents/gh-solo.md` or `.claude/gh-solo.md` where present. Read them with `Read`. **A documented repository standard always beats the baseline** in `references/baseline.md`, so read the repository's first and let it override.
 6. **`references/baseline.md`**, this skill's own engineering baseline, which is what you review against where the repository documents nothing.

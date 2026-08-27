@@ -59,7 +59,7 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 **The chain commands compress the loop without loosening it.** `auto` runs issue to prepared review as one chain; `go` does the same starting from a plan you have already read. Each exists only as a literal command - typing it is the approval the skipped stop would have collected, given in advance - and none skips a gate: every audit still runs, any refusal ends the chain, and each stops at the step nothing can take from you, judging the findings. They arm the watch when they get there, so you can react as you read.
 
-**The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, spawned with a PR number and nothing else, so that the session which wrote the code is not the session that judges it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check. Where your harness cannot spawn a subagent, read the diff yourself and post the findings, which the flow records identically. What is never substitutable is that the analysis comes from something other than the author.
+**The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, spawned with a PR number and nothing else, so that the session which wrote the code is not the session that judges it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check. Where your harness cannot spawn one, appoint a capability to invoke instead of an agent to spawn - `.agents/gh-solo.md` takes either - and the round posts its findings for it. What is never substitutable is that the analysis comes from something other than the author.
 
 **Every review is recorded, including a clean one.** A pull request with no comments on it is ambiguous: it might have been read and found fine, or never read at all. So the outcome is always written onto the PR, even when the outcome is "nothing found". Later, that is the difference between knowing and guessing — and it is what merging checks before it will land anything.
 
@@ -95,12 +95,14 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 | `workflows/open.md` | plan, first commit, draft PR, stop |
 | `workflows/auto.md` | the `auto` and `go` chains: the same lifecycle, waits removed, gates intact |
 | `workflows/ready.md` | auditing that every stated check actually ran and CI agrees, then out of draft |
-| `workflows/review.md` | conventions, handoff, and recording the outcome |
+| `workflows/review.md` | the review round: conventions, the reviewer, the findings, the fixes |
 | `workflows/discuss.md` | answering your replies, inside the thread you asked in |
+| `workflows/resolve.md` | your authorisation recorded, the threads resolved, the round's only push |
 | `workflows/merge.md` | the reviewed-or-not gate, squash, cleanup |
 | `workflows/stack.md` | everything about stacks |
 | `workflows/help.md` | printed to you on `help` |
 | `references/review-protocol.md` | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates |
+| `scripts/post-review.py` | builds and validates the one call that posts a round, then reconciles it; `scripts/test-post-review.sh` is its bench |
 | `scripts/docs-check.py` | path and fence checks, run before any docs or plan push |
 
 Anything specific to one repository — its check commands, a convention that differs — belongs in `.agents/gh-solo.md` in that repository, never in this skill. Check commands especially are never invented: they belong to the repo that runs them.

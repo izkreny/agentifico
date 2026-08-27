@@ -1,6 +1,7 @@
 ---
 name: implement
-description: "Implement the plan on a branch whose draft PR already exists, or apply review fixes to it, on a GitHub repository the user owns. Use when asked to implement a plan, start or continue the implementation, work on or pick up a numbered PR or its branch, resume work after a break, or when the owner says which review findings to fix - fix all, fix specific ones. Not for opening the PR, marking it ready, reviewing or merging - that is the `pr-flow` skill - nor for the issue tracker, which is `tracker`."
+description: |
+  Implement the plan on a branch whose draft PR already exists, or apply review fixes to it, on a GitHub repository the user owns. Use when asked to implement a plan, start or continue the implementation, work on or pick up a numbered PR or its branch, resume work after a break, or when the owner says which review findings to fix - fix all, fix specific ones. Not for opening the PR, marking it ready, reviewing or merging - that is the `pr-flow` skill - nor for the issue tracker, which is `tracker`.
 argument-hint: "[<pr-number> | fix <pr-number> [which findings]]"
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, TodoWrite, EnterWorktree
 ---

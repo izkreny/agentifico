@@ -57,7 +57,7 @@ Two kinds of thread wait for you specifically, and the round will have said whic
 
 **Or come back and say so** - "I replied on the PR", or `discuss 60`. Or run `watch 60` first and it will poll while you work, answering as they land - that has to be the command, not a sentence, so nothing starts polling because it guessed. `auto` and `go` arm it for you when they reach this step. The watch runs through the whole round, so comment at your own pace; it stops on "resolve all and push", on `unwatch`, or with the session. Nothing notifies the session that you commented in the GitHub UI, so a reply nobody is told about is a reply nobody reads. `sync` does *not* mean this: that word cascade-rebases a stack.
 
-`discuss` and `watch` work from the moment the PR exists, not only mid-review - the plan discussion after `open` is the same loop, since the plan file is the whole diff. One habit makes it work: **comment inline on the file's lines in the Files changed tab, never in the comment box at the bottom of the Conversation tab** - Conversation-tab comments live on a different API and neither `discuss` nor `watch` can see them.
+`discuss` and `watch` work from the moment the PR exists, not only mid-review - the plan discussion after `open` is the same loop, since the plan file is the whole diff. **Inline on the file's lines in the Files changed tab is the best place to comment**, because a thread anchored to a line is what the round's ids, fix plans and resolves attach to. It is a recommendation rather than a requirement: review summary bodies and Conversation comments are read too, on their own endpoints, so nothing you write goes unread wherever you put it.
 
 **Prerequisites**
 

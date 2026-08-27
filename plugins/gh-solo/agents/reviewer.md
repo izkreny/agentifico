@@ -1,6 +1,7 @@
 ---
 name: reviewer
-description: "Reviews the diff of a pull request on a solo GitHub repository and returns a findings file. Spawn it from the `pr-flow` skill's review workflow, with the PR number alone for a full review, or `rescope` plus the fix commit range and the findings list for the scoped re-review. Never spawn it from the session that planned, wrote or fixed the code: a fresh context is the entire reason it is a separate agent."
+description: |
+  Reviews the diff of a pull request on a solo GitHub repository and returns a findings file. Spawn it from the `pr-flow` skill's review workflow, with the PR number alone for a full review, or `rescope` plus the fix commit range and the findings list for the scoped re-review. Never spawn it from the session that planned, wrote or fixed the code: a fresh context is the entire reason it is a separate agent.
 model: inherit
 effort: xhigh
 tools: Skill, Bash, Read, Write, Grep, Glob
