@@ -97,7 +97,7 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 
 ### Step 1 - Review
 
-**Which reviewer runs is a per-repo fact.** The default is the `reviewer` agent this plugin ships. Where `.agents/github.md` carries a `Reviewer agent:` line naming an agent type, per the per-repo config convention in `SKILL.md`, spawn that one instead.
+**Which reviewer runs is a per-repo fact.** The default is the `reviewer` agent this plugin ships. Where `.agents/gh-solo.md` carries a `Reviewer agent:` line naming an agent type, per the per-repo config convention in `SKILL.md`, spawn that one instead.
 
 - **The appointed agent inherits the whole contract, not only the spawn.** It gets the PR number and nothing else, and it must return the absolute path of a findings file in the format `../../reviewer/SKILL.md` defines, plus its report text. Everything downstream reads that file and nothing else, so an agent that answers in prose cannot be posted.
 - **Refuse if the appointed agent is not registered.** `⛔ REFUSED - {name} is not a registered agent`. Never fall back to the bundled one: the owner would believe they are reading the findings of the agent they appointed and would be reading ours, which is the exact confusion an appointment exists to prevent, and it would silently invalidate any comparison between reviewers.
@@ -107,7 +107,7 @@ Spawn it with the PR number and nothing else.
 
 #### Where the appointed reviewer is a command
 
-`.agents/github.md` may instead carry a `Reviewer command:` line, for a capability that is invoked rather than spawned. Run it as written, substituting the PR number for `{pr}`.
+`.agents/gh-solo.md` may instead carry a `Reviewer command:` line, for a capability that is invoked rather than spawned. Run it as written, substituting the PR number for `{pr}`.
 
 **Never with a flag that makes it post its own findings.** On the bundled `/code-review` that flag is `--comment`, and the whole point of this form is that its findings come back to you and go up through the posting script like every other round's. A capability that posts for itself lands threads with no `RF{n}` id, no disclaimer and no `via` line, which `workflows/merge.md` then reads as the owner's own comments vouching for their own resolution. One writer, one convention: that is what this form preserves.
 

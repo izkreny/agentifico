@@ -38,7 +38,7 @@ The rounded steps are yours, same rule as everywhere in this flow: the skill wil
 
 **Fixes are the same skill through a different door, and they never push.** Two doors, in fact: the review round calls it at its own step 4, where the work list is the fix plans it already posted, and you call it after judging - "fix all", "fix RF1 and RF3". Either way it lands the fixes as commits grouped by coherent change, each naming the RF ids it closes, replies in each finding's thread, and posts the finding-to-commit map as a PR comment. Nothing leaves the machine: the threads stay anchored to the exact diff you are still reading, and the commits wait for you to say "resolve all and push", per the review protocol in `pr-flow`. It never resolves a thread itself either - that happens once, on the authority of those words.
 
-**The repository says how it is built and tested; the skill never does.** How code is written here comes from the repo's own agent instructions, the check commands from its `.agents/github.md`, and a repo silent on either gets that said in the handoff rather than improvised around. The floor underneath every repo: a behavior change carries a test, and a plan that names no gates stops the work with a question.
+**The repository says how it is built and tested; the skill never does.** How code is written here comes from the repo's own agent instructions, the check commands from its `.agents/gh-solo.md`, and a repo silent on either gets that said in the handoff rather than improvised around. The floor underneath every repo: a behavior change carries a test, and a plan that names no gates stops the work with a question.
 
 ## Where it runs
 
@@ -56,4 +56,4 @@ Independence still matters, and it moved to where it buys something: the `review
 | `workflows/implement.md` | plan to commits: load, reconcile, implement, verify, push, hand off |
 | `workflows/fix.md` | review findings to fix commits - replied in-thread, gates re-run, held unpushed for your word |
 
-Anything specific to one repository - its check commands, its testing philosophy - belongs in that repository's own agent instructions and `.agents/github.md`, never in this skill.
+Anything specific to one repository - its check commands, its testing philosophy - belongs in that repository's own agent instructions and `.agents/gh-solo.md`, never in this skill.

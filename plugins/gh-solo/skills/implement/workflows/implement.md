@@ -22,7 +22,7 @@ Then read, in this order:
 
 1. **The plan file** - the branch's first commit; it lives in `docs/plans/` unless the repository keeps plans elsewhere. This is the what and the how.
 2. **The issue's acceptance criteria** - `gh issue view <issue-number> --json title,body,labels`, the number parsed from the branch name. This is the why, and the definition of done. **If the labels include `draft`, stop with `⛔ REFUSED`** - the description is unfinished by its own declaration, so there is no definition of done to implement against; the `finish` workflow in `tracker` ends that state. Only a PR opened before `open` gained the same gate can reach here, but the refusal is cheaper than the guess.
-3. **The repository's own guidance** - its agent instructions file and `.agents/github.md`, per the contract in `SKILL.md`. Where either is missing or silent on how this repo is tested, note it now as a finding for Step 7.
+3. **The repository's own guidance** - its agent instructions file and `.agents/gh-solo.md`, per the contract in `SKILL.md`. Where either is missing or silent on how this repo is tested, note it now as a finding for Step 7.
 
 If the PR body has no `## Steps` or no `## Verification` section, stop with `⛔ REFUSED` and say which: the body is the state carrier for this whole workflow, and a missing section means `open` did not finish its job. That is fixed there, not improvised here.
 

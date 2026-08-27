@@ -36,7 +36,7 @@ An issue you want in the backlog before you have time or information to describe
 
 - `gh`, authenticated with the `repo` scope. Check with `gh auth status`.
 - Labels must exist before they can be applied; `gh issue create` fails on an unknown label rather than creating it. See `gh label list`.
-- Optional: `.agents/github.md` in the repository, recording its label taxonomy, branch format and whether it uses issue types.
+- Optional: `.agents/gh-solo.md` in the repository, recording its label taxonomy, branch format and whether it uses issue types.
 
 Setup and the failures that read as something else: `references/github-access.md`
 

@@ -2,7 +2,7 @@
 
 What the reviewer reviews against **where the repository documents nothing**. This file is the floor, never the ceiling, and never the authority.
 
-**A documented repository standard always wins.** Where the repository's own `AGENTS.md`, `CLAUDE.md` or `.agents/github.md` endorses something this file would flag, the standard wins and the finding is suppressed. That is not a tie-break; it is the point. A repository's conventions are decisions somebody made on purpose, and a general baseline that overrode them would report the repository's own style back to its author as a defect.
+**A documented repository standard always wins.** Where the repository's own `AGENTS.md`, `CLAUDE.md` or `.agents/gh-solo.md` endorses something this file would flag, the standard wins and the finding is suppressed. That is not a tie-break; it is the point. A repository's conventions are decisions somebody made on purpose, and a general baseline that overrode them would report the repository's own style back to its author as a defect.
 
 **Everything here is a judgement call.** Each entry is a labelled heuristic, so a finding written from this file says "possible Feature Envy" rather than asserting one. A documented-standard breach can be a hard violation; a baseline smell never is. Where the two rules above conflict with anything below, they win.
 

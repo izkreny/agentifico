@@ -28,7 +28,7 @@ If the labels include `draft`, say so first: the description is unfinished by it
 git log <remote>/main..HEAD --oneline
 ```
 
-`main` here is the repository's default branch - a per-repo fact, recorded in `.agents/github.md` where it differs - and the base is the *remote-tracking* ref rather than local `main`, which can sit behind and would then credit trunk commits to this issue; `<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`. On a stacked branch use the parent branch as the base instead, or the range includes the parent's commits and the matching below will credit them to this issue.
+`main` here is the repository's default branch - a per-repo fact, recorded in `.agents/gh-solo.md` where it differs - and the base is the *remote-tracking* ref rather than local `main`, which can sit behind and would then credit trunk commits to this issue; `<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`. On a stacked branch use the parent branch as the base instead, or the range includes the parent's commits and the matching below will credit them to this issue.
 
 Match commits to acceptance criteria by what they claim to do. Be honest about the strength of the match: a commit message is a claim, not evidence, and this step infers rather than verifies.
 

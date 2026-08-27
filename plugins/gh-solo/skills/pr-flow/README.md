@@ -103,4 +103,4 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 | `references/review-protocol.md` | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates |
 | `scripts/docs-check.py` | path and fence checks, run before any docs or plan push |
 
-Anything specific to one repository — its check commands, a convention that differs — belongs in `.agents/github.md` in that repository, never in this skill. Check commands especially are never invented: they belong to the repo that runs them.
+Anything specific to one repository — its check commands, a convention that differs — belongs in `.agents/gh-solo.md` in that repository, never in this skill. Check commands especially are never invented: they belong to the repo that runs them.
