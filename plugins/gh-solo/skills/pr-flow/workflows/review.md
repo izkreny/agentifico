@@ -37,7 +37,7 @@ gh pr list --limit 100 --json number,title,headRefName,reviewDecision,isDraft,re
 Skip these kinds of PR, and decide every skip *here*, before the confirmation, so the scope the owner confirms is the scope the loop acts on:
 
 - **`isDraft` is `true`** - unfinished. Draft is the *normal* state here rather than an exception, per the standing convention in `SKILL.md`, so every branch looks like this until `workflows/ready.md` ends it.
-- **A round already ran** - its `reviews` array holds a record Review, recognisable by the AI disclaimer line opening the body. That is why `reviews` is in the `--json` list. **Do not test `reviewDecision` for "already reviewed".** It reports whether the repository's review *requirement* is satisfied, not whether anyone looked: with no branch protection demanding a review it stays empty forever, and `gh` returns `""` rather than `null`, so a `!= null` test skips every unreviewed PR - the exact inverse of what it reads like. It stays in the `--json` list because it is worth *displaying*, not for filtering.
+- **A round already ran** - its `reviews` array holds a record Review, recognisable by the `via` line reading `round record` or `re-review record`. That is why `reviews` is in the `--json` list. **Not by the disclaimer line**, which every agent post opens with, the convention-check Review of the preliminaries included: a round that stopped after the preliminaries would then look complete forever, and the PR would be skipped by every later run with no round on it. **Do not test `reviewDecision` for "already reviewed".** It reports whether the repository's review *requirement* is satisfied, not whether anyone looked: with no branch protection demanding a review it stays empty forever, and `gh` returns `""` rather than `null`, so a `!= null` test skips every unreviewed PR - the exact inverse of what it reads like. It stays in the `--json` list because it is worth *displaying*, not for filtering.
 - **`changedFiles` is `0`** - an empty PR has nothing to review. Skip it and record it as "skipped - empty PR".
 
 List exactly what survived, then **wait for confirmation**. Name the scope in the question, because "all" is only meaningful next to the list it refers to:
@@ -66,7 +66,23 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 
    If `changedFiles` is `0` there is nothing to review: skip, and record it as "skipped - empty PR". On a list run the scope step already dropped these, so this catches only a PR the owner named directly. This is the emptiness test, and it is why nothing here needs `gh pr diff`.
 2. **Recover the issue.** Derive the number from the branch name by the parse stated once in `SKILL.md`'s branch-format bullet: `feat/GHI-50_login-form` yields `50`. What the branch yields is the `{issue-number}`, never the `<pr-number>`. Read it with `gh issue view <issue-number> --json title,body,labels,parent,blockedBy`. A branch predating the convention may carry a legacy key whose number is **not** an issue number in this tracker: resolve those by title search, `gh issue list --state all --search "<legacy-prefix>-<legacy-number>"`, rather than by assuming. **The reviewer recovers the issue itself and does not get yours** - this copy is for the round report and for the convention checks.
-3. **Check the conventions**, per *Convention checks* at the end of this file, and post the failures as one Review:
+3. **Read what is already posted on the PR**, its comments and its Reviews, before posting anything of your own:
+
+   ```bash
+   gh pr view <pr-number> --json comments,reviews --jq '(.comments + .reviews)[] | [.author.login, .body] | @tsv'
+   ```
+
+   Who wrote a thing decides what to do with it, and the login cannot tell you: every agent post is made with the owner's credentials and carries the owner's login. The disclaimer says an agent wrote it and the `via` line says which one.
+
+   | What is already there | What it means |
+   |---|---|
+   | Convention findings from an earlier run, via `pr-flow` review, convention check | Already reported. Do not post them again, even where the check still fails |
+   | A record Review from an earlier round | A round already ran. On a named-PR run this is a further round, which the protocol allows; the ids continue from it |
+   | A comment in the owner's own voice, no disclaimer | A note they wrote themselves. Never restate it as a finding |
+   | A mentor or other reviewer | Advice the owner may have weighed and declined. Never re-raise it, and name it in the round report as unanswered |
+
+   **The reviewer gets none of this.** It is spawned with a number and fetches its own context, and handing it an earlier round's findings is the one thing that would make its read dependent on the last one. What this read is for is your own posting: not repeating a convention finding, and having something to say about a mentor in the report.
+4. **Check the conventions**, per *Convention checks* at the end of this file, and post the failures as one Review:
 
    ```bash
    gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -f body='...'
@@ -75,7 +91,7 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
    `COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked. **Not the `pulls/<pr-number>/comments` endpoint**, which anchors to a file and line: every convention finding is a fact about the PR as a whole and has nowhere in the code to anchor to. Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` review, convention check.
 
    **These are not review findings and get no `RF{n}` id.** They are tracker integrity, they are the orchestrator's own observation rather than the reviewer's, and giving them ids would put them in the same sequence the fix plans and re-review verdicts answer.
-4. **Refuse early on a thread the merge gate will refuse on.** The convention table's last row is the cheap, early check for *Resolution rests on recorded authority*; a violation stops this workflow here rather than after a round's worth of work.
+5. **Refuse early on a thread the merge gate will refuse on.** The convention table's last row is the cheap, early check for *Resolution rests on recorded authority*; a violation stops this workflow here rather than after a round's worth of work.
 
 ## The protocol's steps 1 to 5
 
@@ -201,6 +217,6 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 - **Never post threads one at a time.** One call carries every thread and the record Review, so either the whole round is on the PR or none of it is.
 - **Never read a REST list without `--paginate`**, which makes a successful round look failed and a failed one look partial.
 - **Never push.** Steps 1 to 5 write commits and leave them local; the protocol's step 7 is the round's only push.
-- **Never filter on `reviewDecision`.** Whether a round already ran comes from what is posted on the PR, told apart by the AI disclaimer line.
+- **Never filter on `reviewDecision`.** Whether a round already ran comes from what is posted on the PR, told apart by the `via` line rather than by the disclaimer, which every agent post carries.
 - **One record Review per analysis, and it is an index.** Never restate a finding in it, never one Review per finding, and post it even at zero findings - it is the evidence `workflows/merge.md` gates on.
 - **Never end without printing the owner's next move.**
