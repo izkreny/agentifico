@@ -17,15 +17,13 @@ flowchart TD
     STOP --> C["implementation<br/>(the implement skill)"]
     C --> D["<b>ready</b><br/>audits that every check ran<br/>and CI agrees, takes the PR out of draft"]
     D --> E["<b>review</b><br/>checks the conventions,<br/>hands the code analysis over"]
-    E --> F(["<b>you</b> start the code review"])
-    F --> G["comments land on the<br/>exact lines they concern"]
-    G --> Q(["<b>you</b> reply in every thread:<br/>question, order the fix, or refuse"])
-    Q --> R["the agent answers - or fixes and<br/>commits, in the thread, never pushing"]
+    E --> F["the <b>reviewer</b> reads the diff<br/>in its own fresh context"]
+    F --> G["findings land on the exact lines<br/>they concern, each with a fix plan<br/>and a fix, committed never pushed"]
+    G --> Q(["<b>you</b> judge each thread:<br/>accept, question, or refuse in writing"])
+    Q --> R["the agent answers, in the thread"]
     R --> Q
-    Q --> H(["<b>you</b> read every line, resolve<br/>every thread, submit your review"])
-    H --> S(["<b>you</b> say the word"])
-    S -.->|"push for review"| G
-    S -->|"we are done"| J["<b>merge</b><br/>pushes, waits for green CI,<br/>squashes to the trunk, deletes the branch"]
+    Q --> S(["<b>you</b> say:<br/>resolve all and push"])
+    S --> J["<b>merge</b><br/>waits for green CI,<br/>squashes to the trunk, deletes the branch"]
     J --> K["the issue closes itself"]
 ```
 
@@ -42,12 +40,13 @@ The rounded steps are yours. They are not delegated, and the skill will not do t
 | Checking the PR's own housekeeping | the agent |
 | **Starting the code review** | **you** — nothing else can start it |
 | **Reading every line, and every comment on it** | **you** |
-| **Questioning a finding you disagree with** | **you**, by replying in its thread |
+| Reading the diff and finding what is wrong with it | the `reviewer` agent, in its own context - never the session that wrote it |
+| **Questioning a finding you disagree with** | **you**, by replying in its thread, or reacting 👀 |
 | Answering that question, in the same thread | the agent |
-| **Replying in every thread before resolving it** | **you** - a thread resolved without your reply stops the merge |
-| **Resolving a thread** | **you**, always — nothing else may |
-| Fixing what the review found | the agent, as you order it - committed at once in coherent groups, pushed never |
-| **Saying when the fixes push** | **you** - "we are done" to merge, "push for review" for another round |
+| **Leaving a signal on every thread** | **you** - a reaction is enough; a thread resolved with no recorded authority stops the merge |
+| **Authorising the resolve** | **you**, always — in words, which get recorded on the PR |
+| Fixing what the review found | the agent - committed at once in coherent groups, pushed never |
+| **Saying when the fixes push** | **you** - "resolve all and push", the round's only push |
 | Merging, cleaning up, confirming the issue closed | the agent |
 
 Nobody else's approval gates a merge and nobody else is accountable for what ships. That is what makes reading the code your job rather than a formality.
@@ -58,9 +57,9 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 **The work stops after the plan, and does not offer to continue.** Approving a plan is not the same as authorising the first line of code, and the skill treats them as separate decisions because they are. You get a considered gap in which to say "no, not like that" while it is still free.
 
-**The chain commands compress the loop without loosening it.** `auto` runs issue to prepared review as one chain; `go` does the same starting from a plan you have already read. Each exists only as a literal command - typing it is the approval the skipped stop would have collected, given in advance - and none skips a gate: every audit still runs, any refusal ends the chain, and each stops at the step nothing can take from you, typing the code-review command. Implementation inside a chain is a subagent's work, so the audit that follows is still done by an agent that did not write the code.
+**The chain commands compress the loop without loosening it.** `auto` runs issue to prepared review as one chain; `go` does the same starting from a plan you have already read. Each exists only as a literal command - typing it is the approval the skipped stop would have collected, given in advance - and none skips a gate: every audit still runs, any refusal ends the chain, and each stops at the step nothing can take from you, judging the findings. They arm the watch when they get there, so you can react as you read.
 
-**The code review is yours to start.** The analysis is done by a code-review capability this plugin does not ship - `/code-review` throughout these files, which is what Claude Code calls the one it bundles; substitute your harness's name if it differs, or read the diff yourself and post the findings, which the flow records identically. Either way it is reserved for you — an agent can neither launch it nor stand in for it. This skill prepares everything it needs and then prints the command for you to type. That means a review never happens because something decided it would be helpful.
+**The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, spawned with a PR number and nothing else, so that the session which wrote the code is not the session that judges it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check. Where your harness cannot spawn a subagent, read the diff yourself and post the findings, which the flow records identically. What is never substitutable is that the analysis comes from something other than the author.
 
 **Every review is recorded, including a clean one.** A pull request with no comments on it is ambiguous: it might have been read and found fine, or never read at all. So the outcome is always written onto the PR, even when the outcome is "nothing found". Later, that is the difference between knowing and guessing — and it is what merging checks before it will land anything.
 
@@ -78,7 +77,7 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 **Review fixes get their own commits, grouped by coherent change and never amended into the original work.** Not for the trunk's sake — squashing removes them anyway — but for yours, while the PR is open. It keeps "what changed because of the review" separable from the original work, which is the difference you most want to be able to see.
 
-**And they stay unpushed while you read.** A push moves the diff and drops the threads anchored to it behind "Show outdated" - the ground shifting under a review that is part-way through. So an order in a thread gets its fix committed and answered on the spot, and nothing leaves the machine until you say "we are done" or "push for review". The full sequence lives in one place, `references/review-protocol.md`.
+**And they stay unpushed while you read.** A push moves the diff and drops the threads anchored to it behind "Show outdated" - the ground shifting under a review that is part-way through. So a fix is committed and answered in its thread on the spot, and nothing leaves the machine until you say "resolve all and push". The full sequence lives in one place, `references/review-protocol.md`.
 
 ## Stacking, and when not to
 

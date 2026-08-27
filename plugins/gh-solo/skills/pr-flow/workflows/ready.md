@@ -62,7 +62,7 @@ gh pr ready <pr-number>
 
 Open with the verdict line per the standing convention in `SKILL.md` - always `✅ ALL PASS` here, since a refusal never reaches this step; the refusals in Steps 1-3 print `⛔ REFUSED - {reason}` as their first line instead. Then one line: the PR number and URL, that it is no longer a draft, and that every `## Verification` box was already ticked with CI green on the same head — which is the fact that authorised the flip.
 
-**If the invocation was the `ready review` chain**, per the routing in `SKILL.md`, do not stop here: continue into `workflows/review.md` Pass 1 on this PR, as if the owner had named it. The chain exists only to remove the wait between the two workflows; a refusal above never reaches this point, so the chain never carries a failed audit forward.
+**If the invocation was the `ready review` chain**, per the routing in `SKILL.md`, do not stop here: continue into `workflows/review.md` on this PR, as if the owner had named it. The chain exists only to remove the wait between the two workflows; a refusal above never reaches this point, so the chain never carries a failed audit forward.
 
 ---
 

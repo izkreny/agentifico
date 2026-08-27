@@ -11,11 +11,11 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 | `ready review` | The same audit, then straight into `review` when it passes - one wait instead of two. A refusal stops the chain |
 | `auto 50` | One command from issue number to prepared review: plan, draft PR, implementation, `ready`, `review`. Skips your plan-reading stop, so keep it for small work you would wave through |
 | `go 60` | The same chain entered after you read the plan on draft PR 60: implementation, `ready`, `review`, one stop at the end |
-| `review` | Check every open PR's tracker conventions, then hand the diff analysis off |
+| `review` | Run a full review round on every open PR: findings posted, fixes committed locally, then it stops for you |
 | `review 60` | The same for one PR |
 | `discuss 60` (or `reply 60`, `chat 60`) | Read your replies on the review threads and answer them, in the thread |
 | `watch 60` | Poll every 30s for your replies while you read, and answer as they arrive |
-| `unwatch` | Stop that polling. Saying "we are done" stops it too; `discuss` and "push for review" leave it running, and it dies with the session |
+| `unwatch` | Stop that polling. "resolve all and push" stops it too; `discuss` leaves it running, and it dies with the session |
 | `merge` | Audit the checklists, gate on the review record, squash-merge, delete the branch, confirm the issue closed |
 | `view` | Show the stack from trunk outward |
 | `init` | Start a new stack from branches not stacked yet |
@@ -31,26 +31,30 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 2. **`open`** - the plan, committed alone, and a draft PR holding nothing else
 3. *implementation* - the work itself, on the branch: the `implement` skill, which settles the plan record first and then does the work - resumable across sessions because the PR body carries the state
 4. **`ready`** - the record audited, the PR out of draft
-5. **`review`** - tracker checks posted, then it prints the `/code-review` command
-6. **`/code-review high N --comment`** - you type it; findings land as inline comments on the diff, and the outcome is recorded on the PR. If the flag falls back to printing, the recording step posts the threads itself
-7. **you read it** - the actual review: every line, every comment, then submit yours
+5. **`review`** - tracker checks posted, then the round: a fresh-context reviewer reads the diff, its findings land as inline threads, each gets a fix plan, the fixes are committed **locally**, and a scoped re-review checks each one closed the finding it claims
+6. **you judge it** - the first thing in the whole run that waits for you: react or reply per thread
+7. **"resolve all and push"** - you say it; the authorisation is recorded, the covered threads resolve, and the fixes finally go up
 8. **`merge`** - checklists audited, squash to `main`, branch deleted, the issue closes itself
 
 `open` stops at the draft PR on purpose: the plan is reviewed as a diff before any code is written. Plan approval never authorises the first implementation commit.
 
-**Two accelerators.** `auto` and `go` run that same life with the waits removed and nothing else: every audit still runs, and any refusal stops the chain where it stands. `auto 50` goes from the issue to the printed `/code-review` line without your plan stop - the trade is that a planning call you would have argued with comes back later as a review finding, so use it for work you trust. `go 60` is for after you have read the plan: implementation by a subagent, the `ready` audit, the review preparation, one stop. Both end the same way, because they must - the code review itself starts only when you type its command - and once you have run it, the implementation handoff and the findings sit on the PR together, readable in one sitting. Both are literal commands only: no sentence starts a chain, however clearly it implies one.
+**Two accelerators.** `auto` and `go` run that same life with the waits removed and nothing else: every audit still runs, and any refusal stops the chain where it stands. `auto 50` goes from the issue all the way to step 6 without your plan stop - the trade is that a planning call you would have argued with comes back later as a review finding, so use it for work you trust. `go 60` is for after you have read the plan. Both end at the same place, because it is the only step in the span that is yours: the findings judged. They arm the watch when they get there, so you can react as you read rather than coming back to say you did. Nothing is pushed. Both are literal commands only: no sentence starts a chain, however clearly it implies one.
 
 **The review is yours**
 
-This skill prepares reviews; it does not perform them. The diff analysis belongs to `/code-review` - the name Claude Code gives it; substitute your own harness's if it differs - and **only you can start it** - this flow reserves the analysis for your explicit invocation, so an agent never calls it or stands in for it. `review` prints the exact command with an effort level named.
+The diff is read by a reviewer with its own fresh context, spawned by `review` - never by the session that wrote the code, which has already reasoned its way to why every line looks the way it does and would confirm itself. It does not suggest fixes: it names the defect, the consequence, and a failure scenario you can check. **The judgement is still entirely yours**, and it is the only step in the round nothing else can do.
 
-When the findings come back, the workflow records them as one Review on the PR, even when the analysis was clean. That is what makes "has this been reviewed" answerable later, and it is the gate `merge` checks.
+Every round is recorded as one Review on the PR, even when the reviewer found nothing. That is what makes "has this been reviewed" answerable later, and it is the gate `merge` checks.
 
-Then read the code. Use **Start a review → Submit review** in the Files changed tab at GitHub UI rather than resolving threads one at a time: resolving posts nothing, so a review done that way leaves no record. Nothing is pushed while you read, so the threads stay anchored to the diff in front of you; after a "push for review" the answered ones go outdated, and their follow-up comments carry the same RF id so the trail stays connected.
+By the time it stops for you, each finding's thread already carries three things: the finding, the plan for fixing it, and what actually changed with any departure from that plan named. The fixes are **committed locally and not pushed**, so the threads stay anchored to the exact diff in front of you.
 
-Reply in **every** thread before you resolve it - a resolved thread with no reply from you is a hard error the merge refuses on. Each kind of reply gets a different response: a question or challenge opens a discussion in the thread; an order - "OK", "fix it", "drop it", "rewrite it" - gets the fix made and **committed on the spot**, with a reply naming the commit, unpushed; a refusal - "no", "skip it" - gets a brief acknowledgement and no fix. Batch orders in the chat still work too - "fix all", "fix RF1 and RF3" - through the `implement` skill's `fix` entrance, as ordinary commits separate from the original work. Either way the commits wait locally until you say **"we are done"** (push, green CI, merge) or **"push for review"** (push, fresh comments on the changed lines, another round).
+**Answering a thread takes a reaction or a word.** 👍 or ❤️ accepts a finding. 👀 or 😕, or writing "explain", gets one plain-language explanation in the thread. A written reply opens a discussion. Anything else is no signal, and no signal is fine - the batch at the end covers it. **A refusal has to be written**, though: there is no reaction that means "no".
 
-**Then come back and say so** - "I replied on the PR", or `discuss 60`. Or run `watch 60` first and it will poll while you work, answering as they land - that has to be the command, not a sentence, so nothing starts polling because it guessed. The watch runs through the whole round, so comment at your own pace; it stops only on "we are done", `unwatch`, or the session ending - "push for review" starts another round, so the watch keeps running through it. Nothing notifies the session that you commented in the GitHub UI, so a reply nobody is told about is a reply nobody reads. `sync` does *not* mean this: that word cascade-rebases a stack.
+Two kinds of thread wait for you specifically, and the round will have said which: one the reviewer flagged as needing your judgement, and one whose fix would have changed scope. Neither is fixed without you, and both block the merge until you settle them.
+
+**Then say "resolve all and push".** That records the authorisation as a comment naming every finding it covers, resolves those threads, and pushes. It is the round's only push, and the reason it waited is that a push re-anchors every thread and marks them outdated under a reader part-way through.
+
+**Or come back and say so** - "I replied on the PR", or `discuss 60`. Or run `watch 60` first and it will poll while you work, answering as they land - that has to be the command, not a sentence, so nothing starts polling because it guessed. `auto` and `go` arm it for you when they reach this step. The watch runs through the whole round, so comment at your own pace; it stops on "resolve all and push", on `unwatch`, or with the session. Nothing notifies the session that you commented in the GitHub UI, so a reply nobody is told about is a reply nobody reads. `sync` does *not* mean this: that word cascade-rebases a stack.
 
 `discuss` and `watch` work from the moment the PR exists, not only mid-review - the plan discussion after `open` is the same loop, since the plan file is the whole diff. One habit makes it work: **comment inline on the file's lines in the Files changed tab, never in the comment box at the bottom of the Conversation tab** - Conversation-tab comments live on a different API and neither `discuss` nor `watch` can see them.
 

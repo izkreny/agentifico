@@ -22,8 +22,8 @@ Each skill carries its own `README.md` with the full picture, and `help` as a ro
 
 - **The `gh` CLI**, authenticated. Every read and write goes through it.
 - **The `gh stack` extension** and the **`gh-stack` skill** from `github/gh-stack`, needed only for stacked pull requests. The stack workflow documents the extension's traps but does not bundle its manual.
-- **A code-review capability** your agent can invoke. `pr-flow`'s review workflow drives one and maps its findings into review threads; where your harness names it something other than `/code-review`, substitute that name.
-- **Python 3**, for `skills/pr-flow/scripts/docs-check.py`.
+- **A harness that can spawn a subagent**, for the `reviewer` agent a review round uses. Where yours cannot, read the diff yourself and post the findings; the round records that pass identically.
+- **Python 3**, for `skills/pr-flow/scripts/docs-check.py` and `skills/pr-flow/scripts/post-review.py`.
 
 ## Install
 

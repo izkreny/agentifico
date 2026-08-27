@@ -54,4 +54,4 @@ Both workflows share these; each is stated once here.
 ## Supporting files
 
 - **`workflows/implement.md`** - the plan-to-commits work: locate, settle the plan record, establish where the branch stands, implement step by step, verify as the last act, push, hand off to `ready review`
-- **`workflows/fix.md`** - the second entrance, after `/code-review`: land the findings the owner said stand as review-fix commits grouped by coherent change, re-run what they invalidated, leave the threads for the owner's re-read
+- **`workflows/fix.md`** - the second entrance, from a review round's step 4 or from the owner naming what stands: land the findings as review-fix commits grouped by coherent change, re-run what they invalidated, leave the threads for the owner
