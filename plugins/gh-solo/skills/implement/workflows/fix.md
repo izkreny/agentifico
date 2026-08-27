@@ -1,19 +1,30 @@
 > **Tools used:** the same set as `workflows/implement.md` - fixes are implementation.
 
-Land review fixes after `/code-review` has run and the owner has judged the findings. This is the second entrance to implementation: same branch, same contract, but the work list comes from the review threads instead of the plan, and the judgement about what stands was already made - by the owner, never here.
+Land review fixes on a branch whose review round has posted findings. This is the second entrance to implementation: same branch, same contract, but the work list comes from the review threads instead of the plan.
 
-## Step 1 - Scope: which findings stand
+**Two entrances, differing in where the work list comes from.**
 
-The owner's words are the scope - "fix all", "fix RF1 and RF3, skip RF2" - relayed in the argument or the prompt. The findings themselves live as inline threads on the diff:
+- **Step 4 of a review round**, run by the orchestrator inside the round's unattended block. The work list is the fix plans it posted at step 3, which is every finding except the two kinds the protocol routes to the owner instead. **Nothing has been judged yet, and that is the design**: the round's own step 5 re-review is what checks each fix closed the finding it claims, because the fixes were made by the author of the code under review with nobody watching.
+- **The owner naming what stands**, after they have read the threads at step 6. "fix all", "fix RF1 and RF3, skip RF2". Their words are the scope and nothing else is.
+
+The round, its steps and its caps are the review round protocol in the `pr-flow` skill.
+
+## Step 1 - Scope: which findings to fix
+
+**On the round's step 4**, the scope is the findings that got a fix plan. A finding the reviewer marked as needing the owner's judgement, and one whose fix would change scope, each got a reply saying so instead of a plan, and neither is fixed here.
+
+**On the owner's entrance**, their words are the scope, relayed in the argument or the prompt.
+
+Either way the findings live as inline threads on the diff:
 
 ```bash
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" --jq '.[] | {id, path, line: (.line // .original_line), body}'
 ```
 
-The Pass 2 record Review on the PR gives the count and effort level to check the list against. Two stops:
+The round record Review on the PR gives the count to check the list against. Two stops, both on the owner's entrance:
 
 - **Ambiguity about which findings stand is the owner's to resolve** - "fix the important ones" names no scope; ask, never rank them yourself.
-- **Never fix a finding the owner rejected or has not judged.** A fix nobody asked for is scope creep wearing a review's clothes.
+- **Never fix a finding the owner rejected.** A fix they declined is scope creep wearing a review's clothes. This does not bite on the round's step 4, where by construction the owner has judged nothing yet and the fix plans are the scope.
 
 ## Step 2 - Check out and reconcile
 
@@ -30,7 +41,7 @@ Check out the branch, pull, and read `git status` before touching anything - the
     ```
 
 - **A reply that fails with `user_id can only have one pending review per pull request` is blocked by the owner, and the round stops there.** GitHub allows one `PENDING` review per account per PR, and a review the owner started in the UI and has not submitted holds that slot; every reply this step posts fails until they submit or discard it. Read `state` and nothing else - `gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --jq '.[] | select(.state == "PENDING") | .id'` - then hand over: the review id, that their own unsubmitted review is holding the slot, which commits are landed and which replies are still owed. Keep the body files; they post unchanged once the slot is free. **Never read that review's comments.** `reviews/<id>/comments` returns the bodies of an unsubmitted review to its own author, so it hands you wording the owner has not published and may still delete - and an agent that has read them can no longer tell a draft it saw from an order it was given. Diagnosing a blocked write is not this step's work: report the block, never investigate it.
-- **Never resolve the threads.** Pushing a fix marks its thread outdated, and unresolved-and-outdated is the owner's live list of "changed, not yet re-read by me" - resolving it would erase their reading list. Resolution is the owner's verdict, delivered in the GitHub UI.
+- **Never resolve the threads.** Pushing a fix marks its thread outdated, and unresolved-and-outdated is the owner's live list of "changed, not yet re-read by me" - resolving it would erase their reading list. Resolving happens once, at the protocol's step 7, on authority the owner gave in words; the `resolve` workflow of the `pr-flow` skill owns it.
 - A finding that turns out wrong while fixing it - the code is correct, the finding misread it - is not fixed and not silently skipped: report it in the handoff, and leave the argument in the thread to the owner, through the discuss workflow of the `pr-flow` skill.
 
 ## Step 4 - Re-run what the fixes invalidated, and re-tick
@@ -43,8 +54,8 @@ Any gate in `## Verification` whose result the fixes could have changed is re-ru
 
 ## Step 6 - Hand off
 
-Open with the verdict line - `✅ ALL PASS` when every standing finding is fixed and re-verified locally; `⚠️ PASSED WITH FINDINGS - {what}` when something needs the owner: a finding reported as wrong in Step 3, an `[owner]` box invalidated in Step 4. CI has no place in this verdict - nothing is pushed, so it has not seen the fixes; that read belongs to the protocol's step 5, with the push.
+Open with the verdict line - `✅ ALL PASS` when every standing finding is fixed and re-verified locally; `⚠️ PASSED WITH FINDINGS - {what}` when something needs the owner: a finding reported as wrong in Step 3, an `[owner]` box invalidated in Step 4. CI has no place in this verdict - nothing is pushed, so it has not seen the fixes; that read belongs to the protocol's step 7, with the push.
 
 Then the map the owner re-reads by: each finding (`RF{n}`, `file:line`) to the commit that answered it, which gates were re-run and re-ticked, and that every commit is **local and unpushed** - so the threads stay anchored to the exact diff the owner is still reading, which is the point of holding the push. **Post that map as a PR comment first** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` fix, the fix map): the owner walks the threads on GitHub, and the map is most useful on the page being walked, where it also outlives the session.
 
-End by naming the owner's two step-5 words, per the review-protocol reference in the `pr-flow` skill: say **"we are done"** to push, verify CI and continue into the merge, or **"push for review"** to push and get follow-up threads on the changed lines for another round. Until one of those is said, nothing leaves the machine.
+End by naming what releases the commits, per the review-protocol reference in the `pr-flow` skill: the owner saying **"resolve all and push"** once they have been through the threads, which is that protocol's step 7 and the round's only push. Until they say it, nothing leaves the machine. On the round's step 4 this is not the next thing that happens - step 5's re-review is - so say which entrance this was and what follows it.
