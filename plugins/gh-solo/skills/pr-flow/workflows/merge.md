@@ -4,25 +4,43 @@ Land a reviewed PR on `main` and clean up after it. This is the last step of a b
 
 ## Step 1 - Confirm it was actually reviewed
 
-**First, confirm nothing is still sitting local.** Every other gate in this step reads the *remote* PR, so this is the one check that can catch a review round whose fix commits were never pushed - the protocol in `references/review-protocol.md` deliberately holds them local until the owner's step-5 words, and "merge it" said mid-round would otherwise pass every remote gate green and land the branch without its fixes. Where the branch exists locally:
+**First, confirm nothing is still sitting local.** Every other gate in this step reads the *remote* PR, so this is the one check that can catch a review round whose fix commits were never pushed - the protocol in `references/review-protocol.md` deliberately holds them local until the owner authorises the push at its step 7, and "merge it" said mid-round would otherwise pass every remote gate green and land the branch without its fixes. Where the branch exists locally:
 
 ```bash
 git fetch <remote> && git log <remote>/<branch>..<branch> --oneline
 ```
 
-Any output is a refusal: `⛔ REFUSED - {n} unpushed commit(s) on {branch}`, naming "we are done" / "you can merge" (step 5.1) as what releases them. Where the branch is not in any local tree, compare `gh pr view <pr-number> --json headRefOid` against `git rev-parse <branch>` if the ref exists at all, and otherwise say plainly that local state could not be checked rather than implying it was.
+Any output is a refusal: `⛔ REFUSED - {n} unpushed commit(s) on {branch}`, naming "resolve all and push" - the protocol's step 7 - as what releases them. Where the branch is not in any local tree, compare `gh pr view <pr-number> --json headRefOid` against `git rev-parse <branch>` if the ref exists at all, and otherwise say plainly that local state could not be checked rather than implying it was.
 
 ```bash
 gh pr view <pr-number> --json isDraft,reviews,reviewDecision,mergeable,statusCheckRollup
 ```
 
-**A Review whose body opens with the AI disclaimer line is the gate, not merely a non-empty `reviews` array.** `workflows/review.md`, under *Pass 2 · when the analysis comes back*, posts one such Review per analysis pass - including when the analysis found nothing, precisely so this check can exist. GitHub creates a review object to hold every inline comment and every thread reply, each with an empty body, so a PR that had any inline plan discussion has a non-empty array before any analysis has run. Read the bodies: `gh pr view <pr-number> --json reviews --jq '.reviews[] | .body'`. No disclaimer-opening body means the machine pass never ran - say so and stop rather than merging.
+**A round record Review is the gate, not merely a non-empty `reviews` array.** `workflows/review.md` posts one per analysis - including when the reviewer found nothing, precisely so this check can exist. GitHub creates a review object to hold every inline comment and every thread reply, each with an empty body, so a PR that had any inline plan discussion has a non-empty array before any review has run. Read the bodies:
+
+```bash
+gh pr view <pr-number> --json reviews --jq '.reviews[] | .body'
+```
+
+**Recognise the record by its `via` line, reading `round record` or `re-review record`, never by the disclaimer alone.** Every agent post opens with the disclaimer, the convention-check Review that `workflows/review.md` posts before a round included, so the disclaimer test passes on a PR whose conventions were checked and whose diff was never read. That is the exact state this gate exists to catch. No record means no round ran: say so and stop rather than merging.
 
 **Do not gate on `reviewDecision`.** It reports whether a branch-protection review *requirement* is satisfied, and a solo repository has no such requirement, so it stays empty however many reviews were posted. Reading it as "not reviewed" would block every merge. That holds even under the branch protection this file recommends below: `required_approving_review_count: 0` means there is no decision to report, so `reviewDecision` is still `""` - verified live on a protected repository, so do not re-litigate it when protection is on.
 
-The owner's own review is a separate record, submitted under their name through the PR's Files changed tab: a Review with a non-empty body that does not open with the disclaimer. That test is not airtight - the owner cannot approve their own PR, so their review is a `COMMENTED` object too, and one submitted with an empty summary body looks exactly like a reply container. If no review reads as the owner's, the code has been annotated but not necessarily read: ask before merging rather than assuming.
+The owner's own review is a separate record, submitted under their name through the PR's Files changed tab: a Review with a non-empty body, whose author's login **is** the owner's and whose body does **not** open with the disclaimer - both conditions, per the owner test below, because a mentor's Review body carries no disclaimer either and would otherwise read as the owner's. That test is still not airtight: the owner cannot approve their own PR, so their review is a `COMMENTED` object too, and one submitted with an empty summary body looks exactly like a reply container. If no review reads as the owner's, the code has been annotated but not necessarily read: ask before merging rather than assuming.
 
-**The thread gate, per conclusion A of `references/review-protocol.md`: every thread resolved, and none resolved without an owner reply.** Read them with the same GraphQL query `workflows/discuss.md` Step 1 uses (`isResolved` plus each thread's comments). Refuse on an unresolved thread - the owner's walk is not finished - and refuse on a resolved thread containing no owner comment, where an owner comment is one whose body does not open with the AI disclaimer. Nothing can stop a thread being resolved in the browser without a reply; this door is the one place that mistake can be caught, so name the thread's `file:line` in the refusal.
+**The thread gate, per *Resolution rests on recorded authority* in `references/review-protocol.md`: every thread resolved, and every resolution resting on recorded owner authority.** Read them with the same GraphQL query `workflows/discuss.md` Step 1 uses - `isResolved`, each thread's comments, and each comment's `reactions`, which arrive in that same query at no extra request.
+
+**Refuse on an unresolved thread**: the owner's walk is not finished.
+
+**Refuse on a resolved thread carrying none of the three evidence forms.** Any one of them is enough, and there is no fourth:
+
+1. **A reply of the owner's in the thread.**
+2. **A reaction of the owner's on any comment in it.** Approval may be a reaction rather than a word, so a gate reading only comments would refuse threads the owner did in fact approve.
+3. **An authorisation comment naming that thread's `RF{n}` id.** `workflows/resolve.md` posts it before a batch resolve and **owns the literal marker line to grep for**; read the wording there rather than guessing at it, because a gate looking for the wrong string finds nothing and refuses a PR that was properly authorised.
+
+**Recognising the owner takes two conditions, and both must hold** - for forms 1 and 2, which are the owner's own posts; form 3 is an agent post and opens with the disclaimer by construction, which is why it is found by its marker line and its `RF{n}` id instead. The two conditions: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes a mentor, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials. The disclaimer test alone is not enough - a mentor's comment opens with no disclaimer either, so on its own it would let a third party's 👍 authorise a merge. For a reaction there is no body to test, so the login is the whole test.
+
+Nothing can stop a thread being resolved in the browser with no evidence at all; this door is the one place that mistake can be caught, so name the thread's `file:line` in the refusal.
 
 **Other fields in that query are gates too, each cheaper to check than to recover from:**
 
@@ -159,14 +177,14 @@ gh api -X PUT repos/{owner}/{repo}/branches/main/protection --input <scratch-fil
 The load-bearing values in that shape, each with a trap:
 
 - **`required_approving_review_count` must be `0`.** GitHub forbids approving your own PR, so any higher value deadlocks every PR on a solo repository permanently. Zero keeps the protection while demanding no approval - which is also why `reviewDecision` stays `""` under it, per Step 1.
-- **`dismiss_stale_reviews` stays `false`, and nothing here depends on the value.** The setting dismisses *approving* reviews when a new commit is pushed - per GitHub's REST docs, approvals only - and this flow never needs an approval: the count is 0, and the Pass 2 record is a COMMENT Review, which dismissal never touches and which stays in the `reviews` array regardless. It is pinned to `false` only so the protection object is fully stated and least surprising, not because `true` would break a gate.
+- **`dismiss_stale_reviews` stays `false`, and nothing here depends on the value.** The setting dismisses *approving* reviews when a new commit is pushed - per GitHub's REST docs, approvals only - and this flow never needs an approval: the count is 0, and a round record is a COMMENT Review, which dismissal never touches and which stays in the `reviews` array regardless. It is pinned to `false` only so the protection object is fully stated and least surprising, not because `true` would break a gate.
 - **`required_status_checks` can only be *introduced* by this `PUT`.** While it is `null`, `PATCH repos/{owner}/{repo}/branches/main/protection/required_status_checks` answers `404 Required status checks not enabled` instead of creating it, so the whole protection object has to be re-sent.
 - **The `contexts` entries are check-run names, not workflow filenames.** They default to the workflow's job ids, not to anything written in the YAML, so read them off a real PR with `gh pr checks <pr-number>` rather than off the workflow file.
 
 ## Rules
 
-- **Never merge a PR without a disclaimer-opening Review.** Array length proves nothing - inline discussion inflates `reviews` with empty-bodied containers. The gate is the point of the workflow.
-- **Never merge over an unresolved thread, or a thread resolved without an owner reply.** Conclusion A of `references/review-protocol.md`; this door is the only place it is enforceable.
+- **Never merge a PR without a round record Review**, recognised by its `via` line per Step 1 and never by the disclaimer, which every agent post carries including the convention check that runs before a round. Array length proves nothing either - inline discussion inflates `reviews` with empty-bodied containers. The gate is the point of the workflow.
+- **Never merge over an unresolved thread, or a thread resolved with none of the three evidence forms.** *Resolution rests on recorded authority* in `references/review-protocol.md`; this door is the only place it is enforceable.
 - **Never `git merge` or `git push` to `main` to land a branch.** The hard rule in `SKILL.md` holds here too; merging is `gh`'s job.
 - **Never omit the merge method** — `--squash` on `gh pr merge`, `--squash` on `gh stack merge`. Both fall back to something other than policy when it is left off.
 - One PR per invocation. Merging a stack is one operation even though it lands several PRs; merging two unrelated PRs is two.

@@ -12,7 +12,7 @@ Preflight already resolved it. **State it in one line before doing anything else
 git fetch <remote> --quiet && git log --oneline HEAD..<remote>/main
 ```
 
-`<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`; `main` reads as the repository's default branch where `.agents/github.md` names another - and that name is needed *now*, so when the file exists, read it here rather than waiting for Step 2. Commits listed mean the file you read may not be the file that exists. Say so, name the commits, then bring the tree up to date or read around it - never silently continue on stale content:
+`<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`; `main` reads as the repository's default branch where `.agents/gh-solo.md` names another - and that name is needed *now*, so when the file exists, read it here rather than waiting for Step 2. Commits listed mean the file you read may not be the file that exists. Say so, name the commits, then bring the tree up to date or read around it - never silently continue on stale content:
 
 - **On the default branch, fast-forward it yourself**: `git merge --ff-only <remote>/main`. `--ff-only` is the guard, not a nicety: local `main` never carries local commits per the suite's hard rule, so a fast-forward is the only legal movement, and a refusal means the trunk has diverged locally - stop and report that loudly instead of resolving it, because something has already broken the never-commit-to-`main` rule. If uncommitted changes make the merge refuse, fall back to the next bullet rather than stashing anything.
 - **On any other branch, do not pull and do not rebase.** Moving a feature branch is the owner's call, and a stacked branch belongs to `gh stack sync`. Instead, ask per file whether *this branch* owns the version you read: `git log --oneline <remote>/main..HEAD -- <path>` non-empty, or `git status --porcelain -- <path>` non-empty, means the working-tree file is itself the current source - the branch changed it after the trunk's copy - so say so and use it. Only for a path the branch has not touched does the trunk hold the newer copy: there, `git show <remote>/main:<path>` reads it without touching the tree. An untracked path has no trunk copy at all, so the freshness question does not apply to it - name it as unversioned in the plan's Notes.
@@ -23,7 +23,7 @@ Even when nothing is behind, **re-read any source file that was read before this
 
 ## Step 2 - Load standards and config
 
-Read `references/standards.md`. If `.agents/github.md` exists in the repository, read it too and let it override the default layer set, label taxonomy and branch format.
+Read `references/standards.md`. If `.agents/gh-solo.md` exists in the repository, read it too and let it override the default layer set, label taxonomy and branch format.
 
 ## Step 3 - Check the label taxonomy
 
@@ -115,7 +115,7 @@ gh issue develop <issue-number> --name <type>/GHI-<issue-number>_<slug> --checko
 
 The other end of a draft's life, routed by `finish <number>` or the owner asking to finish or flesh out a draft issue. The deliverable is the description the issue never got, and the moment it exists the `draft` label comes off.
 
-This section is entered directly by `finish`, so it carries Steps 2 to 4 with it: read `references/standards.md` and `.agents/github.md` before writing anything, and where step 4 below takes the split path, run Step 3's `gh label list` check and Step 4's existing-epic search before creating a single child - `gh issue create` still fails on a label that does not exist, and a failure halfway through a split is the half-created graph Step 6 warns about.
+This section is entered directly by `finish`, so it carries Steps 2 to 4 with it: read `references/standards.md` and `.agents/gh-solo.md` before writing anything, and where step 4 below takes the split path, run Step 3's `gh label list` check and Step 4's existing-epic search before creating a single child - `gh issue create` still fails on a label that does not exist, and a failure halfway through a split is the half-created graph Step 6 warns about.
 
 1. **Fetch it**: `gh issue view <issue-number> --json title,body,labels,parent,blockedBy`. If it does not carry `draft`, say so and stop - there is nothing to finish.
 2. **Write the missing sections** with the owner, into the empty headings the stub body already carries, read-modify-write with `--body-file` per the standards. This is where the information that was missing at creation gets supplied, so if it is still missing, ask rather than guess. If the stub does not already open with the AI disclaimer line - a draft the owner typed by hand on GitHub will not - add it, because the description below it is now agent prose under the owner's name.

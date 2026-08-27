@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(gh:*)` for the GraphQL thread read, the reply mutation and the `## Settled` body edit, `Bash(git:*)` / `Read` / `Write` / `Edit` / `Grep` / `Glob` for the code a thread points at, the fixes an order authorises and the body's scratch file, `Monitor` / `TaskStop` for the watch.
 
-Answer the owner's replies wherever they land on a pull request - inline comment threads, review summary bodies, Conversation comments - and land the fixes those replies order: committed, never pushed. The sequence this serves is `references/review-protocol.md`; this file is its step 4.
+Answer the owner's replies wherever they land on a pull request - inline comment threads, review summary bodies, Conversation comments - and land the fixes those replies order: committed, never pushed. The sequence this serves is `references/review-protocol.md`; this file is how its step 6 is answered.
 
 **Nothing tells the agent a reply happened.** There is no webhook, no polling and no notification reaching the session: a comment posted in the GitHub UI is invisible here until someone asks. So this workflow runs only when the owner says they have been through the review — "I replied on the PR", "answer my comments", `discuss 60` — or when a `watch` they explicitly started fires. If they seem to be waiting for the agent to notice on its own, say plainly that it cannot.
 
@@ -12,16 +12,16 @@ It is the return half of `workflows/review.md`: that workflow puts findings on t
 
 Each `discuss` run is one round of the conversation, and it goes:
 
-1. Leave any watch running - per conclusion B of `references/review-protocol.md` it survives the round, and stops only at the protocol's step 5.1 or on `unwatch` (*Stopping it*, below).
+1. Leave any watch running - per *The watch survives the round* in `references/review-protocol.md` it outlives a round, and stops only when the owner authorises the resolve and the push, or on `unwatch` (*Stopping it*).
 2. Fetch every inline thread in one GraphQL read and drop the resolved ones, and in the same pass fetch the PR's review summary bodies and its Conversation comments (Step 1).
 3. Classify each remaining thread by the owner's last comment in it, per the table in Step 1: a question, a challenge, a counter-proposal, an order, a gate-bound order, a refusal, a closing decision, an acknowledgement, or no reply.
 4. A question, challenge or counter-proposal: re-read the code the thread points at as it stands now, then post one reply into that thread, disclaimer first (Step 2). An order gets its fix, its commit and its naming reply (Step 4). A gate-bound order gets a reply naming the terminal command, and no execution. A refusal gets a short acknowledgement. A closing decision gets silence in the thread, plus the `## Settled` move when it settles a body entry, per Step 1's table; an acknowledgement gets silence; a finding with no owner reply is left to `workflows/review.md`. A review summary body or Conversation comment is classified by the same table; when it is owed an answer, the answer goes as one Conversation comment (Step 2), since there is no thread to reply into.
 5. Resolve nothing (Step 3), and push nothing - an order authorises the fix and the commit, never the push (Step 4).
 6. Report in the terminal: `file:line`, what was asked and what was answered per thread touched, the count left alone with why, any `## Open questions` entries moved to `## Settled`, **how many fix commits sit unpushed waiting for the owner's word**, and whether a watch is armed (Step 5).
 
-Then the ball is the owner's again: read the replies on GitHub, respond or resolve, and run `discuss` once more - or `watch`, for live answers. When every thread is walked, the round ends on the owner's step-5 words in the session - "we are done" to push, verify CI and merge, or "push for review" to push and open follow-up threads - per `references/review-protocol.md`.
+Then the ball is the owner's again: read the replies on GitHub, respond or resolve, and run `discuss` once more - or `watch`, for live answers. When every thread is walked, the round ends on the owner authorising the resolve and the push in the session - "resolve all and push" - which is `workflows/resolve.md`, the protocol's step 7. There is no push-without-resolving option to offer them.
 
-There is no step after that, because this whole workflow is a fork, not a stage: it hangs off step 7 of the lifecycle list in `workflows/review.md` and exits where it entered. The owner is still mid-review throughout; the review ends when they submit it, and what follows is step 8 of that list, `workflows/merge.md`.
+There is no step after that, because this whole workflow is a fork, not a stage: it hangs off the protocol's step 6 and exits where it entered. The owner is still judging throughout, and what follows is their word at step 7, which is `workflows/resolve.md`.
 
 **The fork is available whenever the PR exists, not only mid-review.** The plan discussion `workflows/open.md` stops for is the same mechanics: after `open`, the plan file is the PR's whole diff, so the owner can comment inline on its lines in the **Files changed** tab, `watch` sees those comments, and this workflow answers them in-thread - which puts the plan debate and its decisions on the PR permanently instead of in a chat transcript.
 
@@ -63,6 +63,17 @@ while true; do
   { gh api --paginate "repos/{owner}/{repo}/issues/<pr-number>/comments?since=$last" \
       --jq '.[] | select(.body | startswith("> 🤖") | not) |
             "\(.id)@\(.updated_at) \(.user.login)  conversation  \(.body[0:140] | split("\n") | join(" "))"' || true; } | emit
+  { gh api graphql -F owner='{owner}' -F repo='{repo}' -f query='
+      query($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          pullRequest(number:<pr-number>) {
+            reviewThreads(first:100) { nodes { path line
+              comments(first:20) { nodes { databaseId
+                reactions(first:20) { nodes { content createdAt user { login } } } } } } } } } }' \
+      --jq ".data.repository.pullRequest.reviewThreads.nodes[] |
+            .path as \$p | .line as \$l | .comments.nodes[] | .databaseId as \$id |
+            .reactions.nodes[] | select(.createdAt > \"$last\") |
+            \"\(\$id)/\(.content)/\(.user.login)@\(.createdAt) \(.user.login)  \(\$p):\(\$l)  reacted \(.content)\"" || true; } | emit
   last=$now
   sleep 30
 done
@@ -75,20 +86,21 @@ Nothing about this is a preference:
 - **Poll every 30 seconds, not faster.** Reading a diff takes minutes, so a shorter interval multiplies polls without shortening the wait. The rate limits are not the reason — a `reviewThreads` query costs 1 point of 5000 an hour, and a conditional REST request that returns `304 Not Modified` costs nothing at all.
 - **Emit only new human comments - the owner's or the mentor's.** No heartbeat, no "still waiting", and never the workflow's own posts. Every emitted line becomes a message in the conversation, and a monitor that talks too much is stopped automatically - so the budget that actually binds is the context window, not GitHub.
 - **The disclaimer exclusion in the `--jq` is the only filter, and it is what keeps that true.** Every reply Step 2 posts is made with the owner's credentials and carries the owner's login, so a login test can never tell agent from human - without the `startswith` exclusion the watch would re-emit the workflow's own replies as fresh comments on the next poll, and the loop would answer itself. Filtering on "not the agent" instead of "the owner" is also what lets a mentor's comment wake a round; the emitted login says who wrote it.
+- **The reactions poll is the one GraphQL call in the loop, and it filters client-side too.** There is no `since` on it either, so `createdAt > "$last"` stands in, and its key is the comment's `databaseId` plus the content plus the reactor, which is unique per reaction. No agent ever reacts, so this poll needs no disclaimer exclusion; the emitted login is what says whether it was the owner or a mentor. **A reaction that is removed again is invisible to it** - the emit already happened - which is one more reason the standing rule below holds: an event is a notification, and Step 1's full read is the authority.
 - **The reviews poll filters client-side, because that endpoint has no `since` parameter.** The `submitted_at > "$last"` select inside double quotes is what stands in for it, and the double quoting is load-bearing: `$last` has to interpolate. The issue-comments call is the Conversation tab; `pulls/…/comments` and `issues/…/comments` are different endpoints that only sound alike, and dropping either reopens the blind spot this loop exists to close.
 - **Every emitted record is deduplicated on its `id` plus its own timestamp.** The window overlaps by a second at every boundary: `last=$now` is stamped to whole seconds, `since` admits a record whose `updated_at` equals it, and `submitted_at > "$last"` treats two strings equal to the second as not-greater. So anything written inside the second that `$last` names is delivered in the cycle that finds it and again in the next one. Observed twice on the same PR, payloads byte-identical 32 seconds apart: a four-comment review at 20:43:21 and 20:43:53, a review body at 08:31:22 and 08:31:54. A strict `>` would trade the duplicate for a silent drop - a comment written after a cycle's request but inside its `$now` second would then never match again - so the overlap stays and `$seen` removes the repeat. The timestamp in the key is what lets a genuinely edited comment through a second time. This is not cosmetic: every emitted line is an order or a question, and `OK, fix it then` delivered twice invites the fix twice.
 - **Each record is flattened to one line before it is emitted.** `split("\n") | join(" ")` on the body slice. The dedupe reads one record per line, and a multi-line body would otherwise arrive as records with no key - and the 140-character slice only reads as a summary on one line anyway.
 - **`|| true` on the call, inside the braces.** One failed request must not kill the watch, and the braces keep the guard on the call rather than on the pipeline into `emit`, whose own exit status would otherwise mask it.
-- **`persistent: true`, with the cost stated.** This reverses an earlier rule here that capped the watch at a one-hour `timeout_ms` because a watch that outlives the reading session is a watch nobody remembers arming. That reasoning still holds and is the price paid - but one hour cannot span a review round, and the owner chose immediacy, per conclusion B of `references/review-protocol.md`. Mitigate instead of relying on a timeout: every round report prints the armed state, the 5.1 path stops the watch explicitly, and a monitor still dies with the session regardless.
+- **`persistent: true`, with the cost stated.** A watch that outlives the reading session is a watch nobody remembers arming, and that cost is real and accepted: a timeout short enough to prevent it - an hour, say - cannot span a review round, so it would expire mid-read and be worse than useless. The owner chose immediacy, per *The watch survives the round* in `references/review-protocol.md`. Mitigate rather than rely on a timeout: every round report prints the armed state, step 7 stops the watch explicitly, and a monitor dies with the session regardless.
 
 ### Stopping it
 
-Only these end a watch, and the owner needs to know `unwatch` at minimum. A `discuss` round does **not** stop it any more - per conclusion B of `references/review-protocol.md` it keeps running so comments posted mid-round still wake answers:
+Only these end a watch, and the owner needs to know `unwatch` at minimum. A `discuss` round does **not** stop it - per *The watch survives the round* in `references/review-protocol.md` it keeps running so comments posted mid-round still wake answers:
 
 | | |
 |---|---|
 | `unwatch` | The explicit stop. Call `TaskStop` on the monitor and confirm it is gone |
-| The owner saying "we are done" | The review is over. Stop it before pushing anything. **"push for review" does not stop it** - a 5.2 push opens another round of threads, which is exactly what the watch is for |
+| The owner authorising the resolve and the push | The review is over. Stop it before pushing anything. There is no other way out of the round, so this is the only stop besides `unwatch` and the session ending |
 | The session ending | Monitors do not outlive it |
 
 **Say how to stop it in the same breath as arming it.** A background process the owner cannot confidently stop is worse than no background process, and they will not have this file open.
@@ -106,14 +118,27 @@ query($owner: String!, $repo: String!) {
     pullRequest(number:<pr-number>) {
       reviewThreads(first:100) { nodes {
         id isResolved isOutdated path line
-        comments(first:20) { nodes { author { login } body } } } } } } }'
+        comments(first:20) { nodes { databaseId author { login } body
+          reactions(first:20) { nodes { content createdAt user { login } } } } } } } } } }'
 ```
+
+**Reactions travel in this same query, so they cost no extra request.** The owner answers a finding thread with a reaction as often as with a sentence - the vocabulary is in `references/review-protocol.md`, which owns it - so a round that read only bodies would walk past half of what they said, and they would watch an agent ignore them.
+
+**Read them through `reactions`, not `reactionGroups`.** Both carry who reacted, but `reactions` gives a plain `user` and a `createdAt` on each one, and the watch needs that timestamp to tell a reaction it has already emitted from a new one. `reactionGroups` exposes its reactors as a union, which is more work to read for nothing gained. `databaseId` is on each comment for the same reason: it is what a reaction is keyed against when deduplicating.
 
 **`owner` and `repo` travel as `-F` fields, never inside the query string.** `gh` substitutes the `{owner}`/`{repo}` placeholders only in the endpoint and in `-F` values; inside a `-f` string they go to GitHub as literal braces and the read fails with "could not resolve to a Repository". The reply mutation in Step 2 is the reverse case: `threadId` and `body` are literal strings, so they take `-f`, which never type-converts.
 
 **Read each thread as a unit, in order.** A reply's meaning comes from what it answers, and the same sentence means different things at the top of a thread and at the bottom of one.
 
-**Sort threads by what the owner's last comment does**, because the right response differs completely:
+**Classify by the owner's last signal in the thread, which may be a reaction rather than a comment.** A reaction is judged by who left it, never by the comment it sits on: every agent post is made with the owner's credentials and carries their login, so no test on a comment's author tells agent from human, and a mentor's reaction is not an authorisation. Which comment carries it decides what it refers to, since a finding thread holds the finding, the fix plan and the fix result. What each reaction means is `references/review-protocol.md`'s to say, and it is not restated here; what this workflow owes each one is below.
+
+| The owner's last signal | What to do |
+|---|---|
+| A reaction the protocol reads as accepted | Nothing in the thread. It is an approval, not a question, and it authorises the resolve at the protocol's step 7 |
+| A reaction the protocol reads as the canned question | Answer it in the thread, in the register the protocol names, exactly as though they had typed it |
+| A reaction the protocol gives no meaning | Nothing. It is not a signal and not an unknown to ask about |
+
+**Sort threads whose last signal is a comment by what that comment does**, because the right response differs completely:
 
 | The owner's last comment | What it is | What to do |
 |---|---|---|
@@ -122,7 +147,7 @@ query($owner: String!, $repo: String!) {
 | Proposes a different fix | An invitation to compare approaches | Say which is better and why; if theirs is, say so plainly |
 | States a decision that closes the thread | Settled; only bookkeeping follows | **Nothing in the thread** - no reply, no argument, no restatement. If the decision settles an entry in the PR body's `## Open questions`, move it to `## Settled` with the decision, question included - a body edit per the body-edit convention in `SKILL.md`, not a commit |
 | **Orders a change** ("OK", "fix it", "drop it", "rewrite it") | Settled, and work follows | Fix it, commit it, reply in the thread naming the commit - **do not push** (Step 4) |
-| **Orders work behind a terminal gate** ("create a ticket for this", "push it", "merge it") | An order this workflow cannot execute from a thread: creation has the confirm-before-create gate of `tracker`, pushing and merging wait on the protocol's step-5 words in the session | Reply naming the gate and the exact command to type in the session - `create issues for ...`, the step-5 words, `merge <pr-number>` - and execute nothing |
+| **Orders work behind a terminal gate** ("create a ticket for this", "push it", "merge it") | An order this workflow cannot execute from a thread: creation has the confirm-before-create gate of `tracker`, pushing and merging wait on the owner authorising them in the session, which is the protocol's step 7 | Reply naming the gate and the exact command to type in the session - `create issues for ...`, "resolve all and push", `merge <pr-number>` - and execute nothing |
 | **Refuses a change** ("no", "nay", "skip it") | Settled, no work follows | Acknowledge briefly in the thread - unless there is a strong counter-argument, which is made once - then stop. No fix is made |
 | **Acknowledges an agent reply** ("OK" after "fixed, committed") | Closing the loop | **Nothing. Never reply to an acknowledgement** - the watch is persistent, so an answered "OK" would fire it and the loop would answer itself forever |
 | Nothing — the owner has not replied | Not a discussion | Leave it alone. `workflows/review.md` owns unanswered findings |
@@ -181,7 +206,7 @@ The same reasoning forbids the softer version: do not ask to resolve them, and d
 
 ## Step 4 - An order in a thread gets its fix, committed, never pushed
 
-An order inside a thread authorises the fix and the commit. **It does not authorise a push.** The owner is still reading the diff, and a push during a round marks threads outdated beneath a review that is part-way through - that is exactly what went wrong on the incident PR that produced `references/review-protocol.md`, with every then-existing rule obeyed. Fix, commit, reply in the thread, then stop; pushing happens only at the protocol's step 5, on the owner's words in the chat session.
+An order inside a thread authorises the fix and the commit. **It does not authorise a push.** The owner is still reading the diff, and a push during a round marks threads outdated beneath a review that is part-way through. Fix, commit, reply in the thread, then stop; pushing happens only at the protocol's step 7, on the owner's words in the chat session.
 
 About the fix and its reply:
 
@@ -191,16 +216,16 @@ About the fix and its reply:
 
 ## Step 5 - Confirm
 
-One line per thread touched: the file and line, what the owner asked, and one clause on what was answered or fixed. Then the same for review bodies and Conversation comments: each one answered or acted on this round, and that the rest were read and needed nothing. Then the count of threads left alone, and why - settled, unanswered, or resolved. Then any `## Open questions` entries moved to `## Settled`, since `ready` and `merge` audit that section later and the report is what ties their finding to the round that acted. Then the state the round ended in, explicitly: **how many fix commits sit unpushed, waiting for the owner's step-5 words**, and whether a watch is armed on this PR - a fresh session must be able to tell "fixed and waiting for the word" from "nothing to do".
+One line per thread touched: the file and line, what the owner asked, and one clause on what was answered or fixed. Then the same for review bodies and Conversation comments: each one answered or acted on this round, and that the rest were read and needed nothing. Then the count of threads left alone, and why - settled, unanswered, or resolved. Then any `## Open questions` entries moved to `## Settled`, since `ready` and `merge` audit that section later and the report is what ties their finding to the round that acted. Then the state the round ended in, explicitly: **how many fix commits sit unpushed, waiting for the owner to authorise the push at step 7**, and whether a watch is armed on this PR - a fresh session must be able to tell "fixed and waiting for the word" from "nothing to do".
 
 ---
 
 ## Rules
 
 - **Answer on GitHub, never in the terminal.** In the thread when there is one; as a Conversation comment for a review body or Conversation comment, which have none. A terminal answer is lost the moment the session ends, and the owner asked on GitHub because that is where they wanted the record.
-- **Never push during a round.** An order authorises the fix and the commit only; the push waits for the owner's step-5 words in the session, per `references/review-protocol.md`. A push mid-read moves the ground under the reviewer.
+- **Never push during a round.** An order authorises the fix and the commit only; the push waits for the owner authorising it in the session at the protocol's step 7, per `references/review-protocol.md`. A push mid-read moves the ground under the reviewer.
 - **A question is not a decision.** `workflows/review.md` reads an owner reply as settling a finding; that rule holds only for replies that actually settle something. Misreading a question as a verdict leaves it unanswered forever.
 - **Never open a new finding here.** A defect noticed while answering goes to the next `review` pass, not into an unrelated thread where nobody is looking for it.
-- **An order in a thread never satisfies a terminal gate.** The thread records the order; the terminal is where its gate runs. "Create a ticket" goes through the breakdown-and-confirm gate of `tracker`, whose revise-and-ask loop cannot fit one-reply-per-thread-per-pass; "push it" and "merge it" wait on the protocol's step-5 words in the session. The reply names the command to type, and nothing is executed from the thread.
+- **An order in a thread never satisfies a terminal gate.** The thread records the order; the terminal is where its gate runs. "Create a ticket" goes through the breakdown-and-confirm gate of `tracker`, whose revise-and-ask loop cannot fit one-reply-per-thread-per-pass; "push it" and "merge it" wait on the owner authorising them in the session, at the protocol's step 7. The reply names the command to type, and nothing is executed from the thread.
 - **Never resolve, and never close the discussion on the owner's behalf.**
 - If no thread has an owner reply awaiting an answer, say so and stop. There is nothing to do and nothing to post.

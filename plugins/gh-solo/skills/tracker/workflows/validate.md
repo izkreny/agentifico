@@ -8,7 +8,7 @@ Same as `status.md`: the argument, else the current branch, else ask.
 
 ## Step 2 - Load the standards
 
-Read `references/standards.md`, and `.agents/github.md` if the repository has one. **The per-repo file wins on every conflict.** A repository that declared its own layer set is not failing validation for using it.
+Read `references/standards.md`, and `.agents/gh-solo.md` if the repository has one. **The per-repo file wins on every conflict.** A repository that declared its own layer set is not failing validation for using it.
 
 ## Step 3 - Fetch
 

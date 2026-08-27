@@ -16,12 +16,10 @@ gh extension install github/gh-stack     # if absent
 **The `gh-stack` skill owns the CLI.** It is installed at user scope, from `github/gh-stack`, and it is the manual: every command, the JSON output shapes and the exit codes. Upstream splits it, so `SKILL.md` is the summary and the detail lives in its `references/` directory; follow the pointer rather than concluding the manual is silent. Consult it for command mechanics rather than guessing flags.
 
 ```bash
-skills list                                    # confirm it is present
-skills update                                  # refresh it
 gh extension list | grep gh-stack              # read the installed binary version
 ```
 
-**The `gh-stack` skill is a prerequisite this plugin does not bundle.** It ships from `github/gh-stack` alongside the extension it documents, and it is installed by whichever skill manager the user already runs. Install it with one manager and leave it there: a second manager laid over the same directory writes its own provenance record, and whichever ran last owns the files while the other record goes stale in silence.
+**The `gh-stack` skill is a prerequisite this plugin does not bundle.** It ships from `github/gh-stack` alongside the extension it documents. How it gets onto a machine is that machine's business rather than this plugin's; what matters here is that the skill and the extension are both present, and that the extension's version is the one the skill documents.
 
 **Do not pin the skill to the extension's version.** Upstream tags releases of the binary, not of the manual, and the skill carries its own separate `version`, which has been seen both behind and ahead of the tag it ships under. The two counters are unrelated, so matching them fetches an arbitrary manual rather than a matched one. Before trusting an unfamiliar flag, check behaviour rather than numbers: `gh extension list` for the binary, and `gh stack <command> --help`, which is authoritative. Note that `gh stack help <command>` is not: it prints the top-level help.
 

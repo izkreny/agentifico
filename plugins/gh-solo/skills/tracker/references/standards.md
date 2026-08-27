@@ -1,8 +1,8 @@
 # GitHub issue standards, solo developer
 
-The rulebook this skill validates against and writes to. Per-repo overrides, where a repository wants a different label taxonomy or branch format, live in `.agents/github.md` in that repository.
+The rulebook this skill validates against and writes to. Per-repo overrides, where a repository wants a different label taxonomy or branch format, live in `.agents/gh-solo.md` in that repository.
 
-Everything here assumes **one person owns the repo and does the work**. Where a team process would add a gate that somebody else clears, this one records a fact and moves on. The one place that changes the rule outright rather than relaxing it is the priority axis under *Never label the default*, where triage is absent and so the middle value is too.
+Everything here assumes **one person owns the repo and does the work**. Where a team process would add a gate that somebody else clears, this one records a fact and moves on. Where it changes a rule outright rather than relaxing it, the section that does so says why: the priority axis under *Never label the default* drops its middle value because triage is absent.
 
 ---
 
@@ -186,7 +186,7 @@ Labels that would otherwise creep across the whole tracker depend on this rule:
 
 **`fullstack` is required, not optional, when an issue genuinely spans both.** It is also rarer than it looks. An issue that merely *calls* an endpoint owned by another issue is `frontend`. If each side could merge and be useful on its own, that is not one `fullstack` issue at all, it is a `backend` issue and a `frontend` issue, per the split test in *How big is one issue*.
 
-The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in `.agents/github.md`. What matters is that the set is small, closed, and mandatory.
+The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in `.agents/gh-solo.md`. What matters is that the set is small, closed, and mandatory.
 
 **Because this axis is mandatory, its absence is a defect rather than a default**, unlike every other axis in the table above. Nothing in a title now reveals a missing layer label, so audit for it directly rather than expecting to notice:
 
@@ -386,7 +386,7 @@ GitHub has an **issue type** field separate from labels, exposed as `gh issue cr
 
 So: **`epic`, `bug` and `spike` are labels here**, per *Labels*, and `--type` is never passed. Do not go looking for the field, and do not treat its absence as something misconfigured.
 
-The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in `.agents/github.md` so no later session probes again. Passing an unknown type is an error rather than a no-op.
+The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in `.agents/gh-solo.md` so no later session probes again. Passing an unknown type is an error rather than a no-op.
 
 ---
 
@@ -418,7 +418,7 @@ The exception is a solo developer working in a repository owned by an org they b
 | `docs` | Prose |
 | `chore` | Tooling, dependencies, config |
 
-That set is the one this skill assumes; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set in `.agents/github.md` if it differs.
+That set is the one this skill assumes; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set in `.agents/gh-solo.md` if it differs.
 
 **Type describes the change, labels describe the deliverable.** They are separate axes and neither derives from the other: a `docs` branch usually sits on a `docs`-labelled issue and a `fix` branch on a `bug` issue, but a `refactor` branch can serve a `feat`-shaped issue and a `chore` can close a `bug`. Never infer the label from the branch, or the branch from the label. **The word `docs` now lives on both axes and still asks two different questions**: as a type it says the change is prose, as a label it says the deliverable is prose. They usually coincide, which is exactly why the scope rule below omits the scope when it would repeat the type.
 

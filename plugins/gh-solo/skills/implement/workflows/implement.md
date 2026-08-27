@@ -2,22 +2,27 @@
 
 Turn the plan on a draft PR into commits on its branch. Runs after `open` in the `pr-flow` skill has created the draft, and ends by handing the branch to that skill's `ready review`. It may run across many sessions; Step 2 is what makes session three indistinguishable from session one.
 
-## Step 1 - Locate and load
+## Step 1 - Locate, settle the plan record, load
 
 Resolve the PR: the argument's number, or the PR of the checked-out branch (`gh pr view --json number,headRefName,isDraft,body`). **If no PR exists for the branch, stop with `⛔ REFUSED`** - the plan-first rule means there is nothing to implement yet; `open` in the `pr-flow` skill is what creates the plan and the draft.
 
 Check out the branch and pull - and where the owner keeps a worktree per branch, and their instructions authorise entering one without asking, move into it with `EnterWorktree` instead of switching this one.
 
-**If the branch sits ahead of its remote, read what is unpushed before deciding anything** (`git log <remote>/<branch>..<branch> --oneline`). Which commits they are decides the answer, and the two cases are opposite:
+### Settle the plan record before trusting it
 
-- **The plan commit, or any `docs:` commit touching the plan, is among them** - stop with `⛔ REFUSED - {what is unpushed}`. The plan and body you are about to trust are guaranteed current only when the handover finished, and an unpushed plan commit says it did not. The spawning session's pre-spawn sync in `SKILL.md` is what pushes those; reaching here with one unpushed means that step did not run.
-- **They are implementation commits only** - this is the ordinary resume, not a fault. A session that died between its last commit and Step 6's backup push leaves exactly this state, and refusing on it would make the commonest resume unresumable. Say what is unpushed and carry on into Step 2, which reconciles those commits against the record; the work travels in Step 6's push as it always does.
+**A hard stop, and the first thing this workflow does.** There is nowhere earlier to put it: the session that implements the plan is the session that settles its record, so the check lands before the first line of code rather than before a handover. **Never soften it into a warning, and never carry on having named it.** What it guards against is this session talking itself past an unsettled question in the plan it is about to implement, and a warning is precisely what that sounds like from the inside.
+
+1. **Read the plan-discussion threads whole**, with the GraphQL `reviewThreads` query from Step 1 of the `pr-flow` skill's discuss workflow - the REST comments endpoint has no resolution state - and drop the resolved ones. **An unsettled thread that affects the work stops everything:** `⛔ REFUSED - {which thread}`, and no code is written. The `discuss` workflow of the `pr-flow` skill is what ends that state.
+2. **Apply any settled decision the plan or body does not yet reflect**: a new `docs:` commit - never `git commit --amend` on the plan commit, which would force-push away the threads that record why the plan changed - and the PR body updated **whole**: each answered `## Open questions` entry moved to `## Settled` with its decision, question included - moved, never deleted, per the body template in the `pr-flow` skill's open workflow - and `## Open questions` left reading "None." once nothing remains open.
+3. **Push the plan commits**, then read `gh pr checks <pr-number>`, per the contract. The discuss rounds held them for the owner's word, and the owner's command to implement is that word.
+
+**Then read what is still unpushed** (`git log <remote>/<branch>..<branch> --oneline`). With the plan commits pushed above, whatever is left is implementation commits, which is the ordinary resume rather than a fault: a session that died between its last commit and Step 6's backup push leaves exactly this state, and refusing on it would make the commonest resume unresumable. Say what is unpushed and carry on into Step 2, which reconciles those commits against the record; the work travels in Step 6's push as it always does. **Do not push them here** - whether they are finished work is Step 2's reconciliation to make, not this step's.
 
 Then read, in this order:
 
 1. **The plan file** - the branch's first commit; it lives in `docs/plans/` unless the repository keeps plans elsewhere. This is the what and the how.
 2. **The issue's acceptance criteria** - `gh issue view <issue-number> --json title,body,labels`, the number parsed from the branch name. This is the why, and the definition of done. **If the labels include `draft`, stop with `⛔ REFUSED`** - the description is unfinished by its own declaration, so there is no definition of done to implement against; the `finish` workflow in `tracker` ends that state. Only a PR opened before `open` gained the same gate can reach here, but the refusal is cheaper than the guess.
-3. **The repository's own guidance** - its agent instructions file and `.agents/github.md`, per the contract in `SKILL.md`. Where either is missing or silent on how this repo is tested, note it now as a finding for Step 7.
+3. **The repository's own guidance** - its agent instructions file and `.agents/gh-solo.md`, per the contract in `SKILL.md`. Where either is missing or silent on how this repo is tested, note it now as a finding for Step 7.
 
 If the PR body has no `## Steps` or no `## Verification` section, stop with `⛔ REFUSED` and say which: the body is the state carrier for this whole workflow, and a missing section means `open` did not finish its job. That is fixed there, not improvised here.
 

@@ -1,42 +1,30 @@
-> **Tools used:** `Bash(gh:*)` to fetch PR lists and issue context and to post comments and Reviews, `Read` / `Grep` / `Glob` for repository context.
+> **Tools used:** `Bash(gh:*)` to fetch PR and issue context and to post comments, threads and Reviews, `Agent` to spawn the `reviewer` subagent, `Bash(python3:*)` for `scripts/post-review.py`, `Write` for the payload and body files, `Read` / `Grep` / `Glob` for repository context.
 
 > **Output format:** console output is plain text. No markdown syntax, no `**bold**`, no `##` headers, no `---` rules, no backtick fences. Use plain ASCII and box-drawing characters (`─`, `│`) for structure, plus the verdict emoji from `SKILL.md`'s verdict-line convention. Markdown belongs only inside the `body` strings sent to the GitHub API. Any command printed for the owner sits alone on its own line at column one, per the same convention - a leading space breaks the paste.
 
-Do the work on either side of a code review: check what the tracker needs, hand the diff analysis to `/code-review`, and record its outcome on the PR when it comes back.
+Run a review round on a pull request: check what the tracker needs, spawn the reviewer, post what it found, plan and land the fixes, have the fixes checked, and stop at the owner.
 
-**This workflow never reads the diff.** Not once, in either pass, and not even to test whether it is empty: Pass 1 asks GitHub for the change count instead. The analysis belongs to `/code-review` and the judgement belongs to the owner; what happens here is everything around them - the tracker checks nothing else enforces, the context and the exact command handed over, and the outcome written down afterwards so it can be relied on later. Saying "prepared" rather than "reviewed" is precise, not modest: at the end of Pass 1 nothing has examined a line of code.
+**The round's rules are `references/review-protocol.md`, and where this file disagrees with it, this file is wrong.** That file owns the cast, the finding key, what each step means and why, the owner's vocabulary and the conclusions the gates enforce. What this file owns is the mechanics: the commands, the script, the spawn, and the id arithmetic. Nothing about the round's rules is restated here, because a second copy drifts.
 
-## What this workflow does not do
+**This workflow never reads the diff, and never reviews.** The analysis belongs to the reviewer subagent, which is a separate agent with its own context precisely so that the session which wrote the code is not the session that judges it. The emptiness test is `changedFiles`, never `gh pr diff`. What happens here is everything around the analysis: the tracker checks nothing else enforces, the spawn, the posting, the fixes, and the stop.
 
-**It does not analyse the diff itself, and it must not.** `/code-review` does that - the code-review capability named in `SKILL.md`'s standing conventions, whose name substitutes per harness - and this flow reserves starting it to the owner: the analysis is a cost and a judgement only they authorise, and its worth as a merge gate depends on it never being run or imitated as a side effect. So never invoke it from here and never replicate its workflow by other means, whether or not the harness would allow the call - Pass 1 ends in a handoff instead.
+## How this runs
 
-What this workflow does own is what `/code-review` has no opinion about:
+1. **`open`** - plan committed alone, draft PR, stop. Another workflow.
+2. *implementation* - the `implement` skill.
+3. **`ready`** - the gates audited, draft lifted. Another workflow.
+4. **Before the round** - scope, the confirmation gate, the convention checks.
+5. **The protocol's steps 1 to 5** - review, post, plan, fix, re-review. Unattended, one block.
+6. **Stop.** The protocol's step 6 is the owner's, and nothing here can do it, hurry it or simulate it.
+7. **The protocol's steps 7 and 8** - the resolve and push on the owner's word, then `workflows/merge.md`.
 
-1. **Which PRs are eligible** - open, not draft, not already checked by an earlier run.
-2. **The confirmation gate** before anything is posted publicly.
-3. **The issue context** recovered from the branch name, so findings can be weighed against acceptance criteria.
-4. **The convention checks** that are specific to this repository's tracker and nothing else enforces.
+**Before the round, and the protocol's steps 1 to 5, are this file - and they are one turn**, not two: nothing between the spawn and the round report waits for a human, which is what makes the caps in the protocol's steps 3 and 5 load-bearing.
 
-## How this runs: two passes, with the owner between them
+## Before the round
 
-1. **`open`** - plan committed alone, draft PR, stop
-2. *implementation* - not this skill
-3. **`ready`** - the gates audited, draft lifted
-4. **`review` Pass 1** - tracker checks posted, handoff line printed, **stop**
-5. **the owner** - types the `/code-review` command Pass 1 printed
-6. **`review` Pass 2** - record the outcome as one Review, even at zero findings
-7. **the owner** - reads the diff, then submits their review
-8. **`merge`** - `workflows/merge.md`
+### Scope
 
-This list is the source of truth for order, and the sections below follow it. Steps 1 to 3 are other workflows' business. Steps 4 and 6 are this file's two passes. Steps 5 and 7 are the owner's alone, and nothing here can do them, hurry them, or simulate them. When a section below points back into this list it says *step N of the list*; a bare *Step N* is a heading inside the current pass, and a step referenced across passes names its pass, as in *Pass 1's Step 2*.
-
-**Pass 1 and Pass 2 are separate turns.** Pass 1 ends by printing a command and stopping; nothing else happens until the owner runs it. Pass 2 handles the result, later in the same session, and repeats once per PR as each analysis comes back.
-
-## Pass 1 · on the `review` command
-
-### Step 1 - Determine scope
-
-If a PR number was given, go straight to Step 2 with that number.
+If a PR number was given, go straight to the preliminaries with that number.
 
 Otherwise list what is open and unreviewed:
 
@@ -44,34 +32,31 @@ Otherwise list what is open and unreviewed:
 gh pr list --limit 100 --json number,title,headRefName,reviewDecision,isDraft,reviews,changedFiles
 ```
 
-`--limit` is explicit because the default is 30 and silently truncates - the same trap the `tracker` search workflow names.
+`--limit` is explicit because the default is 30 and silently truncates - the same trap the `tracker` search workflow names, and the same one `--paginate` answers on every REST list read below.
 
 Skip these kinds of PR, and decide every skip *here*, before the confirmation, so the scope the owner confirms is the scope the loop acts on:
 
-- **`isDraft` is `true`** - unfinished. Draft is the *normal* state here rather than an exception, per the standing convention in `SKILL.md`, so every branch looks like this until `workflows/ready.md` ends it - step 3 of the list above.
-- **This workflow already checked it** - its `reviews` array holds a Pass 2 record Review, recognisable by the AI disclaimer line opening the body. That is why `reviews` is in the `--json` list; Step 2's item 3 still re-reads each survivor in full, this filter only needs the records. **Do not test `reviewDecision` for "already reviewed".** It reports whether the repository's review *requirement* is satisfied, not whether anyone looked: with no branch protection demanding a review it stays empty forever, and `gh` returns `""` rather than `null`, so a `!= null` test skips every unreviewed PR - the exact inverse of what it reads like. It stays in the `--json` list because it is worth *displaying*, not for filtering.
-- **`changedFiles` is `0`** - an empty PR has nothing to review. Skip it and record it in the summary as "skipped - empty PR"; Step 2's own emptiness test then only ever fires on the named-PR path, which never sees this list.
+- **`isDraft` is `true`** - unfinished. Draft is the *normal* state here rather than an exception, per the standing convention in `SKILL.md`, so every branch looks like this until `workflows/ready.md` ends it.
+- **A round already ran** - its `reviews` array holds a record Review, recognisable by the `via` line reading `round record` or `re-review record`. That is why `reviews` is in the `--json` list. **Not by the disclaimer line**, which every agent post opens with, the convention-check Review of the preliminaries included: a round that stopped after the preliminaries would then look complete forever, and the PR would be skipped by every later run with no round on it. **Do not test `reviewDecision` for "already reviewed".** It reports whether the repository's review *requirement* is satisfied, not whether anyone looked: with no branch protection demanding a review it stays empty forever, and `gh` returns `""` rather than `null`, so a `!= null` test skips every unreviewed PR - the exact inverse of what it reads like. It stays in the `--json` list because it is worth *displaying*, not for filtering.
+- **`changedFiles` is `0`** - an empty PR has nothing to review. Skip it and record it as "skipped - empty PR".
 
-List exactly what survived those skips, then **wait for confirmation**. Name the scope in the question, because "all" is only meaningful next to the list it refers to:
+List exactly what survived, then **wait for confirmation**. Name the scope in the question, because "all" is only meaningful next to the list it refers to:
 
 ```
-2 open PRs not yet checked by this workflow:
+2 open PRs with no review round yet:
   #61 feat(backend): add user lookup endpoint
   #60 feat(frontend): add a login form
 
-Check tracker conventions on both and post findings where any fail? (yes/no)
-This does not read the diff. /code-review does that, and only you can start it.
+Run a full review round on both? (yes/no)
+This spawns the reviewer, posts its findings, lands the fixes locally, and stops for you.
+Nothing is pushed.
 ```
 
-**Say what is actually about to happen, which is less than "review".** The only thing posted here is a convention finding - a missing `Closes`, an unset assignee - and only on a PR where one failed. A prompt reading "post reviews" invites the owner to approve a code review that is not on offer, and then wonder why nothing examined the code.
+**Say what is actually about to happen.** A round posts threads and a Review publicly and writes commits to the branch, and the prompt has to name both, or the owner is approving something smaller than what runs. Naming the push-hold in the prompt is not reassurance, it is the one fact that makes the rest acceptable to approve unattended.
 
-Stop cleanly on no. Posting to a PR is public and hard to retract quietly, so the gate is not optional even when the answer seems obvious.
+Stop cleanly on no. **The gate only exists on the no-number path**: when the owner named a PR they have already chosen the scope, and asking them to confirm their own argument is noise.
 
-**`/code-review` posts to the PR too, and is deliberately not behind this gate.** What it posts is public in exactly the same way; the difference is who initiates. The owner types that command themselves, and typing it *is* the authorisation - a second confirmation would be asking them to approve their own instruction. This gate covers only what the workflow posts on its own initiative, which is the convention findings and nothing else.
-
-**And the gate only exists on the no-number path.** When the owner named a PR they have already chosen the scope, so asking them to confirm their own argument is noise.
-
-### Step 2 - The loop, per PR
+### The preliminaries, per PR
 
 1. **Fetch the PR.**
 
@@ -79,169 +64,155 @@ Stop cleanly on no. Posting to a PR is public and hard to retract quietly, so th
    gh pr view <pr-number> --json title,body,headRefName,assignees,isDraft,changedFiles,commits
    ```
 
-   If `changedFiles` is `0` there is nothing to hand over: skip, and record it in the summary as "skipped - empty PR". On a list run Step 1 already dropped these before the confirmation, so this catches only a PR the owner named directly. This is the emptiness test, and it is why nothing here needs `gh pr diff`. The other fields feed item 4.
-2. **Recover the issue.** Derive the number from the branch name `{type}/GHI-{issue-number}_{slug}`, by the parse stated once in `SKILL.md`'s branch-format bullet: `feat/GHI-50_login-form` yields `50`. What the branch yields is the `{issue-number}`, never the `<pr-number>` you are reviewing. Read the issue with `gh issue view <issue-number> --json title,body,labels,parent,blockedBy` for its acceptance criteria. A branch predating the convention may carry a legacy key whose number is **not** an issue number in this tracker: resolve those by title search, `gh issue list --state all --search "<legacy-prefix>-<legacy-number>"`, rather than by assuming. Skip silently when neither yields an issue.
-3. **Read what is already posted on the PR**: its comments and its Reviews.
+   If `changedFiles` is `0` there is nothing to review: skip, and record it as "skipped - empty PR". On a list run the scope step already dropped these, so this catches only a PR the owner named directly. This is the emptiness test, and it is why nothing here needs `gh pr diff`.
+2. **Recover the issue.** Derive the number from the branch name by the parse stated once in `SKILL.md`'s branch-format bullet: `feat/GHI-50_login-form` yields `50`. What the branch yields is the `{issue-number}`, never the `<pr-number>`. Read it with `gh issue view <issue-number> --json title,body,labels,parent,blockedBy`. A branch predating the convention may carry a legacy key whose number is **not** an issue number in this tracker: resolve those by title search, `gh issue list --state all --search "<legacy-prefix>-<legacy-number>"`, rather than by assuming. **The reviewer recovers the issue itself and does not get yours** - this copy is for the round report and for the convention checks.
+3. **Read what is already posted on the PR**, its comments and its Reviews, before posting anything of your own:
 
    ```bash
-   gh pr view <pr-number> --json comments,reviews \
-     --jq '(.comments + .reviews)[] | [.author.login, .body] | @tsv'
+   gh pr view <pr-number> --json comments,reviews --jq '(.comments + .reviews)[] | [.author.login, .body] | @tsv'
    ```
 
-   Who wrote a thing decides what to do with it, and the login alone cannot tell you: every agent post is made with the owner's credentials and carries the owner's login. The AI disclaimer line is the real marker - an agent wrote whatever opens with it, the owner wrote whatever does not.
+   Who wrote a thing decides what to do with it, and the login cannot tell you: every agent post is made with the owner's credentials and carries the owner's login. The disclaimer says an agent wrote it and the `via` line says which one.
 
    | What is already there | What it means |
    |---|---|
-   | Convention findings from an earlier run of this workflow | Already reported. Do not post them again. |
-   | A Pass 2 record Review from an earlier round | The analysis already ran, at the effort level the record names. Do not re-run it to check; that is the owner's command to give. |
-   | A comment in the owner's own voice, no disclaimer | A note they wrote themselves. Do not restate it as a finding. |
-   | A mentor or other reviewer | Advice the owner may have weighed and declined. Never re-raise it as a fresh finding; at most note that it is unanswered. |
+   | Convention findings from an earlier run, via `pr-flow` review, convention check | Already reported. Do not post them again, even where the check still fails |
+   | A record Review from an earlier round | A round already ran. On a named-PR run this is a further round, which the protocol allows; the ids continue from it |
+   | A comment in the owner's own voice, no disclaimer | A note they wrote themselves. Never restate it as a finding |
+   | A mentor or other reviewer | Advice the owner may have weighed and declined. Never re-raise it, and name it in the round report as unanswered |
 
-   Content alone is not enough to decide. A point the owner has already answered and a point nobody has read look identical if you ignore who wrote what.
-
-   **One combination reroutes instead of skipping: inline findings on the diff but no Pass 2 record Review.** That means the analysis ran and the session ended between steps 5 and 6 of the list, so the record is still owed. Stop Pass 1 for this PR and run Pass 2 on it now - do not reprint the handoff, which would ask the owner to pay for the same analysis twice.
-
-   **Comment threads down on the code are none of Pass 1's business.** On a first round none exist yet, and on a later round they belong to the owner's reading - step 7 of the list - and to `workflows/discuss.md`. Nothing Pass 1 posts refers to a file or a line, so nothing here needs to read them.
-
-4. **Check the conventions yourself**, per *Convention checks* at the end of this file. These are the checks `/code-review` does not know about, because they are about this repository's tracker rather than its code.
-5. **Post the convention findings as one review**, if any failed:
+   **The reviewer gets none of this.** It is spawned with a number and fetches its own context, and handing it an earlier round's findings is the one thing that would make its read dependent on the last one. What this read is for is your own posting: not repeating a convention finding, and having something to say about a mentor in the report.
+4. **Check the conventions**, per *Convention checks* at the end of this file, and post the failures as one Review:
 
    ```bash
    gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -f body='...'
    ```
 
-   `COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked.
+   `COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked. **Not the `pulls/<pr-number>/comments` endpoint**, which anchors to a file and line: every convention finding is a fact about the PR as a whole and has nowhere in the code to anchor to. Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` review, convention check.
 
-   **Not the `pulls/<pr-number>/comments` endpoint.** That endpoint anchors a comment to a file and line in the diff and demands `commit_id`, `path` and `line` to do it. Every convention finding is a fact about the PR as a whole - a missing `Closes #`, an unset assignee - with no place in the code to anchor to, so that endpoint cannot express one.
+   **These are not review findings and get no `RF{n}` id.** They are tracker integrity, they are the orchestrator's own observation rather than the reviewer's, and giving them ids would put them in the same sequence the fix plans and re-review verdicts answer.
+5. **Refuse early on a thread the merge gate will refuse on.** The convention table's last row is the cheap, early check for *Resolution rests on recorded authority*; a violation stops this workflow here rather than after a round's worth of work.
 
-   **Every posted comment opens with the AI disclaimer line** per the AI-disclaimer bullet in `SKILL.md`, the `via` line under it per the standing convention there: via `pr-flow` review, pass 1 convention check. A PR comment is prose landing under the owner's name, and a mentor reading the PR has no other way to tell who wrote it. Item 3 above depends on the disclaimer line to recognise this workflow's own posts on the next round.
-6. On a failed POST (rate limit, network), record "failed - [reason]" in the summary and continue to the next PR.
-7. **Hand the diff analysis off.** The line the owner will type:
+## The protocol's steps 1 to 5
 
+### Step 1 - Review
+
+**Which reviewer runs is a per-repo fact.** The default is the `reviewer` agent this plugin ships. Where `.agents/gh-solo.md` carries a `Reviewer agent:` line naming an agent type, per the per-repo config convention in `SKILL.md`, spawn that one instead.
+
+- **The appointed agent inherits the whole contract, not only the spawn.** It gets the PR number and nothing else, and it must return the absolute path of a findings file in the format `../../reviewer/SKILL.md` defines, plus its report text. Everything downstream reads that file and nothing else, so an agent that answers in prose cannot be posted.
+- **Refuse if the appointed agent is not registered.** `⛔ REFUSED - {name} is not a registered agent`. Never fall back to the bundled one: the owner would believe they are reading the findings of the agent they appointed and would be reading ours, which is the exact confusion an appointment exists to prevent, and it would silently invalidate any comparison between reviewers.
+- **Name which reviewer ran in the round report**, always, including when it is the default. A round's findings mean something different depending on what produced them, and a report that leaves it out cannot be compared with another round's.
+
+Spawn it with the PR number and nothing else.
+
+#### Where the appointed reviewer is a command
+
+`.agents/gh-solo.md` may instead carry a `Reviewer command:` line, for a capability that is invoked rather than spawned. Run it as written, substituting the PR number for `{pr}`.
+
+**Never with a flag that makes it post its own findings.** On the bundled `/code-review` that flag is `--comment`, and the whole point of this form is that its findings come back to you and go up through the posting script like every other round's. A capability that posts for itself lands threads with no `RF{n}` id, no disclaimer and no `via` line, which `workflows/merge.md` then reads as the owner's own comments vouching for their own resolution. One writer, one convention: that is what this form preserves.
+
+Build the findings file yourself from what it returned:
+
+- **`path` and `line`** from its restated findings. The bundled capability is instructed to restate them in its final reply as `file:line  summary` lines, precisely so they survive a session that does not render tool output.
+- **`side` is `RIGHT`.** Prose does not say whether a line was added or deleted, and `RIGHT` is right for either an added or a changed line. A wrong anchor makes the atomic call fail, which refuses the round rather than landing it crooked, so that is the failure to accept rather than guess around.
+- **`axis` is `unrated`.** Its findings are not classified on the two axes and must not be sorted onto them by you.
+- **`severity` is read out of each finding's own account of what goes wrong**, with `severity_source` set to `derived` and `severity_basis` stating the rule you applied. The script refuses a derived round with no basis, and refuses a basis on a round whose reviewer assigned its own levels. Where a finding's text supports no judgement, its severity is `unrated`.
+- **Never claim a level came from the capability.** Its own prompt asks its agent for a severity that its reporting tool has no field for, so a ranking looks like it exists and does not. A level you derived and published as the reviewer's is the one dishonesty this whole path is arranged to prevent.
+
+Everything after this is unchanged: the same script, the same call, the same ids.
+
+**Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. It fetches its own context, and evidence chosen by the author of the code is not independent evidence. Handing it your reading of the diff is the one way to spend a subagent and get your own opinion back.
+
+It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review.
+
+### Step 2 - Post
+
+One call lands every thread and the record Review together, so a half-posted PR cannot happen.
+
+1. **Find the highest `RF{n}` already on the PR**, since ids never restart:
+
+   ```bash
+   gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" --jq '.[].body' | grep -oE 'RF[0-9]+' | tr -dc '0-9\n' | sort -n | tail -1
    ```
-   /code-review high <pr-number> --comment
+
+   No output means no round has posted yet, so pass `0`.
+2. **Write the disclaimer line to a file**, its wording per the AI-disclaimer bullet in `SKILL.md`. The script refuses a line that does not open with `> 🤖`.
+3. **Build and validate the payload:**
+
+   ```bash
+   python3 scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --out <payload-file>
    ```
 
-   **Where it gets printed depends on scope.** When the owner named the PR, print it here and stop: the loop ran once, this is the whole ending, and Step 3 would only repeat it. Open the ending with the verdict line - `✅ ALL PASS` when the conventions were clean, `⚠️ PASSED WITH FINDINGS - {count} posted` when not - and put the command alone on the next line, flush left, so the owner can paste it whole. On a list run, hold it for Step 3 instead, so every command lands in one block rather than scattered through the loop's output.
+   It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. **A refusal here is not something to work around by posting by hand.** It means the findings file is malformed, and the answer is to re-spawn the reviewer or to say what is wrong and stop.
+4. **Post it:**
 
-   **Name the effort level.** Omitted, the skill reuses whichever level the owner typed last, so the depth of the review would depend on session history rather than on this PR. The levels are `low`, `medium`, `high`, `xhigh` and `max`.
+   ```bash
+   gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
+   ```
 
-   **`--comment` is what makes the analysis leave its findings on the PR** instead of only in the terminal. What arrives, and how it gets recorded, is Pass 2's subject; nothing more about it belongs before step 6 of the list.
+   The JSON must travel in a **file**: `-f` cannot express an array, and `echo '{...}' | gh api --input -` sends the same bytes but does not prefix-match this skill's granted `Bash(gh:*)` pattern, so it prompts where the file form runs clean. Keep the payload file outside the working tree - the harness scratchpad - so a copy of it cannot get committed.
+5. **Reconcile what landed:**
 
-   Hand over the acceptance criteria recovered in item 2, and anything item 3 found already settled, so the owner can weigh the findings without re-reading. Then leave the findings alone: do not pre-empt them, do not re-derive them, and do not second-guess them. If `/code-review`'s criteria are wrong for this repository, that is a change to make in that skill, where it applies everywhere, rather than a set of parallel rules here.
+   ```bash
+   gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
+   python3 scripts/post-review.py verify --payload <payload-file> --comments <listing-file>
+   ```
 
-### Step 3 - Summary, then stop
+   **`--paginate` is not optional.** The endpoint pages at 30 and a plan discussion's threads alone can pass that, so an unpaginated read returns a slice that looks exactly like a failed post. A verify failure is reported, never re-posted over: the threads may already be there.
+6. **Post the reviewer's report as a Conversation comment**, `gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it unchanged.
 
-**List runs only.** When the owner named the PR, item 7 already ended the pass, and a one-row table under it would say everything twice. On a list run this is where the record collects: the outcome per PR, whatever Step 1 skipped and item 6 failed, and the handoff commands as one block.
+### Step 3 - Plan the fix, in the thread
 
-Report the convention checks, which this workflow did, separately from the analysis, which it did not:
-
-```
-PRs Prepared For Review
-─────────────────────────────────────────────────────
-#61  feat(backend): add user lookup endpoint    2 convention findings posted
-#60  feat(frontend): add a login form           clean
-─────────────────────────────────────────────────────
-⚠️ PASSED WITH FINDINGS - 2 convention findings on #61. Then run, one per PR:
-/code-review high 61 --comment
-/code-review high 60 --comment
-```
-
-The verdict line is `✅ ALL PASS` when every PR came through clean. The commands start at column one, one per line, nothing else on the line - the owner pastes them whole.
-
-**Do not call this "reviewed".** Nothing has read the diff yet - neither the analysis nor the owner. This is the **stop** at the end of step 4 of the list: the next move is its step 5, and it is the owner's.
-
-## Pass 2 · when the analysis comes back
-
-**This runs after the owner has typed the handoff command.** A separate turn, later in the same session, repeating once per PR as each analysis comes back. Never a continuation of Pass 1.
-
-**It has a second entrance, because sessions end.** There is no `pass 2` command: when a fresh session runs `review <pr-number>` against a PR that already carries inline findings but no record Review, Pass 1's Step 2 item 3 reroutes here - the analysis already happened, only the record is owed. Without that route the PR would be stuck: `workflows/merge.md` gates on the record Review, and re-running Pass 1 would only reprint a handoff for an analysis that already ran.
-
-### Step 1 - Establish what landed
-
-What step 5 of the list left behind, and the first thing in this flow that touches the code itself: `/code-review --comment` posts each finding as an **inline comment**, a thread anchored to a file and line in the diff. That is where the findings live from now on. When posting fails it prints the findings to the terminal instead, and its terminal narrative is not a record of anything: it posts no summary prose to the PR at all.
-
-So verify rather than assume, with one read that is still not the diff:
+One reply per finding, on the finding's own comment id from the reconciliation read:
 
 ```bash
-gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" \
-  --jq '.[] | "\(.id)  \(.path):\(.line // .original_line)  \(.created_at)"'
+gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F body=@<body-file>
 ```
 
-The analysis just ran in this session, so its effort level and finding count are already in the conversation; this read confirms the findings actually sit on the PR and yields the comment ids and `file:line` pointers Step 2 needs. On a repeat round, tell this round's comments from the last one's by `created_at`. **`--paginate` is not optional**: the endpoint pages at 30 and a plan discussion's threads alone can pass that, so an unpaginated read returns a slice - which looks exactly like the transport failure below and would send the repair form to duplicate threads that already landed. The `--limit` warning on `gh pr list` in Pass 1 is this same trap; it reaches every REST list read.
+Disclaimer and `via` line first: via `pr-flow` review, fix plan. Code in a **plain fence**, never a `suggestion` fence, for the reason the protocol gives; `scripts/post-review.py` enforces that on the findings themselves and cannot see these replies, so here it is yours to hold.
 
-**If the PR is missing findings the terminal reported, the transport failed - post them yourself, in Step 2's call.** The flag degrades silently when the forked analysis agent is missing the tool that posts inline comments, and the terminal output then holds everything posting needs: each finding's text and its `file:line`. Carrying that output to the PR is transport, not analysis, so the never-replicate rule does not apply, and the owner already authorised the posting by typing `--comment`. Say the fallback happened, then do Step 2 in its repair form below - never post the findings one at a time through `pulls/<pr-number>/comments`, which is one write per finding plus a separate record Review, any of which can fail and leave the PR half-posted.
+Which findings get no plan and wait for the owner instead, and what their reply says, is the protocol's. A finding the reviewer marked `needs_owner` in the findings file is the first of the two kinds; the second you can only see yourself, while planning.
 
-### Step 2 - Record it as one Review
+### Step 4 - Fix, commit, report
 
-```bash
-gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -f body='...'
-```
+The mechanics are the fix workflow of the `implement` skill, run **here, by you**, rather than handed to anyone. You implemented this branch, so you know why each line is shaped as it is and will not undo something deliberate.
 
-**The repair form, when Step 1 found the inline posting fell back:** the same endpoint takes a `comments` array, so one request lands every finding as an inline thread *and* the record Review, atomically - either all of it posts or none does. `-f` cannot express an array, so the JSON travels by file: write it to the harness scratchpad with `Write` - outside the working tree, same reason as the body-edit convention in `SKILL.md` - and pass it with `--input`. An `echo '{...}' | gh api` pipe sends the same bytes, but it does not prefix-match this skill's granted `Bash(gh:*)` pattern, so it prompts where the file form runs clean.
+**Nothing is pushed.** The protocol's step 7 is the round's only push and says why.
 
-```json
-{"event":"COMMENT","body":"<the index, disclaimer and via line first, keyed by RF id>","comments":[{"path":"src/foo.py","line":42,"side":"RIGHT","body":"<disclaimer>\n>\n> via `pr-flow` review, RF finding\n\nRF3 🔴 high - <the finding>"}]}
-```
+### Step 5 - Re-review, scoped
 
-```bash
-gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <scratch-file>
-```
+Spawn the `reviewer` agent again, with `rescope <pr-number>` and exactly three things: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit claims which id. **The commits are unpushed, so it reads them with `git` locally** - it cannot see them through `gh pr diff`, and handing it a diff you generated would put your reading of the fixes between it and the code.
 
-`side` is `RIGHT` for a line the diff added or changed, `LEFT` only for a finding about a deleted line; `line` is the line number in that version of the file. Each finding's `body` is the finding's text as the analysis wrote it, opened with the AI disclaimer, the `via` line per the standing convention in `SKILL.md`, and its `RF{n}` severity line, and closed with the `Suggested fix:` paragraph where one is owed - the stamping below owns that rule - born with the same marks the stamping retrofits onto threads `/code-review` posted itself, so both paths end in identically marked threads. The review `body` stays the index it always is. On this path the do-not-restate rule below is not being broken by the `comments` array: these are the living copies being created, not a second copy of existing threads.
+Then post what it returns:
 
-The finding format's rules, all owned by `references/review-protocol.md`:
+- **Each verdict as a reply in its finding's thread**, the same endpoint as step 3, via `pr-flow` review, re-review verdict.
+- **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script, same call as step 2, with the re-review findings file: new defects become new threads with new ids continuing the sequence, and the record indexes its own pass. **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round.
 
-- **After the disclaimer, each finding opens `RF{n}` plus its severity in words with the emoji** - 🔴 high, 🟡 medium, 🔵 low. The severity is mapped from `/code-review`'s own ranking, and the mapping applied is stated in the record Review - never invent a level for a finding that arrived without one.
-- **Ids never restart for the life of the PR.** Before numbering, read the existing threads for the highest `RF{n}` already posted and continue from it. `RF3` must mean one thing on this PR forever - including in the follow-up threads the protocol's step 5.2 posts, which reuse the id of the finding they answer.
-- **The record Review's index is keyed by `RF{n}`**, one line per finding with its `file:line`, so a reader maps id to place without opening threads.
+The caps on both loops are the protocol's, and they are the only thing that ends this block short of the owner.
 
-**On the normal path, stamp the threads `/code-review` posted before recording.** They land bare: no disclaimer, no id. That is unmarked agent prose under the owner's name - the one path in the whole flow that produces it - and it breaks two readers: the index has no id to join to the threads, and `workflows/merge.md`'s thread gate reads any non-disclaimer body as an owner comment, so a bare finding thread would vouch for itself. Number the findings per the id rules above, then prefix each thread through `PATCH /repos/{owner}/{repo}/pulls/comments/{comment_id}`, the id from Step 1's read. The endpoint replaces the body rather than prepending, so read each thread's current body first and resend it whole with the disclaimer line, the `via` line (via `pr-flow` review, RF finding), and `RF{n} 🔴 high - posted by /code-review at {effort}` above it, the analysis's text untouched below. The prefix is a prefix: rewriting the wording would leave a thread half-authored by each, with no way to tell which half.
+## Stop at the owner
 
-**One addition goes below the finding rather than above it: a `Suggested fix:` paragraph, owed only when the finding does not already say what change would close it.** Read the finding's text for the substance rather than grepping for a label - a rewrite in its own words, a "use X instead", a GitHub suggestion block all count, and a finding carrying any of them gets no append. When the finding only names the defect, append one final paragraph after a blank line: `Suggested fix:` and a sentence or two naming the change, a direction rather than a patch. Source it the way Step 1 sources the repair form: the analysis's terminal narrative from this session often states the fix its posted comment dropped, and carrying that to the thread is transport, not analysis; only when the analysis offered none anywhere, formulate it from the finding's own claim - and never from reading the diff, which stays out of bounds here as everywhere in this workflow. The append keeps authorship as legible as the prefix does: the analysis's text sits untouched as one block, the workflow's lines above and below it.
+Open with the verdict line: `✅ ALL PASS` when the reviewer found nothing and the conventions were clean, `⚠️ PASSED WITH FINDINGS - {count} posted, {count} fixed locally` otherwise.
 
-The repair form needs no PATCH - its threads are born stamped, and born with the same appended paragraph where one is owed.
+Then the round report: which reviewer ran, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, what the re-review would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
 
-**Post it even when the analysis was clean.** The record Review's body carries the disclaimer and its `via` line like every other post: via `pr-flow` review, pass 2 record. A Review reading "no findings at `high` effort" is the whole point: without it, a PR with no comments means either *reviewed and fine* or *never reviewed*, and nothing distinguishes them. With it, `gh pr view <pr-number> --json reviews` answers "has this been reviewed" reliably through the disclaimer-opening body, never through array length, which inline discussion inflates with empty-bodied containers. `reviewDecision` cannot answer it at all, per Pass 1's Step 1. That record is the gate `workflows/merge.md` checks before landing anything.
-
-**Body: an index, not a second copy.** The effort level it ran at, the count, and the `file:line` each finding sits on - pointers only. Disclaimer first, as on every posted comment. One Review, never one per finding.
-
-**Do not restate the findings themselves**, tempting as it is. The inline threads are the living copy: the owner resolves them, replies to them, and sometimes shows one to be wrong. A Review body that reproduced each finding's text would be frozen at the moment it was written and would go on asserting things the threads have already settled - and it is the copy `workflows/merge.md` reads as evidence, so a stale one is worse than none. An index cannot contradict the threads because it makes no claims about them.
-
-What this Review is *for* is the count and the fact of the run, which is why it is posted even when the count is zero.
-
-### Step 3 - Tell the owner what is theirs
-
-Step 7 of the list is next, the remaining work is the owner's, and the workflow cannot do it - so say this plainly:
-
-**Review through "Start a review → Submit review"**, in the PR's Files changed tab, rather than by resolving threads one at a time. Resolving a thread is a state change that posts nothing, so a review done that way leaves no timeline record. Batching matters for a second reason: each comment posted individually creates its own empty-bodied review object, while comments submitted as one review share a single record, which keeps the `reviews` array legible for the body-reading gate in `workflows/merge.md`. Submitting one creates a Review under the owner's own name, which is the record that they read the code - distinct from the Review posted in Pass 2, which only records that the machine pass ran.
-
-Each inline comment is a resolvable thread. Pushing a fix marks a thread **Outdated** but never resolves it, so unresolved-and-outdated is a live list of "changed, not yet checked by me" - worth leaving open deliberately until each one has been read.
-
-**Reply in a thread to question a finding**, rather than deciding alone whether it stands. This is where step 7 of the list forks: a reply in any thread goes to `workflows/discuss.md`, which answers it in that thread and returns here.
-
-**Ordering the fixes needs no command.** Once the owner has decided which findings stand - in the threads, or here in the terminal - they say so in plain words: "fix all", "fix RF1 and RF3, skip RF2". That is implementation - the `fix` entrance of the `implement` skill - rather than any workflow of this skill. These hold while doing it: the fixes land as review-fix commits grouped by coherent change, each naming the `RF{n}` ids it closes, so "what changed because of the review" stays separable while the PR is open; whoever re-runs a gate a fix invalidated re-ticks its box, which `workflows/merge.md` audits at the door; the threads stay unresolved for the owner to re-read - a pushed fix only marks them outdated; and the commits wait **unpushed** for the owner's step-5 words, per `references/review-protocol.md` - a push mid-round moves the diff under the reviewer. `/code-review` has a `--fix` flag, but it applies every finding in the same run, before the owner has judged them; in this flow the judgement comes first.
-
-**Then close the loop by saying so, because nothing else will.** No notification reaches this session when a comment is posted in the GitHub UI, so end this step by telling the owner the exact words that bring the work back:
+Then the owner's next move, which is the whole of what they have to do:
 
 ```
-When you have been through the review, say "I replied on the PR" or run:
-/gh-solo:pr-flow discuss <pr-number>
+Read the threads on the PR, then react or reply:
+  👍 or ❤️ accepts a finding. To question one, react 👀 or reply in the thread.
+When you are through them, say "resolve all and push".
 To get each reply answered as you post it instead, before you start run:
 /gh-solo:pr-flow watch <pr-number>
 ```
 
-Print it with the actual PR number substituted, so both lines are typeable as they stand. Say it every time: it costs four lines and it is the only thing standing between a thoughtful reply on GitHub and nobody ever reading it. Naming `watch` here is a mention, not an arming - per `workflows/discuss.md`, only the owner typing that command starts a poll.
-
-### Step 4 - Confirm
-
-Open with the verdict line: `✅ ALL PASS` at zero findings, `⚠️ PASSED WITH FINDINGS - {count} inline, recorded` otherwise. Then one line per PR: the effort level, the finding count, the record Review's URL, and that the closing words above were printed - their commands already sit flush left on their own lines, which is the convention. Step 8 of the list, merging, is `workflows/merge.md`.
+Print it with the actual PR number substituted. Say it every time: it costs five lines and it is the only thing standing between a thoughtful reply on GitHub and nobody ever reading it. Naming `watch` here is a mention, not an arming - per `workflows/discuss.md`, only the owner typing that command starts a poll. The full vocabulary is the protocol's; what gets printed is the part they need at this moment.
 
 ---
 
 ## Convention checks
 
-The reference table for Pass 1's Step 2, kept out of the flow because it is looked up rather than read through. Not code quality - tracker integrity. Run these even when the diff is clean.
+The reference table for the preliminaries, kept out of the flow because it is looked up rather than read through. Not code quality - tracker integrity. Run these even when the reviewer finds nothing.
 
 | Check | Rule |
 |---|---|
@@ -254,18 +225,20 @@ The reference table for Pass 1's Step 2, kept out of the flow because it is look
 | **Commit headers** | `{type}: {description} (#{issue-number})`, no scope, same source |
 | **No labels, no milestone** | The PR carries neither - both live on the issue only, per *Labels* in the `tracker` standards, and the `Closes` line is the join. A milestoned PR also corrupts the milestone's progress count |
 | **Not a draft** | If it is still a draft it should not have reached this workflow; say so rather than reviewing it |
-| **No thread resolved without an owner reply** | Every resolved review thread contains at least one owner comment - a body not opening with the AI disclaimer. One GraphQL read, the same query `workflows/discuss.md` Step 1 uses; a violation is a hard error per conclusion A of `references/review-protocol.md`, and this is the earliest, cheapest place to catch what `workflows/merge.md` will refuse on |
+| **Every resolved thread has recorded owner authority** | One of three things: an owner reply in the thread, an owner reaction on it, or an authorisation comment naming its `RF{n}` id. One GraphQL read, the same query `workflows/discuss.md` Step 1 uses. A violation is a hard error per *Resolution rests on recorded authority* in `references/review-protocol.md`, and this is the earliest, cheapest place to catch what `workflows/merge.md` will refuse on at the door |
 
 `Closes #{issue-number}` and the assignee are the two that matter most, because nothing else enforces either and a PR missing one quietly breaks the tracker: the issue stays open after the code lands, or the in-progress view stops being true.
-
 
 ---
 
 ## Rules
 
-- **Never read the diff, in either pass.** The emptiness test is `changedFiles`, the analysis is `/code-review`'s, and the judgement is the owner's.
-- **Never invoke `/code-review`, and never replicate its analysis by other means.** Print the command and stop; only the owner starts it, by typing it.
-- **Nothing is posted on the workflow's own initiative without Pass 1's confirmation gate** on the list path. A named PR is its own authorisation.
-- **Never filter on `reviewDecision`.** Whether a PR was already checked comes from what is posted on it, told apart by the AI disclaimer line.
-- **One record Review per analysis, and it is an index.** Never restate a finding, never one Review per finding, and post it even at zero findings - it is the evidence `workflows/merge.md` gates on.
-- **Never call Pass 1's output "reviewed", and never end a pass without printing the owner's next move** - the handoff command in Pass 1, the closing words in Pass 2.
+- **Never read the diff and never review.** The emptiness test is `changedFiles`, the analysis is the reviewer subagent's, and the judgement is the owner's.
+- **The reviewer is spawned with a PR number and nothing else**, or on the re-review with a commit range, the findings and the id-to-commit map. Never with your reading of the diff.
+- **Never post a finding by hand.** `scripts/post-review.py` builds every payload, and a refusal from it is a stop rather than an obstacle.
+- **Never post threads one at a time.** One call carries every thread and the record Review, so either the whole round is on the PR or none of it is.
+- **Never read a REST list without `--paginate`**, which makes a successful round look failed and a failed one look partial.
+- **Never push.** Steps 1 to 5 write commits and leave them local; the protocol's step 7 is the round's only push.
+- **Never filter on `reviewDecision`.** Whether a round already ran comes from what is posted on the PR, told apart by the `via` line rather than by the disclaimer, which every agent post carries.
+- **One record Review per analysis, and it is an index.** Never restate a finding in it, never one Review per finding, and post it even at zero findings - it is the evidence `workflows/merge.md` gates on.
+- **Never end without printing the owner's next move.**
