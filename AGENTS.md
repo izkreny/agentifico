@@ -25,19 +25,7 @@ The package axis is also the repository's label axis, which `.agents/gh-solo.md`
 
 ## Prose
 
-- **Never hard-wrap prose at a column.** One line per paragraph, per list item, per blockquote. This holds in markdown and in comment blocks inside code and config, which live in git and diff the same way. Rewrapping diffs every line of a paragraph and hides the two-word edit that caused it.
-- **The commit message is the exception, in both directions.** A subject line targets 50 characters and never crosses 72, per the DISCUSSION section of `git commit --help`. A body *is* hard-wrapped, at 72, because a commit message is immutable and so there is no later edit for a rewrap to hide. A full path, a URL or a command line goes on its own line and overruns rather than being split.
-- **Write paths in full, absolute form.** No leading ellipsis, no `~`, no assumed working directory. An elided path cannot be pasted or clicked.
-- **Never state a count of adjacent content.** "The four rules below" is false the moment a fifth lands, and whoever adds it edits the list, never the sentence. A cap constrains the future and stays ("five sentences at most"); a count describes the present and goes.
-- **When a fact must appear twice, one copy owns it and every other copy points at it.** A stale pointer fails loudly - the heading it names is gone, and a docs check catches that. A stale copy fails silently: two truths disagree and both look right.
-
-## The AI disclaimer
-
-Prose that lands under the owner's name carries a disclaimer line, first, before all other content. Its wording is set by the owner's own instructions and reproduced verbatim, emoji included.
-
-**It goes on** issues, pull requests, comments on either, commit message bodies, and a package's `README.md`, which is prose for a human reader.
-
-**It never goes on** source files, configuration files (YAML, TOML, JSON, INI), or agent files - a skill's frontmatter and body, an agent definition, this file. In a parsed file it can break the parse, and in an agent file it is instruction-space spent on nothing.
+- **Never hard-wrap prose at a column.** One line per paragraph, per list item, per blockquote. This holds in markdown and in comment blocks inside code and config, which live in git and diff the same way. Rewrapping diffs every line of a paragraph and hides the two-word edit that caused it. The commit message is the exception, in both directions, and the `gh-solo` plugin's `tracker` standards own that rule - subject length, body wrapping and what may overrun.
 
 ## This repository is public
 
