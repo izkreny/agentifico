@@ -16,6 +16,7 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 | `discuss 60` (or `reply 60`, `chat 60`) | Read your replies on the review threads and answer them, in the thread |
 | `watch 60` | Poll every 30s for your replies while you read, and answer as they arrive |
 | `unwatch` | Stop that polling. "resolve all and push" stops it too; `discuss` leaves it running, and it dies with the session |
+| `resolve 60` | Record your authorisation, resolve the threads it covers, and push the fixes. Saying "resolve all and push" does the same |
 | `merge` | Audit the checklists, gate on the review record, squash-merge, delete the branch, confirm the issue closed |
 | `view` | Show the stack from trunk outward |
 | `init` | Start a new stack from branches not stacked yet |
