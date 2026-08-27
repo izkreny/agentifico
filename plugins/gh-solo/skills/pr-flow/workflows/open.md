@@ -156,7 +156,7 @@ The plan is the thing being reviewed, and it is cheaper to argue with as a diff 
 
 **Say where that discussion happens, because only one tab threads.** The owner comments inline on the plan's lines in the PR's **Files changed** tab - that is the surface that threads and resolves. Review bodies and Conversation comments are read too, per `workflows/discuss.md`, but they cannot be resolved and their answers land as flat Conversation comments, so inline stays the recommendation rather than the requirement. Replies come through `workflows/discuss.md`, in the threads; mention that `watch <pr-number>` exists for answers as they post, and per that file only the owner typing the command arms it.
 
-This workflow ends here. When the discussion settles, each of the owner's ways into implementation spawns the `implementer` subagent: `/gh-solo:implement <pr-number>`, which stops at the implementation handoff, or `go <pr-number>` in `workflows/auto.md`, which continues through `ready` and `review` Pass 1 in the same pass. `workflows/ready.md` picks the branch up at the other end, once the work has landed, and marks the PR ready for review.
+This workflow ends here. When the discussion settles, the owner has two ways into implementation: `/gh-solo:implement <pr-number>`, which stops at the implementation handoff, or `go <pr-number>` in `workflows/auto.md`, which continues through `ready` and `review` Pass 1 in the same pass. `workflows/ready.md` picks the branch up at the other end, once the work has landed, and marks the PR ready for review.
 
 ---
 

@@ -2,10 +2,10 @@
 name: pr-flow
 description: "Manage branches, stacked pull requests and PR review on a GitHub repository the user owns, through the `gh` CLI and the `gh stack` extension. Use when asked to write a branch's plan file, open its pull request, or mark a draft PR ready; to stack a branch, add a branch to a stack, submit, sync, restack or view a stack; when asked what a branch is stacked on; when asked to review open PRs, review a numbered PR, or check what needs review; when asked to merge or land a pull request or a stack; or when the user says they replied to review comments on GitHub and wants those answered; when the user says the review is done, that you can merge, or asks to push changes for review; or when asked to watch a PR for new comments, poll for replies, or stop watching one. Also use when the user says a branch is done or ready for review, or types `/gh-solo:pr-flow`. Assumes one committer; for the issue tracker itself use `tracker` skill."
 argument-hint: "[open | plan | auto <issue-number> | go <pr-number> | ready [review] | review [pr-number] | watch [pr-number] | unwatch | discuss [pr-number] | reply [pr-number] | chat [pr-number] | merge [pr-number] | view | init | add | submit | sync | restack | help]"
-allowed-tools: Bash(gh:*), Bash(git:*), Bash(python3:*), Read, Write, Edit, Grep, Glob, Monitor, TaskStop, Agent, EnterWorktree
+allowed-tools: Bash(gh:*), Bash(git:*), Bash(python3:*), Read, Write, Edit, Grep, Glob, Monitor, TaskStop, Agent, Skill, EnterWorktree
 ---
 
-> **Tools used:** `Bash(gh:*)` for the extension, PR queries and review posting, `Bash(git:*)` for branch and worktree state, `Read` / `Grep` / `Glob` for repository context, `Write` / `Edit` for plan files and PR-body scratch files, `Bash(python3:*)` for `scripts/docs-check.py` and `scripts/post-review.py`, `Monitor` / `TaskStop` for the watch in `workflows/discuss.md`, `Agent` for the `reviewer` subagent that `workflows/review.md` spawns and the `implementer` subagent that `workflows/auto.md` spawns, `EnterWorktree` for moving the session into a sibling worktree in `workflows/merge.md` and `workflows/stack.md`.
+> **Tools used:** `Bash(gh:*)` for the extension, PR queries and review posting, `Bash(git:*)` for branch and worktree state, `Read` / `Grep` / `Glob` for repository context, `Write` / `Edit` for plan files and PR-body scratch files, `Bash(python3:*)` for `scripts/docs-check.py` and `scripts/post-review.py`, `Monitor` / `TaskStop` for the watch in `workflows/discuss.md`, `Agent` for the `reviewer` subagent that `workflows/review.md` spawns, `Skill` for entering the `implement` skill from `workflows/auto.md`, `EnterWorktree` for moving the session into a sibling worktree in `workflows/merge.md` and `workflows/stack.md`.
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 
@@ -68,7 +68,7 @@ Issue context comes from the same `gh`, so a headless run under `claude --print`
 | "review open PRs", "review PR 60", "what needs review", "review unreviewed PRs" | `workflows/review.md` |
 | "write the plan", "open the PR", "start on this branch" | `workflows/open.md` |
 | "mark it ready", "it's done", "ready for review", "take it out of draft" | `workflows/ready.md` |
-| `auto 50` - the literal command, with an issue number | `workflows/auto.md` from the top: plan and draft PR, the implementer subagent, `ready`, `review` Pass 1, stop at the `/code-review` handoff |
+| `auto 50` - the literal command, with an issue number | `workflows/auto.md` from the top: plan and draft PR, the implementation, `ready`, `review` Pass 1, stop at the `/code-review` handoff |
 | `go 60` - the literal command, with a PR number | `workflows/auto.md` at its `go` entrance: the same chain minus `open`, for a plan the owner has already read |
 | "merge it", "land this", "merge the PR", "merge the stack" | `workflows/merge.md` - but said while a review round has left fix commits unpushed, it means step 5.1 of `references/review-protocol.md` first, which checks the threads and pushes before any merge |
 | "I replied on the PR", "answer my comments", "I asked something on the review" | `workflows/discuss.md` |
@@ -90,7 +90,7 @@ Based on the argument above, do exactly one of the following:
 - If it starts with `merge` → read `workflows/merge.md` and follow it, **including when the PR is stacked**. It is the single entry point for landing anything, and it routes to `gh stack merge` itself. Sending a stacked merge to `workflows/stack.md` instead skips the review gate.
 - If it starts with `view`, `init`, `add`, `submit`, `sync` or `restack` → read `workflows/stack.md` and follow it.
 - If the request is about a branch's relationship to another branch → read `workflows/stack.md`.
-- If the request is to implement the plan, continue the implementation, or land review fixes → wrong skill; that work belongs to `implement`. Everything around it - `open` before, `ready`, `review` and `merge` after - stays here. The one path from this skill into that work is `workflows/auto.md`, whose chains spawn the `implementer` subagent rather than doing the work here.
+- If the request is to implement the plan, continue the implementation, or land review fixes → wrong skill; that work belongs to `implement`. Everything around it - `open` before, `ready`, `review` and `merge` after - stays here. The one path from this skill into that work is `workflows/auto.md`, whose chains enter the `implement` skill by name so it runs under its own tool grant.
 - If it is about an issue rather than a branch or a PR → this is the wrong skill; use `tracker`.
 - Otherwise → read `workflows/help.md`, output its contents, and say which argument failed to match anything above.
 

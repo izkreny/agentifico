@@ -29,7 +29,7 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 
 1. **issue** - the branch is cut from it; that side is `tracker`
 2. **`open`** - the plan, committed alone, and a draft PR holding nothing else
-3. *implementation* - the work itself, on the branch: the `implement` skill, which pushes the settled plan first, then spawns its `implementer` subagent to do the work - resumable across sessions because the PR body carries the state
+3. *implementation* - the work itself, on the branch: the `implement` skill, which settles the plan record first and then does the work - resumable across sessions because the PR body carries the state
 4. **`ready`** - the record audited, the PR out of draft
 5. **`review`** - tracker checks posted, then it prints the `/code-review` command
 6. **`/code-review high N --comment`** - you type it; findings land as inline comments on the diff, and the outcome is recorded on the PR. If the flag falls back to printing, the recording step posts the threads itself

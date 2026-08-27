@@ -22,7 +22,7 @@ Read the body's `## Verification` and verify every box has a tick.
 | The gate was **never run** | Someone to run it; the owner decides who and when |
 | It is a **check with no exit code** — a browser walk, "restart the machine and read the row back", adjudicating another tool's findings. The template in `workflows/open.md` prefixes these `[owner]` | The owner. An agent cannot produce this evidence, and must not appear to |
 
-**Why this workflow does not just run the missing one.** Running it here would make the same agent the author and the auditor of the record, which is the one combination that makes the record worthless. An unticked box is also information: it says something upstream did not finish, and quietly completing it hides that rather than fixing it.
+**Why this workflow does not just run the missing one.** An unticked box is information: it says something upstream did not finish, and quietly completing it hides that rather than fixing it. **And running it here would consume the only independent thing this workflow has.** The box-reading is a self-audit in the weak sense, since the session that ticked them may well be the one re-reading them; what still bites is Step 2's reconciliation with CI, which is external and does not care who ticked. A gate run here would be ticked by the same session in the same environment, which is the one combination that makes a record worthless.
 
 **Never tick a box.** Not for a gate you ran in a previous step, not for one that obviously passed, not to tidy the list. A ticked box is indistinguishable from a passed check to everyone who reads the PR afterwards — including `workflows/merge.md`, which treats the body as evidence.
 

@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(git:*)` for Step 1's branch check and Step 3's sync commits and pushes, `Bash(gh:*)` for Step 2's preflight and Step 3's thread and checks reads, `Write` / `Edit` for the plan amendment and the body's scratch copy, `Agent` to spawn the `implementer` subagent. Everything else belongs to the workflows this file chains, which run unchanged under their own tool lists.
+> **Tools used:** `Bash(git:*)` for Step 1's branch check and Step 3's sync commits and pushes, `Bash(gh:*)` for Step 2's preflight and Step 3's thread and checks reads, `Write` / `Edit` for the plan amendment and the body's scratch copy, `Skill` to enter the `implement` skill at Step 3. Everything else belongs to the workflows this file chains, which run unchanged under their own tool lists.
 
 The entrances here run the lifecycle's workflows back to back, removing the waits between them - never the checks inside them. `auto` starts at the issue; `go` starts after the owner has read the plan. Each ends at the same stop: `review` Pass 1's handoff line, because the step after it belongs to the owner alone.
 
@@ -31,13 +31,15 @@ The refusals, each opening `⛔ REFUSED - {reason}` per the standing convention 
 - **`state` is not `OPEN`.** A merged or closed PR has nothing left for this chain.
 - **`isDraft` is `false`.** The implementation phase is over on this PR, and the chain would re-run work that already passed `ready`. Name `review`, `discuss` or `merge` as the likely intended entrance.
 
-Plan-discussion threads need no check here: Step 3's sync steps apply the decisions the owner settled and refuse on an unsettled thread that affects the work, and that refusal stops this chain like any other.
+Plan-discussion threads need no check here: Step 3 settles the plan record as its first act, applying the decisions the owner settled and refusing on an unsettled thread that affects the work, and that refusal stops this chain like any other.
 
-## Step 3 - Implementation, by the subagent
+## Step 3 - Implementation
 
-First run the three numbered sync steps from the `implement` skill's `SKILL.md`, in its "You are not the implementer" spawn bullet: after `auto`'s Step 1 they are a read, since `open` just pushed the plan, and after `go`'s Step 2 they are what puts the owner's settled plan on the remote before any code exists. Then spawn the `gh-solo:implementer` agent with the PR number as its whole argument, and wait for its report. Never do the implementation inline instead, even when it looks small: Step 4 has this same agent auditing the record in `workflows/ready.md`, and that audit only means something when the auditor is not the author. The subagent is the author; that is what keeps the chain's `ready` honest.
+**Invoke the `gh-solo:implement` skill with the PR number** and follow it here, in this session. Entering it by name rather than reading its workflow file directly is what puts the implementation under that skill's own tool grant: it is the one skill in the flow that runs the repository's commands, tests and linters and builds, and this file's narrowed `Bash` cannot.
 
-The report that comes back is the handoff `implement` defines, already posted on the PR as a comment. Relay it verbatim, then gate on it:
+Its Step 1 settles the plan record as its first act: after `auto`'s Step 1 that is a read, since `open` just pushed the plan, and after `go`'s Step 2 it is what puts the owner's settled plan on the remote before any code exists. Its refusal on an unsettled thread that affects the work ends this chain like any other.
+
+The handoff it produces is already posted on the PR as a comment. Relay it verbatim, then gate on it:
 
 **`✅ ALL PASS`** - continue to Step 4.
 
