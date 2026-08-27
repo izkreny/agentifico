@@ -9,7 +9,7 @@ This file is for any agent working in this repository, whatever its harness, and
 | Path | What it holds |
 |---|---|
 | `.claude-plugin/marketplace.json` | the marketplace manifest, one entry per plugin |
-| `plugins/<name>/` | one plugin, with its own manifest, skills, agents and hooks - `plugins/gh-solo/` is the worked example |
+| `plugins/<name>/` | one plugin, with its own manifest, skills, agents and hooks |
 | `skills/<name>/` | a skill that ships on its own, outside any plugin |
 | `docs/plans/` | one implementation plan per branch |
 | `.agents/gh-solo.md` | the per-repository facts the `gh-solo` plugin reads |
