@@ -69,7 +69,7 @@ Next, the one step reserved for you:
 /code-review high 60 --comment
 ```
 
-The chain must not take that last step for the owner, under any circumstances: starting `/code-review` is reserved to the owner, per *What this workflow does not do* in `workflows/review.md`, and a chain that ran it would spend their analysis budget on their behalf and erase the one stop this chain keeps. Once the owner has run it and Pass 2 has recorded the outcome, the two things this chain produced sit on the PR together - the implementer's handoff comment and the inline findings - which is the point of entering it: one sitting to read both.
+The chain must not take that last step for the owner, under any circumstances: starting `/code-review` is reserved to the owner, per *What this workflow does not do* in `workflows/review.md`, and a chain that ran it would spend their analysis budget on their behalf and erase the one stop this chain keeps. Once the owner has run it and Pass 2 has recorded the outcome, the two things this chain produced sit on the PR together - the implementation's handoff comment and the inline findings - which is the point of entering it: one sitting to read both.
 
 ---
 

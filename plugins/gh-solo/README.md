@@ -13,7 +13,7 @@ It is deliberately not a generic workflow plugin. It assumes GitHub, it assumes 
 | `/gh-solo:tracker` | The issue tracker: epics with sub-issues, spikes, drafts, blocked-by links, milestones, and what to work on next |
 | `/gh-solo:pr-flow` | Branches, plan files, opening and readying pull requests, stacks, review rounds, and the merge gate |
 | `/gh-solo:implement` | Turning an approved plan into commits, and review findings into fixes |
-| `implementer` agent | The subagent every `/gh-solo:implement` invocation spawns, so implementation runs on a cheaper model than the orchestration |
+| `reviewer` agent | The subagent a review round spawns to read the diff, so the code is judged by something that did not write it |
 | trunk-push hook | Asks for confirmation before any `git push` whose destination is the trunk |
 
 Each skill carries its own `README.md` with the full picture, and `help` as a routing verb.
@@ -66,7 +66,7 @@ Two things worth knowing before you change it. It must be a string you would nev
 
 Contributing to a project you do not own splits the work across two repositories, and that boundary is the one thing this plugin cannot cross.
 
-**Everything up to the merge works unchanged inside your fork**: your own issue, the branch, the plan-first draft pull request into your fork's own default branch, the implementer subagent, the review rounds, the ready audit and the merge gate. You administer your fork, so nothing there lacks permission. Turn Issues on first, because a new fork has them switched off and `tracker` would otherwise have nothing to write to.
+**Everything up to the merge works unchanged inside your fork**: your own issue, the branch, the plan-first draft pull request into your fork's own default branch, the implementation, the review rounds, the ready audit and the merge gate. You administer your fork, so nothing there lacks permission. Turn Issues on first, because a new fork has them switched off and `tracker` would otherwise have nothing to write to.
 
 **What does not cross the boundary is anything aimed at the pull request you open upstream**, since that one lives in a repository where you have read access only. `merge` cannot run there, and it also expects to read and set repository settings and branch protection you do not own. `tracker` cannot label, assign, milestone or attach a sub-issue on upstream's tracker, each of which needs triage permission, so the convention that an assignee means work in progress has nothing to write to. And the review protocol's authority inverts: resolving a thread becomes the maintainer's act rather than yours.
 
@@ -82,4 +82,4 @@ It asks rather than refuses, deliberately: a plugin's hook runs on every shell c
 
 ## What it will not do
 
-It will not mark a draft ready, merge, push to the trunk, edit a plan file after approval, resolve a review thread, or tick a checkbox on your behalf. Those are the decisions the flow exists to protect, and the audit workflows only work because the auditor is not the author.
+It will not mark a draft ready, merge, push to the trunk, edit a plan file after approval, resolve a review thread, or tick a checkbox on your behalf. Those are the decisions the flow exists to protect, and each of them is a judgement no record of the work can stand in for.
