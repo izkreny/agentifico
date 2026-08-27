@@ -1,20 +1,26 @@
 // Raw-line sweep over every skill's frontmatter description.
-// Usage: node check-descriptions.js [skills-dir]   (defaults to the current directory)
+// Usage: node check-descriptions.js [target]   (defaults to the current directory)
+// The target is a directory of skills, or one skill's own directory.
 // A real YAML parser cannot replace this: the silent traps are valid YAML.
-const fs = require("fs");
-if (process.argv[2]) process.chdir(process.argv[2]);
+const fs = require("fs"), path = require("path");
+process.chdir(process.argv[2] || ".");
+const targets = fs.existsSync("SKILL.md")
+  ? [[path.basename(process.cwd()), "SKILL.md"]]
+  : fs.readdirSync(".").sort().filter(s => fs.existsSync(s + "/SKILL.md")).map(s => [s, s + "/SKILL.md"]);
 let defects = 0;
-for (const s of fs.readdirSync(".").sort()) {
-  const p = s + "/SKILL.md";
-  if (!fs.existsSync(p)) continue;
+for (const [s, p] of targets) {
   const m = fs.readFileSync(p, "utf8").match(/^---\n([\s\S]*?)\n---/);
   const fm = m ? m[1] : "", bad = [];
-  if (/[“”‘’]/.test(fm)) bad.push("curly quotes are not YAML quotes");
   const dl = fm.split("\n").filter(l => l.startsWith("description:"));
   if (!dl.length) bad.push("no description: never advertised");
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
   const raw = (dl[0] || "").slice(12).trim();
-  if (dl.length && /^[|>][+-]?$/.test(raw)) {
+  const block = dl.length && /^[|>][+-]?$/.test(raw);
+  // Only a value that opens with a curly quote is pretending to be quoted; a
+  // typographic apostrophe inside a value is harmless, and a block scalar is
+  // immune to the whole family, so neither is a defect.
+  if (!block && /^[“”‘’]/.test(raw)) bad.push("curly quotes are not YAML quotes");
+  if (block) {
     // block scalar: immune to every trap below
   } else if (raw.startsWith("\"")) {
     const body = raw.slice(1, -1);
@@ -35,4 +41,8 @@ for (const s of fs.readdirSync(".").sort()) {
   if (bad.length) defects++;
   console.log(s.padEnd(30) + (bad.length ? bad.join("; ") : "ok"));
 }
-process.exitCode = defects ? 1 : 0;
+// Checking nothing is a failure, not a pass: a target with no SKILL.md under it
+// is a wrong target, and silence there reads exactly like a clean sweep.
+if (!targets.length) console.log("no SKILL.md found in " + process.cwd() + ": nothing was checked");
+else console.log(targets.length + " skill(s) checked, " + defects + " with defects");
+process.exitCode = (defects || !targets.length) ? 1 : 0;

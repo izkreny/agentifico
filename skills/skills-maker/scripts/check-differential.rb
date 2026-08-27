@@ -2,11 +2,13 @@
 # stdlib) and compare the parsed description against the raw line. Any
 # difference on a plain scalar means a silent trap fired; a parse error means
 # the skill will not load at all.
-# Usage: ruby check-differential.rb [skills-dir]   (defaults to the current directory)
+# Usage: ruby check-differential.rb [target]   (defaults to the current directory)
+# The target is a directory of skills, or one skill's own directory.
 require "yaml"
 Dir.chdir(ARGV[0]) if ARGV[0]
+targets = File.exist?("SKILL.md") ? ["SKILL.md"] : Dir["*/SKILL.md"].sort
 defects = 0
-Dir["*/SKILL.md"].sort.each do |p|
+targets.each do |p|
   fm = File.read(p)[/\A---\n(.*?)\n---/m, 1] or next
   begin
     d = YAML.safe_load(fm)["description"]
@@ -26,5 +28,10 @@ Dir["*/SKILL.md"].sort.each do |p|
     defects += 1
   end
 end
-puts "differential done"
-exit(defects.zero? ? 0 : 1)
+# Checking nothing is a failure, for the same reason as in the sweep.
+if targets.empty?
+  puts "differential: no SKILL.md found in #{Dir.pwd}, nothing was checked"
+else
+  puts "differential: #{targets.length} skill(s) checked, #{defects} with defects"
+end
+exit(defects.zero? && !targets.empty? ? 0 : 1)

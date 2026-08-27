@@ -101,7 +101,7 @@ A sentence that re-explains a rule already stated, or restates the same point in
 
 ### Never write the file's own history
 
-"This reverses an earlier rule", "the older test was wrong", "it does not stop it any more": the reader cannot locate the past being described, and in a file read as instructions a claim about a rule that no longer exists reads as a rule about the present. Three cures. If the history was justifying a live rule, state the durable reason instead, so "we used to cap the watch at an hour" becomes "a timeout short enough to stop a forgotten watch cannot span a review round". If it is the skill's premise, keep the concrete failure as the bad example it always was. Otherwise delete it.
+"This reverses an earlier rule", "the older test was wrong", "it does not stop it any more": the reader cannot locate the past being described, and in a file read as instructions a claim about a rule that no longer exists reads as a rule about the present. If the history was justifying a live rule, state the durable reason instead, so "we used to cap the watch at an hour" becomes "a timeout short enough to stop a forgotten watch cannot span a review round". If it is the skill's premise, keep the concrete failure as the bad example it always was. Otherwise delete it.
 
 ### Give every rule its reason, in a sentence
 

@@ -6,7 +6,7 @@ argument-hint: "[new <name> | review <path> | check | export <path>]"
 disable-model-invocation: true
 compatibility: Requires Node for the frontmatter checks. Ruby (optional) adds the differential check; the gh CLI is needed only for export.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 allowed-tools: Bash(gh:*), Bash(node:*), Bash(ruby:*), Bash(bash:*), Bash(skills:*), Bash(npx skills:*), Read, Write, Edit, Grep, Glob
 ---
 
@@ -70,4 +70,4 @@ Based on the argument above, do exactly one of the following:
 - **`workflows/check.md`** - the mechanical audit across every installed skill
 - **`workflows/export.md`** - publishing a local skill to a shared repository
 - **`references/managing.md`** - installing and updating skills, and why not to hand-edit an installed one
-- **`scripts/`** - the two frontmatter checks as runnable files, plus `test-checks.sh`, the trap-fixture bench that re-verifies them after any edit
+- **`scripts/`** - the frontmatter checks as runnable files, plus `test-checks.sh`, the trap-fixture bench that re-verifies them after any edit
