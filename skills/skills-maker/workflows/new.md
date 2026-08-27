@@ -31,26 +31,81 @@ The format's authority is the [Agent Skills specification](https://agentskills.i
 
 ## Step 3 - Pick the layout
 
+### Let size decide whether to split
+
 Under roughly 2,000 words, one `SKILL.md` is right and splitting it is overhead. Measure size in words (`wc -w`) or tokens, never in lines: a line count depends on the author's wrapping style, and an unwrapped paragraph is one line where an 80-column author writes six.
 
 Past that, split: `SKILL.md` keeps the frontmatter, the shared model and a routing table; each operation gets `workflows/<verb>.md`; long reference material gets `references/<topic>.md`. The router reads exactly one workflow and follows it inline, which keeps loaded context proportional to the task rather than to the skill.
 
-Whatever every workflow depends on stays in `SKILL.md`, stated once. A fact copied into three workflow files will drift in at least one of them. When that shared layer itself grows enough to bloat `SKILL.md`, which costs context on every invocation, move the detail into one `references/` file and keep in `SKILL.md` the one-line version plus the pointer, with each workflow that needs the detail told to read it first. The cap is roughly 3,500 words: the spec states it as 5,000 loaded tokens, tokens run about three quarters of a word in English prose, and its companion 500-line figure assumes conventionally wrapped text.
+### Keep the shared layer in `SKILL.md`, stated once
 
-State in `SKILL.md` that paths are relative to the skill's own directory, since a skill gets invoked from many working directories.
+Whatever every workflow depends on belongs there, because a fact copied into three workflow files will drift in at least one of them. When that shared layer itself grows enough to bloat `SKILL.md`, which costs context on every invocation, move the detail into one `references/` file and keep in `SKILL.md` the one-line version plus the pointer, with each workflow that needs the detail told to read it first. The cap is roughly 3,500 words: the spec states it as 5,000 loaded tokens, tokens run about three quarters of a word in English prose, and its companion 500-line figure assumes conventionally wrapped text.
 
-Whatever the size, ship a `README.md` for human readers. `SKILL.md` and everything it routes to address the agent; the README is what a person browsing the repository reads to decide whether to trust and install the skill. Say what the skill does, why it exists, and how it is invoked; a routing skill also lists every argument it accepts, a small table works, and a diagram of the argument-to-workflow map says the routing faster than prose. A skill without one is a review defect, not a style choice, at every size: the tiering that excuses a single-file skill from `workflows/` does not excuse the README.
+### State in `SKILL.md` that paths are relative to the skill's own directory
+
+A skill gets invoked from many working directories, and nothing else tells the agent which one the paths are anchored to.
+
+### Ship a `README.md` for human readers
+
+`SKILL.md` and everything it routes to address the agent; the README is what a person browsing the repository reads to decide whether to trust and install the skill. A skill without one is a review defect, not a style choice, at every size: the tiering that excuses a single-file skill from `workflows/` does not excuse the README. It answers each of the following.
+
+#### What the skill does
+
+In the reader's terms rather than the agent's, and with its boundary, since the same sentence tells someone it is not the thing they were looking for.
+
+#### Why it exists
+
+The failure it prevents, stated concretely. A README that cannot name one usually belongs to a skill written before it was needed, which Step 1 is the test for.
+
+#### How it is installed
+
+The exact command, copyable. Required even for a skill that never leaves the machine it was written on, where it is the canonical path and the symlink rather than a manager command: a reader who cannot install it cannot use it.
+
+#### How it is invoked
+
+Whether it fires on its own or has to be typed, and for a routing skill every argument it accepts. A small table works, and a diagram of the argument-to-workflow map says the routing faster than prose.
 
 ## Step 4 - Write the body
 
-- **Write what was verified, and say how.** A command's actual output beats a description of it.
-- **Put a version next to the claim it qualifies, never as a banner at the top.** A banner ages into a lie because nothing updates it; a version attached to a specific behavioural claim tells the reader what to re-check and when.
-- **One fact, one place.** Duplication between a global instructions file and a skill drifts, and the drifted copy is the one nobody is looking at. When a fact must appear twice, one copy owns it and every other copy points at it: a stale pointer fails loudly, since the heading it names is gone, while a stale copy fails silently, two truths disagreeing and both looking right.
-- **Code blocks are Bash.** An agent executes a skill's commands through its shell tool, which is Bash; fish or zsh syntax in a skill fails at execution time, on the machine of whoever installed it.
-- **Paths must survive any working directory and any machine.** Inside the skill, relative to the skill's own directory and say so; for user locations, `~/`-relative. A path absolute to the author's home directory breaks on every other machine.
-- **No hard wrapping.** One line per paragraph, per list item, per blockquote. Fenced code, tables and frontmatter keep their line structure exactly.
-- **Write sentences that survive change.** Never state a count of adjacent content and never claim uniqueness, recency or position ("the four rules below", "the only copy", "the section above"): whoever adds the fifth rule edits the list, never the sentence, and in a skill the false sentence is not read past but obeyed. The test: if adding one more item makes the sentence false, it was a count and it goes; if it makes the item wrong, it is a cap and it stays. When membership is the rule, name the members.
-- Prefer a rule with its reason over a rule alone, but keep the reason to a sentence. A rule an agent understands survives a situation the rule did not anticipate.
+### Write what was verified, and say how
+
+A command's actual output beats a description of it.
+
+### Put a version next to the claim it qualifies, never as a banner at the top
+
+A banner ages into a lie because nothing updates it; a version attached to a specific behavioural claim tells the reader what to re-check and when.
+
+### One fact, one place
+
+Duplication between a global instructions file and a skill drifts, and the drifted copy is the one nobody is looking at. When a fact must appear twice, one copy owns it and every other copy points at it: a stale pointer fails loudly, since the heading it names is gone, while a stale copy fails silently, two truths disagreeing and both looking right.
+
+### Code blocks are Bash
+
+An agent executes a skill's commands through its shell tool, which is Bash; fish or zsh syntax in a skill fails at execution time, on the machine of whoever installed it.
+
+### Paths must survive any working directory and any machine
+
+Inside the skill, relative to the skill's own directory and say so; for user locations, `~/`-relative. A path absolute to the author's home directory breaks on every other machine.
+
+### No hard wrapping
+
+One line per paragraph, per list item, per blockquote. Fenced code, tables and frontmatter keep their line structure exactly.
+
+### Write sentences that survive change
+
+Never state a count of adjacent content and never claim uniqueness, recency or position ("the four rules below", "the only copy", "the section above"): whoever adds the fifth rule edits the list, never the sentence, and in a skill the false sentence is not read past but obeyed. The test: if adding one more item makes the sentence false, it was a count and it goes; if it makes the item wrong, it is a cap and it stays. When membership is the rule, name the members.
+
+### Cut every paragraph to its one new claim
+
+A sentence that re-explains a rule already stated, or restates the same point in different words, is over-writing: it costs context on every load and buries the claim that was doing the work. When a paragraph reads as a short essay, name what is new in it and delete the rest.
+
+### Never write the file's own history
+
+"This reverses an earlier rule", "the older test was wrong", "it does not stop it any more": the reader cannot locate the past being described, and in a file read as instructions a claim about a rule that no longer exists reads as a rule about the present. Three cures. If the history was justifying a live rule, state the durable reason instead, so "we used to cap the watch at an hour" becomes "a timeout short enough to stop a forgotten watch cannot span a review round". If it is the skill's premise, keep the concrete failure as the bad example it always was. Otherwise delete it.
+
+### Give every rule its reason, in a sentence
+
+A rule an agent understands survives a situation the rule did not anticipate; a reason longer than a sentence is the essay this step already forbids.
 
 ## Step 5 - Verify before finishing
 

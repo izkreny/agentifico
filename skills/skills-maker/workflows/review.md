@@ -28,7 +28,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **Advertised verbs that route nowhere.** Check `argument-hint` against the routing table. An argument the skill accepts but does not handle is a promise it breaks.
 
-**Rationale that restates the rule.** "Never do X. Doing X is bad." The second sentence should say what breaks, or go.
+**Rationale that restates the rule.** "Never do X. Doing X is bad." The second sentence should say what breaks, or go. Over-writing clusters where the author was least sure, so a section that reads as an essay is also the section to check for a defect underneath it.
 
 **A missing boundary.** If the skill never says what it is not for, it will fire on adjacent work. That is the cheapest sentence in the file.
 
