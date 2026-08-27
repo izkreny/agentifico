@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(git:*)` for Step 1's branch check and Step 3's sync commits and pushes, `Bash(gh:*)` for Step 2's preflight and Step 3's thread and checks reads, `Write` / `Edit` for the plan amendment and the body's scratch copy, `Skill` to enter the `implement` skill at Step 3. Everything else belongs to the workflows this file chains, which run unchanged under their own tool lists.
 
-The entrances here run the lifecycle's workflows back to back, removing the waits between them - never the checks inside them. `auto` starts at the issue; `go` starts after the owner has read the plan. Each ends at the same stop: `review` Pass 1's handoff line, because the step after it belongs to the owner alone.
+The entrances here run the lifecycle's workflows back to back, removing the waits between them - never the checks inside them. `auto` starts at the issue; `go` starts after the owner has read the plan. Each ends at the same stop: the review protocol's step 6, the owner judging the findings, because that is the only step in the whole span that belongs to them alone.
 
 | Command | Enters at | What it skips |
 |---|---|---|
@@ -51,25 +51,35 @@ The handoff it produces is already posted on the PR as a comment. Relay it verba
 
 **Anything else - a `⚠️` carrying more than those boxes, or a `⛔`** - stop and relay it. Findings are the owner's to read, never the chain's to carry past.
 
-## Step 4 - `ready`, then `review` Pass 1
+## Step 4 - `ready`, then the review round
 
-The `ready review` chain already defined in `SKILL.md`'s routing, exactly as written there: read `workflows/ready.md` and follow it, and when it ends green with the draft lifted, continue straight into `workflows/review.md` Pass 1 on the same PR. A refusal in `ready` stops this chain as it stops that one.
+The `ready review` chain already defined in `SKILL.md`'s routing, exactly as written there: read `workflows/ready.md` and follow it, and when it ends green with the draft lifted, continue straight into `workflows/review.md` on the same PR. A refusal in `ready` stops this chain as it stops that one.
 
-## Step 5 - The stop, and one consolidated block
+That workflow's own steps 1 to 5 need nothing from the owner, so the chain does not stop before them: the reviewer runs, its findings land, each gets a fix plan, the fixes are committed locally, and the re-review checks them. **Its confirmation gate does not fire here**, because the chain was entered by a PR number rather than a list, which is the same rule that workflow already applies to a named PR.
 
-Pass 1's ending is this chain's ending - the same handoff, reached without the waits. What this step adds is consolidation, because the owner was away for all of it: one line per stage with its verdict, so the whole run reads as one block, then the handoff command flush left, exactly as Pass 1 prints it. The numbers below are a sample - print the run's real issue and PR numbers, so the command is typeable as it stands:
+**Nothing is pushed**, exactly as in an ordinary round. The commits sit local for the owner's word, which is the protocol's step 7.
+
+## Step 5 - Arm the watch, then one consolidated block
+
+The chain ends where the round does, at the protocol's step 6. Two things happen here.
+
+**Arm the watch on this PR**, per *The watch survives the round* in `references/review-protocol.md`. The owner was away for everything above and will now read the threads at their own pace, reacting and replying as they go; without a watch each of those signals waits for them to come back and say so. **This is the one place a watch is armed by anything other than the owner typing `watch`**, and it is not an exception to that rule: the literal `auto` or `go` command is itself the authorisation, given in advance, and `workflows/discuss.md` owns the mechanics and the cost.
+
+**Then the consolidated block**, because the owner saw none of it happen: one line per stage with its verdict, so the whole run reads as one block. The numbers below are a sample - print the run's real issue and PR numbers, so every command is typeable as it stands:
 
 ```
 auto: issue #50 → PR #60
   open       ✅ plan committed alone, draft PR opened
   implement  ✅ handoff posted on the PR
   ready      ✅ every gate ticked, CI green, draft lifted
-  review     ✅ conventions clean
-Next, the one step reserved for you:
-/code-review high 60 --comment
+  review     ⚠️ 4 findings posted, 3 fixed locally, 1 waiting on you
+  watch      ✅ armed, answering as you comment
+Read the threads on the PR, then react or reply:
+  👍 or ❤️ accepts a finding. To question one, react 👀 or reply in the thread.
+When you are through them, say "resolve all and push".
 ```
 
-The chain must not take that last step for the owner, under any circumstances: starting `/code-review` is reserved to the owner, per *What this workflow does not do* in `workflows/review.md`, and a chain that ran it would spend their analysis budget on their behalf and erase the one stop this chain keeps. Once the owner has run it and Pass 2 has recorded the outcome, the two things this chain produced sit on the PR together - the implementation's handoff comment and the inline findings - which is the point of entering it: one sitting to read both.
+**RF2 is waiting on you: {why}** and one line like it per owner-gated finding, because a thread the round could not act on is the one thing in that block the owner has to act on before the merge gate will pass.
 
 ---
 
@@ -78,6 +88,6 @@ The chain must not take that last step for the owner, under any circumstances: s
 - **Only the literal `auto` or `go` command enters a chain.** No sentence does, however clearly it implies one.
 - **The chain removes waits, never checks.** Every composed workflow runs unchanged, every internal gate intact - a chain that skipped a gate would be indistinguishable from the gate having passed.
 - **Any refusal ends the chain**, with that workflow's own verdict line first and the single resuming command below it. Nothing non-green carries forward.
-- **The implementation is always the spawned subagent's**, never done inline by the agent running the chain: `ready`'s audit depends on the auditor not being the author.
-- **Never invoke `/code-review`, and never replicate its analysis.** The rule is `workflows/review.md`'s and holds here unchanged; the chain ends by printing the command.
-- **The chain never merges.** It ends before the owner has read anything. Everything from the code review onward - the threads, the fixes, the step-5 words of `references/review-protocol.md`, `workflows/merge.md` - is untouched by it.
+- **The chain never reviews its own diff.** The reviewer is a subagent with its own context, spawned by `workflows/review.md`, and that holds here unchanged: a chain that read the diff itself would be the author judging the author.
+- **The chain never pushes and never merges.** It ends at the protocol's step 6 with every fix commit local. Step 7 and `workflows/merge.md` both need words the owner has not said yet.
+- **The chain arms the watch and nothing else does implicitly.** Ending at step 6 without it leaves the owner reacting into silence.
