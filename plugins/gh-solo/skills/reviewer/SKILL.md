@@ -82,7 +82,7 @@ Report:
 ## What every finding must carry
 
 - **One defect.** Never bundle two, however adjacent. Each finding is judged, planned, fixed, re-reviewed and resolved on its own, and a bundled finding cannot be half-accepted.
-- **A severity, which you assign**, from exactly `high`, `medium` and `low`. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another and no finding can arrive without a level.
+- **A severity, which you assign**, from exactly `high`, `medium` and `low`. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another. **There is a fourth value, `unrated`, and it is not yours**: it exists for a reviewer appointed by a repository that cannot assign a level, and a finding of yours carrying it would say you declined a judgement the brief asks you to make.
   - **`high`** - it is wrong, and something a user or a caller does will hit it. Data loss, a security hole, a broken acceptance criterion, an exception on an ordinary path.
   - **`medium`** - it is wrong, and reaching it takes an unusual path or an unlucky order. Also a documented-standard breach with a real consequence.
   - **`low`** - it is worth changing and nothing breaks if it is not. Most baseline smells land here.

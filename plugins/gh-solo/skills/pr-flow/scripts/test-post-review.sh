@@ -91,6 +91,14 @@ def run_verify(payload, comments, name="case"):
 
 MUST_REFUSE = [
     ("severity outside the scale", with_finding(REVIEW, severity="critical"), 0),
+    ("severity spelled unranked rather than unrated", with_finding(REVIEW, severity="unranked"), 0),
+    ("severity_source outside the two", mutate(REVIEW, severity_source="guessed"), 0),
+    ("derived severities with no basis stated",
+     mutate(REVIEW, severity_source="derived"), 0),
+    ("derived severities with a blank basis",
+     mutate(REVIEW, severity_source="derived", severity_basis="   "), 0),
+    ("a basis stated while the reviewer assigned the levels",
+     mutate(REVIEW, severity_basis="read from the finding text"), 0),
     ("severity missing", with_finding(REVIEW, severity=None), 0),
     ("side neither RIGHT nor LEFT", with_finding(REVIEW, side="BOTH"), 0),
     ("axis outside the two", with_finding(REVIEW, axis="performance"), 0),
@@ -120,13 +128,21 @@ MUST_REFUSE = [
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
 ]
 
+UNRATED = {**FINDING, "severity": "unrated", "axis": "unrated"}
+
 MUST_BUILD = [
     ("one valid finding", REVIEW, 0, ["RF1"]),
+    ("an unrated finding from an appointed command",
+     mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED]), 0, ["RF1", "\u26aa", "arrived unrated"]),
     ("continues from the highest id on the pull request", REVIEW, 7, ["RF8"]),
     ("zero findings still builds the record", mutate(REVIEW, findings=[]), 0, ["no findings"]),
     ("re-review with verdicts and no new defect", RERdefault, 3, ["no findings"]),
     ("re-review with a new defect",
      mutate(RERdefault, findings=[FINDING]), 3, ["RF4"]),
+    ("derived severities with a basis, which the record must publish",
+     mutate(REVIEW, severity_source="derived",
+            severity_basis="high where the branch does not do what the PR body claims"),
+     0, ["The severity basis", "does not do what the PR body claims"]),
 ]
 
 fails = 0
@@ -158,7 +174,7 @@ for name, data, continue_from, wants in MUST_BUILD:
     ok = proc.returncode == 0 and out.exists()
     if ok:
         payload = json.loads(out.read_text(encoding="utf-8"))
-        blob = proc.stdout + json.dumps(payload)
+        blob = proc.stdout + json.dumps(payload, ensure_ascii=False)
         missing = [w for w in wants if w not in blob]
         ok = not missing
         if payload["comments"] and not payload["comments"][0]["body"].startswith("> 🤖"):

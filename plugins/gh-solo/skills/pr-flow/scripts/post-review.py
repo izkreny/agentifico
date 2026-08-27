@@ -28,10 +28,14 @@ import re
 import sys
 from pathlib import Path
 
-SEVERITIES = {"high": "🔴", "medium": "🟡", "low": "🔵"}
-AXES = ("standards", "spec")
+# `unrated` means the reviewer supplied none, which an appointed command cannot. It is
+# never a guess: a level or an axis that looked like the reviewer's but came from the
+# orchestrator is the fictional mapping this whole flow exists to have removed.
+SEVERITIES = {"high": "🔴", "medium": "🟡", "low": "🔵", "unrated": "⚪"}
+AXES = ("standards", "spec", "unrated")
 SIDES = ("RIGHT", "LEFT")
 PASSES = ("review", "re-review")
+SEVERITY_SOURCES = ("reviewer", "derived")
 DISCLAIMER_PREFIX = "> 🤖"
 SUGGESTION_FENCE = "```suggestion"
 
@@ -171,7 +175,9 @@ def record_body(
 
     if data["pass"] == "review":
         axes = ", ".join(data["axes_run"])
-        lines.append(f"Review round on {len(assigned)} finding(s). Axes run: {axes}.")
+        unrated = sum(1 for _, f in assigned if f["severity"] == "unrated")
+        tail = f" {unrated} arrived unrated." if unrated else ""
+        lines.append(f"Review round on {len(assigned)} finding(s). Axes run: {axes}.{tail}")
     else:
         verdicts = data.get("verdicts", [])
         closed = sum(1 for v in verdicts if v.get("closed"))
@@ -184,13 +190,25 @@ def record_body(
         lines.append("")
         for rf, finding in assigned:
             emoji = SEVERITIES[finding["severity"]]
+            axis = "" if finding["axis"] == "unrated" else f"`{finding['axis']}` "
             lines.append(
-                f"- RF{rf} {emoji} {finding['severity']} `{finding['axis']}` "
+                f"- RF{rf} {emoji} {finding['severity']} {axis}"
                 f"{finding['path']}:{finding['line']}"
             )
     else:
         lines.append("")
         lines.append("No findings.")
+
+    if data.get("severity_source") == "derived":
+        lines.append("")
+        lines.append("## The severity basis, and why it is stated")
+        lines.append("")
+        lines.append(
+            "These levels were not supplied by the reviewer, which gave none. They were "
+            "read out of each finding's own account of what goes wrong, on this basis:"
+        )
+        lines.append("")
+        lines.append(data["severity_basis"].strip())
 
     return "\n".join(lines)
 
@@ -221,6 +239,28 @@ def build(args: argparse.Namespace) -> int:
     if not isinstance(findings, list):
         problems.append("findings is missing or not a list")
         findings = []
+
+    # A derived severity is one the orchestrator read out of the finding's own words,
+    # which an appointed command's findings require because such a command supplies no
+    # level. It is honest only if the record says so, which is why the basis is required
+    # here and refused when the reviewer assigned the levels itself.
+    source = data.get("severity_source", "reviewer")
+    basis = data.get("severity_basis")
+    if source not in SEVERITY_SOURCES:
+        problems.append(
+            f"severity_source is not one of {'/'.join(SEVERITY_SOURCES)}: {source!r}"
+        )
+    elif source == "derived":
+        if not isinstance(basis, str) or not basis.strip():
+            problems.append(
+                "severity_source is derived but severity_basis is empty, so the record "
+                "would publish levels with no account of where they came from"
+            )
+    elif basis is not None:
+        problems.append(
+            "severity_basis is set while severity_source is reviewer, which would claim a "
+            "derivation that did not happen"
+        )
 
     if which_pass == "review":
         axes_run = data.get("axes_run")
