@@ -5,7 +5,7 @@ argument-hint: "[open | plan | auto <issue-number> | go <pr-number> | ready [rev
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python3:*), Read, Write, Edit, Grep, Glob, Monitor, TaskStop, Agent, EnterWorktree
 ---
 
-> **Tools used:** `Bash(gh:*)` for the extension, PR queries and review posting, `Bash(git:*)` for branch and worktree state, `Read` / `Grep` / `Glob` for repository context, `Write` / `Edit` for plan files and PR-body scratch files, `Bash(python3:*)` for `scripts/docs-check.py`, `Monitor` / `TaskStop` for the watch in `workflows/discuss.md`, `Agent` for the `implementer` subagent that `workflows/auto.md` spawns, `EnterWorktree` for moving the session into a sibling worktree in `workflows/merge.md` and `workflows/stack.md`.
+> **Tools used:** `Bash(gh:*)` for the extension, PR queries and review posting, `Bash(git:*)` for branch and worktree state, `Read` / `Grep` / `Glob` for repository context, `Write` / `Edit` for plan files and PR-body scratch files, `Bash(python3:*)` for `scripts/docs-check.py` and `scripts/post-review.py`, `Monitor` / `TaskStop` for the watch in `workflows/discuss.md`, `Agent` for the `reviewer` subagent that `workflows/review.md` spawns and the `implementer` subagent that `workflows/auto.md` spawns, `EnterWorktree` for moving the session into a sibling worktree in `workflows/merge.md` and `workflows/stack.md`.
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 
@@ -101,7 +101,8 @@ Based on the argument above, do exactly one of the following:
 - **`workflows/ready.md`** - the other end: auditing that every stated gate ran and that CI agrees with the record, then taking the PR out of draft. It runs nothing and writes nothing but the flag
 - **`scripts/docs-check.py`** - verifies every backticked path resolves and every code fence closes; run it before pushing a docs or plan change, since no hook will. `--ignore <glob>`, repeatable, skips path spans that belong to another tree
 - **`workflows/stack.md`** - the `gh stack` prerequisites, when a stack is wanted at all, the layers of stack state, the worktree trap, and the drift playbook. Everything stack-specific lives there rather than here, because it has exactly one reader
-- **`workflows/review.md`** - scoping and gating a PR, posting the tracker checks, and handing the diff analysis to the `/code-review` capability, which only the owner can invoke
+- **`workflows/review.md`** - the review round: scoping and gating a PR, the tracker checks, spawning the `reviewer` subagent, posting what it found, landing the fixes locally and stopping at the owner
+- **`scripts/post-review.py`** - builds the one API call that lands a round's threads and its record Review together, refusing the whole round on any invalid finding, and afterwards reconciles what the PR carries against what was sent; `scripts/test-post-review.sh` is its bench
 - **`workflows/merge.md`** - the end of a branch's life: the reviewed-or-not gate, the last checklist audit, the squash merge, branch cleanup, and confirming the issue actually closed
 - **`workflows/discuss.md`** - answering the owner's replies on inline comment threads, in the thread; also the `watch` poll loop and what ends it
 - **`workflows/help.md`** - the one file addressed to the owner rather than the agent; output it verbatim on `help` and add nothing to it
