@@ -23,16 +23,6 @@ A package is released on its own tag, `<name>_<version>`, and carries its own ve
 
 The package axis is also the repository's label axis, which `.agents/gh-solo.md` records.
 
-## Prose
-
-- **Never hard-wrap prose at a column.** One line per paragraph, per list item, per blockquote. This holds in markdown and in comment blocks inside code and config, which live in git and diff the same way. Rewrapping diffs every line of a paragraph and hides the two-word edit that caused it. The commit message is the exception, in both directions, and the `gh-solo` plugin's `tracker` standards own that rule - subject length, body wrapping and what may overrun.
-
-## This repository is public
-
-Nothing that describes the machine an agent runs on may be committed here, or written into an issue, a pull request, a review comment or a commit message. That means no inventory of installed tooling, no agent permission or guardrail configuration, no absolute paths outside this repository, no hostnames or hardware identifiers. Where a public artifact genuinely needs such a fact, name the what and not the where: "install a diagram renderer" is fine, an enumeration of what is installed on a particular machine is not.
-
-The test: would the line help someone target that machine, or impersonate its agents?
-
 ## The GitHub loop
 
 Issues, branches, plans, pull requests, review and merge all run through the `gh-solo` plugin this repository ships, which means the repository dogfoods its own product.
