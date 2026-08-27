@@ -97,7 +97,13 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 
 ### Step 1 - Review
 
-Spawn the `reviewer` agent with the PR number and nothing else.
+**Which reviewer runs is a per-repo fact.** The default is the `reviewer` agent this plugin ships. Where `.agents/github.md` carries a `Reviewer agent:` line naming an agent type, per the per-repo config convention in `SKILL.md`, spawn that one instead.
+
+- **The appointed agent inherits the whole contract, not only the spawn.** It gets the PR number and nothing else, and it must return the absolute path of a findings file in the format `../../reviewer/SKILL.md` defines, plus its report text. Everything downstream reads that file and nothing else, so an agent that answers in prose cannot be posted.
+- **Refuse if the appointed agent is not registered.** `⛔ REFUSED - {name} is not a registered agent`. Never fall back to the bundled one: the owner would believe they are reading the findings of the agent they appointed and would be reading ours, which is the exact confusion an appointment exists to prevent, and it would silently invalidate any comparison between reviewers.
+- **Name which reviewer ran in the round report**, always, including when it is the default. A round's findings mean something different depending on what produced them, and a report that leaves it out cannot be compared with another round's.
+
+Spawn it with the PR number and nothing else.
 
 **Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. It fetches its own context, and evidence chosen by the author of the code is not independent evidence. Handing it your reading of the diff is the one way to spend a subagent and get your own opinion back.
 
@@ -172,7 +178,7 @@ The caps on both loops are the protocol's, and they are the only thing that ends
 
 Open with the verdict line: `✅ ALL PASS` when the reviewer found nothing and the conventions were clean, `⚠️ PASSED WITH FINDINGS - {count} posted, {count} fixed locally` otherwise.
 
-Then the round report: the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, what the re-review would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
+Then the round report: which reviewer ran, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, what the re-review would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
 
 Then the owner's next move, which is the whole of what they have to do:
 
