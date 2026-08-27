@@ -9,20 +9,24 @@ There is no CI and no build. Everything below runs locally, and nothing else is 
 **The plugin's own files**, from the repository root:
 
 ```bash
-python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo \
+python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md \
   --ignore '.agents/*' --ignore '.claude/*' --ignore 'AGENTS.md' --ignore 'CLAUDE.md' \
   --ignore 'docs/plans*' --ignore '*GHI-50*'
 ```
 
-The ignore set is not optional and is not tuning. Without it the run reports every backticked path that belongs to a repository the plugin serves rather than to this one, and the output reads as failure. The script's own usage note is the authority on the set.
+The ignore set is not optional and is not tuning. Without it the run reports every backticked path that belongs to a repository the plugin serves rather than to this one, and the output reads as failure. The script's own usage note is the authority on the set. `--ignore` skips a matching *span* rather than a file, so this file is checked even though `.agents/*` is ignored inside it.
 
-**The posting script's bench**, after any edit to `post-review.py`:
+**`skills/` is deliberately not a target.** Those skills carry home-relative paths this script cannot resolve, and they are checked by their own tooling, so widening the target to the repository root reports failures that are not failures.
+
+**Read the exit code, not the output.** A run piped through `tail` reports the pipe's status, so a chained command runs anyway; this has caused a broken path to be committed here twice. Use `set -o pipefail`, or read `${PIPESTATUS[0]}`, or do not pipe it.
+
+**The posting script's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/post-review.py`:
 
 ```bash
 bash plugins/gh-solo/skills/pr-flow/scripts/test-post-review.sh
 ```
 
-**The trunk-push hook's bench**, after any edit to `ask-before-trunk-push.py`:
+**The trunk-push hook's bench**, after any edit to `plugins/gh-solo/hooks/ask-before-trunk-push.py`:
 
 ```bash
 bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
