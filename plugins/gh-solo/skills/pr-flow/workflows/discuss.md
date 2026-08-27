@@ -19,7 +19,7 @@ Each `discuss` run is one round of the conversation, and it goes:
 5. Resolve nothing (Step 3), and push nothing - an order authorises the fix and the commit, never the push (Step 4).
 6. Report in the terminal: `file:line`, what was asked and what was answered per thread touched, the count left alone with why, any `## Open questions` entries moved to `## Settled`, **how many fix commits sit unpushed waiting for the owner's word**, and whether a watch is armed (Step 5).
 
-Then the ball is the owner's again: read the replies on GitHub, respond or resolve, and run `discuss` once more - or `watch`, for live answers. When every thread is walked, the round ends on the owner authorising the resolve and the push in the session - "resolve all and push" - per `references/review-protocol.md`. There is no push-without-resolving option to offer them; that path was removed.
+Then the ball is the owner's again: read the replies on GitHub, respond or resolve, and run `discuss` once more - or `watch`, for live answers. When every thread is walked, the round ends on the owner authorising the resolve and the push in the session - "resolve all and push" - which is `workflows/resolve.md`, the protocol's step 7. There is no push-without-resolving option to offer them.
 
 There is no step after that, because this whole workflow is a fork, not a stage: it hangs off step 7 of the lifecycle list in `workflows/review.md` and exits where it entered. The owner is still mid-review throughout; the review ends when they submit it, and what follows is step 8 of that list, `workflows/merge.md`.
 

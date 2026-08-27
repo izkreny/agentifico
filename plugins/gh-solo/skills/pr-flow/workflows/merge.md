@@ -36,7 +36,7 @@ The owner's own review is a separate record, submitted under their name through 
 
 1. **A reply of the owner's in the thread.**
 2. **A reaction of the owner's on any comment in it.** Approval may be a reaction rather than a word, so a gate reading only comments would refuse threads the owner did in fact approve.
-3. **An authorisation comment naming that thread's `RF{n}` id.** That is what the protocol's step 7 posts before a batch resolve, and it is grep-able precisely so this gate can find it.
+3. **An authorisation comment naming that thread's `RF{n}` id.** `workflows/resolve.md` posts it before a batch resolve and **owns the literal marker line to grep for**; read the wording there rather than guessing at it, because a gate looking for the wrong string finds nothing and refuses a PR that was properly authorised.
 
 **Recognising the owner takes two conditions, and both must hold** - for forms 1 and 2, which are the owner's own posts; form 3 is an agent post and opens with the disclaimer by construction, which is why it is found by its marker line and its `RF{n}` id instead. The two conditions: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes a mentor, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials. The disclaimer test alone is not enough - a mentor's comment opens with no disclaimer either, so on its own it would let a third party's 👍 authorise a merge. For a reaction there is no body to test, so the login is the whole test.
 

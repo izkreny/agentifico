@@ -70,10 +70,9 @@ Issue context comes from the same `gh`, so a headless run under `claude --print`
 | "mark it ready", "it's done", "ready for review", "take it out of draft" | `workflows/ready.md` |
 | `auto 50` - the literal command, with an issue number | `workflows/auto.md` from the top: plan and draft PR, the implementation, `ready`, `review` Pass 1, stop at the `/code-review` handoff |
 | `go 60` - the literal command, with a PR number | `workflows/auto.md` at its `go` entrance: the same chain minus `open`, for a plan the owner has already read |
-| "merge it", "land this", "merge the PR", "merge the stack" | `workflows/merge.md` - but said while a review round has left fix commits unpushed, it means step 5.1 of `references/review-protocol.md` first, which checks the threads and pushes before any merge |
+| "merge it", "land this", "merge the PR", "merge the stack" | `workflows/merge.md` - but said while a review round has left fix commits unpushed, it means `workflows/resolve.md` first, which records the authorisation, resolves and pushes |
 | "I replied on the PR", "answer my comments", "I asked something on the review" | `workflows/discuss.md` |
-| "we are done", "you can merge" - said after a review round left fix commits unpushed | step 5.1 of `references/review-protocol.md`: stop any watch, check every thread is resolved with an owner reply *before* pushing, then push, wait for green checks, then `workflows/merge.md` |
-| "push for review", "push changes for review" | step 5.2 of `references/review-protocol.md`: push, read the checks, post the follow-up threads, back to the round - a running watch keeps running |
+| "resolve all and push", "we are done", "you can merge" - said after a review round left fix commits unpushed | `workflows/resolve.md`, the protocol's step 7: stop the watch, post the authorisation, resolve what it covers, push, read the checks, then `workflows/merge.md` |
 | "stop watching", "you can stop polling now", "unwatch" | stop the monitor; see *Stopping it* in `workflows/discuss.md` |
 
 Based on the argument above, do exactly one of the following:
@@ -87,6 +86,7 @@ Based on the argument above, do exactly one of the following:
 - If it starts with `discuss`, `reply` or `chat` → read `workflows/discuss.md` and follow it. **`sync` never means this**, however the request is phrased: that word belongs to the cascade rebase in `workflows/stack.md`, and confusing the two rewrites history when someone asked for a conversation.
 - If it starts with `watch` → read `workflows/discuss.md` and arm its watch. **Only this literal command arms it** — no sentence does, however clearly it implies one.
 - If it starts with `unwatch`, or the owner says to stop watching in any words → stop the monitor with `TaskStop` and confirm it is gone. Arming needs the exact command; stopping deliberately does not, because a stop misread costs nothing and a stop missed leaves something running.
+- If the owner authorises the resolve and the push in any words - "resolve all and push", "we are done", "you can merge" - while a review round has left fix commits unpushed → read `workflows/resolve.md` and follow it, then continue into `workflows/merge.md`. Their sentence is the authorisation; nothing else is.
 - If it starts with `merge` → read `workflows/merge.md` and follow it, **including when the PR is stacked**. It is the single entry point for landing anything, and it routes to `gh stack merge` itself. Sending a stacked merge to `workflows/stack.md` instead skips the review gate.
 - If it starts with `view`, `init`, `add`, `submit`, `sync` or `restack` → read `workflows/stack.md` and follow it.
 - If the request is about a branch's relationship to another branch → read `workflows/stack.md`.
@@ -105,5 +105,6 @@ Based on the argument above, do exactly one of the following:
 - **`scripts/post-review.py`** - builds the one API call that lands a round's threads and its record Review together, refusing the whole round on any invalid finding, and afterwards reconciles what the PR carries against what was sent; `scripts/test-post-review.sh` is its bench
 - **`workflows/merge.md`** - the end of a branch's life: the reviewed-or-not gate, the last checklist audit, the squash merge, branch cleanup, and confirming the issue actually closed
 - **`workflows/discuss.md`** - answering the owner's replies on inline comment threads, in the thread; also the `watch` poll loop and what ends it
+- **`workflows/resolve.md`** - the protocol's step 7: the authorisation comment and its marker line, the resolve mutation, and the round's only push
 - **`workflows/help.md`** - the one file addressed to the owner rather than the agent; output it verbatim on `help` and add nothing to it
 - **`references/review-protocol.md`** - the review round protocol, stated once: RF ids and severities, orders get fix-and-commit but never a push, the owner's step-5 words, and the conclusions the `review` and `merge` gates enforce
