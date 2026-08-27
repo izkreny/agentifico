@@ -2,7 +2,7 @@
 
 AI agent skills, instructions and gotchas, published two ways: a Claude Code plugin marketplace, and skills that install on their own.
 
-This file is for any agent working in this repository, whatever its harness. It holds what is true of the repository as a whole. It does not hold the GitHub loop, which has its own file - see *The GitHub loop* below.
+This file is for any agent working in this repository, whatever its harness, and it is deliberately minimal: it holds only what no other file already owns. Conventions that come from the `gh-solo` plugin, or from the agent's own instructions, are not restated here.
 
 ## Layout
 
@@ -27,4 +27,4 @@ The package axis is also the repository's label axis, which `.agents/gh-solo.md`
 
 Issues, branches, plans, pull requests, review and merge all run through the `gh-solo` plugin this repository ships, which means the repository dogfoods its own product.
 
-**`.agents/gh-solo.md` owns that loop's specifics** and is the file to read before touching any of it: the check commands, the label axis and its values, the branch and pull request conventions, and which reviews are the owner's to start by hand. Read it rather than inferring the conventions from the tree, and where it and this file disagree about the loop, it wins.
+**`.agents/gh-solo.md` records what this repository does differently**, and is the file to read before touching any of it. Everything it does not mention is the plugin's own default. Read it rather than inferring conventions from the tree, and where it and this file disagree about the loop, it wins.
