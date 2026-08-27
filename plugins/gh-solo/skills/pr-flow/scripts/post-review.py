@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -54,6 +55,12 @@ def load_json(path: Path, what: str) -> object:
         sys.exit(f"post-review: {what} not found: {path}")
     except json.JSONDecodeError as exc:
         sys.exit(f"post-review: {what} is not valid JSON: {path}: {exc}")
+
+
+def rf_id(body: str) -> int | None:
+    """The RF id a posted or built body carries, or None."""
+    match = re.search(r"\bRF(\d+)\b", body)
+    return int(match.group(1)) if match else None
 
 
 def check_finding(finding: object, position: int, problems: list[str]) -> None:
@@ -297,28 +304,24 @@ def verify(args: argparse.Namespace) -> int:
         )
 
     problems: list[str] = []
-    landed = {
-        (c.get("path"), c.get("line") if c.get("line") is not None else c.get("original_line"))
-        for c in posted
-        if isinstance(c, dict)
-    }
+    bodies = [c["body"] for c in posted if isinstance(c, dict) and isinstance(c.get("body"), str)]
 
+    # Keyed on this round's own RF ids, never on a path:line anchor and never on a count of
+    # RF-marked threads. Both of those pass by accident on any round after the first, where
+    # an earlier round's threads are in the same listing and can sit on the same line.
     for comment in payload["comments"]:
-        anchor = (comment["path"], comment["line"])
-        if anchor not in landed:
-            problems.append(f"sent but not on the pull request: {anchor[0]}:{anchor[1]}")
+        rf = rf_id(comment["body"])
+        if rf is None:
+            problems.append(f"a sent body carries no RF id: {comment['path']}:{comment['line']}")
+            continue
+        if not any(rf_id(body) == rf for body in bodies):
+            problems.append(
+                f"RF{rf} was sent for {comment['path']}:{comment['line']} and is not on the "
+                "pull request; if this listing was read without --paginate it is a slice, "
+                "not a result"
+            )
 
     sent = len(payload["comments"])
-    rf_on_pr = sum(
-        1
-        for c in posted
-        if isinstance(c, dict) and isinstance(c.get("body"), str) and "\nRF" in "\n" + c["body"]
-    )
-    if rf_on_pr < sent:
-        problems.append(
-            f"{sent} finding(s) sent but only {rf_on_pr} RF-marked thread(s) on the pull "
-            "request; if this listing was read without --paginate it is a slice, not a result"
-        )
 
     if problems:
         print(f"post-review: {len(problems)} problem(s)", file=sys.stderr)

@@ -148,7 +148,7 @@ Spawn the `reviewer` agent again, with `rescope <pr-number>` and exactly three t
 Then post what it returns:
 
 - **Each verdict as a reply in its finding's thread**, the same endpoint as step 3, via `pr-flow` review, re-review verdict.
-- **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script, same call as step 2, with the re-review findings file: new defects become new threads with new ids continuing the sequence, and the record indexes its own pass.
+- **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script, same call as step 2, with the re-review findings file: new defects become new threads with new ids continuing the sequence, and the record indexes its own pass. **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round.
 
 The caps on both loops are the protocol's, and they are the only thing that ends this block short of the owner.
 

@@ -170,11 +170,17 @@ print("\nverify must refuse (exit 2):")
 payload = {"comments": [{"path": "a.rb", "line": 1, "side": "RIGHT", "body": "RF1 x"},
                         {"path": "b.rb", "line": 2, "side": "RIGHT", "body": "RF2 x"}]}
 cases = [
-    ("an anchor that never landed",
+    ("a finding that never landed",
      [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF1 x"},
-      {"path": "zzz.rb", "line": 9, "body": "> 🤖 h\n\nRF2 x"}]),
+      {"path": "zzz.rb", "line": 9, "body": "> 🤖 h\n\nRF9 x"}]),
     ("a listing read without --paginate, so a slice",
      [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF1 x"}]),
+    # The second-round hole. An earlier round left RF7 and RF8 on the very lines this round
+    # posted to, and this round's RF1 and RF2 never landed. A path:line check passes here,
+    # and so does any check that only counts RF-marked threads: there are two of each.
+    ("a later round missing, with an earlier round on the same lines",
+     [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF7 old"},
+      {"path": "b.rb", "line": 2, "body": "> 🤖 h\n\nRF8 old"}]),
 ]
 for name, comments in cases:
     proc = run_verify(payload, comments, name="".join(c if c.isalnum() else "-" for c in name))
