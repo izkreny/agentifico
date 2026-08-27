@@ -15,7 +15,7 @@ This file is for any agent working in this repository, whatever its harness, and
 | `.agents/gh-solo.md` | the per-repository facts the `gh-solo` plugin reads |
 | `AGENTS.md`, `CLAUDE.md` | this file; the second is a symlink to the first |
 
-## Every directory under `plugins/` and `skills/` is a package
+## Each plugin, and each skill under `skills/`, is a package
 
 A package is released on its own tag, `<name>_<version>`, and carries its own version inside it - a plugin in `plugins/gh-solo/.claude-plugin/plugin.json` and its marketplace entry, a skill in its frontmatter under `metadata.version`.
 
