@@ -2,19 +2,22 @@
 
 Per-repository facts the `gh-solo` plugin reads. Only what differs from its defaults, or what it refuses to guess, is written down here.
 
+`AGENTS.md` holds what is true of this repository and not of this loop: what it is, its layout, and the package scheme. It is deliberately minimal, so a convention it does not state is owned by the plugin or by the agent's own instructions rather than missing.
+
 ## Check commands
 
 There is no CI and no build. Everything below runs locally, and nothing else is a gate.
 
-**The plugin's own files**, from the repository root:
+**The plugin's own files, this file, `AGENTS.md` and every plan**, from the repository root:
 
 ```bash
-python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md \
-  --ignore '.agents/*' --ignore '.claude/*' --ignore 'AGENTS.md' --ignore 'CLAUDE.md' \
-  --ignore 'docs/plans*' --ignore '*GHI-50*'
+python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans \
+  --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'
 ```
 
-The ignore set is not optional and is not tuning. Without it the run reports every backticked path that belongs to a repository the plugin serves rather than to this one, and the output reads as failure. The script's own usage note is the authority on the set. `--ignore` skips a matching *span* rather than a file, so this file is checked even though `.agents/*` is ignored inside it.
+The ignore set is not optional and is not tuning. Without it the run reports every backticked path that belongs to a repository the plugin serves rather than to this one, and the output reads as failure. The script's own usage note documents the set that keeps the *plugin's* tree clean; for this repository the command above is the authority, and it is narrower.
+
+**Why it is narrower.** `--ignore` skips a matching *span* rather than a file, so `--ignore 'AGENTS.md'`, `--ignore 'CLAUDE.md'` and `--ignore '.agents/*'` would skip exactly the cross-links between this file and `AGENTS.md` - the spans most worth checking, since both files exist here where in a served repository they do not. Never add them back to make an output quieter.
 
 **`skills/` is deliberately not a target.** Those skills carry home-relative paths this script cannot resolve, and they are checked by their own tooling, so widening the target to the repository root reports failures that are not failures.
 
@@ -36,18 +39,38 @@ bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
 
 **Mermaid diagrams in any README** are verified by rendering them, never by reading them. `mmdc` needs a puppeteer config naming a browser executable; one key is enough, and the renderer exits non-zero with a parse error on a broken diagram, which is what makes a clean run mean something.
 
-## Skills outside the plugin
+## Labels
 
-`skills/` holds skills that ship independently of `gh-solo` and are versioned by their own tags, `<name>_<version>`. A change to one of those is not a change to the plugin, and the plugin's version does not move for it.
+**The package axis replaces the plugin's Layer axis.** The plugin's own standards call the `backend`/`frontend`/`fullstack`/`infra`/`docs` set a default rather than a law, and this repository has no such split: it has packages, each released on its own tag. The axis rules carry over - exactly one value, mandatory, an epic exempt - but the plugin's *tooling* for them does not, per the audit below.
 
-## This repository does not run its own issue doctrine
+| Label | The deliverable is |
+|---|---|
+| `gh-solo` | `plugins/gh-solo/` |
+| `daisyui-designer` | `skills/daisyui-designer/` |
+| `rails-style` | `skills/rails-style/` |
+| `review-text` | `skills/review-text/` |
+| `skills-maker` | `skills/skills-maker/` |
+| `socratic-tutor` | `skills/socratic-tutor/` |
+| `repo` | the repository itself: `README.md`, `.claude-plugin/marketplace.json`, `LICENSE`, `AGENTS.md`, this file |
 
-**Deliberately, and it is not an oversight to correct.** Work here is committed on a branch and opened as a pull request for reading, with no tracker issue behind it and no `Closes` line in the body. So on this repository:
+**The label is where the deliverable lands, not every directory the branch touches.** A change to the plugin that also updates its README is `gh-solo`; ask what the issue would be closed *for*.
 
-- The `tracker` skill has nothing to operate on. It should not create issues here, and it should not offer to write a label taxonomy.
-- A branch name will not carry a `GHI-` key, and the parse that recovers an issue number from it will find nothing. That is expected: the reviewer and the review round both say so where an issue is absent rather than inventing one, and the spec axis has nothing to review against.
-- The convention checks that gate on `Closes #{issue-number}` and on the branch format will fail by construction. Report them and carry on; they are not defects in the branch.
+**A new package arrives with a new value.** The axis is the set of packages, so it grows when `plugins/` or `skills/` does, and this table is what a new directory owes an edit to.
+
+**The mandatory-axis audit has to be rewritten here, not reused.** The plugin's version names the layer values it excludes, and none of them exists in this repository, so it excludes nothing and reports every open issue as unlabelled. This is the one that works:
+
+```bash
+gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:daisyui-designer -label:rails-style -label:review-text -label:skills-maker -label:socratic-tutor -label:repo"
+```
+
+**A new value in the table above is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
+
+## The skill review is manual, and stays manual
+
+**A change under `skills/` or under a plugin's own `skills/` tree owes a second manual review by the owner that no diff review covers:** `/skills-maker review <path>`. Both trees, whether or not the skill ships on its own tag.
+
+So a skill change carries this as an `[owner]` verification entry, and **the reason is the skill's own `disable-model-invocation` flag rather than absent tooling** - the distinction that keeps a genuinely tool-closable check from being parked with the owner. An agent must not attempt the review by reading the skill's workflow files instead.
 
 ## What is deliberately not here
 
-No label taxonomy, no layer set, no branch `{type}` vocabulary, because nothing here uses them. No default-branch name and no remote name, because `main` and a single `origin` are exactly what the plugin already assumes. No `Reviewer agent:` or `Reviewer command:` line, so rounds use the reviewer the plugin ships.
+No branch `{type}` vocabulary, because the plugin's own is what this repository uses.
