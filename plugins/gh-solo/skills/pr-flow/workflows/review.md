@@ -103,6 +103,14 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 - **Refuse if the appointed agent is not registered.** `⛔ REFUSED - {name} is not a registered agent`. Never fall back to the bundled one: the owner would believe they are reading the findings of the agent they appointed and would be reading ours, which is the exact confusion an appointment exists to prevent, and it would silently invalidate any comparison between reviewers.
 - **Name which reviewer ran in the round report**, always, including when it is the default. A round's findings mean something different depending on what produced them, and a report that leaves it out cannot be compared with another round's.
 
+**Record the head before the spawn**, because every anchor the reviewer produces belongs to whatever the head is while it reads:
+
+```bash
+gh pr view <pr-number> --json headRefOid --jq .headRefOid
+```
+
+Keep the value. Step 2 compares it before it builds anything, and that comparison is what tells a stale anchor from a malformed finding. It lives in this session only, which is honest rather than a gap: before the round, and the protocol's steps 1 to 5, are one turn, so a session that dies between the spawn and the post has lost the round regardless.
+
 Spawn it with the PR number and nothing else.
 
 #### Where the appointed reviewer is a command
@@ -129,29 +137,38 @@ It returns the absolute path of a findings file and its report text. **If the pa
 
 One call lands every thread and the record Review together, so a half-posted PR cannot happen.
 
-1. **Find the highest `RF{n}` already on the PR**, since ids never restart:
+1. **Compare the head against what the reviewer read**, before anything else in this step:
+
+   ```bash
+   gh pr view <pr-number> --json headRefOid --jq .headRefOid
+   ```
+
+   A value different from the one Step 1 recorded means the diff moved while the reviewer was reading, so its `path`, `line` and `side` may name lines that no longer exist. **Refuse, and never attempt the post:** `⛔ REFUSED - the head moved from {old} to {new} while the reviewer was reading`, naming a re-spawn against the new head as what resumes. The post cannot succeed for any finding anchored to a changed region, and it fails atomically, so attempting it destroys the whole round rather than the affected finding. It goes first because every request below it is wasted on a head that has moved.
+2. **Find the highest `RF{n}` already on the PR**, since ids never restart:
 
    ```bash
    gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" --jq '.[].body' | grep -oE 'RF[0-9]+' | tr -dc '0-9\n' | sort -n | tail -1
    ```
 
    No output means no round has posted yet, so pass `0`.
-2. **Write the disclaimer line to a file**, its wording per the AI-disclaimer bullet in `SKILL.md`. The script refuses a line that does not open with `> 🤖`.
-3. **Build and validate the payload:**
+3. **Write the disclaimer line to a file**, its wording per the AI-disclaimer bullet in `SKILL.md`. The script refuses a line that does not open with `> 🤖`.
+4. **Build and validate the payload:**
 
    ```bash
    python3 scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --out <payload-file>
    ```
 
    It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. **A refusal here is not something to work around by posting by hand.** It means the findings file is malformed, and the answer is to re-spawn the reviewer or to say what is wrong and stop.
-4. **Post it:**
+5. **Post it:**
 
    ```bash
    gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
    ```
 
    The JSON must travel in a **file**: `-f` cannot express an array, and `echo '{...}' | gh api --input -` sends the same bytes but does not prefix-match this skill's granted `Bash(gh:*)` pattern, so it prompts where the file form runs clean. Keep the payload file outside the working tree - the harness scratchpad - so a copy of it cannot get committed.
-5. **Reconcile what landed:**
+
+   **A `422` reading `Line could not be resolved` means an anchor that will not resolve, and item 1 has already excluded a moved head.** So the cause is the anchor itself: on the appointed-command path `side` is guessed as `RIGHT`, per *Where the appointed reviewer is a command*, and a wrong guess fails the call. Name the finding that could not be anchored and stop. A re-spawn repeats the same guess and fails identically.
+6. **Reconcile what landed:**
 
    ```bash
    gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
@@ -159,7 +176,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
    ```
 
    **`--paginate` is not optional.** The endpoint pages at 30 and a plan discussion's threads alone can pass that, so an unpaginated read returns a slice that looks exactly like a failed post. A verify failure is reported, never re-posted over: the threads may already be there.
-6. **Post the reviewer's report as a Conversation comment**, `gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it unchanged.
+7. **Post the reviewer's report as a Conversation comment**, `gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it unchanged.
 
 ### Step 3 - Plan the fix, in the thread
 
@@ -186,6 +203,7 @@ Spawn the `reviewer` agent again, with `rescope <pr-number>` and exactly three t
 Then post what it returns:
 
 - **Each verdict as a reply in its finding's thread**, the same endpoint as step 3, via `pr-flow` review, re-review verdict.
+- **Re-read the head and compare it before building this payload**, exactly as Step 2's first item does. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it.
 - **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script, same call as step 2, with the re-review findings file: new defects become new threads with new ids continuing the sequence, and the record indexes its own pass. **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round.
 
 The caps on both loops are the protocol's, and they are the only thing that ends this block short of the owner.
@@ -235,6 +253,7 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 
 - **Never read the diff and never review.** The emptiness test is `changedFiles`, the analysis is the reviewer subagent's, and the judgement is the owner's.
 - **The reviewer is spawned with a PR number and nothing else**, or on the re-review with a commit range, the findings and the id-to-commit map. Never with your reading of the diff.
+- **Never post a round at a head the reviewer did not read.** Step 1 records the head, Step 2's first item compares it, and a difference is a refusal rather than an attempt: the call is atomic, so one stale anchor costs the whole round.
 - **Never post a finding by hand.** `scripts/post-review.py` builds every payload, and a refusal from it is a stop rather than an obstacle.
 - **Never post threads one at a time.** One call carries every thread and the record Review, so either the whole round is on the PR or none of it is.
 - **Never read a REST list without `--paginate`**, which makes a successful round look failed and a failed one look partial.
