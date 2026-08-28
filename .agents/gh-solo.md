@@ -73,7 +73,7 @@ gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -lab
 
 **The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
 
-**The owner runs the sweep**, because of the skill's own `disable-model-invocation` flag rather than absent tooling - the distinction that keeps a genuinely tool-closable check from being parked with the owner. An agent must not attempt it by reading the skill's workflow files instead.
+**The owner runs the sweep**, because of the skill's own `disable-model-invocation` flag rather than absent tooling - the distinction that keeps a genuinely tool-closable check from being parked with the owner. An agent must not attempt **the sweep** by reading the skill's workflow files instead. That prohibition is about standing in for the owner's whole-file judgement, and it never bars the read `AGENTS.md` requires of a round under *Skill files follow the skills-maker rules*.
 
 ## What is deliberately not here
 
