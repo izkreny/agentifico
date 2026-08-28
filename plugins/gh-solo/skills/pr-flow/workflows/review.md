@@ -167,7 +167,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
 
    The JSON must travel in a **file**: `-f` cannot express an array, and `echo '{...}' | gh api --input -` sends the same bytes but does not prefix-match this skill's granted `Bash(gh:*)` pattern, so it prompts where the file form runs clean. Keep the payload file outside the working tree - the harness scratchpad - so a copy of it cannot get committed.
 
-   **A `422` reading `Line could not be resolved` means a moved anchor, not a malformed findings file.** A malformed file is what the build above refuses on, and it did not. So this is the head moving after the comparison in item 1, through however narrow a window: report it as a stale head, re-spawn against the new head, and never re-post the same payload.
+   **A `422` reading `Line could not be resolved` means an anchor that will not resolve, and item 1 has already excluded a moved head.** So the cause is the anchor itself: on the appointed-command path `side` is guessed as `RIGHT`, per *Where the appointed reviewer is a command*, and a wrong guess fails the call. Name the finding that could not be anchored and stop. A re-spawn repeats the same guess and fails identically.
 6. **Reconcile what landed:**
 
    ```bash
@@ -203,6 +203,7 @@ Spawn the `reviewer` agent again, with `rescope <pr-number>` and exactly three t
 Then post what it returns:
 
 - **Each verdict as a reply in its finding's thread**, the same endpoint as step 3, via `pr-flow` review, re-review verdict.
+- **Re-read the head and compare it before building this payload**, exactly as Step 2's first item does. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it.
 - **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script, same call as step 2, with the re-review findings file: new defects become new threads with new ids continuing the sequence, and the record indexes its own pass. **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round.
 
 The caps on both loops are the protocol's, and they are the only thing that ends this block short of the owner.
