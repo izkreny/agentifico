@@ -25,9 +25,9 @@ The package axis is also the repository's label axis, which `.agents/gh-solo.md`
 
 ## Skill files follow the skills-maker rules
 
-**Every skill here is held to the authoring rules in `skills/skills-maker/workflows/new.md`**, under `skills/` and under a plugin's own `skills/` tree alike. That file is a package of this repository, so it is readable from any branch and can be cited by path rather than copied here, where a copy would drift from the file it came from.
+**Every skill here is held to the `skills-maker` skill at `skills/skills-maker/`**, under `skills/` and under a plugin's own `skills/` tree alike. It is a package of this repository, so it is readable from any branch and can be cited by path rather than copied here, where a copy would drift from the file it came from.
 
-**A round reviewing a diff under either tree reads that file first, as a repository standard.** Naming it is not enough: the reviewer's own fetch list ends at this file, so this sentence is what puts that one in scope. A diff breaking one of its rules is an ordinary `standards` finding, cited to it by path and line.
+**A round reviewing a diff under either tree reads `skills/skills-maker/workflows/review.md` first, as a repository standard.** That file is the entry point rather than one rule set among several: it is written for a reviewer, its Step 2 routes to `skills/skills-maker/workflows/check.md` and its Step 3 holds the skill against every rule in `skills/skills-maker/workflows/new.md`. Naming it is not enough: the reviewer's own fetch list ends at this file, so this sentence is what puts that one in scope. A diff breaking a rule any of those files states is an ordinary `standards` finding, cited by path and line.
 
 **The whole-file judgement is not a diff's to make.** Whether the layout still fits the skill's size, whether a premise has quietly stopped being true, whether a section has become an essay: that is the sweep's, per *The skill review is its own issue, not a branch's gate* in `.agents/gh-solo.md`.
 
