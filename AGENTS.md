@@ -23,6 +23,12 @@ A package is released on its own tag, `<name>_<version>`, and carries its own ve
 
 The package axis is also the repository's label axis, which `.agents/gh-solo.md` records.
 
+## Skill files follow the skills-maker rules
+
+**Every skill here is held to the authoring rules in `skills/skills-maker/workflows/new.md`**, under `skills/` and under a plugin's own `skills/` tree alike. That file is a package of this repository, so it is readable from any branch and a review round can cite it by path: a diff that breaks one of its mechanical rules - a truncated `description:`, a count of adjacent content, hard-wrapped prose, a machine-absolute path - is an ordinary `standards` finding.
+
+**The whole-file judgement is not a diff's to make.** Whether the layout still fits the skill's size, whether a premise has quietly stopped being true, whether a section has become an essay: that is the sweep's, per *The skill review is its own issue, not a branch's gate* in `.agents/gh-solo.md`.
+
 ## The GitHub loop
 
 Issues, branches, plans, pull requests, review and merge all run through the `gh-solo` plugin this repository ships, which means the repository dogfoods its own product.

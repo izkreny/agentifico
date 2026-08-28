@@ -65,11 +65,15 @@ gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -lab
 
 **A new value in the table above is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
 
-## The skill review is manual, and stays manual
+## The skill review is its own issue, not a branch's gate
 
-**A change under `skills/` or under a plugin's own `skills/` tree owes a second manual review by the owner that no diff review covers:** `/skills-maker review <path>`. Both trees, whether or not the skill ships on its own tag.
+**`/skills-maker review <path>` reviews a whole skill, so it is never a `## Verification` entry.** A skill change carries no such box. Run once against `plugins/gh-solo/skills/pr-flow`, it returned nine findings and not one was in the diff of the branch that triggered it; a per-branch gate built on a whole-file review reports something unrelated every time, and such a gate gets waved through.
 
-So a skill change carries this as an `[owner]` verification entry, and **the reason is the skill's own `disable-model-invocation` flag rather than absent tooling** - the distinction that keeps a genuinely tool-closable check from being parked with the owner. An agent must not attempt the review by reading the skill's workflow files instead.
+**The sweep is its own issue, one per package, opened before that package's `<name>_<version>` tag**, carrying that package's own label. A release is when the whole file matters, and a trigger tied to one fires where a habit does not.
+
+**The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
+
+**The owner runs the sweep**, because of the skill's own `disable-model-invocation` flag rather than absent tooling - the distinction that keeps a genuinely tool-closable check from being parked with the owner. An agent must not attempt it by reading the skill's workflow files instead.
 
 ## What is deliberately not here
 
