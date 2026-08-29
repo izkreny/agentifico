@@ -87,8 +87,11 @@ def strip_fenced_blocks(lines: list[str]) -> tuple[list[tuple[int, str]], str | 
         if match:
             marker = match.group(1)
             if open_marker is None:
-                open_marker, open_line = marker[0] * 3, number
-            elif marker.startswith(open_marker):
+                # Keep the opener's full length. Truncating it to three would let a
+                # ``` example nested inside a ```` block close that block early, and
+                # the example's contents would then be scanned as prose.
+                open_marker, open_line = marker, number
+            elif len(marker) >= len(open_marker) and marker[0] == open_marker[0]:
                 open_marker = None
             continue
         if open_marker is None:

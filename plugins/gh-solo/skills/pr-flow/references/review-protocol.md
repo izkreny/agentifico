@@ -44,7 +44,7 @@ The reviewer is spawned with the PR number and nothing else in its prompt, and r
 
 ### 2. Post
 
-The orchestrator wraps each finding in the header and lands every thread *and* the record Review in **one** call to the reviews endpoint, then posts the reviewer's report as a Conversation comment - the same surface, and for the same reason, as the implementation record in the `implement` skill: it expects no answer, and nothing in this plugin answers that tab. One call, so a half-posted PR cannot happen: either the whole round is on the PR or none of it is. The finding text below the header is verbatim; only the header is generated. `workflows/review.md` owns the call and the script that builds and validates it.
+The orchestrator wraps each finding in the header and lands every thread *and* the record Review in **one** call to the reviews endpoint, then posts the reviewer's report as a Conversation comment - the same surface, and for the same reason, as the implementation record in the `implement` skill: it expects no answer, and it opens with the disclaimer, which is what keeps every later round's read from taking it for the owner speaking. A discuss round does answer that tab, per its own Step 2, so "nobody reads it" was never the reason this surface is right. One call, so a half-posted PR cannot happen: either the whole round is on the PR or none of it is. The finding text below the header is verbatim; only the header is generated. `workflows/review.md` owns the call and the script that builds and validates it.
 
 ### 3. Plan the fix, in the thread
 
@@ -125,9 +125,9 @@ How they answer a thread at step 6. **Approval may be a word or a reaction; refu
 
 ### Resolution rests on recorded authority
 
-Every thread ends resolved, and every resolution rests on recorded owner authority: one of three things: a reply of theirs in the thread, a reaction of theirs on it, or an authorisation comment naming its `RF{n}` id. Resolving is the orchestrator's act, but the authority for it is never inferred and never lives only in a session - a session dies and `workflows/merge.md` still has to be able to check. Enforcement: `workflows/review.md` checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread, or on a resolved one with none of the three, naming its `file:line`.
+Every thread ends resolved, and every resolution rests on recorded owner authority, in one of these forms and no other: a reply of theirs in the thread, a reaction of theirs on it, or an authorisation comment naming its `RF{n}` id. Resolving is the orchestrator's act, but the authority for it is never inferred and never lives only in a session - a session dies and `workflows/merge.md` still has to be able to check. Enforcement: `workflows/review.md` checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread, or on a resolved one carrying none of those forms, naming its `file:line`.
 
-#### Recognising the owner takes two conditions
+#### Recognising the owner takes both conditions
 
 Both must hold: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes everyone else, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials.
 

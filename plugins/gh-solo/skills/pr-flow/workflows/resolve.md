@@ -1,7 +1,5 @@
 > **Tools used:** `Bash(gh:*)` for the thread read, the authorisation comment, the resolve mutation and the checks read, `Bash(git:*)` for the push, `Write` for the comment body file, `TaskStop` to end a running watch.
 
-> **Output format:** console output is plain text. No markdown syntax, no `**bold**`, no `##` headers, no `---` rules, no backtick fences. Use plain ASCII and box-drawing characters (`─`, `│`) for structure, plus the verdict emoji from `SKILL.md`'s verdict-line convention. Markdown belongs only inside the `body` strings sent to the GitHub API. Any command printed for the owner sits alone on its own line at column one, per the same convention - a leading space breaks the paste.
-
 End a review round on the owner's word: record the authorisation, resolve the threads it covers, push the fixes that have been waiting, and read the checks.
 
 **This is the protocol's step 7, and `references/review-protocol.md` owns what it means.** That file states the order and why, which threads a batch covers and which it never covers, and why a red check afterwards reopens nothing. What this file owns is the mechanics: the marker line's wording, the mutation, and the order of the calls.
@@ -27,7 +25,7 @@ Sort every unresolved thread into one of two piles, per the protocol's account o
 - **Covered**: no outstanding owner signal.
 - **Not covered**: waiting on the owner from step 3, or carrying a signal of theirs that has not been answered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the thread is covered, which is what stops one question from parking a thread forever.
 
-**Recognising the owner takes two conditions**, both of which must hold, per *Recognising the owner takes two conditions* in `references/review-protocol.md`: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. For a reaction there is no body, so the login is the whole test.
+**Recognising the owner takes both conditions**, per *Recognising the owner takes both conditions* in `references/review-protocol.md`: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. For a reaction there is no body, so the login is the whole test.
 
 **A thread that is not covered does not stop this workflow.** Name it in the report, leave it unresolved, and resolve the rest. What it does stop is `workflows/merge.md`, which refuses at the door on any unresolved thread, and that is where the owner learns the round is not finished.
 
@@ -45,7 +43,7 @@ Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow
 RESOLVE AUTHORISED: RF1, RF3, RF4
 ```
 
-**This wording is defined here and read by `workflows/merge.md`'s thread gate**, which accepts it as one of the three evidence forms. Change it in one place and the gate stops finding it, so it is a literal rather than a phrasing: `RESOLVE AUTHORISED:` followed by every `RF{n}` id this authorisation covers, comma-separated.
+**This wording is defined here and read by `workflows/merge.md`'s thread gate**, which accepts it as one of the evidence forms it recognises. Change it in one place and the gate stops finding it, so it is a literal rather than a phrasing: `RESOLVE AUTHORISED:` followed by every `RF{n}` id this authorisation covers, comma-separated.
 
 Below the marker, the owner's words as they said them, quoted.
 
