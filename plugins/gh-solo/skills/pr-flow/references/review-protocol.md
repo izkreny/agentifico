@@ -12,14 +12,14 @@ Each cell below states its own rule, prohibitions included, so a row read out of
 |---|---|---|
 | **The owner** | Judges the findings, authorises the resolve and the push, reads the code last | Is never required to act before step 6 |
 | **The orchestrator** | Plans, implements, posts every comment, plans the fixes, fixes, replies, resolves, pushes | Never reviews its own diff, never alters a finding's text, never pushes before the owner authorises it |
-| **The reviewer** | Reads the diff, the plan, the issue and the standards, and produces findings | **Never suggests a fix**, never writes anything to the PR, never touches the working tree |
+| **The reviewer** | Reads what its entrance gives it - the reviewer skill's own fetch list says which - and produces findings | **Never suggests a fix**, never writes anything to the PR, never touches the working tree |
 | **A mentor** | Comments as a third party | Never holds authority, is never answered, never counts toward any gate |
 
 **Only the owner is answered, and only the owner's input authorises anything.** A mentor's comment, reaction or review is read and named in the round report, and then left alone: never answered in the thread, never treated as an order, never counted as the reply or the reaction a resolve rests on. This is not about whose advice is worth more. It is that authority here belongs to one person, and an agent that answers everyone turns a third party's opinion into work the owner never asked for, in their own repository, under their own login. Where a mentor's point deserves an answer, the owner gives it.
 
 **The orchestrator implements and also fixes.** That is deliberate: it already knows why each line is shaped as it is, so it will not undo something intentional the way a cold agent does. What it must never do is review its own work, which is why the reviewer is a separate agent with its own context.
 
-**The reviewer is a pure function: a PR number in, one findings file out.** It has no write access to the PR and no knowledge of the conventions below - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context from the PR and the repository rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence.
+**The reviewer is a pure function: a PR number in, one findings file out.** It has no write access to the PR and no knowledge of the conventions below - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence. **What it fetches depends on which entrance it came in by**, and the reviewer skill's own *Fetch your own context* owns that list; a second copy here would drift from it.
 
 **A repository may appoint its own reviewer, and one form of appointment is invoked rather than spawned.** What holds across every form is the shape of the seam: the findings reach the orchestrator and the orchestrator posts them, so there is one writer and one set of conventions however the reading was done. `workflows/review.md` owns each form and the file's shape.
 
@@ -40,7 +40,7 @@ Steps 1 to 5 run unattended, in one block. The owner's first involvement is step
 
 ### 1. Review
 
-The reviewer is spawned with the PR number and nothing else, and returns its findings file plus the text of the round's report. It posts nothing.
+The reviewer is spawned with the PR number and nothing else in its prompt, and returns its findings file plus the text of the round's report. It posts nothing. Where a repository names a model, that travels as a spawn parameter rather than as prompt content, so the prompt still carries the number alone.
 
 ### 2. Post
 
