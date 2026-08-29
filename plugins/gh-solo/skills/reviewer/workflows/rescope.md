@@ -44,4 +44,4 @@ The file adds verdicts and keeps the same finding shape for anything new:
 
 - **`rf` is the id you were given**, echoed back unchanged. You are not assigning it; you are answering about it.
 - **`closed` is a verdict, not a courtesy.** Say `false` when the scenario survives, and say what still reaches it. A fix pass nobody checks is why this entrance exists.
-- **`why` is required on both verdicts**, because "yes" with no reason is indistinguishable from not having looked.
+- **`why` is required whichever way the verdict reads**, because "yes" with no reason is indistinguishable from not having looked.

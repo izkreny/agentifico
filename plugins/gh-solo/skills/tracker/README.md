@@ -40,8 +40,9 @@ flowchart TD
         STOP --> H["implementation<br/>(the implement skill)"]
         H --> I["every stated check has run,<br/>the PR leaves draft"]
         I --> J(["<b>you</b> start the code review"])
-        J --> K(["<b>you</b> read every line,<br/>and submit your review"])
-        K --> L["fix commits answering it"]
+        J --> K["<b>reviewer</b> agent reads the diff,<br/>findings post as numbered threads"]
+        K --> K2(["<b>you</b> judge the findings"])
+        K2 --> L["fix commits answering them"]
         L --> M["squashed to the trunk"]
     end
 

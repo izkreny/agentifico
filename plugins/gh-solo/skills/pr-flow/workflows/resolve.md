@@ -73,11 +73,21 @@ Then `gh pr checks <pr-number>`, per the standing convention in `SKILL.md`, befo
 
 **A red check here reopens nothing**, per the protocol: each finding was closed on its own evidence, and a CI failure contradicts none of it. It is the two-environments finding, so report both sides and diagnose the difference - and it stops the merge until it is answered, which a new commit does rather than a reopened thread.
 
-## Step 6 - Confirm
+## Step 6 - Post the findings the round could not anchor
 
-Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved and the checks are green, `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered or a check is red.
+**Only where the round left a deferred findings file**, whose path its report printed. Those are re-review defects on lines that existed only in the unpushed fix commits, so they had no anchor GitHub could resolve; Step 5's push has just made those lines part of the pull request's diff, which is the first moment they can be posted at all.
 
-Then the record: how many threads were resolved and which ids, which were left and why, the commits that went up, and the check result. Then the next command, flush left:
+Post them exactly as `workflows/review.md` step 2 does - re-read the highest `RF{n}` from both the comments and the reviews endpoints first, since the deferred ids live in a Review body and a comments-only read would reissue them - then build and post with the same script and the same atomic call. Their ids were assigned when they were found, so they are echoed rather than reassigned.
+
+**A finding posted here is unresolved and stays that way.** The authorisation in Step 3 named the ids it covered, and these were not among them: nobody has judged them. `workflows/merge.md` refuses on an unresolved thread, which is the correct outcome - a defect a fix introduced should stop the merge until the owner has read it.
+
+Where there is no deferred file, this step is nothing and the round says so rather than skipping silently.
+
+## Step 7 - Confirm
+
+Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved and the checks are green, `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered, a check is red, or a deferred finding was posted and now awaits the owner.
+
+Then the record: how many threads were resolved and which ids, which were left and why, any deferred findings posted in Step 6 and that they are unresolved by design, the commits that went up, and the check result. Then the next command, flush left:
 
 ```
 /gh-solo:pr-flow merge <pr-number>
@@ -92,3 +102,4 @@ Then the record: how many threads were resolved and which ids, which were left a
 - **The marker line is a literal.** `workflows/merge.md` greps it.
 - **Read each mutation's answer.** A resolve posts nothing, so an unchecked failure is invisible.
 - **This is the round's only push**, and the checks are read before it is reported done.
+- **A deferred finding is posted after the push, never before**, and is never resolved by this workflow: the authorisation that started it cannot have covered a finding nobody had seen.

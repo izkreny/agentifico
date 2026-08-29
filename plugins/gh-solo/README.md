@@ -2,7 +2,7 @@
 
 # gh-solo
 
-The GitHub loop for a repository with one committer. An issue becomes a branch, a branch opens a draft pull request holding its plan, the plan is argued over as a diff before any code exists, a subagent implements it, review findings come back as numbered threads, and nothing merges until every thread is resolved and every gate has been ticked by whoever actually ran it.
+The GitHub loop for a repository with one committer. An issue becomes a branch, a branch opens a draft pull request holding its plan, the plan is argued over as a diff before any code exists, the session that read the plan implements it, a fresh-context subagent reviews what it wrote, findings come back as numbered threads, and nothing merges until every thread is resolved and every gate has been ticked by whoever actually ran it.
 
 It is deliberately not a generic workflow plugin. It assumes GitHub, it assumes the `gh` CLI, and it assumes you are the repository's only committer and its only reviewer with authority. Where that last assumption stops holding, the skills say so and stop rather than guessing.
 
@@ -22,7 +22,7 @@ Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow`
 
 - **The `gh` CLI**, authenticated. Every read and write goes through it.
 - **The `gh stack` extension** and the **`gh-stack` skill** from `github/gh-stack`, needed only for stacked pull requests. The stack workflow documents the extension's traps but does not bundle its manual.
-- **A harness that can spawn a subagent**, for the `reviewer` agent a review round uses. Where yours cannot, read the diff yourself and post the findings; the round records that pass identically.
+- **A harness that can spawn a subagent**, for the `reviewer` agent a review round uses. Where yours cannot, appoint a capability with a `Reviewer command:` line in `.agents/gh-solo.md`; the round invokes it and posts what it returns. **Reading the diff yourself is not the fallback**, because the session that wrote the code is the one thing a review may not be: the round refuses rather than substituting the author. A pass by an appointed command is also not recorded identically - it lands with `severity_source`, `severity_basis` and the `unrated` axis, which exist precisely so a reader can tell which kind of pass they are looking at.
 - **Python 3**, for `hooks/ask-before-trunk-push.py`, `skills/pr-flow/scripts/docs-check.py` and `skills/pr-flow/scripts/post-review.py`. The hook is the one that makes this non-optional: it runs on every Bash call in every session and repository, not only while a skill of this plugin is loaded.
 
 ## Install
