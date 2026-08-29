@@ -41,10 +41,12 @@ Both return the same two things:
 
 You are handed a number rather than a summary, deliberately: evidence chosen by the author of the code is not independent evidence. Read these yourself, in this order, and say in your report which ones you could not find.
 
+**What you read depends on which entrance you came in by.** A full review reads all of them. **The `rescope` entrance reads items 5 and 6 only** - the repository's standards and the baseline - because the findings it is answering and the commit range it is judging were handed to it, and its two questions consult nothing else. What it skips, and what that costs, is *The scoped re-review* below.
+
 1. **The pull request.** `gh pr view <pr-number> --json title,body,headRefName,baseRefName,commits,changedFiles`. The body carries `## Plan overview` and `## Verification`, and the `Closes #{issue-number}` line.
 2. **The diff.** `gh pr diff <pr-number>`. This is the object under review and the only thing your findings may be about.
 3. **The issue.** Take `{issue-number}` from the `Closes` line, and where that is missing, parse the branch name `{type}/GHI-{issue-number}_{slug}` - the same parse the `pr-flow` skill states for itself, copied here on purpose because you are forbidden from reading that skill: drop everything up to and including the first `/`, take everything before the first `_`, strip the `GHI-` prefix, so `feat/GHI-50_login-form` gives `50`. Then `gh issue view <issue-number> --json title,body,labels`. Its acceptance criteria are the spec axis's whole subject. **Say so plainly in your report if there is no issue**: the spec axis then has nothing to review against, and a spec verdict with no spec is a guess wearing a verdict's clothes.
-4. **The plan file**, linked from `## Plan overview`. It states what the branch intended to do and often carries a test list.
+4. **The plan file**, linked from `## Plan overview`. It states what the branch intended to do and often carries a test list. **It records intent frozen at plan time, and a gap between it and the code is a finding on neither axis.** The flow forbids editing it to record divergence - that gap belongs in a pull request comment - so a finding whose whole content is that the plan and the code disagree names a defect whose only remedy is barred, and it has to be named on both axes or it comes back relabelled: plan staleness reads as `spec` at least as readily as `standards`. **What the plan is still for is untouched by that.** It is quoted per finding as a spec source, and work the issue never asked for stays an ordinary `spec` finding against the issue's acceptance criteria.
 5. **The repository's standards**, all repo-relative, in this precedence: the repository's own `AGENTS.md` or `CLAUDE.md`, then `.agents/gh-solo.md` or `.claude/gh-solo.md` where present. Read them with `Read`. **A documented repository standard always beats the baseline** in `references/baseline.md`, so read the repository's first and let it override.
 6. **`references/baseline.md`**, this skill's own engineering baseline, which is what you review against where the repository documents nothing.
 
@@ -146,6 +148,15 @@ Your `rescope` entrance. You are given a commit range, the findings a round post
 2. **Did any fix introduce a new defect?** New defects are ordinary findings in the shape above, with their own anchors and severities.
 
 **Nothing else is in scope.** No findings on code the fixes did not touch, no style opinions, no re-opening a finding somebody already rejected, no second thoughts about your own earlier findings. A full second review is where a round's iteration count explodes, because each pass finds fresh nitpicks on code nobody asked about.
+
+**So this entrance skips most of *Fetch your own context*, and each skip is what keeps the scope scoped:**
+
+- **The pull request** - its title, body and file list describe the branch, and neither question is about the branch.
+- **The whole-branch diff** - the commit range you were given is the object under review, and reading the rest is how a scoped pass turns into a second full one.
+- **The issue** - its acceptance criteria are the spec axis's subject, and judging fixes against them re-opens the whole branch's spec, which is the re-judging this entrance exists to cut.
+- **The plan file** - it records intent frozen at plan time, so it answers neither question, and reading it is where plan-staleness findings come from.
+
+**The cost of skipping the issue is real and it is stated rather than hidden.** A new defect you find here is a `standards` finding, because with the acceptance criteria out of the pass the spec axis has no spec to judge against. Say so in your report rather than reaching for the issue: what backstops it is the owner's own read of the fix diff and the next full pass, both of which have it.
 
 The file adds verdicts and keeps the same finding shape for anything new:
 
