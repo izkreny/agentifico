@@ -26,7 +26,9 @@ This branch does not attempt to determine what any particular environment sets. 
 
 `plugins/gh-solo/skills/reviewer/SKILL.md` numbers what the reviewer fetches before it reads anything, and the scoped re-review narrows the diff without narrowing that list. So both passes pay for the pull request, the issue, the plan file, the repository's standards and the engineering baseline, and only the diff differs.
 
-The rescope entrance is given a conditional list. It keeps what its two questions need - the findings it was handed, the fix commits, the repository's standards and the baseline, since a new defect is judged against those - and skips the plan file and the whole-branch diff, which answer questions it is not asking.
+The rescope entrance is given a conditional list, and it keeps only what its two questions need: the findings it was handed, the fix commits it reads locally with `git`, the repository's standards and the baseline, since a new defect is judged against those. It skips the pull request, the issue, the plan file and the whole-branch diff - neither question consults any of them, and each one widens the pass back towards the whole-branch re-judging this branch exists to cut.
+
+**The cost of skipping the issue is stated rather than hidden.** A new defect the rescope finds is a `standards` finding, because with the acceptance criteria out of the pass the spec axis has no spec to judge against. What backstops that is the owner's own read of the fix diff and the next full pass, both of which have the issue.
 
 **Skipping the plan file also removes the source of the findings the issue complains about.** Two of the four findings on the measured pass were plan-file staleness, whose remedy the flow forbids. That is not sufficient on its own: the full pass still reads the plan, so the rule below is what stops it there.
 
@@ -51,7 +53,7 @@ The reviewer cannot measure its own token use. Those figures exist in what the s
 - In that file's *Where the appointed reviewer is a command* subsection, state that `Reviewer model:` does not apply to a capability that is invoked rather than spawned, so the key cannot become a silent no-op there.
 - In that file's *Stop at the owner* round report, add the model the round requested, that an environment variable outranks that request, and the pass's token count, tool-call count and wall clock as the spawn reported them.
 - Extend the same file's standing sentence that the round report always names which reviewer ran, so it names the requested model too. That sentence is a separate mandate from the report's field list, and a field added to one and not the other gets dropped silently.
-- In `plugins/gh-solo/skills/reviewer/SKILL.md`, make the *Fetch your own context* list conditional on the entrance, and have *The scoped re-review* name each item it skips and why.
+- In `plugins/gh-solo/skills/reviewer/SKILL.md`, make the *Fetch your own context* list conditional on the entrance, and have *The scoped re-review* name each item it skips and why, including that a new defect it finds is a `standards` finding because the spec axis has no spec in that pass.
 - In the same file, state that the plan file records intent frozen at plan time, that a gap between it and the code is a finding on neither axis, and that the plan remains a spec source quoted per finding.
 - Read *The second pass* in `plugins/gh-solo/skills/reviewer/README.md` and update it only if the conditional fetch list makes its description wrong. It describes the pass's two questions, which do not change, so the expected outcome is no edit.
 - Bump `plugins/gh-solo/.claude-plugin/plugin.json` to `2.1.0`, and only that file.
@@ -76,10 +78,11 @@ What these gates cannot see: whether an agent following the new instructions beh
 
 ## Open questions
 
-- **Does the rescope entrance skip the issue as well as the plan file?** Its two questions are answered from the findings it was handed and the fix commits, so the issue's acceptance criteria are arguably not needed - but a new defect on the spec axis would have nothing to be judged against. Keeping the issue is the conservative reading and is what the steps above assume.
+None.
 
 ## Settled
 
+- **The rescope entrance skips the issue, and the pull request with it.** Settled by the owner: drop the issue, drop the plan, keep only the bare essentials named above. Its two questions are answered from the findings it was handed and the fix commits, so what it keeps is those plus the repository's standards and the baseline. The cost is that a new defect it finds can only be a `standards` finding, backstopped by the owner's read of the fix diff and by the next full pass.
 - **#25's criterion that the rescope cost be attributed before and after cannot close on this branch.** Settled by the owner: it cannot. The "before" figure was measured by hand on another repository's pull request, and the instrumentation that would produce a comparable one is what this branch adds, so the first measurement is recorded here and the comparison belongs to a later round. The criterion stays unticked at merge, where `plugins/gh-solo/skills/pr-flow/workflows/merge.md` reports an unticked acceptance criterion and asks rather than refusing.
 - **`effort` is pinned at `high` and `model` stays `inherit`.** Settled by the owner, against the alternative of removing the `effort` line entirely: removing it makes the reviewer inherit the author's session, which removes the ceiling rather than lowering it.
 - **The version moves on this branch, to `2.1.0`.** Settled by the owner. Precedent is #21, which bumped `2.0.0` to `2.0.1` in the same commit as its fix, so this plugin bumps per branch rather than at a release; a new configuration key is additive, so the minor segment moves.
