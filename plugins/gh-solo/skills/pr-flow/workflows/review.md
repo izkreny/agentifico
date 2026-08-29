@@ -101,7 +101,9 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 
 - **The appointed agent inherits the whole contract, not only the spawn.** It gets the PR number and nothing else, and it must return the absolute path of a findings file in the format `../../reviewer/SKILL.md` defines, plus its report text. Everything downstream reads that file and nothing else, so an agent that answers in prose cannot be posted.
 - **Refuse if the appointed agent is not registered.** `⛔ REFUSED - {name} is not a registered agent`. Never fall back to the bundled one: the owner would believe they are reading the findings of the agent they appointed and would be reading ours, which is the exact confusion an appointment exists to prevent, and it would silently invalidate any comparison between reviewers.
-- **Name which reviewer ran in the round report**, always, including when it is the default. A round's findings mean something different depending on what produced them, and a report that leaves it out cannot be compared with another round's.
+- **Read `Reviewer model:` and pass it on the spawn.** Where `.agents/gh-solo.md` carries that line, it names the model this round asks the spawn for; absent it, the spawn asks for nothing and the agent's own frontmatter decides. **Validate the value against the names the spawn parameter accepts** - that parameter is the authority on the set, so read it there rather than matching a list written here, which would date the moment model ids move. **An unrecognised value refuses the round**, in the same wording an unregistered agent gets: `⛔ REFUSED - {value} is not a model the spawn accepts`. Never fall back to the session's model, for the same reason an unregistered agent is never silently replaced by the bundled one: the owner would believe they are comparing rounds run on the model they named.
+- **The model is a spawn parameter, not context.** It travels beside the PR number rather than in the prompt, so it takes nothing away from the reviewer fetching its own context.
+- **Name which reviewer ran in the round report, and the model the round asked for**, always, including when both are the default. A round's findings mean something different depending on what produced them, and a report that leaves either out cannot be compared with another round's. **The request is not the outcome**: `CLAUDE_CODE_SUBAGENT_MODEL` outranks it, so the report says what was asked for and says that an environment variable can have replaced it.
 
 **Record the head before the spawn**, because every anchor the reviewer produces belongs to whatever the head is while it reads:
 
@@ -111,11 +113,13 @@ gh pr view <pr-number> --json headRefOid --jq .headRefOid
 
 Keep the value. Step 2 compares it before it builds anything, and that comparison is what tells a stale anchor from a malformed finding. It lives in this session only, which is honest rather than a gap: before the round, and the protocol's steps 1 to 5, are one turn, so a session that dies between the spawn and the post has lost the round regardless.
 
-Spawn it with the PR number and nothing else.
+Spawn it with the PR number and nothing else, beside the model parameter where `Reviewer model:` set one.
 
 #### Where the appointed reviewer is a command
 
 `.agents/gh-solo.md` may instead carry a `Reviewer command:` line, for a capability that is invoked rather than spawned. Run it as written, substituting the PR number for `{pr}`.
+
+**`Reviewer model:` does not apply to this form.** A capability is invoked rather than spawned, so there is no spawn parameter for the key to travel on, and honouring it would mean inventing a mechanism the capability does not have. Where a repository carries both lines, say in the round report that the model key was not applied and why, so it cannot become a silent no-op that the owner reads as a model they chose.
 
 **Never with a flag that makes it post its own findings.** On the bundled `/code-review` that flag is `--comment`, and the whole point of this form is that its findings come back to you and go up through the posting script like every other round's. A capability that posts for itself lands threads with no `RF{n}` id, no disclaimer and no `via` line, which `workflows/merge.md` then reads as the owner's own comments vouching for their own resolution. One writer, one convention: that is what this form preserves.
 
@@ -212,7 +216,9 @@ The caps on both loops are the protocol's, and they are the only thing that ends
 
 Open with the verdict line: `✅ ALL PASS` when the reviewer found nothing and the conventions were clean, `⚠️ PASSED WITH FINDINGS - {count} posted, {count} fixed locally` otherwise.
 
-Then the round report: which reviewer ran, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, what the re-review would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
+Then the round report: which reviewer ran, the model the round asked the spawn for and that `CLAUDE_CODE_SUBAGENT_MODEL` outranks that request, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, what the re-review would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
+
+Then what the pass cost: its token count, its tool-call count and its wall clock, **as the spawn reported them**. The reviewer cannot measure its own token use, so these are the orchestrator's to read off what the spawn returned and never the reviewer's to supply. Where the spawn reports a figure, print it; where it does not, print that it was not reported rather than an estimate - a number nobody measured is worse here than a gap, because comparing rounds is what these figures exist for.
 
 Then the owner's next move, which is the whole of what they have to do:
 
