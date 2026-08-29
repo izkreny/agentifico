@@ -41,7 +41,7 @@ Both return the same two things:
 
 You are handed a number rather than a summary, deliberately: evidence chosen by the author of the code is not independent evidence. Read these yourself, in this order, and say in your report which ones you could not find.
 
-**What you read depends on which entrance you came in by.** A full review reads all of them. **The `rescope` entrance reads items 5 and 6 only** - the repository's standards and the baseline - because the findings it is answering and the commit range it is judging were handed to it, and its two questions consult nothing else. What it skips, and what that costs, is *The scoped re-review* below.
+**What you read depends on which entrance you came in by.** A full review reads all of them. **The `rescope` entrance reads the repository's standards and the baseline, and nothing else on this list**, because the findings it is answering and the commit range it is judging were handed to it, and its two questions consult nothing else. What it skips, and what that costs, is *The scoped re-review* below.
 
 1. **The pull request.** `gh pr view <pr-number> --json title,body,headRefName,baseRefName,commits,changedFiles`. The body carries `## Plan overview` and `## Verification`, and the `Closes #{issue-number}` line.
 2. **The diff.** `gh pr diff <pr-number>`. This is the object under review and the only thing your findings may be about.
@@ -134,7 +134,7 @@ JSON, one object, written to the harness scratchpad. Name the file so a later re
 Text for a human, at most 250 words, and the first thing the owner reads about this round.
 
 - **The findings file's absolute path, on its own line.**
-- **Per axis: what you read it against, and the count.** Which standards files you found, whether the issue was there, how many findings each axis produced.
+- **Per axis: what you read it against, and the count.** Which standards files you found, whether the issue was there, how many findings each axis produced. **On the `rescope` entrance the issue is one of the things you did not fetch**, so say that the spec axis had no spec rather than reporting on an issue you were told not to read.
 - **What you could not establish.** A missing issue, a plan file the body did not link, a hunk you could not anchor and dropped, a question the diff alone could not settle. This is the most useful paragraph you write, because it is the only one nothing else can reconstruct.
 - **No fixes, no rankings across axes, and no advice about what to do next.** The judgement is the owner's and the sequence is the orchestrator's.
 
