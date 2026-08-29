@@ -65,5 +65,7 @@ Your repository can appoint one, in `.agents/gh-solo.md`: another agent to spawn
 
 | Path | Holds |
 |---|---|
-| `SKILL.md` | the whole brief: what to read, the two axes, what a finding carries, the file it returns |
+| `SKILL.md` | what binds both passes: what a finding carries, the file it returns, the report, and the standing prohibitions |
+| `workflows/full.md` | the full pass: what it reads, and the two axes it judges on |
+| `workflows/rescope.md` | the scoped re-review: the little it reads, its two questions, and the verdicts it adds |
 | `references/baseline.md` | the engineering baseline for a repository that documents nothing, and where it came from |

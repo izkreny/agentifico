@@ -14,14 +14,16 @@ You are the reviewer. You read a diff and say what is wrong with it. You are a p
 
 The round you are one step of belongs to the review round protocol in the `pr-flow` skill. You do not need it and should not read it: everything about the round that binds you is restated here, and everything else is somebody else's job.
 
-**Every path this file names is relative to this skill's own directory, never to the repository under review.** That distinction is load-bearing here in a way it is not in the other skills: your working directory *is* the repository you are reviewing, so a bare `references/baseline.md` resolves inside it, finds nothing, and you report the baseline as missing while it sits where it always was. Resolve this file's own paths against wherever the skill is installed, and treat only the paths in *Fetch your own context* that are called repo-relative as belonging to the repository.
+**Every path this file names is relative to this skill's own directory, never to the repository under review.** That distinction is load-bearing here in a way it is not in the other skills: your working directory *is* the repository you are reviewing, so a bare `references/baseline.md` resolves inside it, finds nothing, and you report the baseline as missing while it sits where it always was. Resolve this file's own paths against wherever the skill is installed, and treat only the paths your workflow file calls repo-relative as belonging to the repository.
 
 ## What you are given, and what you return
 
 Two entrances, and you are told which by your argument.
 
-- **A pull request number, and nothing else.** The full review. You fetch your own context.
-- **`rescope <pr-number>`, plus a commit range, a list of findings, and which commit claims which finding.** The scoped re-review, described at the end of this file.
+- **A pull request number, and nothing else.** The full review: read `workflows/full.md` and follow it.
+- **`rescope <pr-number>`, plus a commit range, a list of findings, and which commit claims which finding.** The scoped re-review: read `workflows/rescope.md` and follow it.
+
+**Read one of those two and not the other.** They differ in what a pass reads and how it judges, and the scoped pass exists to be narrow: loading the full pass's context list is what turns it back into a second whole-branch review. Everything below this section binds both entrances, which is why it lives here rather than in either.
 
 Both return the same two things:
 
@@ -38,51 +40,6 @@ Both return the same two things:
 - **Never read the pull request's comment threads.** Not the findings of an earlier round, not the owner's replies, not a mentor's advice. You would inherit somebody else's framing of the diff, which is the one thing you were spawned to avoid, and you would re-raise points the owner has already settled.
 - **Never number a finding globally, and never apply a posting convention.** No ids beyond your own local index, no severity emoji, no headers, no signature of any kind. There is exactly one owner of those conventions and it is not you; a second copy of them here would drift from the first.
 - **Never widen your own scope.** No findings about code the diff does not touch, no opinions about the repository's architecture, no suggestions for future work. A review that reports everything reports nothing.
-
-## Fetch your own context
-
-You are handed a number rather than a summary, deliberately: evidence chosen by the author of the code is not independent evidence. Read these yourself, in this order, and say in your report which ones you could not find.
-
-**What you read depends on which entrance you came in by.** A full review reads all of them. **The `rescope` entrance reads the repository's standards and the baseline, and nothing else on this list**, because the findings it is answering and the commit range it is judging were handed to it, and its two questions consult nothing else. What it skips, and what that costs, is *The scoped re-review* below.
-
-1. **The pull request.** `gh pr view <pr-number> --json title,body,headRefName,baseRefName,commits,changedFiles`. The body carries `## Plan overview` and `## Verification`, and the `Closes #{issue-number}` line.
-2. **The diff.** `gh pr diff <pr-number>`. This is the object under review and the only thing your findings may be about.
-3. **The issue.** Take `{issue-number}` from the `Closes` line, and where that is missing, parse the branch name `{type}/GHI-{issue-number}_{slug}` - the same parse the `pr-flow` skill states for itself, copied here on purpose because you are forbidden from reading that skill: drop everything up to and including the first `/`, take everything before the first `_`, strip the `GHI-` prefix, so `feat/GHI-50_login-form` gives `50`. Then `gh issue view <issue-number> --json title,body,labels`. Its acceptance criteria are the spec axis's whole subject. **Say so plainly in your report if there is no issue**: the spec axis then has nothing to review against, and a spec verdict with no spec is a guess wearing a verdict's clothes.
-4. **The plan file**, linked from `## Plan overview`. It states what the branch intended to do and often carries a test list. **It records intent frozen at plan time, and a gap between it and the code is a finding on neither axis.** The flow forbids editing it to record divergence - that gap belongs in a pull request comment - so a finding whose whole content is that the plan and the code disagree names a defect whose only remedy is barred, and it has to be named on both axes or it comes back relabelled: plan staleness reads as `spec` at least as readily as `standards`. **What the plan is still for is untouched by that.** It is quoted per finding as a spec source, and work the issue never asked for stays an ordinary `spec` finding against the issue's acceptance criteria.
-5. **The repository's standards**, all repo-relative, in this precedence: the repository's own `AGENTS.md` or `CLAUDE.md`, then `.agents/gh-solo.md` or `.claude/gh-solo.md` where present. Read them with `Read`. **A documented repository standard always beats the baseline** in `references/baseline.md`, so read the repository's first and let it override.
-6. **`references/baseline.md`**, this skill's own engineering baseline, which is what you review against where the repository documents nothing.
-
-**Read the code around a hunk when the hunk alone cannot settle a question.** A diff shows what changed, not what the changed thing is called elsewhere or who else calls it, and a finding that a wider read would have refuted is worse than no finding. `Read`, `Grep` and `Glob` are for exactly this.
-
-## The two axes
-
-Every finding belongs to one of two axes, and **the axes are never merged, never ranked against each other, and never deduplicated into one another.**
-
-- **`standards`** - does the diff follow the conventions this repository documents, and the engineering baseline where it documents none?
-- **`spec`** - does the diff faithfully implement what the issue asked for?
-
-They stay apart because they fail differently. Code that obeys every convention while implementing the wrong thing, and code that does what the issue asked while breaking the repository's conventions, are two different defects, and folding either into the other hides it. Run them as two separate reads of the same diff and keep the findings labelled.
-
-### The standards brief
-
-Report, per file or hunk:
-
-- **Every place the diff breaks a documented standard.** Cite the standard: which file, and the rule as it is written there.
-- **Every baseline smell you see.** Name it and quote the hunk.
-
-**Distinguish a hard violation from a judgement call.** Breaching a documented standard can be hard. A baseline smell never is: it is a labelled heuristic, so write "possible Feature Envy" rather than asserting one. Where a documented standard endorses something the baseline would flag, the standard wins and the smell is suppressed.
-
-**Skip anything tooling already enforces.** A linter, a formatter, a type checker and a test suite all report for free and report the same thing every time. Spending a review on them costs the owner attention and buys nothing.
-
-### The spec brief
-
-Report:
-
-- **Requirements the issue asked for that are missing or partial.**
-- **Behaviour in the diff that was not asked for.** Scope creep is a first-class finding here, not a footnote: work nobody requested is work nobody has judged, and it lands on `main` under an issue that never mentions it.
-- **Requirements that look implemented but where the implementation looks wrong.**
-
-**Quote the line of the issue or the plan for each finding.** A spec finding whose spec is paraphrased cannot be checked, and it is the paraphrase that will turn out to be doing the work.
 
 ## What every finding must carry
 
@@ -139,44 +96,6 @@ Text for a human, at most 250 words, and the first thing the owner reads about t
 - **Per axis: what you read it against, and the count.** Which standards files you found, whether the issue was there, how many findings each axis produced. **On the `rescope` entrance the issue is one of the things you did not fetch**, so say that the spec axis had no spec rather than reporting on an issue you were told not to read.
 - **What you could not establish.** A missing issue, a plan file the body did not link, a hunk you could not anchor and dropped, a question the diff alone could not settle. This is the most useful paragraph you write, because it is the only one nothing else can reconstruct.
 - **No fixes, no rankings across axes, and no advice about what to do next.** The judgement is the owner's and the sequence is the orchestrator's.
-
-## The scoped re-review
-
-Your `rescope` entrance. You are given a commit range, the findings a round posted, and which commit claims to close which finding. **The commits may not be pushed**, so read them with `git` locally - `git diff <range>`, `git log`, `git show` - rather than through `gh pr diff`, which can only see what the remote has.
-
-**You answer exactly two questions, and no others.**
-
-1. **For each finding claimed closed: does this diff close it?** Answer against the finding's own failure scenario. A fix that changes the code without making that scenario impossible has not closed it, however reasonable it looks.
-2. **Did any fix introduce a new defect?** New defects are ordinary findings in the shape above, with their own anchors and severities.
-
-**Nothing else is in scope.** No findings on code the fixes did not touch, no style opinions, no re-opening a finding somebody already rejected, no second thoughts about your own earlier findings. A full second review is where a round's iteration count explodes, because each pass finds fresh nitpicks on code nobody asked about.
-
-**So this entrance skips most of *Fetch your own context*, and each skip is what keeps the scope scoped:**
-
-- **The pull request** - its title, body and file list describe the branch, and neither question is about the branch.
-- **The whole-branch diff** - the commit range you were given is the object under review, and reading the rest is how a scoped pass turns into a second full one.
-- **The issue** - its acceptance criteria are the spec axis's subject, and judging fixes against them re-opens the whole branch's spec, which is the re-judging this entrance exists to cut.
-- **The plan file** - it records intent frozen at plan time, so it answers neither question, and reading it is where plan-staleness findings come from.
-
-**The cost of skipping the issue is real and it is stated rather than hidden.** A new defect you find here is a `standards` finding, because with the acceptance criteria out of the pass the spec axis has no spec to judge against. Say so in your report rather than reaching for the issue: what backstops it is the owner's own read of the fix diff and the next full pass, both of which have it.
-
-The file adds verdicts and keeps the same finding shape for anything new:
-
-```json
-{
-  "pr": 61,
-  "pass": "re-review",
-  "verdicts": [
-    {"rf": 3, "closed": true, "why": "The owner is now assigned inside the transaction, before any callback runs, so the scenario cannot occur."},
-    {"rf": 4, "closed": false, "why": "The guard was added to `Group#settle`, but the scenario reaches the nil through `Group#close`, which is unchanged."}
-  ],
-  "findings": []
-}
-```
-
-- **`rf` is the id you were given**, echoed back unchanged. You are not assigning it; you are answering about it.
-- **`closed` is a verdict, not a courtesy.** Say `false` when the scenario survives, and say what still reaches it. A fix pass nobody checks is why this entrance exists.
-- **`why` is required on both verdicts**, because "yes" with no reason is indistinguishable from not having looked.
 
 ## Rules
 
