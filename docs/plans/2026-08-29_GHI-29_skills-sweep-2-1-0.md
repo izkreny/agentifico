@@ -72,4 +72,5 @@ What these gates cannot see: whether the triage was right. Every gate above prov
 
 ## Settled
 
-None yet.
+- **Every finding the sweep returns is fixed on this branch.** Settled by the owner, against this plan's own proposal of declining a design-change finding into its own issue. The sweep returned 57 defects across the four skills and the package shell; all of them land here, the work is not split into a successor issue, and a decline is now the exception rather than the routing rule. `## Steps` keeps its frozen wording; this entry is what governs.
+- **The findings record is the diff and the commit messages, not a findings list on #29.** Settled by the owner. `## Steps` asks for the ranked findings and every decline reason in a comment on #29, which a comment under the owner's name cannot carry at that length. With every finding fixed here, the fixes are the record: each commit body names what it closed, and #29 gets a short comment naming this pull request.
