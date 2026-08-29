@@ -56,7 +56,7 @@ Where reality contradicts the plan - an approach that does not work, a step that
 When the last step is ticked, run **every** gate in the PR body's `## Verification`, exactly as written there.
 
 - **Tick only the boxes whose command you watched pass, by the gate's own stated pass criterion.** For almost every gate that criterion is exit zero. Where a tool defines success differently - a differ whose exit 1 means "differences found, as expected" - that reading must already be in writing, on the gate's line in the plan or in the repository's own docs, never decided at the keyboard: a non-zero exit nothing documents as passing is a failing gate. A failing gate is fixed and re-run, or reported - never ticked, never reasoned into "would have passed".
-- **`[owner]` boxes stay empty**, per the contract. They go in the Step 7 handoff by name, because `ready` refuses on any empty box and those are the owner's to fill.
+- **A gate you cannot run is a finding, not a box to leave empty.** `ready` refuses on any empty box, so it stops the work and goes in the Step 7 handoff by name, with why it could not run.
 - Running the gates is the last act of implementation and not a substitute for `ready`: you produce the record here, `ready` audits it, and the two must not be the same hands doing both jobs twice.
 
 ## Step 6 - Push and reconcile with CI
@@ -74,14 +74,14 @@ Wait out pending checks with `--watch`. A red check against locally green gates 
 Open with the verdict line:
 
 - `✅ ALL PASS` - every step ticked, every gate you could run ticked green, CI green, nothing flagged.
-- `⚠️ PASSED WITH FINDINGS - {what}` - the work is done but something needs the owner's eyes: `[owner]` boxes to fill (the normal case), a divergence comment posted, missing repo guidance from Step 1, a CI disagreement under diagnosis.
+- `⚠️ PASSED WITH FINDINGS - {what}` - the work is done but something needs the owner's eyes: a divergence comment posted, missing repo guidance from Step 1, a CI disagreement under diagnosis.
 - `⛔ REFUSED - {reason}` - printed at the stop itself, per the stops in Steps 1 and 4.
 
-Then the record: what landed (commits), the box states on PR and issue, CI state, and each `[owner]` box by name with what the owner has to do to fill it. This entire handoff is your final report - the orchestrator relays it, so nothing may live only in the transcript.
+Then the record: what landed (commits), the box states on PR and issue, CI state, and any gate you could not run, by name, with why. This entire handoff is your final report - the orchestrator relays it, so nothing may live only in the transcript.
 
-**Post the same record as a PR comment before printing it** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` implement, the implementation record). The session's copy dies with the session; the PR is where this flow keeps state, and the comment is the implementation's own account for whoever reads the PR later - a resuming session, `ready`'s audit, the owner in a week. Keep it the record, not a second copy of the PR: the verdict line, the `[owner]` boxes and what filling each takes, any Step 1 findings, and a pointer at the divergence comments rather than a restatement. It lands in the Conversation tab, which is right for once - per the `pr-flow` skill's discuss workflow nothing answers comments there, and this one expects no answer.
+**Post the same record as a PR comment before printing it** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` implement, the implementation record). The session's copy dies with the session; the PR is where this flow keeps state, and the comment is the implementation's own account for whoever reads the PR later - a resuming session, `ready`'s audit, the owner in a week. Keep it the record, not a second copy of the PR: the verdict line, any gate you could not run and why, any Step 1 findings, and a pointer at the divergence comments rather than a restatement. It lands in the Conversation tab, which is right for once - per the `pr-flow` skill's discuss workflow nothing answers comments there, and this one expects no answer.
 
-End with the owner's next move, alone on its line, flush left - after they have filled any `[owner]` boxes:
+End with the owner's next move, alone on its line, flush left:
 
 ```
 /gh-solo:pr-flow ready review <pr-number>
@@ -89,7 +89,7 @@ End with the owner's next move, alone on its line, flush left - after they have 
 
 ## Rules
 
-- **Never mark the PR ready, and never tick an `[owner]` box.** The handoff names the next command; running it is the owner's act.
+- **Never mark the PR ready.** The handoff names the next command; running it is the owner's act.
 - **Never edit the plan file.** Divergence is a PR comment; the plan is the record of intent.
 - **Tick at the moment work lands, never in a batch at the end.** A batch-ticked body cannot be resumed from and cannot be audited.
 - **On any gap between the record and the branch, report before continuing.** A lying record found now costs a sentence; found at `ready` it costs the audit its meaning.

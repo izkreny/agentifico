@@ -20,7 +20,6 @@ Read the body's `## Verification` and verify every box has a tick.
 |---|---|
 | The gate ran and **failed** | A fix, a commit and a push — then this workflow again |
 | The gate was **never run** | Someone to run it; the owner decides who and when |
-| It is a **check with no exit code** — a browser walk, "restart the machine and read the row back", adjudicating another tool's findings. The template in `workflows/open.md` prefixes these `[owner]` | The owner. An agent cannot produce this evidence, and must not appear to |
 
 **Why this workflow does not just run the missing one.** An unticked box is information: it says something upstream did not finish, and quietly completing it hides that rather than fixing it. **And running it here would consume the only independent thing this workflow has.** The box-reading is a self-audit in the weak sense, since the session that ticked them may well be the one re-reading them; what still bites is Step 2's reconciliation with CI, which is external and does not care who ticked. A gate run here would be ticked by the same session in the same environment, which is the one combination that makes a record worthless.
 

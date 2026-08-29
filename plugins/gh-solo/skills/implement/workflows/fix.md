@@ -46,7 +46,7 @@ Check out the branch, pull, and read `git status` before touching anything - the
 
 ## Step 4 - Re-run what the fixes invalidated, and re-tick
 
-Any gate in `## Verification` whose result the fixes could have changed is re-run and its box re-ticked by you, because you are now the one who watched it exit. **When in doubt about whether a fix reaches a gate, re-run the gate** - the doubt is the evidence that it might. `[owner]` boxes stay empty as always, and if a fix invalidated one, say so in the handoff: the owner's earlier judgement needs remaking.
+Any gate in `## Verification` whose result the fixes could have changed is re-run and its box re-ticked by you, because you are now the one who watched it exit. **When in doubt about whether a fix reaches a gate, re-run the gate** - the doubt is the evidence that it might. If a fix invalidated a judgement the owner recorded in the prose under that section, say so in the handoff: their earlier judgement needs remaking.
 
 ## Step 5 - Hold the push
 
@@ -54,7 +54,7 @@ Any gate in `## Verification` whose result the fixes could have changed is re-ru
 
 ## Step 6 - Hand off
 
-Open with the verdict line - `✅ ALL PASS` when every standing finding is fixed and re-verified locally; `⚠️ PASSED WITH FINDINGS - {what}` when something needs the owner: a finding reported as wrong in Step 3, an `[owner]` box invalidated in Step 4. CI has no place in this verdict - nothing is pushed, so it has not seen the fixes; that read belongs to the protocol's step 7, with the push.
+Open with the verdict line - `✅ ALL PASS` when every standing finding is fixed and re-verified locally; `⚠️ PASSED WITH FINDINGS - {what}` when something needs the owner: a finding reported as wrong in Step 3, a judgement of the owner's invalidated in Step 4. CI has no place in this verdict - nothing is pushed, so it has not seen the fixes; that read belongs to the protocol's step 7, with the push.
 
 Then the map the owner re-reads by: each finding (`RF{n}`, `file:line`) to the commit that answered it, which gates were re-run and re-ticked, and that every commit is **local and unpushed** - so the threads stay anchored to the exact diff the owner is still reading, which is the point of holding the push. **Post that map as a PR comment first** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` fix, the fix map): the owner walks the threads on GitHub, and the map is most useful on the page being walked, where it also outlives the session.
 

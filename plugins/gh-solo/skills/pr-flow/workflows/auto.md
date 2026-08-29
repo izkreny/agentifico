@@ -43,13 +43,7 @@ The handoff it produces is already posted on the PR as a comment. Relay it verba
 
 **`✅ ALL PASS`** - continue to Step 4.
 
-**`⚠️ PASSED WITH FINDINGS` whose only findings are unticked `[owner]` boxes** - the normal case for a plan with judgement checks, and the verdict `implement`'s implement workflow assigns it - stop. `workflows/ready.md` refuses on any empty box, and these are boxes only the owner can close, so running Step 4 anyway would end in that refusal. Name each box, then print the command that resumes once the owner has done and ticked them:
-
-```
-/gh-solo:pr-flow ready review <pr-number>
-```
-
-**Anything else - a `⚠️` carrying more than those boxes, or a `⛔`** - stop and relay it. Findings are the owner's to read, never the chain's to carry past.
+**Anything else - any `⚠️`, or a `⛔`** - stop and relay it. Findings are the owner's to read, never the chain's to carry past.
 
 ## Step 4 - `ready`, then the review round
 

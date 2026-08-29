@@ -15,7 +15,7 @@ flowchart TD
     B --> C["one plan step at a time:<br/>commit, tick its box,<br/>tick landed criteria"]
     C --> D["run every verification gate,<br/>tick what verifiably passed"]
     D --> E["one push, then read CI"]
-    E --> F(["<b>you</b> fill the [owner] boxes,<br/>then run ready review"])
+    E --> F(["<b>you</b> run ready review"])
     F -.-> G["the review round<br/>(pr-flow spawns the reviewer)"]
     G --> I["<b>fix</b><br/>commits grouped by coherent change,<br/>replies in the threads - nothing pushed"]
     I --> H(["<b>you</b> judge the findings"])
@@ -34,7 +34,7 @@ The rounded steps are yours, same rule as everywhere in this flow: the skill wil
 
 **The plan is never edited to hide divergence.** Where reality contradicts it, the disagreement lands as a PR comment and the plan stays as written - the plan records intent, and the gap between intent and outcome is information the later audits read. A divergence that changes scope stops the work and asks you, because what ships is your decision and nothing here may make it for you. The one legitimate plan edit is the opposite case: a decision you settled in a plan-discussion thread is a change of intent, and it lands as a new commit on top of the plan - never a rewrite of the original plan commit, so the plan's evolution stays readable and the threads that argued it stay anchored - with the whole PR body updated to match - each answered question moved from its open-questions section into `## Settled` with your decision attached, where the squash merge will carry it onto the trunk's history - and the plan commits pushed, before the affected work begins.
 
-**This skill never marks its own work ready.** It produces the record - ticked steps, ticked gates, green CI - and stops, printing the `ready review` command for you to run. What `ready` adds is a reconciliation with CI, which is a different environment and does not care who ticked the boxes; a session that flipped its own draft would skip the one check it cannot influence. The same logic keeps `[owner]` boxes empty: a judgement check only you can make is named in the handoff, never ticked by an agent.
+**This skill never marks its own work ready.** It produces the record - ticked steps, ticked gates, green CI - and stops, printing the `ready review` command for you to run. What `ready` adds is a reconciliation with CI, which is a different environment and does not care who ticked the boxes; a session that flipped its own draft would skip the one check it cannot influence. The same logic is why a judgement only you can make is never a `## Verification` box: every box there has to close before the branch merges, so one you alone could close would block the branch it sits on.
 
 **Fixes are the same skill through a different door, and they never push.** Two doors, in fact: the review round calls it at its own step 4, where the work list is the fix plans it already posted, and you call it after judging - "fix all", "fix RF1 and RF3". Either way it lands the fixes as commits grouped by coherent change, each naming the RF ids it closes, replies in each finding's thread, and posts the finding-to-commit map as a PR comment. Nothing leaves the machine: the threads stay anchored to the exact diff you are still reading, and the commits wait for you to say "resolve all and push", per the review protocol in `pr-flow`. It never resolves a thread itself either - that happens once, on the authority of those words.
 
