@@ -106,8 +106,8 @@ If any create fails, stop and report which issues exist and which do not. Do not
 ## Step 7 - Confirm
 
 ```
-| # | Title | Labels | Parent | Blocked by | URL |
-|---|---|---|---|---|---|
+| # | Title | Labels | Milestone | Parent | Blocked by | URL |
+|---|---|---|---|---|---|---|
 ```
 
 Then offer the next step, which is usually a branch rather than another issue:
@@ -138,6 +138,6 @@ Removing the label is what makes the issue visible to "next task" in `workflows/
 - **Every issue except an epic gets exactly one layer label, set at creation.** Titles carry no prefix, so the label is the only record of the layer, and an issue created without one is invisible to every layer filter in `workflows/search.md`.
 - Titles are the deliverable and nothing else: no `[BE]`, no bracketed tag, no duplicated size or epic name.
 - Acceptance criteria are checkboxes, so GitHub counts them.
-- **Never `--assignee @me` at creation.** Assignment means work in progress (or in queue), not ownership, and a backlog created pre-assigned makes `assignee:@me is:open` useless on the day it matters. Assignment happens when work starts; see `workflows/state.md`.
+- **Never `--assignee @me` at creation.** Assignment means work has started, not ownership, and a backlog created pre-assigned makes `assignee:@me is:open` useless on the day it matters. Assignment happens when work starts; see `workflows/state.md`.
 - **No issue is created from a file the tree might have rewritten.** Step 1's freshness check is the guard, and it is not skippable for a "small" breakdown: the incident behind it wrote a whole breakdown from a roadmap one commit stale, and every item the missed commit had added, amended or removed had to be found and re-filed in a second pass.
 - If something is unclear, ask. An issue written from a guess costs more to discover wrong than to clarify now.

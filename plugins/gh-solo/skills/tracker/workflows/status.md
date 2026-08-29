@@ -49,6 +49,9 @@ Match commits to acceptance criteria by what they claim to do. Be honest about t
 ### Blocked by
 {#n - title - state, for each; omit the section if none}
 
+### Blocking
+{#n - title - state, for each; omit the section if none}
+
 ### Sub-issues
 {n of m closed, then the open ones; omit if none}
 

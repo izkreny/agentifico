@@ -29,7 +29,7 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 | Title format | `imperative action`, all lowercase, under the length cap in *Titles* of `references/standards.md`, no bracketed prefix or layer tag |
 | Layer label | Exactly one layer label present. It is the only record of the layer, so absent is a fail, and two is a fail. Where `backend` and `frontend` both appear, the fix is `fullstack` if the issue is genuinely one deliverable, or a split into two issues if it is not |
 | Parent | Attached to an epic, unless the issue is genuinely standalone |
-| Body sections | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when. `## Technical notes` and `## Dependencies` are optional and never a fail |
+| Body sections | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when |
 | Summary is capped | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement |
 | Criteria are checkboxes | `- [ ]`, so GitHub counts them |
 | Criteria are testable | Each one observable; a reader can say pass or fail |

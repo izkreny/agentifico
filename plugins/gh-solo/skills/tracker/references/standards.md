@@ -15,7 +15,7 @@ The levels of containment, each item nested inside the one above it:
 3. **Issue** - the unit of work; one branch, one PR.
 4. **Task-list checkboxes** - `- [ ]` items in an issue's body, for steps too small to track.
 
-**Milestones are deliberately not on this list.** A milestone groups issues by *when they ship*, which cuts across the containment above: one issue can sit in an epic and a milestone at once, and neither implies the other. *Milestones, and why not Projects* covers them; they re-enter the hierarchy only through *How big is one issue*, where an epic that outgrows its shape becomes one.
+**Milestones are deliberately not on this list.** A milestone groups issues by *when they ship*, which cuts across the containment above: one issue can sit in an epic and a milestone at once, and neither implies the other. *Milestones, and why not Projects* covers them; they re-enter the hierarchy only through *Three levels is the limit*, where an epic that outgrows its shape becomes one.
 
 GitHub has no separate epic or subtask type. An epic is an ordinary issue that other issues name as their **parent**, which `gh` supports natively:
 
@@ -29,7 +29,9 @@ gh issue edit 50 --remove-parent
 
 **Do not use task-list checkboxes to fake an epic.** Sub-issues are a real relation that `gh issue view --json parent,subIssues,subIssuesSummary` can read back and that the web UI shows a progress bar for; a checkbox referencing `#52` is text. Checkboxes are for steps inside one issue, nothing more.
 
-**Three levels is the limit.** If an epic's children need children, the epic is a milestone. Use `--milestone`.
+### Three levels is the limit
+
+If an epic's children need children, the epic is a milestone. Use `--milestone`.
 
 ### How big is one issue
 
@@ -167,7 +169,7 @@ Read the Nature row carefully, because it is the one people try to complete. `bu
 
 Layer is the one mandatory axis, and since titles carry no prefix it is the **only** place the layer is recorded. Set it at creation.
 
-**Exactly one layer label, on every issue that is not an epic.** An epic is exempt because it is a container: its children carry the layers, and it usually spans them, so a layer on the epic itself would either lie or read `fullstack` every time. On everything else: not zero, and never two. This is the axis rule from the table above, and it is worth restating here because the layer is the one place two labels look defensible: an issue that touches the API and the UI seems to deserve both. It does not. `fullstack` exists precisely so that pair is never needed, and applying `backend` and `frontend` together is the mistake it was created to prevent.
+**Exactly one layer label, on every issue that is not an epic.** An epic is exempt because it is a container: its children carry the layers, and it usually spans them, so a layer on the epic itself would either lie or read `fullstack` every time. On everything else: not zero, and never two. This is the axis rule from the table in *Labels*, and it is worth restating here because the layer is the one place two labels look defensible: an issue that touches the API and the UI seems to deserve both. It does not. `fullstack` exists precisely so that pair is never needed, and applying `backend` and `frontend` together is the mistake it was created to prevent.
 
 | Label | The deliverable is |
 |---|---|
@@ -205,7 +207,7 @@ Structure is a **separate** axis, not a fourth value of Nature. An epic with thr
 
 ### Drafts
 
-`draft` marks an issue whose description is not finished: the owner wanted it in the backlog before there was time or information to write it out. It is not to be confused with a draft *pull request*, which is the normal state of every PR while its work is in progress and belongs to `pr-flow`; here, draft is a label on an issue. It answers the Readiness question in the table above, and the default - unlabelled - means startable as written. That is *Never label the default* working: most issues are created fully specified, so completeness needs no label and `draft` marks the departure.
+`draft` marks an issue whose description is not finished: the owner wanted it in the backlog before there was time or information to write it out. It is not to be confused with a draft *pull request*, which is the normal state of every PR while its work is in progress and belongs to `pr-flow`; here, draft is a label on an issue. It answers the Readiness question in the axis table in *Labels*, and the default - unlabelled - means startable as written. That is *Never label the default* working: most issues are created fully specified, so completeness needs no label and `draft` marks the departure.
 
 A draft may skip the body template. Overview, acceptance criteria, technical notes: any or all may be missing or stubs, and the split test in *How big is one issue* is deferred, because it needs criteria to run on. What a draft never skips:
 
@@ -224,9 +226,9 @@ This is the rule the whole taxonomy is built on, and it is worth more than the a
 
 So the default state is **unlabelled**, and every label marks a departure from it:
 
-- **No `task` label, and no `feature`, which is the same label under another name.** `bug` present means a defect; `bug` absent means building something, which is the Nature default the table above calls task. Adding either for symmetry would put a label on almost every issue in the tracker.
+- **No `task` label, and no `feature`, which is the same label under another name.** `bug` present means a defect; `bug` absent means building something, which is the Nature default the axis table in *Labels* calls task. Adding either for symmetry would put a label on almost every issue in the tracker.
 - **No middle priority.** `urgent` and `someday` are two labels giving three states, because the middle one is "unlabelled". Making it explicit means labelling everything, and then you cannot tell "considered, and it is normal" from "never considered".
-- **No size label at all**, not even an optional one. It would land on nearly every issue, which by the rule above means it carries no information; and the one decision it might inform — split or not — is made before the issue exists. *How big is one issue* has that test.
+- **No size label at all**, not even an optional one. It would land on nearly every issue, which by *Never label the default* means it carries no information; and the one decision it might inform — split or not — is made before the issue exists. *How big is one issue* has that test.
 
 The team practice this replaces is triage, where an explicit "medium" separates *triaged* from *untriaged* and somebody is accountable for the difference. Solo there is no triage step.
 
