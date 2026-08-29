@@ -10,7 +10,7 @@ Check out the branch and pull - and where the owner keeps a worktree per branch,
 
 ### Settle the plan record before trusting it
 
-**A hard stop, and the first thing this workflow does.** There is nowhere earlier to put it: the session that implements the plan is the session that settles its record, so the check lands before the first line of code rather than before a handover. **Never soften it into a warning, and never carry on having named it.** What it guards against is this session talking itself past an unsettled question in the plan it is about to implement, and a warning is precisely what that sounds like from the inside.
+**A hard stop, and the first thing this workflow does to the plan.** There is nowhere earlier to put it: the session that implements the plan is the session that settles its record, so the check lands before the first line of code rather than before a handover. **Never soften it into a warning, and never carry on having named it.** What it guards against is this session talking itself past an unsettled question in the plan it is about to implement, and a warning is precisely what that sounds like from the inside.
 
 1. **Read the plan-discussion threads whole**, with the GraphQL `reviewThreads` query from Step 1 of the `pr-flow` skill's discuss workflow - the REST comments endpoint has no resolution state - and drop the resolved ones. **An unsettled thread that affects the work stops everything:** `⛔ REFUSED - {which thread}`, and no code is written. The `discuss` workflow of the `pr-flow` skill is what ends that state.
 2. **Apply any settled decision the plan or body does not yet reflect**: a new `docs:` commit - never `git commit --amend` on the plan commit, which would force-push away the threads that record why the plan changed - and the PR body updated **whole**: each answered `## Open questions` entry moved to `## Settled` with its decision, question included - moved, never deleted, per the body template in the `pr-flow` skill's open workflow - and `## Open questions` left reading "None." once nothing remains open.
@@ -25,6 +25,8 @@ Then read, in this order:
 3. **The repository's own guidance** - its agent instructions file and `.agents/gh-solo.md`, per the contract in `SKILL.md`. Where either is missing or silent on how this repo is tested, note it now as a finding for Step 7.
 
 If the PR body has no `## Steps` or no `## Verification` section, stop with `⛔ REFUSED` and say which: the body is the state carrier for this whole workflow, and a missing section means `open` did not finish its job. That is fixed there, not improvised here.
+
+**A `## Verification` section that is present but names no gate is the same refusal.** An empty list is not a branch with nothing to prove; it is a branch whose gates nobody wrote down, and it fails silently rather than loudly: Step 5 runs "every gate" over nothing, ticks nothing because there is nothing to tick, and reaches `✅ ALL PASS` on unverified code, which `ready` then cannot catch because it refuses only on an *empty box* and there are no boxes. Refuse with `⛔ REFUSED - no gates in ## Verification` and say what the repository's own check commands are, from `.agents/gh-solo.md`, so the owner can put them in the body.
 
 ## Step 2 - Establish where it stands
 
@@ -43,7 +45,7 @@ git status
 
 Take the plan's steps in order unless a dependency forces otherwise - and when it does, say so in the Step 7 report. Mirror the steps into the session todo list (`TodoWrite`) before starting: it is the working view of progress, while the PR body's checkboxes stay the durable record.
 
-- **Commits group by coherent change, not by plan step.** The repository squash-merges, so these commits never reach `main`; their readers are the owner's review diff and a mid-branch `git bisect`, and they are sized for those two: each commit builds and makes sense alone, and its header describes one thing. A big step may take several commits, several small steps may share one, and both extremes serve nobody - a commit per keystroke, or one monolith carrying the whole branch. Headers and bodies per the contract in `SKILL.md`; the repo's own conventions govern the code itself, and the floor in `SKILL.md` governs where the repo is silent.
+- **Commits group by coherent change, not by plan step.** Where the repository squash-merges, which the `pr-flow` skill's merge workflow establishes per repository rather than assuming, these commits never reach `main`; their readers are the owner's review diff and a mid-branch `git bisect`, and they are sized for those two: each commit builds and makes sense alone, and its header describes one thing. A big step may take several commits, several small steps may share one, and both extremes serve nobody - a commit per keystroke, or one monolith carrying the whole branch. Headers and bodies per the contract in `SKILL.md`; the repo's own conventions govern the code itself, and the floor in `SKILL.md` governs where the repo is silent.
 - **After a step's work lands, tick its box** in the PR body's `## Steps` - read, modify, write, per the contract. The box is per step however the commits are grouped: ticked when its work is committed locally, pushed or not. Ticking as you go is not bookkeeping polish: it is what makes the branch resumable and what `ready` later audits.
 - **Tick any issue acceptance criterion that verifiably landed** with the step, the same way, on the issue body. "Verifiably" is literal - the criterion's own condition observed true, not inferred from the step being done.
 
@@ -61,7 +63,7 @@ When the last step is ticked, run **every** gate in the PR body's `## Verificati
 
 ## Step 6 - Push and reconcile with CI
 
-**The implementation's work travels in one push, here, after Step 5 has gone green - never a push per step or per commit.** Every push to a PR branch triggers CI, so pushing incrementally buys nothing but red runs against half-done work; one push means the first CI answer is about the finished record. The exception is a session ending before the work does: push then too, as a backup - commits that exist on one disk only are the one state this skill promises not to keep - and say in the report that the branch is mid-work, so a red or missing check reads as expected rather than as the two-environments finding. A branch worked in a fresh clone needs `git push -u <remote> <branch>`. Then the standing rule from `SKILL.md`:
+**The implementation's work travels in one push, here, after Step 5 has gone green - never a push per step or per commit.** Every push to a PR branch triggers CI, so pushing incrementally buys nothing but red runs against half-done work; one push means the first CI answer is about the finished record. The exception is a session ending before the work does: push then too, as a backup - commits that exist on one disk only are the one state this workflow promises not to keep - and say in the report that the branch is mid-work, so a red or missing check reads as expected rather than as the two-environments finding. A branch worked in a fresh clone needs `git push -u <remote> <branch>`. Then the standing rule from `SKILL.md`:
 
 ```bash
 gh pr checks <pr-number>
@@ -79,7 +81,7 @@ Open with the verdict line:
 
 Then the record: what landed (commits), the box states on PR and issue, CI state, and any gate you could not run, by name, with why. This entire handoff is your final report - the orchestrator relays it, so nothing may live only in the transcript.
 
-**Post the same record as a PR comment before printing it** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` implement, the implementation record). The session's copy dies with the session; the PR is where this flow keeps state, and the comment is the implementation's own account for whoever reads the PR later - a resuming session, `ready`'s audit, the owner in a week. Keep it the record, not a second copy of the PR: the verdict line, any gate you could not run and why, any Step 1 findings, and a pointer at the divergence comments rather than a restatement. It lands in the Conversation tab, which is right for once - per the `pr-flow` skill's discuss workflow nothing answers comments there, and this one expects no answer.
+**Post that record as a PR comment before printing it, carrying the same content** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` implement, the implementation record). The session's copy dies with the session; the PR is where this flow keeps state, and the comment is the implementation's own account for whoever reads the PR later - a resuming session, `ready`'s audit, the owner in a week. **Same content is a requirement rather than a convenience**: the `auto` chain relays this comment verbatim in place of the printed handoff, so a comment that says less than the print leaves the chain relaying a different account from the one this workflow produced. Keep both the record rather than a second copy of the PR, with a pointer at the divergence comments and never a restatement of them. It lands in the Conversation tab, which is right for once - per the `pr-flow` skill's discuss workflow nothing answers comments there, and this one expects no answer.
 
 End with the owner's next move, alone on its line, flush left:
 
@@ -90,6 +92,6 @@ End with the owner's next move, alone on its line, flush left:
 ## Rules
 
 - **Never mark the PR ready.** The handoff names the next command; running it is the owner's act.
-- **Never edit the plan file.** Divergence is a PR comment; the plan is the record of intent.
+- **Never edit the plan file to record divergence.** Divergence is a PR comment; the plan is the record of intent. The one legitimate plan edit is Step 1's `docs:` commit applying a decision the owner settled in a plan-discussion thread, which is the opposite act: the intent itself changed, and the file is being brought up to it.
 - **Tick at the moment work lands, never in a batch at the end.** A batch-ticked body cannot be resumed from and cannot be audited.
 - **On any gap between the record and the branch, report before continuing.** A lying record found now costs a sentence; found at `ready` it costs the audit its meaning.
