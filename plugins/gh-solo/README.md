@@ -16,14 +16,14 @@ It is deliberately not a generic workflow plugin. It assumes GitHub, it assumes 
 | `reviewer` agent | The subagent a review round spawns to read the diff, so the code is judged by something that did not write it |
 | trunk-push hook | Asks for confirmation before any `git push` whose destination is the trunk |
 
-Each skill carries its own `README.md` with the full picture, and `help` as a routing verb.
+Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow` and `/gh-solo:tracker` also take `help` as a routing verb, which prints their own summary; `implement` and the `reviewer` skill have no such verb, because each has one job and its README is the summary.
 
 ## Requirements
 
 - **The `gh` CLI**, authenticated. Every read and write goes through it.
 - **The `gh stack` extension** and the **`gh-stack` skill** from `github/gh-stack`, needed only for stacked pull requests. The stack workflow documents the extension's traps but does not bundle its manual.
 - **A harness that can spawn a subagent**, for the `reviewer` agent a review round uses. Where yours cannot, read the diff yourself and post the findings; the round records that pass identically.
-- **Python 3**, for `skills/pr-flow/scripts/docs-check.py` and `skills/pr-flow/scripts/post-review.py`.
+- **Python 3**, for `hooks/ask-before-trunk-push.py`, `skills/pr-flow/scripts/docs-check.py` and `skills/pr-flow/scripts/post-review.py`. The hook is the one that makes this non-optional: it runs on every Bash call in every session and repository, not only while a skill of this plugin is loaded.
 
 ## Install
 
@@ -43,7 +43,7 @@ claude plugin install gh-solo@agentifico
 
 Every post this plugin makes lands under **your** GitHub login, because it uses your credentials. So a login can never tell your comments from an agent's, and one string does that job instead: an AI disclaimer line opening the body of every agent-written PR body, comment, Review and thread reply.
 
-That line is not decoration. Four separate mechanisms test it:
+That line is not decoration. The mechanisms that test it:
 
 - the watch filter in `pr-flow`'s discuss workflow, which without it would re-emit the plugin's own replies as fresh comments and answer itself forever
 - the merge gate, which treats a Review whose body opens with it as the proof that the review pass actually ran
@@ -60,7 +60,7 @@ The default, used when nothing overrides it:
 
 To make it your own, define your line in your agent's global instructions file, the one loaded into every session automatically (`AGENTS.md`, `CLAUDE.md`, or whatever your agent reads). When that file defines a disclaimer line, it wins, and the plugin's default is not used. Keep the `> 🤖` prefix and keep it a single-line markdown blockquote: a `via` line naming which skill and workflow posted goes underneath as the blockquote's second paragraph, which is what keeps an implementation record, a divergence note and a review finding tellable apart on one pull request.
 
-Two things worth knowing before you change it. It must be a string you would never type by hand yourself, or the thread gate will read your own comment as the agent's. And change it once, early: posts already made under a previous wording keep that wording forever.
+What to know before you change it. It must be a string you would never type by hand yourself, or the thread gate will read your own comment as the agent's. And change it once, early: posts already made under a previous wording keep that wording forever.
 
 ## Working in a fork
 
@@ -72,7 +72,7 @@ Contributing to a project you do not own splits the work across two repositories
 
 **So the substitution is one step, at the very end.** The gate's terminal act changes from "squash merge into the default branch" to "open the upstream pull request from this branch". Your fork-internal pull request stays open as your own review record, and upstream receives a branch that has already been planned, argued over, implemented, reviewed and audited.
 
-Two things in that flow are untested rather than known: whether a pull request's author may resolve review threads on a repository they cannot write to, and whether `gh stack` works across a fork boundary at all. Settle both against a real pull request before relying on either.
+Untested rather than known in that flow: whether a pull request's author may resolve review threads on a repository they cannot write to, and whether `gh stack` works across a fork boundary at all. Settle both against a real pull request before relying on either.
 
 ## The one guardrail
 

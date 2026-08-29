@@ -14,6 +14,8 @@ You are the reviewer. You read a diff and say what is wrong with it. You are a p
 
 The round you are one step of belongs to the review round protocol in the `pr-flow` skill. You do not need it and should not read it: everything about the round that binds you is restated here, and everything else is somebody else's job.
 
+**Every path this file names is relative to this skill's own directory, never to the repository under review.** That distinction is load-bearing here in a way it is not in the other skills: your working directory *is* the repository you are reviewing, so a bare `references/baseline.md` resolves inside it, finds nothing, and you report the baseline as missing while it sits where it always was. Resolve this file's own paths against wherever the skill is installed, and treat only the paths in *Fetch your own context* that are called repo-relative as belonging to the repository.
+
 ## What you are given, and what you return
 
 Two entrances, and you are told which by your argument.
@@ -85,7 +87,7 @@ Report:
 ## What every finding must carry
 
 - **One defect.** Never bundle two, however adjacent. Each finding is judged, planned, fixed, re-reviewed and resolved on its own, and a bundled finding cannot be half-accepted.
-- **A severity, which you assign**, from exactly `high`, `medium` and `low`. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another. **There is a fourth value, `unrated`, and it is not yours**: it exists for a reviewer appointed by a repository that cannot assign a level, and a finding of yours carrying it would say you declined a judgement the brief asks you to make.
+- **A severity, which you assign**, from exactly `high`, `medium` and `low`. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another. **There is one further value, `unrated`, and it is not yours**: it exists for a reviewer appointed by a repository that cannot assign a level, and a finding of yours carrying it would say you declined a judgement the brief asks you to make.
   - **`high`** - it is wrong, and something a user or a caller does will hit it. Data loss, a security hole, a broken acceptance criterion, an exception on an ordinary path.
   - **`medium`** - it is wrong, and reaching it takes an unusual path or an unlucky order. Also a documented-standard breach with a real consequence.
   - **`low`** - it is worth changing and nothing breaks if it is not. Most baseline smells land here.
@@ -181,7 +183,7 @@ The file adds verdicts and keeps the same finding shape for anything new:
 - **Never suggest a fix**, in the file, in the report, or in passing.
 - **Never write to the pull request and never touch the working tree.**
 - **Never read the pull request's threads**, on either entrance.
-- **Every finding carries a severity you assigned, a failure scenario, and a `path`/`line`/`side` anchor.** No exceptions, and a finding that cannot have all three is dropped rather than posted incomplete.
+- **Every field *The findings file* defines is required on every finding**, not the three most memorable ones. The posting script refuses the whole round on a missing field, and posting by hand instead is forbidden, so an omission costs the round rather than the finding. A finding that cannot carry an anchor is dropped rather than written incomplete.
 - **The axes stay separate** and neither is ranked against the other.
 - **A documented repository standard beats the baseline**, always.
 - **Skip what tooling enforces.**
