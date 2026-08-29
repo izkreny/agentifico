@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for the GraphQL thread read, the reply mutation and the `## Settled` body edit, `Bash(git:*)` / `Read` / `Write` / `Edit` / `Grep` / `Glob` for the code a thread points at, the fixes an order authorises and the body's scratch file, `Monitor` / `TaskStop` for the watch.
+> **Tools used:** `Bash(gh:*)` for the GraphQL thread read, the reply mutation and the `## Settled` body edit, `Bash(git:*)` / `Read` / `Write` / `Edit` / `Grep` / `Glob` for the code a thread points at, the fixes an order authorises and the body's scratch file, `Skill` to enter the `implement` skill for a fix an order authorises, `Monitor` / `TaskStop` for the watch.
 
 Answer the owner's replies wherever they land on a pull request - inline comment threads, review summary bodies, Conversation comments - and land the fixes those replies order: committed, never pushed. The sequence this serves is `references/review-protocol.md`; this file is how its step 6 is answered.
 
@@ -14,7 +14,7 @@ Each `discuss` run is one round of the conversation, and it goes:
 
 1. Leave any watch running - per *The watch survives the round* in `references/review-protocol.md` it outlives a round, and stops only when the owner authorises the resolve and the push, or on `unwatch` (*Stopping it*).
 2. Fetch every inline thread in one GraphQL read and drop the resolved ones, and in the same pass fetch the PR's review summary bodies and its Conversation comments (Step 1).
-3. Classify each remaining thread by the owner's last comment in it, per the table in Step 1: a question, a challenge, a counter-proposal, an order, a gate-bound order, a refusal, a closing decision, an acknowledgement, or no reply.
+3. Classify each remaining thread by the owner's last comment in it, per the table in Step 1, which owns the classes.
 4. Give each class what Step 1's table says it is owed, from that table rather than from a copy of it here. A review summary body or Conversation comment is classified by the same table; when it is owed an answer, the answer goes as one Conversation comment (Step 2), since there is no thread to reply into.
 5. Resolve nothing (Step 3), and push nothing - an order authorises the fix and the commit, never the push (Step 4).
 6. Report in the terminal: `file:line`, what was asked and what was answered per thread touched, the count left alone with why, any `## Open questions` entries moved to `## Settled`, **how many fix commits sit unpushed waiting for the owner's word**, and whether a watch is armed (Step 5).

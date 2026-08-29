@@ -54,6 +54,10 @@ EVASIONS = [
     (f"({PUSH})", FEAT),
     (f"{PUSH}&", FEAT),
     (f"bash -c '{PUSH}'", FEAT),
+    (f"bash -lc '{PUSH}'", FEAT),      # short flags combine, and -lc is commoner than -c
+    (f"sh -lc '{PUSH}'", FEAT),
+    (f"bash -ec '{PUSH}'", FEAT),
+    (f"bash -e -c '{PUSH}'", FEAT),
     ('git push "origin" "main"', FEAT),
     ("git push origin main:main", FEAT),
     (f"env FOO=1 {PUSH}", FEAT),

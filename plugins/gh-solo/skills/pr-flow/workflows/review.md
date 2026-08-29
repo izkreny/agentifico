@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` to fetch PR and issue context and to post comments, threads and Reviews, `Agent` to spawn the `reviewer` subagent, `Bash(python3:*)` for `scripts/post-review.py`, `Write` for the payload and body files, `Read` / `Grep` / `Glob` for repository context.
+> **Tools used:** `Bash(gh:*)` to fetch PR and issue context and to post comments, threads and Reviews, `Agent` to spawn the `reviewer` subagent, `Skill` to enter the `implement` skill for the fixes, `Bash(python3:*)` for `scripts/post-review.py`, `Write` for the payload and body files, `Read` / `Grep` / `Glob` for repository context.
 
 Run a review round on a pull request: check what the tracker needs, spawn the reviewer, post what it found, plan and land the fixes, have the fixes checked, and stop at the owner.
 
@@ -149,16 +149,16 @@ One call lands every thread and the record Review together, so a half-posted PR 
 2. **Find the highest `RF{n}` already on the PR**, since ids never restart:
 
    ```bash
-   gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" \
-     --jq '[.[].body | scan("RF([0-9]+)") | .[0] | tonumber] | max // 0'
+   gh api --paginate --slurp "repos/{owner}/{repo}/pulls/<pr-number>/comments" \
+     --jq '[.[][].body | scan("RF([0-9]+)") | .[0] | tonumber] | max // 0'
    ```
 
-   No output means no round has posted yet, so pass `0`.
+   **`--slurp` is what makes this one answer rather than one per page.** Without it `--paginate` hands the filter each page separately, so a two-page PR prints two maxima and taking the first reissues ids that already exist - which breaks *Ids never restart* in `references/review-protocol.md` permanently. It prints `0` when no round has posted yet.
 3. **Write the disclaimer line to a file**, its wording per the AI-disclaimer bullet in `SKILL.md`. The script refuses a line that does not open with `> 🤖`.
 4. **Build and validate the payload:**
 
    ```bash
-   python3 scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --out <payload-file>
+   python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --out <payload-file>
    ```
 
    It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. **A refusal here is not something to work around by posting by hand.** It means the findings file is malformed, and the answer is to re-spawn the reviewer or to say what is wrong and stop.
@@ -175,7 +175,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
 
    ```bash
    gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
-   python3 <this skill>/scripts/post-review.py verify --payload <payload-file> --comments <listing-file>
+   python3 <skill-dir>/scripts/post-review.py verify --payload <payload-file> --comments <listing-file>
    ```
 
    **`--paginate` is not optional.** The endpoint pages at 30 and a plan discussion's threads alone can pass that, so an unpaginated read returns a slice that looks exactly like a failed post. A verify failure is reported, never re-posted over: the threads may already be there.
@@ -251,7 +251,7 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 | **Commit headers** | `{type}: {description} (#{issue-number})`, no scope, same source |
 | **No labels, no milestone** | The PR carries neither - both live on the issue only, per *Labels* in the `tracker` standards, and the `Closes` line is the join. A milestoned PR also corrupts the milestone's progress count |
 | **Not a draft** | If it is still a draft it should not have reached this workflow; say so rather than reviewing it |
-| **Every resolved thread has recorded owner authority** | One of three things: an owner reply in the thread, an owner reaction on it, or an authorisation comment naming its `RF{n}` id. One GraphQL read, the same query `workflows/discuss.md` Step 1 uses. A violation is a hard error per *Resolution rests on recorded authority* in `references/review-protocol.md`, and this is the earliest, cheapest place to catch what `workflows/merge.md` will refuse on at the door |
+| **Every resolved thread has recorded owner authority** | An owner reply in the thread, an owner reaction on it, or an authorisation comment naming its `RF{n}` id. One GraphQL read, the same query `workflows/discuss.md` Step 1 uses. A violation is a hard error per *Resolution rests on recorded authority* in `references/review-protocol.md`, and this is the earliest, cheapest place to catch what `workflows/merge.md` will refuse on at the door |
 
 `Closes #{issue-number}` and the assignee are the two that matter most, because nothing else enforces either and a PR missing one quietly breaks the tracker: the issue stays open after the code lands, or the in-progress view stops being true.
 

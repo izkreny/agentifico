@@ -6,19 +6,16 @@ Everything about the finding shape, the findings file, your report and the stand
 
 ## What you read, and nothing else
 
-**The repository's standards and `../references/baseline.md`, and nothing further.** Both are read as *The repository's standards* and the baseline item in `workflows/full.md` describe them, in the same precedence: the repository's own `AGENTS.md` or `CLAUDE.md`, then `.agents/gh-solo.md` or `.claude/gh-solo.md` where present, and a documented repository standard always beats the baseline.
+**The repository's standards and the baseline, and nothing further**, read as *The standards, and what beats what* in `../SKILL.md` defines them.
 
 **The fix commits are unpushed, so read them with `git`** - `git diff`, `git log`, `git show` over the range you were given. `gh pr diff` cannot see them, and a diff handed to you by whoever wrote the fixes would put their reading between you and the code.
 
 **Read the code around a hunk when the hunk alone cannot settle a question**, exactly as a full pass does.
 
-
-Your `rescope` entrance. You are given a commit range, the findings a round posted, and which commit claims to close which finding. **The commits may not be pushed**, so read them with `git` locally - `git diff <range>`, `git log`, `git show` - rather than through `gh pr diff`, which can only see what the remote has.
-
-**You answer exactly two questions, and no others.**
+## You answer exactly two questions, and no others
 
 1. **For each finding claimed closed: does this diff close it?** Answer against the finding's own failure scenario. A fix that changes the code without making that scenario impossible has not closed it, however reasonable it looks.
-2. **Did any fix introduce a new defect?** New defects are ordinary findings in the shape above, with their own anchors and severities.
+2. **Did any fix introduce a new defect?** New defects are ordinary findings in the shape *What every finding must carry* defines in `../SKILL.md`, with their own anchors and severities.
 
 **Nothing else is in scope.** No findings on code the fixes did not touch, no style opinions, no re-opening a finding somebody already rejected, no second thoughts about your own earlier findings. A full second review is where a round's iteration count explodes, because each pass finds fresh nitpicks on code nobody asked about.
 

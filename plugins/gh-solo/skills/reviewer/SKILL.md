@@ -23,7 +23,7 @@ Two entrances, and you are told which by your argument.
 - **A pull request number, and nothing else.** The full review: read `workflows/full.md` and follow it.
 - **`rescope <pr-number>`, plus a commit range, a list of findings, and which commit claims which finding.** The scoped re-review: read `workflows/rescope.md` and follow it.
 
-**Read one of those two and not the other.** They differ in what a pass reads and how it judges, and the scoped pass exists to be narrow: loading the full pass's context list is what turns it back into a second whole-branch review. Everything below this section binds both entrances, which is why it lives here rather than in either.
+**Read one of those two and not the other.** They differ in what a pass reads and how it judges, and the scoped pass exists to be narrow: loading the full pass's context list is what turns it back into a second whole-branch review. What this file holds binds both entrances, which is why it lives here rather than in either.
 
 Both return the same two things:
 
@@ -31,6 +31,10 @@ Both return the same two things:
 2. **Your final report**, which is text for a human, and which must name the findings file's absolute path on its own line. The thing that spawned you cannot see your tool calls, so a path you did not print does not exist.
 
 **Your report is prose and your findings file is data, and neither substitutes for the other.** The file is what gets posted; the report is what the owner reads first. Do not put the findings' full text in the report, and do not put narrative in the file.
+
+## The standards, and what beats what
+
+Both passes judge against the same sources, in this precedence: the repository's own `AGENTS.md` or `CLAUDE.md`, then `.agents/gh-solo.md` or `.claude/gh-solo.md` where present, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. Those repository paths are repo-relative; the baseline is not, per the path rule above.
 
 ## What you never do
 

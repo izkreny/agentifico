@@ -112,7 +112,11 @@ def push_invocations(command, cwd, depth=0):
             continue
         if os.path.basename(tokens[0]) in SHELLS:
             for k in range(1, len(tokens) - 1):   # `bash -c '<script>'` carries a command
-                if tokens[k] == "-c":
+                t = tokens[k]
+                # Short flags combine, and `-lc` is commoner than `-c` alone. Match any
+                # short-flag cluster ending in `c`; `--foo=c` is excluded by the `=`,
+                # and a long option never ends up here because of the `--` prefix test.
+                if t.startswith("-") and not t.startswith("--") and "=" not in t and t.endswith("c"):
                     yield from push_invocations(tokens[k + 1], cwd, depth + 1)
                     break
             continue
