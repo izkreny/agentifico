@@ -26,7 +26,7 @@ Then read, in this order:
 
 If the PR body has no `## Steps` or no `## Verification` section, stop with `⛔ REFUSED` and say which: the body is the state carrier for this whole workflow, and a missing section means `open` did not finish its job. That is fixed there, not improvised here.
 
-**A `## Verification` section that is present but names no gate is the same refusal.** An empty list is not a branch with nothing to prove; it is a branch whose gates nobody wrote down, and it fails silently rather than loudly: Step 5 runs "every gate" over nothing, ticks nothing because there is nothing to tick, and reaches `✅ ALL PASS` on unverified code, which `ready` then cannot catch because it refuses only on an *empty box* and there are no boxes. Refuse with `⛔ REFUSED - no gates in ## Verification` and say what the repository's own check commands are, from `.agents/gh-solo.md`, so the owner can put them in the body.
+**A `## Verification` section that is present but names no gate is the same refusal.** An empty list is not a branch with nothing to prove; it is a branch whose gates nobody wrote down, and it fails silently rather than loudly: Step 5 runs "every gate" over nothing, ticks nothing because there is nothing to tick, and reaches `✅ ALL PASS` on unverified code, which `ready` then cannot catch because it refuses only on an *empty box* and there are no boxes. Refuse with `⛔ REFUSED - no gates in ## Verification`. Where `.agents/gh-solo.md` records the repository's check commands, name them so the owner can paste them into the body; where it does not, say that too, since a repository with no recorded gates is the finding underneath this one.
 
 ## Step 2 - Establish where it stands
 
@@ -58,7 +58,7 @@ Where reality contradicts the plan - an approach that does not work, a step that
 When the last step is ticked, run **every** gate in the PR body's `## Verification`, exactly as written there.
 
 - **Tick only the boxes whose command you watched pass, by the gate's own stated pass criterion.** For almost every gate that criterion is exit zero. Where a tool defines success differently - a differ whose exit 1 means "differences found, as expected" - that reading must already be in writing, on the gate's line in the plan or in the repository's own docs, never decided at the keyboard: a non-zero exit nothing documents as passing is a failing gate. A failing gate is fixed and re-run, or reported - never ticked, never reasoned into "would have passed".
-- **A gate you cannot run is a finding, not a box to leave empty.** `ready` refuses on any empty box, so it stops the work and goes in the Step 7 handoff by name, with why it could not run.
+- **A gate you cannot run is a finding, not a box to leave empty.** `ready` refuses on any empty box, so it goes in the Step 7 handoff by name, with why it could not run, and the verdict there is `⚠️` rather than `✅`. Same shape as a plan step that needs an install: leave it unticked, name it, carry on with the rest.
 - Running the gates is the last act of implementation and not a substitute for `ready`: you produce the record here, `ready` audits it, and the two must not be the same hands doing both jobs twice.
 
 ## Step 6 - Push and reconcile with CI
@@ -76,7 +76,7 @@ Wait out pending checks with `--watch`. A red check against locally green gates 
 Open with the verdict line:
 
 - `✅ ALL PASS` - every step ticked, every gate you could run ticked green, CI green, nothing flagged.
-- `⚠️ PASSED WITH FINDINGS - {what}` - the work is done but something needs the owner's eyes: a divergence comment posted, missing repo guidance from Step 1, a CI disagreement under diagnosis.
+- `⚠️ PASSED WITH FINDINGS - {what}` - the work is done but something needs the owner's eyes: a gate you could not run, a divergence comment posted, missing repo guidance from Step 1, a CI disagreement under diagnosis. **An unrunnable gate is never `✅`**: `ready` refuses on the empty box it leaves, so a green verdict here only defers that refusal by one step, and on the `auto` chain it defers it into a stage nobody is watching.
 - `⛔ REFUSED - {reason}` - printed at the stop itself, per the stops in Steps 1 and 4.
 
 Then the record: what landed (commits), the box states on PR and issue, CI state, and any gate you could not run, by name, with why. This entire handoff is your final report - the orchestrator relays it, so nothing may live only in the transcript.

@@ -4,8 +4,9 @@ Land review fixes on a branch whose review round has posted findings. This is th
 
 **The entrances differ in where the work list comes from.**
 
-- **Step 4 of a review round**, run by the orchestrator inside the round's unattended block. The work list is the fix plans it posted at step 3, which is every finding except the kinds the protocol routes to the owner instead. **Nothing has been judged yet, and that is the design**: the round's own step 5 re-review is what checks each fix closed the finding it claims, because the fixes were made by the author of the code under review with nobody watching.
+- **The review round's step 4**, run by the orchestrator inside the round's unattended block. The work list is the fix plans it posted at step 3, which is every finding except the kinds the protocol routes to the owner instead. **Nothing has been judged yet, and that is the design**: the round's own step 5 re-review is what checks each fix closed the finding it claims, because the fixes were made by the author of the code under review with nobody watching.
 - **The owner naming what stands**, after they have read the threads at step 6. "fix all", "fix RF1 and RF3, skip RF2". Their words are the scope and nothing else is.
+- **An order inside one thread**, from a discuss round, which enters here for the repository's own gates rather than for the whole workflow. The scope is that one order, the thread is its own; Steps 2, 4, 5 and 6 apply unchanged, and the departure clause in Step 3 and the id map in the handoff apply only where a fix plan and an `RF{n}` exist. That round owns its own reply wording.
 
 The round, its steps and its caps are the review round protocol in the `pr-flow` skill.
 
@@ -24,7 +25,7 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" \
 
 **`select(.in_reply_to_id == null)` is what makes that a list of findings.** The endpoint returns every inline comment on the pull request, replies included, and a round puts several replies on each finding - the fix plan, the fix result, the re-review verdict - so without the filter the replies outnumber the findings and neither the count below nor a reply target can be trusted. A closing reply posted onto another reply's id lands in the right thread but under the wrong parent, and the map from finding to fix stops being answerable.
 
-The round record Review on the PR gives the count to check the filtered list against. The stops below are both on the owner's entrance:
+The round record Review on the PR gives the count to check the filtered list against. The stops below are all on the owner's entrance:
 
 - **Ambiguity about which findings stand is the owner's to resolve** - "fix the important ones" names no scope; ask, never rank them yourself.
 - **Never fix a finding the owner rejected.** A fix they declined is scope creep wearing a review's clothes. This does not bite on the round's step 4, where by construction the owner has judged nothing yet and the fix plans are the scope.
@@ -53,7 +54,7 @@ Any gate in `## Verification` whose result the fixes could have changed is re-ru
 
 ## Step 5 - Update the plan overview where the fixes moved it
 
-**The PR body's `## Plan overview` is the one prose the squash writes onto the trunk.** `merge` has GitHub build the squash commit's message from the PR body, so a description left describing the pre-fix behaviour lands in `git log` on `main` permanently, and nothing edits a commit message afterwards. A fix that changed what the branch does therefore updates that paragraph, read-modify-write per the contract in `SKILL.md`, in the same pass that posted the replies.
+**Where the repository squash-merges, the PR body's `## Plan overview` is the one prose that reaches the trunk.** `merge` in the `pr-flow` skill establishes that per repository rather than assuming it, and where it holds, GitHub builds the squash commit's message from the PR body, so a description left describing the pre-fix behaviour lands in `git log` on `main` permanently, and nothing edits a commit message afterwards. A fix that changed what the branch does therefore updates that paragraph, read-modify-write per the contract in `SKILL.md`, in the same pass that posted the replies.
 
 Most rounds change nothing here: a fix that corrects an implementation without changing what the branch delivers leaves the overview true. Say which it was in the handoff either way, because "the overview still describes the branch" is a judgement worth recording rather than a step to skip silently.
 
