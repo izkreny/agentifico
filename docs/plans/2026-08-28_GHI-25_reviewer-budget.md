@@ -68,22 +68,19 @@ Gates, each with an exit code:
 - **Every grep above is run against `origin/main` as well, and must fail there.** A check that passes before the change is indistinguishable from one that passes on anything.
 - `git diff --stat origin/main` names exactly the files the steps list and this plan, and nothing else.
 
-Judgement, no exit code:
-
-- `[owner]` Whether the round report's new fields actually arrive populated. The first round on this pull request is the first time the orchestrator is asked for them, and nothing in the repository executes an instructions file.
-- `[owner]` Whether an environment variable in your own setup defeats the pinned `effort`. It is not observable from inside a subagent, so the diff records the documented precedence and the determination is yours.
-
 **No skills-maker box.** Per *The skill review is its own issue, not a branch's gate* in `.agents/gh-solo.md`, a whole-skill review is never a `## Verification` entry, and this branch changes skill files. It is stated here because a reader of this plan will look for that box.
 
-What these gates cannot see: whether an agent following the new instructions behaves differently. Every change here is prose that an agent reads, so no test in this repository can be made to fail on the pre-change wording - the greps prove the text moved, never that the behaviour did. That is the owner's read of the diff.
+**No `[owner]` box either.** Every box in this section has to close before merge, and `plugins/gh-solo/skills/pr-flow/workflows/ready.md` and `plugins/gh-solo/skills/pr-flow/workflows/merge.md` both refuse on an empty one, so a box whose evidence cannot exist until after the merge is a box that blocks its own branch. Judgement the owner alone can make is stated as prose below instead, where it informs the read of the diff without gating it.
+
+What these gates cannot see: whether an agent following the new instructions behaves differently. Every change here is prose that an agent reads, so no test in this repository can be made to fail on the pre-change wording - the greps prove the text moved, never that the behaviour did. That is the owner's read of the diff. Two things in particular are observable only after the plugin ships, because a round in this repository runs the installed plugin rather than the working tree: whether the round report's new fields arrive populated, since nothing here executes an instructions file; and whether an environment variable in the owner's own setup defeats the pinned `effort`, which a subagent cannot see from inside, so the diff records the documented precedence and claims nothing further.
 
 ## Open questions
 
-- **Can #25's criterion that the rescope cost be attributed before and after close on this branch at all?** The "before" figure was measured by hand on another repository's pull request, and the instrumentation that would produce a comparable one is what this branch adds. Recording the first measurement here and leaving the comparison to a later round is the honest outcome, but it leaves a criterion unticked at merge.
 - **Does the rescope entrance skip the issue as well as the plan file?** Its two questions are answered from the findings it was handed and the fix commits, so the issue's acceptance criteria are arguably not needed - but a new defect on the spec axis would have nothing to be judged against. Keeping the issue is the conservative reading and is what the steps above assume.
 
 ## Settled
 
+- **#25's criterion that the rescope cost be attributed before and after cannot close on this branch.** Settled by the owner: it cannot. The "before" figure was measured by hand on another repository's pull request, and the instrumentation that would produce a comparable one is what this branch adds, so the first measurement is recorded here and the comparison belongs to a later round. The criterion stays unticked at merge, where `plugins/gh-solo/skills/pr-flow/workflows/merge.md` reports an unticked acceptance criterion and asks rather than refusing.
 - **`effort` is pinned at `high` and `model` stays `inherit`.** Settled by the owner, against the alternative of removing the `effort` line entirely: removing it makes the reviewer inherit the author's session, which removes the ceiling rather than lowering it.
 - **The version moves on this branch, to `2.1.0`.** Settled by the owner. Precedent is #21, which bumped `2.0.0` to `2.0.1` in the same commit as its fix, so this plugin bumps per branch rather than at a release; a new configuration key is additive, so the minor segment moves.
 - **Only `plugins/gh-solo/.claude-plugin/plugin.json` carries a version to move.** `AGENTS.md` says a plugin's version lives there "and its marketplace entry", but `.claude-plugin/marketplace.json` has no version field at all, so there is nothing in it to bump. That disagreement is a defect in `AGENTS.md` rather than in this branch, and fixing it here would put a second decision behind one review.
