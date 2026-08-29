@@ -6,6 +6,17 @@ Turns an approved plan into commits, and review findings into fixes. This is the
 
 Run `/gh-solo:implement <pr-number>` to implement, `/gh-solo:implement fix <pr-number>` once you have said which findings stand. This page is the why.
 
+## Install
+
+This skill ships inside the `gh-solo` plugin and is not installed on its own:
+
+```bash
+claude plugin marketplace add izkreny/agentifico
+claude plugin install gh-solo@agentifico
+```
+
+The plugin's own `README.md` has the local-checkout variant, the requirements, and what else installing it brings.
+
 ## The shape of it
 
 ```mermaid

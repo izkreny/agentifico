@@ -6,7 +6,7 @@ Break work into GitHub issues and create them. You are writing the issues that w
 
 Preflight already resolved it. **State it in one line before doing anything else**, so a wrong working directory is caught now rather than after eight issues land in the wrong tracker. Do not re-run the preflight commands.
 
-**Then, when any of the breakdown's source material was read from the working tree** - a roadmap, a spec, a `TODO`, anything with a path - establish that the tree is current before writing a single row:
+**Then, when any of the breakdown's source material was read from a file in the working tree**, establish that the tree is current before writing a single row:
 
 ```bash
 git fetch <remote> --quiet && git log --oneline HEAD..<remote>/main
@@ -31,6 +31,8 @@ Run `gh label list`. Every label the plan intends to use must already exist, bec
 
 If labels are missing, list them and ask whether to create them, with the exact commands you would run. Do not create labels silently: a label set is a taxonomy the repository lives with, and inventing one mid-plan is how a tracker ends up with `BE`, `backend` and `Backend` all in use at once, splitting every filter three ways.
 
+**Where the repository has no `.agents/gh-solo.md` and the owner has just confirmed a taxonomy, offer to write one.** This is the moment the offer belongs to: the labels are settled and in front of them, so the axis the file records is a decision they have already made rather than one they are being asked to make for a file's sake. Offer, never write unprompted, and say what else the file carries beyond the labels - the check commands `implement` refuses to improvise without, above all.
+
 ## Step 4 - Look for an existing epic
 
 Before proposing a new epic, search for one that already covers the scope:
@@ -51,10 +53,10 @@ Output the whole breakdown and **create nothing yet**:
 Repository: owner/name
 Epic: [name] - [existing #51 | new]
 
-| Row | Title | Kind | Layer | Readiness | Blocked by |
-|---|---|---|---|---|---|
-| 1 | add user lookup endpoint | task | backend | ready | - |
-| 2 | build the login form | task | frontend | draft - no criteria yet | row 1 |
+| Row | Title | Kind | Layer | Milestone | Readiness | Blocked by |
+|---|---|---|---|---|---|---|
+| 1 | add user lookup endpoint | task | backend | v1.0 | ready | - |
+| 2 | build the login form | task | frontend | - | draft - no criteria yet | row 1 |
 
 Labels to be applied: ...
 Labels that must be created first: ...
@@ -68,6 +70,8 @@ Then ask: **"Does this look right? Anything to change before I create them?"**
 **Create nothing until the owner confirms.** If they ask for changes, revise and ask again.
 
 **There is no size column and no estimate.** If a row looks too big for one branch, that is not a number to record: split it into an epic with children, per the test under *How big is one issue* in `references/standards.md`, and show the split in this table instead.
+
+**The milestone column is `-` when there is none, so an absent milestone is a decision the owner saw rather than something nobody asked about.** Ask which milestone, if any, before presenting the table. `workflows/search.md` orders startable work by milestone first, and a sub-issue does not inherit its epic's, so an issue created without one is invisible to the tool meant to surface it, per *Milestones, and why not Projects* in `references/standards.md`.
 
 **A row the owner cannot fully specify yet lands as a draft.** Show its Kind as normal - Readiness and Nature are independent axes, and a draft bug whose Kind read `draft` would lose its `bug` label at creation - and mark it in the Readiness column with what is missing, as the template's row 2 shows. The confirm gate below is the only gate, so the owner must be able to see per row which ones they are approving as drafts and that those rows skipped the split test. The `draft` label then joins that row's labels at creation. A draft skips the split test - there are no criteria to run it on - and its body may be a stub, but it still needs a real title and a layer label, per *Drafts* in `references/standards.md`. Offer the form only when the owner says they want something on the backlog without the time or information to finish it; never downgrade a row to draft yourself to avoid writing criteria you could write.
 
@@ -88,9 +92,12 @@ A draft's body is the disclaimer line plus the full template with its sections l
 gh issue create \
   --title "add user lookup endpoint" \
   --label backend \
+  --milestone "v1.0" \
   --parent 51 \
   --body-file <scratchpad>/issue-1.md
 ```
+
+Pass `--milestone` wherever the confirmed table gave one, and leave it off where the row said `-`. Setting it afterwards is an extra command per issue, and the issue is unfindable by `next` in between.
 
 `gh issue create` prints the new issue's URL. Capture each number as you go; the next command in the sequence needs it.
 

@@ -10,6 +10,17 @@ The thing that reads your diff and tells you what is wrong with it. A pull reque
 
 The session that wrote your code cannot review it. It has already reasoned its way to why every line is shaped the way it is, and asked to judge that same code it will find its own reasoning persuasive, because it is the reasoning it just had. A separate agent starts with none of it and sees only the diff, the issue and your repository's standards.
 
+## Install
+
+This skill ships inside the `gh-solo` plugin and is not installed on its own:
+
+```bash
+claude plugin marketplace add izkreny/agentifico
+claude plugin install gh-solo@agentifico
+```
+
+The plugin's own `README.md` has the local-checkout variant, the requirements, and what else installing it brings.
+
 So loading this skill in the session that just implemented something produces a review that agrees with itself. The skill opens with a refusal for exactly that case, and its description says so, but the reliable protection is simply starting rounds the normal way:
 
 ```

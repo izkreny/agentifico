@@ -13,7 +13,7 @@ Read `references/standards.md`, and `.agents/gh-solo.md` if the repository has o
 ## Step 3 - Fetch
 
 ```bash
-gh issue view <issue-number> --json number,title,state,body,labels,parent,subIssues,blockedBy,issueType,url
+gh issue view <issue-number> --json number,title,state,body,labels,parent,subIssues,blockedBy,url
 ```
 
 ## Step 4 - Check
@@ -29,7 +29,7 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 | Title format | `imperative action`, all lowercase, under the length cap in *Titles* of `references/standards.md`, no bracketed prefix or layer tag |
 | Layer label | Exactly one layer label present. It is the only record of the layer, so absent is a fail, and two is a fail. Where `backend` and `frontend` both appear, the fix is `fullstack` if the issue is genuinely one deliverable, or a split into two issues if it is not |
 | Parent | Attached to an epic, unless the issue is genuinely standalone |
-| Body sections | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when |
+| Body sections | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when. `## Technical notes` and `## Dependencies` are optional and never a fail |
 | Summary is capped | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement |
 | Criteria are checkboxes | `- [ ]`, so GitHub counts them |
 | Criteria are testable | Each one observable; a reader can say pass or fail |
@@ -46,6 +46,10 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 | Sub-issues | At least one, unless the epic was opened moments ago |
 
 ### Not checked, deliberately
+
+**`## Technical notes` and `## Dependencies` are optional**, so an absent one is never a failure. A body that names a blocker in prose is still checked for the matching `blockedBy` relation, per the Dependencies row above.
+
+**The issue type is not checked**, and is not even fetched. *Issue types are for organizations only* in the standards settles it: a personal-account repository returns `null` for every issue, so a check would pass on everything.
 
 **Priority is optional**, so its absence is never a failure. Report it as present or absent under Notes and pass the issue either way. There is no size label to check for; *How big is one issue* in the standards explains why.
 

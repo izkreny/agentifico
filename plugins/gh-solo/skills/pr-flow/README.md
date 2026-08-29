@@ -8,6 +8,17 @@ The tracker half of the story is `tracker`, whose README carries the full lifecy
 
 Run `/gh-solo:pr-flow help` for the commands. This page is the why.
 
+## Install
+
+This skill ships inside the `gh-solo` plugin and is not installed on its own:
+
+```bash
+claude plugin marketplace add izkreny/agentifico
+claude plugin install gh-solo@agentifico
+```
+
+The plugin's own `README.md` has the local-checkout variant, the requirements, and what else installing it brings.
+
 ## The shape of it
 
 ```mermaid
