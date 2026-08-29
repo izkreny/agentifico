@@ -141,3 +141,20 @@ Ids are this table's own, grouped by the reviewer that raised the finding: `PF` 
 | RV9 | `plugins/gh-solo/.claude-plugin/plugin.json` keywords against the marketplace entry's tags | The two lists have already drifted by one value, and the config's drift warning covers only the descriptions. The marketplace manifest is the `repo` package. | #33 |
 | RV10 | marketplace entry, `AGENTS.md` | `AGENTS.md` says a plugin's version lives in its manifest "and its marketplace entry", which carries no version field; adding one creates a silently-disagreeing second copy, so the sentence is what is wrong. `AGENTS.md` is the `repo` package. | #28, raised before this sweep |
 | RV11 | `agents/reviewer.md:14`, `review.md:106,219` | States as fact an environment-variable precedence over a spawn-time model request that is not documented, and prints it to the owner as a caveat on the figure they compare rounds by. | `748d473` (agent file) |
+
+### The second sweep
+
+Run from a cold session over the package as it stood after the first sweep's fixes, per `skills/skills-maker/workflows/review.md`. Its mechanical pass was clean. Four of its ten findings are defects the first sweep's own fixes introduced, which is why it was run rather than a second resumed pass.
+
+| Id | Site | Defect | Closed by |
+|---|---|---|---|
+| S1 | `plugins/gh-solo/README.md:5` | The front door said a subagent implements the plan, which four files forbid, so a reader taking the README as the summary begins by delegating the one step the design forbids delegating. | `ac445a1` |
+| S2 | `plugins/gh-solo/README.md:25` | Offered "read the diff yourself and post the findings" as the fallback where no subagent is available, which is the self-review the design exists to prevent, and claimed such a pass records identically when three fields exist to distinguish it. | `ac445a1` |
+| S3 | `plugins/gh-solo/skills/pr-flow/workflows/review.md:213` | The deferred-finding route promised a thread that no workflow opened and the posting script cannot express, so a defect introduced by a fix reached the trunk with no thread and no gate refusing it. Introduced by PF2's fix. | `ac445a1` |
+| S4 | `plugins/gh-solo/skills/pr-flow/workflows/review.md:152-156` | The highest-id read scanned the comments endpoint alone, and a deferred id lives only in a Review body, so the next round would reissue it. Introduced by PF2's fix. | `ac445a1` |
+| S5 | `plugins/gh-solo/skills/implement/workflows/implement.md:84` | The retired "nothing answers that tab" premise, at the second site PF10 did not reach. | `ac445a1` |
+| S6 | `plugins/gh-solo/skills/pr-flow/workflows/discuss.md:229` | Attributes the settles-a-finding reading to a workflow that never judges, so the pointer fails silently. | `ac445a1` |
+| S7 | marketplace entry, `AGENTS.md` | The same defect as RV10. | #28, raised before either sweep |
+| S8 | `plugins/gh-solo/skills/tracker/README.md:42-44` | The canonical lifecycle diagram still showed the owner reading every line and submitting the review, with no reviewer agent, and the plugin README sends readers there for it. | `ac445a1` |
+| S9 | `plugins/gh-solo/skills/tracker/SKILL.md:49` | "The keys named here are the ones this skill acts on" claims keys that belong to `implement` and `pr-flow`. Introduced by TR5's fix. | `ac445a1` |
+| S10 | `plugins/gh-solo/skills/reviewer/workflows/rescope.md:47` | "required on both verdicts" counts the two entries of its own example. Introduced by RV5's split. | `ac445a1` |
