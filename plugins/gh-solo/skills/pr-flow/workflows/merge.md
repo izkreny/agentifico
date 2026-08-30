@@ -32,13 +32,13 @@ The owner's own review is a separate record, submitted under their name through 
 
 **Refuse on an unresolved thread**: the owner's walk is not finished.
 
-**Refuse on a resolved thread carrying none of the three evidence forms.** Any one of them is enough, and there is no fourth:
+**Refuse on a resolved thread carrying none of the evidence forms below.** Any one of them is enough, and the list is closed:
 
 1. **A reply of the owner's in the thread.**
 2. **A reaction of the owner's on any comment in it.** Approval may be a reaction rather than a word, so a gate reading only comments would refuse threads the owner did in fact approve.
 3. **An authorisation comment naming that thread's `RF{n}` id.** `workflows/resolve.md` posts it before a batch resolve and **owns the literal marker line to grep for**; read the wording there rather than guessing at it, because a gate looking for the wrong string finds nothing and refuses a PR that was properly authorised.
 
-**Recognising the owner takes two conditions, and both must hold** - for forms 1 and 2, which are the owner's own posts; form 3 is an agent post and opens with the disclaimer by construction, which is why it is found by its marker line and its `RF{n}` id instead. The two conditions: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes a mentor, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials. The disclaimer test alone is not enough - a mentor's comment opens with no disclaimer either, so on its own it would let a third party's 👍 authorise a merge. For a reaction there is no body to test, so the login is the whole test.
+**Recognising the owner takes both conditions below** - for the two forms that are the owner's own posts; the authorisation comment is an agent post and opens with the disclaimer by construction, which is why it is found by its marker line and its `RF{n}` id instead. The conditions: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes a mentor, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials. The disclaimer test alone is not enough - a mentor's comment opens with no disclaimer either, so on its own it would let a third party's 👍 authorise a merge. For a reaction there is no body to test, so the login is the whole test.
 
 Nothing can stop a thread being resolved in the browser with no evidence at all; this door is the one place that mistake can be caught, so name the thread's `file:line` in the refusal.
 
@@ -95,7 +95,7 @@ gh stack merge <pr-number> --yes --squash
 
 ## Step 4 - Delete the local branch, in the worktree that holds it
 
-The remote branch is already gone, deleted server-side by `delete_branch_on_merge` - which is why Step 3 passes no `--delete-branch`. What remains is the local branch, and deleting it is a write against a worktree the session is not sitting in.
+Where `delete_branch_on_merge` is set, the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. That setting is per-repository and not a default, so confirm it from the values this workflow already read rather than assuming, and delete the remote branch too where it is unset. What remains is the local branch, and deleting it is a write against a worktree the session is not sitting in.
 
 Enter that worktree with the `EnterWorktree` tool, passing its `path`: a `git -C` sequence run from wherever the session happens to sit would delete the wrong tree's refs. Where the owner's global instructions authorise entering a worktree without asking, that rule covers this; where they do not, let the harness prompt and wait for it. Then:
 
@@ -154,7 +154,7 @@ Set both in one call, never one at a time:
 gh api -X PATCH repos/{owner}/{repo} -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=PR_BODY
 ```
 
-**Worth doing, not yet done: disable `allow_merge_commit` and `allow_rebase_merge`.** While all three remain enabled, the GitHub UI offers a merge-strategy dropdown, and one absent-minded click puts a merge commit on `main` that no local rule can prevent. Leaving squash as the only enabled method makes the policy structural instead of remembered:
+**`allow_merge_commit` or `allow_rebase_merge` reading true is worth raising with the owner.** While either is enabled, the GitHub UI offers a merge-strategy dropdown, and one absent-minded click puts a merge commit on `main` that no local rule can prevent. Leaving squash as the only enabled method makes the policy structural instead of remembered:
 
 ```bash
 gh api -X PATCH repos/{owner}/{repo} -F allow_merge_commit=false -F allow_rebase_merge=false
@@ -184,7 +184,7 @@ The load-bearing values in that shape, each with a trap:
 ## Rules
 
 - **Never merge a PR without a round record Review**, recognised by its `via` line per Step 1 and never by the disclaimer, which every agent post carries including the convention check that runs before a round. Array length proves nothing either - inline discussion inflates `reviews` with empty-bodied containers. The gate is the point of the workflow.
-- **Never merge over an unresolved thread, or a thread resolved with none of the three evidence forms.** *Resolution rests on recorded authority* in `references/review-protocol.md`; this door is the only place it is enforceable.
+- **Never merge over an unresolved thread, or a thread resolved with none of the evidence forms.** *Resolution rests on recorded authority* in `references/review-protocol.md`; this door is the only place it is enforceable.
 - **Never `git merge` or `git push` to `main` to land a branch.** The hard rule in `SKILL.md` holds here too; merging is `gh`'s job.
 - **Never omit the merge method** — `--squash` on `gh pr merge`, `--squash` on `gh stack merge`. Both fall back to something other than policy when it is left off.
 - One PR per invocation. Merging a stack is one operation even though it lands several PRs; merging two unrelated PRs is two.

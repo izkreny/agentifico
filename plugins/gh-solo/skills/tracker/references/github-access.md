@@ -13,7 +13,7 @@ There is one route to the tracker, `gh` in a shell, and it needs no MCP server, 
 gh auth status
 ```
 
-It prints the account, how the token is stored, and the token's scopes. Two lines matter:
+It prints the account, how the token is stored, and the token's scopes. What to read in it:
 
 - **`repo`** must be among the scopes. Everything this skill does needs it.
 - **Active account: true** on the account that owns the repository. `gh` supports several accounts at once, and an inactive one produces confident 404s on repositories that plainly exist.

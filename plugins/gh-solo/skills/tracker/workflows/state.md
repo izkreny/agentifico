@@ -8,7 +8,9 @@ Deliberately absent rather than emulated: **there is no time logging**, and **no
 
 ## Step 1 - Resolve the issue number
 
-Same as `status.md`: the argument, else the current branch, else ask.
+**A milestone operation has no issue number.** Where the request is to create a milestone, move its date or close one, skip to the *Milestone* heading in Step 3; Steps 1 and 2 govern an issue's own state and nothing else. Without this, the routed request stalls asking for a number it has no answer to, or invents one from the current branch and fetches an unrelated issue.
+
+Otherwise, same as `status.md`: the argument, else the current branch, else ask.
 
 ## Step 2 - Establish what state it is in
 

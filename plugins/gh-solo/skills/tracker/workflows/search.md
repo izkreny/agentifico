@@ -16,7 +16,7 @@ Find issues. `gh issue list` takes structured filters as flags and free text thr
 | what is blocked | `gh issue list --label blocked` |
 | show drafts | `gh issue list --label draft` |
 | anything mentioning a legacy tracker key | `gh issue list --state all --search "ABC-72"` |
-| issues missing a layer label | `gh issue list --state open --limit 100 --search "-label:epic -label:backend -label:frontend -label:fullstack -label:infra -label:docs"` - `-label:epic` is the epic exemption, not a layer; the same audit lives in `references/standards.md`, which owns it |
+| issues missing a layer label | the audit under *The Layer axis* in `references/standards.md`, which owns it. Build its exclusion list from the repository's own layer set rather than copying one: the query reports whatever it fails to exclude, so a stale list reports every open issue as a defect |
 
 `--state` defaults to `open`, which is usually right and is the single most common cause of "that issue does not exist" when it was closed last week. Pass `--state all` whenever the answer might be historical.
 
@@ -69,7 +69,7 @@ gh issue list --state open --limit 100 \
   --json number,title,labels,milestone,parent,blockedBy
 ```
 
-`no:assignee` excludes everything assigned - in progress and queued alike, since `@me` covers both per *Quick reference* in `references/standards.md` - `-label:blocked` drops externally blocked work, and `-label:draft` drops unfinished descriptions, because a draft is finished, not started, per *Drafts* in the standards. **None of them catches issue-to-issue dependencies.** Filter `blockedBy` yourself: drop any candidate with a blocker that is still open. Skipping this is how a task gets handed over that cannot actually be started.
+`no:assignee` excludes work already started, since that is what `@me` records per *Quick reference* in `references/standards.md` - `-label:blocked` drops externally blocked work, and `-label:draft` drops unfinished descriptions, because a draft is finished, not started, per *Drafts* in the standards. **None of them catches issue-to-issue dependencies.** Filter `blockedBy` yourself: drop any candidate with a blocker that is still open. Skipping this is how a task gets handed over that cannot actually be started.
 
 **Order what survives**, in this order, since there is no size label to sort on:
 

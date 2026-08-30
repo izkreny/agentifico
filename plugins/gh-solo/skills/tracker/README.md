@@ -8,13 +8,24 @@ This skill owns what an issue *is*: how work gets broken down, what a good title
 
 Run `/gh-solo:tracker help` for the commands. This page is the why.
 
+## Install
+
+This skill ships inside the `gh-solo` plugin and is not installed on its own:
+
+```bash
+claude plugin marketplace add izkreny/agentifico
+claude plugin install gh-solo@agentifico
+```
+
+The plugin's own `README.md` has the local-checkout variant, the requirements, and what else installing it brings.
+
 ## The full lifecycle
 
 Both skills are one loop. This one is the top half.
 
 ```mermaid
 flowchart TD
-    subgraph tracker["tracker · the tracker"]
+    subgraph tracker["tracker · idea to branch"]
         A["a feature, described in conversation"] --> B{"does it fit one branch<br/>and one pull request?"}
         B -->|"no"| C["an epic, with children"]
         C --> D["an issue: what to build,<br/>how you will know it is done,<br/>and which part of the system"]
@@ -29,8 +40,9 @@ flowchart TD
         STOP --> H["implementation<br/>(the implement skill)"]
         H --> I["every stated check has run,<br/>the PR leaves draft"]
         I --> J(["<b>you</b> start the code review"])
-        J --> K(["<b>you</b> read every line,<br/>and submit your review"])
-        K --> L["fix commits answering it"]
+        J --> K["<b>reviewer</b> agent reads the diff,<br/>findings post as numbered threads"]
+        K --> K2(["<b>you</b> judge the findings"])
+        K2 --> L["fix commits answering them"]
         L --> M["squashed to the trunk"]
     end
 
@@ -44,7 +56,7 @@ The dotted line back is the point worth noticing: nothing gets moved by hand. Th
 
 **One person writes.** Not one person *involved* — a client setting scope and dates is fine, and so is a mentor who comments on issues and reviews pull requests. The line is whether someone's action is a write you have to coordinate with, or a read you can act on at your discretion. A second committer is genuinely out of scope, and the skill says so rather than quietly serving it badly.
 
-**An issue is one branch and one pull request.** That is the entire sizing rule, and it is a shape rather than a number. Nothing is estimated and nothing is recorded — the question gets asked once while the issue is being written, and the answer is a decision, not data. Plain signs in the standards tell you to split instead, and the most useful is the simplest: if the title needs "and" to be honest, it is two issues wearing one title.
+**An issue is one branch and one pull request.** That is the entire sizing rule, and it is a shape rather than a number. Nothing is estimated and nothing is recorded — the question gets asked once while the issue is being written, and the answer is a decision, not data. Plain signs in the standards tell you to split instead, and the simplest is this: if the title needs "and" to be honest, it is two issues wearing one title.
 
 **When in doubt, split.** Two issues that turn out to be one merge onto a single branch at no cost. One issue that turns out to be two is discovered halfway through, with a branch already open and criteria you cannot all tick.
 

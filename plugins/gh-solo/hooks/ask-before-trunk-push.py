@@ -19,6 +19,18 @@ FLAGS_WITH_VALUE = {"-C", "--git-dir", "--work-tree", "--exec", "--receive-pack"
                     "--repo", "-o", "--push-option"}
 PUSHES_EVERYTHING = {"--all", "--mirror"}
 DELETES = {"--delete", "-d"}
+# Tokens that end one command and begin another. `shlex` with punctuation_chars emits
+# each of these as its own token, which is why they are matched here and not by a regex
+# over the raw string: a regex split runs before quoting is understood, so it cuts a
+# quoted `;` inside an argument and turns `echo 'a; git push origin main'` into a push.
+OPERATORS = {"&&", "||", "|", ";", ";;", "&", "(", ")", "`", "\n"}
+# Backtick is added to shlex's own set, which does not carry it: without it
+# `` `git push origin main` `` tokenises as "`git", whose basename is not "git".
+PUNCTUATION = "();<>|&`"
+SHELLS = {"bash", "sh", "zsh", "dash", "ksh"}
+# `eval` takes its script the same way `sh -c` does, so it needs the same recursion.
+EVAL = "eval"
+MAX_DEPTH = 2
 
 
 def git(cwd, *args):
@@ -59,28 +71,86 @@ def branch_of(refspec):
     return re.sub(r"^refs/heads/", "", dest)
 
 
-def push_segments(command):
-    """Each shell segment that invokes `git push`, tokenised."""
-    for segment in re.split(r"&&|\|\||;|\||\n", command):
-        try:
-            tokens = shlex.split(segment)
-        except ValueError:
+def segments(command):
+    """The command's tokens, cut into one list per shell command.
+
+    Quoting is resolved before the cut, so a `;` or `&&` inside an argument stays part
+    of that argument. That is what keeps `grep "git push origin main" .` quiet while
+    `(git push origin main)` and `git push origin main&` are still seen: the parentheses
+    and the ampersand are operator tokens, not part of the word next to them.
+    """
+    try:
+        lex = shlex.shlex(command, posix=True, punctuation_chars=PUNCTUATION)
+        lex.whitespace_split = True
+        tokens = list(lex)
+    except ValueError:
+        return                                   # unbalanced quotes: nothing to read
+    current = []
+    for tok in tokens:
+        if tok in OPERATORS:
+            if current:
+                yield current
+            current = []
+        else:
+            current.append(tok)
+    if current:
+        yield current
+
+
+def resolve(base, path):
+    """A `-C` value against the directory the command runs in."""
+    return path if os.path.isabs(path) else os.path.normpath(os.path.join(base, path))
+
+
+def push_invocations(command, cwd, depth=0):
+    """(args, directory) for each `git push` the command would run.
+
+    `cd` is deliberately not tracked. Following it would make `cd /elsewhere && git push
+    origin main` resolve against a directory that may not be a repository at all, and the
+    guard would then go quiet on a command whose second half is a trunk push. Over-asking
+    against the session's repository is the safe direction; going silent is not.
+    """
+    if depth > MAX_DEPTH:
+        return
+    for tokens in segments(command):
+        if not tokens:
+            continue
+        head = os.path.basename(tokens[0])
+        if head == EVAL and len(tokens) > 1:      # `eval '<script>'` carries a command
+            for t in tokens[1:]:
+                yield from push_invocations(t, cwd, depth + 1)
+            continue
+        if head in SHELLS:
+            for k in range(1, len(tokens) - 1):   # `bash -c '<script>'` carries a command
+                t = tokens[k]
+                # Short flags combine, and `-lc` is commoner than `-c` alone. Match any
+                # short-flag cluster ending in `c`; `--foo=c` is excluded by the `=`,
+                # and a long option never ends up here because of the `--` prefix test.
+                if t.startswith("-") and not t.startswith("--") and "=" not in t and t.endswith("c"):
+                    yield from push_invocations(tokens[k + 1], cwd, depth + 1)
+                    break
             continue
         for i, tok in enumerate(tokens):
             if os.path.basename(tok) != "git":
-                continue
+                continue                          # skips `env FOO=1`, `xargs -I{}` and friends
             rest = tokens[i + 1:]
-            j = 0
+            where, j = cwd, 0
             while j < len(rest):
                 t = rest[j]
-                if t in FLAGS_WITH_VALUE:
+                if t == "-C" and j + 1 < len(rest):
+                    target = resolve(cwd, rest[j + 1])
+                    # Fall back rather than skip: an unreadable -C target must not
+                    # silence the guard, only stop it from using the wrong trunk set.
+                    where = target if git(target, "rev-parse", "--git-dir") else cwd
+                    j += 2
+                elif t in FLAGS_WITH_VALUE:
                     j += 2
                 elif t.startswith("-"):
                     j += 1
                 else:
                     break
             if j < len(rest) and rest[j] == "push":
-                yield rest[j + 1:]
+                yield rest[j + 1:], where
             break
 
 
@@ -115,11 +185,10 @@ def main():
     if "push" not in command:
         return
     cwd = data.get("cwd") or os.getcwd()
-    if not git(cwd, "rev-parse", "--git-dir"):
-        return
-    trunks = trunk_names(cwd)
-    for args in push_segments(command):
-        hits = [d for d in destinations(args, cwd) if d in trunks]
+    for args, where in push_invocations(command, cwd):
+        if not git(where, "rev-parse", "--git-dir"):
+            continue
+        hits = [d for d in destinations(args, where) if d in trunk_names(where)]
         if not hits:
             continue
         reason = (

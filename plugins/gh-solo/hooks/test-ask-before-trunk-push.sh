@@ -47,6 +47,37 @@ def decision(cmd, branch, repo=None):
     return json.loads(p.stdout)["hookSpecificOutput"]["permissionDecision"]
 
 FEAT = "feat/GHI-50_login-form"
+PUSH = "git push origin main"          # the plain form, composed into the shapes below
+# Shapes an agent composes routinely. Every one was watched staying silent while the
+# command was cut with a regex before quoting was resolved, which is why they are here.
+EVASIONS = [
+    (f"({PUSH})", FEAT),
+    (f"{PUSH}&", FEAT),
+    (f"bash -c '{PUSH}'", FEAT),
+    (f"bash -lc '{PUSH}'", FEAT),      # short flags combine, and -lc is commoner than -c
+    (f"sh -lc '{PUSH}'", FEAT),
+    (f"bash -ec '{PUSH}'", FEAT),
+    (f"bash -e -c '{PUSH}'", FEAT),
+    (f"`{PUSH}`", FEAT),               # backtick substitution: not in shlex's own punctuation set
+    (f"eval '{PUSH}'", FEAT),          # eval takes its script the way sh -c does
+    (f"$({PUSH})", FEAT),
+    (f"{{ {PUSH}; }}", FEAT),
+    (f"nohup {PUSH} &", FEAT),
+    (f"/usr/bin/git push origin main", FEAT),
+    ('git push "origin" "main"', FEAT),
+    ("git push origin main:main", FEAT),
+    (f"env FOO=1 {PUSH}", FEAT),
+    (f"xargs -I{{}} {PUSH}", FEAT),
+    (f"if true; then {PUSH}; fi", FEAT),
+    (f"for r in a; do {PUSH}; done", FEAT),
+]
+# The mirror image: the phrase is present, but as data. A regex cut on `;` fires on
+# every one of these, and a guard that cries wolf on a grep is one people click through.
+QUOTED_MENTIONS = [
+    (f"grep -r '{PUSH}' .", FEAT),
+    (f"echo 'a; {PUSH}'", FEAT),
+    (f"rg --files-with-matches '{PUSH}'", FEAT),
+]
 MUST_ASK = [
     ("git push origin main", FEAT),
     ("git push origin HEAD:main", FEAT),
@@ -85,12 +116,26 @@ ODD_MUST_STAY_SILENT = [
     ("git push -u upstream feature/main", "feature/main"),
 ]
 
+# `-C` is read, so a push aimed at another repository is judged against that
+# repository's trunk rather than the session's. Both directions are asserted, because
+# the earlier fixtures pass on the hardcoded names alone and prove nothing about `-C`.
+CROSS_C_MUST_ASK = [
+    (f"git -C {odd} push upstream develop", FEAT),
+]
+CROSS_C_MUST_STAY_SILENT = [
+    (f"git -C {cwd} push origin develop", "feature/main"),
+]
+
 fails = 0
 rounds = (
     ("ask", MUST_ASK, None),
+    ("ask", EVASIONS, None),
     ("silent", MUST_STAY_SILENT, None),
+    ("silent", QUOTED_MENTIONS, None),
     ("ask", ODD_MUST_ASK, odd),
     ("silent", ODD_MUST_STAY_SILENT, odd),
+    ("ask", CROSS_C_MUST_ASK, None),
+    ("silent", CROSS_C_MUST_STAY_SILENT, odd),
 )
 for want, cases, repo in rounds:
     print(f"must be {want}{' [odd repo]' if repo else ''}:")

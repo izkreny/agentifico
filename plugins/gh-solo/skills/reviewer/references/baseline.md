@@ -4,7 +4,7 @@ What the reviewer reviews against **where the repository documents nothing**. Th
 
 **A documented repository standard always wins.** Where the repository's own `AGENTS.md`, `CLAUDE.md` or `.agents/gh-solo.md` endorses something this file would flag, the standard wins and the finding is suppressed. That is not a tie-break; it is the point. A repository's conventions are decisions somebody made on purpose, and a general baseline that overrode them would report the repository's own style back to its author as a defect.
 
-**Everything here is a judgement call.** Each entry is a labelled heuristic, so a finding written from this file says "possible Feature Envy" rather than asserting one. A documented-standard breach can be a hard violation; a baseline smell never is. Where the rules above conflict with anything below, they win.
+**Everything here is a judgement call.** Each entry is a labelled heuristic, so a finding written from this file says "possible Feature Envy" rather than asserting one. A documented-standard breach can be a hard violation; a baseline smell never is. Where *The rules about the change itself* conflicts with *The smells*, the rules win.
 
 **Skip anything tooling already enforces.** A linter, formatter, type checker or test suite reports the same thing for free, every time, and a review that spends the reader's attention on it has bought nothing.
 
@@ -21,7 +21,7 @@ These come before any smell, because they are about whether the diff should exis
 
 All of them, from chapter 3 of Fowler's *Refactoring*, 2nd edition. The right-hand column is his own, copied from the *Smells* table on the book's inside back cover. His page citations are deliberately dropped: nothing that reads this file can open the book, and a page number pins the file to one edition's pagination while looking authoritative after it stops being true. The names locate each entry in any edition.
 
-**That column is a test you apply, never text you write.** Ask whether one of the named refactorings would actually resolve the structure in front of you. If none would, you have matched a description and not found the smell, which is the difference between a real finding and a pattern that merely looks similar. Then write none of it: naming the defect is your job, and saying how to fix it is forbidden, per the rule in `../SKILL.md`. The cells hold catalogue names rather than instructions so there is nothing there shaped like advice.
+**That column is a test you apply, never text you write.** Ask whether one of the named refactorings would actually resolve the structure in front of you. If none would, you have matched a description and not found the smell, which is the difference between a real finding and a pattern that merely looks similar. Then write none of it: naming the defect is your job, and saying how to fix it is forbidden, per the never-suggest-a-fix rule under *Rules* in `../SKILL.md`. The cells hold catalogue names rather than instructions so there is nothing there shaped like advice.
 
 | Smell | What it is | Common refactorings |
 |---|---|---|
@@ -58,8 +58,8 @@ The binding rules above, the idea of pairing each smell with the refactorings th
 >
 > Copyright (c) 2026 Matt Pocock
 
-**The smells themselves are Fowler's rather than borrowed.** That skill carries a selected twelve; this file carries chapter 3 entire, with the refactoring column taken from the book's own *Smells* table, so nothing here is a paraphrase of a paraphrase.
+**The smells themselves are Fowler's rather than borrowed.** That skill carries a selection; this file carries chapter 3 entire, with the refactoring column taken from the book's own *Smells* table, so nothing here is a paraphrase of a paraphrase.
 
-Two deliberate departures from the borrowed material. Its briefs cap each axis at 400 words, which this plugin drops: the reviewer emits a structured findings file with one anchored finding per defect, and a word cap on the whole axis pushes against exactly that. And it has no concept of a pull request, a line anchor or a severity, all of which the round here requires, so those are additions rather than adaptations.
+The deliberate departures from the borrowed material. Its briefs cap each axis at 400 words, which this plugin drops: the reviewer emits a structured findings file with one anchored finding per defect, and a word cap on the whole axis pushes against exactly that. And it has no concept of a pull request, a line anchor or a severity, all of which the round here requires, so those are additions rather than adaptations.
 
 **Keeping it current is a manual diff of that upstream file**, occasionally, pulling changes in by hand. There is no automatic route and none is wanted: what makes the text worth borrowing is that it is stable and considered, so a change there deserves reading rather than syncing.

@@ -20,6 +20,8 @@ gh issue view <issue-number> --json number,title,state,stateReason,body,labels,p
 
 If it errors, say so plainly and check the repository resolved as expected. The most common cause is running from the wrong working directory, not a wrong number.
 
+**Read the comments before Step 4, and render `blocking` in the report.** Both are in the fetch above and neither is free: `comments` has to be asked for by name or the thread is invisible rather than empty, per *State* in `references/standards.md`, and a criterion the owner already settled in a comment is the commonest thing a status pass reports as still outstanding. `blocking` is what the issue holds up, which is the other half of the dependency picture the report shows.
+
 If the labels include `draft`, say so first: the description is unfinished by its own declaration, so an empty criteria list is the label working, not work remaining. Name what the body is missing and offer the *Finishing a draft* section of `workflows/create.md`, rather than rendering a "Probably still needed" from a body that promises nothing.
 
 ## Step 3 - Read what has happened since the branch was cut
@@ -45,6 +47,9 @@ Match commits to acceptance criteria by what they claim to do. Be honest about t
 {the checkbox list, with GitHub's own checked state preserved}
 
 ### Blocked by
+{#n - title - state, for each; omit the section if none}
+
+### Blocking
 {#n - title - state, for each; omit the section if none}
 
 ### Sub-issues
