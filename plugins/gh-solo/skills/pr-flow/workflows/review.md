@@ -151,13 +151,11 @@ One call lands every thread and the record Review together, so a half-posted PR 
    ```bash
    gh api --paginate --slurp "repos/{owner}/{repo}/pulls/<pr-number>/comments" \
      --jq '[.[][].body | scan("RF([0-9]+)") | .[0] | tonumber] | max // 0'
-   gh api --paginate --slurp "repos/{owner}/{repo}/pulls/<pr-number>/reviews" \
-     --jq '[.[][].body | scan("RF([0-9]+)") | .[0] | tonumber] | max // 0'
    ```
 
-   **Take the larger of the two, because a deferred id lives only in a Review body.** A finding Step 5 could not anchor carries its `RF{n}` in the re-review record and has no comment anywhere until step 7 posts it, so a read of the comments endpoint alone returns a maximum below the highest id the pull request has actually issued, and the next round reissues it to a different finding. That breaks *Ids never restart* permanently, and nothing detects it.
+   **Every id this flow issues is on a thread, which is why the comments endpoint is the whole answer.** A finding that could not be anchored is never given an id, per Step 5, precisely so that no id exists anywhere this read cannot see it.
 
-   **`--slurp` is what makes each of these one answer rather than one per page.** Without it `--paginate` hands the filter each page separately, so a two-page PR prints two maxima and taking the first reissues ids that already exist - which breaks *Ids never restart* in `references/review-protocol.md` permanently. It prints `0` when no round has posted yet.
+   **`--slurp` is what makes this one answer rather than one per page.** Without it `--paginate` hands the filter each page separately, so a two-page PR prints two maxima and taking the first reissues ids that already exist - which breaks *Ids never restart* in `references/review-protocol.md` permanently. It prints `0` when no round has posted yet.
 3. **Write the disclaimer line to a file**, its wording per the AI-disclaimer bullet in `SKILL.md`. The script refuses a line that does not open with `> 🤖`.
 4. **Build and validate the payload:**
 
@@ -214,7 +212,12 @@ Then post what it returns:
 - **Each verdict as a reply in its finding's thread**, the same endpoint as step 3, via `pr-flow` review, re-review verdict.
 - **Re-read the head and compare it before building this payload**, exactly as Step 2's first item does. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it.
 - **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script, same call as step 2, with the re-review findings file: new defects become new threads with new ids continuing the sequence, and the record indexes its own pass.
-- **A new defect on a line only the fix commits contain cannot be a thread this round.** The fixes are unpushed by design, so that line is not in the pull request's diff and GitHub cannot resolve an anchor to it; the call is atomic, so attempting it would take the verdicts for every closed finding down with it. Give it its `RF{n}` from the same sequence so the id space stays continuous, then carry it in the record Review's body, which has no anchor and posts cleanly, and in the round report with its `file:line` in the text. **Write it to a deferred findings file** in the same format the posting script accepts, keep it outside the working tree, and print its absolute path in the round report: the protocol's step 7 posts it once the push has made the line real, and a path nobody recorded is a finding nobody can post. Say in the round report that its thread opens then, so the owner knows the finding exists and knows why it has no thread to reply in yet. **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round.
+- **A new defect on a line only the fix commits contain cannot be posted this round, and it gets no `RF{n}`.** The fixes are unpushed by design, so that line is not in the pull request's diff, GitHub cannot resolve an anchor to it, and the call is atomic, so attempting it would take the verdicts for every closed finding down with it. **Leave it out of the findings file entirely** and put it in the round report instead, with its `file:line` and what goes wrong, under a heading that says it has no thread.
+
+  **Withholding the id is the point rather than an omission.** An id assigned here could not be posted anywhere: `scripts/post-review.py` composes the record Review from the findings list alone and has no free-text field, every entry in that list becomes an inline comment, and posting by hand is forbidden. So the id would exist only in a report, the next round's highest-id read would not see it, and the id would be reissued to a different finding - which breaks *Ids never restart* in `references/review-protocol.md` permanently, in exchange for nothing.
+
+  **The owner is the route.** They read the finding in the round report at the protocol's step 6, and after the push at step 7 the line is ordinary: the next full pass anchors it without special handling, or they raise it themselves. **This is a known limitation rather than a design**, tracked as issue #8 on this plugin's own repository, whose fix needs the posting script to grow a way to carry a finding that has no anchor yet. Say so in the report rather than implying the finding is handled.
+- **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round.
 
 The caps on both loops are the protocol's, and they are the only thing that ends this block short of the owner.
 
