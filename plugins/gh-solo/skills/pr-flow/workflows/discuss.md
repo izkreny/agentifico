@@ -212,6 +212,8 @@ An order inside a thread authorises the fix and the commit. **It does not author
 
 About the fix and its reply:
 
+- **The reply naming the fix is a post like any other**, so its length is the post-cap bullet's in `SKILL.md` and its companion rule holds: name the commit rather than paraphrasing it.
+
 - **Fixes group by coherent change, and every `RF{n}` a commit closes is named in its body.** Two findings that are one defect seen twice belong in one commit; two unrelated fixes do not. The ids, not the commit boundary, are what keep "what changed because of the review" answerable - `git log --grep=RF5` finds the fix wherever it sits. Where a finding is one the owner may still reject, give it its own commit so backing it out stays a `git revert`. Any `## Verification` gate the fix invalidated is re-run and re-ticked. Those are the repository's own commands, which this skill's narrowed `Bash` cannot run, so **invoke the `gh-solo:implement` skill at its `fix <pr-number>` entrance** and follow it here: entering it by name is what puts the work under that skill's tool grant, and its rules are the ones this step shares.
 - **The reply names the commit subject and the `RF{n}`, and says plainly that it is committed locally and not yet pushed.** Never a sha - the owner does not use them, and on a stacked branch a later `gh stack sync` rewrites them. Disclaimer first, as on every reply.
 - **The fix stays scoped to the order.** A defect noticed while fixing goes to the next review pass, per the rule below, not into the commit.
