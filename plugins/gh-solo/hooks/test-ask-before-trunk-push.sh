@@ -58,6 +58,12 @@ EVASIONS = [
     (f"sh -lc '{PUSH}'", FEAT),
     (f"bash -ec '{PUSH}'", FEAT),
     (f"bash -e -c '{PUSH}'", FEAT),
+    (f"`{PUSH}`", FEAT),               # backtick substitution: not in shlex's own punctuation set
+    (f"eval '{PUSH}'", FEAT),          # eval takes its script the way sh -c does
+    (f"$({PUSH})", FEAT),
+    (f"{{ {PUSH}; }}", FEAT),
+    (f"nohup {PUSH} &", FEAT),
+    (f"/usr/bin/git push origin main", FEAT),
     ('git push "origin" "main"', FEAT),
     ("git push origin main:main", FEAT),
     (f"env FOO=1 {PUSH}", FEAT),

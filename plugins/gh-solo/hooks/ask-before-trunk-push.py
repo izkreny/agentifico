@@ -23,8 +23,13 @@ DELETES = {"--delete", "-d"}
 # each of these as its own token, which is why they are matched here and not by a regex
 # over the raw string: a regex split runs before quoting is understood, so it cuts a
 # quoted `;` inside an argument and turns `echo 'a; git push origin main'` into a push.
-OPERATORS = {"&&", "||", "|", ";", ";;", "&", "(", ")", "\n"}
+OPERATORS = {"&&", "||", "|", ";", ";;", "&", "(", ")", "`", "\n"}
+# Backtick is added to shlex's own set, which does not carry it: without it
+# `` `git push origin main` `` tokenises as "`git", whose basename is not "git".
+PUNCTUATION = "();<>|&`"
 SHELLS = {"bash", "sh", "zsh", "dash", "ksh"}
+# `eval` takes its script the same way `sh -c` does, so it needs the same recursion.
+EVAL = "eval"
 MAX_DEPTH = 2
 
 
@@ -75,7 +80,7 @@ def segments(command):
     and the ampersand are operator tokens, not part of the word next to them.
     """
     try:
-        lex = shlex.shlex(command, posix=True, punctuation_chars=True)
+        lex = shlex.shlex(command, posix=True, punctuation_chars=PUNCTUATION)
         lex.whitespace_split = True
         tokens = list(lex)
     except ValueError:
@@ -110,7 +115,12 @@ def push_invocations(command, cwd, depth=0):
     for tokens in segments(command):
         if not tokens:
             continue
-        if os.path.basename(tokens[0]) in SHELLS:
+        head = os.path.basename(tokens[0])
+        if head == EVAL and len(tokens) > 1:      # `eval '<script>'` carries a command
+            for t in tokens[1:]:
+                yield from push_invocations(t, cwd, depth + 1)
+            continue
+        if head in SHELLS:
             for k in range(1, len(tokens) - 1):   # `bash -c '<script>'` carries a command
                 t = tokens[k]
                 # Short flags combine, and `-lc` is commoner than `-c` alone. Match any
