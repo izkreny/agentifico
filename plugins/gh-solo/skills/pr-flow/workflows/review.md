@@ -254,7 +254,7 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 | **Verification present** | The body has a `## Verification` section with at least one checkbox. It is a required plan section and `workflows/ready.md` reads it; a PR without it reached review with no stated gates |
 | **Plan overview capped** | `## Plan overview` is five sentences or bullets at most, and links the plan file rather than naming it in backticks. Count them; mechanical, not a judgement |
 | **Posts capped** | Every post on the PR carrying a `via` line is within the length *Post caps* in `SKILL.md` sets, applying its exclusions. Count them; mechanical, not a judgement. **This audits the previous round, never this one** - a round cannot check posts it has not made yet, so a breach surfaces one round late |
-| **Posts do not restate** | No such post restates what the reader is already looking at, per the companion rule beside that bullet. **A judgement, not a count**, and the only one in this table: a fix plan re-arguing its own finding is inside the sentence cap and still a breach, so counting cannot find it. Same one-round latency |
+| **Posts do not restate** | No such post restates what the reader is already looking at, per the companion rule in *Post caps*. **A judgement rather than a count**: a fix plan re-arguing its own finding is inside the sentence cap and still a breach, so counting cannot find it. Same one-round latency |
 | **Assignee** | `@me` is set. GitHub does not do this at creation |
 | **Branch name** | `{type}/GHI-{issue-number}_{slug}`, per *Quick reference* in the `tracker` standards |
 | **Commit headers** | `{type}: {description} (#{issue-number})`, no scope, same source |
