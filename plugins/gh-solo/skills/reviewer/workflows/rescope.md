@@ -19,7 +19,7 @@ Everything about the finding shape, the findings file, your report and the stand
 
 **Nothing else is in scope.** No findings on code the fixes did not touch, no style opinions, no re-opening a finding somebody already rejected, no second thoughts about your own earlier findings. A full second review is where a round's iteration count explodes, because each pass finds fresh nitpicks on code nobody asked about.
 
-**Each thing a full pass reads and this one does not is skipped on purpose, and each skip is what keeps the scope scoped:**
+**Each thing a full pass reads and this one does not is skipped on purpose, and each skip is what keeps the scope scoped - i.e. IN ANY CIRCUMSTANCES DO NOT READ:**
 
 - **The pull request** - its title, body and file list describe the branch, and neither question is about the branch.
 - **The whole-branch diff** - the commit range you were given is the object under review, and reading the rest is how a scoped pass turns into a second full one.
