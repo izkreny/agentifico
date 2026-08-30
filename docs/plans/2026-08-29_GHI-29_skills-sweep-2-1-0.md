@@ -162,7 +162,7 @@ Run from a cold session over the package as it stood after the first sweep's fix
 
 ### The scoped re-review of the fix range
 
-The plugin's own `reviewer` agent at its `rescope` entrance, over `f6cca00..HEAD`, answering only whether that range closed what it claimed and whether it introduced anything. Seven of the nine closed. It settled the format questions by running `post-review.py` rather than reading it, which is what found the route below to be unbuildable.
+The plugin's own `reviewer` agent at its `rescope` entrance, over `f6cca00..HEAD`, answering only whether that range closed what it claimed and whether it introduced anything. Seven of the nine closed. It settled the format questions by running `plugins/gh-solo/skills/pr-flow/scripts/post-review.py` rather than reading it, which is what found the route below to be unbuildable.
 
 | Id | Verdict | What it cost |
 |---|---|---|
@@ -174,4 +174,4 @@ The plugin's own `reviewer` agent at its `rescope` entrance, over `f6cca00..HEAD
 | R3 | `resolve.md:78` | Step 6's only handle on the file was a path printed to the terminal, and the file lived in a session-scoped scratchpad, so a round resolved in a later session drops the finding silently. Withdrawn in `e39e277`. |
 | R4 | `tracker/SKILL.md:49` | A count of adjacent content, introduced by the fix for S9 two commits earlier. | `e39e277` |
 
-**What the withdrawal settles.** A re-review defect that cannot be anchored gets no id and no promised thread; it goes to the owner in the round report, and after the push the line is ordinary. Carrying it properly needs `post-review.py` to grow a route for a finding with no anchor yet, which is issue #8 rather than this branch.
+**What the withdrawal settles.** A re-review defect that cannot be anchored gets no id and no promised thread; it goes to the owner in the round report, and after the push the line is ordinary. Carrying it properly needs `plugins/gh-solo/skills/pr-flow/scripts/post-review.py` to grow a route for a finding with no anchor yet, which is issue #8 rather than this branch.
