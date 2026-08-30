@@ -196,9 +196,9 @@ Report to the owner: the review id, that their unsubmitted review is holding the
 
 **One reply per thread per pass.** Threads are read as units, and three replies in a row from the agent make that impossible.
 
-**Every reply opens with the AI disclaimer line** per the AI-disclaimer bullet in `SKILL.md`, the `via` line under it per the standing convention there: via `pr-flow` discuss, thread reply. **Its length is the post-cap bullet's**, in the same file. A thread the owner may quote or a mentor may read has no other way to tell who wrote what - the login is always the owner's, the disclaimer says an agent wrote it, and the `via` line says which process did.
+**Every reply opens with the AI disclaimer line** per the AI-disclaimer bullet in `SKILL.md`, the `via` line under it per the standing convention there: via `pr-flow` discuss, thread reply. **Its length is set by *Post caps***, in the same file. A thread the owner may quote or a mentor may read has no other way to tell who wrote what - the login is always the owner's, the disclaimer says an agent wrote it, and the `via` line says which process did.
 
-**A review body or Conversation comment is answered with one Conversation comment.** There is no thread to reply into, so post with `gh pr comment <pr-number> --body-file <file>` - disclaimer and `via` line first, then a link to the review or comment being answered, then the answer, within the post-cap bullet's length. One comment may answer several bodies from the same round, naming each; the body file lives in the harness scratchpad like every other scratch file, never in the working tree.
+**A review body or Conversation comment is answered with one Conversation comment.** There is no thread to reply into, so post with `gh pr comment <pr-number> --body-file <file>` - disclaimer and `via` line first, then a link to the review or comment being answered, then the answer, within the length *Post caps* in `SKILL.md` sets. One comment may answer several bodies from the same round, naming each; the body file lives in the harness scratchpad like every other scratch file, never in the working tree.
 
 ## Step 3 - Never resolve a thread
 
@@ -212,7 +212,7 @@ An order inside a thread authorises the fix and the commit. **It does not author
 
 About the fix and its reply:
 
-- **The reply naming the fix is a post like any other**, so its length is the post-cap bullet's in `SKILL.md` and its companion rule holds: name the commit rather than paraphrasing it.
+- **The reply naming the fix is a post like any other**, so its length is set by *Post caps* in `SKILL.md` and its companion rule holds: name the commit rather than paraphrasing it.
 
 - **Fixes group by coherent change, and every `RF{n}` a commit closes is named in its body.** Two findings that are one defect seen twice belong in one commit; two unrelated fixes do not. The ids, not the commit boundary, are what keep "what changed because of the review" answerable - `git log --grep=RF5` finds the fix wherever it sits. Where a finding is one the owner may still reject, give it its own commit so backing it out stays a `git revert`. Any `## Verification` gate the fix invalidated is re-run and re-ticked. Those are the repository's own commands, which this skill's narrowed `Bash` cannot run, so **invoke the `gh-solo:implement` skill at its `fix <pr-number>` entrance** and follow it here: entering it by name is what puts the work under that skill's tool grant, and its rules are the ones this step shares.
 - **The reply names the commit subject and the `RF{n}`, and says plainly that it is committed locally and not yet pushed.** Never a sha - the owner does not use them, and on a stacked branch a later `gh stack sync` rewrites them. Disclaimer first, as on every reply.

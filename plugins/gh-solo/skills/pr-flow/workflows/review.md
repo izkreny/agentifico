@@ -86,7 +86,7 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
    gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -f body='...'
    ```
 
-   `COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked. **Not the `pulls/<pr-number>/comments` endpoint**, which anchors to a file and line: every convention finding is a fact about the PR as a whole and has nowhere in the code to anchor to. Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` review, convention check; its length is the post-cap bullet's, in the same file, and the failure list is a record row rather than prose, so a long list of failures is not a breach.
+   `COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked. **Not the `pulls/<pr-number>/comments` endpoint**, which anchors to a file and line: every convention finding is a fact about the PR as a whole and has nowhere in the code to anchor to. Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` review, convention check; its length is set by *Post caps* in the same file, and the failure list is a record row rather than prose, so a long list of failures is not a breach.
 
    **These are not review findings and get no `RF{n}` id.** They are tracker integrity, they are the orchestrator's own observation rather than the reviewer's, and giving them ids would put them in the same sequence the fix plans and re-review verdicts answer.
 5. **Refuse early on a thread the merge gate will refuse on.** The convention table's last row is the cheap, early check for *Resolution rests on recorded authority*; a violation stops this workflow here rather than after a round's worth of work.
@@ -181,7 +181,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
    ```
 
    **`--paginate` is not optional.** The endpoint pages at 30 and a plan discussion's threads alone can pass that, so an unpaginated read returns a slice that looks exactly like a failed post. A verify failure is reported, never re-posted over: the threads may already be there.
-7. **Post the reviewer's report as a Conversation comment**, `gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it unchanged, and is relayed verbatim so the post-cap bullet in `SKILL.md` does not count it - what that cap bounds here is whatever you write around it, and its companion rule forbids re-listing findings that are already threads.
+7. **Post the reviewer's report as a Conversation comment**, `gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it unchanged, and is relayed verbatim so *Post caps* in `SKILL.md` does not count it - what that cap bounds here is whatever you write around it, and its companion rule forbids re-listing findings that are already threads.
 
 ### Step 3 - Plan the fix, in the thread
 
@@ -191,7 +191,7 @@ One reply per finding, on the finding's own comment id from the reconciliation r
 gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F body=@<body-file>
 ```
 
-Disclaimer and `via` line first: via `pr-flow` review, fix plan, within the post-cap bullet's length - and per its companion rule the plan is the change and the files it touches, never why the finding is right, which the finding above it already said. Code in a **plain fence**, never a `suggestion` fence, for the reason the protocol gives; `scripts/post-review.py` enforces that on the findings themselves and cannot see these replies, so here it is yours to hold.
+Disclaimer and `via` line first: via `pr-flow` review, fix plan, within the length *Post caps* in `SKILL.md` sets - and per its companion rule the plan is the change and the files it touches, never why the finding is right, which the finding above it already said. Code in a **plain fence**, never a `suggestion` fence, for the reason the protocol gives; `scripts/post-review.py` enforces that on the findings themselves and cannot see these replies, so here it is yours to hold.
 
 Which findings get no plan and wait for the owner instead, and what their reply says, is the protocol's. A finding the reviewer marked `needs_owner` in the findings file is the first of the two kinds; the second you can only see yourself, while planning.
 
@@ -253,7 +253,7 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 | **PR title** | `{type}({scope}): {issue title}` - the `{type}` matching the branch's, the `{scope}` being the issue's layer label, omitted when it repeats the type. It becomes the squash commit's subject on `main`, so a title without the prefix or with an invented scope puts a non-conventional commit in the history - see `workflows/merge.md` |
 | **Verification present** | The body has a `## Verification` section with at least one checkbox. It is a required plan section and `workflows/ready.md` reads it; a PR without it reached review with no stated gates |
 | **Plan overview capped** | `## Plan overview` is five sentences or bullets at most, and links the plan file rather than naming it in backticks. Count them; mechanical, not a judgement |
-| **Posts capped** | Every post on the PR carrying a `via` line is within the length the post-cap bullet in `SKILL.md` sets, applying that bullet's exclusions. Count them; mechanical, not a judgement. **This audits the previous round, never this one** - a round cannot check posts it has not made yet, so a breach surfaces one round late |
+| **Posts capped** | Every post on the PR carrying a `via` line is within the length *Post caps* in `SKILL.md` sets, applying its exclusions. Count them; mechanical, not a judgement. **This audits the previous round, never this one** - a round cannot check posts it has not made yet, so a breach surfaces one round late |
 | **Posts do not restate** | No such post restates what the reader is already looking at, per the companion rule beside that bullet. **A judgement, not a count**, and the only one in this table: a fix plan re-arguing its own finding is inside the sentence cap and still a breach, so counting cannot find it. Same one-round latency |
 | **Assignee** | `@me` is set. GitHub does not do this at creation |
 | **Branch name** | `{type}/GHI-{issue-number}_{slug}`, per *Quick reference* in the `tracker` standards |

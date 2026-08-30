@@ -37,7 +37,7 @@ One Conversation comment, posted first, so that no thread is ever resolved befor
 gh pr comment <pr-number> --body-file <scratch-file>
 ```
 
-Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is the post-cap bullet's, in the same file, which counts neither the marker line below nor the owner's quoted words - both are excluded by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
+Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by *Post caps* in the same file, which counts neither the marker line below nor the owner's quoted words - both are excluded by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
 
 ```
 RESOLVE AUTHORISED: RF1, RF3, RF4
