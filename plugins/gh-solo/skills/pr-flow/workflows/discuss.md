@@ -196,9 +196,9 @@ Report to the owner: the review id, that their unsubmitted review is holding the
 
 **One reply per thread per pass.** Threads are read as units, and three replies in a row from the agent make that impossible.
 
-**Every reply opens with the AI disclaimer line** per the AI-disclaimer bullet in `SKILL.md`, the `via` line under it per the standing convention there: via `pr-flow` discuss, thread reply. A thread the owner may quote or a mentor may read has no other way to tell who wrote what - the login is always the owner's, the disclaimer says an agent wrote it, and the `via` line says which process did.
+**Every reply opens with the AI disclaimer line** per the AI-disclaimer bullet in `SKILL.md`, the `via` line under it per the standing convention there: via `pr-flow` discuss, thread reply. **Its length is the post-cap bullet's**, in the same file. A thread the owner may quote or a mentor may read has no other way to tell who wrote what - the login is always the owner's, the disclaimer says an agent wrote it, and the `via` line says which process did.
 
-**A review body or Conversation comment is answered with one Conversation comment.** There is no thread to reply into, so post with `gh pr comment <pr-number> --body-file <file>` - disclaimer and `via` line first, then a link to the review or comment being answered, then the answer. One comment may answer several bodies from the same round, naming each; the body file lives in the harness scratchpad like every other scratch file, never in the working tree.
+**A review body or Conversation comment is answered with one Conversation comment.** There is no thread to reply into, so post with `gh pr comment <pr-number> --body-file <file>` - disclaimer and `via` line first, then a link to the review or comment being answered, then the answer, within the post-cap bullet's length. One comment may answer several bodies from the same round, naming each; the body file lives in the harness scratchpad like every other scratch file, never in the working tree.
 
 ## Step 3 - Never resolve a thread
 
