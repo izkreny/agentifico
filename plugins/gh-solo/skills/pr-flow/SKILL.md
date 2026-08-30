@@ -53,6 +53,35 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
   So: via `implement` implement, the implementation record; via `pr-flow` review, convention check; via `pr-flow` resolve, the authorisation; via `pr-flow` discuss, thread reply. The one exception is the PR body, which carries the disclaimer alone: it is unmistakably itself, and per `workflows/merge.md` it lands in the squash commit on `main`, where a workflow tag would be noise.
 - **Repository-specific conventions live in the repository**, in its agent config file (`.agents/gh-solo.md`, or `.claude/gh-solo.md` where that is what the repo uses). Read it when present and let it override the defaults here. Nothing repo-specific belongs in this skill. **Which reviewer a round uses is one of those facts:** a `Reviewer agent:` line there names an agent type to spawn instead of the bundled one, and a `Reviewer command:` line names a capability to invoke instead, whose findings come back to the orchestrator and go up through the same posting script. `workflows/review.md` Step 1 owns each form of appointment and what it must produce, and why an unregistered agent is a refusal rather than a fallback. **What the reviewer costs is a per-repo fact too:** a `Reviewer model:` line names the model the round asks the spawn for. That is not an appointment and produces nothing, so the same Step 1 owns it separately - what it is validated against, and why it does not reach the invoked-command form.
 
+### Post caps
+
+**Every post carrying a `via` line is five sentences or bullets at most**, the disclaimer and the `via` line excluded. Count them; mechanical, not a judgement - the same form and the same number as the `## Plan overview` cap in `workflows/open.md` and the summary caps in the `tracker` standards.
+
+**The domain is the `via` line itself**, rather than a list of surfaces, so it cannot drift from the enumeration in the `via` bullet above and it reaches a surface nobody has written yet. What falls outside it, and what falls inside a capped post without counting toward the five, are *Never capped* and *Never counted* below.
+
+**Never restate what the reader is already looking at.** The companion to the count, and the half a count cannot carry: a fix plan does not re-argue the finding it hangs under, a round report does not re-list findings that are already threads on the pull request, and a closing reply does not paraphrase its own commit. Five sentences of restatement are still five sentences of nothing.
+
+**Where the detail has to exist, it goes in the commit message**, which has a reader who wants it and lands it in `git log` rather than in a thread, and the post names where it went.
+
+**Where the owner's global instructions file sets its own cap** on a post under their name, that file wins and this number is the floor beneath it - the same precedence the disclaimer bullet uses.
+
+#### Never capped
+
+Outside the domain entirely, however long it runs:
+
+- **The PR body**, for the same reason it carries no `via` line.
+- **Anything `scripts/post-review.py` composes** - a finding and a record Review are built from the reviewer's findings file rather than written here, and `../reviewer/references/baseline.md` drops an inherited word cap on a finding deliberately, for a reason that is sound there and does not extend to conversation.
+
+#### Never counted
+
+Inside a post the cap does reach, none of this counts toward the five, because none of it is prose whose length the agent chose:
+
+- a fenced code block, and a table;
+- a record row - one line per item, where the length is set by how many items there are rather than by how much was written. The fix map's `RF{n}`-to-commit rows and a convention check's failure list are both this, so a seven-failure Review is not a breach;
+- the owner's own words, quoted;
+- a literal a gate reads, such as `RESOLVE AUTHORISED:`;
+- text relayed verbatim from another producer, which is the reviewer's report and carries its own word cap in `../reviewer/SKILL.md`.
+
 ## Preflight, once per session
 
 Run `gh auth status`. If `gh` is missing, or it runs but exits non-zero, stop and say which of the two it was: the fixes differ, `gh auth login` for the second and an install for the first. Every later step depends on it.
