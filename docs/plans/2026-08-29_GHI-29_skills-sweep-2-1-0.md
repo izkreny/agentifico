@@ -159,3 +159,19 @@ Run from a cold session over the package as it stood after the first sweep's fix
 | S8 | `plugins/gh-solo/skills/tracker/README.md:42-44` | The canonical lifecycle diagram still showed the owner reading every line and submitting the review, with no reviewer agent, and the plugin README sends readers there for it. | `ac445a1` |
 | S9 | `plugins/gh-solo/skills/tracker/SKILL.md:49` | "The keys named here are the ones this skill acts on" claims keys that belong to `implement` and `pr-flow`. Introduced by TR5's fix. | `ac445a1` |
 | S10 | `plugins/gh-solo/skills/reviewer/workflows/rescope.md:47` | "required on both verdicts" counts the two entries of its own example. Introduced by RV5's split. | `ac445a1` |
+
+### The scoped re-review of the fix range
+
+The plugin's own `reviewer` agent at its `rescope` entrance, over `f6cca00..HEAD`, answering only whether that range closed what it claimed and whether it introduced anything. Seven of the nine closed. It settled the format questions by running `post-review.py` rather than reading it, which is what found the route below to be unbuildable.
+
+| Id | Verdict | What it cost |
+|---|---|---|
+| S1, S2, S3, S5, S8, S9, S10 | CLOSED | |
+| S4 | NOT CLOSED | The reviews-endpoint scan reached the right endpoint on a false premise: a deferred id cannot be in a Review body at all, so both scans still miss it. Withdrawn with the route in `e39e277`. |
+| S6 | NOT CLOSED | The pointer moved to a section whose own row for a written reply reads "A discussion", so it failed as silently as the one it replaced. Now points at *Resolution rests on recorded authority*, in `e39e277`. |
+| R1 | `resolve.md:80` | The route told Step 6 both to take the larger maximum as the id base and to echo ids assigned earlier; `build` derives every id from `--continue-from` plus index and exposes no per-finding `rf`, so the two cannot both be obeyed. Withdrawn in `e39e277`. |
+| R2 | `review.md:217` | The deferred file had no valid `pass` value: `re-review` is refused without verdicts, `review` invents an `axes_run` and presents a defect a fix introduced as a fresh round. Verified by running the script. Withdrawn in `e39e277`. |
+| R3 | `resolve.md:78` | Step 6's only handle on the file was a path printed to the terminal, and the file lived in a session-scoped scratchpad, so a round resolved in a later session drops the finding silently. Withdrawn in `e39e277`. |
+| R4 | `tracker/SKILL.md:49` | A count of adjacent content, introduced by the fix for S9 two commits earlier. | `e39e277` |
+
+**What the withdrawal settles.** A re-review defect that cannot be anchored gets no id and no promised thread; it goes to the owner in the round report, and after the push the line is ordinary. Carrying it properly needs `post-review.py` to grow a route for a finding with no anchor yet, which is issue #8 rather than this branch.
