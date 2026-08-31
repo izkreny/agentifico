@@ -49,6 +49,11 @@ skill() {
     > "$SYNTH/skills/thing/SKILL.md"
 }
 
+other() {
+  printf -- '---\nname: other\nmetadata:\n  version: "%s"\n---\n\n%s\n' "$1" "$2" \
+    > "$SYNTH/skills/other/SKILL.md"
+}
+
 # The synthetic repository. Each single-commit range below is one commit against its
 # parent; the two-dot and three-dot cases at the end cover the other range forms, which
 # are the ones a real gate run takes.
@@ -111,6 +116,23 @@ SIDE_STUCK="$(fgit rev-parse HEAD)"
 
 fgit checkout -q main
 
+# A second package, carrying a file beside its manifest, so the manifest can be deleted
+# while the package itself survives. Both shapes below are read off it.
+mkdir -p "$SYNTH/skills/other/references"
+other 1.1.0 'body'
+echo 'a reference' > "$SYNTH/skills/other/references/notes.md"
+fgit add .
+fgit commit -qm 'add a second package with a file beside its manifest'
+
+other 1.1 'body, edited'
+fgit commit -qam 'rewrite the version with one dotted part fewer'
+SHORTENED="$(fgit rev-parse HEAD)"
+
+fgit rm -q skills/other/SKILL.md
+echo 'a reference, edited' > "$SYNTH/skills/other/references/notes.md"
+fgit commit -qam 'delete the manifest while the rest of the package stays'
+ORPHANED="$(fgit rev-parse HEAD)"
+
 echo 'must refuse:'
 expect 1 "$HERE" 390f9e5 'the real commit that broke the rule' 'plugins/gh-solo'
 expect 1 "$SYNTH" "$STUCK" 'a skill changed with its version standing still' 'stayed at 1.0.0'
@@ -118,6 +140,8 @@ expect 1 "$SYNTH" "$BACKWARDS" 'a version moved backwards' 'went back from 1.1.0
 expect 1 "$SYNTH" "$UNVERSIONED" 'a changed skill declaring no version' 'declares no metadata.version'
 expect 1 "$SYNTH" "$ADDED..$STUCK" 'the two-dot form over a standing-still version' 'stayed at 1.0.0'
 expect 1 "$SYNTH" "main...$SIDE_STUCK" 'the three-dot form over a standing-still version' 'stayed at 1.0.0'
+expect 1 "$SYNTH" "$SHORTENED" 'a version rewritten with one dotted part fewer' 'stayed at 1.1 ('
+expect 1 "$SYNTH" "$ORPHANED" 'a manifest deleted while its package survives' 'carries no skills/other/SKILL.md'
 
 echo 'must stay quiet:'
 expect 0 "$HERE" 91933a2 'a real commit touching no package'
