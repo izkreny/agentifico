@@ -103,7 +103,7 @@ Closes #{issue-number}
 
 [YYYY-MM-DD_GHI-{issue-number}_{slug}.md](../blob/main/docs/plans/YYYY-MM-DD_GHI-{issue-number}_{slug}.md) (live after merge; while this PR is open, read it in **Files changed**)
 
-[The approach, so the PR is readable without opening the plan. Five sentences or bullets at most.]
+[The approach, so the PR is readable without opening the plan.]
 
 ## Steps
 
@@ -128,6 +128,8 @@ Closes #{issue-number}
 
 The AI disclaimer goes above all of it, as it does on the plan file and in the commit body. The wording and the rule, including the default used when the owner's global instructions file defines no line, live in the AI-disclaimer bullet of `SKILL.md`; it is not repeated here, because a template is the wrong place to define a convention that applies everywhere.
 
+**The sections that reach `main` as prose carry a length cap**, stated under *Body caps* below and never inside the template, for the same reason.
+
 Why each part earns its place:
 
 - **`Closes #{issue-number}`** closes the issue on merge and records the link permanently. Nothing else enforces it.
@@ -138,6 +140,23 @@ Why each part earns its place:
 - **`## Settled`** is where an answered question lands, question and decision together, because the question is what makes the decision legible to a later reader. Moving rather than deleting matters twice over: `workflows/ready.md` audits `## Open questions` before lifting the draft, and `workflows/merge.md` has the squash merge write the whole PR body into the commit on `main` (`squash_merge_commit_message: PR_BODY`), so a decision recorded here survives in `git log` permanently, where a comment thread never lands. The move happens where the decision does: a discuss round moves an entry the moment the owner's closing decision settles it, per `workflows/discuss.md`, and the pre-spawn sync in the `implement` skill catches anything still unmoved before implementation starts - a body edit either way, like ticking a box, never a commit. A decision settled in the terminal instead of a thread goes into the plan file under the same `## Settled` heading, per `workflows/discuss.md`: one name for the concept everywhere it appears, and the one sanctioned way a plan file changes after plan time.
 
 For a branch that depends on another unmerged branch this is a stacked PR instead: add `--base <parent>`, and see `workflows/stack.md` for whether a stack is wanted at all.
+
+### Body caps
+
+**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement - the same form and the same number as *Post caps* in `SKILL.md`, and this is the one place a body section's cap is stated:
+
+- **`## Plan overview`**, the approach.
+- **The paragraph under `## Verification`**, what the gates cannot see.
+- **`## Open questions`**, each entry and the section together.
+- **`## Settled`**, the same way.
+
+**The cap is here because this body becomes a commit message.** Where the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `workflows/merge.md`, the whole body lands in `git log` on `main` and nothing edits a commit message afterwards. The overview is written once and reviewed at plan time; the rest accumulate for the length of the branch, so uncapped the commit message's length tracks how much discussion the branch had rather than what the branch did.
+
+**What does not count is *Never counted* under *Post caps* in `SKILL.md`**, which reaches a body section unchanged: a fence, a table, the owner's own words quoted, and a record row - which is what the `## Steps` and `## Verification` checkbox lists are, their length set by how many steps and gates a branch has rather than by how much was written. Those two lists are uncapped, and that is why neither is named above.
+
+**A `## Settled` entry is not a record row, and it counts.** One line per item is what that exclusion covers; a settled entry is a question and a decision written at whatever length its writer chose. It is the same line drawn under `## Verification`, where the boxes are excluded and the paragraph beneath them is not - and reading the exclusion the other way would leave the one section that grows for the whole branch bounded by nothing.
+
+**An entry that does not fit moves to the plan file's own `## Settled` heading**, the heading `workflows/discuss.md` already gives a decision settled outside a thread, reached by the same `docs:` commit the `implement` skill makes for a plan change after plan time - and the body's section says that is where it went. **The commit message is not the escape here**, however reliably *Post caps* sends overflow there: this body *is* the commit message, so that route is a circle. The plan file is committed under `docs/plans/`, is already linked from `## Plan overview`, and outlives the branch, so moving rather than deleting holds exactly as it does inside the body.
 
 **Then read what CI made of the push.** Now that the PR exists, `gh pr checks <pr-number> --watch` - or `gh run list --branch <branch>` where the push itself triggers a workflow. This is the cheapest moment the branch will ever have: it holds one plan file, so a red check here means the workflow file or the docs check is broken, not the work, and catching that now costs minutes where catching it at `ready` costs a review cycle. The standing rule in `SKILL.md` - read the checks after any push to a branch with an open PR - starts applying with this push.
 
