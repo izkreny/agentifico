@@ -44,7 +44,7 @@ Step 1's boxes are self-reported from local runs, so a ticked box is evidence th
 Same posture: read, report, do not edit.
 
 - **`## Steps`** — every step that landed should already be ticked by the agent that landed it. An unticked box whose work is plainly done is a bookkeeping miss rather than a blocker; say so and let the owner decide whether to tick it or leave the gap visible.
-- **`## Open questions`** — the finished state is "None.", with every answered entry sitting in `## Settled`, question and decision together, per the body template in `workflows/open.md`. Anything still listed is either a decision nobody made - the owner's call, worth raising before reviewers read it as an open thread - or an answered question nobody moved, which is a bookkeeping miss to report like an unticked `## Steps` box, not a blocker.
+- **`## Open questions`** — the finished state is "None.", with every answered entry sitting in `## Settled` - here, or in the plan file's own `## Settled` heading where *Body caps* in `workflows/open.md` sent it - question and decision together, per the body template there. Anything still listed is either a decision nobody made - the owner's call, worth raising before reviewers read it as an open thread - or an answered question nobody moved, which is a bookkeeping miss to report like an unticked `## Steps` box, not a blocker.
 - **Divergence from the plan** — where the work went somewhere the plan did not, say so. It belongs in a PR comment, never as an edit to the plan file: the plan records intent, and the gap between intent and outcome is the useful part.
 
 **Nothing in this workflow writes to the PR.** The one write it makes is Step 4, and that is a flag rather than content.

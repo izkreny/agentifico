@@ -69,7 +69,8 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 
 Outside the domain entirely, however long it runs:
 
-- **The PR body**, for the same reason it carries no `via` line.
+- **The PR body**, for the same reason it carries no `via` line. It is capped anyway, by *Body caps* in `workflows/open.md`, because it becomes a commit message on `main` - a different cap for a different reason, and not this one.
+- **The git commit message body**, which is where *Post caps* sends detail that has to exist, and has to be unbounded for that to be an escape at all. It carries the disclaimer and no `via` line, so the domain already excludes it; it is named because a reader following the escape would otherwise have to infer that the destination is unbounded.
 - **Anything `scripts/post-review.py` composes** - a finding and a record Review are built from the reviewer's findings file rather than written here, and `../reviewer/references/baseline.md` drops an inherited word cap on a finding deliberately, for a reason that is sound there and does not extend to conversation.
 
 #### Never counted

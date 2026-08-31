@@ -71,6 +71,8 @@ git push <remote> <branch>
 
 Then `gh pr checks <pr-number>`, per the standing convention in `SKILL.md`, before reporting the push as done. Resolve `<remote>` by the recipe in that file's remote-name convention.
 
+**Where a relocation commit is on the remote with its entry still in `## Open questions`, this step lands the PR body edit it owes**, per *Body caps* in `workflows/open.md`, which owns the route and states the invariant this discharges. Read the condition off the remote and the body rather than off what this round holds: an earlier push may already have carried the commit up, and this step owes the edit either way. Where nothing meets it, this step does nothing.
+
 **A red check here reopens nothing**, per the protocol: each finding was closed on its own evidence, and a CI failure contradicts none of it. It is the two-environments finding, so report both sides and diagnose the difference - and it stops the merge until it is answered, which a new commit does rather than a reopened thread.
 
 ## Step 6 - Confirm
