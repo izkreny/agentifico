@@ -10,8 +10,8 @@ Usage:
     version-check.py                 # origin/main...HEAD
     version-check.py <range>         # base..head, base...head, or one commit
 
-Repository-level paths - `docs/`, `scripts/`, `.agents/`, `AGENTS.md`, the
-manifests at the root - belong to no package and oblige nothing.
+Every path outside a `plugins/<name>/` or `skills/<name>/` directory is
+repository-level: it belongs to no package and obliges no version to move.
 
 This script is deliberately repository-specific: it encodes this repository's
 package layout, which is why it lives here rather than inside the `gh-solo`
