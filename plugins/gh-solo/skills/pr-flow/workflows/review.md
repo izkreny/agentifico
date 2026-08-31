@@ -149,13 +149,15 @@ One call lands every thread and the record Review together, so a half-posted PR 
 2. **Find the highest `RF{n}` already on the PR**, since ids never restart:
 
    ```bash
-   gh api --paginate --slurp "repos/{owner}/{repo}/pulls/<pr-number>/comments" \
-     --jq '[.[][].body | scan("RF([0-9]+)") | .[0] | tonumber] | max // 0'
+   gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
+   python3 <skill-dir>/scripts/post-review.py highest-id --comments <listing-file>
    ```
 
    **Every id this flow issues is on a thread, which is why the comments endpoint is the whole answer.** A finding that could not be anchored is never given an id, per Step 5, precisely so that no id exists anywhere this read cannot see it.
 
-   **`--slurp` is what makes this one answer rather than one per page.** Without it `--paginate` hands the filter each page separately, so a two-page PR prints two maxima and taking the first reissues ids that already exist - which breaks *Ids never restart* in `references/review-protocol.md` permanently. It prints `0` when no round has posted yet.
+   **The number comes from the script rather than from a `--jq` filter on the `gh` call, because neither shape of that filter works.** `--jq` applied to a paginated read runs against each page separately, so a two-page PR prints one maximum per page and taking the first reissues ids that already exist - which breaks *Ids never restart* in `references/review-protocol.md` permanently. `--slurp` is what would collapse the pages into one document, and `gh` refuses it alongside `--jq` outright: `the --slurp option is not supported with --jq or --template`, before any request is made. So the pages are merged by writing them to a file, which `--paginate` alone does, and the maximum is read from there. It prints `0` when no round has posted yet.
+
+   **The listing is the same read step 6 makes, and `--slurp` must not be added to it.** `--paginate` alone writes one flat array with the pages already merged; `--slurp` would nest one array per page, and the script refuses that shape rather than finding no ids in it and answering `0`, which is indistinguishable from a first round.
 3. **Write the disclaimer line to a file**, its wording per the AI-disclaimer bullet in `SKILL.md`. The script refuses a line that does not open with `> 🤖`.
 4. **Build and validate the payload:**
 

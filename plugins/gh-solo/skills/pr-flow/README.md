@@ -113,7 +113,7 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 | `workflows/stack.md` | everything about stacks |
 | `workflows/help.md` | printed to you on `help` |
 | `references/review-protocol.md` | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates |
-| `scripts/post-review.py` | builds and validates the one call that posts a round, then reconciles it; `scripts/test-post-review.sh` is its bench |
+| `scripts/post-review.py` | builds and validates the one call that posts a round, then reconciles it; also reads the highest `RF{n}` already on the pull request; `scripts/test-post-review.sh` is its bench |
 | `scripts/docs-check.py` | path and fence checks, run before any docs or plan push |
 
 Anything specific to one repository — its check commands, a convention that differs — belongs in `.agents/gh-solo.md` in that repository, never in this skill. Check commands especially are never invented: they belong to the repo that runs them.
