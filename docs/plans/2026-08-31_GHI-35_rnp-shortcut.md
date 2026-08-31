@@ -20,8 +20,8 @@ The part that is easy to miss is the frontmatter. A skill loads on its `descript
 
 ## Verification
 
-- [ ] `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'` exits zero
-- [ ] `python3 scripts/version-check.py` exits zero
+- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'` exits zero
+- `python3 scripts/version-check.py` exits zero
 
 Neither gate can see whether `rnp` actually fires the skill from a cold session, because that depends on the harness matching the `description:` text rather than on anything in this repository. The evidence for that criterion is the literal word appearing in the description, which is what the harness matches against, and the owner typing it once after the plugin is next installed.
 
