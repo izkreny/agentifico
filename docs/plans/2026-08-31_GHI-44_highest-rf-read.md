@@ -51,8 +51,8 @@ What these gates cannot see: whether a real review round now reaches `build --co
 
 ## Open questions
 
-- The bullet in `plugins/gh-solo/skills/pr-flow/SKILL.md` that says "Where an extraction looks like it needs `grep`, `sort` or `tail`, `--jq` already does it in the one call" is the pressure that produced this defect, and #44's technical notes name that shape as worth more than the instance. Should it carry the `--slurp` incompatibility as a clause, or is that a separate issue?
+None.
 
 ## Settled
 
-None yet.
+- **Should the bullet in `plugins/gh-solo/skills/pr-flow/SKILL.md` that says "Where an extraction looks like it needs `grep`, `sort` or `tail`, `--jq` already does it in the one call" carry the `--slurp` incompatibility as a clause, or is that a separate issue?** Folded into this issue, decided in the terminal. The clause names what `--jq` cannot do rather than the flag that fails: an aggregate over a paginated result is wrong per page without `--slurp` and unrunnable with it, so it belongs in a `python3` read of the listing instead. That is the general shape #44's technical notes call worth more than the instance, and it is what this branch's own fix does.
