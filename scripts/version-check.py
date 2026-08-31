@@ -120,6 +120,12 @@ def parse(version: str) -> tuple[int, ...] | None:
     return tuple(int(part) for part in version.split("."))
 
 
+def aligned(left: tuple[int, ...], right: tuple[int, ...]) -> tuple[tuple[int, ...], ...]:
+    """Both versions zero-padded to one length, so 1.1 does not sort below 1.1.0."""
+    width = max(len(left), len(right))
+    return left + (0,) * (width - len(left)), right + (0,) * (width - len(right))
+
+
 def problems(base: str, head: str) -> tuple[list[str], int]:
     changed = git("diff", "--name-only", base, head).splitlines()
     packages: dict[str, str] = {}
@@ -133,7 +139,9 @@ def problems(base: str, head: str) -> tuple[list[str], int]:
         manifest = packages[label]
         at_head = git_show(head, manifest)
         if at_head is None:
-            if git_show(base, manifest) is None:
+            # A retirement is the whole package gone, not its manifest gone: files left
+            # behind mean a package that still ships with no version to compare.
+            if git("ls-tree", "-r", "--name-only", head, "--", f"{label}/").strip():
                 found.append(f"{label}: changed, and carries no {manifest}")
             continue
         declared = declared_version(manifest, at_head)
@@ -152,13 +160,14 @@ def problems(base: str, head: str) -> tuple[list[str], int]:
             old = parse(previous) if previous else ABSENT
             if old is None:
                 old = ABSENT
-        if new < old:
+        new_parts, old_parts = aligned(new, old)
+        if new_parts < old_parts:
             found.append(
                 f"{label}: changed, and its version went back from "
                 f"{'.'.join(str(part) for part in old)} to {declared} "
                 f"({manifest} moves forward when the package changes)"
             )
-        elif new == old:
+        elif new_parts == old_parts:
             found.append(
                 f"{label}: changed, and its version stayed at {declared} "
                 f"({manifest} moves when the package does)"
