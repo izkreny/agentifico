@@ -22,7 +22,7 @@ A package is released on its own tag, `<name>_<version>`, and carries its own ve
 
 **A change to one package is not a change to another, and no package's version moves for another's change.** That is the rule the tag scheme exists to make true, and it is what makes `skills/` and `plugins/` peers rather than a hierarchy: a skill under `plugins/gh-solo/skills/` ships when the plugin does, a skill under `skills/` ships when it alone is tagged.
 
-**A change to a package's own files moves that package's version, on the branch that makes the change.** Which part moves follows from the commit type: a `feat` moves the minor, a `fix` the patch. Every path outside a `plugins/<name>/` or `skills/<name>/` directory is repository-level, owns no version and moves none, so a change confined to such paths leaves every version where it was.
+**A change to a package's own files moves that package's version, on the branch that makes the change.** Which part moves follows from what the change does to whoever installs the package: a breaking change moves the major, new behaviour the minor, and everything else the patch, with a `!` or a `BREAKING CHANGE:` trailer on the commit marking the first. The commit type is a hint at that and never the rule, since a `feat` can break an interface and a `chore` can leave one alone. Every path outside a `plugins/<name>/` or `skills/<name>/` directory is repository-level, owns no version and moves none, so a change confined to such paths leaves every version where it was.
 
 The package axis is also the repository's label axis, which `.agents/gh-solo.md` records.
 
