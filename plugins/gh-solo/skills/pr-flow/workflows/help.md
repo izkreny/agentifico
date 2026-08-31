@@ -15,8 +15,8 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 | `review 60` | The same for one PR |
 | `discuss 60` (or `reply 60`, `chat 60`) | Read your replies on the review threads and answer them, in the thread |
 | `watch 60` | Poll every 30s for your replies while you read, and answer as they arrive |
-| `unwatch` | Stop that polling. "resolve all and push" stops it too; `discuss` leaves it running, and it dies with the session |
-| `resolve 60` | Record your authorisation, resolve the threads it covers, and push the fixes. Saying "resolve all and push" does the same |
+| `unwatch` | Stop that polling. `rnp`, or "resolve all and push", stops it too; `discuss` leaves it running, and it dies with the session |
+| `resolve 60` (or `rnp 60`) | Record your authorisation, resolve the threads it covers, and push the fixes. Saying "resolve all and push" does the same |
 | `merge` | Audit the checklists, gate on the review record, squash-merge, delete the branch, confirm the issue closed |
 | `view` | Show the stack from trunk outward |
 | `init` | Start a new stack from branches not stacked yet |
@@ -34,7 +34,7 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 4. **`ready`** - the record audited, the PR out of draft
 5. **`review`** - tracker checks posted, then the round: a fresh-context reviewer reads the diff, its findings land as inline threads, each gets a fix plan, the fixes are committed **locally**, and a scoped re-review checks each one closed the finding it claims
 6. **you judge it** - the first thing in the whole run that waits for you: react or reply per thread
-7. **"resolve all and push"** - you say it; the authorisation is recorded, the covered threads resolve, and the fixes finally go up
+7. **`rnp`, or "resolve all and push"** - you type or say it; the authorisation is recorded, the covered threads resolve, and the fixes finally go up
 8. **`merge`** - checklists audited, squash to `main`, branch deleted, the issue closes itself
 
 `open` stops at the draft PR on purpose: the plan is reviewed as a diff before any code is written. Plan approval never authorises the first implementation commit.
@@ -53,9 +53,9 @@ By the time it stops for you, each finding's thread already carries three things
 
 Two kinds of thread wait for you specifically, and the round will have said which: one the reviewer flagged as needing your judgement, and one whose fix would have changed scope. Neither is fixed without you, and both block the merge until you settle them.
 
-**Then say "resolve all and push".** That records the authorisation as a comment naming every finding it covers, resolves those threads, and pushes. It is the round's only push, and the reason it waited is that a push re-anchors every thread and marks them outdated under a reader part-way through.
+**Then type `rnp`, or say "resolve all and push".** Either records the authorisation as a comment naming every finding it covers, resolves those threads, and pushes. It is the round's only push, and the reason it waited is that a push re-anchors every thread and marks them outdated under a reader part-way through.
 
-**Or come back and say so** - "I replied on the PR", or `discuss 60`. Or run `watch 60` first and it will poll while you work, answering as they land - that has to be the command, not a sentence, so nothing starts polling because it guessed. `auto` and `go` arm it for you when they reach this step. The watch runs through the whole round, so comment at your own pace; it stops on "resolve all and push", on `unwatch`, or with the session. Nothing notifies the session that you commented in the GitHub UI, so a reply nobody is told about is a reply nobody reads. `sync` does *not* mean this: that word cascade-rebases a stack.
+**Or come back and say so** - "I replied on the PR", or `discuss 60`. Or run `watch 60` first and it will poll while you work, answering as they land - that has to be the command, not a sentence, so nothing starts polling because it guessed. `auto` and `go` arm it for you when they reach this step. The watch runs through the whole round, so comment at your own pace; it stops on `rnp` or "resolve all and push", on `unwatch`, or with the session. Nothing notifies the session that you commented in the GitHub UI, so a reply nobody is told about is a reply nobody reads. `sync` does *not* mean this: that word cascade-rebases a stack.
 
 `discuss` and `watch` work from the moment the PR exists, not only mid-review - the plan discussion after `open` is the same loop, since the plan file is the whole diff. **Inline on the file's lines in the Files changed tab is the best place to comment**, because a thread anchored to a line is what the round's ids, fix plans and resolves attach to. It is a recommendation rather than a requirement: review summary bodies and Conversation comments are read too, on their own endpoints, so nothing you write goes unread wherever you put it.
 
