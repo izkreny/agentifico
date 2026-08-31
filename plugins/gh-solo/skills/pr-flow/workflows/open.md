@@ -141,6 +141,8 @@ Why each part earns its place:
 
 For a branch that depends on another unmerged branch this is a stacked PR instead: add `--base <parent>`, and see `workflows/stack.md` for whether a stack is wanted at all.
 
+**Then read what CI made of the push.** Now that the PR exists, `gh pr checks <pr-number> --watch` - or `gh run list --branch <branch>` where the push itself triggers a workflow. This is the cheapest moment the branch will ever have: it holds one plan file, so a red check here means the workflow file or the docs check is broken, not the work, and catching that now costs minutes where catching it at `ready` costs a review cycle. The standing rule in `SKILL.md` - read the checks after any push to a branch with an open PR - starts applying with this push.
+
 ### Body caps
 
 **Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement - the same form and the same number as *Post caps* in `SKILL.md`, and this is the one place a body section's cap is stated:
@@ -157,8 +159,6 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 **A `## Settled` entry is not a record row, and it counts.** One line per item is what that exclusion covers; a settled entry is a question and a decision written at whatever length its writer chose. It is the same line drawn under `## Verification`, where the boxes are excluded and the paragraph beneath them is not - and reading the exclusion the other way would leave the one section that grows for the whole branch bounded by nothing.
 
 **An entry that does not fit moves to the plan file's own `## Settled` heading**, the heading `workflows/discuss.md` already gives a decision settled outside a thread, reached by the same `docs:` commit the `implement` skill makes for a plan change after plan time - and the body's section says that is where it went. **The commit message is not the escape here**, however reliably *Post caps* sends overflow there: this body *is* the commit message, so that route is a circle. The plan file is committed under `docs/plans/`, is already linked from `## Plan overview`, and outlives the branch, so moving rather than deleting holds exactly as it does inside the body.
-
-**Then read what CI made of the push.** Now that the PR exists, `gh pr checks <pr-number> --watch` - or `gh run list --branch <branch>` where the push itself triggers a workflow. This is the cheapest moment the branch will ever have: it holds one plan file, so a red check here means the workflow file or the docs check is broken, not the work, and catching that now costs minutes where catching it at `ready` costs a review cycle. The standing rule in `SKILL.md` - read the checks after any push to a branch with an open PR - starts applying with this push.
 
 ## Step 5 - Confirm
 
