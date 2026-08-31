@@ -75,7 +75,7 @@ def split_range(spec: str) -> tuple[str, str]:
 def package_of(path: str) -> tuple[str, str] | None:
     """The package owning a path, as (manifest, label), or None for repo-level."""
     parts = path.split("/")
-    if len(parts) < 2:
+    if len(parts) < 3:
         return None
     if parts[0] == "plugins":
         return PLUGIN_MANIFEST.format(name=parts[1]), f"plugins/{parts[1]}"
@@ -133,7 +133,8 @@ def problems(base: str, head: str) -> tuple[list[str], int]:
         manifest = packages[label]
         at_head = git_show(head, manifest)
         if at_head is None:
-            found.append(f"{label}: changed, and carries no {manifest}")
+            if git_show(base, manifest) is None:
+                found.append(f"{label}: changed, and carries no {manifest}")
             continue
         declared = declared_version(manifest, at_head)
         if declared is None:
@@ -151,7 +152,13 @@ def problems(base: str, head: str) -> tuple[list[str], int]:
             old = parse(previous) if previous else ABSENT
             if old is None:
                 old = ABSENT
-        if new <= old:
+        if new < old:
+            found.append(
+                f"{label}: changed, and its version went back from "
+                f"{'.'.join(str(part) for part in old)} to {declared} "
+                f"({manifest} moves forward when the package changes)"
+            )
+        elif new == old:
             found.append(
                 f"{label}: changed, and its version stayed at {declared} "
                 f"({manifest} moves when the package does)"

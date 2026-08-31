@@ -74,9 +74,23 @@ skill 1.1.0 'body, edited again'
 fgit commit -qam 'change it and move the version'
 MOVED="$(fgit rev-parse HEAD)"
 
+skill 0.9.0 'body, edited once more'
+fgit commit -qam 'change it and move the version backwards'
+BACKWARDS="$(fgit rev-parse HEAD)"
+
 printf -- '---\nname: thing\n---\n\nbody, unversioned\n' > "$SYNTH/skills/thing/SKILL.md"
 fgit commit -qam 'drop the version field'
 UNVERSIONED="$(fgit rev-parse HEAD)"
+
+fgit rm -q -r skills/thing
+fgit commit -qm 'retire the package'
+RETIRED="$(fgit rev-parse HEAD)"
+
+mkdir -p "$SYNTH/skills"
+echo 'what lives here' > "$SYNTH/skills/README.md"
+fgit add .
+fgit commit -qm 'add a file directly under skills'
+STRAY="$(fgit rev-parse HEAD)"
 
 mkdir -p "$SYNTH/docs/plans"
 echo 'a plan' > "$SYNTH/docs/plans/plan.md"
@@ -100,6 +114,7 @@ fgit checkout -q main
 echo 'must refuse:'
 expect 1 "$HERE" 390f9e5 'the real commit that broke the rule' 'plugins/gh-solo'
 expect 1 "$SYNTH" "$STUCK" 'a skill changed with its version standing still' 'stayed at 1.0.0'
+expect 1 "$SYNTH" "$BACKWARDS" 'a version moved backwards' 'went back from 1.1.0 to 0.9.0'
 expect 1 "$SYNTH" "$UNVERSIONED" 'a changed skill declaring no version' 'declares no metadata.version'
 expect 1 "$SYNTH" "$ADDED..$STUCK" 'the two-dot form over a standing-still version' 'stayed at 1.0.0'
 expect 1 "$SYNTH" "main...$SIDE_STUCK" 'the three-dot form over a standing-still version' 'stayed at 1.0.0'
@@ -108,6 +123,8 @@ echo 'must stay quiet:'
 expect 0 "$HERE" 91933a2 'a real commit touching no package'
 expect 0 "$SYNTH" "$ADDED" 'a package added on the branch'
 expect 0 "$SYNTH" "$MOVED" 'a skill changed with its version moved'
+expect 0 "$SYNTH" "$RETIRED" 'a package retired'
+expect 0 "$SYNTH" "$STRAY" 'a file directly under skills, owned by no package'
 expect 0 "$SYNTH" "$REPO_ONLY" 'repository-level files only'
 expect 0 "$SYNTH" "$ADDED..$MOVED" 'the two-dot form over a moved version'
 expect 0 "$SYNTH" "main...$SIDE_MOVED" 'the three-dot form over a moved version'
