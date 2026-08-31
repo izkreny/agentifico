@@ -133,6 +133,19 @@ echo 'a reference, edited' > "$SYNTH/skills/other/references/notes.md"
 fgit commit -qam 'delete the manifest while the rest of the package stays'
 ORPHANED="$(fgit rev-parse HEAD)"
 
+# A directory under skills/ that never carries a manifest, then scrapped wholesale. The
+# survival test draws the retirement boundary here, and neither side of it is an
+# acceptance criterion of #41, so nothing else would catch it moving.
+mkdir -p "$SYNTH/skills/legacy"
+echo 'no manifest here' > "$SYNTH/skills/legacy/notes.md"
+fgit add .
+fgit commit -qm 'add a directory that never carries a manifest'
+UNMANIFESTED="$(fgit rev-parse HEAD)"
+
+fgit rm -q -r skills/legacy
+fgit commit -qm 'scrap that directory wholesale'
+SCRAPPED="$(fgit rev-parse HEAD)"
+
 echo 'must refuse:'
 expect 1 "$HERE" 390f9e5 'the real commit that broke the rule' 'plugins/gh-solo'
 expect 1 "$SYNTH" "$STUCK" 'a skill changed with its version standing still' 'stayed at 1.0.0'
@@ -142,12 +155,14 @@ expect 1 "$SYNTH" "$ADDED..$STUCK" 'the two-dot form over a standing-still versi
 expect 1 "$SYNTH" "main...$SIDE_STUCK" 'the three-dot form over a standing-still version' 'stayed at 1.0.0'
 expect 1 "$SYNTH" "$SHORTENED" 'a version rewritten with one dotted part fewer' 'stayed at 1.1 ('
 expect 1 "$SYNTH" "$ORPHANED" 'a manifest deleted while its package survives' 'carries no skills/other/SKILL.md'
+expect 1 "$SYNTH" "$UNMANIFESTED" 'a live directory that carries no manifest' 'carries no skills/legacy/SKILL.md'
 
 echo 'must stay quiet:'
 expect 0 "$HERE" 91933a2 'a real commit touching no package'
 expect 0 "$SYNTH" "$ADDED" 'a package added on the branch'
 expect 0 "$SYNTH" "$MOVED" 'a skill changed with its version moved'
 expect 0 "$SYNTH" "$RETIRED" 'a package retired'
+expect 0 "$SYNTH" "$SCRAPPED" 'a directory that never carried a manifest, scrapped'
 expect 0 "$SYNTH" "$STRAY" 'a file directly under skills, owned by no package'
 expect 0 "$SYNTH" "$REPO_ONLY" 'repository-level files only'
 expect 0 "$SYNTH" "$ADDED..$MOVED" 'the two-dot form over a moved version'
