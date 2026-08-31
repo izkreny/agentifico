@@ -19,9 +19,9 @@ than none. It writes no network traffic and needs none, so it is safe to re-run.
 carrying an ordinary plan discussion returns a slice that looks exactly like a failed post.
 
 `highest-id` reads the same listing and prints the number `build --continue-from` wants. It
-exists as a subcommand rather than as a `--jq` filter on the `gh` call because `gh` refuses
-`--slurp` alongside `--jq`, and without `--slurp` a `--jq` filter is applied to each page
-separately, so a paginated pull request prints one maximum per page instead of one answer.
+is a subcommand rather than a `--jq` filter on the `gh` call because `--jq` cannot read a
+paginated result whole; the unattended-command bullet in the `pr-flow` skill's SKILL.md owns
+that rule and says why.
 
 Exit codes: 0 all checks passed, 2 a check failed, 1 the arguments or the files were unusable.
 """
