@@ -16,6 +16,12 @@ trap 'rm -rf "$SYNTH"' EXIT
 
 fails=0
 
+# The fixture's own git calls read no configuration but their own, so signing, hooks or
+# templates set up on the machine cannot stop the bench before a case has run.
+fgit() {
+  GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null git -C "$SYNTH" "$@"
+}
+
 expect() {
   local want="$1" repo="$2" range="$3" name="$4" match="${5:-}"
   local out status
@@ -38,50 +44,73 @@ expect() {
   printf '  ok   %s\n' "$name"
 }
 
-# The synthetic repository, one commit per shape. Each range below is one commit
-# against its parent, which is the check's single-revision form.
-git -C "$SYNTH" init -q -b main .
-git -C "$SYNTH" config user.email bench@example.invalid
-git -C "$SYNTH" config user.name bench
+skill() {
+  printf -- '---\nname: thing\nmetadata:\n  version: "%s"\n---\n\n%s\n' "$1" "$2" \
+    > "$SYNTH/skills/thing/SKILL.md"
+}
+
+# The synthetic repository. Each single-commit range below is one commit against its
+# parent; the two-dot and three-dot cases at the end cover the other range forms, which
+# are the ones a real gate run takes.
+fgit init -q -b main .
+fgit config user.email bench@example.invalid
+fgit config user.name bench
 
 echo 'a repository' > "$SYNTH/README.md"
-git -C "$SYNTH" add .
-git -C "$SYNTH" commit -qm 'the root commit, carrying no package'
+fgit add .
+fgit commit -qm 'the root commit, carrying no package'
 
 mkdir -p "$SYNTH/skills/thing"
-printf -- '---\nname: thing\nmetadata:\n  version: "1.0.0"\n---\n\nbody\n' > "$SYNTH/skills/thing/SKILL.md"
-git -C "$SYNTH" add .
-git -C "$SYNTH" commit -qm 'add the package'
-ADDED="$(git -C "$SYNTH" rev-parse HEAD)"
+skill 1.0.0 'body'
+fgit add .
+fgit commit -qm 'add the package'
+ADDED="$(fgit rev-parse HEAD)"
 
-printf -- '---\nname: thing\nmetadata:\n  version: "1.0.0"\n---\n\nbody, edited\n' > "$SYNTH/skills/thing/SKILL.md"
-git -C "$SYNTH" commit -qam 'change it without moving the version'
-STUCK="$(git -C "$SYNTH" rev-parse HEAD)"
+skill 1.0.0 'body, edited'
+fgit commit -qam 'change it without moving the version'
+STUCK="$(fgit rev-parse HEAD)"
 
-printf -- '---\nname: thing\nmetadata:\n  version: "1.1.0"\n---\n\nbody, edited again\n' > "$SYNTH/skills/thing/SKILL.md"
-git -C "$SYNTH" commit -qam 'change it and move the version'
-MOVED="$(git -C "$SYNTH" rev-parse HEAD)"
+skill 1.1.0 'body, edited again'
+fgit commit -qam 'change it and move the version'
+MOVED="$(fgit rev-parse HEAD)"
 
 printf -- '---\nname: thing\n---\n\nbody, unversioned\n' > "$SYNTH/skills/thing/SKILL.md"
-git -C "$SYNTH" commit -qam 'drop the version field'
-UNVERSIONED="$(git -C "$SYNTH" rev-parse HEAD)"
+fgit commit -qam 'drop the version field'
+UNVERSIONED="$(fgit rev-parse HEAD)"
 
 mkdir -p "$SYNTH/docs/plans"
 echo 'a plan' > "$SYNTH/docs/plans/plan.md"
-git -C "$SYNTH" add .
-git -C "$SYNTH" commit -qm 'touch repository-level files only'
-REPO_ONLY="$(git -C "$SYNTH" rev-parse HEAD)"
+fgit add .
+fgit commit -qm 'touch repository-level files only'
+REPO_ONLY="$(fgit rev-parse HEAD)"
+
+# Two side branches off ADDED, so the three-dot form has a merge base to find.
+fgit checkout -q -b side-moved "$ADDED"
+skill 2.0.0 'body, on a branch'
+fgit commit -qam 'change it on a branch and move the version'
+SIDE_MOVED="$(fgit rev-parse HEAD)"
+
+fgit checkout -q -b side-stuck "$ADDED"
+skill 1.0.0 'body, on another branch'
+fgit commit -qam 'change it on a branch without moving the version'
+SIDE_STUCK="$(fgit rev-parse HEAD)"
+
+fgit checkout -q main
 
 echo 'must refuse:'
 expect 1 "$HERE" 390f9e5 'the real commit that broke the rule' 'plugins/gh-solo'
 expect 1 "$SYNTH" "$STUCK" 'a skill changed with its version standing still' 'stayed at 1.0.0'
 expect 1 "$SYNTH" "$UNVERSIONED" 'a changed skill declaring no version' 'declares no metadata.version'
+expect 1 "$SYNTH" "$ADDED..$STUCK" 'the two-dot form over a standing-still version' 'stayed at 1.0.0'
+expect 1 "$SYNTH" "main...$SIDE_STUCK" 'the three-dot form over a standing-still version' 'stayed at 1.0.0'
 
 echo 'must stay quiet:'
 expect 0 "$HERE" 91933a2 'a real commit touching no package'
 expect 0 "$SYNTH" "$ADDED" 'a package added on the branch'
 expect 0 "$SYNTH" "$MOVED" 'a skill changed with its version moved'
 expect 0 "$SYNTH" "$REPO_ONLY" 'repository-level files only'
+expect 0 "$SYNTH" "$ADDED..$MOVED" 'the two-dot form over a moved version'
+expect 0 "$SYNTH" "main...$SIDE_MOVED" 'the three-dot form over a moved version'
 
 printf '\n%s failure(s)\n' "$fails"
 [ "$fails" = 0 ]
