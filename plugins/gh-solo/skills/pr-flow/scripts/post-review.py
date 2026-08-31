@@ -6,8 +6,9 @@ that file into the payload for `POST repos/{owner}/{repo}/pulls/{pr}/reviews`, w
 every finding as an inline thread and the record Review in one request, and afterwards
 reconciles what the pull request actually carries against what was sent.
 
-    post-review.py build  --findings F --disclaimer-file D --continue-from N --out PAYLOAD
-    post-review.py verify --payload PAYLOAD --comments C
+    post-review.py build      --findings F --disclaimer-file D --continue-from N --out PAYLOAD
+    post-review.py verify     --payload PAYLOAD --comments C
+    post-review.py highest-id --comments C
 
 `build` refuses the whole round on any invalid finding rather than emitting a partial
 payload: a payload that posts is irreversible, and half a round on a pull request is worse
@@ -16,6 +17,11 @@ than none. It writes no network traffic and needs none, so it is safe to re-run.
 `verify` takes the pull request's inline comments as JSON, which must be read with
 `gh api --paginate` - that endpoint pages at 30, and an unpaginated read of a pull request
 carrying an ordinary plan discussion returns a slice that looks exactly like a failed post.
+
+`highest-id` reads the same listing and prints the number `build --continue-from` wants. It
+is a subcommand rather than a `--jq` filter on the `gh` call because `--jq` cannot read a
+paginated result whole; the unattended-command bullet in the `pr-flow` skill's SKILL.md owns
+that rule and says why.
 
 Exit codes: 0 all checks passed, 2 a check failed, 1 the arguments or the files were unusable.
 """
@@ -38,6 +44,9 @@ PASSES = ("review", "re-review")
 SEVERITY_SOURCES = ("reviewer", "derived")
 DISCLAIMER_PREFIX = "> 🤖"
 SUGGESTION_FENCE = "```suggestion"
+# The word boundary is what keeps `PERF123` from reading as an id, and it is the one
+# definition of an id shared by the read, the reconciliation and the build.
+RF_PATTERN = r"\bRF(\d+)\b"
 
 FINDING_FIELDS = (
     "index",
@@ -63,8 +72,13 @@ def load_json(path: Path, what: str) -> object:
 
 def rf_id(body: str) -> int | None:
     """The RF id a posted or built body carries, or None."""
-    match = re.search(r"\bRF(\d+)\b", body)
+    match = re.search(RF_PATTERN, body)
     return int(match.group(1)) if match else None
+
+
+def rf_ids(body: str) -> list[int]:
+    """Every RF id in a body, since a thread reply can answer about several at once."""
+    return [int(n) for n in re.findall(RF_PATTERN, body)]
 
 
 def check_finding(finding: object, position: int, problems: list[str]) -> None:
@@ -331,20 +345,44 @@ def build(args: argparse.Namespace) -> int:
     return 0
 
 
+def comment_bodies(path: Path) -> list[str]:
+    """Every body in a pull request's inline-comment listing.
+
+    The listing is what `gh api --paginate` writes with no `--slurp`: one flat array of
+    comment objects, pages already merged. `--slurp` would nest one array per page, so a
+    reader written for that shape and a reader written for this one cannot be the same.
+    """
+    posted = load_json(path, "comments listing")
+    wrong_shape = (
+        "post-review: the comments listing is not one flat JSON array of comments - it must "
+        "be the output of `gh api --paginate "
+        "repos/{owner}/{repo}/pulls/<pr-number>/comments`, with no --slurp"
+    )
+    if not isinstance(posted, list):
+        sys.exit(wrong_shape)
+    # A non-object element is the array-of-arrays `--paginate --slurp` writes, one array per
+    # page. Filtering it out rather than refusing would find no bodies at all and answer 0,
+    # which is indistinguishable from a pull request that has had no round.
+    if any(not isinstance(c, dict) for c in posted):
+        sys.exit(wrong_shape)
+    return [c["body"] for c in posted if isinstance(c.get("body"), str)]
+
+
+def highest_id(args: argparse.Namespace) -> int:
+    """Print the highest RF id on a pull request, or 0 - what `build --continue-from` wants."""
+    ids = [rf for body in comment_bodies(Path(args.comments)) for rf in rf_ids(body)]
+    print(max(ids, default=0))
+    return 0
+
+
 def verify(args: argparse.Namespace) -> int:
     payload = load_json(Path(args.payload), "payload")
-    posted = load_json(Path(args.comments), "comments listing")
+    bodies = comment_bodies(Path(args.comments))
 
     if not isinstance(payload, dict) or not isinstance(payload.get("comments"), list):
         sys.exit("post-review: the payload has no comments array")
-    if not isinstance(posted, list):
-        sys.exit(
-            "post-review: the comments listing is not a JSON array - it must be the output "
-            "of `gh api --paginate repos/{owner}/{repo}/pulls/<pr-number>/comments`"
-        )
 
     problems: list[str] = []
-    bodies = [c["body"] for c in posted if isinstance(c, dict) and isinstance(c.get("body"), str)]
 
     # Keyed on this round's own RF ids, never on a path:line anchor and never on a count of
     # RF-marked threads. Both of those pass by accident on any round after the first, where
@@ -403,8 +441,15 @@ def main() -> int:
         help="the pull request's inline comments, read with `gh api --paginate`",
     )
 
+    h = sub.add_parser("highest-id", help="the highest RF id already on the pull request")
+    h.add_argument(
+        "--comments",
+        required=True,
+        help="the pull request's inline comments, read with `gh api --paginate`",
+    )
+
     args = parser.parse_args()
-    return build(args) if args.mode == "build" else verify(args)
+    return {"build": build, "verify": verify, "highest-id": highest_id}[args.mode](args)
 
 
 if __name__ == "__main__":

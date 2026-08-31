@@ -79,6 +79,14 @@ def run_build(data, disclaimer=None, continue_from=0, name="case"):
     return proc, out
 
 
+def run_highest(comments, name="case"):
+    c = work / f"{name}.comments.json"
+    c.write_text(json.dumps(comments), encoding="utf-8")
+    return subprocess.run(
+        ["python3", script, "highest-id", "--comments", str(c)],
+        capture_output=True, text=True)
+
+
 def run_verify(payload, comments, name="case"):
     p = work / f"{name}.payload.json"
     c = work / f"{name}.comments.json"
@@ -210,6 +218,48 @@ proc = run_verify(payload, [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF1
 ok = proc.returncode == 0
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} every anchor reconciled  (exit {proc.returncode})")
+
+print("\nhighest-id must print (exit 0):")
+# The number these produce is what `build --continue-from` takes, so a wrong answer here
+# reissues an id that is already on the pull request. Ids never restart.
+cases = [
+    ("an empty listing, a pull request with no comments at all", [], "0"),
+    ("comments carrying no id, a plan discussion before any round",
+     [{"body": "> 🤖 h\n\nthis line reads oddly"}], "0"),
+    ("one round", [{"body": "> 🤖 h\n\nRF1 x"}, {"body": "> 🤖 h\n\nRF2 x"}], "2"),
+    # The listing comes back in creation order, not id order, and a reply can be older than
+    # the finding above it. A reader that took the last id rather than the maximum passes
+    # every case above and fails this one.
+    ("ids out of order", [{"body": "RF9 x"}, {"body": "RF3 x"}, {"body": "RF7 x"}], "9"),
+    # One body, several ids: a re-review verdict can answer about more than one finding, and
+    # a single `re.search` reads only the first, so it would print 4 here.
+    ("several ids in one body", [{"body": "RF4 and RF11 both close"}], "11"),
+    ("a bare RF with no number", [{"body": "the RF ids restart"}], "0"),
+    # The word boundary earns its place here. Without it PERF123 reads as RF123 and the next
+    # round starts at 124, skipping every id in between and making the sequence unreadable.
+    ("PERF123 is not an id", [{"body": "PERF123 regressed"}, {"body": "RF2 x"}], "2"),
+    ("a comment with no body field at all", [{"path": "a.rb", "line": 1}], "0"),
+]
+for name, comments, want in cases:
+    proc = run_highest(comments, name="hi-" + "".join(c if c.isalnum() else "-" for c in name))
+    got = proc.stdout.strip()
+    ok = proc.returncode == 0 and got == want
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (want {want}, got {got or '-'}, exit {proc.returncode})")
+
+print("\nhighest-id must refuse (exit 1):")
+# The listing is the flat array `gh api --paginate` writes. Handed the array-of-arrays that
+# `--paginate --slurp` writes instead, every element is a list and no body is found, so the
+# answer would be a silent 0 - the one wrong answer that looks like a first round.
+cases = [
+    ("an object rather than an array", {"body": "RF3 x"}),
+    ("the array-of-arrays --slurp writes", [[{"body": "RF3 x"}]]),
+]
+for name, comments in cases:
+    proc = run_highest(comments, name="hir-" + "".join(c if c.isalnum() else "-" for c in name))
+    ok = proc.returncode == 1
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 print(f"\n{fails} failure(s)")
 sys.exit(1 if fails else 0)
