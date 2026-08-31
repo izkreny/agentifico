@@ -71,6 +71,8 @@ git push <remote> <branch>
 
 Then `gh pr checks <pr-number>`, per the standing convention in `SKILL.md`, before reporting the push as done. Resolve `<remote>` by the recipe in that file's remote-name convention.
 
+**Where the round holds a relocation commit, this push is what lands it**, and the PR body edit announcing it goes with the push rather than before it, per *Body caps* in `workflows/open.md`. That section owns the route; what this step owes it is the push, since after implementation there is no other. A round holding none of these does nothing here.
+
 **A red check here reopens nothing**, per the protocol: each finding was closed on its own evidence, and a CI failure contradicts none of it. It is the two-environments finding, so report both sides and diagnose the difference - and it stops the merge until it is answered, which a new commit does rather than a reopened thread.
 
 ## Step 6 - Confirm
