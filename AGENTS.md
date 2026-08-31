@@ -12,6 +12,7 @@ This file is for any agent working in this repository, whatever its harness, and
 | `plugins/<name>/` | one plugin, with its own manifest, skills, agents and hooks |
 | `skills/<name>/` | a skill that ships on its own, outside any plugin |
 | `docs/plans/` | one implementation plan per branch |
+| `scripts/` | this repository's own checks, and their benches |
 | `.agents/gh-solo.md` | the per-repository facts the `gh-solo` plugin reads |
 | `AGENTS.md`, `CLAUDE.md` | this file; the second is a symlink to the first |
 
@@ -20,6 +21,8 @@ This file is for any agent working in this repository, whatever its harness, and
 A package is released on its own tag, `<name>_<version>`, and carries its own version inside it - a plugin in `plugins/gh-solo/.claude-plugin/plugin.json` and its marketplace entry, a skill in its frontmatter under `metadata.version`.
 
 **A change to one package is not a change to another, and no package's version moves for another's change.** That is the rule the tag scheme exists to make true, and it is what makes `skills/` and `plugins/` peers rather than a hierarchy: a skill under `plugins/gh-solo/skills/` ships when the plugin does, a skill under `skills/` ships when it alone is tagged.
+
+**A change to a package's own files moves that package's version, on the branch that makes the change.** Which part moves follows from the commit type: a `feat` moves the minor, a `fix` the patch. Repository-level files own no version and move none - this file, `docs/plans/`, `.agents/`, `scripts/` and the marketplace manifest are not a package, so a change confined to them leaves every version where it was.
 
 The package axis is also the repository's label axis, which `.agents/gh-solo.md` records.
 
