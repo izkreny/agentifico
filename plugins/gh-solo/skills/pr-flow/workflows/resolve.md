@@ -87,7 +87,7 @@ Then the record: how many threads were resolved and which ids, which were left a
 
 ## Rules
 
-- **Only the owner's sentence in the session starts this.** Never a reaction, never a mentor, never this workflow's own reading of the threads.
+- **Only the owner's word in the session starts this** - `rnp`, or the sentence. Never a reaction, never a mentor, never this workflow's own reading of the threads.
 - **The authorisation comment goes up before the first resolve**, always, because the resolve is what it is evidence for.
 - **Never resolve a thread the batch does not cover.** Name it and leave it; `workflows/merge.md` is what refuses on it.
 - **Never name an id in the authorisation that this batch does not resolve**, and never resolve one it does not name.
