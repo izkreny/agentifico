@@ -23,6 +23,22 @@ The ignore set is not optional and is not tuning. Without it the run reports eve
 
 **Read the exit code, not the output.** A run piped through `tail` reports the pipe's status, so a chained command runs anyway; this has caused a broken path to be committed here twice. Use `set -o pipefail`, or read `${PIPESTATUS[0]}`, or do not pipe it.
 
+**Every package a branch touches has moved its own version**, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`, which owns the rule:
+
+```bash
+python3 scripts/version-check.py
+```
+
+It compares `origin/main...HEAD` by default and takes a range or a single commit instead. It reads the paths a change touches rather than the issue's package label, so relabelling an issue cannot satisfy it; which part of the version moved is left to a reader, since one branch can carry several commit types.
+
+Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
+
+**The version check's bench**, after any edit to `scripts/version-check.py`:
+
+```bash
+bash scripts/test-version-check.sh
+```
+
 **The posting script's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/post-review.py`:
 
 ```bash
