@@ -22,8 +22,8 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 | `init` | Start a new stack from branches not stacked yet |
 | `add` | Add a dependent branch to the stack |
 | `submit` | Push the stack and open or update its PRs |
-| `sync` | Cascade-rebase the stack onto the trunk |
-| `restack` | The same cascade rebase - `sync` and `restack` are two names for the one `gh stack sync` |
+| `sync` | Fetch, cascade-rebase the stack onto the trunk, and force-push every branch |
+| `restack` | The cascade rebase alone (`gh stack rebase`), leaving the remote untouched |
 | `help` | This page |
 
 **A branch's life, in order**

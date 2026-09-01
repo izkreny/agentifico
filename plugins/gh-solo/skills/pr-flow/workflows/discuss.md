@@ -4,7 +4,7 @@ Answer the owner's replies wherever they land on a pull request - inline comment
 
 **Nothing tells the agent a reply happened.** There is no webhook, no polling and no notification reaching the session: a comment posted in the GitHub UI is invisible here until someone asks. So this workflow runs only when the owner says they have been through the review — "I replied on the PR", "answer my comments", `discuss 60` — or when a `watch` they explicitly started fires. If they seem to be waiting for the agent to notice on its own, say plainly that it cannot.
 
-**Never call this `sync`.** That word routes to `workflows/stack.md`, where `gh stack sync` cascade-rebases every branch in a stack. Reading comments and rewriting history must not share a name.
+**Never call this `sync`.** That word routes to `workflows/stack.md`, where `gh stack sync` cascade-rebases every branch in a stack and then force-pushes all of them. Reading comments and rewriting history must not share a name, and the history in question is pushed.
 
 It is the return half of `workflows/review.md`: that workflow puts findings on the PR, this one carries the conversation that follows. A finding the owner questioned is not resolved and not declined — it is a thread waiting on an answer, and the answer belongs in the thread rather than in the terminal, where the next session will not find it.
 

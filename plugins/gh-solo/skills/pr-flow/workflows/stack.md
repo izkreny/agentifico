@@ -136,11 +136,23 @@ The body carries `Closes #{issue-number}` and the rest of the template in `workf
 
 ### Sync or restack
 
-This is the destructive one. Read the worktree trap below before running it.
+**These are two different commands, and only one of them pushes.** Read the worktree trap below before running either.
+
+`restack` is the cascade rebase alone, which moves branches locally and leaves the remote untouched:
+
+```bash
+gh stack rebase
+```
+
+`sync` fetches, rebases **and pushes**. Its own help states the push as its fifth step: "Pushes all branches atomically (using --force-with-lease --atomic)". So it is a force-push across every branch in the stack, not a local operation:
 
 ```bash
 gh stack sync
 ```
+
+**`sync` is refused while a review round holds unpushed fix commits on any branch in the stack.** The round's fix commits sit local for the owner's word, and `references/review-protocol.md` makes step 7 the round's only push; a `sync` in the middle of that pushes them early and re-anchors every thread under a part-finished read, which is the exact failure the push-hold exists to prevent. `rnp` is what releases them. Say which branch holds them, and offer `gh stack rebase` where the intent was only to move onto the trunk.
+
+Where the fetch is not wanted either, the drift playbook below runs `gh stack rebase` and `gh stack push` as separate steps, which is the same work with the push under the owner's eye.
 
 ### Merge
 
@@ -186,7 +198,7 @@ The fix, entirely through `gh stack` and never a raw `git rebase`:
 5. Once it reports all branches rebased, `gh stack push`.
 6. Confirm `mergeable` flips to `MERGEABLE` and CI actually runs on the new head (`gh pr checks <pr-number>`). Check the siblings too — a cascade rebase touched all of them.
 
-**The `gh stack push` item in that list force-pushes per branch, which is the one place the no-rebase rule sanctions it.** Force pushes may be deny-listed by policy, and a `git -C <path> push --force…` rephrasing that slips past a deny pattern is a loophole rather than an authorisation. Run the plain command so the policy surfaces, then hand it to the owner to run themselves.
+**The `gh stack push` item in that list force-pushes per branch, and so does `gh stack sync`** - the two are where the no-rebase rule sanctions a force-push, which is why the playbook uses `rebase` then `push`: it puts the push on its own line where the owner can see it, rather than inside a verb that also fetches and rebases. Force pushes may be deny-listed by policy, and a `git -C <path> push --force…` rephrasing that slips past a deny pattern is a loophole rather than an authorisation. Run the plain command so the policy surfaces, then hand it to the owner to run themselves.
 
 ## Step 3 - Confirm
 
