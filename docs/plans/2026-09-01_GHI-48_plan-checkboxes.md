@@ -16,7 +16,7 @@
 
 **This plan is inside its own scope.** It lands under `docs/plans/`, so the acceptance criterion that no plan contains a checkbox in any section covers this file too: its own `## Steps` and `## Verification` are plain bullets, which is what `plugins/gh-solo/skills/pr-flow/workflows/open.md` asked for all along.
 
-**The grep is the gate this branch actually needs.** `plugins/gh-solo/skills/pr-flow/scripts/docs-check.py` reads paths and fences, and `scripts/version-check.py` reads which packages moved; neither can see a checkbox, so on their own this branch would merge on two gates that cannot fail for the defect it exists to fix. The grep was run against the unfixed tree first and reported all fourteen lines with exit 1, which is what makes its silence afterwards worth reading.
+**The grep is the gate this branch actually needs.** `plugins/gh-solo/skills/pr-flow/scripts/docs-check.py` reads paths and fences, and `scripts/version-check.py` reads which packages moved; neither can see a checkbox, so on their own this branch would merge on two gates that cannot fail for the defect it exists to fix. The gate was run against the unfixed tree first, where the grep printed all fourteen lines and the gate exited 1, which is what makes its silence afterwards worth reading.
 
 **Nothing outside `docs/plans/` changes.** A permanent mechanical guard would have to live under `scripts/`, and stating the rule more loudly would have to edit `plugins/gh-solo/skills/pr-flow/workflows/open.md` and move that package's version; the issue rules both out, so `scripts/version-check.py` passes this branch reporting no package touched.
 
