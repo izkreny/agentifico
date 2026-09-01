@@ -31,7 +31,7 @@ python3 scripts/version-check.py
 
 It compares `origin/main...HEAD` by default and takes a range or a single commit instead. It reads the paths a change touches rather than the issue's package label, so relabelling an issue cannot satisfy it; which part of the version moved is left to a reader, since one branch can carry several commit types.
 
-**The stacked release train asks nothing of this script.** Each branch in a stack bumps its own package exactly as any branch does, and the comparison is against `origin/main`, so every branch passes on its own account rather than on the stack's - which is why `AGENTS.md` can state the train without a line of this file's tooling changing.
+**The stacked release train asks nothing of this script, and the reason is not that each branch is checked alone.** `origin/main...HEAD` resolves through `git merge-base`, which on an upper branch of a stack predates every branch below it, so the range spans the whole stack and a lower branch's bump satisfies an upper branch that moved no version. What the check still gates is the thing the tag depends on: that the stack as a whole moved the package's version before `gh stack merge` publishes it. Per-branch bumping inside a stack is a rule this script cannot see, and the whole-package sweep on the top branch is where an unbumped branch surfaces instead.
 
 Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
 
