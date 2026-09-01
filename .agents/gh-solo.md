@@ -31,6 +31,8 @@ python3 scripts/version-check.py
 
 It compares `origin/main...HEAD` by default and takes a range or a single commit instead. It reads the paths a change touches rather than the issue's package label, so relabelling an issue cannot satisfy it; which part of the version moved is left to a reader, since one branch can carry several commit types.
 
+**The stacked release train asks nothing of this script, and the reason is not that each branch is checked alone.** `origin/main...HEAD` resolves through `git merge-base`, which on an upper branch of a stack predates every branch below it, so the range spans the whole stack and a lower branch's bump satisfies an upper branch that moved no version. What the check still gates is the thing the tag depends on: that the stack as a whole moved the package's version before `gh stack merge` publishes it. Per-branch bumping inside a stack is a rule this script cannot see, and nothing else here catches it either: it holds because each branch is written to hold it, not because a gate refuses when it does not.
+
 Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
 
 **The version check's bench**, after any edit to `scripts/version-check.py`:
@@ -51,7 +53,31 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-post-review.sh
 bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
 ```
 
-**Both manifests carry the plugin's description**, `.claude-plugin/marketplace.json` and `plugins/gh-solo/.claude-plugin/plugin.json`, and they have drifted before. A change to either is a change to both.
+**What a plugin's two manifests share, and which fields must be kept in step.** A plugin's entry in `.claude-plugin/marketplace.json` and its own `plugins/<name>/.claude-plugin/plugin.json` overlap by schema rather than by convention: an entry may carry any field of the plugin manifest, plus the entry-only `source`, `category`, `tags`, `strict`, `relevance`, `headers` and `headersHelper`. So the answer is finite and worth writing out rather than remembering.
+
+| Field | Lives in | Kept in step |
+|---|---|---|
+| `name` | both | Yes, exactly. It is the plugin's id, and two names disagreeing is a marketplace entry pointing at nothing. |
+| `description` | both | Yes. This is the pair that has drifted before, which is why the agreement is checked rather than remembered. |
+| `keywords` in the manifest, `tags` in the entry | one each | Yes, the same values. They are different fields with different names, and nothing here wants a plugin advertised differently in the two places; they have already drifted by one value. |
+| `version` | the manifest only | No, and never. The entry's copy is read only when the manifest has none, so a version there could drift and could never be read - `AGENTS.md` owns why, under *How a package is released*. |
+| `author`, `repository`, `license` | the manifest only | No. The marketplace's own `owner` block already says who publishes this, so copying them into an entry buys a drift surface and nothing else. |
+| `category`, `source` | the entry only | No; the plugin manifest has no such fields. |
+| `strict`, `relevance`, `headers`, `headersHelper` | the entry only | No; the plugin manifest has no such fields, and no entry here sets them. An entry that gains one owes this table a row of its own rather than falling under this one. |
+
+**The agreement is checked rather than remembered**, because prose alone has now failed at it twice - once on `description` and once on `keywords`:
+
+```bash
+python3 scripts/manifest-check.py
+```
+
+It reads every plugin the marketplace lists, so a second plugin landing beside the first needs no edit here and none in the script. What it decides is the table's `name`, `description` and `keywords`/`tags` rows plus the absence of `version` from the entry - the rows whose answer a script can decide, the rest being judgement. A branch touching any manifest owes this run; a branch touching none does not.
+
+**The manifest check's bench**, after any edit to `scripts/manifest-check.py`:
+
+```bash
+bash scripts/test-manifest-check.sh
+```
 
 **Mermaid diagrams in any README** are verified by rendering them, never by reading them. `mmdc` needs a puppeteer config naming a browser executable; one key is enough, and the renderer exits non-zero with a parse error on a broken diagram, which is what makes a clean run mean something.
 
@@ -85,7 +111,7 @@ gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -lab
 
 **`/skills-maker review <path>` reviews a whole skill, so it is never a `## Verification` entry.** A skill change carries no such box. Run once against `plugins/gh-solo/skills/pr-flow`, it returned nine findings and not one was in the diff of the branch that triggered it; a per-branch gate built on a whole-file review reports something unrelated every time, and such a gate gets waved through.
 
-**The sweep is its own issue, one per package, opened before that package's `<name>_<version>` tag**, carrying that package's own label. A release is when the whole file matters, and a trigger tied to one fires where a habit does not.
+**The sweep is its own issue, one per package, and it must have run before that package's `<name>_<version>` tag is cut**, carrying that package's own label. Open is not run: an issue nobody has worked is a review nobody has done, and a tag over one asserts something untrue, which is the whole thing a tag is for here. A release is when the whole file matters, and a trigger tied to one fires where a habit does not.
 
 **The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
 
