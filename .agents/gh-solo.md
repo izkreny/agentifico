@@ -58,11 +58,12 @@ bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
 | Field | Lives in | Kept in step |
 |---|---|---|
 | `name` | both | Yes, exactly. It is the plugin's id, and two names disagreeing is a marketplace entry pointing at nothing. |
-| `description` | both | Yes. This is the pair that has already drifted, which is why the rule was written before the table was. |
+| `description` | both | Yes. This is the pair that has drifted before, which is what the check below exists to catch. |
 | `keywords` in the manifest, `tags` in the entry | one each | Yes, the same values. They are different fields with different names, and nothing here wants the plugin advertised differently in the two places; they have already drifted by one value. |
 | `version` | the manifest only | No, and never. The entry's copy is read only when the manifest has none, so a version there could drift and could never be read - `AGENTS.md` owns why, under *How a package is released*. |
 | `author`, `repository`, `license` | the manifest only | No. The marketplace's own `owner` block already says who publishes this, so copying them into the entry buys a drift surface and nothing else. |
 | `category`, `source` | the entry only | No; the plugin manifest has no such fields. |
+| `strict`, `relevance`, `headers`, `headersHelper` | the entry only | No; the plugin manifest has no such fields, and this repository's entry sets none of them. A `gh-solo` entry that gains one owes this table a row of its own rather than falling under this one. |
 
 **The agreement is checked rather than remembered**, because prose alone has now failed at it twice - once on `description` and once on `keywords`:
 
@@ -77,7 +78,7 @@ print("gh-solo manifests: " + (", ".join(bad) + " out of step" if bad else "in s
 sys.exit(1 if bad else 0)'
 ```
 
-It reads the table's first three rows and the `version` row, which are the only ones with an answer a script can check. A branch touching either manifest owes this run; a branch touching neither does not.
+It reads `name`, `description`, the `keywords`/`tags` pair, and the entry's lack of a `version` - the rows whose answer a script can decide. A branch touching either manifest owes this run; a branch touching neither does not.
 
 **Mermaid diagrams in any README** are verified by rendering them, never by reading them. `mmdc` needs a puppeteer config naming a browser executable; one key is enough, and the renderer exits non-zero with a parse error on a broken diagram, which is what makes a clean run mean something.
 
