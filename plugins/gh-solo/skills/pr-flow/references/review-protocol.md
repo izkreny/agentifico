@@ -19,7 +19,7 @@ Each cell below states its own rule, prohibitions included, so a row read out of
 
 **The orchestrator implements and also fixes.** That is deliberate: it already knows why each line is shaped as it is, so it will not undo something intentional the way a cold agent does. What it must never do is review its own work, which is why the reviewer is a separate agent with its own context.
 
-**The reviewer is a pure function: a PR number in, one findings file out.** It has no write access to the PR and no knowledge of the conventions below - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence. **What it fetches depends on which entrance it came in by**, and the reviewer skill has one workflow file per entrance owning that list; a second copy here would drift from it.
+**The reviewer is a pure function: a PR number in, one findings file out.** It is forbidden to write to the PR - a rule rather than a wall, because its `gh` grant cannot express read-only - and it has no knowledge of the conventions below - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence. **What it fetches depends on which entrance it came in by**, and the reviewer skill has one workflow file per entrance owning that list; a second copy here would drift from it.
 
 **A repository may appoint its own reviewer, and one form of appointment is invoked rather than spawned.** What holds across every form is the shape of the seam: the findings reach the orchestrator and the orchestrator posts them, so there is one writer and one set of conventions however the reading was done. `workflows/review.md` owns each form and the file's shape.
 
@@ -65,7 +65,7 @@ The fixes land as commits grouped by coherent change, each naming the `RF{n}` id
 
 ### 5. Re-review, scoped
 
-The reviewer is spawned again with the fix diff, the findings list, and which commit claims which id. It answers two questions and no others: for each finding claimed closed, does this diff close it; and did any fix introduce a new defect. It returns verdicts to the orchestrator, which posts them into the threads.
+The reviewer is spawned again with the fix commit *range*, the findings list, and which commit claims which id. A range rather than a diff on purpose: it reads the commits itself, so nothing the author produced sits between it and the code. It answers two questions and no others: for each finding claimed closed, does this diff close it; and did any fix introduce a new defect. It returns verdicts to the orchestrator, which posts them into the threads.
 
 - **This closes a real hole:** the fixes were made by the author of the code under review, unsupervised, and nothing else checks that a fix actually closed its finding. A guard added on the wrong branch leaves every gate green and a thread asserting a closure that never happened.
 - **Nothing else is in scope**, and what the scope excludes is owned by `plugins/gh-solo/skills/reviewer/workflows/rescope.md`, under *You answer exactly two questions, and no others*. A full second review is where iteration counts explode, because each pass finds fresh nitpicks on code nobody asked about.

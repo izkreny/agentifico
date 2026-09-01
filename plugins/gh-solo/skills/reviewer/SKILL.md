@@ -2,7 +2,7 @@
 name: reviewer
 description: |
   The procedure the `reviewer` agent follows once a review round has spawned it: what to read, the two axes, what every finding must carry, and the findings file it returns. Not a way to start a review - a round is started through the `pr-flow` skill, which spawns the agent that loads this. Loading it anywhere else, above all in a session that planned, wrote or fixed the code, produces a self-review, because that session has already reasoned its way to why every line looks the way it does.
-argument-hint: "<pr-number> | rescope <pr-number>"
+user-invocable: false
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Write, Grep, Glob
 ---
 
@@ -27,7 +27,7 @@ Two entrances, and you are told which by your argument.
 
 Both return the same two things:
 
-1. **A findings file**, written with `Write` to the harness scratchpad, outside the working tree. Never inside the repository: a findings file that got committed is a permanent copy of a document meant to live for one round.
+1. **A findings file**, written with `Write` to the harness scratchpad, outside the working tree, **and written even when you found nothing** - a round with no findings still has a file, because the thing that spawned you distinguishes a clean pass from a pass that failed to produce one by reading it. Never inside the repository: a findings file that got committed is a permanent copy of a document meant to live for one round.
 2. **Your final report**, which is text for a human, and which must name the findings file's absolute path on its own line. The thing that spawned you cannot see your tool calls, so a path you did not print does not exist.
 
 **Your report is prose and your findings file is data, and neither substitutes for the other.** The file is what gets posted; the report is what the owner reads first. Do not put the findings' full text in the report, and do not put narrative in the file.
@@ -48,7 +48,7 @@ Both passes judge against the same sources, in this precedence: the repository's
 ## What every finding must carry
 
 - **One defect.** Never bundle two, however adjacent. Each finding is judged, planned, fixed, re-reviewed and resolved on its own, and a bundled finding cannot be half-accepted.
-- **A severity, which you assign**, from exactly `high`, `medium` and `low`. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another. **There is one further value, `unrated`, and it is not yours**: it exists for a reviewer appointed by a repository that cannot assign a level, and a finding of yours carrying it would say you declined a judgement the brief asks you to make.
+- **A severity, which you assign**, from exactly `high`, `medium` and `low`, and never `unrated`, which exists for a reviewer that cannot assign a level. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another.
   - **`high`** - it is wrong, and something a user or a caller does will hit it. Data loss, a security hole, a broken acceptance criterion, an exception on an ordinary path.
   - **`medium`** - it is wrong, and reaching it takes an unusual path or an unlucky order. Also a documented-standard breach with a real consequence.
   - **`low`** - it is worth changing and nothing breaks if it is not. Most baseline smells land here.
@@ -58,14 +58,16 @@ Both passes judge against the same sources, in this precedence: the repository's
   - `line` is the line number in the version of the file that `side` names.
   - `side` is `RIGHT` for a line the diff added or changed, and `LEFT` only for a finding about a line it deleted.
   - **An unanchored finding cannot be posted**, so a finding you cannot anchor is one you must either anchor by reading the diff more carefully or drop. There is no such thing as a finding about the pull request in general.
-- **A local index**, `1` upward, in the order you found them. It exists so your report and your file can refer to the same finding, and for nothing else. Ids that mean something on the pull request are assigned by the thing that spawned you.
-- **`needs_owner`**, true when the finding needs a human decision rather than a fix. A trade-off with no right answer, a question about intent only the owner can settle, a defect whose fix depends on what the product is supposed to do. Set it sparingly and say why in the finding text: a finding marked this way stops the round and waits for a person, so marking everything this way turns an unattended block into a queue.
+- **A local index**, `1` upward, in the order you found them. It exists so your report and your file can refer to the same finding, and for nothing else. Ids that mean something on the pull request are assigned by the thing that spawned you. **Renumber after every drop, so the surviving findings run `1` to `n` with no gap**: the posting script refuses a round whose indices have a hole in them, on the grounds that a gap means a finding went missing between the file being written and the round being posted. Several rules here tell you to drop a finding, so the gap is the expected outcome rather than an unlikely one.
+- **`needs_owner`**, true when the finding needs a human decision rather than a fix. A trade-off with no right answer, a question about intent only the owner can settle, a defect whose fix depends on what the product is supposed to do. Say why in the finding text. A finding marked this way is answered with a reply instead of a fix plan and then waits for the owner at the round's step 6; the round's other steps carry on regardless. Be sparing because the flag is a claim that no fix is available without a decision, and a finding that did have an obvious fix arrives at the owner as a question they did not need to answer.
 
 **Keep each finding's text to a short paragraph.** One claim, its consequence, and the evidence for it. Length is not thoroughness, and the longer a finding is the more likely the reader stops at the first sentence.
 
 ## The findings file
 
 JSON, one object, written to the harness scratchpad. Name the file so a later reader can tell which pull request and which pass it belongs to.
+
+**This section defines what *you* write, which is a subset of what the format allows.** The posting script validates the format and is its authority; it also accepts fields that exist for a reviewer a repository appointed in your place, and those are not yours to write. So a field you do not find here is not a field you may invent.
 
 ```json
 {
@@ -89,7 +91,7 @@ JSON, one object, written to the harness scratchpad. Name the file so a later re
 ```
 
 - **`findings` may be empty**, and an empty list is a real result rather than a failure. Write the file anyway: a clean diff has to be as recordable as a dirty one, or nothing can tell a reviewed pull request from an unreviewed one.
-- **`axes_run` says which axes actually ran.** Where the spec axis had no issue to review against, name only `standards` here and say why in the report. Claiming an axis ran when it had nothing to read is the one dishonesty in this format that nothing downstream could detect.
+- **`axes_run` says which axes actually ran, and belongs to the full pass only.** The re-review file carries `verdicts` instead and omits this field. Where the spec axis had no issue to review against, name only `standards` here and say why in the report. Claiming an axis ran when it had nothing to read is the one dishonesty in this format that nothing downstream could detect.
 - **Every field above is required on every finding**, `needs_owner` included. The posting script checks each of them and refuses the whole round on a miss, because a partially valid findings file that posts is worse than one that does not.
 
 ## Your report
@@ -100,15 +102,3 @@ Text for a human, at most 250 words, and the first thing the owner reads about t
 - **Per axis: what you read it against, and the count.** Which standards files you found, whether the issue was there, how many findings each axis produced. **On the `rescope` entrance the issue is one of the things you did not fetch**, so say that the spec axis had no spec rather than reporting on an issue you were told not to read.
 - **What you could not establish.** A missing issue, a plan file the body did not link, a hunk you could not anchor and dropped, a question the diff alone could not settle. This is the most useful paragraph you write, because it is the only one nothing else can reconstruct.
 - **No fixes, no rankings across axes, and no advice about what to do next.** The judgement is the owner's and the sequence is the orchestrator's.
-
-## Rules
-
-- **Never suggest a fix**, in the file, in the report, or in passing.
-- **Never write to the pull request and never touch the working tree.**
-- **Never read the pull request's threads**, on either entrance.
-- **Every field *The findings file* defines is required on every finding**, not the three most memorable ones. The posting script refuses the whole round on a missing field, and posting by hand instead is forbidden, so an omission costs the round rather than the finding. A finding that cannot carry an anchor is dropped rather than written incomplete.
-- **The axes stay separate** and neither is ranked against the other.
-- **A documented repository standard beats the baseline**, always.
-- **Skip what tooling enforces.**
-- **Write the findings file even at zero findings**, and print its absolute path.
-- **Say what you could not establish.** An unstated gap is read as a clean result.

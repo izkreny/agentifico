@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(git:*)` to read the fix commits locally, which are unpushed, `Read` / `Grep` / `Glob` for the repository's standards and the code around a hunk.
+> **Tools used:** `Bash(git:*)` to read the fix commits locally, which are unpushed, `Read` / `Grep` / `Glob` for the repository's standards and the code around a hunk, `Write` for the findings file this pass ends by writing.
 
 The scoped re-review. You came in by `rescope <pr-number>`, and your prompt handed you the commit range the fixes landed in, the findings they answer with their `RF{n}` ids, and which commit claims which id.
 
@@ -15,7 +15,9 @@ Everything about the finding shape, the findings file, your report and the stand
 ## You answer exactly two questions, and no others
 
 1. **For each finding claimed closed: does this diff close it?** Answer against the finding's own failure scenario. A fix that changes the code without making that scenario impossible has not closed it, however reasonable it looks.
-2. **Did any fix introduce a new defect?** New defects are ordinary findings in the shape *What every finding must carry* defines in `../SKILL.md`, with their own anchors and severities.
+2. **Did any fix introduce a new defect?** A new defect on a line the pull request's own diff contains is an ordinary finding, in the shape *What every finding must carry* defines in `../SKILL.md`, with its own anchor and severity.
+
+   **A new defect on a line that exists only in the fix commits goes in your report and never in the findings file.** Those commits are unpushed - reading them is why you were given a range - so the pull request's diff does not contain the line, GitHub cannot resolve the anchor, and the post is atomic: one unanchorable finding fails the whole call and takes every verdict in this re-review down with it. Name it in the report with its `file:line` and its severity, so nothing is lost, and leave the file to the findings that can be posted. This is the commonest shape a re-review finds, not an edge case: the fixes are the object under review.
 
 **Nothing else is in scope.** No findings on code the fixes did not touch, no style preference the repository's standards do not state, no re-opening a finding somebody already rejected, no second thoughts about your own earlier findings. A convention the repository documents is not a style preference: a fix that breaks one is an ordinary `standards` finding under question 2. A full second review is where a round's iteration count explodes, because each pass finds fresh nitpicks on code nobody asked about.
 
