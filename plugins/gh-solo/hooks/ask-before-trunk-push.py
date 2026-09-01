@@ -79,6 +79,33 @@ def branch_of(refspec):
     return re.sub(r"^refs/heads/", "", dest)
 
 
+def join_continuations(command):
+    r"""A shell's line continuations removed, quoting respected.
+
+    `\` before a newline joins two lines into one command, so a shell deletes the pair.
+    It cannot be undone after tokenising: `shlex` resolves the escape into a literal
+    newline, which is then indistinguishable from a real newline separator - one joins
+    and the other cuts, and reading the token stream cannot tell which produced it. So
+    the pair is removed here, before `shlex` sees it.
+
+    Inside single quotes a backslash is literal and the pair is data, not a join. Inside
+    double quotes it is still a continuation, which is why the two quote kinds are
+    tracked apart rather than together.
+    """
+    out, i, single, double = [], 0, False, False
+    while i < len(command):
+        c = command[i]
+        if c == "'" and not double:
+            single = not single
+        elif c == '"' and not single:
+            double = not double
+        elif c == "\\" and not single and i + 1 < len(command) and command[i + 1] == "\n":
+            i += 2                               # the join: both characters go
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
 def segments(command):
     """The command's tokens, cut into one list per shell command.
 
@@ -88,7 +115,8 @@ def segments(command):
     and the ampersand are operator tokens, not part of the word next to them.
     """
     try:
-        lex = shlex.shlex(command, posix=True, punctuation_chars=PUNCTUATION)
+        lex = shlex.shlex(join_continuations(command), posix=True,
+                          punctuation_chars=PUNCTUATION)
         lex.whitespace_split = True
         # Newline has to stop being whitespace for `PUNCTUATION` to see it at all, and a
         # newline inside quotes still survives as data, because quoting is resolved first.

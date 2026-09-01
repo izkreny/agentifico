@@ -7,7 +7,7 @@ Fetch the issue behind the current branch and summarise what is left. This is a 
 In order:
 
 1. If the argument names a number after `status` (`status 50`, `status #50`), use it.
-2. Otherwise take it from the branch: `git branch --show-current`. The format is `{type}/GHI-{issue-number}_{slug}`, defined under *Quick reference* in `references/formats.md`. Drop everything up to and including the first `/`, take everything before the first `_`, then strip the `GHI-` prefix: `feat/GHI-50_login-form` gives `50`. The format is `references/standards.md`'s to own; the other workflows resolve the number by pointing here for the procedure rather than restating it.
+2. Otherwise take it from the branch: `git branch --show-current`. The format is `{type}/GHI-{issue-number}_{slug}`, defined under *Quick reference* in `references/formats.md`. Drop everything up to and including the first `/`, take everything before the first `_`, then strip the `GHI-` prefix: `feat/GHI-50_login-form` gives `50`. The format is `references/formats.md`'s to own; the other workflows resolve the number by pointing here for the procedure rather than restating it.
 3. Otherwise ask the owner. Sweeping `gh issue develop --list` across recent issues to find which one owns this branch costs a call per issue and is not worth it.
 
 A branch that carries no number is normal on a repository that predates the convention. Ask rather than guessing from the slug.

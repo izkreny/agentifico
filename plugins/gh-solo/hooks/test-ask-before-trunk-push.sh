@@ -79,6 +79,13 @@ EVASIONS = [
     (f"{PUSH}\n", FEAT),
     (f"bash -ceu '{PUSH}'", FEAT),     # `c` need not end the cluster; bash still runs it
     (f"env bash -c '{PUSH}'", FEAT),   # a wrapper in front of the shell
+    # A backslash before a newline is a line continuation, which joins the two lines
+    # rather than separating them. posix-mode shlex resolves the escape into a literal
+    # newline glued to the next word, so the token was `\ngit` and the scan skipped it.
+    # .agents/gh-solo.md writes its own docs-check command in exactly this style.
+    (f"git status && \\\n{PUSH}", FEAT),
+    (f"git push \\\n  origin main", FEAT),
+    (f"git add -A \\\n  . && {PUSH}", FEAT),
 ]
 # The mirror image: the phrase is present, but as data. A regex cut on `;` fires on
 # every one of these, and a guard that cries wolf on a grep is one people click through.
@@ -122,6 +129,7 @@ MUST_STAY_SILENT = [
     # A bare word that happens to name a shell must not stop the `git` scan running.
     ("git push origin sh", FEAT),
     ("git push origin eval", FEAT),
+    (f"echo 'a \\\n{PUSH}'", FEAT),        # a continuation inside quotes is data
 ]
 # Same two lists, run against the awkward repository above.
 ODD_MUST_ASK = [

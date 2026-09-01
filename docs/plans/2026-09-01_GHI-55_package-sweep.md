@@ -6,7 +6,7 @@
 
 The sweep #55 exists for has run, in the two acts `AGENTS.md` defines for a plugin. Act one was `/skills-maker review` over each skill under `plugins/gh-solo/skills/`, each in its own fresh-context subagent. Act two was a read of the six files belonging to no skill, which act one cannot reach. Both acts read the package at `441ca34`.
 
-It returned 71 findings, of which two were closed before this plan was written. The mechanical layer was run first and is clean: the description checks report no defects across all four skills, `name:` matches every directory, every skill's README names how it is installed, no absolute or non-portable paths, no non-Bash shell syntax in fenced blocks, `docs-check` reports 48 files clean, and `manifest-check` reports the two manifests in step. The repository and installed copies of `skills-maker` were byte-identical, so act one judged against the current standard rather than a stale one.
+It returned findings on every skill and on the files belonging to no skill, and two of them were closed before this plan was written. No total is stated here: a count is a cache of the list below and nothing invalidates it, and the earlier "71" was the two closed findings counted into a list that holds the other 69. The mechanical layer was run first and is clean: the description checks report no defects across all four skills, `name:` matches every directory, every skill's README names how it is installed, no absolute or non-portable paths, no non-Bash shell syntax in fenced blocks, `docs-check` reports 48 files clean, and `manifest-check` reports the two manifests in step. The repository and installed copies of `skills-maker` were byte-identical, so act one judged against the current standard rather than a stale one.
 
 **The findings themselves live in this file.** They were produced in a session working directory that is not part of this repository and that carries machine-specific paths, so this plan is their public record and the triage below is the decision trail #55's fourth criterion asks for. Finding ids are `IM` for `implement`, `PF` for `pr-flow`, `RV` for `reviewer`, `TR` for `tracker` and `AT` for act two.
 
@@ -60,6 +60,8 @@ Fixed on this branch, grouped as the commits that will carry them.
 
 **Behaviour in `tracker` that is wrong rather than merely unclear.** `TR-2`: an unrecognised argument routes into the issue-creating workflow, where the sibling skill routes it to help. `TR-3`: the startable query lacks `-label:epic`, so `next` can offer a container. `TR-4`: `plugins/gh-solo/skills/tracker/workflows/state.md` writes on an inferred trigger with no gate, fixed by the narrow rule rather than by `disable-model-invocation`, which #56 owns. `TR-6`: `plugins/gh-solo/skills/tracker/workflows/validate.md` hardcodes layer values this repository does not have.
 
+**Three findings the triage prose first omitted**, named here because a record that skips a finding cannot show whether it was fixed, declined or lost. `PF-14`: the unpostable-finding limitation lived in two files with no owner, and the copy in `plugins/gh-solo/skills/pr-flow/references/review-protocol.md` named no checkable referent, so it would survive the fix silently. `RV-8`: `plugins/gh-solo/skills/reviewer/workflows/full.md` copied the branch-name parse without the caveat that makes it safe, and the parse is reached only on the pre-convention branch where its answer is least trustworthy. `TR-14`: `plugins/gh-solo/skills/tracker/workflows/status.md` told the agent to use a stacked branch's parent as the base and gave it no way to find one, so the fallback credits the parent's commits to this issue.
+
 **Cosmetic.** `AT-8`: `homepage` unset in the plugin manifest.
 
 ## Steps
@@ -76,7 +78,7 @@ Fixed on this branch, grouped as the commits that will carry them.
 - Fix the duplication findings, giving each fact one owner and pointing every other site at it.
 - Fix the file's-own-history and restated-rationale findings.
 - Fix `TR-2`, `TR-3`, `TR-4` and `TR-6`, and set `homepage` for `AT-8`.
-- Open the deferral issues for `PF-6`, `PF-7`, `TR-13` and the structural halves of `TR-7` and `RV-5`, and record on #55 that each was deferred and why.
+- Split `plugins/gh-solo/skills/pr-flow/SKILL.md`'s post caps into a reference for `PF-6`, the watch out of `plugins/gh-solo/skills/pr-flow/workflows/discuss.md` for `PF-7`, and `plugins/gh-solo/skills/tracker/references/standards.md` into three for `TR-13`; trim `tracker`'s "Who this is for" for `TR-7` and delete `reviewer`'s trailing `## Rules` recap for `RV-5`.
 - Settle `PF-19` by arming the watch and recording what the grant actually did.
 - Run every gate in `## Verification`, reading each exit code directly rather than through a pipe.
 
@@ -88,14 +90,15 @@ Fixed on this branch, grouped as the commits that will carry them.
 - `python3 scripts/version-check.py`, which must report `plugins/gh-solo` moved, since this branch changes that package's own files.
 - `python3 scripts/manifest-check.py`, owed because `AT-8` edits a manifest.
 - `node scripts/check-descriptions.js plugins/gh-solo/skills` and, where Ruby is present, `ruby scripts/check-differential.rb plugins/gh-solo/skills`, both from the `skills-maker` skill's directory, owed because this branch edits frontmatter.
+- `mmdc -i <the extracted diagram> -o <svg> -p <puppeteer config naming a browser>`, owed because this branch edits the mermaid diagram in `plugins/gh-solo/skills/implement/README.md`, and `.agents/gh-solo.md` requires a README diagram be verified by rendering rather than by reading. The renderer was watched exiting 1 on a deliberately broken diagram first, which is what makes its clean run mean something.
+- `bash plugins/gh-solo/skills/pr-flow/scripts/test-watch.sh`, the bench for the script `PF-19` introduced.
 - `bash scripts/test-version-check.sh` and `bash scripts/test-manifest-check.sh` are **not** owed: this branch edits neither script.
 
-**What none of these gates see.** Whether each wording fix says the true thing rather than merely a different thing. The description checks read frontmatter, `docs-check` reads paths and fences, and the two benches read the hook and the posting script; nothing mechanical can tell that `IM-1`'s replacement sentence is now correct about what reaches the trunk, or that a pointer rewritten to name a section names the right one. That is the review round's judgement. Nor can any gate see whether the five deferrals were the right calls: a deferral is a decision, and the only check on it is the owner reading the reason.
+**What none of these gates see.** Whether each wording fix says the true thing rather than merely a different thing. The description checks read frontmatter, `docs-check` reads paths and fences, and the two benches read the hook and the posting script; nothing mechanical can tell that `IM-1`'s replacement sentence is now correct about what reaches the trunk, or that a pointer rewritten to name a section names the right one. That is the review round's judgement. Nor can any gate see whether a split left every inbound pointer correct: `docs-check` resolves a path but cannot tell that a section citation names the file that now owns it.
 
 ## Open questions
 
 - **Does anything on this branch break a contract, and therefore make the tag a major rather than `3.3.0`?** Two candidates. `user-invocable: false` on `reviewer` removes a slash entrance that users could type, although `RV-9` establishes that the entrance never worked. Remapping `restack` from `gh stack sync` to `gh stack rebase` changes what an advertised verb does, although `PF-1` establishes the current mapping as a defect. Both read as fixes to me, which keeps the version at `3.3.0`; both are visible changes to an installed user, which is the argument for the other answer.
-- **Are the five deferrals the right five?** They share one property - each is a file split rather than a fix - but `TR-7` and `RV-5` each also have a small half that could land here: trimming the essay in `tracker`'s "Who this is for" and deleting `reviewer`'s trailing `## Rules` recap are both wording edits. The plan above takes the small halves and defers the structural ones, which means two findings are split across two branches, and that is worth arguing with.
 - **Should the findings have gone onto #55 as comments rather than into this plan?** The fourth criterion says triage is recorded on the issue. This plan is committed, public and survives in `git log` through the squash merge, where a comment does not, so it is the more durable record; #55 gets a short comment pointing here. If the criterion meant the issue literally, this needs redoing before the tag.
 
 ## Settled

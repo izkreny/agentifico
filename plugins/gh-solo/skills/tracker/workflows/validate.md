@@ -26,7 +26,7 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 | Check                   | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 |-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Title format            | `imperative action`, all lowercase, under the length cap in *Titles* of `references/standards.md`, no bracketed prefix or layer tag                                                                                                                                                                                                                                                                                                     |
+| Title format            | `imperative action`, all lowercase, under the length cap in *Titles* of `references/issue-shape.md`, no bracketed prefix or layer tag                                                                                                                                                                                                                                                                                                   |
 | Mandatory axis          | Exactly one value of the repository's mandatory axis present - `layer` by default, and whatever `.agents/gh-solo.md` names where it replaced the axis. It is the only record of that axis, so absent is a fail and two is a fail. Report the row under the axis's real name and the repository's real values, never the default set's. Two values means either one deliverable, and the axis has a combined value for it, or two issues |
 | Parent                  | Attached to an epic, unless the issue is genuinely standalone                                                                                                                                                                                                                                                                                                                                                                           |
 | Body sections           | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when                                                                                                                                                                                                                                                                                                 |
@@ -68,11 +68,11 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 {title}
 {kind}  |  {state}  |  {labels}
 
-| Check        | Result      | Detail         |
-|--------------|-------------|----------------|
-| Title format | pass / fail | what was found |
-| Layer label  | pass / fail | what was found |
-| ...          |             |                |
+| Check          | Result      | Detail         |
+|----------------|-------------|----------------|
+| Title format   | pass / fail | what was found |
+| Mandatory axis | pass / fail | what was found |
+| ...            |             |                |
 
 ### Verdict
 PASS - meets the standards.

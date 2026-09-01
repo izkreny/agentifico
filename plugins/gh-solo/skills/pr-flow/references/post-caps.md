@@ -4,7 +4,7 @@ How long a post may be, what falls outside the cap, and what sits inside a cappe
 
 **Every post carrying a `via` line is five sentences or bullets at most**, the disclaimer and the `via` line excluded. Count them; mechanical, not a judgement - the same form and the same number as the `## Plan overview` cap in `workflows/open.md` and the summary caps in the `tracker` standards.
 
-**The domain is the `via` line itself**, rather than a list of surfaces, so it reaches a surface nobody has written yet, and it needs no list to be kept in step - the examples in the `via` bullet above are examples rather than the set. What falls outside it, and what falls inside a capped post without counting toward the five, are *Never capped* and *Never counted* in `references/post-caps.md`.
+**The domain is the `via` line itself**, rather than a list of surfaces, so it reaches a surface nobody has written yet, and it needs no list to be kept in step - the forms listed under *The `via` forms in use* below are examples rather than the set. What falls outside the domain, and what sits inside a capped post without counting toward the five, are *Never capped* and *Never counted* below.
 
 **Never restate what the reader is already looking at.** The companion to the count, and the half a count cannot carry: a fix plan does not re-argue the finding it hangs under, a round report does not re-list findings that are already threads on the pull request, and a closing reply does not paraphrase its own commit. Five sentences of restatement are still five sentences of nothing.
 

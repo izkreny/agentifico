@@ -7,7 +7,7 @@ The entrances here run the lifecycle's workflows back to back, removing the wait
 | `auto <issue-number>` | Step 1    | the plan-reading stop at the end of `workflows/open.md`                         |
 | `go <pr-number>`      | Step 2    | nothing the owner does - the plan was read; only the waits between workflows go |
 
-**Only the literal command enters a chain.** Like the `watch` arming rule in `workflows/discuss.md`, and for a stronger reason: `auto` skips a stop that exists for the owner's judgement, so no sentence, however clearly it implies one, may start either chain. The owner typing the command is the authorisation for everything the chain does - the plan pushed unread, the implementation, the draft flip, the posts - given in advance, once, for this invocation only.
+**Only the literal command enters a chain.** Like the `watch` arming rule in `workflows/watch.md`, and for a stronger reason: `auto` skips a stop that exists for the owner's judgement, so no sentence, however clearly it implies one, may start either chain. The owner typing the command is the authorisation for everything the chain does - the plan pushed unread, the implementation, the draft flip, the posts - given in advance, once, for this invocation only.
 
 **Every refusal ends the chain.** The same rule the `ready review` chain states in `SKILL.md`, extended to every stage: a ⛔ anywhere stops with that workflow's own verdict line, carries nothing forward, and names the single command that resumes from where it stopped. A chain is a convenience; a gate is not.
 

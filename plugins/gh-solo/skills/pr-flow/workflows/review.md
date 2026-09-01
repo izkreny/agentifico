@@ -239,7 +239,7 @@ To get each reply answered as you post it instead, before you start run:
 /gh-solo:pr-flow watch <pr-number>
 ```
 
-Print it with the actual PR number substituted. Say it every time: it costs five lines and it is the only thing standing between a thoughtful reply on GitHub and nobody ever reading it. Naming `watch` here is a mention, not an arming - per `workflows/discuss.md`, only the owner typing that command starts a poll. The full vocabulary is the protocol's; what gets printed is the part they need at this moment.
+Print it with the actual PR number substituted. Say it every time: it costs five lines and it is the only thing standing between a thoughtful reply on GitHub and nobody ever reading it. Naming `watch` here is a mention, not an arming - per `workflows/watch.md`, only the owner typing that command starts a poll. The full vocabulary is the protocol's; what gets printed is the part they need at this moment.
 
 ---
 
