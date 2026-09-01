@@ -44,7 +44,7 @@ The reviewer is spawned with the PR number and nothing else in its prompt, and r
 
 ### 2. Post
 
-The orchestrator wraps each finding in the header and lands every thread *and* the record Review in **one** call to the reviews endpoint, then posts the reviewer's report as a Conversation comment - the same surface, and for the same reason, as the implementation record in the `implement` skill: it expects no answer, and it opens with the disclaimer, which is what keeps every later round's read from taking it for the owner speaking. A discuss round does answer that tab, per its own Step 2, so "nobody reads it" was never the reason this surface is right. One call, so a half-posted PR cannot happen: either the whole round is on the PR or none of it is. The finding text below the header is verbatim; only the header is generated. `workflows/review.md` owns the call and the script that builds and validates it.
+The orchestrator wraps each finding in the header and lands every thread *and* the record Review in **one** call to the reviews endpoint, then posts the reviewer's report as a Conversation comment - the same surface, and for the same reason, as the implementation record in the `implement` skill: it expects no answer, and it opens with the disclaimer, which is what keeps every later round's read from taking it for the owner speaking. One call, so a half-posted PR cannot happen: either the whole round is on the PR or none of it is. The finding text below the header is verbatim; only the header is generated. `workflows/review.md` owns the call and the script that builds and validates it.
 
 ### 3. Plan the fix, in the thread
 
