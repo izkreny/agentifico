@@ -54,7 +54,7 @@ Two different moments, and saying which is which is what keeps the *Convention c
 
 ## Verification
 
-- [ ] `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`, run from the repository root with its exit code read directly and never through a pipe, per *Check commands* in `.agents/gh-solo.md`
+- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`, run from the repository root with its exit code read directly and never through a pipe, per *Check commands* in `.agents/gh-solo.md`
 
 That gate reads paths and fences. It cannot see any of what this branch is actually for: whether five is the right number, whether a workflow's pointer replaced the restatement rather than sitting beside it, or whether the caps bullet is itself over-long. Nor can it run the corpus exercise in the last step, which is a judgement made by reading posts and is deliberately not a checkbox — every box here has to close before the branch merges, so a box only a reading could close would block its own branch.
 
