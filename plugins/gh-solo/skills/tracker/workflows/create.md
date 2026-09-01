@@ -23,7 +23,7 @@ Even when nothing is behind, **re-read any source file that was read before this
 
 ## Step 2 - Load standards and config
 
-Read `references/standards.md`. If `.agents/gh-solo.md` exists in the repository, read it too and let it override the default layer set, label taxonomy and branch format.
+Read `references/issue-shape.md`, and `references/tracker-fields.md` for the labels. If `.agents/gh-solo.md` exists in the repository, read it too and let it override the default layer set, label taxonomy and branch format.
 
 ## Step 3 - Check the label taxonomy
 
@@ -69,11 +69,11 @@ Then ask: **"Does this look right? Anything to change before I create them?"**
 
 **Create nothing until the owner confirms.** If they ask for changes, revise and ask again.
 
-**There is no size column and no estimate.** If a row looks too big for one branch, that is not a number to record: split it into an epic with children, per the test under *How big is one issue* in `references/standards.md`, and show the split in this table instead.
+**There is no size column and no estimate.** If a row looks too big for one branch, that is not a number to record: split it into an epic with children, per the test under *How big is one issue* in `references/issue-shape.md`, and show the split in this table instead.
 
-**The milestone column is `-` when there is none, so an absent milestone is a decision the owner saw rather than something nobody asked about.** Ask which milestone, if any, before presenting the table. `workflows/search.md` orders startable work by milestone first, and a sub-issue does not inherit its epic's, so an issue created without one is invisible to the tool meant to surface it, per *Milestones, and why not Projects* in `references/standards.md`.
+**The milestone column is `-` when there is none, so an absent milestone is a decision the owner saw rather than something nobody asked about.** Ask which milestone, if any, before presenting the table. `workflows/search.md` orders startable work by milestone first, and a sub-issue does not inherit its epic's, so an issue created without one is invisible to the tool meant to surface it, per *Milestones, and why not Projects* in `references/tracker-fields.md`.
 
-**A row the owner cannot fully specify yet lands as a draft.** Show its Kind as normal - Readiness and Nature are independent axes, and a draft bug whose Kind read `draft` would lose its `bug` label at creation - and mark it in the Readiness column with what is missing, as the template's row 2 shows. The confirm gate below is the only gate, so the owner must be able to see per row which ones they are approving as drafts and that those rows skipped the split test. The `draft` label then joins that row's labels at creation. A draft skips the split test - there are no criteria to run it on - and its body may be a stub, but it still needs a real title and a layer label, per *Drafts* in `references/standards.md`. Offer the form only when the owner says they want something on the backlog without the time or information to finish it; never downgrade a row to draft yourself to avoid writing criteria you could write.
+**A row the owner cannot fully specify yet lands as a draft.** Show its Kind as normal - Readiness and Nature are independent axes, and a draft bug whose Kind read `draft` would lose its `bug` label at creation - and mark it in the Readiness column with what is missing, as the template's row 2 shows. Step 5's confirm gate is the only gate, so the owner must be able to see per row which ones they are approving as drafts and that those rows skipped the split test. The `draft` label then joins that row's labels at creation. A draft skips the split test - there are no criteria to run it on - and its body may be a stub, but it still needs a real title and a layer label, per *Drafts* in `references/tracker-fields.md`. Offer the form only when the owner says they want something on the backlog without the time or information to finish it; never downgrade a row to draft yourself to avoid writing criteria you could write.
 
 ## Step 6 - Create, in dependency order
 
@@ -126,7 +126,7 @@ This section is entered directly by `finish`, so it carries Steps 2 to 4 with it
 
 1. **Fetch it**: `gh issue view <issue-number> --json title,body,labels,parent,blockedBy`. If it does not carry `draft`, say so and stop - there is nothing to finish.
 2. **Write the missing sections** with the owner, into the empty headings the stub body already carries, read-modify-write with `--body-file` per the standards. This is where the information that was missing at creation gets supplied, so if it is still missing, ask rather than guess. If the stub does not already open with the AI disclaimer line - a draft the owner typed by hand on GitHub will not - add it, because the description below it is now agent prose under the owner's name.
-3. **Run the split test now** - *How big is one issue* in `references/standards.md`. This is the moment `workflows/create.md`'s plan gate deferred it to, and nothing downstream runs it again.
+3. **Run the split test now** - *How big is one issue* in `references/issue-shape.md`. This is the moment `workflows/create.md`'s plan gate deferred it to, and nothing downstream runs it again.
 4. **If it passes as one issue**: update the body, then `gh issue edit <issue-number> --remove-label draft`. **If it fails**: the draft becomes an epic with children - present that split through the same Step 5 confirm gate above, create the children on confirmation, and relabel the original (`--add-label epic`, `--remove-label draft`, layer label off per the epic exemption).
 
 Removing the label is what makes the issue visible to "next task" in `workflows/search.md` again, so it is the last step, after the body is true.
@@ -134,7 +134,7 @@ Removing the label is what makes the issue visible to "next task" in `workflows/
 ## Rules
 
 - **Never create without showing the plan first.** This is the one gate worth keeping from the team process, and it exists for a different reason here: solo, nobody else will catch a mis-scoped issue before it becomes a branch.
-- **Run the split test on every row before presenting the plan.** *How big is one issue* in `references/standards.md` has it: one branch and one pull request, no more than about a week, criteria that do not fall into independent groups, no "and" in the title. A row that fails becomes an epic with children in the same table. This is the check that stops oversized issues, and the plan gate above is the only place it happens — nothing downstream will catch it, because no workflow measures an issue after it exists. Draft rows are the one exception: their test is deferred to the moment the draft is finished, which is the plan gate for the description they did not yet have.
+- **Run the split test on every row before presenting the plan.** *How big is one issue* in `references/issue-shape.md` has it: one branch and one pull request, no more than about a week, criteria that do not fall into independent groups, no "and" in the title. A row that fails becomes an epic with children in the same table. This is the check that stops oversized issues, and the plan gate above is the only place it happens — nothing downstream will catch it, because no workflow measures an issue after it exists. Draft rows are the one exception: their test is deferred to the moment the draft is finished, which is the plan gate for the description they did not yet have.
 - **Every issue except an epic gets exactly one layer label, set at creation.** Titles carry no prefix, so the label is the only record of the layer, and an issue created without one is invisible to every layer filter in `workflows/search.md`.
 - Titles are the deliverable and nothing else: no `[BE]`, no bracketed tag, no duplicated size or epic name.
 - Acceptance criteria are checkboxes, so GitHub counts them.

@@ -22,9 +22,11 @@ Do not skip this. Closing a closed issue and reopening an open one both succeed 
 
 ## Step 3 - Do the one thing asked
 
+**A state change reached by an auto-trigger rather than a typed verb states the command and waits.** `SKILL.md`'s trigger table fires this workflow on ordinary phrasing - "mark it in progress", "set it aside", "this is blocked" - so an aside can otherwise add a dependency and a label to a real issue, with Step 4 reporting it afterwards. Print the exact `gh` command and the issue it names, and run nothing until the owner says so. A typed verb needs no such gate: it is already their instruction. `workflows/create.md` has had a confirm-before-create gate all along, and this is the same gate on the same grounds.
+
 ### Start work
 
-**Refuse a `draft` issue.** Step 2 already fetched the labels; if `draft` is among them, the description is unfinished, and per *Drafts* in `references/standards.md` a draft is finished, not started. Say what the body is still missing, offer the *Finishing a draft* section of `workflows/create.md`, and assign nothing.
+**Refuse a `draft` issue.** Step 2 already fetched the labels; if `draft` is among them, the description is unfinished, and per *Drafts* in `references/tracker-fields.md` a draft is finished, not started. Say what the body is still missing, offer the *Finishing a draft* section of `workflows/create.md`, and assign nothing.
 
 ```bash
 gh issue edit <issue-number> --add-assignee @me
@@ -35,7 +37,7 @@ gh issue develop <issue-number> --name <type>/GHI-<issue-number>_<slug> --checko
 
 The branch link corroborates it in the UI and is worth creating, but it is not the record. Do **not** add a `status_in-progress` label on top of either: a third copy of one fact is one more thing to forget.
 
-Match `{type}` to the work, per the type set under *Branch and commit type* in `references/standards.md`. Do not default to `feat` for everything.
+Match `{type}` to the work, per the type set under *Branch and commit type* in `references/formats.md`. Do not default to `feat` for everything.
 
 ### Pause work
 
@@ -97,7 +99,7 @@ gh api repos/{owner}/{repo}/milestones/<milestone-number> -X PATCH -f state=clos
 gh issue edit <issue-number> --milestone "v1.0"                                                    # attach an issue
 ```
 
-The judgement lives in *Milestones, and why not Projects* in `references/standards.md`: close on scope and never on the calendar, move the date when it arrives with work outstanding, and put the milestone on the leaf issues rather than only on the epic. This section is only the operations.
+The judgement lives in *Milestones, and why not Projects* in `references/tracker-fields.md`: close on scope and never on the calendar, move the date when it arrives with work outstanding, and put the milestone on the leaf issues rather than only on the epic. This section is only the operations.
 
 ## Step 4 - Confirm
 

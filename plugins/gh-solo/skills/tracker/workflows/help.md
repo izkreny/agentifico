@@ -26,11 +26,7 @@ An issue you want in the backlog before you have time or information to describe
 
 **Auto-triggers**
 
-- A `#50` number, or "what's left on this one" → status
-- "close this", "reopen", "set it aside", "this is blocked" → state
-- "find the issue about X", "which are still open" → search
-- "break this into issues" → create
-- "park this as a draft", "finish the draft" → create
+Any of the phrasings in the routing table of `SKILL.md` reaches the matching command without you typing it - that table is the one list, and this page deliberately does not copy it, because the copy had already lost three rows. What the table covers: reading an issue, moving its state, searching, picking what is next, validating one against the standards, breaking work into issues, and the milestone operations.
 
 **Prerequisites**
 

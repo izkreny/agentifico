@@ -73,4 +73,4 @@ Never commit or push directly to `main`, and never omit a merge method - `--squa
 
 A branch that depends on another **unmerged** branch. Work that starts from `main` and merges to `main` is an ordinary branch with an ordinary PR, and making it a one-branch stack buys nothing.
 
-**Formats live in the other skill:** branch names, commit headers and PR titles are all defined under *Quick reference* in the `tracker` standards, because each one encodes an issue key.
+**Formats live in the other skill:** branch names, commit headers and PR titles are all defined under *Quick reference* in `../tracker/references/formats.md`, because each one encodes an issue key.

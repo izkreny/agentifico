@@ -22,7 +22,7 @@ gh issue view <issue-number> --json title,body,labels,parent,blockedBy
 
 Two of those fields are gates, not context, and both matter most on the `auto` chain, where no owner reads the plan before implementation starts:
 
-- **Stop if the labels include `draft`.** The description is unfinished by its own declaration - per *Drafts* in the `tracker` standards, a draft is finished, not started - so there are no criteria for the plan to satisfy. Name what the body is missing and point at that skill's `finish` workflow.
+- **Stop if the labels include `draft`.** The description is unfinished by its own declaration - per *Drafts* in `../tracker/references/tracker-fields.md`, a draft is finished, not started - so there are no criteria for the plan to satisfy. Name what the body is missing and point at that skill's `finish` workflow.
 - **Stop on an open `blockedBy`.** Name the blocker and its state and ask; a plan written against a blocked issue gets rewritten when the blocker lands, and the branch it opens cannot merge first anyway.
 
 **The tree is a gate of the same kind.** The plan is written from the code, so before reading any of it, establish that the code being read is the code that exists:
@@ -72,7 +72,7 @@ git commit -m "docs: add plan for {short description} (#{issue-number})"
 
 Then read back the `[branch sha]` line the commit prints. If it names the wrong branch, recover with `git branch -f <feature> <sha>` and `git reset --hard <remote>/main` on `main` - noting the reset discards any uncommitted changes in the tree and trusts the remote-tracking ref as last fetched, so fetch first and stash anything loose.
 
-The commit header follows *Branch and commit type* in the `tracker` standards. A plan file is `docs`.
+The commit header follows *Branch and commit type* in `../tracker/references/formats.md`. A plan file is `docs`.
 
 **Run the repository's documentation checks before pushing.** A plan file is a documentation change, and a repo that validates its docs usually does so in CI without a local hook, so nothing catches a broken path or an unclosed fence until the PR is already red. `scripts/docs-check.py` in this skill checks that every backticked path resolves and every code fence closes; pass `--ignore <glob>` (repeatable) for backticked paths that belong to another tree than the one being checked, and the repository may have more checks of its own. **The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings. **The set in the script's own usage note is the one that keeps this plugin's tree clean, not yours**: a served repository's set is narrower and belongs in its `.agents/gh-solo.md`, because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
 
@@ -88,7 +88,7 @@ The first push of a branch takes `-u`. Without it the branch has no upstream, wh
 gh pr create --draft --assignee @me --title "{type}({scope}): {issue title}" --body-file <file>
 ```
 
-**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` is the issue's **layer label**, read from the issue fetched in Step 1 and omitted when it would repeat the type (`docs: rewrite the readme`, never `docs(docs): …`) — both rules live under *Branch and commit type* in the `tracker` standards. A bare issue title would land without any of it, and `main` would be the one place the convention does not hold; `workflows/merge.md` owns what happens to this title at merge time.
+**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` is the issue's **layer label**, read from the issue fetched in Step 1 and omitted when it would repeat the type (`docs: rewrite the readme`, never `docs(docs): …`) — both rules live under *Branch and commit type* in `../tracker/references/formats.md`. A bare issue title would land without any of it, and `main` would be the one place the convention does not hold; `workflows/merge.md` owns what happens to this title at merge time.
 
 **`--draft` is not optional.** The PR is the workspace for this branch from here on, so it is open while the work is unfinished, and a draft is how everything else tells the difference. `workflows/review.md` skips drafts for exactly this reason: without the flag, the review loop would offer to review a PR containing nothing but a plan.
 
