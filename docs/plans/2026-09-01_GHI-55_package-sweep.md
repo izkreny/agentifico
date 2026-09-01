@@ -98,9 +98,10 @@ Fixed on this branch, grouped as the commits that will carry them.
 
 ## Open questions
 
-- **Should the findings have gone onto #55 as comments rather than into this plan?** The fourth criterion says triage is recorded on the issue. This plan is committed, public and survives in `git log` through the squash merge, where a comment does not, so it is the more durable record; #55 gets a short comment pointing here. If the criterion meant the issue literally, this needs redoing before the tag.
+None.
 
 ## Settled
 
+- **Should the findings have gone onto #55 as comments rather than into this plan?** No: the pointer satisfies the criterion. The plan is committed and public, and the squash merge writes the whole PR body into `git log` on `main`, so the record outlives any comment thread; #55 carries a comment linking to it, which is what makes it reachable from the issue. A comment could not hold it anyway - a comment under the owner's name is capped at five sentences, and 84 findings do not fit in one.
 - **Are the five deferrals the right five?** No: nothing is deferred. The owner's decision, taken in the terminal rather than in a thread, is that every finding is fixed on this branch, because a tag asserts the package was read whole and a deferral leaves it standing on defects already found. The two findings that would have been split across branches - `TR-7` and `RV-5` - land whole instead.
 - **Does the branch end on a full review or a scoped one?** A full round, with no scoped re-review pass.
