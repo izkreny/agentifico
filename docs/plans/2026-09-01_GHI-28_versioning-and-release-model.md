@@ -84,4 +84,7 @@ None. The chain was entered with `auto 28`, which waives the plan-reading stop, 
 
 ## Settled
 
-None yet.
+Both settled in the terminal during the review round, and recorded here because that is where a decision reached outside a thread belongs.
+
+- **Does the tag keep asserting that the whole package was read, or does it narrow to the skills?** It keeps asserting the whole package: the tag is the package's, skill or plugin alike. So `AGENTS.md` defines the sweep by the coverage that assertion needs rather than by one command - the skills through `/skills-maker review`, and the manifest, agents, hooks and README through a read of their own, since those belong to no skill. The alternative, keeping the single command and weakening what a tag claims, was declined: that claim is the premise the release model rests on, and weakening it silently would rewrite the model rather than correct a sentence. What this costs until the tool catches up is that a plugin's sweep is two acts rather than one.
+- **Where does the gap RF2 named get fixed?** In `skills-maker`, taught to take a package root and walk to the skills under it, in its own issue against that package rather than on this branch. Two facts established while settling it, both of which that issue has to carry: `skills/skills-maker/workflows/review.md` Step 1 already reads every file in a skill's directory, so what is missing is the argument the tool accepts and not the file set it reads; and `plugins/gh-solo/agents/reviewer.md` is cited by path in no skill under `plugins/gh-solo/skills/`, so the extension reaches it by reading every file under the package root rather than by following references out of the skills.
