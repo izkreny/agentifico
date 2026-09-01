@@ -1,12 +1,12 @@
 > 🤖 Written by AI --- read/modified by izkreny! 🤓
 
-# Review the gh-solo package before the 3.3.0 tag (#55)
+# Review the gh-solo package before its next tag (#55)
 
 ## Context
 
 The sweep #55 exists for has run, in the two acts `AGENTS.md` defines for a plugin. Act one was `/skills-maker review` over each skill under `plugins/gh-solo/skills/`, each in its own fresh-context subagent. Act two was a read of the six files belonging to no skill, which act one cannot reach. Both acts read the package at `441ca34`.
 
-It returned findings on every skill and on the files belonging to no skill, and two of them were closed before this plan was written. No total is stated here: a count is a cache of the list below and nothing invalidates it, and the earlier "71" was the two closed findings counted into a list that holds the other 69. The mechanical layer was run first and is clean: the description checks report no defects across all four skills, `name:` matches every directory, every skill's README names how it is installed, no absolute or non-portable paths, no non-Bash shell syntax in fenced blocks, `docs-check` reports 48 files clean, and `manifest-check` reports the two manifests in step. The repository and installed copies of `skills-maker` were byte-identical, so act one judged against the current standard rather than a stale one.
+It returned findings on every skill and on the files belonging to no skill, and two of them were closed before this plan was written. No total is stated here, and the arithmetic that follows a total is what makes it worth omitting: a count is a cache of the list below, nothing invalidates it, and restating one to correct it only moves the cache. The list is the authority on its own length. The mechanical layer was run first and is clean: the description checks report no defects across all four skills, `name:` matches every directory, every skill's README names how it is installed, no absolute or non-portable paths, no non-Bash shell syntax in fenced blocks, `docs-check` reports 48 files clean, and `manifest-check` reports the two manifests in step. The repository and installed copies of `skills-maker` were byte-identical, so act one judged against the current standard rather than a stale one.
 
 **The findings themselves live in this file.** They were produced in a session working directory that is not part of this repository and that carries machine-specific paths, so this plan is their public record and the triage below is the decision trail #55's fourth criterion asks for. Finding ids are `IM` for `implement`, `PF` for `pr-flow`, `RV` for `reviewer`, `TR` for `tracker` and `AT` for act two.
 
@@ -32,7 +32,7 @@ It returned findings on every skill and on the files belonging to no skill, and 
 
 **One finding cannot be closed by editing anything.** `PF-19` says the watch block's tool grant is asserted rather than observed: `allowed-tools` grants no bare `Bash` while the watch script opens with `mktemp`, and `plugins/gh-solo/skills/pr-flow/SKILL.md` states the friendlier of the two possible outcomes without saying it was watched. Settling it means arming the watch once and recording what happened, which this branch does at its end, since the chain arms a watch anyway.
 
-**The version does not move.** `plugins/gh-solo/.claude-plugin/plugin.json` stays at `3.3.0`: that version is unreleased, no tag points at it, so nothing an installer could have fetched ships under a different number. Whether any fix here breaks a contract is the open question below.
+**The version moves to `4.0.0`.** The issue's sixth criterion offers two branches - stay at `3.3.0`, or move the major where a fix breaks a contract - and the second applies. `PF-1` remaps `restack`, which rebased *and* force-pushed before this branch and only rebases after it, so work a user expected on the remote stays local: a behaviour change to an advertised verb. The console-output inversion points the same way. The criterion's own reason for staying is also false, which is worth recording: the marketplace entry's `source` is a path in this repository, so `main`'s version is what an installer receives whether or not a tag points at it.
 
 ## The triage
 
@@ -98,7 +98,6 @@ Fixed on this branch, grouped as the commits that will carry them.
 
 ## Open questions
 
-- **Does anything on this branch break a contract, and therefore make the tag a major rather than `3.3.0`?** Two candidates. `user-invocable: false` on `reviewer` removes a slash entrance that users could type, although `RV-9` establishes that the entrance never worked. Remapping `restack` from `gh stack sync` to `gh stack rebase` changes what an advertised verb does, although `PF-1` establishes the current mapping as a defect. Both read as fixes to me, which keeps the version at `3.3.0`; both are visible changes to an installed user, which is the argument for the other answer.
 - **Should the findings have gone onto #55 as comments rather than into this plan?** The fourth criterion says triage is recorded on the issue. This plan is committed, public and survives in `git log` through the squash merge, where a comment does not, so it is the more durable record; #55 gets a short comment pointing here. If the criterion meant the issue literally, this needs redoing before the tag.
 
 ## Settled

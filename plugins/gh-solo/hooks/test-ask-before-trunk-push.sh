@@ -86,6 +86,13 @@ EVASIONS = [
     (f"git status && \\\n{PUSH}", FEAT),
     (f"git push \\\n  origin main", FEAT),
     (f"git add -A \\\n  . && {PUSH}", FEAT),
+    # An *escaped* backslash is data and the newline after it still separates. Reading
+    # the second backslash as a continuation swallowed the separator and went silent -
+    # a regression the continuation fix introduced and the re-review caught.
+    (f"echo a\\\\\n{PUSH}", FEAT),
+    (f"cat <<'EOF' > f\n{PUSH}\nEOF\n{PUSH}", FEAT),   # after the delimiter, commands again
+    (f"cat <<-EOF\n{PUSH}\nEOF\n{PUSH}", FEAT),
+    (f"printf 'x\\\\'\n{PUSH}", FEAT),
 ]
 # The mirror image: the phrase is present, but as data. A regex cut on `;` fires on
 # every one of these, and a guard that cries wolf on a grep is one people click through.
@@ -129,6 +136,11 @@ MUST_STAY_SILENT = [
     # A bare word that happens to name a shell must not stop the `git` scan running.
     ("git push origin sh", FEAT),
     ("git push origin eval", FEAT),
+    # A heredoc body is data: a shell never runs it, and a commit message or a written
+    # file legitimately contains the very line this hook exists to catch. It only became
+    # reachable when newlines became separators, so it arrived with that fix.
+    (f"git commit -F - <<'EOF'\ntext\n{PUSH}\nEOF", FEAT),
+    (f"cat <<'EOF'\n{PUSH}", FEAT),          # unterminated: body runs to the end
     (f"echo 'a \\\n{PUSH}'", FEAT),        # a continuation inside quotes is data
 ]
 # Same two lists, run against the awkward repository above.

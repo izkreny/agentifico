@@ -67,7 +67,7 @@ bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
 | `description` | both | Yes. This is the pair that has drifted before, which is why the agreement is checked rather than remembered. |
 | `keywords` in the manifest, `tags` in the entry | one each | Yes, the same values. They are different fields with different names, and nothing here wants a plugin advertised differently in the two places; they have already drifted by one value. |
 | `version` | the manifest only | No, and never. The entry's copy is read only when the manifest has none, so a version there could drift and could never be read - `AGENTS.md` owns why, under *How a package is released*. |
-| `homepage` | the manifest only | No. Same reasoning as the row below: the marketplace's `owner` block already carries where to find this publisher, so an entry's copy would be a drift surface and nothing else. |
+| `homepage` | the manifest only | No, for the reason `author`, `repository` and `license` are not: the marketplace's own `owner` block already says who publishes this, so an entry's copy would buy a drift surface and nothing else. |
 | `author`, `repository`, `license` | the manifest only | No. The marketplace's own `owner` block already says who publishes this, so copying them into an entry buys a drift surface and nothing else. |
 | `category`, `source` | the entry only | No; the plugin manifest has no such fields. |
 | `strict`, `relevance`, `headers`, `headersHelper` | the entry only | No; the plugin manifest has no such fields, and no entry here sets them. An entry that gains one owes this table a row of its own rather than falling under this one. |

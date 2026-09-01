@@ -79,6 +79,37 @@ def branch_of(refspec):
     return re.sub(r"^refs/heads/", "", dest)
 
 
+HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
+
+
+def strip_heredocs(command):
+    """Heredoc bodies removed, because a heredoc body is data and not commands.
+
+    A shell never executes it, and this guard must not read it as commands either: a
+    commit message or a file being written can legitimately contain the very line this
+    hook exists to catch. Before newlines became separators the point was moot - a
+    multi-line command collapsed into one segment - so this arrived with that fix.
+
+    The delimiter line ends the body, and anything after it is command text again, so a
+    real push following a heredoc is still seen. A body whose delimiter never appears
+    runs to the end, which is what the shell would do with it too.
+    """
+    out, lines, i = [], command.split("\n"), 0
+    while i < len(lines):
+        line = lines[i]
+        out.append(line)
+        found = HEREDOC.search(line)
+        i += 1
+        if not found:
+            continue
+        delimiter = found.group(2)
+        while i < len(lines) and lines[i].strip() != delimiter:
+            i += 1                               # the body: data, never commands
+        if i < len(lines):
+            out.append(lines[i])                 # keep the delimiter line itself
+            i += 1
+    return "\n".join(out)
+
 def join_continuations(command):
     r"""A shell's line continuations removed, quoting respected.
 
@@ -99,8 +130,17 @@ def join_continuations(command):
             single = not single
         elif c == '"' and not single:
             double = not double
-        elif c == "\\" and not single and i + 1 < len(command) and command[i + 1] == "\n":
-            i += 2                               # the join: both characters go
+        elif c == "\\" and not single and i + 1 < len(command):
+            if command[i + 1] == "\n":
+                i += 2                           # the join: both characters go
+                continue
+            # Outside single quotes a backslash escapes the next character, so the pair
+            # is copied together and neither is re-examined. Without this, `a\\` before a
+            # newline read the *second* backslash as a continuation and swallowed a real
+            # separator - the escaped backslash is data and the newline still cuts.
+            out.append(c)
+            out.append(command[i + 1])
+            i += 2
             continue
         out.append(c)
         i += 1
@@ -115,7 +155,7 @@ def segments(command):
     and the ampersand are operator tokens, not part of the word next to them.
     """
     try:
-        lex = shlex.shlex(join_continuations(command), posix=True,
+        lex = shlex.shlex(join_continuations(strip_heredocs(command)), posix=True,
                           punctuation_chars=PUNCTUATION)
         lex.whitespace_split = True
         # Newline has to stop being whitespace for `PUNCTUATION` to see it at all, and a

@@ -145,7 +145,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 ### Body caps
 
-**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement - the same form and the same number as *Post caps* in `SKILL.md`:
+**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement - the same form and the same number as the post cap in `references/post-caps.md`:
 
 - **`## Plan overview`**, the approach.
 - **The paragraph under `## Verification`**, what the gates cannot see.
