@@ -53,32 +53,31 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-post-review.sh
 bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
 ```
 
-**What the two manifests share, and which fields must be kept in step.** `.claude-plugin/marketplace.json`'s `gh-solo` entry and `plugins/gh-solo/.claude-plugin/plugin.json` overlap by schema rather than by convention: an entry may carry any field of the plugin manifest, plus the entry-only `source`, `category`, `tags`, `strict`, `relevance`, `headers` and `headersHelper`. So the answer is finite and worth writing out rather than remembering.
+**What a plugin's two manifests share, and which fields must be kept in step.** A plugin's entry in `.claude-plugin/marketplace.json` and its own `plugins/<name>/.claude-plugin/plugin.json` overlap by schema rather than by convention: an entry may carry any field of the plugin manifest, plus the entry-only `source`, `category`, `tags`, `strict`, `relevance`, `headers` and `headersHelper`. So the answer is finite and worth writing out rather than remembering.
 
 | Field | Lives in | Kept in step |
 |---|---|---|
 | `name` | both | Yes, exactly. It is the plugin's id, and two names disagreeing is a marketplace entry pointing at nothing. |
 | `description` | both | Yes. This is the pair that has drifted before, which is why the agreement is checked rather than remembered. |
-| `keywords` in the manifest, `tags` in the entry | one each | Yes, the same values. They are different fields with different names, and nothing here wants the plugin advertised differently in the two places; they have already drifted by one value. |
+| `keywords` in the manifest, `tags` in the entry | one each | Yes, the same values. They are different fields with different names, and nothing here wants a plugin advertised differently in the two places; they have already drifted by one value. |
 | `version` | the manifest only | No, and never. The entry's copy is read only when the manifest has none, so a version there could drift and could never be read - `AGENTS.md` owns why, under *How a package is released*. |
-| `author`, `repository`, `license` | the manifest only | No. The marketplace's own `owner` block already says who publishes this, so copying them into the entry buys a drift surface and nothing else. |
+| `author`, `repository`, `license` | the manifest only | No. The marketplace's own `owner` block already says who publishes this, so copying them into an entry buys a drift surface and nothing else. |
 | `category`, `source` | the entry only | No; the plugin manifest has no such fields. |
-| `strict`, `relevance`, `headers`, `headersHelper` | the entry only | No; the plugin manifest has no such fields, and this repository's entry sets none of them. A `gh-solo` entry that gains one owes this table a row of its own rather than falling under this one. |
+| `strict`, `relevance`, `headers`, `headersHelper` | the entry only | No; the plugin manifest has no such fields, and no entry here sets them. An entry that gains one owes this table a row of its own rather than falling under this one. |
 
 **The agreement is checked rather than remembered**, because prose alone has now failed at it twice - once on `description` and once on `keywords`:
 
 ```bash
-python3 -c 'import json, sys
-e = next(x for x in json.load(open(".claude-plugin/marketplace.json"))["plugins"] if x["name"] == "gh-solo")
-p = json.load(open("plugins/gh-solo/.claude-plugin/plugin.json"))
-bad = [f for f in ("name", "description") if e.get(f) != p.get(f)]
-if sorted(e.get("tags", [])) != sorted(p.get("keywords", [])): bad.append("tags/keywords")
-if "version" in e: bad.append("version, which the entry must not carry")
-print("gh-solo manifests: " + (", ".join(bad) + " out of step" if bad else "in step"))
-sys.exit(1 if bad else 0)'
+python3 scripts/manifest-check.py
 ```
 
-It reads `name`, `description`, the `keywords`/`tags` pair, and the entry's lack of a `version` - the rows whose answer a script can decide. A branch touching either manifest owes this run; a branch touching neither does not.
+It reads every plugin the marketplace lists, so a second plugin landing beside the first needs no edit here and none in the script. What it decides is the table's `name`, `description` and `keywords`/`tags` rows plus the absence of `version` from the entry - the rows whose answer a script can decide, the rest being judgement. A branch touching any manifest owes this run; a branch touching none does not.
+
+**The manifest check's bench**, after any edit to `scripts/manifest-check.py`:
+
+```bash
+bash scripts/test-manifest-check.sh
+```
 
 **Mermaid diagrams in any README** are verified by rendering them, never by reading them. `mmdc` needs a puppeteer config naming a browser executable; one key is enough, and the renderer exits non-zero with a parse error on a broken diagram, which is what makes a clean run mean something.
 
