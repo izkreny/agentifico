@@ -25,6 +25,8 @@ Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow`
 - **A harness that can spawn a subagent**, for the `reviewer` agent a review round uses. Where yours cannot, appoint a capability with a `Reviewer command:` line in `.agents/gh-solo.md`; the round invokes it and posts what it returns. **Reading the diff yourself is not the fallback**, because the session that wrote the code is the one thing a review may not be: the round refuses rather than substituting the author. A pass by an appointed command is also not recorded identically - it lands with `severity_source`, `severity_basis` and the `unrated` axis, which exist precisely so a reader can tell which kind of pass they are looking at.
 - **Python 3**, for `hooks/ask-before-trunk-push.py`, `skills/pr-flow/scripts/docs-check.py` and `skills/pr-flow/scripts/post-review.py`. The hook is the one that makes this non-optional: it runs on every Bash call in every session and repository, not only while a skill of this plugin is loaded.
 
+**One thing to know about the tool grants.** `/gh-solo:implement` takes bare `Bash`, because it is the skill that runs *your* repository's tests, linters and builds and those cannot be enumerated in advance. Its sibling skills are all narrowed to `gh`, `git` and `python3`. So where the other three are stopped by their grant, that one is stopped by a rule written in its own instructions - never install software, never push to the trunk - the same way the `reviewer` agent's read-only discipline is a rule rather than a wall, because a `gh` grant cannot express read-only either. If your harness can deny command shapes itself, this is the skill to point that at.
+
 ## Install
 
 ```bash
