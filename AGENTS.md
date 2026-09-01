@@ -38,7 +38,7 @@ The package axis is also the repository's label axis, which `.agents/gh-solo.md`
 
 **Work outside an epic is not stacked.** A stack is all-or-nothing at the door - one unreviewed pull request in the middle stops the whole merge - so independent issues stacked together would block each other for no reason. The train earns its cost only where the work is already a group, which is what an epic is.
 
-**A package is tagged only after its own whole-package sweep has run**, which is `/skills-maker review <package-path>`. What a tag asserts is that the package was read whole rather than diff by diff, and an open sweep issue asserts nothing; `.agents/gh-solo.md` is where that requirement is enforced.
+**A package is tagged only after its own whole-package sweep has run.** What a tag asserts is that the package was read whole rather than diff by diff, and no branch's review can supply that: a review reads a diff, so a file no branch has touched since it was written is never read whole by anyone. For a skill package the sweep is `/skills-maker review` over that skill's directory. For a plugin it is the same command over each skill under its own `skills/`, plus a read of the files that belong to no skill - the manifest, the agents, the hooks and the README - which nothing else covers. An open sweep issue asserts nothing; `.agents/gh-solo.md` is where that requirement is enforced.
 
 **A hotfix runs the sweep too.** What it does differently is triage: a finding that touches none of the files the hotfix changed is deferred to the next release rather than fixed on that branch, so the fix stays small without the tag ever standing on a package nobody swept.
 

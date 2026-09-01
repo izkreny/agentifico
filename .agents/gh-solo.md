@@ -31,7 +31,7 @@ python3 scripts/version-check.py
 
 It compares `origin/main...HEAD` by default and takes a range or a single commit instead. It reads the paths a change touches rather than the issue's package label, so relabelling an issue cannot satisfy it; which part of the version moved is left to a reader, since one branch can carry several commit types.
 
-**The stacked release train asks nothing of this script, and the reason is not that each branch is checked alone.** `origin/main...HEAD` resolves through `git merge-base`, which on an upper branch of a stack predates every branch below it, so the range spans the whole stack and a lower branch's bump satisfies an upper branch that moved no version. What the check still gates is the thing the tag depends on: that the stack as a whole moved the package's version before `gh stack merge` publishes it. Per-branch bumping inside a stack is a rule this script cannot see, and the whole-package sweep on the top branch is where an unbumped branch surfaces instead.
+**The stacked release train asks nothing of this script, and the reason is not that each branch is checked alone.** `origin/main...HEAD` resolves through `git merge-base`, which on an upper branch of a stack predates every branch below it, so the range spans the whole stack and a lower branch's bump satisfies an upper branch that moved no version. What the check still gates is the thing the tag depends on: that the stack as a whole moved the package's version before `gh stack merge` publishes it. Per-branch bumping inside a stack is a rule this script cannot see, and nothing else here catches it either: it holds because each branch is written to hold it, not because a gate refuses when it does not.
 
 Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
 
@@ -58,7 +58,7 @@ bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
 | Field | Lives in | Kept in step |
 |---|---|---|
 | `name` | both | Yes, exactly. It is the plugin's id, and two names disagreeing is a marketplace entry pointing at nothing. |
-| `description` | both | Yes. This is the pair that has drifted before, which is what the check below exists to catch. |
+| `description` | both | Yes. This is the pair that has drifted before, which is why the agreement is checked rather than remembered. |
 | `keywords` in the manifest, `tags` in the entry | one each | Yes, the same values. They are different fields with different names, and nothing here wants the plugin advertised differently in the two places; they have already drifted by one value. |
 | `version` | the manifest only | No, and never. The entry's copy is read only when the manifest has none, so a version there could drift and could never be read - `AGENTS.md` owns why, under *How a package is released*. |
 | `author`, `repository`, `license` | the manifest only | No. The marketplace's own `owner` block already says who publishes this, so copying them into the entry buys a drift surface and nothing else. |
