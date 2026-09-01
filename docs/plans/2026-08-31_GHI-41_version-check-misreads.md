@@ -26,9 +26,9 @@
 
 ## Verification
 
-- [ ] `bash scripts/test-version-check.sh`
-- [ ] `python3 scripts/version-check.py`
-- [ ] `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`
+- `bash scripts/test-version-check.sh`
+- `python3 scripts/version-check.py`
+- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`
 
 **The bench is the gate that matters here, and its two new cases are only worth their exit code because they were watched failing first.** Running it before the fix is a step above rather than a nicety.
 

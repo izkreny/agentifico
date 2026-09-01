@@ -41,11 +41,11 @@ A second pass over the same diff for an **edited flag on a pre-existing** comman
 
 ## Verification
 
-- [ ] `bash plugins/gh-solo/skills/pr-flow/scripts/test-post-review.sh`
-- [ ] The shipped two-command sequence, run against PR #42 with `?per_page=1` appended to force one page per comment, prints `1` - the true maximum across four pages, which the per-page `--jq` form prints as `1`, `0`, `1`, `1`
-- [ ] The same sequence, run against this pull request before its first review round, prints `0`
-- [ ] `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`, its exit code read rather than piped
-- [ ] `python3 scripts/version-check.py`
+- `bash plugins/gh-solo/skills/pr-flow/scripts/test-post-review.sh`
+- The shipped two-command sequence, run against PR #42 with `?per_page=1` appended to force one page per comment, prints `1` - the true maximum across four pages, which the per-page `--jq` form prints as `1`, `0`, `1`, `1`
+- The same sequence, run against this pull request before its first review round, prints `0`
+- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`, its exit code read rather than piped
+- `python3 scripts/version-check.py`
 
 What these gates cannot see: whether a real review round now reaches `build --continue-from` with the right number, since the sequence above is exercised against a merged pull request and a draft rather than inside a round. The first round on this branch is where that gets observed, and it is observed by the round succeeding rather than by any command here.
 

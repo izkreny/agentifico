@@ -64,8 +64,8 @@ No script counts any of this. Sentence-counting prose mechanically fails on the 
 
 ## Verification
 
-- [ ] `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`, run from the repository root with its exit code read directly and never through a pipe, per *Check commands* in `.agents/gh-solo.md`
-- [ ] `python3 scripts/version-check.py`, per the same section
+- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`, run from the repository root with its exit code read directly and never through a pipe, per *Check commands* in `.agents/gh-solo.md`
+- `python3 scripts/version-check.py`, per the same section
 
 Those two gates read paths, fences and a version number. Neither can see whether five is the right number for a `## Settled` section, whether the `## Settled` denial actually escapes the record-row exclusion it is written against, or whether the widened *Convention checks* row still reads as one rule rather than four. Nor can either run the fail-watch in the last step, which is a count made by reading two real bodies and is deliberately not a box — every box here has to close before the branch merges, so a box only a reading could close would block its own branch.
 

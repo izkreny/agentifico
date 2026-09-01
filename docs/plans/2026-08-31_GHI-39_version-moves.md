@@ -28,9 +28,9 @@ The check is `scripts/version-check.py`, in the `repo` package. It maps every pa
 
 ## Verification
 
-- [ ] `python3 scripts/version-check.py` from the repository root, on this branch
-- [ ] `bash scripts/test-version-check.sh`
-- [ ] `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`
+- `python3 scripts/version-check.py` from the repository root, on this branch
+- `bash scripts/test-version-check.sh`
+- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*'`
 
 **The bench is the watched-fail gate, turned into an exit code.** `390f9e5` is a real commit that breaks the rule, so the check is seen refusing something before it is trusted, and the bench keeps it seen rather than leaving it a one-off observation.
 
