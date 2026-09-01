@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for the thread reads the poll makes, `Monitor` to run the poll block, `TaskStop` to end it.
+> **Tools used:** `Bash(python3:*)` to run `scripts/watch.py`, which makes the thread reads itself, `Monitor` to run it, `TaskStop` to end it.
 
 Poll a pull request for the owner's replies and reactions while they read a round at their own pace, and answer each as it lands. Armed by the literal `watch` command, or by `auto` and `go` when they reach the round's step 6. Answering itself is `workflows/discuss.md`; this file is the loop and what ends it.
 
@@ -11,40 +11,14 @@ If they describe being about to read the review, that is not the command. Mentio
 Arm it with the `Monitor` tool: `persistent: true`, and a `description` naming the PR, since that text appears on every notification.
 
 ```bash
-seen=$(mktemp)
-emit() {
-  while read -r key rest; do
-    grep -qxF "$key" "$seen" || { printf '%s\n' "$key" >> "$seen"; printf '%s\n' "$rest"; }
-  done
-}
-last=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-while true; do
-  now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-  { gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments?since=$last" \
-      --jq '.[] | select(.body | startswith("> 🤖") | not) |
-            "\(.id)@\(.updated_at) \(.user.login)  \(.path):\(.line // .original_line)  \(.body[0:140] | split("\n") | join(" "))"' || true; } | emit
-  { gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" \
-      --jq ".[] | select(.submitted_at > \"$last\") | select(.body != \"\") |
-            select(.body | startswith(\"> 🤖\") | not) |
-            \"\(.id)@\(.submitted_at) \(.user.login)  review(\(.state))  \(.body[0:140] | split(\"\n\") | join(\" \"))\"" || true; } | emit
-  { gh api --paginate "repos/{owner}/{repo}/issues/<pr-number>/comments?since=$last" \
-      --jq '.[] | select(.body | startswith("> 🤖") | not) |
-            "\(.id)@\(.updated_at) \(.user.login)  conversation  \(.body[0:140] | split("\n") | join(" "))"' || true; } | emit
-  { gh api graphql -F owner='{owner}' -F repo='{repo}' -f query='
-      query($owner: String!, $repo: String!) {
-        repository(owner: $owner, name: $repo) {
-          pullRequest(number:<pr-number>) {
-            reviewThreads(first:100) { nodes { path line
-              comments(first:20) { nodes { databaseId
-                reactions(first:20) { nodes { content createdAt user { login } } } } } } } } } }' \
-      --jq ".data.repository.pullRequest.reviewThreads.nodes[] |
-            .path as \$p | .line as \$l | .comments.nodes[] | .databaseId as \$id |
-            .reactions.nodes[] | select(.createdAt > \"$last\") |
-            \"\(\$id)/\(.content)/\(.user.login)@\(.createdAt) \(.user.login)  \(\$p):\(\$l)  reacted \(.content)\"" || true; } | emit
-  last=$now
-  sleep 30
-done
+python3 <skill-dir>/scripts/watch.py <pr-number>
 ```
+
+`<skill-dir>` is this skill's installed directory, per the placeholder note in `SKILL.md`; the shell's working directory is the repository, so the path cannot be relative.
+
+**It is a script rather than a shell block for a reason worth keeping.** The grant is `Bash(gh:*)`, `Bash(git:*)`, `Bash(python3:*)` and no bare `Bash`. The block this replaced opened with `mktemp` and went on through `grep`, `printf`, `date` and `sleep`, none of which prefix-match, and whether that prompts or is refused is harness behaviour the skill was asserting rather than reporting. `python3` prefix-matches, so there is nothing left to assert: the script's own subprocesses are its business, not the tool layer's.
+
+What it prints: one line per new comment, review body, Conversation comment or reaction, each once, filtering out anything opening with the disclaimer prefix so the round never re-emits its own posts and answers itself. `scripts/test-watch.sh` benches that filter, which is the part whose failure would be invisible in a poll loop's output.
 
 **Read `now` before the request and assign it after.** Taking the timestamp afterwards would skip any comment posted while the request was in flight, and a dropped comment here looks exactly like a comment the owner never wrote. The window therefore overlaps on purpose: what that costs is a duplicate, never a miss, and the `$seen` dedupe is what makes the trade free.
 
