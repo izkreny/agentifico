@@ -82,7 +82,7 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 **Each place holds its own fact, and none repeats another.** The issue holds what "done" means. The plan holds how. The pull request holds where things stand. One link per hop, which is why "implement PR 60" is a complete instruction on its own.
 
-**There is no plan template.** A plan is written by an agent that has just read the issue and the code, and the sections worth having are the ones that particular problem raises. Only two headings are fixed, because other things have to find those lists: the **steps**, and how you will know it worked (**verification**).
+**There is no plan template.** A plan is written by an agent that has just read the issue and the code, and the sections worth having are the ones that particular problem raises. The fixed headings are the **steps** and how you will know it worked (**verification**), because other things have to find those two lists; everything else is the planner's call.
 
 **Everything squashes.** One issue is one branch is one pull request is **one commit on the trunk**. The trunk becomes a readable list of finished work rather than a transcript of how the work went. The plan commit, the false starts and the review fixes all served their purpose inside the PR and do not need to outlive it.
 

@@ -22,7 +22,7 @@ gh issue view <issue-number> --json title,body,labels,parent,blockedBy
 
 Two of those fields are gates, not context, and both matter most on the `auto` chain, where no owner reads the plan before implementation starts:
 
-- **Stop if the labels include `draft`.** The description is unfinished by its own declaration - per *Drafts* in `../tracker/references/tracker-fields.md`, a draft is finished, not started - so there are no criteria for the plan to satisfy. Name what the body is missing and point at that skill's `finish` workflow.
+- **Stop if the labels include `draft`.** The description is unfinished by its own declaration - per *Drafts* in `../tracker/references/tracker-fields.md`, a draft is finished, not started - so there are no criteria for the plan to satisfy. Name what the body is missing and point at that skill's `finish` argument, which enters *Finishing a draft* in its `create` workflow.
 - **Stop on an open `blockedBy`.** Name the blocker and its state and ask; a plan written against a blocked issue gets rewritten when the blocker lands, and the branch it opens cannot merge first anyway.
 
 **The tree is a gate of the same kind.** The plan is written from the code, so before reading any of it, establish that the code being read is the code that exists:
