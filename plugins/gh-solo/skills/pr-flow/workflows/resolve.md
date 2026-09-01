@@ -8,9 +8,9 @@ End a review round on the owner's word: record the authorisation, resolve the th
 
 ## The entrance
 
-The owner says it, in the session: "resolve all and push". Also "we are done" or "you can merge" said while a round has left fix commits unpushed, which means this workflow first and `workflows/merge.md` afterwards.
+The owner says it, in the session: "resolve all and push", or types `rnp`. Also "we are done" or "you can merge" said while a round has left fix commits unpushed, which means this workflow first and `workflows/merge.md` afterwards.
 
-**Their sentence is the authorisation and nothing else is.** Not a reaction, not a reply in a thread, not a mentor saying the work looks done, and not this workflow's own reading of how settled the threads look. If no such sentence has been said, there is nothing to do here: say what is still waiting and stop.
+**Their word is the authorisation and nothing else is.** Not a reaction, not a reply in a thread, not a mentor saying the work looks done, and not this workflow's own reading of how settled the threads look. If no such word has been given, there is nothing to do here: say what is still waiting and stop.
 
 ## Step 1 - Stop the watch
 
@@ -87,7 +87,7 @@ Then the record: how many threads were resolved and which ids, which were left a
 
 ## Rules
 
-- **Only the owner's sentence in the session starts this.** Never a reaction, never a mentor, never this workflow's own reading of the threads.
+- **Only the owner's word in the session starts this** - `rnp`, or the sentence. Never a reaction, never a mentor, never this workflow's own reading of the threads.
 - **The authorisation comment goes up before the first resolve**, always, because the resolve is what it is evidence for.
 - **Never resolve a thread the batch does not cover.** Name it and leave it; `workflows/merge.md` is what refuses on it.
 - **Never name an id in the authorisation that this batch does not resolve**, and never resolve one it does not name.

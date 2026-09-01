@@ -60,7 +60,7 @@ Most rounds change nothing here: a fix that corrects an implementation without c
 
 ## Step 6 - Hold the push
 
-**Do not push.** The owner may still be mid-read, and a push moves the diff and marks their threads outdated beneath them. The commits wait locally until the owner says, in the session, "resolve all and push"; the resolve, the push and the CI read are that protocol's step 7, owned by `pr-flow`.
+**Do not push.** The owner may still be mid-read, and a push moves the diff and marks their threads outdated beneath them. The commits wait locally until the owner says, in the session, "resolve all and push", or types `rnp`; the resolve, the push and the CI read are that protocol's step 7, owned by `pr-flow`.
 
 ## Step 7 - Hand off
 
@@ -68,4 +68,4 @@ Open with the verdict line - `✅ ALL PASS` when every standing finding is fixed
 
 Then the map the owner re-reads by: each finding (`RF{n}`, `file:line`) to the commit that answered it, which gates were re-run and re-ticked, and that every commit is **local and unpushed** - so the threads stay anchored to the exact diff the owner is still reading, which is the point of holding the push. **Post that map as a PR comment first** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` fix, the fix map): the owner walks the threads on GitHub, and the map is most useful on the page being walked, where it also outlives the session. Its rows are a record row, which *Never counted* under *Post caps* in the `pr-flow` skill's `SKILL.md` excludes, so the cap bounds only the prose around them.
 
-End by naming what releases the commits, per the review-protocol reference in the `pr-flow` skill: the owner saying **"resolve all and push"** once they have been through the threads, which is that protocol's step 7 and the round's only push. Until they say it, nothing leaves the machine. On the round's step 4 this is not the next thing that happens - step 5's re-review is - so say which entrance this was and what follows it.
+End by naming what releases the commits, per the review-protocol reference in the `pr-flow` skill: the owner typing **`rnp`**, or saying **"resolve all and push"**, once they have been through the threads, which is that protocol's step 7 and the round's only push. Until they say it, nothing leaves the machine. On the round's step 4 this is not the next thing that happens - step 5's re-review is - so say which entrance this was and what follows it.

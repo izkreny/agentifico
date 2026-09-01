@@ -70,7 +70,7 @@ auto: issue #50 → PR #60
   watch      ✅ armed, answering as you comment
 Read the threads on the PR, then react or reply:
   👍 or ❤️ accepts a finding. To question one, react 👀 or reply in the thread.
-When you are through them, say "resolve all and push".
+When you are through them, type rnp - or say "resolve all and push".
 ```
 
 **RF2 is waiting on you: {why}** and one line like it per owner-gated finding, because a thread the round could not act on is the one thing in that block the owner has to act on before the merge gate will pass.

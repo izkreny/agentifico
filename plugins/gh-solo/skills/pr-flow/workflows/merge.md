@@ -10,7 +10,7 @@ Land a reviewed PR on `main` and clean up after it. This is the last step of a b
 git fetch <remote> && git log <remote>/<branch>..<branch> --oneline
 ```
 
-Any output is a refusal: `⛔ REFUSED - {n} unpushed commit(s) on {branch}`, naming "resolve all and push" - the protocol's step 7 - as what releases them. Where the branch is not in any local tree, compare `gh pr view <pr-number> --json headRefOid` against `git rev-parse <branch>` if the ref exists at all, and otherwise say plainly that local state could not be checked rather than implying it was.
+Any output is a refusal: `⛔ REFUSED - {n} unpushed commit(s) on {branch}`, naming `rnp`, or "resolve all and push" - the protocol's step 7 - as what releases them. Where the branch is not in any local tree, compare `gh pr view <pr-number> --json headRefOid` against `git rev-parse <branch>` if the ref exists at all, and otherwise say plainly that local state could not be checked rather than implying it was.
 
 ```bash
 gh pr view <pr-number> --json isDraft,reviews,reviewDecision,mergeable,statusCheckRollup

@@ -79,7 +79,7 @@ The first step that waits for anything. They answer per thread, and the vocabula
 
 ### 7. Resolve and push, on the owner's word
 
-The batch is one sentence from the owner - "resolve all and push", in that order, which is also the order this step runs in:
+The batch is one word or sentence from the owner - `rnp`, or "resolve all and push", whose order is also the order this step runs in:
 
 - **First the authorisation comment**, before any thread is resolved.
 - **Then the resolves.** To resolve a thread is to mark it Resolved on GitHub: the state change that collapses it and takes it off the open list.
