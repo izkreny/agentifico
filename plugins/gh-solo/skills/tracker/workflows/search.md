@@ -4,19 +4,19 @@ Find issues. `gh issue list` takes structured filters as flags and free text thr
 
 ## Step 1 - Translate the request
 
-| User says | Command |
-|---|---|
-| what am I working on | `gh search issues --assignee=@me --state=open` - `gh search`, not `gh issue list`, because the promise in `SKILL.md` is every repository at once and `gh issue list` sees only the current one |
-| open backend issues | `gh issue list --label backend` |
-| everything still open | `gh issue list --state open` |
-| closed but not done | `gh issue list --state closed --search "reason:not-planned"` |
-| issues about receipts | `gh issue list --search "receipts"` |
-| the epics | `gh issue list --state all --label epic` |
-| children of #51 | `gh issue view 51 --json subIssues` |
-| what is blocked | `gh issue list --label blocked` |
-| show drafts | `gh issue list --label draft` |
-| anything mentioning a legacy tracker key | `gh issue list --state all --search "ABC-72"` |
-| issues missing a layer label | the audit under *The Layer axis* in `references/standards.md`, which owns it. Build its exclusion list from the repository's own layer set rather than copying one: the query reports whatever it fails to exclude, so a stale list reports every open issue as a defect |
+| User says                                | Command                                                                                                                                                                                                                                                                  |
+|------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| what am I working on                     | `gh search issues --assignee=@me --state=open` - `gh search`, not `gh issue list`, because the promise in `SKILL.md` is every repository at once and `gh issue list` sees only the current one                                                                           |
+| open backend issues                      | `gh issue list --label backend`                                                                                                                                                                                                                                          |
+| everything still open                    | `gh issue list --state open`                                                                                                                                                                                                                                             |
+| closed but not done                      | `gh issue list --state closed --search "reason:not-planned"`                                                                                                                                                                                                             |
+| issues about receipts                    | `gh issue list --search "receipts"`                                                                                                                                                                                                                                      |
+| the epics                                | `gh issue list --state all --label epic`                                                                                                                                                                                                                                 |
+| children of #51                          | `gh issue view 51 --json subIssues`                                                                                                                                                                                                                                      |
+| what is blocked                          | `gh issue list --label blocked`                                                                                                                                                                                                                                          |
+| show drafts                              | `gh issue list --label draft`                                                                                                                                                                                                                                            |
+| anything mentioning a legacy tracker key | `gh issue list --state all --search "ABC-72"`                                                                                                                                                                                                                            |
+| issues missing a layer label             | the audit under *The Layer axis* in `references/standards.md`, which owns it. Build its exclusion list from the repository's own layer set rather than copying one: the query reports whatever it fails to exclude, so a stale list reports every open issue as a defect |
 
 `--state` defaults to `open`, which is usually right and is the single most common cause of "that issue does not exist" when it was closed last week. Pass `--state all` whenever the answer might be historical.
 
@@ -41,8 +41,8 @@ Prefer `--json` with `--jq` over the default table when the result feeds anythin
 Query: [the command that ran]
 Found: N
 
-| # | Title | State | Labels |
-|---|---|---|---|
+| #   | Title | State | Labels |
+|-----|-------|-------|--------|
 ```
 
 State the command you ran, not a paraphrase of it. It is the only way the owner can tell an empty result from a wrong filter, and those look identical otherwise.

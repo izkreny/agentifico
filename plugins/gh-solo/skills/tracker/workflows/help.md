@@ -4,21 +4,21 @@ For repositories you own and commit to alone. A client setting scope and dates i
 
 **Commands**
 
-| Command | What it does |
-|---|---|
-| `create issues for [description]` | Break a feature into issues, show the plan, create on confirmation |
-| `next` | Offer the top three startable issues, ordered, with why each is a candidate |
-| `status` | Summarise the issue behind the current branch |
-| `status 50` | Summarise a specific issue |
-| `validate` | Check the current branch's issue against the standards |
-| `validate 50` | Check a specific issue |
-| `search [query]` | Find issues by label, state or free text |
-| `state 50` | Close, reopen, mark blocked, or start a branch |
-| `start 50` | Assign `@me` and cut the branch |
-| `finish 50` | Write a draft issue's missing description, run the split test, remove the `draft` label |
-| `close 50` / `reopen 50` / `block 50` | One state change, with the right close reason |
-| `milestone` | Create one, move its date, close it on scope |
-| `help` | This page |
+| Command                               | What it does                                                                            |
+|---------------------------------------|-----------------------------------------------------------------------------------------|
+| `create issues for [description]`     | Break a feature into issues, show the plan, create on confirmation                      |
+| `next`                                | Offer the top three startable issues, ordered, with why each is a candidate             |
+| `status`                              | Summarise the issue behind the current branch                                           |
+| `status 50`                           | Summarise a specific issue                                                              |
+| `validate`                            | Check the current branch's issue against the standards                                  |
+| `validate 50`                         | Check a specific issue                                                                  |
+| `search [query]`                      | Find issues by label, state or free text                                                |
+| `state 50`                            | Close, reopen, mark blocked, or start a branch                                          |
+| `start 50`                            | Assign `@me` and cut the branch                                                         |
+| `finish 50`                           | Write a draft issue's missing description, run the split test, remove the `draft` label |
+| `close 50` / `reopen 50` / `block 50` | One state change, with the right close reason                                           |
+| `milestone`                           | Create one, move its date, close it on scope                                            |
+| `help`                                | This page                                                                               |
 
 Bare invocation with a description routes to `create`.
 

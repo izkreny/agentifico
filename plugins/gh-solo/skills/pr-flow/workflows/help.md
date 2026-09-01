@@ -4,27 +4,27 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 
 **Commands**
 
-| Command | What it does |
-|---|---|
-| `open` (or `plan`) | Check the issue is startable and the trunk current, write the plan file, commit it first and alone, open the PR as a draft, stop |
-| `ready` | Audit that every stated gate ran and was ticked and that CI agrees - it runs nothing itself - then lift the PR out of draft |
-| `ready review` | The same audit, then straight into `review` when it passes - one wait instead of two. A refusal stops the chain |
-| `auto 50` | One command from issue number to prepared review: plan, draft PR, implementation, `ready`, `review`. Skips your plan-reading stop, so keep it for small work you would wave through |
-| `go 60` | The same chain entered after you read the plan on draft PR 60: implementation, `ready`, `review`, one stop at the end |
-| `review` | Run a full review round on every open PR: findings posted, fixes committed locally, then it stops for you |
-| `review 60` | The same for one PR |
-| `discuss 60` (or `reply 60`, `chat 60`) | Read your replies on the review threads and answer them, in the thread |
-| `watch 60` | Poll every 30s for your replies while you read, and answer as they arrive |
-| `unwatch` | Stop that polling. `rnp`, or "resolve all and push", stops it too; `discuss` leaves it running, and it dies with the session |
-| `resolve 60` (or `rnp 60`) | Record your authorisation, resolve the threads it covers, and push the fixes. Saying "resolve all and push" does the same |
-| `merge` | Audit the checklists, gate on the review record, squash-merge, delete the branch, confirm the issue closed |
-| `view` | Show the stack from trunk outward |
-| `init` | Start a new stack from branches not stacked yet |
-| `add` | Add a dependent branch to the stack |
-| `submit` | Push the stack and open or update its PRs |
-| `sync` | Fetch, cascade-rebase the stack onto the trunk, and force-push every branch |
-| `restack` | The cascade rebase alone (`gh stack rebase`), leaving the remote untouched |
-| `help` | This page |
+| Command                                 | What it does                                                                                                                                                                        |
+|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `open` (or `plan`)                      | Check the issue is startable and the trunk current, write the plan file, commit it first and alone, open the PR as a draft, stop                                                    |
+| `ready`                                 | Audit that every stated gate ran and was ticked and that CI agrees - it runs nothing itself - then lift the PR out of draft                                                         |
+| `ready review`                          | The same audit, then straight into `review` when it passes - one wait instead of two. A refusal stops the chain                                                                     |
+| `auto 50`                               | One command from issue number to prepared review: plan, draft PR, implementation, `ready`, `review`. Skips your plan-reading stop, so keep it for small work you would wave through |
+| `go 60`                                 | The same chain entered after you read the plan on draft PR 60: implementation, `ready`, `review`, one stop at the end                                                               |
+| `review`                                | Run a full review round on every open PR: findings posted, fixes committed locally, then it stops for you                                                                           |
+| `review 60`                             | The same for one PR                                                                                                                                                                 |
+| `discuss 60` (or `reply 60`, `chat 60`) | Read your replies on the review threads and answer them, in the thread                                                                                                              |
+| `watch 60`                              | Poll every 30s for your replies while you read, and answer as they arrive                                                                                                           |
+| `unwatch`                               | Stop that polling. `rnp`, or "resolve all and push", stops it too; `discuss` leaves it running, and it dies with the session                                                        |
+| `resolve 60` (or `rnp 60`)              | Record your authorisation, resolve the threads it covers, and push the fixes. Saying "resolve all and push" does the same                                                           |
+| `merge`                                 | Audit the checklists, gate on the review record, squash-merge, delete the branch, confirm the issue closed                                                                          |
+| `view`                                  | Show the stack from trunk outward                                                                                                                                                   |
+| `init`                                  | Start a new stack from branches not stacked yet                                                                                                                                     |
+| `add`                                   | Add a dependent branch to the stack                                                                                                                                                 |
+| `submit`                                | Push the stack and open or update its PRs                                                                                                                                           |
+| `sync`                                  | Fetch, cascade-rebase the stack onto the trunk, and force-push every branch                                                                                                         |
+| `restack`                               | The cascade rebase alone (`gh stack rebase`), leaving the remote untouched                                                                                                          |
+| `help`                                  | This page                                                                                                                                                                           |
 
 **A branch's life, in order**
 

@@ -53,10 +53,10 @@ Output the whole breakdown and **create nothing yet**:
 Repository: owner/name
 Epic: [name] - [existing #51 | new]
 
-| Row | Title | Kind | Layer | Milestone | Readiness | Blocked by |
-|---|---|---|---|---|---|---|
-| 1 | add user lookup endpoint | task | backend | v1.0 | ready | - |
-| 2 | build the login form | task | frontend | - | draft - no criteria yet | row 1 |
+| Row | Title                    | Kind | Layer    | Milestone | Readiness               | Blocked by |
+|-----|--------------------------|------|----------|-----------|-------------------------|------------|
+| 1   | add user lookup endpoint | task | backend  | v1.0      | ready                   | -          |
+| 2   | build the login form     | task | frontend | -         | draft - no criteria yet | row 1      |
 
 Labels to be applied: ...
 Labels that must be created first: ...
@@ -106,8 +106,8 @@ If any create fails, stop and report which issues exist and which do not. Do not
 ## Step 7 - Confirm
 
 ```
-| # | Title | Labels | Milestone | Parent | Blocked by | URL |
-|---|---|---|---|---|---|---|
+| #   | Title | Labels | Milestone | Parent | Blocked by | URL |
+|-----|-------|--------|-----------|--------|------------|-----|
 ```
 
 Then offer the next step, which is usually a branch rather than another issue:

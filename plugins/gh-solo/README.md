@@ -8,13 +8,13 @@ It is deliberately not a generic workflow plugin. It assumes GitHub, it assumes 
 
 ## What is inside
 
-| Component | What it owns |
-|---|---|
-| `/gh-solo:tracker` | The issue tracker: epics with sub-issues, spikes, drafts, blocked-by links, milestones, and what to work on next |
-| `/gh-solo:pr-flow` | Branches, plan files, opening and readying pull requests, stacks, review rounds, and the merge gate |
-| `/gh-solo:implement` | Turning an approved plan into commits, and review findings into fixes |
-| `reviewer` agent | The subagent a review round spawns to read the diff, so the code is judged by something that did not write it |
-| trunk-push hook | Asks for confirmation before any `git push` whose destination is the trunk |
+| Component            | What it owns                                                                                                     |
+|----------------------|------------------------------------------------------------------------------------------------------------------|
+| `/gh-solo:tracker`   | The issue tracker: epics with sub-issues, spikes, drafts, blocked-by links, milestones, and what to work on next |
+| `/gh-solo:pr-flow`   | Branches, plan files, opening and readying pull requests, stacks, review rounds, and the merge gate              |
+| `/gh-solo:implement` | Turning an approved plan into commits, and review findings into fixes                                            |
+| `reviewer` agent     | The subagent a review round spawns to read the diff, so the code is judged by something that did not write it    |
+| trunk-push hook      | Asks for confirmation before any `git push` whose destination is the trunk                                       |
 
 Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow` and `/gh-solo:tracker` also take `help` as a routing verb, which prints their own summary; `implement` and the `reviewer` skill have no such verb, because each has one job and its README is the summary.
 

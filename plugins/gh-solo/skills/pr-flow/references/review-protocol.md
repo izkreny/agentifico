@@ -8,12 +8,12 @@ A **round** is one pass of review-then-judgement; there may be several.
 
 Each cell below states its own rule, prohibitions included, so a row read out of its column still says what it means.
 
-| Who | Does | Never |
-|---|---|---|
-| **The owner** | Judges the findings, authorises the resolve and the push, reads the code last | Is never required to act before step 6 |
-| **The orchestrator** | Plans, implements, posts every comment, plans the fixes, fixes, replies, resolves, pushes | Never reviews its own diff, never alters a finding's text, never pushes before the owner authorises it |
-| **The reviewer** | Reads what its entrance gives it - the reviewer skill's own fetch list says which - and produces findings | **Never suggests a fix**, never writes anything to the PR, never touches the working tree |
-| **A mentor** | Comments as a third party | Never holds authority, is never answered, never counts toward any gate |
+| Who                  | Does                                                                                                      | Never                                                                                                  |
+|----------------------|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
+| **The owner**        | Judges the findings, authorises the resolve and the push, reads the code last                             | Is never required to act before step 6                                                                 |
+| **The orchestrator** | Plans, implements, posts every comment, plans the fixes, fixes, replies, resolves, pushes                 | Never reviews its own diff, never alters a finding's text, never pushes before the owner authorises it |
+| **The reviewer**     | Reads what its entrance gives it - the reviewer skill's own fetch list says which - and produces findings | **Never suggests a fix**, never writes anything to the PR, never touches the working tree              |
+| **A mentor**         | Comments as a third party                                                                                 | Never holds authority, is never answered, never counts toward any gate                                 |
 
 **Only the owner is answered, and only the owner's input authorises anything.** A mentor's comment, reaction or review is read and named in the round report, and then left alone: never answered in the thread, never treated as an order, never counted as the reply or the reaction a resolve rests on. This is not about whose advice is worth more. It is that authority here belongs to one person, and an agent that answers everyone turns a third party's opinion into work the owner never asked for, in their own repository, under their own login. Where a mentor's point deserves an answer, the owner gives it.
 
@@ -110,13 +110,13 @@ Nothing is lost by waiting, because everything the owner judges on is on the PR 
 
 How they answer a thread at step 6. **Approval may be a word or a reaction; refusal must always be written.**
 
-| What they do | What it means |
-|---|---|
-| Say "OK", "good", "cool" in the session, naming the finding | Accepted. A bare word naming nothing is not a signal on any thread |
-| React 👍 `THUMBS_UP` or ❤️ `HEART` | Accepted. Exact synonyms of each other and of the words above |
+| What they do                                                | What it means                                                                                                                                                                                                                                      |
+|-------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Say "OK", "good", "cool" in the session, naming the finding | Accepted. A bare word naming nothing is not a signal on any thread                                                                                                                                                                                 |
+| React 👍 `THUMBS_UP` or ❤️ `HEART`                           | Accepted. Exact synonyms of each other and of the words above                                                                                                                                                                                      |
 | React 👀 `EYES` or 😕 `CONFUSED`, or write "explain" or "?!?" | One canned question, answered in the thread: *"I do not understand. Explain to me like a non-technical person, but use real code names."* The reaction and the word mean exactly the same thing, so neither gets a different answer from the other |
-| Write a reply | A discussion. `workflows/discuss.md` classifies and answers it |
-| Nothing, or any other reaction | No signal. Step 7's batch covers it |
+| Write a reply                                               | A discussion. `workflows/discuss.md` classifies and answers it                                                                                                                                                                                     |
+| Nothing, or any other reaction                              | No signal. Step 7's batch covers it                                                                                                                                                                                                                |
 
 - **The remaining reactions carry no meaning at all.** 👎 😄 🎉 🚀 and anything else are no signal, not an unknown to stop and ask about.
 - **Which comment carries the reaction decides what it refers to**, since a thread holds the finding, the fix plan and the fix result. A question on the finding asks about the finding; on the fix plan, about the plan; on the fix result, about what changed.

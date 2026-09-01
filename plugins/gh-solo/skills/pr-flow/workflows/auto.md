@@ -2,10 +2,10 @@
 
 The entrances here run the lifecycle's workflows back to back, removing the waits between them - never the checks inside them. `auto` starts at the issue; `go` starts after the owner has read the plan. Each ends at the same stop: the review protocol's step 6, the owner judging the findings, because that is the only step in the whole span that belongs to them alone.
 
-| Command | Enters at | What it skips |
-|---|---|---|
-| `auto <issue-number>` | Step 1 | the plan-reading stop at the end of `workflows/open.md` |
-| `go <pr-number>` | Step 2 | nothing the owner does - the plan was read; only the waits between workflows go |
+| Command               | Enters at | What it skips                                                                   |
+|-----------------------|-----------|---------------------------------------------------------------------------------|
+| `auto <issue-number>` | Step 1    | the plan-reading stop at the end of `workflows/open.md`                         |
+| `go <pr-number>`      | Step 2    | nothing the owner does - the plan was read; only the waits between workflows go |
 
 **Only the literal command enters a chain.** Like the `watch` arming rule in `workflows/discuss.md`, and for a stronger reason: `auto` skips a stop that exists for the owner's judgement, so no sentence, however clearly it implies one, may start either chain. The owner typing the command is the authorisation for everything the chain does - the plan pushed unread, the implementation, the draft flip, the posts - given in advance, once, for this invocation only.
 

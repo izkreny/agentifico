@@ -152,14 +152,14 @@ gh label create backend --color 1D76DB --description "Backend / API"
 
 Every axis but Layer has a **default**, and the default is expressed by carrying **no label at all**. The right-hand column is the value that never appears in the picker, because creating it is the mistake the next section is about.
 
-| Axis | Question it answers | Labels that exist | The default, never labelled |
-|---|---|---|---|
-| **Layer** | Where does the deliverable land? | `backend` `frontend` `fullstack` `infra` `docs` | none - mandatory, exactly one, on everything except an epic |
-| **Nature** | Fixing, answering, or building? | `bug`, `spike` | **task** - building a thing |
-| **Structure** | Does it contain other work? | `epic` | **leaf** - no sub-issues |
-| **Priority** | When? | `urgent` `someday` | **normal** - in backlog order |
-| **Readiness** | Is it specified enough to start? | `draft` | **ready** - startable as written |
-| **Blocked** | Is something outside the tracker holding it up? | `blocked` | **unblocked** - or blocked by another issue, which is a relation, not a label; see *Dependencies* |
+| Axis          | Question it answers                             | Labels that exist                               | The default, never labelled                                                                       |
+|---------------|-------------------------------------------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------|
+| **Layer**     | Where does the deliverable land?                | `backend` `frontend` `fullstack` `infra` `docs` | none - mandatory, exactly one, on everything except an epic                                       |
+| **Nature**    | Fixing, answering, or building?                 | `bug`, `spike`                                  | **task** - building a thing                                                                       |
+| **Structure** | Does it contain other work?                     | `epic`                                          | **leaf** - no sub-issues                                                                          |
+| **Priority**  | When?                                           | `urgent` `someday`                              | **normal** - in backlog order                                                                     |
+| **Readiness** | Is it specified enough to start?                | `draft`                                         | **ready** - startable as written                                                                  |
+| **Blocked**   | Is something outside the tracker holding it up? | `blocked`                                       | **unblocked** - or blocked by another issue, which is a relation, not a label; see *Dependencies* |
 
 **There is no Size axis.** How big an issue is gets decided once, while it is being written, and the answer is either "this is one issue" or "this is an epic with children" — see *How big is one issue*. A number recorded on the issue afterwards serves a planning session and a velocity chart, and this repository has neither.
 
@@ -171,13 +171,13 @@ Layer is the one mandatory axis, and since titles carry no prefix it is the **on
 
 **Exactly one layer label, on every issue that is not an epic.** An epic is exempt because it is a container: its children carry the layers, and it usually spans them, so a layer on the epic itself would either lie or read `fullstack` every time. On everything else: not zero, and never two. This is the axis rule from the table in *Labels*, and it is worth restating here because the layer is the one place two labels look defensible: an issue that touches the API and the UI seems to deserve both. It does not. `fullstack` exists precisely so that pair is never needed, and applying `backend` and `frontend` together is the mistake it was created to prevent.
 
-| Label | The deliverable is |
-|---|---|
-| `backend` | An API, a service, a background job, a schema or a migration |
-| `frontend` | A view, a component, a route, styling |
-| `fullstack` | One thing that cannot be accepted from either side alone |
-| `infra` | A pipeline, a deployment, a container, tooling or repository config |
-| `docs` | Prose that is the point in itself: a README, a guide, an ADR |
+| Label       | The deliverable is                                                  |
+|-------------|---------------------------------------------------------------------|
+| `backend`   | An API, a service, a background job, a schema or a migration        |
+| `frontend`  | A view, a component, a route, styling                               |
+| `fullstack` | One thing that cannot be accepted from either side alone            |
+| `infra`     | A pipeline, a deployment, a container, tooling or repository config |
+| `docs`      | Prose that is the point in itself: a README, a guide, an ADR        |
 
 **The layer is where the deliverable lands, not every file the branch touches.** This is what keeps the set from collapsing. Adding an endpoint and updating the README to describe it is `backend`: the endpoint is the deliverable and the README follows from it. Bumping a dependency to fix a UI bug is `frontend`, not `infra`, because the fix is the point and the lockfile is a means. Ask what the issue would be closed *for*, and label that.
 
@@ -396,31 +396,31 @@ The exception is a solo developer working in a repository owned by an org they b
 
 ## 10. Quick reference
 
-| Item | Format | Example |
-|---|---|---|
-| Epic | Feature-area name, label `epic` | `authentication` |
-| Issue | `action`, plus a layer label | `add user lookup endpoint` + `backend` |
-| Spike | `spike - question`, labels `spike` + layer | `spike - evaluate OpenAPI codegen` + `backend` |
-| Bug | `what is wrong`, labels `bug` + layer | `profile card crashes on empty name` + `frontend` |
-| Draft | Any of the above, plus the `draft` label; body may be a stub | `add receipt export` + `backend` + `draft` |
-| Branch | `{type}/GHI-{issue-number}_{slug}` | `feat/GHI-50_login-form` |
-| Commit header | `{type}: {description} (#{issue-number})` | `fix: reject a blank email (#50)` |
-| Plan file | `YYYY-MM-DD_GHI-{issue-number}_{slug}.md` | `2026-08-16_GHI-50_login-form.md` |
-| PR title | `{type}({scope}): {issue title}` - the scope is the issue's layer label, omitted when it repeats the type | `feat(backend): add user lookup endpoint` |
-| PR body | Must contain `Closes #{issue-number}` | `Closes #50` |
-| Assignee | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation | `--add-assignee @me` |
+| Item          | Format                                                                                                    | Example                                           |
+|---------------|-----------------------------------------------------------------------------------------------------------|---------------------------------------------------|
+| Epic          | Feature-area name, label `epic`                                                                           | `authentication`                                  |
+| Issue         | `action`, plus a layer label                                                                              | `add user lookup endpoint` + `backend`            |
+| Spike         | `spike - question`, labels `spike` + layer                                                                | `spike - evaluate OpenAPI codegen` + `backend`    |
+| Bug           | `what is wrong`, labels `bug` + layer                                                                     | `profile card crashes on empty name` + `frontend` |
+| Draft         | Any of the above, plus the `draft` label; body may be a stub                                              | `add receipt export` + `backend` + `draft`        |
+| Branch        | `{type}/GHI-{issue-number}_{slug}`                                                                        | `feat/GHI-50_login-form`                          |
+| Commit header | `{type}: {description} (#{issue-number})`                                                                 | `fix: reject a blank email (#50)`                 |
+| Plan file     | `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`                                                                 | `2026-08-16_GHI-50_login-form.md`                 |
+| PR title      | `{type}({scope}): {issue title}` - the scope is the issue's layer label, omitted when it repeats the type | `feat(backend): add user lookup endpoint`         |
+| PR body       | Must contain `Closes #{issue-number}`                                                                     | `Closes #50`                                      |
+| Assignee      | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation             | `--add-assignee @me`                              |
 
 ### Branch and commit type
 
 `{type}` in a branch name is a **Conventional Commits type**, and it is the same vocabulary as the `type:` on a commit header and on a pull request title. One vocabulary across all of them, so a `fix` branch carries `fix:` commits and opens a `fix:` PR.
 
-| Type | For |
-|---|---|
-| `feat` | New behaviour |
-| `fix` | A defect |
+| Type       | For                                    |
+|------------|----------------------------------------|
+| `feat`     | New behaviour                          |
+| `fix`      | A defect                               |
 | `refactor` | Restructuring with no behaviour change |
-| `docs` | Prose |
-| `chore` | Tooling, dependencies, config |
+| `docs`     | Prose                                  |
+| `chore`    | Tooling, dependencies, config          |
 
 That set is the one this skill assumes; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set in `.agents/gh-solo.md` if it differs.
 

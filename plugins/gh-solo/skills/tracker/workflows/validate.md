@@ -24,26 +24,26 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 ### Issues and spikes
 
-| Check | Rule |
-|---|---|
-| Title format | `imperative action`, all lowercase, under the length cap in *Titles* of `references/standards.md`, no bracketed prefix or layer tag |
-| Layer label | Exactly one layer label present. It is the only record of the layer, so absent is a fail, and two is a fail. Where `backend` and `frontend` both appear, the fix is `fullstack` if the issue is genuinely one deliverable, or a split into two issues if it is not |
-| Parent | Attached to an epic, unless the issue is genuinely standalone |
-| Body sections | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when |
-| Summary is capped | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement |
-| Criteria are checkboxes | `- [ ]`, so GitHub counts them |
-| Criteria are testable | Each one observable; a reader can say pass or fail |
-| Dependencies | Anything the body calls a blocker exists as a real `blockedBy` relation |
+| Check                   | Rule                                                                                                                                                                                                                                                               |
+|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Title format            | `imperative action`, all lowercase, under the length cap in *Titles* of `references/standards.md`, no bracketed prefix or layer tag                                                                                                                                |
+| Layer label             | Exactly one layer label present. It is the only record of the layer, so absent is a fail, and two is a fail. Where `backend` and `frontend` both appear, the fix is `fullstack` if the issue is genuinely one deliverable, or a split into two issues if it is not |
+| Parent                  | Attached to an epic, unless the issue is genuinely standalone                                                                                                                                                                                                      |
+| Body sections           | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when                                                                                                                            |
+| Summary is capped       | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement                                                                                                                 |
+| Criteria are checkboxes | `- [ ]`, so GitHub counts them                                                                                                                                                                                                                                     |
+| Criteria are testable   | Each one observable; a reader can say pass or fail                                                                                                                                                                                                                 |
+| Dependencies            | Anything the body calls a blocker exists as a real `blockedBy` relation                                                                                                                                                                                            |
 
 ### Epics
 
-| Check | Rule |
-|---|---|
-| Title | A feature-area name, all lowercase, no prefix or tag |
-| `epic` label | Present |
-| Body sections | What this delivers, Why it matters, Acceptance criteria, Done when |
-| Summary is capped | `What this delivers` is five sentences or bullets at most |
-| Sub-issues | At least one, unless the epic was opened moments ago |
+| Check             | Rule                                                               |
+|-------------------|--------------------------------------------------------------------|
+| Title             | A feature-area name, all lowercase, no prefix or tag               |
+| `epic` label      | Present                                                            |
+| Body sections     | What this delivers, Why it matters, Acceptance criteria, Done when |
+| Summary is capped | `What this delivers` is five sentences or bullets at most          |
+| Sub-issues        | At least one, unless the epic was opened moments ago               |
 
 ### Not checked, deliberately
 
@@ -68,11 +68,11 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 {title}
 {kind}  |  {state}  |  {labels}
 
-| Check | Result | Detail |
-|---|---|---|
+| Check        | Result      | Detail         |
+|--------------|-------------|----------------|
 | Title format | pass / fail | what was found |
-| Layer label | pass / fail | what was found |
-| ... | | |
+| Layer label  | pass / fail | what was found |
+| ...          |             |                |
 
 ### Verdict
 PASS - meets the standards.
