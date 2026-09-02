@@ -83,6 +83,23 @@ index 3333333..4444444 100644
 +a line
 """
 SHAPELESS_DIFF = "these are notes about a diff, not a diff\n"
+# Real `git diff -U0` output for the three shapes git emits with no ---/+++ pair at all.
+# Taken from actual ranges rather than written by hand: a reader that required that pair
+# refused each of these as malformed and took the whole re-review down with it.
+RENAME_DIFF = """diff --git a/app/models/group.rb b/app/models/team.rb
+similarity index 100%
+rename from app/models/group.rb
+rename to app/models/team.rb
+"""
+MODE_DIFF = """diff --git a/scripts/run.sh b/scripts/run.sh
+old mode 100644
+new mode 100755
+"""
+BINARY_DIFF = """diff --git a/app/models/group.rb b/app/models/group.rb
+new file mode 100644
+index 0000000..1111111
+Binary files /dev/null and b/app/models/group.rb differ
+"""
 
 
 def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None):
@@ -232,6 +249,12 @@ MUST_BUILD = [
      OTHER_DIFF),
     ("re-review with no unpushed commits at all holds nothing",
      mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "0 held"], ""),
+    ("a rename-only range still names its files",
+     mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "1 held"], RENAME_DIFF),
+    ("a mode-only range holds nothing and refuses nothing",
+     mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "0 held"], MODE_DIFF),
+    ("a binary-only range still names its file",
+     mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "1 held"], BINARY_DIFF),
     ("derived severities with a basis, which the record must publish",
      mutate(REVIEW, severity_source="derived",
             severity_basis="high where the branch does not do what the PR body claims"),

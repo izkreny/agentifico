@@ -186,20 +186,29 @@ def unpushed_paths(text: str, problems: list[str]) -> set[str]:
     the design already accepts: a thread minutes later rather than a `422`.
     """
     paths: set[str] = set()
+    saw_header = False
     for line in text.splitlines():
-        if not (line.startswith("--- ") or line.startswith("+++ ")):
+        # `diff --git` is the one line git emits for every file in every diff. The
+        # `---`/`+++` pair is absent for a pure rename, a mode-only change and a binary
+        # file, so a reader that took only those would refuse a legitimate diff.
+        match = re.match(r"diff --git a/(.*) b/(.*)$", line)
+        if match:
+            saw_header = True
+            paths.update(name for name in match.groups() if name)
             continue
-        name = line[4:].strip()
-        if name == "/dev/null":
-            continue
-        if name.startswith(("a/", "b/")):
-            name = name[2:]
-        if name:
-            paths.add(name)
-    if text.strip() and not paths:
+        if line.startswith("--- ") or line.startswith("+++ "):
+            saw_header = True
+            name = line[4:].strip()
+            if name == "/dev/null":
+                continue
+            if name.startswith(("a/", "b/")):
+                name = name[2:]
+            if name:
+                paths.add(name)
+    if text.strip() and not saw_header:
         problems.append(
-            "the unpushed diff has content but no ---/+++ file header, so nothing could be "
-            "held; it is not the output of `git diff`"
+            "the unpushed diff has content but no `diff --git` or ---/+++ file header, so "
+            "nothing could be held; it is not the output of `git diff`"
         )
     return paths
 
