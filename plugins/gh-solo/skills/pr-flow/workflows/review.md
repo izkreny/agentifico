@@ -150,10 +150,11 @@ One call lands every thread and the record Review together, so a half-posted PR 
 
    ```bash
    gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
-   python3 <skill-dir>/scripts/post-review.py highest-id --comments <listing-file>
+   gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
+   python3 <skill-dir>/scripts/post-review.py highest-id --comments <listing-file> --reviews <reviews-file>
    ```
 
-   **Every id this flow issues is on a thread, which is why the comments endpoint is the whole answer.** A finding that could not be anchored is never given an id, per Step 5, precisely so that no id exists anywhere this read cannot see it.
+   **An id can live on either of two surfaces, so both are read and neither argument is optional.** A finding whose line only the unpushed fixes carry is held rather than dropped, per Step 5, and its id is reserved in the record Review's body until the push releases it - a surface the comments endpoint does not reach. A read of the threads alone would answer as though that id had never been issued and hand it to a different finding, which is why the script requires `--reviews` instead of defaulting to skipping it.
 
    **The number comes from the script rather than from a `--jq` filter on the `gh` call**, for the reason the unattended-command bullet in `SKILL.md` states about an aggregate over a paginated result. Getting it wrong here reissues an id that already exists, which breaks *Ids never restart* in `references/review-protocol.md` permanently. `highest-id` prints `0` when no round has posted yet. The listing is the same read step 6 makes, and **`--slurp` must not be added to it** - the script refuses that shape rather than finding no ids in it and answering `0`, which is indistinguishable from a first round.
 3. **Write the disclaimer line to a file**, its wording per the AI-disclaimer bullet in `SKILL.md`. The script refuses a line that does not open with `> 🤖`.
@@ -172,13 +173,16 @@ One call lands every thread and the record Review together, so a half-posted PR 
 
    The JSON must travel in a **file**: `-f` cannot express an array, and `echo '{...}' | gh api --input -` sends the same bytes but does not prefix-match this skill's granted `Bash(gh:*)` pattern, so it prompts where the file form runs clean. Keep the payload file outside the working tree - the harness scratchpad - so a copy of it cannot get committed.
 
-   **A `422` reading `Line could not be resolved` means an anchor that will not resolve, and item 1 has already excluded a moved head.** Two causes remain. On the appointed-command path `side` is guessed as `RIGHT`, per *Where the appointed reviewer is a command*, and a wrong guess fails the call; a re-spawn repeats the same guess and fails identically. On the re-review, the anchor may name a line that exists only in the unpushed fix commits, which the pull request's diff does not contain - that one is expected rather than a fault, and Step 5 says where such a finding goes instead. Name the finding that could not be anchored, say which of the two it is, and stop.
+   **A `422` reading `Line could not be resolved` means an anchor that will not resolve, and item 1 has already excluded a moved head.** One cause remains: on the appointed-command path `side` is guessed as `RIGHT`, per *Where the appointed reviewer is a command*, and a wrong guess fails the call; a re-spawn repeats the same guess and fails identically. A line only the unpushed fix commits carry can no longer reach this call at all - `build` holds every finding in a file those commits touch, per Step 5 - so a `422` here is never that. Name the finding that could not be anchored and stop.
 6. **Reconcile what landed:**
 
    ```bash
    gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
-   python3 <skill-dir>/scripts/post-review.py verify --payload <payload-file> --comments <listing-file>
+   gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
+   python3 <skill-dir>/scripts/post-review.py verify --payload <payload-file> --comments <listing-file> --reviews <reviews-file>
    ```
+
+   **`--reviews` is required here for the reason it is required in item 2**: a held finding is in no `comments` array, so reconciling the payload's threads alone cannot see it, and an id reserved nowhere is one the next round reissues.
 
    **`--paginate` is not optional.** The endpoint pages at 30 and a plan discussion's threads alone can pass that, so an unpaginated read returns a slice that looks exactly like a failed post. A verify failure is reported, never re-posted over: the threads may already be there.
 7. **Post the reviewer's report as a Conversation comment**, `gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it unchanged, and is relayed verbatim, which *Never counted* under *Post caps* in `SKILL.md` excludes - what that cap bounds here is whatever you write around it, and its companion rule forbids re-listing findings that are already threads.
@@ -211,13 +215,34 @@ Then post what it returns:
 
 - **Each verdict as a reply in its finding's thread**, the same endpoint as step 3, via `pr-flow` review, re-review verdict, under the same post cap.
 - **Re-read the head and compare it before building this payload**, exactly as Step 2's first item does. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it.
-- **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script, same call as step 2, with the re-review findings file: new defects become new threads with new ids continuing the sequence, and the record indexes its own pass.
-- **A new defect on a line only the fix commits contain cannot be posted this round, and it gets no `RF{n}`.** The fixes are unpushed by design, so that line is not in the pull request's diff, GitHub cannot resolve an anchor to it, and the call is atomic, so attempting it would take the verdicts for every closed finding down with it. **Leave it out of the findings file entirely** and put it in the round report instead, with its `file:line` and what goes wrong, under a heading that says it has no thread.
+- **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script and same call as step 2, with the re-review findings file, plus the arguments that entrance requires:
 
-  **Withholding the id is the point rather than an omission.** An id assigned here could not be posted anywhere: `scripts/post-review.py` composes the record Review from the findings list alone and has no free-text field, every entry in that list becomes an inline comment, and posting by hand is forbidden. So the id would exist only in a report, the next round's highest-id read would not see it, and the id would be reissued to a different finding - which breaks *Ids never restart* in `references/review-protocol.md` permanently, in exchange for nothing.
+  ```bash
+  git rev-parse HEAD                              # before the spawn above; keep the value
+  git diff @{u}..HEAD -U0 > <unpushed-diff-file>
+  python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head> --out <payload-file>
+  ```
 
-  **The owner is the route.** They read the finding in the round report at the protocol's step 6, and after the push at step 7 the line is ordinary: the next full pass anchors it without special handling, or they raise it themselves. **This is a known limitation rather than a design**, tracked as issue #8 on this plugin's own repository, whose fix needs the posting script to grow a way to carry a finding that has no anchor yet. Say so in the report rather than implying the finding is handled.
-- **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round.
+  **`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against. The diff is the round's to produce because the round is the thing holding the fix commits: the reviewer read the fix range and knows nothing about the pushed head. The diff travels as a file, written to the harness scratchpad like every other payload file; the head travels as a value.
+
+  **`--anchored-at` is the *local* head, and never the `headRefOid` Step 1 recorded.** This pass reads the fix commits with `git` while they are unpushed, so every line number it returns counts lines in the file as it stands at local `HEAD`, after those commits. Passing the pushed head instead puts the fix commits themselves inside the shift `release` computes, which moves a held line a second time or drops it as rewritten - the same defect the shift exists to remove, arriving by the argument meant to prevent it. Read it before the spawn, since a commit made afterwards would make it a head the reviewer never saw.
+- **A new defect that `build` holds gets its `RF{n}` and no thread, this round.** Every finding in a file the unpushed commits touch is held: the id is assigned from the same sequence, the finding leaves the `comments` array so no unresolvable anchor is ever sent, and the record Review carries it whole in a fenced ledger. **Leave it in the findings file** - holding is the script's decision from the diff, never yours from the findings.
+
+  **Held per file rather than per hunk, deliberately.** A rescope finding's `line` counts lines in the file at local `HEAD`, while GitHub resolves against the pushed head, so an unpushed commit inserting lines above a finding shifts it even when the finding sits outside every hunk. Holding the file is the superset with no such gap.
+
+  **The line is brought forward at release, never replayed.** A held finding's `line` counts lines as they stood at `--anchored-at`, and the round goes on committing after the hold - the protocol's step 5 gives a new defect a fix and one further attempt - so `release` shifts the number through `git diff <that head>..HEAD` before it anchors anything. A line the fixes rewrote cannot be brought forward at all, and that one is reported and skipped rather than posted at a guess.
+
+  **A held finding's fix plan, fix result and verdict go into a follow-up Review, one entry each.** None of them exists when the record Review that holds the finding is posted, and this flow never rewrites a posted Review, so they cannot go in beside it. At the end of the round, write them as a JSON array of `{rf, kind, text}` - `kind` being `plan`, `result` or `verdict` - and post the Review the script builds from it:
+
+  ```bash
+  python3 <skill-dir>/scripts/post-review.py followup --entries <entries-file> --disclaimer-file <disclaimer-file> --out <followup-file>
+  gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <followup-file>
+  ```
+
+  **They stay separate rather than folded into the finding's own text**, so the thread `release` opens collects the reply-per-step shape a threaded finding collects: `release` reads this ledger and emits each entry as its own reply for `workflows/resolve.md` to post. A held finding with no follow-up recorded is not an error - its thread simply opens carrying the finding alone, and `release` says which.
+
+  **`rnp` is the route, not the owner and not a later pass.** The protocol's step 7 pushes the fixes, which makes those lines part of the pull request's diff, and then `release` reads the ledger back and posts each held finding as a thread under the id it already holds - `workflows/resolve.md` owns that call. **The round report says which findings were threaded and which are held**, so a reader cannot take the second for an absence of findings.
+- **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round. Read both surfaces, exactly as step 2 does: a held id is in the record Review's body and nowhere else.
 
 The caps on both loops are the protocol's, and they are the only thing that ends this block short of the owner.
 
@@ -225,7 +250,7 @@ The caps on both loops are the protocol's, and they are the only thing that ends
 
 Open with the verdict line: `✅ ALL PASS` when the reviewer found nothing and the conventions were clean, `⚠️ PASSED WITH FINDINGS - {count} posted, {count} fixed locally` otherwise.
 
-Then the round report: which reviewer ran, the model the round asked the spawn for, and that an environment variable may have replaced it so the figure is a request rather than an outcome, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, what the re-review would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
+Then the round report: which reviewer ran, the model the round asked the spawn for, and that an environment variable may have replaced it so the figure is a request rather than an outcome, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, which the re-review held for the push rather than threaded, what it would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
 
 Then what the pass cost: its token count, its tool-call count and its wall clock, **as the spawn reported them**. The reviewer cannot measure its own token use, so these are the orchestrator's to read off what the spawn returned and never the reviewer's to supply. Where the spawn reports a figure, print it; where it does not, print that it was not reported rather than an estimate - a number nobody measured is worse here than a gap, because comparing rounds is what these figures exist for.
 
