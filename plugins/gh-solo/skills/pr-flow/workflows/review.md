@@ -215,7 +215,7 @@ Then post what it returns:
 
 - **Each verdict as a reply in its finding's thread**, the same endpoint as step 3, via `pr-flow` review, re-review verdict, under the same post cap.
 - **Re-read the head and compare it before building this payload**, exactly as Step 2's first item does. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it.
-- **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script and same call as step 2, with the re-review findings file, plus the one argument that entrance requires:
+- **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script and same call as step 2, with the re-review findings file, plus the arguments that entrance requires:
 
   ```bash
   git diff @{u}..HEAD -U0 > <unpushed-diff-file>
