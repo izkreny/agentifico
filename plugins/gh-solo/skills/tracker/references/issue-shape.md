@@ -67,7 +67,7 @@ Rules:
 
 GitHub renders **GitHub Flavored Markdown** everywhere. Write bodies to a file and pass `--body-file`, or pipe with `--body-file -`; do not build long bodies as a shell string, where newlines and backticks will not survive quoting intact.
 
-**Issue body template:**
+### Issue body template
 
 ```markdown
 ## Overview
@@ -90,7 +90,7 @@ Blocked by #51. Needs: [API access, credentials, a design]
 
 Every body written by an agent opens with the AI disclaimer line, above everything the templates show; its wording and rules, including the default used when the owner's global instructions file defines no line, live in the AI-disclaimer bullet of the `pr-flow` skill's `SKILL.md`. A template is the wrong place to duplicate a convention that applies everywhere.
 
-**Epic body template:**
+### Epic body template
 
 ```markdown
 ## What this delivers
@@ -156,7 +156,7 @@ Example: `spike - evaluate OpenAPI codegen`
 
 The `spike - ` opener is not a layer prefix and stays. It is part of the sentence, not a tag: without it the title reads as a promise to build the thing rather than to investigate whether to.
 
-**Spike body template:**
+### Spike body template
 
 ```markdown
 ## Question
