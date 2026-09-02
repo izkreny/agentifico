@@ -20,6 +20,80 @@ The four blocks #31 hit are all in `plugins/gh-solo/skills/pr-flow/scripts/post-
 
 `highest-id` reads `pulls/{pr}/comments` alone, which is why *Ids never restart* currently forbids issuing the id at all. `record_body` already prints one `- RF{n} ...` row per finding into a Review body that is posted and greppable on `pulls/{pr}/reviews`, so widening the read to that surface is what makes the reservation safe.
 
+## How it will work
+
+The stages this branch changes are 2, 3 and 6; the rest is the surrounding flow, drawn so the changed parts have somewhere to sit. Where this diagram and the prose above disagree, the prose is right - it is the one the reviewer reads.
+
+```mermaid
+flowchart TB
+
+  subgraph S1["1 - a fresh helper looks at the fixes"]
+    REV["It reads only the fix commits.<br/>It has no memory of writing them"]
+    FF[("The findings file<br/>plain JSON, one entry per finding")]
+    REV --> FF
+  end
+
+  subgraph S2["2 - the round gathers two more things"]
+    HI[("The highest RF number already used here<br/>read from the comment threads<br/><b>and from the round summaries</b> - the second<br/>half is what #8 adds")]
+    DF[("A copy of your unpushed fix commits<br/>so we can tell which lines only you have")]
+  end
+
+  subgraph S3["3 - build hands out the numbers, then sorts"]
+    BUILD["Every finding gets its own RF number.<br/>A number is never handed out twice"]
+    ASK{"Is the line it points at one<br/>GitHub can already see?"}
+    T1["Yes - it becomes<br/>a comment thread"]
+    T2["No, only your computer has that line -<br/>its number and its whole text go<br/>into the round summary, with no thread"]
+    PAY[("The payload<br/>the one message, written out ready")]
+    BUILD --> ASK
+    ASK -- yes --> T1 --> PAY
+    ASK -- no --> T2 --> PAY
+  end
+
+  subgraph S4["4 - one message to GitHub: all of it, or none of it"]
+    TH[("Comment threads<br/>one per finding that could get one")]
+    REC[("The round summary<br/>every finding listed, and the held ones<br/>written out whole so a thread can<br/>be opened from them later")]
+  end
+
+  subgraph S5["5 - you read it, at your own pace"]
+    YOU["You reply, or react, or say fix it"]
+    FIX[("The fix commits<br/>on your computer, deliberately not sent")]
+    YOU --> FIX
+  end
+
+  subgraph S6["6 - you type rnp"]
+    AUTH[("Your authorisation comment<br/>on the pull request")]
+    AFTER["Your fix commits are sent, so the held<br/>lines are now ordinary lines GitHub sees"]
+    NEXT["rnp reads the held findings back out<br/>of the summary and posts each as a real<br/>thread, reusing the number it already had"]
+    AUTH --> AFTER --> NEXT
+  end
+
+  subgraph S7["7 - merge, and what outlives the branch"]
+    BODY[("The pull request body<br/>steps, gates, settled questions")]
+    LOG[("The commit on main<br/>the body becomes its message")]
+    PLANF[("The plan file, in docs/plans")]
+    MERGE["You type merge, once every box is ticked"]
+    MERGE --> LOG
+    MERGE --> PLANF
+    BODY --> LOG
+  end
+
+  FF --> BUILD
+  HI --> BUILD
+  DF --> BUILD
+  PAY --> TH
+  PAY --> REC
+  TH --> YOU
+  REC --> YOU
+  YOU --> AUTH
+  NEXT --> MERGE
+  NEXT --> TH
+
+  classDef store fill:#fff4c2,stroke:#b8860b,color:#000
+  classDef gone fill:#eeeeee,stroke:#888,color:#000,stroke-dasharray:4 3
+  class TH,REC,AUTH,BODY,LOG,PLANF store
+  class FF,DF,HI,PAY gone
+```
+
 ## Steps
 
 - Add `--unpushed-diff <file>` to `build` in `plugins/gh-solo/skills/pr-flow/scripts/post-review.py`, required when `pass` is `re-review` and refused when `pass` is `review` - a full pass runs on the pushed head, so a finding it cannot anchor is the reviewer failing to anchor, which the `reviewer` skill already says to drop.
