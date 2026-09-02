@@ -47,6 +47,10 @@ SUGGESTION_FENCE = "```suggestion"
 # The word boundary is what keeps `PERF123` from reading as an id, and it is the one
 # definition of an id shared by the read, the reconciliation and the build.
 RF_PATTERN = r"\bRF(\d+)\b"
+# The key that marks a fenced JSON block as this flow's own held-findings ledger. `release`
+# scans every ```json fence in every review body, so a sentinel inside the object is what
+# tells ours from a fence someone else wrote; a heading above it would not survive an edit.
+HELD_KEY = "gh_solo_held"
 
 FINDING_FIELDS = (
     "index",
@@ -59,6 +63,8 @@ FINDING_FIELDS = (
     "finding",
     "needs_owner",
 )
+# What a ledger entry carries: the finding whole, plus the id it was reserved under.
+HELD_FIELDS = FINDING_FIELDS + ("rf",)
 
 
 def load_json(path: Path, what: str) -> object:
@@ -169,6 +175,49 @@ def check_indices(findings: list[object], problems: list[str]) -> None:
         )
 
 
+def unpushed_paths(text: str, problems: list[str]) -> set[str]:
+    """The files the unpushed fix commits touch, from a `git diff` of them.
+
+    Held-or-not is decided per *file*, never per hunk, and the reason is line numbers. A
+    rescope finding's `line` counts lines in the file at local HEAD, while GitHub resolves
+    an anchor against the pushed head, so an unpushed commit that inserts lines anywhere
+    above a finding shifts it - including a finding outside every hunk. Holding the whole
+    file is the strict superset that has no such gap, and it over-flags in the direction
+    the design already accepts: a thread minutes later rather than a `422`.
+    """
+    paths: set[str] = set()
+    for line in text.splitlines():
+        if not (line.startswith("--- ") or line.startswith("+++ ")):
+            continue
+        name = line[4:].strip()
+        if name == "/dev/null":
+            continue
+        if name.startswith(("a/", "b/")):
+            name = name[2:]
+        if name:
+            paths.add(name)
+    if text.strip() and not paths:
+        problems.append(
+            "the unpushed diff has content but no ---/+++ file header, so nothing could be "
+            "held; it is not the output of `git diff`"
+        )
+    return paths
+
+
+def held_entries(bodies: list[str]) -> list[dict]:
+    """Every held finding recorded in a review body's fenced ledger, oldest body first."""
+    entries: list[dict] = []
+    for body in bodies:
+        for block in re.findall(r"```json\n(.*?)\n```", body, re.DOTALL):
+            try:
+                data = json.loads(block)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(data, dict) and isinstance(data.get(HELD_KEY), list):
+                entries.extend(e for e in data[HELD_KEY] if isinstance(e, dict))
+    return entries
+
+
 def header(disclaimer: str, via: str) -> str:
     return f"{disclaimer}\n>\n> via `pr-flow` review, {via}"
 
@@ -183,7 +232,11 @@ def finding_body(finding: dict, rf: int, disclaimer: str, via: str) -> str:
 
 
 def record_body(
-    data: dict, assigned: list[tuple[int, dict]], disclaimer: str, via: str
+    data: dict,
+    assigned: list[tuple[int, dict]],
+    held: set[int],
+    disclaimer: str,
+    via: str,
 ) -> str:
     lines = [header(disclaimer, via), ""]
 
@@ -195,9 +248,10 @@ def record_body(
     else:
         verdicts = data.get("verdicts", [])
         closed = sum(1 for v in verdicts if v.get("closed"))
+        threaded = len(assigned) - len(held)
         lines.append(
             f"Scoped re-review: {closed} of {len(verdicts)} finding(s) verified closed, "
-            f"{len(assigned)} new finding(s)."
+            f"{threaded} new finding(s) threaded, {len(held)} held for the push."
         )
 
     if assigned:
@@ -205,13 +259,37 @@ def record_body(
         for rf, finding in assigned:
             emoji = SEVERITIES[finding["severity"]]
             axis = "" if finding["axis"] == "unrated" else f"`{finding['axis']}` "
+            tail = " - no thread yet, held for the push" if rf in held else ""
             lines.append(
                 f"- RF{rf} {emoji} {finding['severity']} {axis}"
-                f"{finding['path']}:{finding['line']}"
+                f"{finding['path']}:{finding['line']}{tail}"
             )
     else:
         lines.append("")
         lines.append("No findings.")
+
+    # The ledger `release` reads back after the push. It carries each held finding whole
+    # rather than the row above, because a thread cannot be opened later from a `file:line`
+    # with no finding text. `json.dumps` never emits a raw newline inside a string, so no
+    # finding's own text can close this fence early.
+    if held:
+        ledger = [
+            {**{k: f[k] for k in FINDING_FIELDS}, "rf": rf}
+            for rf, f in assigned
+            if rf in held
+        ]
+        lines.append("")
+        lines.append("## Held for the push")
+        lines.append("")
+        lines.append(
+            "These point at lines only the unpushed fix commits carry, so GitHub cannot "
+            "anchor a thread to them yet. Their ids are reserved, and `rnp` posts each as "
+            "a thread the moment its push lands."
+        )
+        lines.append("")
+        lines.append("```json")
+        lines.append(json.dumps({HELD_KEY: ledger}, ensure_ascii=False, indent=1))
+        lines.append("```")
 
     if data.get("severity_source") == "derived":
         lines.append("")
@@ -292,6 +370,28 @@ def build(args: argparse.Namespace) -> int:
                 % ", ".join(str(i) for i in unrated)
             )
 
+    # `--unpushed-diff` belongs to the rescope entrance alone. A full pass runs on the
+    # pushed head, so a finding it cannot anchor is the reviewer failing to anchor, which
+    # `../../reviewer/SKILL.md` already tells it to drop rather than hand on.
+    if which_pass == "review" and args.unpushed_diff is not None:
+        problems.append(
+            "--unpushed-diff was given on a review pass, which reads the pushed head and "
+            "has nothing held to reason about"
+        )
+    elif which_pass == "re-review" and args.unpushed_diff is None:
+        problems.append(
+            "--unpushed-diff is missing on a re-review, so nothing can tell a finding "
+            "GitHub can anchor from one only the unpushed fixes carry"
+        )
+
+    held_paths: set[str] = set()
+    if which_pass == "re-review" and args.unpushed_diff is not None:
+        try:
+            diff_text = Path(args.unpushed_diff).read_text(encoding="utf-8")
+        except FileNotFoundError:
+            sys.exit(f"post-review: unpushed diff not found: {args.unpushed_diff}")
+        held_paths = unpushed_paths(diff_text, problems)
+
     if which_pass == "review":
         axes_run = data.get("axes_run")
         if not isinstance(axes_run, list) or not axes_run:
@@ -321,12 +421,16 @@ def build(args: argparse.Namespace) -> int:
     ordered = sorted(findings, key=lambda f: f["index"])
     assigned = [(args.continue_from + n, f) for n, f in enumerate(ordered, start=1)]
 
+    # Ids run over every finding whether or not it gets a thread, which is the whole point
+    # of holding rather than deferring: the id is reserved now and cannot be reissued.
+    held = {rf for rf, f in assigned if f["path"] in held_paths}
+
     via_finding = "finding" if which_pass == "review" else "re-review finding"
     via_record = "round record" if which_pass == "review" else "re-review record"
 
     payload = {
         "event": "COMMENT",
-        "body": record_body(data, assigned, disclaimer, via_record),
+        "body": record_body(data, assigned, held, disclaimer, via_record),
         "comments": [
             {
                 "path": f["path"],
@@ -335,6 +439,7 @@ def build(args: argparse.Namespace) -> int:
                 "body": finding_body(f, rf, disclaimer, via_finding),
             }
             for rf, f in assigned
+            if rf not in held
         ],
     }
 
@@ -350,11 +455,15 @@ def build(args: argparse.Namespace) -> int:
         json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
     )
 
-    print(f"post-review: {len(assigned)} finding(s) -> {args.out}")
+    print(
+        f"post-review: {len(assigned)} finding(s) -> {args.out} "
+        f"({len(assigned) - len(held)} threaded, {len(held)} held)"
+    )
     for rf, finding in assigned:
+        tail = "  HELD - no thread until the push" if rf in held else ""
         print(
             f"  index {finding['index']} -> RF{rf}  {finding['severity']:<6} "
-            f"{finding['axis']:<9} {finding['path']}:{finding['line']}"
+            f"{finding['axis']:<9} {finding['path']}:{finding['line']}{tail}"
         )
     if not assigned:
         print("  no findings; the record Review posts alone")
@@ -384,9 +493,115 @@ def comment_bodies(path: Path) -> list[str]:
     return [c["body"] for c in posted if isinstance(c.get("body"), str)]
 
 
+def review_bodies(path: Path) -> list[str]:
+    """Every submitted review's body on a pull request.
+
+    Same shape and same refusal as `comment_bodies`: the flat array `gh api --paginate`
+    writes for `pulls/<pr-number>/reviews`, never the array-of-arrays `--slurp` nests. A
+    reserved id lives only here until its push, so a reader that missed this surface would
+    answer as though the id had never been issued.
+    """
+    posted = load_json(path, "reviews listing")
+    wrong_shape = (
+        "post-review: the reviews listing is not one flat JSON array of reviews - it must "
+        "be the output of `gh api --paginate "
+        "repos/{owner}/{repo}/pulls/<pr-number>/reviews`, with no --slurp"
+    )
+    if not isinstance(posted, list):
+        sys.exit(wrong_shape)
+    if any(not isinstance(r, dict) for r in posted):
+        sys.exit(wrong_shape)
+    return [r["body"] for r in posted if isinstance(r.get("body"), str)]
+
+
+def release(args: argparse.Namespace) -> int:
+    """Post-push: turn the held ledger back into the threads it was standing in for.
+
+    Exit 0 with no payload written means there was nothing to release, which is the
+    ordinary answer on a round that held nothing.
+    """
+    disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
+    entries = held_entries(review_bodies(Path(args.reviews)))
+    threaded = {rf for body in comment_bodies(Path(args.comments)) for rf in rf_ids(body)}
+
+    problems: list[str] = []
+    if not disclaimer.startswith(DISCLAIMER_PREFIX):
+        problems.append(
+            f"the disclaimer does not open with {DISCLAIMER_PREFIX!r}, which is the whole "
+            "of what every gate downstream tests"
+        )
+
+    for position, entry in enumerate(entries):
+        for field in HELD_FIELDS:
+            if field not in entry:
+                problems.append(f"held[{position}] has no {field}")
+    if problems:
+        print(f"post-review: {len(problems)} problem(s), nothing built", file=sys.stderr)
+        for problem in problems:
+            print(f"  {problem}", file=sys.stderr)
+        return 2
+
+    # An id already carrying a thread is skipped rather than refused. Every earlier round's
+    # ledger stays in its own review body for good - nothing rewrites a posted Review - so
+    # on the second `rnp` of a pull request the first round's released ids are still listed
+    # here, and refusing on them would break every round after the first.
+    already = sorted({e["rf"] for e in entries} & threaded)
+    pending = [e for e in entries if e["rf"] not in threaded]
+    # Two ledgers can name one id only if a round reissued it, which is the invariant the
+    # widened `highest-id` exists to keep; posting it twice would hide that it broke.
+    seen: set[int] = set()
+    unique = []
+    for entry in sorted(pending, key=lambda e: e["rf"]):
+        if entry["rf"] in seen:
+            print(
+                f"post-review: RF{entry['rf']} is held twice, so an id was reissued",
+                file=sys.stderr,
+            )
+            return 2
+        seen.add(entry["rf"])
+        unique.append(entry)
+
+    if already:
+        print("post-review: already threaded, skipped: " + ", ".join(f"RF{n}" for n in already))
+    if not unique:
+        print("post-review: nothing to release")
+        return 0
+
+    rows = [
+        f"- RF{e['rf']} {SEVERITIES[e['severity']]} {e['severity']} {e['path']}:{e['line']}"
+        for e in unique
+    ]
+    payload = {
+        "event": "COMMENT",
+        "body": "\n".join(
+            [header(disclaimer, "the release"), "",
+             f"The push has landed, so {len(unique)} held finding(s) now have threads:", ""]
+            + rows
+        ),
+        "comments": [
+            {
+                "path": e["path"],
+                "line": e["line"],
+                "side": e["side"],
+                "body": finding_body(e, e["rf"], disclaimer, "released finding"),
+            }
+            for e in unique
+        ],
+    }
+
+    Path(args.out).write_text(
+        json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+    )
+    print(f"post-review: {len(unique)} held finding(s) -> {args.out}")
+    for e in unique:
+        print(f"  RF{e['rf']}  {e['severity']:<6} {e['path']}:{e['line']}")
+    return 0
+
+
 def highest_id(args: argparse.Namespace) -> int:
     """Print the highest RF id on a pull request, or 0 - what `build --continue-from` wants."""
-    ids = [rf for body in comment_bodies(Path(args.comments)) for rf in rf_ids(body)]
+    bodies = comment_bodies(Path(args.comments)) + review_bodies(Path(args.reviews))
+    ids = [rf for body in bodies for rf in rf_ids(body)]
     print(max(ids, default=0))
     return 0
 
@@ -417,13 +632,29 @@ def verify(args: argparse.Namespace) -> int:
 
     sent = len(payload["comments"])
 
+    # A held finding is in no `comments` array, so the loop above cannot see it. Its
+    # evidence is the ledger inside the record Review this payload carries: read the ids
+    # back out of what was sent and require each to be on the pull request as a review
+    # body. An id that reserved nothing is the failure this reconciliation exists to catch.
+    held = [e.get("rf") for e in held_entries([payload.get("body") or ""])]
+    posted_reviews = review_bodies(Path(args.reviews))
+    for rf in held:
+        if not any(rf in rf_ids(body) for body in posted_reviews):
+            problems.append(
+                f"RF{rf} was held for the push and is not in any review body on the pull "
+                "request, so its id is reserved nowhere and the next round will reissue it"
+            )
+
     if problems:
         print(f"post-review: {len(problems)} problem(s)", file=sys.stderr)
         for problem in problems:
             print(f"  {problem}", file=sys.stderr)
         return 2
 
-    print(f"post-review: all {sent} finding(s) reconciled against the pull request")
+    print(
+        f"post-review: all {sent} finding(s) reconciled against the pull request"
+        + (f", {len(held)} held id(s) found in the record" if held else "")
+    )
     return 0
 
 
@@ -447,7 +678,30 @@ def main() -> int:
         required=True,
         help="the highest RF id already on this pull request, or 0 for a first round",
     )
+    b.add_argument(
+        "--unpushed-diff",
+        help="a `git diff` of the fix commits this round is holding; required on a "
+             "re-review and refused on a review pass",
+    )
     b.add_argument("--out", required=True, help="where to write the payload JSON")
+
+    r = sub.add_parser("release", help="post-push: the held ledger back into threads")
+    r.add_argument(
+        "--reviews",
+        required=True,
+        help="the pull request's reviews, read with `gh api --paginate`",
+    )
+    r.add_argument(
+        "--comments",
+        required=True,
+        help="the pull request's inline comments, read with `gh api --paginate`",
+    )
+    r.add_argument(
+        "--disclaimer-file",
+        required=True,
+        help="file holding the AI disclaimer line; must open with '> 🤖'",
+    )
+    r.add_argument("--out", required=True, help="where to write the payload JSON")
 
     v = sub.add_parser("verify", help="reconcile a posted round against the pull request")
     v.add_argument("--payload", required=True, help="the payload that was sent")
@@ -456,6 +710,12 @@ def main() -> int:
         required=True,
         help="the pull request's inline comments, read with `gh api --paginate`",
     )
+    v.add_argument(
+        "--reviews",
+        required=True,
+        help="the pull request's reviews, read with `gh api --paginate`; a held id is "
+             "reserved in a review body and nowhere else",
+    )
 
     h = sub.add_parser("highest-id", help="the highest RF id already on the pull request")
     h.add_argument(
@@ -463,9 +723,18 @@ def main() -> int:
         required=True,
         help="the pull request's inline comments, read with `gh api --paginate`",
     )
+    h.add_argument(
+        "--reviews",
+        required=True,
+        help="the pull request's reviews, read with `gh api --paginate`; required because "
+             "a held id lives in a review body until its push, and a read that skipped "
+             "this surface would reissue it",
+    )
 
     args = parser.parse_args()
-    return {"build": build, "verify": verify, "highest-id": highest_id}[args.mode](args)
+    return {
+        "build": build, "release": release, "verify": verify, "highest-id": highest_id,
+    }[args.mode](args)
 
 
 if __name__ == "__main__":
