@@ -203,7 +203,7 @@ def ledger_review(*entries):
     `RF{n}` is what highest-id reads, and the fenced ledger release reads back."""
     block = json.dumps({"gh_solo_held": list(entries)}, ensure_ascii=False, indent=1)
     rows = "\n".join(
-        f"- RF{e.get('rf')} \U0001f534 high {e.get('path')}:{e.get('line')}"
+        f"- ::RF{e.get('rf')}:: \U0001f534 high {e.get('path')}:{e.get('line')}"
         " - no thread yet, held for the push"
         for e in entries
     )
@@ -539,6 +539,20 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} run from a subdirectory, the line still moves to 48")
 
+# Defect 2: the refusal had no case, so nothing proved it fired - or that it fires only
+# after the ledger has been judged, leaving every malformed-ledger refusal at exit 2.
+proc, out = run_release([ledger_review(held_entry(9))], [], name="release-norepo",
+                        cwd=str(work))
+ok = proc.returncode == 1 and not out.exists() and "git repository" in proc.stderr
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} outside a repository, release refuses  (exit {proc.returncode})")
+proc, out = run_release([ledger_review(held_entry(9, finding=None))], [],
+                        name="release-norepo-malformed", cwd=str(work))
+ok = proc.returncode == 2 and not out.exists()
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a malformed ledger outside a repository is still exit 2"
+      f"  (exit {proc.returncode})")
+
 print("\nrelease must skip rather than guess (exit 0, nothing written):")
 # The one case with no answer: the fixes rewrote the very line the finding points at, so
 # no number can be brought forward and a named gap beats a thread on the wrong statement.
@@ -596,10 +610,17 @@ cases = [
     # The listing comes back in creation order, not id order, and a reply can be older than
     # the finding above it. A reader that took the last id rather than the maximum passes
     # every case above and fails this one.
-    ("ids out of order", [{"body": "RF9 x"}, {"body": "RF3 x"}, {"body": "RF7 x"}], "9"),
+    ("ids out of order", [{"body": "::RF9:: x"}, {"body": "::RF3:: x"}, {"body": "::RF7:: x"}], "9"),
     # One body, several ids: a re-review verdict can answer about more than one finding, and
     # a single `re.search` reads only the first, so it would print 4 here.
-    ("several ids in one body", [{"body": "RF4 and RF11 both close"}], "11"),
+    ("several ids one post issues", [{"body": "::RF4:: and ::RF11:: both close"}], "11"),
+    # The change the delimiter buys: a body naming an id in prose issues nothing, so an
+    # explanation of the flow no longer raises the counter for every round after it.
+    ("an id named in prose is not an issued id",
+     [{"body": "> h\n\nit gets a number, say RF7, and goes in the summary"}], "0"),
+    # And a legacy finding post, whose id opens a line, still counts for the life of the
+    # pull request that carries it - under-reading would reissue a live id.
+    ("a legacy finding post still counts", [{"body": "> h\n\nRF6 \U0001f534 high - x"}], "6"),
     ("a bare RF with no number", [{"body": "the RF ids restart"}], "0"),
     # The word boundary earns its place here. Without it PERF123 reads as RF123 and the next
     # round starts at 124, skipping every id in between and making the sequence unreadable.
@@ -623,8 +644,8 @@ cases = [
     ("a threaded id above every held one",
      [{"body": "RF9 x"}], [ledger_review(held_entry(5))], "9"),
     ("a review body that is not a ledger still counts its ids",
-     [], [{"body": "> \U0001f916 h\n\n- RF4 \U0001f7e1 medium a.rb:1"}], "4"),
-    ("reviews with empty bodies", [{"body": "RF1 x"}], [{"body": ""}], "1"),
+     [], [{"body": "> \U0001f916 h\n\n- ::RF4:: \U0001f7e1 medium a.rb:1"}], "4"),
+    ("reviews with empty bodies", [{"body": "::RF1:: x"}], [{"body": ""}], "1"),
 ]
 for name, comments, reviews, want in cases:
     proc = run_highest(comments, reviews,

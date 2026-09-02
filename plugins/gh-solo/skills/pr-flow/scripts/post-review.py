@@ -45,9 +45,21 @@ PASSES = ("review", "re-review")
 SEVERITY_SOURCES = ("reviewer", "derived")
 DISCLAIMER_PREFIX = "> 🤖"
 SUGGESTION_FENCE = "```suggestion"
-# The word boundary is what keeps `PERF123` from reading as an id, and it is the one
-# definition of an id shared by the read, the reconciliation and the build.
-RF_PATTERN = r"\bRF(\d+)\b"
+# An id a post *issues* is delimited, so prose can name one without being counted: an
+# explanation writing `RF7` to illustrate the flow inflated this counter, and a convention
+# asking writers to remember that is a rule with no gate. The delimiter is the gate.
+# `::` rather than brackets because `[RF8]` is markdown link syntax and can acquire
+# meaning where a reference definition exists, while `::RF8::` renders literally in every
+# markdown dialect and is not something prose types by accident.
+ID_PATTERN = r"::RF(\d+)::"
+# What a finding post wrote before the brackets: the id at the start of a line. Read for
+# the life of every pull request that already carries one, because under-reading hands a
+# live id to a second finding, which is the one failure that cannot be undone.
+LEGACY_PATTERN = r"^RF(\d+) "
+# A bare id anywhere else is prose. Ignoring it is the whole point, but a *legacy* post put
+# them mid-line too - a verdict answering about several findings - so an ignored one is
+# reported rather than silently dropped.
+BARE_PATTERN = r"\bRF(\d+)\b"
 # The key that marks a fenced JSON block as this flow's own held-findings ledger. `release`
 # scans every ```json fence in every review body, so a sentinel inside the object is what
 # tells ours from a fence someone else wrote; a heading above it would not survive an edit.
@@ -79,15 +91,27 @@ def load_json(path: Path, what: str) -> object:
         sys.exit(f"post-review: {what} is not valid JSON: {path}: {exc}")
 
 
-def rf_id(body: str) -> int | None:
-    """The RF id a posted or built body carries, or None."""
-    match = re.search(RF_PATTERN, body)
-    return int(match.group(1)) if match else None
-
-
 def rf_ids(body: str) -> list[int]:
-    """Every RF id in a body, since a thread reply can answer about several at once."""
-    return [int(n) for n in re.findall(RF_PATTERN, body)]
+    """Every id a body *issues*, since one reply can answer about several at once.
+
+    Delimited ids anywhere, plus a legacy post's line-opening bare id. A bare id anywhere
+    else is prose naming a finding rather than a post issuing one.
+    """
+    found = [int(n) for n in re.findall(ID_PATTERN, body)]
+    found += [int(m.group(1)) for m in re.finditer(LEGACY_PATTERN, body, re.M)]
+    return found
+
+
+def rf_id(body: str) -> int | None:
+    """The id a posted or built body carries, or None."""
+    found = rf_ids(body)
+    return found[0] if found else None
+
+
+def ignored_bare_ids(body: str) -> list[int]:
+    """Bare ids this body carries that no longer count, for reporting rather than use."""
+    counted = set(rf_ids(body))
+    return sorted({int(n) for n in re.findall(BARE_PATTERN, body)} - counted)
 
 
 def check_finding(finding: object, position: int, problems: list[str]) -> None:
@@ -278,7 +302,10 @@ def threaded_ids(bodies: list[str]) -> set[int]:
         first = rf_id(body)
         if first is None:
             continue
-        if any(line.startswith(f"RF{first} ") for line in body.splitlines()):
+        if any(
+            line.startswith(f"::RF{first}:: ") or line.startswith(f"RF{first} ")
+            for line in body.splitlines()
+        ):
             found.add(first)
     return found
 
@@ -305,7 +332,7 @@ def finding_body(finding: dict, rf: int, disclaimer: str, via: str) -> str:
     emoji = SEVERITIES[finding["severity"]]
     return (
         f"{header(disclaimer, via)}\n\n"
-        f"RF{rf} {emoji} {finding['severity']} - {finding['finding'].strip()}\n\n"
+        f"::RF{rf}:: {emoji} {finding['severity']} - {finding['finding'].strip()}\n\n"
         f"Failure scenario: {finding['failure_scenario'].strip()}"
     )
 
@@ -341,7 +368,7 @@ def record_body(
             axis = "" if finding["axis"] == "unrated" else f"`{finding['axis']}` "
             tail = " - no thread yet, held for the push" if rf in held else ""
             lines.append(
-                f"- RF{rf} {emoji} {finding['severity']} {axis}"
+                f"- ::RF{rf}:: {emoji} {finding['severity']} {axis}"
                 f"{finding['path']}:{finding['line']}{tail}"
             )
     else:
@@ -617,12 +644,6 @@ def release(args: argparse.Namespace) -> int:
     ordinary answer on a round that held nothing.
     """
     disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
-    root = repo_root()
-    if root is None:
-        sys.exit(
-            "post-review: release must run inside the branch's git repository - it brings "
-            "each held finding's line forward with `git diff`, and cannot without one"
-        )
     entries = held_entries(review_bodies(Path(args.reviews)))
     threaded = threaded_ids(comment_bodies(Path(args.comments)))
 
@@ -669,6 +690,16 @@ def release(args: argparse.Namespace) -> int:
     # The stored line was counted against `at`, and the round kept committing after the
     # hold, so it is brought forward rather than replayed. A line the fixes rewrote cannot
     # be brought forward at all, and a named gap beats a thread on the wrong statement.
+    # Checked here rather than on entry: a malformed ledger is still a malformed ledger
+    # outside a repository, and refusing earlier turned every existing exit-2 refusal into
+    # an exit 1 that says something else entirely.
+    root = repo_root()
+    if root is None:
+        sys.exit(
+            "post-review: release must run inside the branch's git repository - it brings "
+            "each held finding's line forward with `git diff`, and cannot without one"
+        )
+
     anchored: list[dict] = []
     for entry in unique:
         diff = range_diff(entry["at"], entry["path"], root)
@@ -698,7 +729,7 @@ def release(args: argparse.Namespace) -> int:
     unique = anchored
 
     rows = [
-        f"- RF{e['rf']} {SEVERITIES[e['severity']]} {e['severity']} {e['path']}:{e['line']}"
+        f"- ::RF{e['rf']}:: {SEVERITIES[e['severity']]} {e['severity']} {e['path']}:{e['line']}"
         for e in unique
     ]
     payload = {
@@ -732,6 +763,18 @@ def highest_id(args: argparse.Namespace) -> int:
     """Print the highest RF id on a pull request, or 0 - what `build --continue-from` wants."""
     bodies = comment_bodies(Path(args.comments)) + review_bodies(Path(args.reviews))
     ids = [rf for body in bodies for rf in rf_ids(body)]
+    # A legacy post could put several ids mid-line, and those no longer count. Say so:
+    # ignoring one that was a real issued id would reissue it, so a round on an older pull
+    # request is told rather than left to find out.
+    ignored = sorted({n for body in bodies for n in ignored_bare_ids(body)})
+    above = [n for n in ignored if n > max(ids, default=0)]
+    if above:
+        print(
+            "post-review: bare ids not counted, above the answer: "
+            + ", ".join(f"RF{n}" for n in above)
+            + " - prose if this flow wrote them, an issued id if an older round did",
+            file=sys.stderr,
+        )
     print(max(ids, default=0))
     return 0
 

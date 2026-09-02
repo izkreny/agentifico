@@ -218,12 +218,12 @@ Then post what it returns:
 - **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script and same call as step 2, with the re-review findings file, plus the arguments that entrance requires:
 
   ```bash
-  git rev-parse HEAD > <local-head-file>          # before the spawn above
+  git rev-parse HEAD                              # before the spawn above; keep the value
   git diff @{u}..HEAD -U0 > <unpushed-diff-file>
   python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head> --out <payload-file>
   ```
 
-  **`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against. The diff is the round's to produce because the round is the thing holding the fix commits: the reviewer read the fix range and knows nothing about the pushed head. Write both to the harness scratchpad like every other payload file.
+  **`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against. The diff is the round's to produce because the round is the thing holding the fix commits: the reviewer read the fix range and knows nothing about the pushed head. The diff travels as a file, written to the harness scratchpad like every other payload file; the head travels as a value.
 
   **`--anchored-at` is the *local* head, and never the `headRefOid` Step 1 recorded.** This pass reads the fix commits with `git` while they are unpushed, so every line number it returns counts lines in the file as it stands at local `HEAD`, after those commits. Passing the pushed head instead puts the fix commits themselves inside the shift `release` computes, which moves a held line a second time or drops it as rewritten - the same defect the shift exists to remove, arriving by the argument meant to prevent it. Read it before the spawn, since a commit made afterwards would make it a head the reviewer never saw.
 - **A new defect that `build` holds gets its `RF{n}` and no thread, this round.** Every finding in a file the unpushed commits touch is held: the id is assigned from the same sequence, the finding leaves the `comments` array so no unresolvable anchor is ever sent, and the record Review carries it whole in a fenced ledger. **Leave it in the findings file** - holding is the script's decision from the diff, never yours from the findings.
