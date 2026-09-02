@@ -424,6 +424,21 @@ for name, reviews in [("no reviews at all", []),
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} nothing to release: {name}  (exit {proc.returncode})")
 
+# The ids travel in prose all over this flow: a fix plan, a fix result and a re-review
+# verdict each name the ids they cover. Counting any mention as a posted thread dropped the
+# held finding silently, at exit 0, with no gate downstream able to see it.
+proc, out = run_release(
+    [ledger_review(held_entry(9))],
+    [{"body": "> \U0001f916 h\n\nvia `implement` fix, closing reply\n\n"
+              "fix: tighten the guard - closes RF6, and this commit also closes RF9"}],
+    name="release-crossref")
+ok = proc.returncode == 0 and out.exists() and "already threaded" not in proc.stdout
+if ok:
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    ok = len(payload["comments"]) == 1 and "RF9" in payload["comments"][0]["body"]
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a prose cross-reference does not count as a thread")
+
 print("\nrelease must refuse (exit 2):")
 cases = [
     # A thread needs the finding text and the failure scenario, so a ledger entry that

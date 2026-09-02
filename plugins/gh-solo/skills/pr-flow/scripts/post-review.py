@@ -213,6 +213,25 @@ def unpushed_paths(text: str, problems: list[str]) -> set[str]:
     return paths
 
 
+def threaded_ids(bodies: list[str]) -> set[int]:
+    """The ids that already carry a finding thread, never the ones merely mentioned.
+
+    Every convention here puts ids in prose - a fix plan, a fix result and a re-review
+    verdict all name the ids they cover - so "any RF{n} anywhere" reads a cross-reference
+    as a posted finding and silently drops the held finding it names. `finding_body` is the
+    only thing that posts a finding and it opens a line with the id, so that shape is the
+    test; it is also what `verify` matches on, which keeps the two halves in agreement.
+    """
+    found: set[int] = set()
+    for body in bodies:
+        first = rf_id(body)
+        if first is None:
+            continue
+        if any(line.startswith(f"RF{first} ") for line in body.splitlines()):
+            found.add(first)
+    return found
+
+
 def held_entries(bodies: list[str]) -> list[dict]:
     """Every held finding recorded in a review body's fenced ledger, oldest body first."""
     entries: list[dict] = []
@@ -531,7 +550,7 @@ def release(args: argparse.Namespace) -> int:
     """
     disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
     entries = held_entries(review_bodies(Path(args.reviews)))
-    threaded = {rf for body in comment_bodies(Path(args.comments)) for rf in rf_ids(body)}
+    threaded = threaded_ids(comment_bodies(Path(args.comments)))
 
     problems: list[str] = []
     if not disclaimer.startswith(DISCLAIMER_PREFIX):
