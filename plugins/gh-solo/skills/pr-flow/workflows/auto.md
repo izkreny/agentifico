@@ -2,12 +2,12 @@
 
 The entrances here run the lifecycle's workflows back to back, removing the waits between them - never the checks inside them. `auto` starts at the issue; `go` starts after the owner has read the plan. Each ends at the same stop: the review protocol's step 6, the owner judging the findings, because that is the only step in the whole span that belongs to them alone.
 
-| Command | Enters at | What it skips |
-|---|---|---|
-| `auto <issue-number>` | Step 1 | the plan-reading stop at the end of `workflows/open.md` |
-| `go <pr-number>` | Step 2 | nothing the owner does - the plan was read; only the waits between workflows go |
+| Command               | Enters at | What it skips                                                                   |
+|-----------------------|-----------|---------------------------------------------------------------------------------|
+| `auto <issue-number>` | Step 1    | the plan-reading stop at the end of `workflows/open.md`                         |
+| `go <pr-number>`      | Step 2    | nothing the owner does - the plan was read; only the waits between workflows go |
 
-**Only the literal command enters a chain.** Like the `watch` arming rule in `workflows/discuss.md`, and for a stronger reason: `auto` skips a stop that exists for the owner's judgement, so no sentence, however clearly it implies one, may start either chain. The owner typing the command is the authorisation for everything the chain does - the plan pushed unread, the implementation, the draft flip, the posts - given in advance, once, for this invocation only.
+**Only the literal command enters a chain.** Like the `watch` arming rule in `workflows/watch.md`, and for a stronger reason: `auto` skips a stop that exists for the owner's judgement, so no sentence, however clearly it implies one, may start either chain. The owner typing the command is the authorisation for everything the chain does - the plan pushed unread, the implementation, the draft flip, the posts - given in advance, once, for this invocation only.
 
 **Every refusal ends the chain.** The same rule the `ready review` chain states in `SKILL.md`, extended to every stage: a ⛔ anywhere stops with that workflow's own verdict line, carries nothing forward, and names the single command that resumes from where it stopped. A chain is a convenience; a gate is not.
 
@@ -55,9 +55,9 @@ That workflow's own steps 1 to 5 need nothing from the owner, so the chain does 
 
 ## Step 5 - Arm the watch, then one consolidated block
 
-The chain ends where the round does, at the protocol's step 6. Two things happen here.
+The chain ends where the round does, at the protocol's step 6, by arming the watch and then printing the run as one block.
 
-**Arm the watch on this PR**, per *The watch survives the round* in `references/review-protocol.md`. The owner was away for everything above and will now read the threads at their own pace, reacting and replying as they go; without a watch each of those signals waits for them to come back and say so. **This is the one place a watch is armed by anything other than the owner typing `watch`**, and it is not an exception to that rule: the literal `auto` or `go` command is itself the authorisation, given in advance, and `workflows/discuss.md` owns the mechanics and the cost.
+**Arm the watch on this PR**, per *The watch survives the round* in `references/review-protocol.md`, whose loop is `workflows/watch.md`. The owner was away for everything above and will now read the threads at their own pace, reacting and replying as they go; without a watch each of those signals waits for them to come back and say so. **This is the one place a watch is armed by anything other than the owner typing `watch`**, and it is not an exception to that rule: the literal `auto` or `go` command is itself the authorisation, given in advance, and `workflows/watch.md` owns the mechanics and the cost.
 
 **Then the consolidated block**, because the owner saw none of it happen: one line per stage with its verdict, so the whole run reads as one block. The numbers below are a sample - print the run's real issue and PR numbers, so every command is typeable as it stands:
 

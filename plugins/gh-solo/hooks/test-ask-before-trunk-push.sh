@@ -70,6 +70,29 @@ EVASIONS = [
     (f"xargs -I{{}} {PUSH}", FEAT),
     (f"if true; then {PUSH}; fi", FEAT),
     (f"for r in a; do {PUSH}; done", FEAT),
+    # Newline separates two commands exactly as `&&` does. `shlex` eats it as whitespace
+    # unless it is taken out of `lex.whitespace`, and until it was, every multi-line
+    # command collapsed into one segment and the guard went silent on all of them - the
+    # single commonest shape an agent composes.
+    (f"git status\n{PUSH}", FEAT),
+    (f"git add -A\ngit commit -m x\n{PUSH}", FEAT),
+    (f"{PUSH}\n", FEAT),
+    (f"bash -ceu '{PUSH}'", FEAT),     # `c` need not end the cluster; bash still runs it
+    (f"env bash -c '{PUSH}'", FEAT),   # a wrapper in front of the shell
+    # A backslash before a newline is a line continuation, which joins the two lines
+    # rather than separating them. posix-mode shlex resolves the escape into a literal
+    # newline glued to the next word, so the token was `\ngit` and the scan skipped it.
+    # .agents/gh-solo.md writes its own docs-check command in exactly this style.
+    (f"git status && \\\n{PUSH}", FEAT),
+    (f"git push \\\n  origin main", FEAT),
+    (f"git add -A \\\n  . && {PUSH}", FEAT),
+    # An *escaped* backslash is data and the newline after it still separates. Reading
+    # the second backslash as a continuation swallowed the separator and went silent -
+    # a regression the continuation fix introduced and the re-review caught.
+    (f"echo a\\\\\n{PUSH}", FEAT),
+    (f"cat <<'EOF' > f\n{PUSH}\nEOF\n{PUSH}", FEAT),   # after the delimiter, commands again
+    (f"cat <<-EOF\n{PUSH}\nEOF\n{PUSH}", FEAT),
+    (f"printf 'x\\\\'\n{PUSH}", FEAT),
 ]
 # The mirror image: the phrase is present, but as data. A regex cut on `;` fires on
 # every one of these, and a guard that cries wolf on a grep is one people click through.
@@ -91,6 +114,8 @@ MUST_ASK = [
     ("cd /somewhere && git push origin main", FEAT),
     ("git -C . push origin main", FEAT),
     ("git push", "main"),
+    ("git push origin HEAD", "main"),        # HEAD resolves the way a bare push does
+    ("git push origin refs/heads/HEAD", "main"),
 ]
 MUST_STAY_SILENT = [
     (f"git push origin {FEAT}", FEAT),
@@ -103,6 +128,20 @@ MUST_STAY_SILENT = [
     ("gh pr merge 60 --squash --delete-branch", "main"),
     ("git log --oneline main", "main"),
     ("git commit -m 'fix: thing'", "main"),
+    ("git push origin HEAD", FEAT),          # HEAD is not the trunk from a feature branch
+    # A newline inside quotes is data, not a separator. Taking `\n` out of shlex's
+    # whitespace must not cost the quoting that keeps a grep or an echo quiet.
+    (f"echo 'a\n{PUSH}'", FEAT),
+    (f"grep -r 'a\n{PUSH}' .", FEAT),
+    # A bare word that happens to name a shell must not stop the `git` scan running.
+    ("git push origin sh", FEAT),
+    ("git push origin eval", FEAT),
+    # A heredoc body is data: a shell never runs it, and a commit message or a written
+    # file legitimately contains the very line this hook exists to catch. It only became
+    # reachable when newlines became separators, so it arrived with that fix.
+    (f"git commit -F - <<'EOF'\ntext\n{PUSH}\nEOF", FEAT),
+    (f"cat <<'EOF'\n{PUSH}", FEAT),          # unterminated: body runs to the end
+    (f"echo 'a \\\n{PUSH}'", FEAT),        # a continuation inside quotes is data
 ]
 # Same two lists, run against the awkward repository above.
 ODD_MUST_ASK = [

@@ -8,13 +8,13 @@ It is deliberately not a generic workflow plugin. It assumes GitHub, it assumes 
 
 ## What is inside
 
-| Component | What it owns |
-|---|---|
-| `/gh-solo:tracker` | The issue tracker: epics with sub-issues, spikes, drafts, blocked-by links, milestones, and what to work on next |
-| `/gh-solo:pr-flow` | Branches, plan files, opening and readying pull requests, stacks, review rounds, and the merge gate |
-| `/gh-solo:implement` | Turning an approved plan into commits, and review findings into fixes |
-| `reviewer` agent | The subagent a review round spawns to read the diff, so the code is judged by something that did not write it |
-| trunk-push hook | Asks for confirmation before any `git push` whose destination is the trunk |
+| Component            | What it owns                                                                                                     |
+|----------------------|------------------------------------------------------------------------------------------------------------------|
+| `/gh-solo:tracker`   | The issue tracker: epics with sub-issues, spikes, drafts, blocked-by links, milestones, and what to work on next |
+| `/gh-solo:pr-flow`   | Branches, plan files, opening and readying pull requests, stacks, review rounds, and the merge gate              |
+| `/gh-solo:implement` | Turning an approved plan into commits, and review findings into fixes                                            |
+| `reviewer` agent     | The subagent a review round spawns to read the diff, so the code is judged by something that did not write it    |
+| trunk-push hook      | Asks for confirmation before any `git push` whose destination is the trunk                                       |
 
 Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow` and `/gh-solo:tracker` also take `help` as a routing verb, which prints their own summary; `implement` and the `reviewer` skill have no such verb, because each has one job and its README is the summary.
 
@@ -24,6 +24,8 @@ Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow`
 - **The `gh stack` extension** and the **`gh-stack` skill** from `github/gh-stack`, needed only for stacked pull requests. The stack workflow documents the extension's traps but does not bundle its manual.
 - **A harness that can spawn a subagent**, for the `reviewer` agent a review round uses. Where yours cannot, appoint a capability with a `Reviewer command:` line in `.agents/gh-solo.md`; the round invokes it and posts what it returns. **Reading the diff yourself is not the fallback**, because the session that wrote the code is the one thing a review may not be: the round refuses rather than substituting the author. A pass by an appointed command is also not recorded identically - it lands with `severity_source`, `severity_basis` and the `unrated` axis, which exist precisely so a reader can tell which kind of pass they are looking at.
 - **Python 3**, for `hooks/ask-before-trunk-push.py`, `skills/pr-flow/scripts/docs-check.py` and `skills/pr-flow/scripts/post-review.py`. The hook is the one that makes this non-optional: it runs on every Bash call in every session and repository, not only while a skill of this plugin is loaded.
+
+**One thing to know about the tool grants.** `/gh-solo:implement` takes bare `Bash`, because it is the skill that runs *your* repository's tests, linters and builds and those cannot be enumerated in advance. Its sibling skills are all narrowed to `gh`, `git` and `python3`. So where the other three are stopped by their grant, that one is stopped by a rule written in its own instructions - never install software, never push to the trunk - the same way the `reviewer` agent's read-only discipline is a rule rather than a wall, because a `gh` grant cannot express read-only either. If your harness can deny command shapes itself, this is the skill to point that at.
 
 ## Install
 
@@ -76,9 +78,9 @@ Untested rather than known in that flow: whether a pull request's author may res
 
 ## The one guardrail
 
-The plugin installs a single hook. A `git push` whose destination is the trunk asks for confirmation first, and says why. Every skill here states that work reaches the trunk only through a reviewed pull request's squash merge, and a rule written in prose is a request rather than a stop.
+The plugin installs a single hook. A `git push` it can see writing to the trunk asks for confirmation first, and says why. It reads the command the way a shell would: through the quoting, through `&&`, `;` and bare newlines, through a `\`-newline continuation, and into a nested `bash -c` or `eval`. What it cannot see is a destination that only exists at runtime - a variable, a `cd` it deliberately does not follow - and there it fails open rather than guessing. Every skill here states that work reaches the trunk only through a reviewed pull request's squash merge, and a rule written in prose is a request rather than a stop.
 
-It asks rather than refuses, deliberately: a plugin's hook runs on every shell command in every session and every repository, not only while one of these skills is loaded, and plenty of repositories are legitimately trunk-only. `hooks/test-ask-before-trunk-push.sh` is its regression bench, and every case in it has been watched to fire, or to stay quiet, on the situation it names.
+It asks rather than refuses, deliberately: a plugin's hook runs on every shell command in every session and every repository, not only while one of these skills is loaded, and plenty of repositories are legitimately trunk-only. `hooks/test-ask-before-trunk-push.sh` is its regression bench, and every case in it has been watched to fire, or to stay quiet, on the situation it names - which is a claim about the cases it holds rather than about every shape a command can take. Four shapes it did not hold were found by reading the code and fixed; a fifth is the reason a new case is added by watching it fail first.
 
 ## What it will not do
 

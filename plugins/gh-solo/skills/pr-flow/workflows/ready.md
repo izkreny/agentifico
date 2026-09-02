@@ -16,10 +16,10 @@ Read the body's `## Verification` and verify every box has a tick.
 
 **Any box unticked — stop and ask the owner what to do.** Do not run the missing gate, do not tick the box, and do not reason about whether it probably would have passed. Report which boxes are empty and name what an empty box can mean, because the right response differs and only the owner can pick:
 
-| An empty box can mean | Which needs |
-|---|---|
+| An empty box can mean       | Which needs                                           |
+|-----------------------------|-------------------------------------------------------|
 | The gate ran and **failed** | A fix, a commit and a push — then this workflow again |
-| The gate was **never run** | Someone to run it; the owner decides who and when |
+| The gate was **never run**  | Someone to run it; the owner decides who and when     |
 
 **Why this workflow does not just run the missing one.** An unticked box is information: it says something upstream did not finish, and quietly completing it hides that rather than fixing it. **And running it here would consume the only independent thing this workflow has.** The box-reading is a self-audit in the weak sense, since the session that ticked them may well be the one re-reading them; what still bites is Step 2's reconciliation with CI, which is external and does not care who ticked. A gate run here would be ticked by the same session in the same environment, which is the one combination that makes a record worthless.
 

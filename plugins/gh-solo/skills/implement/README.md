@@ -29,7 +29,8 @@ flowchart TD
     E --> F(["<b>you</b> run ready review"])
     F -.-> G["the review round<br/>(pr-flow spawns the reviewer)"]
     G --> I["<b>fix</b><br/>commits grouped by coherent change,<br/>replies in the threads - nothing pushed"]
-    I --> H(["<b>you</b> judge the findings"])
+    I --> RR["the re-review<br/>(pr-flow, round step 5):<br/>did each fix close its finding"]
+    RR --> H(["<b>you</b> judge the findings"])
     H --> J(["<b>you</b> type <b>rnp</b>,<br/>or say: resolve all and push"])
 ```
 
@@ -43,7 +44,9 @@ The rounded steps are yours, same rule as everywhere in this flow: the skill wil
 
 **The implementation travels in one push, after the gates go green locally.** Every push to a PR branch triggers CI, so pushing incrementally buys nothing but red runs against half-done work. One push means the first CI answer is about the finished record - which is exactly what `ready` reconciles next. The exceptions: the settled plan is pushed **before** the first implementation commit, so the plan you agreed to is separately visible on the remote rather than buried under the code; and a session ending before the work does pushes as a backup, flagged as mid-work.
 
-**The plan is never edited to hide divergence.** Where reality contradicts it, the disagreement lands as a PR comment and the plan stays as written - the plan records intent, and the gap between intent and outcome is information the later audits read. A divergence that changes scope stops the work and asks you, because what ships is your decision and nothing here may make it for you. The one legitimate plan edit is the opposite case: a decision you settled in a plan-discussion thread is a change of intent, and it lands as a new commit on top of the plan - never a rewrite of the original plan commit, so the plan's evolution stays readable and the threads that argued it stay anchored - with the whole PR body updated to match - each answered question moved from its open-questions section into `## Settled` with your decision attached, where the squash merge will carry it onto the trunk's history - and the plan commits pushed, before the affected work begins.
+**The plan is never edited to hide divergence.** Where reality contradicts it, the disagreement lands as a PR comment and the plan stays as written: the plan records intent, and the gap between intent and outcome is information the later audits read. A divergence that changes scope stops the work and asks you, because what ships is your decision.
+
+The one legitimate plan edit is the opposite case. A decision you settled in a plan-discussion thread is a change of *intent*, so it lands as a new commit on top of the plan rather than a rewrite of the plan commit, which would force-push away the threads that argued it.
 
 **This skill never marks its own work ready.** It produces the record - ticked steps, ticked gates, green CI - and stops, printing the `ready review` command for you to run. What `ready` adds is a reconciliation with CI, which is a different environment and does not care who ticked the boxes; a session that flipped its own draft would skip the one check it cannot influence. The same logic is why a judgement only you can make is never a `## Verification` box: every box there has to close before the branch merges, so one you alone could close would block the branch it sits on.
 
@@ -61,10 +64,10 @@ Independence still matters, and it moved to where it buys something: the `review
 
 ## Layout
 
-| Path | Holds |
-|---|---|
-| `SKILL.md` | routing, and the contract the workflows share |
-| `workflows/implement.md` | plan to commits: load, reconcile, implement, verify, push, hand off |
-| `workflows/fix.md` | review findings to fix commits - replied in-thread, gates re-run, held unpushed for your word |
+| Path                     | Holds                                                                                         |
+|--------------------------|-----------------------------------------------------------------------------------------------|
+| `SKILL.md`               | routing, and the contract the workflows share                                                 |
+| `workflows/implement.md` | plan to commits: load, reconcile, implement, verify, push, hand off                           |
+| `workflows/fix.md`       | review findings to fix commits - replied in-thread, gates re-run, held unpushed for your word |
 
 Anything specific to one repository - its check commands, its testing philosophy - belongs in that repository's own agent instructions and `.agents/gh-solo.md`, never in this skill.

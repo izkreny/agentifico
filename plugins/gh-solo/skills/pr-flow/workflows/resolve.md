@@ -14,7 +14,7 @@ The owner says it, in the session: "resolve all and push", or types `rnp`. Also 
 
 ## Step 1 - Stop the watch
 
-If a watch is running on this PR, stop it with `TaskStop` before anything else, per *Stopping it* in `workflows/discuss.md`. It exists to carry the owner's signals into the session during step 6, and step 6 is over.
+If a watch is running on this PR, stop it with `TaskStop` before anything else, per *Stopping it* in `workflows/watch.md`. It exists to carry the owner's signals into the session during step 6, and step 6 is over.
 
 ## Step 2 - Read the threads and decide what the batch covers
 

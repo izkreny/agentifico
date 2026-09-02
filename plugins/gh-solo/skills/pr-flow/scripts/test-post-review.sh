@@ -97,6 +97,8 @@ def run_verify(payload, comments, name="case"):
         capture_output=True, text=True)
 
 
+UNRATED = {**FINDING, "severity": "unrated", "axis": "unrated"}
+
 MUST_REFUSE = [
     ("severity outside the scale", with_finding(REVIEW, severity="critical"), 0),
     ("severity spelled unranked rather than unrated", with_finding(REVIEW, severity="unranked"), 0),
@@ -109,7 +111,7 @@ MUST_REFUSE = [
      mutate(REVIEW, severity_basis="read from the finding text"), 0),
     ("severity missing", with_finding(REVIEW, severity=None), 0),
     ("side neither RIGHT nor LEFT", with_finding(REVIEW, side="BOTH"), 0),
-    ("axis outside the two", with_finding(REVIEW, axis="performance"), 0),
+    ("axis outside the set", with_finding(REVIEW, axis="performance"), 0),
     ("path missing", with_finding(REVIEW, path=None), 0),
     ("path empty", with_finding(REVIEW, path="   "), 0),
     ("line zero", with_finding(REVIEW, line=0), 0),
@@ -134,17 +136,26 @@ MUST_REFUSE = [
     ("verdict with an empty why", mutate(RERdefault, verdicts=[{"rf": 3, "closed": True, "why": " "}]), 0),
     ("verdict closed not a boolean", mutate(RERdefault, verdicts=[{"rf": 3, "closed": "yes", "why": "x"}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
+    # A level the reviewer never gave, published as the reviewer's. This is the
+    # "makes a derivation it does not state" half of the rule in
+    # references/review-protocol.md, which the script did not enforce.
+    ("unrated severity while severity_source is reviewer",
+     mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED]), 0),
 ]
 
-UNRATED = {**FINDING, "severity": "unrated", "axis": "unrated"}
-
 MUST_BUILD = [
-    ("one valid finding", REVIEW, 0, ["RF1"]),
+    ("one valid finding", REVIEW, 0, ["RF1", "round record"]),
+    # An appointed command supplies no level, so the orchestrator derives one and has
+    # to say so. Without both fields this fixture exercised a round claiming the
+    # reviewer assigned `unrated` itself, which no legitimate producer can emit.
     ("an unrated finding from an appointed command",
-     mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED]), 0, ["RF1", "\u26aa", "arrived unrated"]),
+     mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED],
+            severity_source="derived",
+            severity_basis="unrated throughout: the appointed command supplies no level"),
+     0, ["RF1", "\u26aa", "arrived unrated", "round record"]),
     ("continues from the highest id on the pull request", REVIEW, 7, ["RF8"]),
     ("zero findings still builds the record", mutate(REVIEW, findings=[]), 0, ["no findings"]),
-    ("re-review with verdicts and no new defect", RERdefault, 3, ["no findings"]),
+    ("re-review with verdicts and no new defect", RERdefault, 3, ["no findings", "re-review record"]),
     ("re-review with a new defect",
      mutate(RERdefault, findings=[FINDING]), 3, ["RF4"]),
     ("derived severities with a basis, which the record must publish",
@@ -186,6 +197,9 @@ for name, data, continue_from, wants in MUST_BUILD:
         missing = [w for w in wants if w not in blob]
         ok = not missing
         if payload["comments"] and not payload["comments"][0]["body"].startswith("> 🤖"):
+            ok = False
+        # A round records; it never approves. Nothing asserted this.
+        if payload.get("event") != "COMMENT":
             ok = False
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}")

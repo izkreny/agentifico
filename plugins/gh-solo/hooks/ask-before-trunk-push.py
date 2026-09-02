@@ -26,7 +26,10 @@ DELETES = {"--delete", "-d"}
 OPERATORS = {"&&", "||", "|", ";", ";;", "&", "(", ")", "`", "\n"}
 # Backtick is added to shlex's own set, which does not carry it: without it
 # `` `git push origin main` `` tokenises as "`git", whose basename is not "git".
-PUNCTUATION = "();<>|&`"
+# Newline is here *and* removed from `lex.whitespace` in `segments`, because punctuation
+# is only consulted for characters whitespace did not already eat. Listing it here alone
+# left `\n` in `OPERATORS` as dead code and every multi-line command as one segment.
+PUNCTUATION = "();<>|&`\n"
 SHELLS = {"bash", "sh", "zsh", "dash", "ksh"}
 # `eval` takes its script the same way `sh -c` does, so it needs the same recursion.
 EVAL = "eval"
@@ -59,17 +62,89 @@ def trunk_names(cwd):
 
 
 def branch_of(refspec):
-    """The destination branch a refspec writes to, or None."""
+    """The destination branch a refspec writes to, `HEAD` for the current one, or None.
+
+    `HEAD` is returned rather than dropped so `destinations` can resolve it the way it
+    already resolves a bare `git push`. Dropping it left `git push origin HEAD` silent
+    while both neighbours - `git push` and `git push origin HEAD:main` - were caught.
+    """
     spec = refspec.lstrip("+")
     dest = spec.split(":", 1)[1] if ":" in spec else spec
     dest = dest.strip()
-    if not dest or dest == "HEAD":
+    if not dest:
         return None
     # Strip the prefix only. Never take the last path segment: a branch named
     # `feature/main` is not the trunk, and `refs/heads/` is the one form where
     # dropping everything before the final slash would say it was.
     return re.sub(r"^refs/heads/", "", dest)
 
+
+HEREDOC = re.compile(r"<<-?\s*(['\"]?)([A-Za-z_][A-Za-z0-9_]*)\1")
+
+
+def strip_heredocs(command):
+    """Heredoc bodies removed, because a heredoc body is data and not commands.
+
+    A shell never executes it, and this guard must not read it as commands either: a
+    commit message or a file being written can legitimately contain the very line this
+    hook exists to catch. Before newlines became separators the point was moot - a
+    multi-line command collapsed into one segment - so this arrived with that fix.
+
+    The delimiter line ends the body, and anything after it is command text again, so a
+    real push following a heredoc is still seen. A body whose delimiter never appears
+    runs to the end, which is what the shell would do with it too.
+    """
+    out, lines, i = [], command.split("\n"), 0
+    while i < len(lines):
+        line = lines[i]
+        out.append(line)
+        found = HEREDOC.search(line)
+        i += 1
+        if not found:
+            continue
+        delimiter = found.group(2)
+        while i < len(lines) and lines[i].strip() != delimiter:
+            i += 1                               # the body: data, never commands
+        if i < len(lines):
+            out.append(lines[i])                 # keep the delimiter line itself
+            i += 1
+    return "\n".join(out)
+
+def join_continuations(command):
+    r"""A shell's line continuations removed, quoting respected.
+
+    `\` before a newline joins two lines into one command, so a shell deletes the pair.
+    It cannot be undone after tokenising: `shlex` resolves the escape into a literal
+    newline, which is then indistinguishable from a real newline separator - one joins
+    and the other cuts, and reading the token stream cannot tell which produced it. So
+    the pair is removed here, before `shlex` sees it.
+
+    Inside single quotes a backslash is literal and the pair is data, not a join. Inside
+    double quotes it is still a continuation, which is why the two quote kinds are
+    tracked apart rather than together.
+    """
+    out, i, single, double = [], 0, False, False
+    while i < len(command):
+        c = command[i]
+        if c == "'" and not double:
+            single = not single
+        elif c == '"' and not single:
+            double = not double
+        elif c == "\\" and not single and i + 1 < len(command):
+            if command[i + 1] == "\n":
+                i += 2                           # the join: both characters go
+                continue
+            # Outside single quotes a backslash escapes the next character, so the pair
+            # is copied together and neither is re-examined. Without this, `a\\` before a
+            # newline read the *second* backslash as a continuation and swallowed a real
+            # separator - the escaped backslash is data and the newline still cuts.
+            out.append(c)
+            out.append(command[i + 1])
+            i += 2
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
 
 def segments(command):
     """The command's tokens, cut into one list per shell command.
@@ -80,8 +155,12 @@ def segments(command):
     and the ampersand are operator tokens, not part of the word next to them.
     """
     try:
-        lex = shlex.shlex(command, posix=True, punctuation_chars=PUNCTUATION)
+        lex = shlex.shlex(join_continuations(strip_heredocs(command)), posix=True,
+                          punctuation_chars=PUNCTUATION)
         lex.whitespace_split = True
+        # Newline has to stop being whitespace for `PUNCTUATION` to see it at all, and a
+        # newline inside quotes still survives as data, because quoting is resolved first.
+        lex.whitespace = " \t\r"
         tokens = list(lex)
     except ValueError:
         return                                   # unbalanced quotes: nothing to read
@@ -115,21 +194,26 @@ def push_invocations(command, cwd, depth=0):
     for tokens in segments(command):
         if not tokens:
             continue
-        head = os.path.basename(tokens[0])
-        if head == EVAL and len(tokens) > 1:      # `eval '<script>'` carries a command
-            for t in tokens[1:]:
-                yield from push_invocations(t, cwd, depth + 1)
-            continue
-        if head in SHELLS:
-            for k in range(1, len(tokens) - 1):   # `bash -c '<script>'` carries a command
-                t = tokens[k]
-                # Short flags combine, and `-lc` is commoner than `-c` alone. Match any
-                # short-flag cluster ending in `c`; `--foo=c` is excluded by the `=`,
-                # and a long option never ends up here because of the `--` prefix test.
-                if t.startswith("-") and not t.startswith("--") and "=" not in t and t.endswith("c"):
-                    yield from push_invocations(tokens[k + 1], cwd, depth + 1)
-                    break
-            continue
+        # A nested shell or `eval` is looked for at every position, not only the first,
+        # so a wrapper in front of it - `env bash -c '<script>'` - is still seen. Neither
+        # scan below suppresses the other: a bare word that happens to be a shell name,
+        # as in `git push origin sh`, would otherwise silence the `git` scan entirely.
+        for k, tok in enumerate(tokens):
+            base = os.path.basename(tok)
+            if base == EVAL:                      # `eval '<script>'` carries a command
+                for t in tokens[k + 1:]:
+                    yield from push_invocations(t, cwd, depth + 1)
+            elif base in SHELLS:
+                for j in range(k + 1, len(tokens) - 1):
+                    t = tokens[j]
+                    # Short flags combine, and `-lc` is commoner than `-c` alone. `c`
+                    # anywhere in the cluster means the next word is the script, which is
+                    # what `bash` itself does: `bash -ceu '<script>'` runs the script.
+                    # `--foo=c` is excluded by the `=`, and a long option never reaches
+                    # here because of the `--` prefix test.
+                    if t.startswith("-") and not t.startswith("--") and "=" not in t and "c" in t[1:]:
+                        yield from push_invocations(tokens[j + 1], cwd, depth + 1)
+                        break
         for i, tok in enumerate(tokens):
             if os.path.basename(tok) != "git":
                 continue                          # skips `env FOO=1`, `xargs -I{}` and friends
@@ -151,7 +235,10 @@ def push_invocations(command, cwd, depth=0):
                     break
             if j < len(rest) and rest[j] == "push":
                 yield rest[j + 1:], where
-            break
+            # Deliberately no `break`: a segment may carry more than one `git`, and
+            # abandoning it after the first meant a `git` that was not a push hid every
+            # push behind it. Re-yielding the same push costs nothing, since `main`
+            # returns on the first trunk hit.
 
 
 def destinations(args, cwd):
@@ -173,10 +260,22 @@ def destinations(args, cwd):
         j += 1
     deleting = any(a in DELETES for a in args)
     refspecs = positional if deleting else positional[1:]   # a delete names branches, not a remote
+
+    def current_branch():
+        b = git(cwd, "rev-parse", "--abbrev-ref", "HEAD")
+        return b if b and b != "HEAD" else None             # detached: nothing to name
+
     if refspecs:
-        return [b for b in (branch_of(r) for r in refspecs) if b]
-    current = git(cwd, "rev-parse", "--abbrev-ref", "HEAD")  # bare `git push` follows HEAD
-    return [current] if current and current != "HEAD" else []
+        out = []
+        for r in refspecs:
+            b = branch_of(r)
+            if b == "HEAD":                                 # `git push <remote> HEAD`
+                b = current_branch()
+            if b:
+                out.append(b)
+        return out
+    b = current_branch()                                    # bare `git push` follows HEAD
+    return [b] if b else []
 
 
 def main():

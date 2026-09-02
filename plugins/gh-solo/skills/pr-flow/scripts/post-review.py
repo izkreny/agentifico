@@ -276,6 +276,22 @@ def build(args: argparse.Namespace) -> int:
             "derivation that did not happen"
         )
 
+    # The other half of the same rule. `unrated` exists for a reviewer that cannot assign
+    # a level, so a finding carrying it while the source is `reviewer` publishes a level
+    # the reviewer never gave as the reviewer's own. The check above refuses a derivation
+    # that did not happen; this one refuses one that did and was not stated.
+    if source == "reviewer":
+        unrated = [
+            f.get("index") for f in findings
+            if isinstance(f, dict) and f.get("severity") == "unrated"
+        ]
+        if unrated:
+            problems.append(
+                "severity is unrated on finding(s) %s while severity_source is reviewer, "
+                "so the record would attribute a level to a reviewer that supplied none"
+                % ", ".join(str(i) for i in unrated)
+            )
+
     if which_pass == "review":
         axes_run = data.get("axes_run")
         if not isinstance(axes_run, list) or not axes_run:
