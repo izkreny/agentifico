@@ -240,11 +240,26 @@ def shift_line(diff_text: str, line: int) -> int | None:
     return line + offset
 
 
-def range_diff(at: str, path: str) -> str | None:
-    """`git diff` from the head a finding was anchored against to the current one."""
+def repo_root() -> str | None:
+    """The working tree's top level, or None where this is not a git repository."""
+    proc = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True
+    )
+    return None if proc.returncode != 0 else proc.stdout.strip()
+
+
+def range_diff(at: str, path: str, root: str) -> str | None:
+    """`git diff` from the head a finding was anchored against to the current one.
+
+    Run at the top level, because a ledger's `path` is repo-relative while a git pathspec
+    is relative to the working directory: from a subdirectory the pathspec matches nothing
+    and git answers empty output at exit 0, which is indistinguishable from "the file did
+    not change" and would replay the stored line silently - the very defect the shift
+    exists to remove.
+    """
     proc = subprocess.run(
         ["git", "diff", f"{at}..HEAD", "--unified=0", "--", path],
-        capture_output=True, text=True,
+        capture_output=True, text=True, cwd=root,
     )
     return None if proc.returncode != 0 else proc.stdout
 
@@ -602,6 +617,12 @@ def release(args: argparse.Namespace) -> int:
     ordinary answer on a round that held nothing.
     """
     disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
+    root = repo_root()
+    if root is None:
+        sys.exit(
+            "post-review: release must run inside the branch's git repository - it brings "
+            "each held finding's line forward with `git diff`, and cannot without one"
+        )
     entries = held_entries(review_bodies(Path(args.reviews)))
     threaded = threaded_ids(comment_bodies(Path(args.comments)))
 
@@ -650,7 +671,7 @@ def release(args: argparse.Namespace) -> int:
     # be brought forward at all, and a named gap beats a thread on the wrong statement.
     anchored: list[dict] = []
     for entry in unique:
-        diff = range_diff(entry["at"], entry["path"])
+        diff = range_diff(entry["at"], entry["path"], root)
         if diff is None:
             print(
                 f"post-review: RF{entry['rf']} skipped - git could not diff {entry['at']}"

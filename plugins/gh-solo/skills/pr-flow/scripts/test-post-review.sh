@@ -527,6 +527,18 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a change below the finding leaves its line alone")
 
+# A ledger `path` is repo-relative while a git pathspec is relative to the working
+# directory, so from a subdirectory git matched nothing and answered empty at exit 0 -
+# indistinguishable from "unchanged", and the stale line went out silently.
+repo, at = git_fixture("subdir", BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
+proc, out = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
+                        name="release-subdir", cwd=str(repo / "app" / "models"))
+ok = proc.returncode == 0 and out.exists()
+if ok:
+    ok = json.loads(out.read_text(encoding="utf-8"))["comments"][0]["line"] == 48
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} run from a subdirectory, the line still moves to 48")
+
 print("\nrelease must skip rather than guess (exit 0, nothing written):")
 # The one case with no answer: the fixes rewrote the very line the finding points at, so
 # no number can be brought forward and a named gap beats a thread on the wrong statement.
