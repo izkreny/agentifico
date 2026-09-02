@@ -123,10 +123,11 @@ What none of these gates can see is whether the route works against GitHub. The 
 
 ## Open questions
 
-- Should `--reviews` be required on `highest-id`, as planned, or optional? Required means a caller cannot under-read the id space by omitting it, which is the exact failure this issue is about; optional keeps every existing invocation of the script working.
+None.
 
 ## Settled
 
+- **Is `--reviews` required on `highest-id`, or optional?** Required. Reading the round summaries *is* the fix, so a flag letting a caller skip that read is the defect with a switch on it, and the trade-off the question named was fictional: the only caller is step 2 of `plugins/gh-solo/skills/pr-flow/workflows/review.md`, which this branch edits.
 - **Who decides that a finding has no anchor yet?** The orchestrator, per the owner's decision on the plan's line 43. The reviewer cannot see the pushed head and `build` has no business fetching it, so the round writes `git diff @{u}..HEAD -U0` and hands it over as `build --unpushed-diff`. This removes the per-finding field the plan first proposed, and with it any change to the `reviewer` skill.
 - **Does the first acceptance criterion close on this branch's own re-review?** No, it waits for a later pull request. A round spawns the reviewer and runs `plugins/gh-solo/skills/pr-flow/scripts/post-review.py` from the *installed* plugin, so this branch's own re-review exercises 4.0.0's script; the criterion closes on the first scoped re-review raising a new finding after `gh-solo_4.1.0` is tagged and installed.
 - **Do the held findings ever become threads, or are they rediscovered?** They become threads, decided on the plan's line 44. `rnp` pushes the fix commits and then posts each held finding with the id it already holds, so the record Review is a waiting room rather than an archive and `plugins/gh-solo/skills/pr-flow/workflows/merge.md`'s thread audit sees every finding of every round.
