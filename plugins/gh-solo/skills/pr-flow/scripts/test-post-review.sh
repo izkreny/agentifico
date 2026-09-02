@@ -102,7 +102,8 @@ Binary files /dev/null and b/app/models/group.rb differ
 """
 
 
-def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None):
+def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
+              anchored_at="__auto__"):
     findings = work / f"{name}.json"
     findings.write_text(json.dumps(data), encoding="utf-8")
     out = work / f"{name}.payload.json"
@@ -115,6 +116,10 @@ def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None):
         d = work / f"{name}.diff"
         d.write_text(diff, encoding="utf-8")
         cmd += ["--unpushed-diff", str(d)]
+    if anchored_at == "__auto__":
+        anchored_at = "1bb80f6" if data.get("pass") == "re-review" else None
+    if anchored_at is not None:
+        cmd += ["--anchored-at", anchored_at]
     return subprocess.run(cmd, capture_output=True, text=True), out
 
 
@@ -141,7 +146,7 @@ def run_verify(payload, comments, reviews=None, name="case"):
         capture_output=True, text=True)
 
 
-def run_release(reviews, comments, disclaimer=None, name="case"):
+def run_release(reviews, comments, disclaimer=None, name="case", cwd=None):
     r = work / f"{name}.reviews.json"
     c = work / f"{name}.comments.json"
     out = work / f"{name}.release.json"
@@ -152,8 +157,45 @@ def run_release(reviews, comments, disclaimer=None, name="case"):
          "--reviews", str(r), "--comments", str(c),
          "--disclaimer-file", str(disclaimer or good_disclaimer),
          "--out", str(out)],
-        capture_output=True, text=True)
+        capture_output=True, text=True, cwd=cwd)
     return proc, out
+
+
+def git_fixture(name, first_lines, second_lines):
+    """A throwaway repository whose two commits move the lines of one file.
+
+    `release` brings a held finding's line forward with `git diff <at>..HEAD`, so the only
+    honest bench for it is a real range. Returns the directory and the first commit's sha,
+    which is the `at` a ledger entry would carry.
+    """
+    repo = work / f"repo-{name}"
+    (repo / "app" / "models").mkdir(parents=True)
+    target = repo / "app" / "models" / "group.rb"
+    env = {"GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
+           "GIT_AUTHOR_NAME": "b", "GIT_AUTHOR_EMAIL": "b@b",
+           "GIT_COMMITTER_NAME": "b", "GIT_COMMITTER_EMAIL": "b@b", "PATH": "/usr/bin:/bin"}
+
+    def git(*args):
+        subprocess.run(["git", *args], cwd=repo, env=env, check=True,
+                       capture_output=True, text=True)
+
+    git("init", "-q", "-b", "main")
+    target.write_text("\n".join(first_lines) + "\n", encoding="utf-8")
+    git("add", "-A"); git("commit", "-q", "-m", "first")
+    at = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, env=env,
+                        capture_output=True, text=True).stdout.strip()
+    target.write_text("\n".join(second_lines) + "\n", encoding="utf-8")
+    git("add", "-A"); git("commit", "-q", "-m", "second")
+    return repo, at
+
+
+BASE = [f"line {n}" for n in range(1, 61)]
+
+
+# The repository the generic release cases run in: its second commit appends below every
+# line, so nothing shifts and each case tests what it says it tests rather than the
+# arithmetic. The shift itself has its own fixtures further down.
+SHARED_REPO, SHARED_AT = None, "0000000"
 
 
 def ledger_review(*entries):
@@ -169,8 +211,8 @@ def ledger_review(*entries):
                     + "\n\n```json\n" + block + "\n```"}
 
 
-def held_entry(rf=7, **changes):
-    entry = {**copy.deepcopy(FINDING), "rf": rf}
+def held_entry(rf=7, at=None, **changes):
+    entry = {**copy.deepcopy(FINDING), "rf": rf, "at": at or SHARED_AT}
     for key, value in changes.items():
         if value is None:
             entry.pop(key, None)
@@ -309,6 +351,23 @@ for name, data, diff in cases:
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
+print("\nmust refuse on the anchor head (exit 2):")
+# Without it a held finding's line cannot be brought forward to the pushed head, so the
+# release would replay a number counted before the round's later commits landed.
+cases = [
+    ("--anchored-at on a review pass", REVIEW, None, "1bb80f6"),
+    ("--anchored-at missing on a re-review",
+     mutate(RERdefault, findings=[FINDING]), GROUP_DIFF, None),
+    ("--anchored-at that is not a sha",
+     mutate(RERdefault, findings=[FINDING]), GROUP_DIFF, "the-head"),
+]
+for name, data, diff, at in cases:
+    slug = "aa-" + "".join(c if c.isalnum() else "-" for c in name)
+    proc, out = run_build(data, continue_from=3, name=slug, diff=diff, anchored_at=at)
+    ok = proc.returncode == 2 and not out.exists()
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
 print("\nmust build (exit 0):")
 for name, data, continue_from, wants, diff in MUST_BUILD:
     slug = "".join(c if c.isalnum() else "-" for c in name)
@@ -379,11 +438,14 @@ ok = proc.returncode == 0 and "1 held id(s)" in proc.stdout
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a held id reserved in the record  (exit {proc.returncode})")
 
+SHARED_REPO, SHARED_AT = git_fixture("shared", BASE, BASE + ["appended"])
+
 print("\nrelease must build (exit 0):")
 # The other half of the fix: after rnp's push the held line is ordinary, so the ledger in
 # the record Review is read back and each entry becomes the thread it was standing in for,
 # under the id it was reserved with rather than a fresh one.
-proc, out = run_release([ledger_review(held_entry(7))], [], name="release-one")
+proc, out = run_release([ledger_review(held_entry(7))], [], name="release-one",
+                        cwd=str(SHARED_REPO))
 ok = proc.returncode == 0 and out.exists()
 if ok:
     payload = json.loads(out.read_text(encoding="utf-8"))
@@ -402,7 +464,8 @@ print(f"  {'ok  ' if ok else 'FAIL'} a held finding round-trips into a thread un
 # first; posting it again would duplicate the thread.
 proc, out = run_release(
     [ledger_review(held_entry(7)), ledger_review(held_entry(9))],
-    [{"body": "> \U0001f916 h\n\nRF7 already a thread"}], name="release-skip")
+    [{"body": "> \U0001f916 h\n\nRF7 already a thread"}], name="release-skip",
+    cwd=str(SHARED_REPO))
 ok = (proc.returncode == 0 and out.exists() and "RF7" in proc.stdout
       and "already threaded" in proc.stdout)
 if ok:
@@ -418,7 +481,7 @@ for name, reviews in [("no reviews at all", []),
                       ("every held id already threaded",
                        [ledger_review(held_entry(7))])]:
     comments = ([{"body": "RF7 x"}] if name == "every held id already threaded" else [])
-    proc, out = run_release(reviews, comments,
+    proc, out = run_release(reviews, comments, cwd=str(SHARED_REPO),
                             name="rn-" + "".join(c if c.isalnum() else "-" for c in name))
     ok = proc.returncode == 0 and not out.exists() and "nothing to release" in proc.stdout
     fails += not ok
@@ -431,13 +494,59 @@ proc, out = run_release(
     [ledger_review(held_entry(9))],
     [{"body": "> \U0001f916 h\n\nvia `implement` fix, closing reply\n\n"
               "fix: tighten the guard - closes RF6, and this commit also closes RF9"}],
-    name="release-crossref")
+    name="release-crossref", cwd=str(SHARED_REPO))
 ok = proc.returncode == 0 and out.exists() and "already threaded" not in proc.stdout
 if ok:
     payload = json.loads(out.read_text(encoding="utf-8"))
     ok = len(payload["comments"]) == 1 and "RF9" in payload["comments"][0]["body"]
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a prose cross-reference does not count as a thread")
+
+# RF8: the stored line counts lines as they stood when the reviewer read them, and the
+# round keeps committing between the hold and the push. Replaying that number anchored the
+# thread to whatever now sat there - and where the shift moved it out of the diff, every
+# later rnp on the pull request failed its release the same way.
+repo, at = git_fixture("shift", BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
+proc, out = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
+                        name="release-shift", cwd=str(repo))
+ok = proc.returncode == 0 and out.exists() and "moved" in proc.stdout
+if ok:
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    ok = len(payload["comments"]) == 1 and payload["comments"][0]["line"] == 48
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a held line six insertions above it releases at 48, not 42"
+      f"  (got {json.loads(out.read_text())['comments'][0]['line'] if out.exists() and json.loads(out.read_text())['comments'] else '-'})")
+
+# Nothing before the finding moved, so the number is already right and nothing is reported.
+repo, at = git_fixture("tail", BASE, BASE + ["appended"])
+proc, out = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
+                        name="release-noshift", cwd=str(repo))
+ok = proc.returncode == 0 and out.exists() and "moved" not in proc.stdout
+if ok:
+    ok = json.loads(out.read_text(encoding="utf-8"))["comments"][0]["line"] == 42
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a change below the finding leaves its line alone")
+
+print("\nrelease must skip rather than guess (exit 0, nothing written):")
+# The one case with no answer: the fixes rewrote the very line the finding points at, so
+# no number can be brought forward and a named gap beats a thread on the wrong statement.
+rewritten = list(BASE); rewritten[41] = "rewritten entirely"
+repo, at = git_fixture("rewrite", BASE, rewritten)
+proc, out = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
+                        name="release-rewritten", cwd=str(repo))
+ok = (proc.returncode == 0 and not out.exists()
+      and "cannot be brought forward" in proc.stdout and "RF9" in proc.stdout)
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} the fixes rewrote the line the finding points at")
+
+# An `at` no longer in the repository - a fresh clone, a rewritten branch - is reported
+# rather than treated as "no change", which would replay the stale number silently.
+repo, _ = git_fixture("unknown", BASE, BASE + ["appended"])
+proc, out = run_release([ledger_review(held_entry(9, at="deadbee", line=42))], [],
+                        name="release-unknown-at", cwd=str(repo))
+ok = proc.returncode == 0 and not out.exists() and "could not diff" in proc.stdout
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} an anchor head git does not have")
 
 print("\nrelease must refuse (exit 2):")
 cases = [

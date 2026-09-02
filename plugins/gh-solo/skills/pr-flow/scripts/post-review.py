@@ -31,6 +31,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -63,8 +64,10 @@ FINDING_FIELDS = (
     "finding",
     "needs_owner",
 )
-# What a ledger entry carries: the finding whole, plus the id it was reserved under.
-HELD_FIELDS = FINDING_FIELDS + ("rf",)
+# What a ledger entry carries: the finding whole, the id it was reserved under, and the
+# head its `line` was counted against - without which the number cannot be brought
+# forward to the pushed head.
+HELD_FIELDS = FINDING_FIELDS + ("rf", "at")
 
 
 def load_json(path: Path, what: str) -> object:
@@ -213,6 +216,39 @@ def unpushed_paths(text: str, problems: list[str]) -> set[str]:
     return paths
 
 
+def shift_line(diff_text: str, line: int) -> int | None:
+    """Where `line` has moved to across a diff, or None when the diff changed it.
+
+    A held finding's `line` counts lines in the file as it stood when the reviewer read it,
+    and the round goes on committing between the hold and the push, so replaying that
+    number would anchor the thread to whatever now sits there. `None` is the honest answer
+    where the fixes rewrote the line itself: nothing can say where such a finding belongs.
+    """
+    offset = 0
+    for match in re.finditer(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@", diff_text, re.M):
+        old_start = int(match.group(1))
+        old_len = 1 if match.group(2) is None else int(match.group(2))
+        new_len = 1 if match.group(4) is None else int(match.group(4))
+        # `-a,0` is a pure insertion *after* old line a, so it never covers a line itself.
+        if old_len == 0:
+            if old_start < line:
+                offset += new_len
+        elif old_start + old_len <= line:
+            offset += new_len - old_len
+        elif old_start <= line:
+            return None
+    return line + offset
+
+
+def range_diff(at: str, path: str) -> str | None:
+    """`git diff` from the head a finding was anchored against to the current one."""
+    proc = subprocess.run(
+        ["git", "diff", f"{at}..HEAD", "--unified=0", "--", path],
+        capture_output=True, text=True,
+    )
+    return None if proc.returncode != 0 else proc.stdout
+
+
 def threaded_ids(bodies: list[str]) -> set[int]:
     """The ids that already carry a finding thread, never the ones merely mentioned.
 
@@ -263,6 +299,7 @@ def record_body(
     data: dict,
     assigned: list[tuple[int, dict]],
     held: set[int],
+    anchored_at: str,
     disclaimer: str,
     via: str,
 ) -> str:
@@ -302,7 +339,7 @@ def record_body(
     # finding's own text can close this fence early.
     if held:
         ledger = [
-            {**{k: f[k] for k in FINDING_FIELDS}, "rf": rf}
+            {**{k: f[k] for k in FINDING_FIELDS}, "rf": rf, "at": anchored_at}
             for rf, f in assigned
             if rf in held
         ]
@@ -412,6 +449,22 @@ def build(args: argparse.Namespace) -> int:
             "GitHub can anchor from one only the unpushed fixes carry"
         )
 
+    if which_pass == "review" and args.anchored_at is not None:
+        problems.append(
+            "--anchored-at was given on a review pass, whose findings become threads now "
+            "and so never need their lines brought forward"
+        )
+    elif which_pass == "re-review":
+        if args.anchored_at is None:
+            problems.append(
+                "--anchored-at is missing on a re-review, so a held finding's line could "
+                "not be brought forward to the pushed head and would be replayed stale"
+            )
+        elif not re.fullmatch(r"[0-9a-f]{7,40}", args.anchored_at):
+            problems.append(
+                f"--anchored-at is not a commit sha: {args.anchored_at!r}"
+            )
+
     held_paths: set[str] = set()
     if which_pass == "re-review" and args.unpushed_diff is not None:
         try:
@@ -458,7 +511,7 @@ def build(args: argparse.Namespace) -> int:
 
     payload = {
         "event": "COMMENT",
-        "body": record_body(data, assigned, held, disclaimer, via_record),
+        "body": record_body(data, assigned, held, args.anchored_at or "", disclaimer, via_record),
         "comments": [
             {
                 "path": f["path"],
@@ -591,9 +644,37 @@ def release(args: argparse.Namespace) -> int:
 
     if already:
         print("post-review: already threaded, skipped: " + ", ".join(f"RF{n}" for n in already))
-    if not unique:
+
+    # The stored line was counted against `at`, and the round kept committing after the
+    # hold, so it is brought forward rather than replayed. A line the fixes rewrote cannot
+    # be brought forward at all, and a named gap beats a thread on the wrong statement.
+    anchored: list[dict] = []
+    for entry in unique:
+        diff = range_diff(entry["at"], entry["path"])
+        if diff is None:
+            print(
+                f"post-review: RF{entry['rf']} skipped - git could not diff {entry['at']}"
+                f"..HEAD for {entry['path']}"
+            )
+            continue
+        moved = shift_line(diff, entry["line"])
+        if moved is None:
+            print(
+                f"post-review: RF{entry['rf']} skipped - the fixes rewrote "
+                f"{entry['path']}:{entry['line']}, so its line cannot be brought forward"
+            )
+            continue
+        if moved != entry["line"]:
+            print(
+                f"post-review: RF{entry['rf']} moved {entry['path']}:{entry['line']}"
+                f" -> :{moved}"
+            )
+        anchored.append({**entry, "line": moved})
+
+    if not anchored:
         print("post-review: nothing to release")
         return 0
+    unique = anchored
 
     rows = [
         f"- RF{e['rf']} {SEVERITIES[e['severity']]} {e['severity']} {e['path']}:{e['line']}"
@@ -710,6 +791,11 @@ def main() -> int:
         "--unpushed-diff",
         help="a `git diff` of the fix commits this round is holding; required on a "
              "re-review and refused on a review pass",
+    )
+    b.add_argument(
+        "--anchored-at",
+        help="the head the reviewer read, which a held finding's line is counted "
+             "against; required on a re-review and refused on a review pass",
     )
     b.add_argument("--out", required=True, help="where to write the payload JSON")
 
