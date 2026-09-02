@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(gh:*)` for the thread read, the authorisation comment, the resolve mutation and the checks read, `Bash(git:*)` for the push, `Write` for the comment body file, `TaskStop` to end a running watch.
 
-End a review round on the owner's word: record the authorisation, resolve the threads it covers, push the fixes that have been waiting, and read the checks.
+End a review round on the owner's word: record the authorisation, resolve the threads it covers, push the fixes that have been waiting, release any finding that was held for that push, and read the checks.
 
 **This is the protocol's step 7, and `references/review-protocol.md` owns what it means.** That file states the order and why, which threads a batch covers and which it never covers, and why a red check afterwards reopens nothing. What this file owns is the mechanics: the marker line's wording, the mutation, and the order of the calls.
 
@@ -63,23 +63,48 @@ gh api graphql -f query='mutation($t:ID!){ resolveReviewThread(input:{threadId:$
 
 The input also accepts an optional `resolutionReason` of `ADDRESSED`, `WONT_FIX` or `INVALID`. **It is deliberately not passed.** Nothing in this plugin reads it, so a value here would be a claim no gate checks, and the reason each thread closed is already in the thread.
 
-## Step 5 - Push, then read the checks
+## Step 5 - Push
 
 ```bash
 git push <remote> <branch>
 ```
 
-Then `gh pr checks <pr-number>`, per the standing convention in `SKILL.md`, before reporting the push as done. Resolve `<remote>` by the recipe in that file's remote-name convention.
+Resolve `<remote>` by the recipe in `SKILL.md`'s remote-name convention. The checks are read at Step 7, after Step 6 has posted whatever the push released, so one read covers the whole of what this workflow put on the branch.
 
 **Where a relocation commit is on the remote with its entry still in `## Open questions`, this step lands the PR body edit it owes**, per *Body caps* in `workflows/open.md`, which owns the route and states the invariant this discharges. Read the condition off the remote and the body rather than off what this round holds: an earlier push may already have carried the commit up, and this step owes the edit either way. Where nothing meets it, this step does nothing.
 
+## Step 6 - Release the held findings
+
+A round that held a finding reserved its `RF{n}` and gave it no thread, because the line it points at was on this machine only. The push above has just made those lines part of the pull request's diff, so the threads can open now:
+
+```bash
+gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
+gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
+python3 <skill-dir>/scripts/post-review.py release --reviews <reviews-file> --comments <listing-file> --disclaimer-file <disclaimer-file> --out <release-file>
+```
+
+**Exit 0 having written no payload means there was nothing held**, which is the ordinary answer on most rounds; say so in the report and skip the rest of this step. Where it wrote one, post it and reconcile it:
+
+```bash
+gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <release-file>
+gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
+python3 <skill-dir>/scripts/post-review.py verify --payload <release-file> --comments <listing-file> --reviews <reviews-file>
+```
+
+- **The reads come after the push**, never before it, because the whole reason the anchors resolve now is that the push landed. Running this step ahead of Step 5 answers `422` on every held finding.
+- **An id that already carries a thread is skipped rather than refused.** Nothing rewrites a posted Review, so an earlier round's ledger is still on the pull request at the next `rnp`; the script reports what it skipped.
+- **A failure here loses nothing and refuses nothing.** The push has already happened and the ledger is still in the record Review, so the findings are exactly where they were - report the failure and name this step's commands as the retry, rather than treating it as a failed `rnp`.
+- **A released thread lands unresolved, and that is correct.** The authorisation in Step 3 named the ids it covered, and these were not among them: the owner has not read them yet. `workflows/merge.md` refuses on an unresolved thread, so the report has to say how many are waiting, or the owner reads a green `rnp` and then meets a red merge with nothing explaining it.
+
+## Step 7 - Read the checks
+
 **A red check here reopens nothing**, per the protocol: each finding was closed on its own evidence, and a CI failure contradicts none of it. It is the two-environments finding, so report both sides and diagnose the difference - and it stops the merge until it is answered, which a new commit does rather than a reopened thread.
 
-## Step 6 - Confirm
+## Step 8 - Confirm
 
-Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved and the checks are green, `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered or a check is red.
+Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved, nothing was held, and the checks are green; `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered, a held finding was released and now waits on the owner, a release failed, or a check is red.
 
-Then the record: how many threads were resolved and which ids, which were left and why, the commits that went up, and the check result. Then the next command, flush left:
+Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and are now waiting to be read, the commits that went up, and the check result. Then the next command, flush left:
 
 ```
 /gh-solo:pr-flow merge <pr-number>
@@ -94,3 +119,5 @@ Then the record: how many threads were resolved and which ids, which were left a
 - **The marker line is a literal.** `workflows/merge.md` greps it.
 - **Read each mutation's answer.** A resolve posts nothing, so an unchecked failure is invisible.
 - **This is the round's only push**, and the checks are read before it is reported done.
+- **The release comes after the push and never before it.** Its anchors resolve only because the push landed, and a failure there is a retry rather than a refusal - the ledger is still on the pull request.
+- **Never resolve a released thread.** The authorisation named the ids it covered and a released id was not one of them, so it waits on the owner exactly as a fresh finding does.
