@@ -80,7 +80,7 @@ A round that held a finding reserved its `RF{n}` and gave it no thread, because 
 ```bash
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
-python3 <skill-dir>/scripts/post-review.py release --reviews <reviews-file> --comments <listing-file> --disclaimer-file <disclaimer-file> --out <release-file>
+python3 <skill-dir>/scripts/post-review.py release --reviews <reviews-file> --comments <listing-file> --disclaimer-file <disclaimer-file> --out <release-file> --replies-out <replies-file>
 ```
 
 **Exit 0 having written no payload means there was nothing held**, which is the ordinary answer on most rounds; say so in the report and skip the rest of this step. Where it wrote one, post it and reconcile it:
@@ -91,10 +91,17 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-f
 python3 <skill-dir>/scripts/post-review.py verify --payload <release-file> --comments <listing-file> --reviews <reviews-file>
 ```
 
+Then the replies each released thread owes, which is why the id read comes after the post: a reply needs the comment id the thread has only once it exists. For every entry in `<replies-file>`, find the comment in `<listing-file>` whose own id is that `::RF{n}::` and post its bodies in the order they are listed - the fix plan, then the fix result, then the verdict:
+
+```bash
+gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F body=@<body-file>
+```
+
 - **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote, or whose anchor head this clone does not have, is reported and skipped rather than posted at a guess.
 - **The reads come after the push**, never before it, because the whole reason the anchors resolve now is that the push landed. Running this step ahead of Step 5 answers `422` on every held finding.
 - **An id that already carries a thread is skipped rather than refused.** Nothing rewrites a posted Review, so an earlier round's ledger is still on the pull request at the next `rnp`; the script reports what it skipped.
 - **A failure here loses nothing and refuses nothing.** The push has already happened and the ledger is still in the record Review, so the findings are exactly where they were - report the failure and name this step's commands as the retry, rather than treating it as a failed `rnp`.
+- **The replies are the round's words, not new ones.** They were written during the round and recorded in its follow-up Review; this step copies them, so nothing here composes a plan or a verdict. An entry with no reply recorded opens its thread carrying the finding alone, which `release` reports.
 - **A released thread lands unresolved, and that is correct.** The authorisation in Step 3 named the ids it covered, and these were not among them: the owner has not read them yet. `workflows/merge.md` refuses on an unresolved thread, so the report has to say how many are waiting, or the owner reads a green `rnp` and then meets a red merge with nothing explaining it.
 
 ## Step 7 - Read the checks

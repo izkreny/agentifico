@@ -64,6 +64,12 @@ BARE_PATTERN = r"\bRF(\d+)\b"
 # scans every ```json fence in every review body, so a sentinel inside the object is what
 # tells ours from a fence someone else wrote; a heading above it would not survive an edit.
 HELD_KEY = "gh_solo_held"
+# The record Review that holds a finding is posted before that finding has a fix plan, a
+# fix result or a verdict - they do not exist yet - and a posted Review is never rewritten.
+# So the round posts a second Review at its end carrying those, keyed by id, and `release`
+# merges the two ledgers: the finding becomes the thread, each follow-up becomes a reply.
+FOLLOWUP_KEY = "gh_solo_held_followup"
+FOLLOWUP_KINDS = ("plan", "result", "verdict")
 
 FINDING_FIELDS = (
     "index",
@@ -310,8 +316,8 @@ def threaded_ids(bodies: list[str]) -> set[int]:
     return found
 
 
-def held_entries(bodies: list[str]) -> list[dict]:
-    """Every held finding recorded in a review body's fenced ledger, oldest body first."""
+def ledger_entries(bodies: list[str], key: str) -> list[dict]:
+    """Every entry under `key` in a review body's fenced ledgers, oldest body first."""
     entries: list[dict] = []
     for body in bodies:
         for block in re.findall(r"```json\n(.*?)\n```", body, re.DOTALL):
@@ -319,13 +325,90 @@ def held_entries(bodies: list[str]) -> list[dict]:
                 data = json.loads(block)
             except json.JSONDecodeError:
                 continue
-            if isinstance(data, dict) and isinstance(data.get(HELD_KEY), list):
-                entries.extend(e for e in data[HELD_KEY] if isinstance(e, dict))
+            if isinstance(data, dict) and isinstance(data.get(key), list):
+                entries.extend(e for e in data[key] if isinstance(e, dict))
     return entries
+
+
+def held_entries(bodies: list[str]) -> list[dict]:
+    """Every held finding recorded in a review body's fenced ledger, oldest body first."""
+    return ledger_entries(bodies, HELD_KEY)
+
+
+def followup_entries(bodies: list[str]) -> list[dict]:
+    """Every fix plan, fix result and verdict recorded for a held finding."""
+    return ledger_entries(bodies, FOLLOWUP_KEY)
+
+
+def followup(args: argparse.Namespace) -> int:
+    """Post-round: record a held finding's plan, result and verdict for `release` to copy.
+
+    Each is kept as its own entry rather than folded into the finding's text, so the thread
+    `release` opens carries the same reply-per-step shape a threaded finding collects.
+    """
+    disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
+    data = load_json(Path(args.entries), "follow-up entries")
+
+    problems: list[str] = []
+    if not disclaimer.startswith(DISCLAIMER_PREFIX):
+        problems.append(
+            f"the disclaimer does not open with {DISCLAIMER_PREFIX!r}, which is the whole "
+            "of what every gate downstream tests"
+        )
+    if not isinstance(data, list) or not data:
+        sys.exit("post-review: the follow-up entries file is not a non-empty JSON array")
+
+    for position, entry in enumerate(data):
+        where = f"entries[{position}]"
+        if not isinstance(entry, dict):
+            problems.append(f"{where} is not an object")
+            continue
+        rf = entry.get("rf")
+        if not isinstance(rf, int) or isinstance(rf, bool) or rf < 1:
+            problems.append(f"{where} rf is not a positive integer: {rf!r}")
+        kind = entry.get("kind")
+        if kind not in FOLLOWUP_KINDS:
+            problems.append(f"{where} kind is not one of {'/'.join(FOLLOWUP_KINDS)}: {kind!r}")
+        text = entry.get("text")
+        if not isinstance(text, str) or not text.strip():
+            problems.append(f"{where} text is empty or not a string")
+        elif SUGGESTION_FENCE in text:
+            problems.append(f"{where} text carries a {SUGGESTION_FENCE} fence")
+
+    if problems:
+        print(f"post-review: {len(problems)} problem(s), nothing built", file=sys.stderr)
+        for problem in problems:
+            print(f"  {problem}", file=sys.stderr)
+        return 2
+
+    ordered = sorted(data, key=lambda e: (e["rf"], FOLLOWUP_KINDS.index(e["kind"])))
+    rows = [f"- ::RF{e['rf']}:: {e['kind']}" for e in ordered]
+    body = "\n".join(
+        [header(disclaimer, "held follow-up"), "",
+         f"What the round did about {len({e['rf'] for e in ordered})} held finding(s), "
+         "for `release` to copy into their threads once the push opens them:", ""]
+        + rows
+        + ["", "```json", json.dumps({FOLLOWUP_KEY: ordered}, ensure_ascii=False, indent=1), "```"]
+    )
+    Path(args.out).write_text(
+        json.dumps({"event": "COMMENT", "body": body}, ensure_ascii=False, indent=1) + "\n",
+        encoding="utf-8",
+    )
+    print(f"post-review: {len(ordered)} follow-up(s) -> {args.out}")
+    for e in ordered:
+        print(f"  ::RF{e['rf']}::  {e['kind']}")
+    return 0
 
 
 def header(disclaimer: str, via: str) -> str:
     return f"{disclaimer}\n>\n> via `pr-flow` review, {via}"
+
+
+def finding_note(kind: str, text: str, disclaimer: str) -> str:
+    """One reply a released thread collects: its fix plan, its fix result or its verdict."""
+    via = {"plan": "released fix plan", "result": "released fix result",
+           "verdict": "released re-review verdict"}[kind]
+    return f"{header(disclaimer, via)}\n\n{text.strip()}"
 
 
 def finding_body(finding: dict, rf: int, disclaimer: str, via: str) -> str:
@@ -644,7 +727,9 @@ def release(args: argparse.Namespace) -> int:
     ordinary answer on a round that held nothing.
     """
     disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
-    entries = held_entries(review_bodies(Path(args.reviews)))
+    bodies = review_bodies(Path(args.reviews))
+    entries = held_entries(bodies)
+    follow_ups = followup_entries(bodies)
     threaded = threaded_ids(comment_bodies(Path(args.comments)))
 
     problems: list[str] = []
@@ -753,9 +838,43 @@ def release(args: argparse.Namespace) -> int:
     Path(args.out).write_text(
         json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
     )
+
+    # The replies the workflow posts once the threads above exist and have ids. They are
+    # kept separate rather than folded into the finding's own comment so a released thread
+    # collects the same reply-per-step shape a threaded finding does.
+    released = {e["rf"] for e in unique}
+    plan = [
+        {
+            "rf": rf,
+            "bodies": [
+                finding_note(f["kind"], f["text"], disclaimer)
+                for f in sorted(
+                    (f for f in follow_ups if f.get("rf") == rf),
+                    key=lambda f: FOLLOWUP_KINDS.index(f["kind"])
+                    if f.get("kind") in FOLLOWUP_KINDS else len(FOLLOWUP_KINDS),
+                )
+                if isinstance(f.get("text"), str) and f.get("kind") in FOLLOWUP_KINDS
+            ],
+        }
+        for rf in sorted(released)
+    ]
+    plan = [entry for entry in plan if entry["bodies"]]
+    Path(args.replies_out).write_text(
+        json.dumps(plan, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+    )
+
     print(f"post-review: {len(unique)} held finding(s) -> {args.out}")
     for e in unique:
         print(f"  RF{e['rf']}  {e['severity']:<6} {e['path']}:{e['line']}")
+    replies = sum(len(entry["bodies"]) for entry in plan)
+    print(f"post-review: {replies} reply(ies) -> {args.replies_out}")
+    missing = sorted(released - {entry["rf"] for entry in plan})
+    if missing:
+        print(
+            "post-review: no follow-up recorded for "
+            + ", ".join(f"RF{n}" for n in missing)
+            + " - their threads open carrying the finding alone"
+        )
     return 0
 
 
@@ -880,6 +999,25 @@ def main() -> int:
         help="file holding the AI disclaimer line; must open with '> 🤖'",
     )
     r.add_argument("--out", required=True, help="where to write the payload JSON")
+    r.add_argument(
+        "--replies-out",
+        required=True,
+        help="where to write the replies each released thread owes, for the workflow to "
+             "post once the threads exist and have ids",
+    )
+
+    f = sub.add_parser("followup", help="record a held finding's plan, result and verdict")
+    f.add_argument(
+        "--entries",
+        required=True,
+        help="JSON array of {rf, kind, text}, kind being plan, result or verdict",
+    )
+    f.add_argument(
+        "--disclaimer-file",
+        required=True,
+        help="file holding the AI disclaimer line; must open with '> 🤖'",
+    )
+    f.add_argument("--out", required=True, help="where to write the payload JSON")
 
     v = sub.add_parser("verify", help="reconcile a posted round against the pull request")
     v.add_argument("--payload", required=True, help="the payload that was sent")
@@ -911,7 +1049,8 @@ def main() -> int:
 
     args = parser.parse_args()
     return {
-        "build": build, "release": release, "verify": verify, "highest-id": highest_id,
+        "build": build, "release": release, "followup": followup,
+        "verify": verify, "highest-id": highest_id,
     }[args.mode](args)
 
 

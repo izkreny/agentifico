@@ -232,6 +232,15 @@ Then post what it returns:
 
   **The line is brought forward at release, never replayed.** A held finding's `line` counts lines as they stood at `--anchored-at`, and the round goes on committing after the hold - the protocol's step 5 gives a new defect a fix and one further attempt - so `release` shifts the number through `git diff <that head>..HEAD` before it anchors anything. A line the fixes rewrote cannot be brought forward at all, and that one is reported and skipped rather than posted at a guess.
 
+  **A held finding's fix plan, fix result and verdict go into a follow-up Review, one entry each.** None of them exists when the record Review that holds the finding is posted, and this flow never rewrites a posted Review, so they cannot go in beside it. At the end of the round, write them as a JSON array of `{rf, kind, text}` - `kind` being `plan`, `result` or `verdict` - and post the Review the script builds from it:
+
+  ```bash
+  python3 <skill-dir>/scripts/post-review.py followup --entries <entries-file> --disclaimer-file <disclaimer-file> --out <followup-file>
+  gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <followup-file>
+  ```
+
+  **They stay separate rather than folded into the finding's own text**, so the thread `release` opens collects the reply-per-step shape a threaded finding collects: `release` reads this ledger and emits each entry as its own reply for `workflows/resolve.md` to post. A held finding with no follow-up recorded is not an error - its thread simply opens carrying the finding alone, and `release` says which.
+
   **`rnp` is the route, not the owner and not a later pass.** The protocol's step 7 pushes the fixes, which makes those lines part of the pull request's diff, and then `release` reads the ledger back and posts each held finding as a thread under the id it already holds - `workflows/resolve.md` owns that call. **The round report says which findings were threaded and which are held**, so a reader cannot take the second for an absence of findings.
 - **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round. Read both surfaces, exactly as step 2 does: a held id is in the record Review's body and nowhere else.
 

@@ -146,19 +146,37 @@ def run_verify(payload, comments, reviews=None, name="case"):
         capture_output=True, text=True)
 
 
+def run_followup(entries, disclaimer=None, name="case"):
+    e = work / f"{name}.entries.json"
+    out = work / f"{name}.followup.json"
+    e.write_text(json.dumps(entries), encoding="utf-8")
+    proc = subprocess.run(
+        ["python3", script, "followup", "--entries", str(e),
+         "--disclaimer-file", str(disclaimer or good_disclaimer), "--out", str(out)],
+        capture_output=True, text=True)
+    return proc, out
+
+
+def followup_review(*entries):
+    """The second Review a round posts, carrying what it did about its held findings."""
+    block = json.dumps({"gh_solo_held_followup": list(entries)}, ensure_ascii=False, indent=1)
+    return {"body": "> \U0001f916 h\n\nHeld follow-up.\n\n```json\n" + block + "\n```"}
+
+
 def run_release(reviews, comments, disclaimer=None, name="case", cwd=None):
     r = work / f"{name}.reviews.json"
     c = work / f"{name}.comments.json"
     out = work / f"{name}.release.json"
+    replies = work / f"{name}.replies.json"
     r.write_text(json.dumps(reviews), encoding="utf-8")
     c.write_text(json.dumps(comments), encoding="utf-8")
     proc = subprocess.run(
         ["python3", script, "release",
          "--reviews", str(r), "--comments", str(c),
          "--disclaimer-file", str(disclaimer or good_disclaimer),
-         "--out", str(out)],
+         "--out", str(out), "--replies-out", str(replies)],
         capture_output=True, text=True, cwd=cwd)
-    return proc, out
+    return proc, out, replies
 
 
 def git_fixture(name, first_lines, second_lines):
@@ -444,7 +462,7 @@ print("\nrelease must build (exit 0):")
 # The other half of the fix: after rnp's push the held line is ordinary, so the ledger in
 # the record Review is read back and each entry becomes the thread it was standing in for,
 # under the id it was reserved with rather than a fresh one.
-proc, out = run_release([ledger_review(held_entry(7))], [], name="release-one",
+proc, out, replies = run_release([ledger_review(held_entry(7))], [], name="release-one",
                         cwd=str(SHARED_REPO))
 ok = proc.returncode == 0 and out.exists()
 if ok:
@@ -462,7 +480,7 @@ print(f"  {'ok  ' if ok else 'FAIL'} a held finding round-trips into a thread un
 # The second-round hole. Nothing rewrites a posted Review, so round one's ledger still
 # lists RF7 when round two's rnp runs. Refusing on it would break every round after the
 # first; posting it again would duplicate the thread.
-proc, out = run_release(
+proc, out, replies = run_release(
     [ledger_review(held_entry(7)), ledger_review(held_entry(9))],
     [{"body": "> \U0001f916 h\n\nRF7 already a thread"}], name="release-skip",
     cwd=str(SHARED_REPO))
@@ -481,7 +499,7 @@ for name, reviews in [("no reviews at all", []),
                       ("every held id already threaded",
                        [ledger_review(held_entry(7))])]:
     comments = ([{"body": "RF7 x"}] if name == "every held id already threaded" else [])
-    proc, out = run_release(reviews, comments, cwd=str(SHARED_REPO),
+    proc, out, replies = run_release(reviews, comments, cwd=str(SHARED_REPO),
                             name="rn-" + "".join(c if c.isalnum() else "-" for c in name))
     ok = proc.returncode == 0 and not out.exists() and "nothing to release" in proc.stdout
     fails += not ok
@@ -490,7 +508,7 @@ for name, reviews in [("no reviews at all", []),
 # The ids travel in prose all over this flow: a fix plan, a fix result and a re-review
 # verdict each name the ids they cover. Counting any mention as a posted thread dropped the
 # held finding silently, at exit 0, with no gate downstream able to see it.
-proc, out = run_release(
+proc, out, replies = run_release(
     [ledger_review(held_entry(9))],
     [{"body": "> \U0001f916 h\n\nvia `implement` fix, closing reply\n\n"
               "fix: tighten the guard - closes RF6, and this commit also closes RF9"}],
@@ -507,7 +525,7 @@ print(f"  {'ok  ' if ok else 'FAIL'} a prose cross-reference does not count as a
 # thread to whatever now sat there - and where the shift moved it out of the diff, every
 # later rnp on the pull request failed its release the same way.
 repo, at = git_fixture("shift", BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
-proc, out = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-shift", cwd=str(repo))
 ok = proc.returncode == 0 and out.exists() and "moved" in proc.stdout
 if ok:
@@ -519,7 +537,7 @@ print(f"  {'ok  ' if ok else 'FAIL'} a held line six insertions above it release
 
 # Nothing before the finding moved, so the number is already right and nothing is reported.
 repo, at = git_fixture("tail", BASE, BASE + ["appended"])
-proc, out = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-noshift", cwd=str(repo))
 ok = proc.returncode == 0 and out.exists() and "moved" not in proc.stdout
 if ok:
@@ -531,7 +549,7 @@ print(f"  {'ok  ' if ok else 'FAIL'} a change below the finding leaves its line 
 # directory, so from a subdirectory git matched nothing and answered empty at exit 0 -
 # indistinguishable from "unchanged", and the stale line went out silently.
 repo, at = git_fixture("subdir", BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
-proc, out = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-subdir", cwd=str(repo / "app" / "models"))
 ok = proc.returncode == 0 and out.exists()
 if ok:
@@ -541,12 +559,12 @@ print(f"  {'ok  ' if ok else 'FAIL'} run from a subdirectory, the line still mov
 
 # Defect 2: the refusal had no case, so nothing proved it fired - or that it fires only
 # after the ledger has been judged, leaving every malformed-ledger refusal at exit 2.
-proc, out = run_release([ledger_review(held_entry(9))], [], name="release-norepo",
+proc, out, replies = run_release([ledger_review(held_entry(9))], [], name="release-norepo",
                         cwd=str(work))
 ok = proc.returncode == 1 and not out.exists() and "git repository" in proc.stderr
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} outside a repository, release refuses  (exit {proc.returncode})")
-proc, out = run_release([ledger_review(held_entry(9, finding=None))], [],
+proc, out, replies = run_release([ledger_review(held_entry(9, finding=None))], [],
                         name="release-norepo-malformed", cwd=str(work))
 ok = proc.returncode == 2 and not out.exists()
 fails += not ok
@@ -558,7 +576,7 @@ print("\nrelease must skip rather than guess (exit 0, nothing written):")
 # no number can be brought forward and a named gap beats a thread on the wrong statement.
 rewritten = list(BASE); rewritten[41] = "rewritten entirely"
 repo, at = git_fixture("rewrite", BASE, rewritten)
-proc, out = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-rewritten", cwd=str(repo))
 ok = (proc.returncode == 0 and not out.exists()
       and "cannot be brought forward" in proc.stdout and "RF9" in proc.stdout)
@@ -568,11 +586,69 @@ print(f"  {'ok  ' if ok else 'FAIL'} the fixes rewrote the line the finding poin
 # An `at` no longer in the repository - a fresh clone, a rewritten branch - is reported
 # rather than treated as "no change", which would replay the stale number silently.
 repo, _ = git_fixture("unknown", BASE, BASE + ["appended"])
-proc, out = run_release([ledger_review(held_entry(9, at="deadbee", line=42))], [],
+proc, out, replies = run_release([ledger_review(held_entry(9, at="deadbee", line=42))], [],
                         name="release-unknown-at", cwd=str(repo))
 ok = proc.returncode == 0 and not out.exists() and "could not diff" in proc.stdout
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} an anchor head git does not have")
+
+# The owner's decision on RF10: the plan, the result and the verdict stay separate and
+# formatted, so a released thread collects the same reply-per-step shape a threaded finding
+# does rather than one comment carrying everything.
+FU = [{"rf": 9, "kind": "verdict", "text": "Closed: the guard now fires."},
+      {"rf": 9, "kind": "plan", "text": "Tighten the guard in `unpushed_paths`."},
+      {"rf": 9, "kind": "result", "text": "Closed by `fix: tighten the guard (#8)`."}]
+proc, out, replies = run_release(
+    [ledger_review(held_entry(9)), followup_review(*FU)], [],
+    name="release-followups", cwd=str(SHARED_REPO))
+ok = proc.returncode == 0 and out.exists() and replies.exists()
+if ok:
+    plan = json.loads(replies.read_text(encoding="utf-8"))
+    bodies = plan[0]["bodies"] if plan else []
+    ok = (len(plan) == 1 and plan[0]["rf"] == 9 and len(bodies) == 3
+          # plan, then result, then verdict - the order the round produced them, never the
+          # order they happen to sit in the ledger.
+          and "released fix plan" in bodies[0]
+          and "released fix result" in bodies[1]
+          and "released re-review verdict" in bodies[2]
+          and all(b.startswith("> \U0001f916") for b in bodies)
+          # and never folded into the finding's own comment
+          and "Tighten the guard" not in json.loads(out.read_text())["comments"][0]["body"])
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a released thread's replies stay separate and in order")
+
+proc, out, replies = run_release([ledger_review(held_entry(9))], [],
+                                 name="release-nofollowup", cwd=str(SHARED_REPO))
+ok = (proc.returncode == 0 and out.exists() and replies.exists()
+      and json.loads(replies.read_text(encoding="utf-8")) == []
+      and "no follow-up recorded for RF9" in proc.stdout)
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a held finding with no follow-up says so")
+
+print("\nfollowup must build (exit 0):")
+proc, out = run_followup(FU, name="fu-ok")
+ok = proc.returncode == 0 and out.exists()
+if ok:
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    ok = ("gh_solo_held_followup" in payload["body"] and "::RF9:: plan" in payload["body"]
+          and payload["body"].startswith("> \U0001f916") and payload.get("event") == "COMMENT"
+          and "comments" not in payload)
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a Review carrying the ledger and no inline comments")
+
+print("\nfollowup must refuse (exit 2):")
+for name, entries in [
+    ("a kind outside plan/result/verdict", [{"rf": 9, "kind": "note", "text": "x"}]),
+    ("an entry with no id", [{"kind": "plan", "text": "x"}]),
+    ("an entry with empty text", [{"rf": 9, "kind": "plan", "text": "  "}]),
+    # The same fence `build` refuses on a finding: it renders a button that commits
+    # straight to the branch, and a released reply is no different.
+    ("a suggestion fence", [{"rf": 9, "kind": "plan", "text": "```suggestion\nx = 1\n```"}]),
+]:
+    proc, out = run_followup(entries, name="fur-" + "".join(c if c.isalnum() else "-" for c in name))
+    ok = proc.returncode == 2 and not out.exists()
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 print("\nrelease must refuse (exit 2):")
 cases = [
@@ -587,13 +663,13 @@ cases = [
     ("one id held twice", [ledger_review(held_entry(7)), ledger_review(held_entry(7))], []),
 ]
 for name, reviews, comments in cases:
-    proc, out = run_release(reviews, comments,
+    proc, out, replies = run_release(reviews, comments,
                             name="rr-" + "".join(c if c.isalnum() else "-" for c in name))
     ok = proc.returncode == 2 and not out.exists()
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
-proc, out = run_release([ledger_review(held_entry(7))], [],
+proc, out, replies = run_release([ledger_review(held_entry(7))], [],
                         disclaimer=bad_disclaimer, name="release-bad-disclaimer")
 ok = proc.returncode == 2 and not out.exists()
 fails += not ok
