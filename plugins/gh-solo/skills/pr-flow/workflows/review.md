@@ -104,7 +104,11 @@ python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 
 **Step 2 reads that same listing again for `highest-id`, and the two reads stay separate.** Reusing this file there would save a request and make the id arithmetic depend on a listing fetched before the reviewer ran, which by then may be behind the pull request - a discard record, or a re-spawn's own read. One paginated read is the cheaper of the two mistakes.
 
-**At the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries - then what the pull request is left holding: the open findings, and anything the last pass could not certify closed. Never spawn first and check after: the spawn is the thing being counted, so a check made afterwards has already spent what it was protecting.
+**At or past the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries.
+
+**Then what the pull request is left holding, read rather than recalled.** The open findings are the unresolved nodes of the GraphQL `reviewThreads` read the convention checks already make before this step, for *Every resolved thread has recorded owner authority*; take each thread's `body` in the same query and an uncertified verdict is legible in the thread that carries it. **Never fill this from an earlier round's report**, which is prose written before every resolve and every `rnp` since, nor from a re-review record, which counts verdicts without naming which finding each belongs to - handing the owner a stale account of what is open is the one thing this refusal exists to avoid.
+
+Never spawn first and check after: the spawn is the thing being counted, so a check made afterwards has already spent what it was protecting.
 
 **A count of `0` on a pull request that visibly had rounds is the marker's own age**, which the script says on stderr rather than leaving you to infer: rounds posted before the marker existed carry none. Say so in the round report rather than treating the number as wrong, and rather than adding a second matcher for the old records - a fallback matcher on the record's prose is exactly what the marker exists instead of.
 
@@ -157,9 +161,9 @@ Everything after this is unchanged: the same script, the same call, the same ids
 
 **Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. The pin is not an exception to this, because it is not in this class at all: every item here is a claim about what the diff contains, and a sha is a claim about nothing. It fetches its own context, and evidence chosen by the author of the code is not independent evidence. Handing it your reading of the diff is the one way to spend a subagent and get your own opinion back.
 
-It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit** - post the discard record below first, then re-read the budget, and refuse rather than re-spawn when that pass would be beyond it.
+It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit** - post the discard record below, then re-read the budget, and refuse rather than re-spawn when that pass would be beyond it.
 
-**A pass whose findings never reach the pull request still posts a record, and it posts one before anything is re-spawned:**
+**A pass whose findings never reach the pull request posts a record, whether anything is re-spawned or not.** That is the whole condition: the charge follows the pass being spent, per *A discarded pass counts* in `references/review-protocol.md`, and a path that ends the round has spent the pass exactly as a path that tries again has. **Where a re-spawn does follow, the record goes up first** - a session that dies in between has then already charged the pass it lost.
 
 ```bash
 python3 <skill-dir>/scripts/post-review.py discard --disclaimer-file <disclaimer-file> \
@@ -167,9 +171,9 @@ python3 <skill-dir>/scripts/post-review.py discard --disclaimer-file <disclaimer
 gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
 ```
 
-**It is what charges the pass**, per *A discarded pass counts* in `references/review-protocol.md`: nothing else the pass produced survives, so a re-spawn made without this leaves the count reading as though the pass never ran, and the cap binds only the passes that were cheap enough to succeed. It carries no `comments` array, so it cannot fail on an anchor - which matters here, since the commonest reason to be posting it is an anchor that would not resolve.
+**It is what charges the pass**: nothing else the pass produced survives, so a discard without this leaves the count reading as though the pass never ran, and the cap binds only the passes that were cheap enough to succeed. It carries no `comments` array, so it cannot fail on an anchor - which matters here, since the commonest reason to be posting it is an anchor that would not resolve.
 
-**Posted before the re-spawn, never after.** A session that dies in between has then already charged the pass it lost, which is the case the count exists for.
+**Every stop that throws a pass away owes this record**, and each of them says so where it stops: the missing findings-file path above, the head disagreement and the malformed findings file in Step 2, and the unanchorable finding in Step 2's item 5, which ends the round rather than re-spawning and is still a whole branch read for nothing.
 
 ### Step 2 - Post
 
@@ -217,7 +221,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
 
    The JSON must travel in a **file**: `-f` cannot express an array, and `echo '{...}' | gh api --input -` sends the same bytes but does not prefix-match this skill's granted `Bash(gh:*)` pattern, so it prompts where the file form runs clean. Keep the payload file outside the working tree - the harness scratchpad - so a copy of it cannot get committed.
 
-   **A `422` reading `Line could not be resolved` means an anchor that will not resolve, and item 1 has already excluded a moved head.** One cause remains: on the appointed-command path `side` is guessed as `RIGHT`, per *Where the appointed reviewer is a command*, and a wrong guess fails the call; a re-spawn repeats the same guess and fails identically. A line only the unpushed fix commits carry can no longer reach this call at all - `build` holds every finding in a file those commits touch, per Step 5 - so a `422` here is never that. Name the finding that could not be anchored and stop.
+   **A `422` reading `Line could not be resolved` means an anchor that will not resolve, and item 1 has already excluded a moved head.** One cause remains: on the appointed-command path `side` is guessed as `RIGHT`, per *Where the appointed reviewer is a command*, and a wrong guess fails the call; a re-spawn repeats the same guess and fails identically. A line only the unpushed fix commits carry can no longer reach this call at all - `build` holds every finding in a file those commits touch, per Step 5 - so a `422` here is never that. Name the finding that could not be anchored and stop - **posting the discard record before you do**, since this pass read the whole branch and none of it reached the pull request.
 6. **Reconcile what landed:**
 
    ```bash
@@ -339,7 +343,7 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 | **Commit headers**                                     | `{type}: {description} (#{issue-number})`, no scope, same source                                                                                                                                                                                                                                                                                                                                      |
 | **No labels, no milestone**                            | The PR carries neither - both live on the issue only, per *Labels* in `../tracker/references/tracker-fields.md`, and the `Closes` line is the join. A milestoned PR also corrupts the milestone's progress count                                                                                                                                                                                      |
 | **Not a draft**                                        | If it is still a draft it should not have reached this workflow; say so rather than reviewing it                                                                                                                                                                                                                                                                                                      |
-| **Every resolved thread has recorded owner authority** | An owner reply in the thread, an owner reaction on it, or an authorisation comment naming its `RF{n}` id. One GraphQL read, the same query `workflows/discuss.md` Step 1 uses. A violation is a hard error per *Resolution rests on recorded authority* in `references/review-protocol.md`, and this is the earliest, cheapest place to catch what `workflows/merge.md` will refuse on at the door    |
+| **Every resolved thread has recorded owner authority** | An owner reply in the thread, an owner reaction on it, or an authorisation comment naming its `RF{n}` id. One GraphQL read, the same query `workflows/discuss.md` Step 1 uses, and it carries each thread's `isResolved` and each comment's `body` - which is also what Step 1's cap refusal names the open findings from, so the two needs are one read. A violation is a hard error per *Resolution rests on recorded authority* in `references/review-protocol.md`, and this is the earliest, cheapest place to catch what `workflows/merge.md` will refuse on at the door    |
 
 `Closes #{issue-number}` and the assignee are the two that matter most, because nothing else enforces either and a PR missing one quietly breaks the tracker: the issue stays open after the code lands, or the in-progress view stops being true.
 
