@@ -195,6 +195,32 @@ def run_release(reviews, comments, disclaimer=None, name="case", cwd=None):
     return proc, out, replies
 
 
+def run_passes(reviews, name="case"):
+    r = work / f"{name}.reviews.json"
+    r.write_text(json.dumps(reviews), encoding="utf-8")
+    return subprocess.run(
+        ["python3", script, "passes", "--reviews", str(r)],
+        capture_output=True, text=True)
+
+
+def run_discard(head=PIN, why="the post refused with 422", disclaimer=None, name="case"):
+    out = work / f"{name}.discard.json"
+    proc = subprocess.run(
+        ["python3", script, "discard",
+         "--disclaimer-file", str(disclaimer or good_disclaimer),
+         "--head", head, "--why", why, "--out", str(out)],
+        capture_output=True, text=True)
+    return proc, out
+
+
+def pass_review(*, marker=True):
+    """A record Review of the kind `passes` counts, or one of the kind it must not."""
+    body = "> \U0001f916 h\n\nRound record.\n"
+    if marker:
+        body += "\n- ::gh-solo-pass:: one full reviewer pass\n"
+    return {"body": body}
+
+
 def git_fixture(name, first_lines, second_lines):
     """A throwaway repository whose two commits move the lines of one file.
 
@@ -833,6 +859,81 @@ for name, reviews in [("an object rather than an array", {"body": "RF3 x"}),
     ok = proc.returncode == 1
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} reviews: {name}  (exit {proc.returncode})")
+
+print("\npasses must count (exit 0):")
+# The cap is only as good as this count, and the count is only as good as the marker: a
+# reader matching the record's prose instead would answer 0 the first time that sentence
+# was reworded, which is a cap that stops binding with nothing failing.
+cases = [
+    ("a pull request with no reviews at all", [], "0"),
+    ("one full pass", [pass_review()], "1"),
+    ("two full passes and a discarded one", [pass_review()] * 3, "3"),
+    ("a re-review record carries no marker and is not a pass",
+     [pass_review(), pass_review(marker=False)], "1"),
+    ("a round predating the marker counts as zero", [{"body": "> \U0001f916 h\n\nRound record."}], "0"),
+    ("a review with no body field at all", [{"state": "COMMENTED"}], "0"),
+]
+for name, reviews, want in cases:
+    proc = run_passes(reviews, name="pc-" + "".join(c if c.isalnum() else "-" for c in name))
+    got = proc.stdout.strip()
+    ok = proc.returncode == 0 and got == want
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (want {want}, got {got or '-'}, exit {proc.returncode})")
+
+print("\npasses must refuse (exit 1):")
+# The same wrong shape the other readers refuse, for a sharper reason here: found empty,
+# this one answers 0, and a cap told no pass has run lets every pass through.
+for name, reviews in [("an object rather than an array", {"body": "x"}),
+                      ("the array-of-arrays --slurp writes", [[pass_review()]])]:
+    proc = run_passes(reviews, name="pcr-" + "".join(c if c.isalnum() else "-" for c in name))
+    ok = proc.returncode == 1
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+print("\ndiscard must build a countable record (exit 0):")
+proc, out = run_discard(why="the post refused with 422", name="dc-ok")
+ok = proc.returncode == 0 and out.exists()
+if ok:
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    body = payload["body"]
+    ok = (payload["event"] == "COMMENT" and "comments" not in payload
+          and body.startswith("> \U0001f916") and "::gh-solo-pass::" in body
+          and PIN in body and "422" in body)
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a discarded pass lands as a review with no threads"
+      f"  (exit {proc.returncode})")
+
+# Round-trip, because the two halves are useless apart: a record `passes` cannot count is
+# a pass that was spent and never charged.
+if out.exists():
+    proc2 = run_passes([json.loads(out.read_text(encoding="utf-8"))], name="dc-count")
+    ok = proc2.returncode == 0 and proc2.stdout.strip() == "1"
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} and passes counts it  (got {proc2.stdout.strip() or '-'})")
+
+print("\ndiscard must refuse (exit 2):")
+proc, out = run_discard(disclaimer=bad_disclaimer, name="dc-bad")
+# The stderr test is what stops this passing for the wrong reason: argparse also exits 2
+# on a subcommand it does not know, so an exit code alone would have looked green before
+# `discard` existed at all.
+ok = proc.returncode == 2 and not out.exists() and "disclaimer" in proc.stderr
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a disclaimer without the emoji prefix  (exit {proc.returncode})")
+
+print("\nthe marker belongs to the full pass alone (exit 0):")
+# A re-review is an analysis and posts its own record, but it is not a pass the cap counts:
+# marking it would charge a round three passes for one reading of the branch.
+for name, data, want in [("a review pass writes the marker", REVIEW, True),
+                         ("a re-review does not", RERdefault, False)]:
+    slug = "pm-" + "".join(c if c.isalnum() else "-" for c in name)
+    diff = GROUP_DIFF if data.get("pass") == "re-review" else None
+    proc, out = run_build(data, continue_from=3, name=slug, diff=diff)
+    ok = proc.returncode == 0 and out.exists()
+    if ok:
+        body = json.loads(out.read_text(encoding="utf-8"))["body"]
+        ok = ("::gh-solo-pass::" in body) == want
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 print(f"\n{fails} failure(s)")
 sys.exit(1 if fails else 0)
