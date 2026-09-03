@@ -57,7 +57,7 @@ This is the *Pin the read* design of the two the issue records, with the reviewe
 
 An appointed reviewer keeps working untouched. It receives one extra argument in its prompt, which it may ignore; it returns the file it always returned, with no `head`; the round proceeds on the pin and says the pin was not corroborated. Nothing that worked at `4.1.0` stops working, so this is new behaviour rather than a break, and `AGENTS.md` puts that at the minor.
 
-**The first acceptance criterion is not narrowed by that path**, which is the difference from the design this plan first carried. There the uncorroborated round compared a value recorded before the spawn, leaving the defect alive for whoever landed on it; here it compares the value the reviewer was told to read, and any divergence between that and what an ignoring reviewer actually read requires the head to have moved, which is refused independently.
+**The first acceptance criterion is not narrowed by that path**, which is what a fallback to some other value could not have managed. The uncorroborated round still compares the value the reviewer was told to read, and any divergence between that and what an ignoring reviewer actually read requires the head to have moved, which is refused independently. A design where the uncorroborated round instead compared a head recorded before the spawn would leave the defect alive for whoever landed on it, and would have to say so in the criterion.
 
 ## Verification
 
@@ -76,5 +76,5 @@ None.
 
 ## Settled
 
-- **Does the orchestrator hand the reviewer its scope, or does the reviewer discover and report it?** It hands it over, and the reviewer reports the same value back as a double check. Decided on this plan's own thread after the plan first carried the reporting design; pinning makes the acceptance criterion hold by construction rather than on the reviewer's word, and it removes the fallback question that reporting forces.
-- **Should the record Review publish the head the round read?** Yes, and on this branch. The value is in `build`'s hand as it writes that summary and lands as a record row outside the length cap, so a head recorded only in session memory is the weaker reading of this issue's own title; the overlap with #63 is thinner than this plan first claimed, since that one reports what a round's fixes changed.
+- **Does the orchestrator hand the reviewer its scope, or does the reviewer discover and report it?** It hands it over, and the reviewer reports the same value back as a double check, per the owner's decision on the thread against this plan's `## Open questions`. Pinning makes the acceptance criterion hold by construction rather than on the reviewer's word, and it leaves no fallback question to answer, since the orchestrator always holds the value it issued.
+- **Should the record Review publish the head the round read?** Yes, and on this branch. The value is in `build`'s hand as it writes that summary and lands as a record row outside the length cap, so a head recorded only in session memory is the weaker reading of this issue's own title. It does not overlap #63, which reports what a round's fixes changed - a different fact that happens to land on the same surface.
