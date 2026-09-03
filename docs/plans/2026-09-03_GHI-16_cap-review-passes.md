@@ -80,4 +80,4 @@ None. The number the issue left to the owner is taken as the shape the issue its
 
 ## Settled
 
-None yet.
+- **How many full reviewer passes should a pull request get?** One, not the two proposed above, with the two scoped passes unchanged - so the ceiling is three reviewer spawns for a pull request's whole life. Settled by the owner on the review thread against *The pass cap*, which is what the assumption above was stated for. The prose above keeps the number it proposed, because it is the branch's intent at plan time and the gap between that and the outcome is worth being able to see; `plugins/gh-solo/skills/pr-flow/references/review-protocol.md` is the authority on what ships.
