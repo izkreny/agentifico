@@ -95,6 +95,19 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 
 ### Step 1 - Review
 
+**Read the pass budget before anything is spawned**, per *The pass cap* in `references/review-protocol.md`, which owns the number and the stop's wording:
+
+```bash
+gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
+python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
+```
+
+**Step 2 reads that same listing again for `highest-id`, and the two reads stay separate.** Reusing this file there would save a request and make the id arithmetic depend on a listing fetched before the reviewer ran, which by then may be behind the pull request - a discard record, or a re-spawn's own read. One paginated read is the cheaper of the two mistakes.
+
+**At the cap, refuse in the protocol's wording** and print what the pull request is left holding. Never spawn first and check after: the spawn is the thing being counted, so a check made afterwards has already spent what it was protecting.
+
+**A count of `0` on a pull request that visibly had rounds is the marker's own age**, which the script says on stderr rather than leaving you to infer: rounds posted before the marker existed carry none. Say so in the round report rather than treating the number as wrong, and rather than adding a second matcher for the old records - a fallback matcher on the record's prose is exactly what the marker exists instead of.
+
 **Which reviewer runs is a per-repo fact.** The default is the `reviewer` agent this plugin ships. Where `.agents/gh-solo.md` carries a `Reviewer agent:` line naming an agent type, per the per-repo config convention in `SKILL.md`, spawn that one instead.
 
 - **The appointed agent inherits the whole contract, not only the spawn.** It gets the PR number and the pin, and nothing else, and it must return the absolute path of a findings file in the format the `reviewer` skill's *The findings file* defines, plus its report text. Everything downstream reads that file and nothing else, so an agent that answers in prose cannot be posted.
@@ -144,7 +157,19 @@ Everything after this is unchanged: the same script, the same call, the same ids
 
 **Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. The pin is not an exception to this, because it is not in this class at all: every item here is a claim about what the diff contains, and a sha is a claim about nothing. It fetches its own context, and evidence chosen by the author of the code is not independent evidence. Handing it your reading of the diff is the one way to spend a subagent and get your own opinion back.
 
-It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review.
+It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit** - post the discard record below first, then re-read the budget, and refuse rather than re-spawn when that pass would be beyond it.
+
+**A pass whose findings never reach the pull request still posts a record, and it posts one before anything is re-spawned:**
+
+```bash
+python3 <skill-dir>/scripts/post-review.py discard --disclaimer-file <disclaimer-file> \
+  --head <the pin that pass was given> --why "<what went wrong>" --out <payload-file>
+gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
+```
+
+**It is what charges the pass**, per *A discarded pass counts* in `references/review-protocol.md`: nothing else the pass produced survives, so a re-spawn made without this leaves the count reading as though the pass never ran, and the cap binds only the passes that were cheap enough to succeed. It carries no `comments` array, so it cannot fail on an anchor - which matters here, since the commonest reason to be posting it is an anchor that would not resolve.
+
+**Posted before the re-spawn, never after.** A session that dies in between has then already charged the pass it lost, which is the case the count exists for.
 
 ### Step 2 - Post
 
@@ -157,7 +182,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
    git rev-parse FETCH_HEAD
    ```
 
-   **You do not compare it here.** It travels to `build` as `--head-now` beside the pin as `--pinned-head`, and the script makes both comparisons and owns both refusals - the reviewer's reported head against the pin, meaning the pass judged something other than what it was told to, and the pin against this value, meaning the branch moved and GitHub would resolve these anchors against content the pass never read. Either way the post is never attempted: it fails atomically, so one stale anchor destroys the whole round rather than the affected finding, and a re-spawn against the new head is what resumes.
+   **You do not compare it here.** It travels to `build` as `--head-now` beside the pin as `--pinned-head`, and the script makes both comparisons and owns both refusals - the reviewer's reported head against the pin, meaning the pass judged something other than what it was told to, and the pin against this value, meaning the branch moved and GitHub would resolve these anchors against content the pass never read. Either way the post is never attempted: it fails atomically, so one stale anchor destroys the whole round rather than the affected finding, and a re-spawn against the new head is what resumes - **posting the discard record first, and bounded by the pass cap**, which is the loop that ran away on the evidence behind that cap.
 
    **One home for the comparison, deliberately, and it costs two requests.** The reads below run before a moved head is caught, so a round that is going to be refused spends them anyway. That is the price of the refusal being benched rather than composed at the keyboard, and a cheap pre-check added here would be a second place for one rule to live and drift.
 2. **Find the highest `RF{n}` already on the PR**, since ids never restart:
@@ -183,7 +208,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
 
    **Both head arguments are required here**, exactly as `--unpushed-diff` and `--anchored-at` are required on the re-review's own block in Step 5, and the script refuses a full pass missing either. This block and that required set are read together whenever either moves: `scripts/test-post-review.sh` builds its own argument list rather than reading this file, so nothing else can catch a block that has drifted from the script it invokes.
 
-   It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. **A refusal here is not something to work around by posting by hand.** It means the findings file is malformed, and the answer is to re-spawn the reviewer or to say what is wrong and stop.
+   It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. **A refusal here is not something to work around by posting by hand.** It means the findings file is malformed, and the answer is to re-spawn the reviewer or to say what is wrong and stop. **A re-spawn here is a pass too**: post the discard record, re-read the budget, and where the cap leaves none, stopping is the answer rather than one of two.
 5. **Post it:**
 
    ```bash
@@ -269,13 +294,17 @@ Then post what it returns:
   **`rnp` is the route, not the owner and not a later pass.** The protocol's step 7 pushes the fixes, which makes those lines part of the pull request's diff, and then `release` reads the ledger back and posts each held finding as a thread under the id it already holds - `workflows/resolve.md` owns that call. **The round report says which findings were threaded and which are held**, so a reader cannot take the second for an absence of findings.
 - **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round. Read both surfaces, exactly as step 2 does: a held id is in the record Review's body and nowhere else.
 
-The caps on both loops are the protocol's, and they are the only thing that ends this block short of the owner.
+The caps on both loops are the protocol's, and with the pass cap they are the only thing that ends this block short of the owner.
+
+**The retries and the new-defect fixes get one scoped spawn between them, and it is the round's third and last.** Land every retry and every fix first, then spawn once with the whole range: per thread the spawn count would follow how many findings the pass raised, which is the figure the protocol's ceiling exists to fix. Say in the round report which findings that one pass answered about.
 
 ## Stop at the owner
 
 Open with the verdict line: `✅ ALL PASS` when the reviewer found nothing and the conventions were clean, `⚠️ PASSED WITH FINDINGS - {count} posted, {count} fixed locally` otherwise.
 
 Then the round report: which reviewer ran, the model the round asked the spawn for, and that an environment variable may have replaced it so the figure is a request rather than an outcome, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, which the re-review held for the push rather than threaded, what it would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
+
+Then what the round spent from the budget: which pass this was, how many the pull request has left under *The pass cap* in `references/review-protocol.md`, and any pass that was discarded and why. A report naming findings and not the passes they cost is the gap the cap's own second occurrence is a record of: two passes ran, nothing counted them, and only a human in the room stopped a third.
 
 Then what the pass cost: its token count, its tool-call count and its wall clock, **as the spawn reported them**. The reviewer cannot measure its own token use, so these are the orchestrator's to read off what the spawn returned and never the reviewer's to supply. Where the spawn reports a figure, print it; where it does not, print that it was not reported rather than an estimate - a number nobody measured is worse here than a gap, because comparing rounds is what these figures exist for.
 
@@ -320,6 +349,7 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 
 - **Never read the diff and never review.** The emptiness test is `changedFiles`, the analysis is the reviewer subagent's, and the judgement is the owner's.
 - **The reviewer is spawned with a PR number and the pin, and nothing else**, or on the re-review with a commit range, the findings and the id-to-commit map. Never with your reading of the diff: each of those is an address, and an address is what this rule admits.
+- **Never spawn a reviewer without reading the budget first.** The spawn is what the cap counts, so a check made after it has already spent what it was protecting - and a lost pass posts its discard record before the re-spawn, never after.
 - **Never post a round at a head the reviewer did not read.** Step 1 pins the head and hands it over, Step 2 passes the pin and the head-now to the script, and the script refuses on either disagreement rather than attempting the post: the call is atomic, so one stale anchor costs the whole round.
 - **Never post a finding by hand.** `scripts/post-review.py` builds every payload, and a refusal from it is a stop rather than an obstacle.
 - **Never post threads one at a time.** One call carries every thread and the record Review, so either the whole round is on the PR or none of it is.
