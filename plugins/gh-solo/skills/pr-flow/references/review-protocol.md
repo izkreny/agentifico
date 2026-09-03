@@ -43,11 +43,13 @@ Each cell below states its own rule, prohibitions included, so a row read out of
 
 **The count's source is the pull request, never the session.** Every pass leaves a marker on the reviews surface - a full pass in its record Review, a discarded one in a discard record posted in its place - and `scripts/post-review.py passes` counts them off the read the round already makes for `highest-id`. A session's own tally would die with the session, which is the failure mode: the sessions that spend passes fastest are the ones that lose them.
 
-**Reaching the cap stops with the verdict line, and the wording is fixed here rather than composed per round:**
+**The test is `{n}` at or past the cap, never equal to it, and the wording is fixed here rather than composed per round:**
 
 ```
-⛔ REFUSED - {n} reviewer passes have run on this pull request, the cap; {what} is unresolved
+⛔ REFUSED - {n} reviewer passes have run on this pull request, at or past the cap of {cap}; {what} is unresolved
 ```
+
+An owner-spent pass leaves the count above the cap, per the last paragraph of this section, so a test for equality would let every pass after that one through - and a string asserting `{n}` *is* the cap would be false on exactly the path the protocol grants.
 
 `{what}` names what the pull request is left holding: the findings still open, and any the last pass could not certify closed. A stop that says only that the cap was reached hands the owner a budget and no state.
 
@@ -93,7 +95,7 @@ The reviewer is spawned again with the fix commit *range*, the findings list, an
 - **A new defect gets its own record, and the first index is left alone.** One record Review per analysis is the standing rule and the re-review is an analysis, so it posts its own, indexing its own pass and the new `RF{n}` ids in it. Nothing goes stale, because no index ever claimed to cover a pass that had not happened when it was written, and no submitted record is rewritten to make it true.
 - **A new defect in a file the unpushed fixes touch is *held*: it gets its `RF{n}` now and its thread after the push.** The fixes are unpushed at step 5, so GitHub cannot resolve an anchor to a line only they carry, and the posting call is atomic - one bad anchor would take the whole record down, verdicts included. **The unit is the file rather than the line**, because a line number counted at local `HEAD` does not survive the pushed head: an unpushed commit inserting lines anywhere above a finding shifts it even when the finding sits outside every hunk, so the file is the unit with no such gap. So `build` keeps it out of the `comments` array and writes it whole into the record Review's own ledger instead, which reserves the id where the next round's highest-id read can see it and keeps *Ids never restart* intact. Step 7's push makes the line ordinary and `release` then posts the thread under that same id, so every finding of every round ends as a thread the merge gate audits. **The round report must say which findings were threaded and which are held**, or a reader takes the second for an absence of findings.
 - **Both loops are capped, because no owner is watching.** A finding the re-review says is not closed gets **one** further plan-and-fix attempt; a second failure sends the thread to the owner instead, since two failures mean the finding is not understood and a third machine attempt costs more than reading it. A new defect the re-review raises gets a fix plan and a fix, and that fix is re-reviewed once, never recursively.
-- **One batched pass covers both loops together, never one pass per thread.** Every retry and every new-defect fix lands first, and then a single scoped spawn reads the whole range and answers about all of them. Per thread the two caps above would bound the attempts per finding and leave the spawn count following how many findings a pass happened to raise, which is the dimension that costs; batched, the round's spawns are a number rather than a function of the findings.
+- **One batched pass covers both loops together, never one pass per thread.** Every retry and every new-defect fix lands first, and then a single scoped spawn reads the whole range and answers about all of them. Per thread the caps above would bound the attempts per finding and leave the spawn count following how many findings a pass happened to raise, which is the dimension that costs; batched, the round's spawns are a number rather than a function of the findings.
 - **So a round spawns the reviewer three times at most:** the full pass at step 1, the scoped re-review here, and the one batched pass these loops get. At the cap of two full passes that is **six for the life of a pull request**. Both figures are here so a reader has them without tracing the loops to derive them.
 
 ### 6. The owner judges
@@ -169,4 +171,4 @@ The `auto` and `go` chains arm it themselves on reaching step 6. That is an inst
 
 Nothing in steps 1 to 5 waits for a human, so every stop in that block has to be written down: there is nobody there to apply judgement the rules forgot to ask for. That binds anything added to it later.
 
-The caps that bound it are the two in step 5 and the pass cap above, and the last of those is what closes the block's most expensive dimension: the loops in step 5 bound what happens to a finding, while a re-spawn discards findings and starts again, so nothing they say constrains it. `workflows/review.md` names the pass cap at every sentence that answers a lost pass with a re-spawn, which is where that loop is actually entered.
+The caps that bound it are step 5's cap on a finding the re-review will not certify, its cap on a new defect that pass raises, and the pass cap above, and the last of those is what closes the block's most expensive dimension: step 5's bound what happens to a finding, while a re-spawn discards findings and starts again, so nothing they say constrains it. `workflows/review.md` names the pass cap at every sentence that answers a lost pass with a re-spawn, which is where that loop is actually entered.
