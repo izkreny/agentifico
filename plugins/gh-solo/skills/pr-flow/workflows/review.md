@@ -171,8 +171,13 @@ One call lands every thread and the record Review together, so a half-posted PR 
 4. **Build and validate the payload:**
 
    ```bash
-   python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --out <payload-file>
+   python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> \
+     --disclaimer-file <disclaimer-file> --continue-from <highest-id> \
+     --pinned-head <the pin from Step 1> --head-now <the value item 1 just read> \
+     --out <payload-file>
    ```
+
+   **Both head arguments are required here**, exactly as `--unpushed-diff` and `--anchored-at` are required on the re-review's own block in Step 5, and the script refuses a full pass missing either. This block and that required set are read together whenever either moves: `scripts/test-post-review.sh` builds its own argument list rather than reading this file, so nothing else can catch a block that has drifted from the script it invokes.
 
    It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. **A refusal here is not something to work around by posting by hand.** It means the findings file is malformed, and the answer is to re-spawn the reviewer or to say what is wrong and stop.
 5. **Post it:**
