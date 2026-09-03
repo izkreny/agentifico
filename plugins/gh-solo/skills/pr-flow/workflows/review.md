@@ -110,7 +110,7 @@ git fetch <remote> <branch> --quiet
 git rev-parse FETCH_HEAD
 ```
 
-**Not `gh pr view --json headRefOid`.** That read was seen answering with a pre-push sha seconds after a push while `git` on the remote ref already had the new one, so it can hand you a head the branch has already left - and a stale value here pins the reviewer to a version nobody is reviewing. Two `git` commands rather than `git ls-remote`, whose `sha<TAB>ref` output cannot be reduced to a value by anything the unattended-command bullet in `SKILL.md` admits.
+**Not `gh pr view --json headRefOid`.** That read was seen answering with a pre-push sha seconds after a push while `git` on the remote ref already had the new one, so it can hand you a head the branch has already left - and a stale value here pins the reviewer to a version nobody is reviewing. Two `git` commands rather than `git ls-remote`, because `git rev-parse FETCH_HEAD` prints the value alone where `ls-remote` prints a line whose first field has to be picked out - a preference for the shape that needs no extraction, not a rule against the other.
 
 Keep the value. It is the pin: Step 2 passes it to the script, which compares it both against what the reviewer reports reading and against the head the ref holds by then. It lives in this session only, which is honest rather than a gap: before the round, and the protocol's steps 1 to 5, are one turn, so a session that dies between the spawn and the post has lost the round regardless.
 
