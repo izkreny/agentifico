@@ -437,10 +437,12 @@ def record_body(
         unrated = sum(1 for _, f in assigned if f["severity"] == "unrated")
         tail = f" {unrated} arrived unrated." if unrated else ""
         lines.append(f"Review round on {len(assigned)} finding(s). Axes run: {axes}.{tail}")
-        # A record row, so *Never counted* in `../references/post-caps.md` keeps it out of
-        # this body's length cap. It is here because the head otherwise lives in one
-        # session's memory and dies with it, leaving nobody able to say afterwards which
-        # version of the branch a round actually judged.
+        # A row rather than a sentence, so it reads as one of the record's entries and its
+        # length follows how many there are. No cap is in play either way: *Never capped*
+        # in `../references/post-caps.md` puts anything this script composes outside the
+        # cap's domain and names the record Review doing it. It is here because the head
+        # otherwise lives in one session's memory and dies with it, leaving nobody able to
+        # say afterwards which version of the branch a round actually judged.
         witness = ("corroborated by the reviewer" if corroborated
                    else "not corroborated - the reviewer reported no head")
         lines.append(f"- Reviewed at {reviewed_at} ({witness})")
