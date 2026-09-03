@@ -97,31 +97,38 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 
 **Which reviewer runs is a per-repo fact.** The default is the `reviewer` agent this plugin ships. Where `.agents/gh-solo.md` carries a `Reviewer agent:` line naming an agent type, per the per-repo config convention in `SKILL.md`, spawn that one instead.
 
-- **The appointed agent inherits the whole contract, not only the spawn.** It gets the PR number and nothing else, and it must return the absolute path of a findings file in the format the `reviewer` skill's *The findings file* defines, plus its report text. Everything downstream reads that file and nothing else, so an agent that answers in prose cannot be posted.
+- **The appointed agent inherits the whole contract, not only the spawn.** It gets the PR number and the pin, and nothing else, and it must return the absolute path of a findings file in the format the `reviewer` skill's *The findings file* defines, plus its report text. Everything downstream reads that file and nothing else, so an agent that answers in prose cannot be posted.
 - **Refuse if the appointed agent is not registered.** `⛔ REFUSED - {name} is not a registered agent`. Never fall back to the bundled one: the owner would believe they are reading the findings of the agent they appointed and would be reading ours, which is the exact confusion an appointment exists to prevent, and it would silently invalidate any comparison between reviewers.
 - **Read `Reviewer model:` and pass it on the spawn.** Where `.agents/gh-solo.md` carries that line, it names the model this round asks the spawn for; absent it, the spawn asks for nothing and the agent's own frontmatter decides. **Validate the value against the names the spawn parameter accepts, and against the effort the agent's frontmatter pins** - the spawn parameter is the authority on the set of names and the model is the authority on which effort levels it offers, so read both there rather than matching a list written here, which would date the moment model ids move. A named model that does not offer the pinned level is a pair the harness will not honour, and spawning it produces a review whose depth silently differs from the one declared. **Either failure refuses the round**, in the same wording an unregistered agent gets: `⛔ REFUSED - {value} is not a model the spawn accepts`, or `⛔ REFUSED - {value} does not offer the effort the reviewer pins`. Never fall back to the session's model, for the same reason an unregistered agent is never silently replaced by the bundled one: the owner would believe they are comparing rounds run on the model they named.
 - **The model is a spawn parameter, not context.** It travels beside the PR number rather than in the prompt, so it takes nothing away from the reviewer fetching its own context.
 - **Name which reviewer ran in the round report, and the model the round asked for**, always, including when both are the default. A round's findings mean something different depending on what produced them, and a report that leaves either out cannot be compared with another round's. **The request is not the outcome**: an environment variable may replace the model a spawn asks for, so the report says what was *asked for* and says so, rather than claiming what ran. Whether `CLAUDE_CODE_SUBAGENT_MODEL` in particular outranks a spawn-time request is not documented, so the report does not assert that it does.
 
-**Record the head before the spawn**, because every anchor the reviewer produces belongs to whatever the head is while it reads:
+**Read the head before the spawn and hand it over as the scope**, because every anchor the reviewer produces belongs to the version it read, and the only way to know that version rather than trust a claim about it is to name it yourself:
 
 ```bash
-gh pr view <pr-number> --json headRefOid --jq .headRefOid
+git fetch <remote> <branch> --quiet
+git rev-parse FETCH_HEAD
 ```
 
-Keep the value. Step 2 compares it before it builds anything, and that comparison is what tells a stale anchor from a malformed finding. It lives in this session only, which is honest rather than a gap: before the round, and the protocol's steps 1 to 5, are one turn, so a session that dies between the spawn and the post has lost the round regardless.
+**Not `gh pr view --json headRefOid`.** That read was seen answering with a pre-push sha seconds after a push while `git` on the remote ref already had the new one, so it can hand you a head the branch has already left - and a stale value here pins the reviewer to a version nobody is reviewing. Two `git` commands rather than `git ls-remote`, whose `sha<TAB>ref` output cannot be reduced to a value by anything the unattended-command bullet in `SKILL.md` admits.
 
-Spawn it with the PR number and nothing else, beside the model parameter where `Reviewer model:` set one.
+Keep the value. It is the pin: Step 2 passes it to the script, which compares it both against what the reviewer reports reading and against the head the ref holds by then. It lives in this session only, which is honest rather than a gap: before the round, and the protocol's steps 1 to 5, are one turn, so a session that dies between the spawn and the post has lost the round regardless.
+
+Spawn it with the PR number and the pin, and nothing else, beside the model parameter where `Reviewer model:` set one.
+
+**The pin is admissible in the prompt where an account of the diff is not**, and the distinction is already this plugin's: `../../agents/reviewer.md` sanctions the `rescope` prompt carrying a commit range because "each is an address rather than an account". A sha is an address by the same test - it says where to look and claims nothing about what is there - so it takes nothing away from the reviewer fetching its own context, which is what "nothing else" exists to protect.
 
 #### Where the appointed reviewer is a command
 
 `.agents/gh-solo.md` may instead carry a `Reviewer command:` line, for a capability that is invoked rather than spawned. Run it as written, substituting the PR number for `{pr}`.
 
+**The pin still travels, and this form cannot corroborate it.** Substitute it wherever the command takes a revision, and where it takes none, invoke it as written and accept that it reads whatever the pull request holds. Either way you pass the pin to `build` as `--pinned-head` and the findings file you write by hand carries no `head`, because a capability invoked with a PR number cannot report what it read and a value you supplied is not a report. **Say in the round report that the pin was not corroborated**, so a round on this path cannot be read afterwards as one where the reviewer confirmed what it read; the record Review says the same, since `record_body` reads the absence of `head` rather than being told.
+
 **`Reviewer model:` does not apply to this form.** A capability is invoked rather than spawned, so there is no spawn parameter for the key to travel on, and honouring it would mean inventing a mechanism the capability does not have. Where a repository carries both lines, say in the round report that the model key was not applied and why, so it cannot become a silent no-op that the owner reads as a model they chose.
 
 **Never with a flag that makes it post its own findings.** On the bundled `/code-review` that flag is `--comment`, and the whole point of this form is that its findings come back to you and go up through the posting script like every other round's. A capability that posts for itself lands threads with no `RF{n}` id, no disclaimer and no `via` line, which `workflows/merge.md` then reads as the owner's own comments vouching for their own resolution. One writer, one convention: that is what this form preserves.
 
-Build the findings file yourself from what it returned. **Every field *The findings file* in the `reviewer` skill defines is required**, and `scripts/post-review.py` refuses the whole round on a missing one, so the entries below are the ones this path has to decide rather than the whole list. The rest carry over unchanged: `index` runs from 1 upward in the order the capability restated its findings, with no gaps, because the script refuses a non-contiguous sequence; `finding` and `failure_scenario` come from the capability's own text, and where it gave no scenario, say so in that field rather than inventing one; `needs_owner` is `false`, because a capability that cannot report the flag has not claimed a person is needed, and setting it would be the same fiction the severity rules below forbid. The file's own `pass` is `review` and its `axes_run` is `["unrated"]`, which `scripts/test-post-review.sh` already benches as this case.
+Build the findings file yourself from what it returned. **Every field *The findings file* in the `reviewer` skill defines is required**, and `scripts/post-review.py` refuses the whole round on a missing one, so the entries below are the ones this path has to decide rather than the whole list. The rest carry over unchanged: `index` runs from 1 upward in the order the capability restated its findings, with no gaps, because the script refuses a non-contiguous sequence; `finding` and `failure_scenario` come from the capability's own text, and where it gave no scenario, say so in that field rather than inventing one; `needs_owner` is `false`, because a capability that cannot report the flag has not claimed a person is needed, and setting it would be the same fiction the severity rules below forbid. The file's own `pass` is `review` and its `axes_run` is `["unrated"]`, which `scripts/test-post-review.sh` already benches as this case. **`head` is absent**, per the pin paragraph above.
 
 - **`path` and `line`** from its restated findings. The bundled capability is instructed to restate them in its final reply as `file:line  summary` lines, precisely so they survive a session that does not render tool output.
 - **`side` is `RIGHT`.** Prose does not say whether a line was added or deleted, and `RIGHT` is right for either an added or a changed line. A wrong anchor makes the atomic call fail, which refuses the round rather than landing it crooked, so that is the failure to accept rather than guess around.
@@ -131,7 +138,7 @@ Build the findings file yourself from what it returned. **Every field *The findi
 
 Everything after this is unchanged: the same script, the same call, the same ids.
 
-**Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. It fetches its own context, and evidence chosen by the author of the code is not independent evidence. Handing it your reading of the diff is the one way to spend a subagent and get your own opinion back.
+**Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. The pin is not an exception to this, because it is not in this class at all: every item here is a claim about what the diff contains, and a sha is a claim about nothing. It fetches its own context, and evidence chosen by the author of the code is not independent evidence. Handing it your reading of the diff is the one way to spend a subagent and get your own opinion back.
 
 It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review.
 
@@ -139,13 +146,16 @@ It returns the absolute path of a findings file and its report text. **If the pa
 
 One call lands every thread and the record Review together, so a half-posted PR cannot happen.
 
-1. **Compare the head against what the reviewer read**, before anything else in this step:
+1. **Read the head the ref holds now**, the same way Step 1 read the pin and never through `gh pr view`, for the lag reason stated there:
 
    ```bash
-   gh pr view <pr-number> --json headRefOid --jq .headRefOid
+   git fetch <remote> <branch> --quiet
+   git rev-parse FETCH_HEAD
    ```
 
-   A value different from the one Step 1 recorded means the diff moved while the reviewer was reading, so its `path`, `line` and `side` may name lines that no longer exist. **Refuse, and never attempt the post:** `⛔ REFUSED - the head moved from {old} to {new} while the reviewer was reading`, naming a re-spawn against the new head as what resumes. The post cannot succeed for any finding anchored to a changed region, and it fails atomically, so attempting it destroys the whole round rather than the affected finding. It goes first because every request below it is wasted on a head that has moved.
+   **You do not compare it here.** It travels to `build` as `--head-now` beside the pin as `--pinned-head`, and the script makes both comparisons and owns both refusals - the reviewer's reported head against the pin, meaning the pass judged something other than what it was told to, and the pin against this value, meaning the branch moved and GitHub would resolve these anchors against content the pass never read. Either way the post is never attempted: it fails atomically, so one stale anchor destroys the whole round rather than the affected finding, and a re-spawn against the new head is what resumes.
+
+   **One home for the comparison, deliberately, and it costs two requests.** The reads below now happen before a moved head is caught, where the old check refused first and spent nothing. That is the price of the refusal being benched rather than composed at the keyboard, and a cheap pre-check restored here would be a second place for one rule to live and drift.
 2. **Find the highest `RF{n}` already on the PR**, since ids never restart:
 
    ```bash
@@ -214,7 +224,7 @@ Spawn the reviewer again - **the appointed one, re-read from `Reviewer agent:` e
 Then post what it returns:
 
 - **Each verdict as a reply in its finding's thread**, the same endpoint as step 3, via `pr-flow` review, re-review verdict, under the same post cap.
-- **Re-read the head and compare it before building this payload**, exactly as Step 2's first item does. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it.
+- **Re-read the head before building this payload**, exactly as Step 2's first item does, and compare it against the pin the full pass used - which this session is holding, and which the pushed head still equals unless somebody else pushed, since this round's own fix commits are deliberately unpushed. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it. A difference is the same refusal Step 2 names, made here by you rather than by the script: this entrance passes `--anchored-at` instead of the pin pair, because its findings are counted against the local commits.
 - **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script and same call as step 2, with the re-review findings file, plus the arguments that entrance requires:
 
   ```bash
@@ -294,8 +304,8 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 ## Rules
 
 - **Never read the diff and never review.** The emptiness test is `changedFiles`, the analysis is the reviewer subagent's, and the judgement is the owner's.
-- **The reviewer is spawned with a PR number and nothing else**, or on the re-review with a commit range, the findings and the id-to-commit map. Never with your reading of the diff.
-- **Never post a round at a head the reviewer did not read.** Step 1 records the head, Step 2's first item compares it, and a difference is a refusal rather than an attempt: the call is atomic, so one stale anchor costs the whole round.
+- **The reviewer is spawned with a PR number and the pin, and nothing else**, or on the re-review with a commit range, the findings and the id-to-commit map. Never with your reading of the diff: each of those is an address, and an address is what this rule admits.
+- **Never post a round at a head the reviewer did not read.** Step 1 pins the head and hands it over, Step 2 passes the pin and the head-now to the script, and the script refuses on either disagreement rather than attempting the post: the call is atomic, so one stale anchor costs the whole round.
 - **Never post a finding by hand.** `scripts/post-review.py` builds every payload, and a refusal from it is a stop rather than an obstacle.
 - **Never post threads one at a time.** One call carries every thread and the record Review, so either the whole round is on the PR or none of it is.
 - **Never read a REST list without `--paginate`**, which makes a successful round look failed and a failed one look partial.
