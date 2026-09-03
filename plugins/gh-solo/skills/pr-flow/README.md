@@ -74,6 +74,8 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 **Every review is recorded, including a clean one.** A pull request with no comments on it is ambiguous: it might have been read and found fine, or never read at all. So the outcome is always written onto the PR, even when the outcome is "nothing found". Later, that is the difference between knowing and guessing — and it is what merging checks before it will land anything.
 
+**A reviewer pass is a budget, and the pull request holds the count.** Reading the whole branch is the expensive act in a round, and the unattended block can be made to do it again: a post that will not anchor throws its findings away, and the answer to that is another pass. So a pull request gets two, every pass leaves a mark on the pull request itself - a discarded one included, since that is the pass that costs you most and shows least - and reaching the cap stops and tells you what is still open. Your word buys another; nothing else does.
+
 **Agent posts say which process made them.** Everything an agent posts lands under your own login, so every comment, review and thread reply opens with the AI disclaimer and, under it, a `via` line naming the skill and workflow that posted it; the PR body carries the disclaimer alone, being unmistakably itself. Without the pair, an implementer's record, a divergence note and a review finding on the same PR are indistinguishable - from each other, and from you.
 
 **Answered questions outlive the discussion that answered them.** The PR body's open questions are where the plan discussion starts, and each one you settle moves to a `## Settled` section with your decision attached, question included. Because the squash merge writes the PR body into the trunk commit, those decisions end up in `git log` permanently - which no comment thread ever does.
@@ -113,7 +115,7 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 | `workflows/stack.md`            | everything about stacks                                                                                                                                                          |
 | `workflows/help.md`             | printed to you on `help`                                                                                                                                                         |
 | `references/review-protocol.md` | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates                                                      |
-| `scripts/post-review.py`        | builds and validates the one call that posts a round, then reconciles it; also reads the highest `RF{n}` already on the pull request; `scripts/test-post-review.sh` is its bench |
+| `scripts/post-review.py`        | builds and validates the one call that posts a round, then reconciles it; also reads the highest `RF{n}` already on the pull request, and how many reviewer passes it has had; `scripts/test-post-review.sh` is its bench |
 | `scripts/docs-check.py`         | path and fence checks, run before any docs or plan push                                                                                                                          |
 
 Anything specific to one repository — its check commands, a convention that differs — belongs in `.agents/gh-solo.md` in that repository, never in this skill. Check commands especially are never invented: they belong to the repo that runs them.

@@ -1,6 +1,6 @@
 {
   "name": "gh-solo",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "The solo maintainer's GitHub loop: an issue tracker, plan-first pull requests, in-session implementation, review rounds judged by a fresh-context reviewer, and gated squash merges, all through the gh CLI.",
   "author": {
     "name": "izkreny",
