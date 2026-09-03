@@ -229,7 +229,13 @@ Spawn the reviewer again - **the appointed one, re-read from `Reviewer agent:` e
 Then post what it returns:
 
 - **Each verdict as a reply in its finding's thread**, the same endpoint as step 3, via `pr-flow` review, re-review verdict, under the same post cap.
-- **Re-read the head before building this payload**, exactly as Step 2's first item does, and compare it against the pin the full pass used - which this session is holding, and which the pushed head still equals unless somebody else pushed, since this round's own fix commits are deliberately unpushed. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it. A difference is the same refusal Step 2 names, made here by you rather than by the script: this entrance passes `--anchored-at` instead of the pin pair, because its findings are counted against the local commits.
+- **Re-read the head before building this payload**, exactly as Step 2's first item does, and compare it against the pin the full pass used - which this session is holding, and which the pushed head still equals unless somebody else pushed, since this round's own fix commits are deliberately unpushed. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it. A difference is refused here by you rather than by the script, since this entrance passes `--anchored-at` instead of the pin pair - its findings are counted against the local commits - so the wording is yours to emit:
+
+  ```
+  ⛔ REFUSED - the pin {pin} is no longer the head {now}, so somebody pushed during the round
+  ```
+
+  It names a push rather than a reading-window move, which is the distinction the round's refusals exist to keep: this round's own fix commits are unpushed, so nothing it did can have moved the head.
 - **Its own record Review**, because one record per analysis is the standing rule and a re-review is an analysis. Same script and same call as step 2, with the re-review findings file, plus the arguments that entrance requires:
 
   ```bash
