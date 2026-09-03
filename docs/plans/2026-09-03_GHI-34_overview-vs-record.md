@@ -61,8 +61,8 @@ The gate reads more than it did and reports a contradiction it previously could 
 
 ## Open questions
 
-- **Is the #31 fixture acceptable as a reconstruction?** A pull request's body edits are not in git and GitHub exposes no history for them, so the pre-correction overview cannot be fetched - what exists is #34's own verbatim quotes of it, beside a commit that is still in `main`. My recommendation: yes, and it is the strongest fixture available, since the quotes were written while the contradiction was live. If you would rather the exercise ran against a synthetic pair instead, say so and it becomes two sentences invented for the purpose, which proves less.
+None.
 
 ## Settled
 
-None yet.
+- **Is the #31 fixture acceptable as a reconstruction?** Yes. A pull request's body edits are not in git and GitHub exposes no history for them, so the pre-correction overview cannot be fetched; what exists is #34's own verbatim quotes of it, beside commit `e79f98c`, still in `main`. **Settled by the `go 73` command running rather than by a decision the owner stated**, on the recommendation this section replaced - so it is the weakest of the settlements on this branch and the one to revisit first if the exercise proves thin.
