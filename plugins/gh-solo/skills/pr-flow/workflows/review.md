@@ -104,7 +104,7 @@ python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 
 **Step 2 reads that same listing again for `highest-id`, and the two reads stay separate.** Reusing this file there would save a request and make the id arithmetic depend on a listing fetched before the reviewer ran, which by then may be behind the pull request - a discard record, or a re-spawn's own read. One paginated read is the cheaper of the two mistakes.
 
-**At the cap, refuse in the protocol's wording** and print what the pull request is left holding. Never spawn first and check after: the spawn is the thing being counted, so a check made afterwards has already spent what it was protecting.
+**At the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries - then what the pull request is left holding: the open findings, and anything the last pass could not certify closed. Never spawn first and check after: the spawn is the thing being counted, so a check made afterwards has already spent what it was protecting.
 
 **A count of `0` on a pull request that visibly had rounds is the marker's own age**, which the script says on stderr rather than leaving you to infer: rounds posted before the marker existed carry none. Say so in the round report rather than treating the number as wrong, and rather than adding a second matcher for the old records - a fallback matcher on the record's prose is exactly what the marker exists instead of.
 
