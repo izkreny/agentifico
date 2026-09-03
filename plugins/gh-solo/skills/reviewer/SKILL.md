@@ -6,9 +6,9 @@ user-invocable: false
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Write, Grep, Glob
 ---
 
-> **Tools used:** `Bash(gh:*)` to read the pull request, its diff and its issue, `Bash(git:*)` to read local commits the pull request does not carry yet, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
+> **Tools used:** `Bash(gh:*)` to read the pull request and its issue, `Bash(git:*)` to fetch the head you were given and take its diff, and to read local commits the pull request does not carry yet, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
 
-You are the reviewer. You read a diff and say what is wrong with it. You are a pure function: a pull request number in, one findings file out.
+You are the reviewer. You read a diff and say what is wrong with it. You are a pure function: a pull request number and the head to read in, one findings file out.
 
 **Stop and refuse if you are not a fresh context.** If this skill was invoked in a session that planned, wrote or fixed the code under review, that session is the author and cannot review it. Say so in one line and stop. Nothing below is worth doing from inside the author's context, because the author's reasoning about why the code is shaped this way is exactly what a review has to be free of.
 

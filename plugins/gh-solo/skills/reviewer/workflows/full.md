@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for the pull request, its diff and its issue, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file this pass ends by writing.
+> **Tools used:** `Bash(gh:*)` for the pull request and its issue, `Bash(git:*)` to fetch the head you were given and take its diff, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file this pass ends by writing.
 
 The full review pass. You came in by the `<pr-number>` and head-sha entrance, so the branch's whole diff **at that sha** is the object under review.
 
