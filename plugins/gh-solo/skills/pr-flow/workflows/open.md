@@ -145,7 +145,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 ### Body caps
 
-**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement - the same form and the same number as the post cap in `references/post-caps.md`:
+**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement. **This is not the post cap**, which `references/post-caps.md` owns and which puts the PR body outside its domain outright: this one exists because the body becomes a commit message on `main`, so the two are separate caps that happen to agree, and neither is evidence for the other's number:
 
 - **`## Plan overview`**, the approach.
 - **The paragraph under `## Verification`**, what the gates cannot see.
