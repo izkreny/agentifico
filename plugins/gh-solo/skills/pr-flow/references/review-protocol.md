@@ -57,6 +57,29 @@ An owner-spent pass leaves the count above the cap, per the last paragraph of th
 
 **The owner's word can spend a further pass, and it is charged like any other.** The cap bounds the block nobody is watching, not the pull request: work that genuinely earns a third reading gets one when they ask for it, that pass leaves its own marker, and the next stop arrives one pass later. A cap they could not pass would block such a branch, and the cheap way out of that is to stop counting.
 
+## The push gate, while a reviewer is reading
+
+**A push asked for while a reviewer is reading is refused, and the refusal names the ways out: wait for the round report, or discard the pass.** The window is the gap between the spawn at step 1 and the post at step 2, and again at each scoped spawn at step 5. A push landing in it moves the head under a subagent that has already spent minutes reading; `scripts/post-review.py build` then refuses the post, because the pin no longer equals the head, and everything that pass read is thrown away.
+
+**The refusal is about whose call it is, not only about what happens to the anchors.** The owner's own reading window is theirs to spend as they like, which is why step 7 answers a push there with "no words ask for an earlier one" and leaves the cost of outdated threads with them. This window is not theirs in the same way: what a push spends here belongs to a process whose state they cannot see, and under *The pass cap* above it may be the only reading of the branch this pull request ever gets. The refusal therefore does not overrule them - it makes the spend go through a door that records what it cost.
+
+**Warn-and-proceed is why a warning is not the answer.** A pass killed by a push it was warned about leaves no discard record, so `scripts/post-review.py passes` reads as though it never ran and the cap silently gains a pass. Each exit below leaves the count true instead.
+
+**Neither exit ends the round, and the verdict line says what resumes it:**
+
+- **Wait** changes nothing: the reviewer finishes, the round posts at step 2, and the push is the owner's to ask for at step 7, which is where it was going.
+- **Discard**, the word they type while the refusal stands, posts the discard record for that pass, charges it under *The pass cap*, and then frees the push. `workflows/review.md` owns the invocation and the verdict's wording.
+
+**`discard` is a word typed at a standing refusal, never a routing argument.** Nothing in `SKILL.md` routes it and nothing should: it means something only while this session is holding a reviewer, and a route would make it typeable when there is no pass to charge.
+
+### "In flight" is session-local
+
+**A reviewer is a subagent and dies with the session that spawned it**, so the question is only ever whether *this* session holds a pass between its spawn and its post. A durable marker on the pull request would be worse than none: it would go on claiming a reviewer is reading after the session holding it is gone, and refuse every later push in the name of a round nobody can finish.
+
+**What that cannot reach, stated where the limit lives:** a push from another session, from the owner's own terminal, or from any tool outside this flow. Those are caught after the fact rather than prevented, by the pin comparison `scripts/post-review.py build` makes at step 2 and refuses on. This gate is the cheap half; that comparison is the backstop.
+
+**The trunk-push hook is not the mechanism.** `plugins/gh-solo/hooks/ask-before-trunk-push.py` guards the trunk only, and a `PreToolUse` hook cannot see whether a subagent is mid-read, so it can neither know the window nor name the exits.
+
 ## The steps
 
 Steps 1 to 5 run unattended, in one block. The owner's first involvement is step 6.
