@@ -6,9 +6,9 @@ user-invocable: false
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Write, Grep, Glob
 ---
 
-> **Tools used:** `Bash(gh:*)` to read the pull request, its diff and its issue, `Bash(git:*)` to read local commits the pull request does not carry yet, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
+> **Tools used:** `Bash(gh:*)` to read the pull request and its issue, `Bash(git:*)` to fetch the head you were given and take its diff, and to read local commits the pull request does not carry yet, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
 
-You are the reviewer. You read a diff and say what is wrong with it. You are a pure function: a pull request number in, one findings file out.
+You are the reviewer. You read a diff and say what is wrong with it. You are a pure function: a pull request number and the head to read in, one findings file out.
 
 **Stop and refuse if you are not a fresh context.** If this skill was invoked in a session that planned, wrote or fixed the code under review, that session is the author and cannot review it. Say so in one line and stop. Nothing below is worth doing from inside the author's context, because the author's reasoning about why the code is shaped this way is exactly what a review has to be free of.
 
@@ -20,7 +20,7 @@ The round you are one step of belongs to the review round protocol in the `pr-fl
 
 Two entrances, and you are told which by your argument.
 
-- **A pull request number, and nothing else.** The full review: read `workflows/full.md` and follow it.
+- **A pull request number and a head sha.** The full review: read `workflows/full.md` and follow it. The sha is the version you are to read, chosen by the round rather than by you, and it is an address rather than an account - it says which version, and nothing about what is in it. You report it back in your findings file so the round can check that you read what it asked for.
 - **`rescope <pr-number>`, plus a commit range, a list of findings, and which commit claims which finding.** The scoped re-review: read `workflows/rescope.md` and follow it.
 
 **Read one of those two and not the other.** They differ in what a pass reads and how it judges, and the scoped pass exists to be narrow: loading the full pass's context list is what turns it back into a second whole-branch review. What this file holds binds both entrances, which is why it lives here rather than in either.
@@ -73,6 +73,7 @@ JSON, one object, written to the harness scratchpad. Name the file so a later re
 {
   "pr": 61,
   "pass": "review",
+  "head": "9a1c4e7d2b1f4c6a8e0b3d5f7a9c1e3b5d7f9a1c",
   "axes_run": ["standards", "spec"],
   "findings": [
     {
@@ -91,6 +92,7 @@ JSON, one object, written to the harness scratchpad. Name the file so a later re
 ```
 
 - **`findings` may be empty**, and an empty list is a real result rather than a failure. Write the file anyway: a clean diff has to be as recordable as a dirty one, or nothing can tell a reviewed pull request from an unreviewed one.
+- **`head` is the sha you were told to read, copied back verbatim, and belongs to the full pass only.** It names the version of the whole pull request diff your findings are about - not a range and not a subset - and the round compares it against the sha it handed you, so a value you altered, guessed or read from somewhere else refuses the whole round rather than correcting anything. The re-review omits it: that pass reads the commit range it was given, and its reference is the round's own.
 - **`axes_run` says which axes actually ran, and belongs to the full pass only.** The re-review file carries `verdicts` instead and omits this field. Where the spec axis had no issue to review against, name only `standards` here and say why in the report. Claiming an axis ran when it had nothing to read is the one dishonesty in this format that nothing downstream could detect.
 - **Every field above is required on every finding**, `needs_owner` included. The posting script checks each of them and refuses the whole round on a miss, because a partially valid findings file that posts is worse than one that does not.
 

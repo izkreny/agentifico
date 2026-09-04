@@ -33,7 +33,12 @@ FINDING = {
     "finding": "The third acceptance criterion requires an owner at creation; this sets it after save.",
     "needs_owner": False,
 }
-REVIEW = {"pr": 61, "pass": "review", "axes_run": ["standards", "spec"], "findings": [FINDING]}
+# The pin a full pass is handed, and what a corroborating reviewer reports back. They
+# are equal in the default fixture because that is the ordinary case; the cases below
+# pull them apart one at a time.
+PIN = "9a1c4e7"
+REVIEW = {"pr": 61, "pass": "review", "axes_run": ["standards", "spec"],
+          "head": PIN, "findings": [FINDING]}
 RERdefault = {
     "pr": 61,
     "pass": "re-review",
@@ -103,7 +108,7 @@ Binary files /dev/null and b/app/models/group.rb differ
 
 
 def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
-              anchored_at="__auto__"):
+              anchored_at="__auto__", pinned_head="__auto__", head_now="__auto__"):
     findings = work / f"{name}.json"
     findings.write_text(json.dumps(data), encoding="utf-8")
     out = work / f"{name}.payload.json"
@@ -120,6 +125,17 @@ def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
         anchored_at = "1bb80f6" if data.get("pass") == "re-review" else None
     if anchored_at is not None:
         cmd += ["--anchored-at", anchored_at]
+    # The mirror of `anchored_at` above: the pair belongs to the full pass, so it defaults
+    # on and defaults off, and a case naming either explicitly is testing that boundary.
+    review_pass = data.get("pass") == "review"
+    if pinned_head == "__auto__":
+        pinned_head = PIN if review_pass else None
+    if pinned_head is not None:
+        cmd += ["--pinned-head", pinned_head]
+    if head_now == "__auto__":
+        head_now = PIN if review_pass else None
+    if head_now is not None:
+        cmd += ["--head-now", head_now]
     return subprocess.run(cmd, capture_output=True, text=True), out
 
 
@@ -383,6 +399,68 @@ for name, data, diff, at in cases:
     slug = "aa-" + "".join(c if c.isalnum() else "-" for c in name)
     proc, out = run_build(data, continue_from=3, name=slug, diff=diff, anchored_at=at)
     ok = proc.returncode == 2 and not out.exists()
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+print("\nmust refuse on the pinned head (exit 2):")
+# The pin is what the reviewer was told to read, so two different things can be wrong and
+# the message has to say which: a reviewer that read something else, and a pull request
+# that moved after the pin was issued. A merged message would satisfy neither the owner
+# reading a refusal nor the fourth acceptance criterion of #24.
+# Every case names a string only its own check emits. Exit 2 alone would not do:
+# argparse also exits 2 on an argument it does not recognise, so a case written against a
+# flag that does not exist yet reports ok while proving nothing - which is how the seven
+# refusals here first passed before either flag was added.
+cases = [
+    ("the reviewer read something other than the pin",
+     mutate(REVIEW, head="beef123"), PIN, PIN, "was told to read"),
+    ("the pull request moved after the pin was issued",
+     REVIEW, PIN, "beef123", "moved from"),
+    ("--pinned-head missing on a review pass", REVIEW, None, PIN,
+     "--pinned-head is missing"),
+    ("--head-now missing on a review pass", REVIEW, PIN, None,
+     "--head-now is missing"),
+    ("--pinned-head that is not a sha", REVIEW, "the-head", PIN,
+     "--pinned-head is not a commit sha"),
+    ("--head-now that is not a sha", REVIEW, PIN, "the-head",
+     "--head-now is not a commit sha"),
+    ("a reported head that is not a sha",
+     mutate(REVIEW, head="the-head"), PIN, PIN, "head is not a commit sha"),
+    ("--pinned-head on a re-review",
+     mutate(RERdefault, findings=[FINDING]), PIN, None,
+     "--pinned-head was given on a re-review"),
+    ("--head-now on a re-review",
+     mutate(RERdefault, findings=[FINDING]), None, PIN,
+     "--head-now was given on a re-review"),
+    ("a reported head on a re-review",
+     mutate(RERdefault, findings=[FINDING], head=PIN), None, None,
+     "head was given on a re-review"),
+]
+for name, data, pin, now, wants in cases:
+    slug = "ph-" + "".join(c if c.isalnum() else "-" for c in name)
+    diff = GROUP_DIFF if data.get("pass") == "re-review" else None
+    proc, out = run_build(data, continue_from=3, name=slug, diff=diff,
+                          pinned_head=pin, head_now=now)
+    ok = proc.returncode == 2 and not out.exists() and wants in proc.stderr
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+print("\nthe record must say which head was reviewed (exit 0):")
+# The value outlives the session that read it only if it lands on the pull request, and a
+# round that could not corroborate the pin must not read afterwards as one that did.
+cases = [
+    ("a corroborated pin says so", REVIEW, ["Reviewed at", PIN, "corroborated by the reviewer"]),
+    ("a reviewer reporting no head is not refused, and the row says uncorroborated",
+     mutate(REVIEW, head=None), ["Reviewed at", PIN, "not corroborated"]),
+]
+for name, data, wants in cases:
+    slug = "rh-" + "".join(c if c.isalnum() else "-" for c in name)
+    proc, out = run_build(data, continue_from=3, name=slug)
+    ok = proc.returncode == 0 and out.exists()
+    if ok:
+        body = json.loads(out.read_text(encoding="utf-8"))["body"]
+        missing = [w for w in wants if w not in body]
+        ok = not missing
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 

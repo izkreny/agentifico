@@ -425,6 +425,8 @@ def record_body(
     assigned: list[tuple[int, dict]],
     held: set[int],
     anchored_at: str,
+    reviewed_at: str,
+    corroborated: bool,
     disclaimer: str,
     via: str,
 ) -> str:
@@ -435,6 +437,15 @@ def record_body(
         unrated = sum(1 for _, f in assigned if f["severity"] == "unrated")
         tail = f" {unrated} arrived unrated." if unrated else ""
         lines.append(f"Review round on {len(assigned)} finding(s). Axes run: {axes}.{tail}")
+        # A row rather than a sentence, so it reads as one of the record's entries and its
+        # length follows how many there are. No cap is in play either way: *Never capped*
+        # in `../references/post-caps.md` puts anything this script composes outside the
+        # cap's domain and names the record Review doing it. It is here because the head
+        # otherwise lives in one session's memory and dies with it, leaving nobody able to
+        # say afterwards which version of the branch a round actually judged.
+        witness = ("corroborated by the reviewer" if corroborated
+                   else "not corroborated - the reviewer reported no head")
+        lines.append(f"- Reviewed at {reviewed_at} ({witness})")
     else:
         verdicts = data.get("verdicts", [])
         closed = sum(1 for v in verdicts if v.get("closed"))
@@ -574,6 +585,59 @@ def build(args: argparse.Namespace) -> int:
             "GitHub can anchor from one only the unpushed fixes carry"
         )
 
+    # The pin is what the reviewer was told to read, so it belongs to the full pass and
+    # the full pass alone: a re-review reads unpushed commits with `git` and takes
+    # `--anchored-at` for the same job. Both directions are refused, as with the pair
+    # above, because an argument that is silently ignored on one entrance is an argument
+    # nobody can reason about on either.
+    reported = data.get("head")
+    if which_pass == "re-review":
+        for flag, value in (("--pinned-head", args.pinned_head), ("--head-now", args.head_now)):
+            if value is not None:
+                problems.append(
+                    f"{flag} was given on a re-review, which reads the fix commits it was "
+                    "handed rather than a head it was pinned to"
+                )
+        if reported is not None:
+            problems.append(
+                "head was given on a re-review, whose findings are counted against the "
+                "local commits and whose reference is --anchored-at"
+            )
+    else:
+        for flag, value in (("--pinned-head", args.pinned_head), ("--head-now", args.head_now)):
+            if value is None:
+                problems.append(
+                    f"{flag} is missing on a review pass, so nothing says "
+                    + ("what the reviewer was told to read" if flag == "--pinned-head"
+                       else "whether the pull request has moved since")
+                )
+            elif not re.fullmatch(r"[0-9a-f]{7,40}", value):
+                problems.append(f"{flag} is not a commit sha: {value!r}")
+        # Optional, because a reviewer a repository appointed may not write it. What it
+        # buys when present is corroboration: the pin says what was asked for, this says
+        # what was read, and only the two together rule out a reviewer that read elsewhere.
+        if reported is not None and not re.fullmatch(r"[0-9a-f]{7,40}", str(reported)):
+            problems.append(f"head is not a commit sha: {reported!r}")
+        else:
+            # Two comparisons, two messages. They fail for different reasons - one means
+            # the pass is invalid, the other that the anchors can no longer resolve - and
+            # a single merged message would leave a reader unable to tell which.
+            if reported is not None and args.pinned_head is not None and reported != args.pinned_head:
+                problems.append(
+                    f"the reviewer read {reported} but was told to read "
+                    f"{args.pinned_head}, so the pass judged something else"
+                )
+            if (
+                args.pinned_head is not None
+                and args.head_now is not None
+                and args.pinned_head != args.head_now
+            ):
+                problems.append(
+                    f"the pull request moved from {args.pinned_head} to {args.head_now} "
+                    "during the round, so GitHub would resolve these anchors against "
+                    "content the pass never read"
+                )
+
     if which_pass == "review" and args.anchored_at is not None:
         problems.append(
             "--anchored-at was given on a review pass, whose findings become threads now "
@@ -636,7 +700,16 @@ def build(args: argparse.Namespace) -> int:
 
     payload = {
         "event": "COMMENT",
-        "body": record_body(data, assigned, held, args.anchored_at or "", disclaimer, via_record),
+        "body": record_body(
+            data,
+            assigned,
+            held,
+            args.anchored_at or "",
+            args.pinned_head or "",
+            data.get("head") is not None,
+            disclaimer,
+            via_record,
+        ),
         "comments": [
             {
                 "path": f["path"],
@@ -979,6 +1052,16 @@ def main() -> int:
         "--anchored-at",
         help="the head the reviewer read, which a held finding's line is counted "
              "against; required on a re-review and refused on a review pass",
+    )
+    b.add_argument(
+        "--pinned-head",
+        help="the sha the reviewer was told to read; required on a review pass and "
+             "refused on a re-review",
+    )
+    b.add_argument(
+        "--head-now",
+        help="the head the ref holds now, read immediately before this build; required "
+             "on a review pass and refused on a re-review",
     )
     b.add_argument("--out", required=True, help="where to write the payload JSON")
 

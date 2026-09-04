@@ -41,7 +41,9 @@ Steps 1 to 5 run unattended, in one block. The owner's first involvement is step
 
 ### 1. Review
 
-The reviewer is spawned with the PR number and nothing else in its prompt, and returns its findings file plus the text of the round's report. It posts nothing. Where a repository names a model, that travels as a spawn parameter rather than as prompt content, so the prompt still carries the number alone.
+The reviewer is spawned with the PR number and the head it is to read, and nothing else in its prompt, and returns its findings file - carrying back the head it read - plus the text of the round's report. It posts nothing. Where a repository names a model, that travels as a spawn parameter rather than as prompt content, so the prompt carries those two and nothing more.
+
+**The head is pinned rather than discovered, and the reviewer's report of it is a cross-check.** The orchestrator reads the head, hands it over as the scope, and at step 2 refuses on either disagreement: a reported head unequal to the pin means the pass judged something else, and a pin unequal to the head by then means the anchors can no longer resolve. So what the round compares is the version the reviewer was told to read, which is a fact it holds rather than a claim it is given.
 
 ### 2. Post
 
