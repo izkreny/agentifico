@@ -152,6 +152,10 @@ gh stack sync
 
 **`sync` is refused while a review round holds unpushed fix commits on any branch in the stack.** The round's fix commits sit local for the owner's word, and `references/review-protocol.md` makes step 7 the round's only push; a `sync` in the middle of that pushes them early and re-anchors every thread under a part-finished read, which is the exact failure the push-hold exists to prevent. `rnp` is what releases them. Say which branch holds them, and offer `gh stack rebase` where the intent was only to move onto the trunk.
 
+**`sync` is refused for the reviewer's read as well, and that window is the earlier one.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, where no fix commit exists yet - so the refusal above cannot fire there, and a `sync` walks straight through it and costs the pass. What releases this one is not `rnp`: it is the round posting, or the owner typing `discard` at the standing refusal, per *While it reads, a push is refused* in `workflows/review.md`.
+
+**Both checks are per stack rather than per branch**, because `sync` force-pushes every branch in it: a round reading a *lower* branch's pull request is moved under by a `sync` run from an upper one, and a check that looked only at the current branch would miss exactly that case.
+
 Where the fetch is not wanted either, the drift playbook below runs `gh stack rebase` and `gh stack push` as separate steps, which is the same work with the push under the owner's eye.
 
 ### Merge

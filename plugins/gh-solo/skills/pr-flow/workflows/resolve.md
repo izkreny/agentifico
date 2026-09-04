@@ -79,6 +79,8 @@ git push <remote> <branch>
 
 **The after-head needs no read at all.** It is local `HEAD`, which is exactly what this push sent; asking the remote for it buys the same lag back.
 
+**This push is outside the reviewer's push gate, and never asks it for permission.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post; by the time the owner has authorised this step the round has posted, judged and been answered, so no pass is out. A reader who took the new refusal to reach step 7 would have the round holding its own only push behind a gate that can never open.
+
 Resolve `<remote>` by the recipe in `SKILL.md`'s remote-name convention. The checks are read at Step 8, after Steps 6 and 7 have posted whatever the push released and what it carried, so one read covers the whole of what this workflow put on the branch.
 
 **Where a relocation commit is on the remote with its entry still in `## Open questions`, this step lands the PR body edit it owes**, per *Body caps* in `workflows/open.md`, which owns the route and states the invariant this discharges. Read the condition off the remote and the body rather than off what this round holds: an earlier push may already have carried the commit up, and this step owes the edit either way. Where nothing meets it, this step does nothing.
