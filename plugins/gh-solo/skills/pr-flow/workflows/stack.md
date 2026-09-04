@@ -214,7 +214,7 @@ One line: what moved, from what to what, and the PR URLs affected. If nothing ch
 
 ## Rules
 
-- **Never `git rebase` stacked branch against `main` by hand.** It rewrites the history the stack tooling manages, and the stack loses track of itself. Every restack goes through `gh stack`.
+- **Never `git rebase` a stacked branch against `main` by hand.** It rewrites the history the stack tooling manages, and the stack loses track of itself. Every restack goes through `gh stack`.
 - **Never commit or push directly to `main`.** This holds even when the change is trivial and even when a stack is not involved.
 - One stack operation per invocation. If the owner asks for two, run them in sequence and confirm each.
 - If a command fails partway through a cascade, stop and report which branches moved and which did not. Do not retry blindly: a half-rebased stack is worse than an unrebased one, and the usual cause is the worktree trap above.

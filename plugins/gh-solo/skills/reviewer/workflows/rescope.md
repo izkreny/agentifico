@@ -21,7 +21,7 @@ Everything about the finding shape, the findings file, your report and the stand
 
 **Nothing else is in scope.** No findings on code the fixes did not touch, no style preference the repository's standards do not state, no re-opening a finding somebody already rejected, no second thoughts about your own earlier findings. A convention the repository documents is not a style preference: a fix that breaks one is an ordinary `standards` finding under question 2. A full second review is where a round's iteration count explodes, because each pass finds fresh nitpicks on code nobody asked about.
 
-**Each thing a full pass reads and this one does not is skipped on purpose, and each skip is what keeps the scope scoped - i.e. IN ANY CIRCUMSTANCES DO NOT READ:**
+**Each thing a full pass reads and this one does not is skipped on purpose, and each skip is what keeps the scope scoped. Under no circumstances read any of these:**
 
 - **The pull request** - its title, body and file list describe the branch, and neither question is about the branch.
 - **The whole-branch diff** - the commit range you were given is the object under review, and reading the rest is how a scoped pass turns into a second full one.
