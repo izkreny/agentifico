@@ -113,7 +113,7 @@ The batch is one word or sentence from the owner - `rnp`, or "resolve all and pu
 - **Then the push**, with `gh pr checks` read before it is reported done, per the standing convention in `SKILL.md`.
 - **Then the delta index**, one Conversation comment naming every hunk the push carried and the `RF{n}` each answers, or a dash where it answers none. It opens no thread and issues no id; `workflows/resolve.md` owns its shape.
 
-**This step ends at the push, and step 8 is a word of its own.** One word doing both would read the checks below after the branch had already landed, so the sentence about a red check stopping the merge would be describing a gate that cannot fire. `workflows/resolve.md`'s confirm step owns the wording of what the owner types next; every other site points there rather than carrying its own copy.
+**This step ends at the push, and step 8 is a word of its own.** One word doing both would read the checks below after the branch had already landed, so the sentence about a red check stopping the merge would be describing a gate that cannot fire. `workflows/resolve.md`'s confirm step is where the wording of what the owner types next is decided.
 
 **The index is the only place a fix's incidental half is reported.** Step 4's reply names each finding's own change and any departure from the plan posted at step 3; what has had no home is a rename, a reworded comment or a helper extracted while fixing - visible to the owner in `git log` or not at all.
 
