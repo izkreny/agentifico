@@ -66,7 +66,7 @@ Fourteen, from one inline read of all fifty files. Thirteen are fixed on this br
 
 **What the sweep confirmed rather than found.** `plugins/gh-solo/skills/pr-flow/references/review-protocol.md` and `plugins/gh-solo/skills/pr-flow/workflows/review.md` do not contradict each other on the round's sequence, the pin, the caps or the gates, which was #26's own criterion. The contradictions are between the reviewer skill and `pr-flow`, and inside `plugins/gh-solo/skills/pr-flow/references/review-protocol.md` itself. No section had become an essay.
 
-**Row 13 is deferred because it is a restructure.** Every other fix leaves the file layout alone; this one moves a section out of a skill body and changes what loads when the skill fires. The thirteen fixes trim that file rather than growing it and it is still over, so nothing about the deferral is provisional.
+**Row 13 is deferred because it is a restructure.** Every other fix leaves the file layout alone; this one moves a section out of a skill body and changes what loads when the skill fires. The thirteen fixes take that file from 3,672 words to 3,754, so they add 82 rather than trimming any, and it was already over the cap before them - which is what makes the deferral unconditional.
 
 ## Open questions
 
