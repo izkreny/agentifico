@@ -122,6 +122,18 @@ gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -lab
 
 **The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
 
+## An epic child's blocker is its stack parent, not a wait
+
+**`plugins/gh-solo/skills/pr-flow/workflows/open.md` stops on an open `blockedBy`, and a child cut from that blocker's own branch tip is the exception.** Per *An epic's work is stacked, and the stack is the release train* in `AGENTS.md`, every child of an epic but the bottom one is cut from the branch below it and lands with the stack rather than before it, so the stop fires on the epic's normal shape.
+
+**Both reasons the stop gives are void in that shape.** The plan is written against a tree that already contains the blocker's work, so landing the blocker rewrites nothing; and not merging first is what the stack is for rather than an obstacle to it.
+
+**The exception is that shape and nothing wider.** The blocking issue's branch must exist, must be the branch the new one is cut from, and must be the new pull request's `--base`. A blocker carrying no branch, or one the child is not stacked on, is an ordinary wait and the stop holds unchanged.
+
+**Say which of the two it is, and name the branch the child was cut from.** A run that claims the exception is then readable back off the pull request's base rather than taken on trust.
+
+**Never clear the relation to get past the stop.** `blockedBy` is what records the stack's order, and removing it to satisfy a gate destroys the only typed record of which branch sits under which.
+
 ## What is deliberately not here
 
 No branch `{type}` vocabulary, because the plugin's own is what this repository uses.

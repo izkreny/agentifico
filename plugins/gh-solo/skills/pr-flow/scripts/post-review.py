@@ -68,6 +68,12 @@ HELD_KEY = "gh_solo_held"
 # fix result or a verdict - they do not exist yet - and a posted Review is never rewritten.
 # So the round posts a second Review at its end carrying those, keyed by id, and `release`
 # merges the two ledgers: the finding becomes the thread, each follow-up becomes a reply.
+# One full reviewer pass leaves one of these on the pull request, whether it posted its
+# findings or was discarded before it could, and `passes` counts occurrences of it. A
+# marker rather than the record's own prose because the prose is composed here: matching
+# `Review round on N finding(s)` would answer 0 the first time that sentence was reworded,
+# and a cap told no pass has run lets every pass through with nothing failing.
+PASS_MARKER = "::gh-solo-pass::"
 FOLLOWUP_KEY = "gh_solo_held_followup"
 FOLLOWUP_KINDS = ("plan", "result", "verdict")
 
@@ -446,6 +452,12 @@ def record_body(
         witness = ("corroborated by the reviewer" if corroborated
                    else "not corroborated - the reviewer reported no head")
         lines.append(f"- Reviewed at {reviewed_at} ({witness})")
+        # Its own row rather than a prefix on the one above, so the line `passes` counts
+        # carries no other fact that could be edited out from under it. A re-review gets
+        # none: it is an analysis and posts a record, but it is not a reading of the
+        # branch, and charging it would spend a round's budget three times over for one.
+        lines.append(f"- {PASS_MARKER} one full reviewer pass, counted against this "
+                     f"pull request's cap")
     else:
         verdicts = data.get("verdicts", [])
         closed = sum(1 for v in verdicts if v.get("closed"))
@@ -746,6 +758,57 @@ def build(args: argparse.Namespace) -> int:
         )
     if not assigned:
         print("  no findings; the record Review posts alone")
+    return 0
+
+
+def discard(args: argparse.Namespace) -> int:
+    """The record a pass leaves when its findings never reach the pull request.
+
+    A discarded pass posts no record Review, no round report and no thread, so without
+    this it is a spawn nobody is charged for - which is the whole of what the runaway
+    this cap exists to bound was made of. It goes on the reviews surface because the
+    round already reads that one, so counting costs no further request.
+    """
+    disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
+    if not disclaimer.startswith(DISCLAIMER_PREFIX):
+        print(
+            f"post-review: the disclaimer file does not open with {DISCLAIMER_PREFIX!r}",
+            file=sys.stderr,
+        )
+        return 2
+
+    body = "\n".join([
+        header(disclaimer, "discarded pass"),
+        "",
+        "A reviewer pass ran and its findings never reached this pull request, so this "
+        "record is what charges it. It judged nothing that survives, and it is here "
+        "to be counted.",
+        "",
+        f"- {PASS_MARKER} one full reviewer pass, counted against this pull request's cap",
+        f"- Read at {args.head}",
+        f"- Discarded because {args.why}",
+    ]) + "\n"
+
+    payload = {"event": "COMMENT", "body": body}
+    Path(args.out).write_text(
+        json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+    )
+    print(f"post-review: discard record for {args.head} -> {args.out}")
+    return 0
+
+
+def passes(args: argparse.Namespace) -> int:
+    """Print how many full reviewer passes this pull request has already had."""
+    bodies = review_bodies(Path(args.reviews))
+    count = sum(1 for body in bodies if PASS_MARKER in body)
+    # Said every time rather than only when it looks wrong, because the undercount is
+    # invisible from here: a pull request whose rounds ran before the marker existed is
+    # indistinguishable from one that has had no round at all.
+    print(
+        f"post-review: rounds posted before {PASS_MARKER} existed are not counted",
+        file=sys.stderr,
+    )
+    print(count)
     return 0
 
 
@@ -1116,6 +1179,28 @@ def main() -> int:
              "reserved in a review body and nowhere else",
     )
 
+    d = sub.add_parser("discard", help="the record a discarded reviewer pass leaves")
+    d.add_argument(
+        "--disclaimer-file",
+        required=True,
+        help="file holding the AI disclaimer line; must open with '> 🤖'",
+    )
+    d.add_argument("--head", required=True, help="the sha the discarded pass was told to read")
+    d.add_argument(
+        "--why",
+        required=True,
+        help="why the pass was discarded, completing 'Discarded because …'",
+    )
+    d.add_argument("--out", required=True, help="where to write the payload JSON")
+
+    p = sub.add_parser("passes", help="how many full reviewer passes this pull request has had")
+    p.add_argument(
+        "--reviews",
+        required=True,
+        help="the pull request's reviews, read with `gh api --paginate`; every full pass "
+             "and every discarded one leaves its marker here and nowhere else",
+    )
+
     h = sub.add_parser("highest-id", help="the highest RF id already on the pull request")
     h.add_argument(
         "--comments",
@@ -1134,6 +1219,7 @@ def main() -> int:
     return {
         "build": build, "release": release, "followup": followup,
         "verify": verify, "highest-id": highest_id,
+        "discard": discard, "passes": passes,
     }[args.mode](args)
 
 
