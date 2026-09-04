@@ -116,9 +116,12 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 | `workflows/resolve.md`          | your authorisation recorded, the threads resolved, the round's only push, and an index of what that push carried                                                                  |
 | `workflows/merge.md`            | the reviewed-or-not gate, squash, cleanup                                                                                                                                        |
 | `workflows/stack.md`            | everything about stacks                                                                                                                                                          |
+| `workflows/watch.md`            | the `watch` poll loop: what arms it, and what ends it                                                                                                                            |
 | `workflows/help.md`             | printed to you on `help`                                                                                                                                                         |
 | `references/review-protocol.md` | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates                                                      |
 | `scripts/post-review.py`        | builds and validates the one call that posts a round, then reconciles it; also reads the highest `RF{n}` already on the pull request, and how many reviewer passes it has had; `scripts/test-post-review.sh` is its bench |
+| `references/post-caps.md`       | how long a post carrying a `via` line may be, what falls outside that cap, and what sits inside a capped post without counting                                                    |
 | `scripts/docs-check.py`         | path and fence checks, run before any docs or plan push                                                                                                                          |
+| `scripts/watch.py`              | the `watch` poll loop as a script, so it needs no grant beyond `python3`; `scripts/test-watch.sh` is its bench                                                                    |
 
 Anything specific to one repository — its check commands, a convention that differs — belongs in `.agents/gh-solo.md` in that repository, never in this skill. Check commands especially are never invented: they belong to the repo that runs them.

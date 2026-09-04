@@ -117,4 +117,5 @@ Based on the argument above, do exactly one of the following:
 - **`workflows/watch.md`** - the `watch` poll loop, what arms it and what ends it
 - **`workflows/resolve.md`** - the protocol's step 7: the authorisation comment and its marker line, the resolve mutation, the round's only push, the release that turns a held finding into its thread, and the delta index the push posts. It ends at the push and names the merge command rather than running it
 - **`workflows/help.md`** - the one file addressed to the owner rather than the agent; on the `help` argument, output it verbatim and add nothing. The unmatched-argument fallthrough prints the same file plus one line naming what failed to match, which is the only addition ever made to it
+- **`references/post-caps.md`** - the cap on any post carrying a `via` line, what falls outside it entirely, and what sits inside a capped post without counting toward it
 - **`references/review-protocol.md`** - the review round protocol, stated once: the cast, RF ids and severities, its steps 1 to 8, the owner's vocabulary, and the conclusions the `review`, `resolve` and `merge` gates enforce
