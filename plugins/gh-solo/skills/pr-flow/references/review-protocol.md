@@ -39,7 +39,7 @@ Each cell below states its own rule, prohibitions included, so a row read out of
 
 **A pull request gets one full reviewer pass, and reaching that is a stop at the owner.** A full pass is one reading of the whole branch: the spawn at step 1, and any re-spawn that replaces a pass whose findings never reached the pull request. The scoped passes at step 5 are not full passes - each reads a commit range rather than the branch, and charging them would spend the budget three times over for one reading of the branch.
 
-**At one full pass, a re-spawn is never available unattended, and the sites that name one say so.** Every path that loses a pass - a findings file with no path, a head that moved, a malformed file, an anchor that will not resolve - is at the cap the moment it charges what it spent, so the re-spawn those sites describe is a thing the owner's word buys rather than a resumption the round can take. That is the intended shape rather than a corner of it: a second reading of the branch with nobody watching is the cost this cap exists to refuse.
+**At one full pass, a re-spawn is never available unattended, and the sites that name one say so.** Every path that loses a pass - a findings file with no path, a head that moved, a malformed file, an anchor that will not resolve, a pass the owner discarded to free a push under *The push gate, while a reviewer is reading* - is at the cap the moment it charges what it spent, so the re-spawn those sites describe is a thing the owner's word buys rather than a resumption the round can take. That is the intended shape rather than a corner of it: a second reading of the branch with nobody watching is the cost this cap exists to refuse.
 
 **A discarded pass counts.** It consumed the spawn, which is what is being counted, and the runaway this cap exists to bound was made almost entirely of discarded passes: a post refused, the findings thrown away, a fresh pass spawned against a diff that had moved under the last one. Counting only the passes that succeeded would leave the cheap ones charged and the expensive ones free.
 
@@ -65,10 +65,10 @@ An owner-spent pass leaves the count above the cap, per the last paragraph of th
 
 **Warn-and-proceed is why a warning is not the answer.** A pass killed by a push it was warned about leaves no discard record, so `scripts/post-review.py passes` reads as though it never ran and the cap silently gains a pass. Each exit below leaves the count true instead.
 
-**Neither exit ends the round, and the verdict line says what resumes it:**
+**The exits do different things to the round, and the verdict line says which:**
 
-- **Wait** changes nothing: the reviewer finishes, the round posts at step 2, and the push is the owner's to ask for at step 7, which is where it was going.
-- **Discard**, the word they type while the refusal stands, posts the discard record for that pass, charges it under *The pass cap*, and then frees the push. `workflows/review.md` owns the invocation and the verdict's wording.
+- **Wait** changes nothing. The reviewer finishes, the round posts at step 2, and the push is the owner's to ask for at step 7, which is where it was going.
+- **Discard**, the word they type while the refusal stands, posts the discard record for that pass, charges it under *The pass cap*, and then frees the push. At a cap of one that charge puts the pull request at the cap, so the round ends there: a further reading of the branch is the owner's to authorise rather than the round's to resume. `workflows/review.md` owns the invocation and the verdict's wording.
 
 **`discard` is a word typed at a standing refusal, never a routing argument.** Nothing in `SKILL.md` routes it and nothing should: it means something only while this session is holding a reviewer, and a route would make it typeable when there is no pass to charge.
 
