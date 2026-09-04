@@ -111,12 +111,17 @@ The batch is one word or sentence from the owner - `rnp`, or "resolve all and pu
 - **First the authorisation comment**, before any thread is resolved.
 - **Then the resolves.** To resolve a thread is to mark it Resolved on GitHub: the state change that collapses it and takes it off the open list.
 - **Then the push**, with `gh pr checks` read before it is reported done, per the standing convention in `SKILL.md`.
+- **Then the delta index**, one Conversation comment naming every hunk the push carried and the `RF{n}` each answers, or a dash where it answers none. It opens no thread and issues no id; `workflows/resolve.md` owns its shape.
+
+**This step ends at the push, and step 8 is a word of its own.** One word doing both would read the checks below after the branch had already landed, so the sentence about a red check stopping the merge would be describing a gate that cannot fire. `workflows/resolve.md` prints the merge command for the owner to type, and nothing else states what follows.
+
+**The index is the only place a fix's incidental half is reported.** Step 4's reply names each finding's own change and any departure from the plan posted at step 3; what has had no home is a rename, a reworded comment or a helper extracted while fixing - visible to the owner in `git log` or not at all.
 
 **Resolving every inline comment thread is a merge requirement, not a push requirement.** Nothing mechanically stops a branch being pushed with threads still open, and step 4's fix commits could have gone up at any point - they are held back to protect the owner's reading, which has nothing to do with resolution. What requires every thread resolved is *Resolution rests on recorded authority*, enforced at `workflows/merge.md`'s door. So the resolve here closes out the round; it does not unlock anything.
 
 **Resolving an inline comment thread posts nothing**, which is why the authorisation comment exists: the resolve leaves no trace of whose decision it was, so without that comment a later reader, `workflows/merge.md` included, sees a closed thread and no evidence behind it.
 
-**A red check after the push reopens nothing.** Each finding is closed on its own evidence - the fix, the re-review's verdict, and the owner's word - none of which a CI failure contradicts. A red check against locally green gates is the two-environments finding per the standing convention in `SKILL.md`: it stops the merge until it is diagnosed, and what answers it is a new commit rather than a reopened thread.
+**A red check after the push reopens nothing.** Each finding is closed on its own evidence - the fix, the re-review's verdict, and the owner's word - none of which a CI failure contradicts. A red check against locally green gates is the two-environments finding per the standing convention in `SKILL.md`: it stops the merge until it is diagnosed, and what answers it is a new commit rather than a reopened thread. **It can stop the merge because the merge has not happened**, which is what the split above buys: this check is read while step 8 is still the owner's to start.
 
 **The authorisation comment** carries a literal marker line a later reader can grep for, the owner's words, and every `RF{n}` id it covers.
 
@@ -133,7 +138,7 @@ Nothing is lost by waiting, because everything the owner judges on is on the PR 
 
 ### 8. Merge
 
-`workflows/merge.md`, whose thread gate is *Resolution rests on recorded authority*.
+`workflows/merge.md`, whose thread gate is *Resolution rests on recorded authority*. **Reached by a word of the owner's own** - `merge <pr-number>`, or "merge it" - never by step 7 continuing into it.
 
 ## The owner's vocabulary
 
