@@ -51,7 +51,7 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 **The issue type is not checked**, and is not even fetched. *Issue types are for organizations only* in `references/tracker-fields.md` settles it: a personal-account repository returns `null` for every issue, so a check would pass on everything.
 
-**Priority is optional**, so its absence is never a failure. Report it as present or absent under Notes and pass the issue either way. There is no size label to check for; *How big is one issue* in the standards explains why.
+**Priority is optional**, so its absence is never a failure. Report it as present or absent under Notes and pass the issue either way. There is no size label to check for; *How big is one issue* in `references/issue-shape.md` explains why.
 
 **Scope is a Note, never a fail.** If the criteria describe more than one branch's worth of work, say so with the split you would make, but pass the issue: it may already be half-built, and retitling an in-flight issue costs more than it returns. The split test belongs in `workflows/create.md`, before the issue exists.
 
