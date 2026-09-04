@@ -156,7 +156,7 @@ gh stack sync
 
 **`gh stack push` and the drift playbook are refused on the same terms, because the verb is not what does the damage.** That command force-pushes per branch, as *When CI goes silent: the stack has drifted* states below, so a rebase-then-push run to get around a refused `sync` moves the head under the reviewer exactly as `sync` would. A refusal keyed to one verb would leave its own documented alternative as the way through it.
 
-**Each refusal here is per stack rather than per branch**, because every command they name force-pushes the whole stack: a round reading a *lower* branch's pull request is moved under by a command run from an upper one, and a check that looked only at the current branch would miss exactly that case.
+**Each refusal here is checked per stack rather than per branch**, because the commands they name force-push every branch in the stack rather than only the one you are standing on: a round reading a *lower* branch's pull request is moved under by a command run from an upper one, and a check that looked only at the current branch would miss exactly that case.
 
 Where the fetch is not wanted either, the drift playbook below runs `gh stack rebase` and `gh stack push` as separate steps, which is the same work with the push under the owner's eye - and under the refusals above all the same, since its final step pushes.
 
