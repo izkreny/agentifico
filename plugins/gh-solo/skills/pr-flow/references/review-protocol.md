@@ -48,14 +48,14 @@ Each cell below states its own rule, prohibitions included, so a row read out of
 **The test is `{n}` at or past the cap, never equal to it, and the wording is fixed here rather than composed per round:**
 
 ```
-⛔ REFUSED - {n} reviewer passes have run on this pull request, at or past the cap of {cap}; {what} is unresolved
+⛔ REFUSED - {n} reviewer passes have run on this pull request, at or past the cap of {cap}; {what} is unresolved; type authorise to charge a further pass
 ```
 
 An owner-spent pass leaves the count above the cap, per the last paragraph of this section, so a test for equality would let every pass after that one through - and a string asserting `{n}` *is* the cap would be false on exactly the path the protocol grants.
 
 `{what}` names what the pull request is left holding: the findings still open, and any the last pass could not certify closed. A stop that says only that the cap was reached hands the owner a budget and no state.
 
-**The owner's word can spend a further pass, and it is charged like any other.** The cap bounds the block nobody is watching, not the pull request: work that genuinely earns a third reading gets one when they ask for it, that pass leaves its own marker, and the next stop arrives one pass later. A cap they could not pass would block such a branch, and the cheap way out of that is to stop counting.
+**The owner's word can spend a further pass, and the word is `authorise`, typed at the standing refusal above.** It buys exactly one: **the refusal lifts for the single spawn that follows the word**, and step 1 resumes at that spawn rather than at the budget read that refused - a re-entry from the top would read the same count, refuse again, and leave the owner typing the word at a stop that never moves. That pass leaves its own marker like any other, and the next stop arrives one pass later. **Only the literal word buys it**, never a sentence that reads as agreement - the same rule, and the same reason, as *Arming it, on the `watch` command and nothing else* in `workflows/watch.md`: what this cap exists to refuse is a reading of the branch nobody asked for, and prose is how one gets taken anyway. The cap bounds the block nobody is watching, not the pull request: work that genuinely earns a further reading gets one when they ask for it, and a cap they could not pass would block such a branch, the cheap way out of which is to stop counting.
 
 ## The push gate, while a reviewer is reading
 
@@ -68,9 +68,11 @@ An owner-spent pass leaves the count above the cap, per the last paragraph of th
 **The exits do different things to the round, and the verdict line says which:**
 
 - **Wait** changes nothing. The reviewer finishes, the round posts at step 2, and the push is the owner's to ask for at step 7, which is where it was going.
-- **Discard**, the word they type while the refusal stands, posts the discard record for that pass, charges it under *The pass cap*, and then frees the push. At a cap of one that charge puts the pull request at the cap, so the round ends there: a further reading of the branch is the owner's to authorise rather than the round's to resume. `workflows/review.md` owns the invocation and the verdict's wording.
+- **Discard**, the word they type while the refusal stands, posts the discard record for that pass, charges it under *The pass cap*, and then frees the push. At a cap of one that charge puts the pull request at the cap, so the round ends there: a further reading of the branch is the owner's to buy with `authorise` rather than the round's to resume. `workflows/review.md` owns the invocation and the verdict's wording.
 
 **`discard` is a word typed at a standing refusal, never a routing argument.** Nothing in `SKILL.md` routes it and nothing should: it means something only while this session is holding a reviewer, and a route would make it typeable when there is no pass to charge.
+
+**`authorise` is the same kind of word, and it needs one thing said out loud that `discard` does not.** `SKILL.md`'s resolve entrance takes the owner's authorisation of the resolve and the push *in any words*, deliberately, so a bare `authorise` is a sentence that entrance would otherwise match - and matching it there pushes the round's unpushed fixes instead of buying a pass, which is the one irreversible act in the flow and the exact thing the push hold exists to prevent. So the word buys a pass and routes nowhere, and `SKILL.md` states the exclusion at the entrance that would have swallowed it.
 
 ### "In flight" is session-local
 
@@ -121,7 +123,7 @@ The reviewer is spawned again with the fix commit *range*, the findings list, an
 - **A new defect in a file the unpushed fixes touch is *held*: it gets its `RF{n}` now and its thread after the push.** The fixes are unpushed at step 5, so GitHub cannot resolve an anchor to a line only they carry, and the posting call is atomic - one bad anchor would take the whole record down, verdicts included. **The unit is the file rather than the line**, because a line number counted at local `HEAD` does not survive the pushed head: an unpushed commit inserting lines anywhere above a finding shifts it even when the finding sits outside every hunk, so the file is the unit with no such gap. So `build` keeps it out of the `comments` array and writes it whole into the record Review's own ledger instead, which reserves the id where the next round's highest-id read can see it and keeps *Ids never restart* intact. Step 7's push makes the line ordinary and `release` then posts the thread under that same id, so every finding of every round ends as a thread the merge gate audits. **The round report must say which findings were threaded and which are held**, or a reader takes the second for an absence of findings.
 - **Both loops are capped, because no owner is watching.** A finding the re-review says is not closed gets **one** further plan-and-fix attempt; a second failure sends the thread to the owner instead, since two failures mean the finding is not understood and a third machine attempt costs more than reading it. A new defect the re-review raises gets a fix plan and a fix, and that fix is re-reviewed once, never recursively.
 - **One batched pass covers both loops together, never one pass per thread.** Every retry and every new-defect fix lands first, and then a single scoped spawn reads the whole range and answers about all of them. Per thread the caps above would bound the attempts per finding and leave the spawn count following how many findings a pass happened to raise, which is the dimension that costs; batched, the round's spawns are a number rather than a function of the findings.
-- **So the reviewer is spawned three times at most for the life of a pull request:** the full pass at step 1, the scoped re-review here, and the one batched pass these loops get. Per round and per pull request are the same figure, because the pass cap allows one full pass and a round is what a full pass opens. It is here so a reader has it without tracing the loops to derive it.
+- **So the reviewer is spawned three times at most in a round:** the full pass at step 1, the scoped re-review here, and the one batched pass these loops get. What a pull request's own total is follows from that figure and the full passes it has had, since `authorise` under *The pass cap* buys a further pass and a further round with it. It is here so a reader has it without tracing the loops to derive it.
 
 ### 6. The owner judges
 
