@@ -79,7 +79,7 @@ git push <remote> <branch>
 
 **The after-head needs no read at all.** It is local `HEAD`, which is exactly what this push sent; asking the remote for it buys the same lag back.
 
-**This push is outside the reviewer's push gate, and never asks it for permission.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post; by the time the owner has authorised this step the round has posted, judged and been answered, so no pass is out. A reader who took the new refusal to reach step 7 would have the round holding its own only push behind a gate that can never open.
+**This push sits outside the reviewer's push gate whenever no pass is out, which by step 7 is every ordinary round.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, step 5's scoped spawns included; the owner gives the word for this step after those have returned and posted, so the window is shut before there is anything to authorise. **Where a scoped pass somehow is still out, the gate holds and this step waits for it.** The condition is written out rather than left as a standing exemption because either reading alone breaks something: an unconditional exemption pushes out from under a reviewer that is still reading, and a refusal applied uniformly parks the round's only push behind a gate that cannot open.
 
 Resolve `<remote>` by the recipe in `SKILL.md`'s remote-name convention. The checks are read at Step 8, after Steps 6 and 7 have posted whatever the push released and what it carried, so one read covers the whole of what this workflow put on the branch.
 
