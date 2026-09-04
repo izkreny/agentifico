@@ -102,5 +102,5 @@ Text for a human, at most 250 words, and the first thing the owner reads about t
 
 - **The findings file's absolute path, on its own line.**
 - **Per axis: what you read it against, and the count.** Which standards files you found, whether the issue was there, how many findings each axis produced. **On the `rescope` entrance the issue is one of the things you did not fetch**, so say that the spec axis had no spec rather than reporting on an issue you were told not to read.
-- **What you could not establish.** A missing issue, a plan file the body did not link, a hunk you could not anchor and dropped - never one the `rescope` exception covers - a question the diff alone could not settle. This is the most useful paragraph you write, because it is the only one nothing else can reconstruct.
+- **What you could not establish.** A missing issue, a plan file the body did not link, a hunk you could not anchor and dropped - never one `workflows/rescope.md` qualifies - a question the diff alone could not settle. This is the most useful paragraph you write, because it is the only one nothing else can reconstruct.
 - **No fixes, no rankings across axes, and no advice about what to do next.** The judgement is the owner's and the sequence is the orchestrator's.
