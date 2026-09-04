@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(gh:*)` for the thread read, the authorisation comment, the resolve mutation and the checks read, `Bash(git:*)` for the push, `Write` for the comment body file, `TaskStop` to end a running watch.
 
-End a review round on the owner's word: record the authorisation, resolve the threads it covers, push the fixes that have been waiting, release any finding that was held for that push, index what the push carried, and read the checks. **It ends there.** Merging is a separate word, which Step 8 prints.
+End a review round on the owner's word: record the authorisation, resolve the threads it covers, push the fixes that have been waiting, release any finding that was held for that push, index what the push carried, and read the checks. **It ends there.** Merging is a separate word, which its confirm step prints.
 
 **This is the protocol's step 7, and `references/review-protocol.md` owns what it means.** That file states the order and why, which threads a batch covers and which it never covers, and why a red check afterwards reopens nothing. What this file owns is the mechanics: the marker line's wording, the mutation, and the order of the calls.
 
@@ -131,11 +131,13 @@ git log -p --format='%n::commit %h %s%n%b%n::body-end' <before-head>..HEAD
 ```markdown
 | Hunk | Answers |
 |---|---|
-| [`workflows/merge.md:61-68`](https://github.com/{owner}/{repo}/blob/<after-head>/plugins/gh-solo/skills/pr-flow/workflows/merge.md#L61-L68) | `RF4` |
-| [`SKILL.md:39`](https://github.com/{owner}/{repo}/blob/<after-head>/plugins/gh-solo/skills/pr-flow/SKILL.md#L39) | `-` |
+| [`workflows/merge.md:61-68`](https://github.com/{owner}/{repo}/blob/<that commit>/plugins/gh-solo/skills/pr-flow/workflows/merge.md#L61-L68) | `RF4` |
+| [`SKILL.md:39`](https://github.com/{owner}/{repo}/blob/<that commit>/plugins/gh-solo/skills/pr-flow/SKILL.md#L39) | `-` |
 ```
 
-- **The link points at the blob at the after-head**, with an `#L{start}-L{end}` fragment, so a row is one click from the lines it names. The sha rather than the branch name, because a branch link drifts the moment the next commit lands. **What it costs:** a later `gh stack sync` rewrites that sha and the links go stale. That is correct for a record of one push, read at that push, and is not a defect to fix by pointing at a branch.
+- **Each link points at the commit that made the hunk, never at the after-head.** The walk is per commit, so a range is counted in that commit's version of the file, and a later commit in the same span changing the line count above it would shift the lines an after-head link resolves to. Per-commit shas make the range and its target the same version by construction, rather than by a shift nothing computes.
+- **Which line numbers the range takes, and from which sha:** the `+` side of the hunk header, linked at that commit. **A hunk that adds no lines takes the `-` side and links at the commit's first parent**, since the lines it names exist only before it; **a commit that deletes a file outright is one row naming the path with no link at all**. Deletion-only commits are ordinary in a documentation package, and a row linking to lines that no longer exist is worse than a row that says so.
+- **What the sha costs:** a later `gh stack sync` rewrites every commit on the branch, and these links go stale with them. That is correct for a record of one push, read at that push, and is not a defect to fix by pointing at a branch.
 - **Attribution is commit-level, and that is the point.** A rename made while fixing `RF3` carries `RF3`, so the index shows what that fix actually cost rather than only the lines the finding named.
 - **The `-` rows are the half with no other home**: a commit whose body names no id. An owner-raised change is always one, because `references/review-protocol.md` makes ids mandatory for agent posts only, and so is the relocation `docs:` commit *Body caps* in `workflows/open.md` sends an over-cap entry to.
 
@@ -155,7 +157,7 @@ Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow
 
 ## Step 9 - Confirm
 
-Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved, nothing was held, and the checks are green; `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered, a held finding was released and now waits on the owner, a release failed, or a check is red.
+Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved, nothing was held, the delta index posted, and the checks are green; `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered, a held finding was released and now waits on the owner, a release failed, the delta index could not be posted, or a check is red.
 
 Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and are now waiting to be read, the commits that went up, how many rows the delta index carried and how many of them answered no finding, and the check result.
 
@@ -165,7 +167,7 @@ Then the record: how many threads were resolved and which ids, which were left a
 /gh-solo:pr-flow merge <pr-number>
 ```
 
-**This line is the one statement of what follows the push**, and `SKILL.md`'s routing deliberately does not repeat it. The split is not an ergonomic: one word that both released the push and landed the branch would read the checks at Step 8 *after* the merge, and the protocol's step 7 says a red check there stops the merge until it is diagnosed - which it cannot do to a merge the same word already made.
+**This file owns that wording**, and the sites that mention a merge follows point here rather than carrying their own copy of the command. The split is not an ergonomic: one word that both released the push and landed the branch would read the checks at Step 8 *after* the merge, and the protocol's step 7 says a red check there stops the merge until it is diagnosed - which it cannot do to a merge the same word already made.
 
 ## Rules
 
