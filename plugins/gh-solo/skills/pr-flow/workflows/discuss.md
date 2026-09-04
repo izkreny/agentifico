@@ -12,7 +12,7 @@ It is the return half of `workflows/review.md`: that workflow puts findings on t
 
 Each `discuss` run is one round of the conversation, and it goes:
 
-1. Leave any watch running - per *The watch survives the round* in `references/review-protocol.md`, whose loop is `workflows/watch.md` it outlives a round, and stops only when the owner authorises the resolve and the push, or on `unwatch` (*Stopping it*).
+1. Leave any watch running - per *The watch survives the round* in `references/review-protocol.md`, whose loop is `workflows/watch.md`. It outlives a round, and stops only when the owner authorises the resolve and the push, or on `unwatch` (*Stopping it*).
 2. Fetch every inline thread in one GraphQL read and drop the resolved ones, and in the same pass fetch the PR's review summary bodies and its Conversation comments (Step 1).
 3. Classify each remaining thread by the owner's last comment in it, per the table in Step 1, which owns the classes.
 4. Give each class what Step 1's table says it is owed, from that table rather than from a copy of it here. A review summary body or Conversation comment is classified by the same table; when it is owed an answer, the answer goes as one Conversation comment (Step 2), since there is no thread to reply into.
