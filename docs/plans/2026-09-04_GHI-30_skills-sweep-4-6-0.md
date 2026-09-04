@@ -39,13 +39,41 @@
 
 **None of them sees whether the package was read whole**, which is the only thing this branch is for. They see that paths resolve, that a version moved where one was owed and that the two manifests agree. What a clean run here cannot tell anyone is whether a rule one child added still agrees with one another child removed, and no gate with an exit code can: that judgement is the sweep, and the record of it is the triage in this file.
 
-**The sweep itself moves no version.** A read changes nothing, so a branch whose sweep is clean passes `scripts/version-check.py` without exercising it, and that is the correct answer for such a branch rather than a reason to bump.
+**A sweep that lands fixes moves the version those fixes earn.** A read on its own changes nothing and would leave every version where it was, which is the clean case; this sweep found defects and fixed thirteen of them, two of which change what an agent does, so the package moves to 4.7.0 and `scripts/version-check.py` is exercised rather than merely passed.
+
+## Findings
+
+Fourteen, from one inline read of all fifty files. Thirteen are fixed on this branch, one commit per defect class; the fourteenth is deferred to #89.
+
+**It ran as one pass rather than the two acts above.** `/skills-maker review` was pointed at the plugin root and the whole package was read in one session, files belonging to no skill included, which is the shape #88 asks the command to support. The two-act split was the workaround for that gap and it turned out not to be needed; the finding at row 1 is one no split by skill could have produced.
+
+| # | What it claims, and where | Triage |
+|---|---|---|
+| 1 | `plugins/gh-solo/skills/reviewer/workflows/rescope.md` told the re-review to keep an unpushed-line defect out of the findings file, while `plugins/gh-solo/skills/pr-flow/workflows/review.md` says to leave it in. `plugins/gh-solo/skills/pr-flow/scripts/post-review.py` can only hold a finding the file carries, so the hold-and-release route was dead for the case it was built for | fixed |
+| 2 | *The pass cap* grants the owner a further reviewer pass and no workflow could reach it: five sites called it theirs to authorise, none said what authorises it | fixed |
+| 3 | "three times at most for the life of a pull request" is the per-round figure, false the moment the grant at row 2 is used | fixed |
+| 4 | "a PR number in, one findings file out" survives at three sites, a premise the head pin made false | fixed |
+| 5 | Three citations name `plugins/gh-solo/skills/tracker/references/standards.md` for rules that live in `plugins/gh-solo/skills/tracker/references/tracker-fields.md`, or that the cited file explicitly disclaims holding | fixed |
+| 6 | The post cap and the PR body cap each cite the other as the authority for their shared number, so neither is one | fixed |
+| 7 | Three inventories have not caught up with the watch workflow, its script and the post caps reference | fixed |
+| 8 | `plugins/gh-solo/skills/pr-flow/references/review-protocol.md` cites the discuss workflow for the only-the-literal-command rule, which `plugins/gh-solo/skills/pr-flow/workflows/watch.md` owns and the discuss workflow disclaims | fixed |
+| 9 | `plugins/gh-solo/skills/pr-flow/workflows/watch.md` refers three times to steps it does not have; they belong to `plugins/gh-solo/skills/pr-flow/workflows/discuss.md` | fixed |
+| 10 | `plugins/gh-solo/skills/pr-flow/workflows/discuss.md` has lost a clause boundary in the sentence about the watch | fixed |
+| 11 | Three sites call the tracker standards "the three below", a count of adjacent content and a position claim | fixed |
+| 12 | Three instruction files justify a live rule with history the reader cannot locate | fixed |
+| 13 | `plugins/gh-solo/skills/pr-flow/SKILL.md` is 3,754 words against a cap of roughly 3,500 | deferred to #89 |
+| 14 | The package's only shouted line, and one missing article | fixed |
+
+**What the sweep confirmed rather than found.** `plugins/gh-solo/skills/pr-flow/references/review-protocol.md` and `plugins/gh-solo/skills/pr-flow/workflows/review.md` do not contradict each other on the round's sequence, the pin, the caps or the gates, which was #26's own criterion. The contradictions are between the reviewer skill and `pr-flow`, and inside `plugins/gh-solo/skills/pr-flow/references/review-protocol.md` itself. No section had become an essay.
+
+**Row 13 is deferred because it is a restructure.** Every other fix leaves the file layout alone; this one moves a section out of a skill body and changes what loads when the skill fires. The thirteen fixes trim that file rather than growing it and it is still over, so nothing about the deferral is provisional.
 
 ## Open questions
 
-- Whether the `gh-solo_4.6.0` tag lands on this branch's squash commit or after `gh stack merge` has landed the whole train. The stack merges atomically onto one `main` commit per branch, so both are defensible; the tag's meaning is that the package was read whole, which is true from this branch's tip onward either way.
-- What to do about branch commits carrying a scope, which `plugins/gh-solo/skills/tracker/references/formats.md` reserves for the pull request title. It was raised as a convention finding on #86 and left open deliberately: the practice runs through every branch in the stack, so it is package-wide and sweep-shaped rather than one branch's to fix.
+- None.
 
 ## Settled
 
-- None yet.
+- **Where the tag lands.** On the last squash commit of the train, per *An epic's work is stacked, and the stack is the release train* in `AGENTS.md`, which already answers it: `gh stack merge` lands the stack atomically and one tag is cut. The question was which of two defensible readings applied; that file states one.
+- **The tag is `gh-solo_4.7.0`.** The sweep landed fixes rather than coming back clean, and two of them change what an agent does, so the package's version moved and the tag moved with it.
+- **Branch commits carrying a scope.** #84 owns it, opened for exactly this and scoped to `.agents/gh-solo.md`. It is not this branch's to fix: the practice runs through every branch in the stack, and the record it needs is a repository-level one that moves no package version.
