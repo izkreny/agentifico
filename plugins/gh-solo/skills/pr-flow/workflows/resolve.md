@@ -126,17 +126,26 @@ git log -p --format='%n::commit %h %s%n%b%n::body-end' <before-head>..HEAD
 
 `<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - the `implement` skill's `fix` workflow requires a fix commit to name each id it closes, and its `Closes` list is that claim - and emit one row per hunk in that commit's diff. **An id the body merely mentions is not one of them:** a commit explaining what it corrects about an earlier fix names that fix's id in prose, and crediting it would put a hunk under a finding that never asked for it. The same trap `scripts/post-review.py` avoids by counting `::RF{n}::` rather than any `RF{n}` it can see. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is the one thing this comment exists to do.
 
-**The row is the hunk's `path:start-end` as a link, then the `RF{n}` its commit named, or `-` where it named none:**
+**The row is the hunk's `path:start-end` as a link into that commit's own diff on the pull request, then the `RF{n}` its commit named, or `-` where it named none:**
 
 ```markdown
 | Hunk | Answers |
 |---|---|
-| [`workflows/merge.md:61-68`](https://github.com/{owner}/{repo}/blob/<that commit>/plugins/gh-solo/skills/pr-flow/workflows/merge.md#L61-L68) | `RF4` |
-| [`SKILL.md:39`](https://github.com/{owner}/{repo}/blob/<that commit>/plugins/gh-solo/skills/pr-flow/SKILL.md#L39) | `-` |
+| [`workflows/merge.md:61-68`](https://github.com/{owner}/{repo}/pull/<pr-number>/commits/<that commit>#diff-<the path's sha256>R61-R68) | `RF4` |
+| [`SKILL.md:39`](https://github.com/{owner}/{repo}/pull/<pr-number>/commits/<that commit>#diff-<the path's sha256>R39) | `-` |
 ```
 
-- **Each link points at the commit that made the hunk, never at the after-head.** The walk is per commit, so a range is counted in that commit's version of the file, and a later commit in the same span changing the line count above it would shift the lines an after-head link resolves to. Per-commit shas make the range and its target the same version by construction, rather than by a shift nothing computes.
-- **Which line numbers the range takes, and from which sha**, the first case that applies winning: a commit that **deletes a file outright** is one row naming the path with no link, because the only sha holding that file is one where it still exists, and a link there reads as though the push had not removed it; a hunk that **adds no lines** but leaves the file standing takes the `-` side and links at the commit's first parent, where the removed lines sit inside a file that is still there; every other hunk takes the `+` side of its header and links at that commit. First-match is stated rather than assumed, so two runs over one push cannot index it differently.
+**The anchor's file half is the sha256 of the path**, which nothing else computes for you:
+
+```bash
+python3 -c 'import hashlib,sys; print(hashlib.sha256(sys.argv[1].encode()).hexdigest())' plugins/gh-solo/skills/pr-flow/workflows/merge.md
+```
+
+It hashes the path and not the content, so it survives every commit on the branch and breaks only on a rename.
+
+- **A diff view rather than a file view, which is what makes the fragment land at all.** A `blob` link to a file GitHub renders - Markdown here, and `.ipynb`, `.csv` and `.svg` alike - opens the preview, where a `#L61-L68` fragment matches nothing and drops the reader at the top of the page with no error to tell them so. Appending `?plain=1` rescues that one case; a diff view needs no flag, and it shows the change inside its own hunk rather than the file's later state.
+- **Each link points at the commit that made the hunk, never at the pull request's own diff.** `/pull/<pr-number>/files` diffs the base against the head, so its line numbers are the head's and every later commit shifts them - silently, because the stale anchor still resolves, just onto the wrong lines. On a stacked pull request they all move again at once when its parent merges and GitHub retargets it. A per-commit URL counts lines in that commit's diff, where nothing landing afterwards can reach them.
+- **Which side the range takes:** the `+` side of the hunk header, written `R{start}-R{end}`, for every hunk that adds a line; the `-` side, written `L{start}-L{end}`, for one that only removes. A commit deleting a file outright is that second case and needs no exception of its own, because a commit's diff still shows the file it removed where a `blob` at that commit cannot.
 - **What the sha costs:** a later `gh stack sync` rewrites every commit on the branch, and these links go stale with them. That is correct for a record of one push, read at that push, and is not a defect to fix by pointing at a branch.
 - **Attribution is commit-level, and that is the point.** A rename made while fixing `RF3` carries `RF3`, so the index shows what that fix actually cost rather than only the lines the finding named.
 - **The `-` rows are the half with no other home**: a commit whose body names no id. An owner-raised change is always one, because `references/review-protocol.md` makes ids mandatory for agent posts only, and so is the relocation `docs:` commit *Body caps* in `workflows/open.md` sends an over-cap entry to.
