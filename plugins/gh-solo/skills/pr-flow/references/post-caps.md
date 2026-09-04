@@ -2,7 +2,7 @@
 
 How long a post may be, what falls outside the cap, and what sits inside a capped post without counting toward it. Read this when composing anything that carries a `via` line: a comment, a Review, a thread reply.
 
-**Every post carrying a `via` line is five sentences or bullets at most**, the disclaimer and the `via` line excluded. Count them; mechanical, not a judgement - the same form and the same number as the `## Plan overview` cap in `workflows/open.md` and the summary caps in the `tracker` standards.
+**Every post carrying a `via` line is five sentences or bullets at most**, the disclaimer and the `via` line excluded. Count them; mechanical, not a judgement.
 
 **The domain is the `via` line itself**, rather than a list of surfaces, so it reaches a surface nobody has written yet, and it needs no list to be kept in step - the forms listed under *The `via` forms in use* below are examples rather than the set. What falls outside the domain, and what sits inside a capped post without counting toward the five, are *Never capped* and *Never counted* below.
 

@@ -79,7 +79,7 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 | A comment in the owner's own voice, no disclaimer                               | A note they wrote themselves. Never restate it as a finding                                                         |
 | A mentor or other reviewer                                                      | Advice the owner may have weighed and declined. Never re-raise it, and name it in the round report as unanswered    |
 
-   **The reviewer gets none of this.** It is spawned with a number and fetches its own context, and handing it an earlier round's findings is the one thing that would make its read dependent on the last one. What this read is for is your own posting: not repeating a convention finding, and having something to say about a mentor in the report.
+   **The reviewer gets none of this.** It is spawned with a number and a pin and fetches its own context, and handing it an earlier round's findings is the one thing that would make its read dependent on the last one. What this read is for is your own posting: not repeating a convention finding, and having something to say about a mentor in the report.
 4. **Check the conventions**, per *Convention checks* at the end of this file, and post the failures as one Review:
 
    ```bash
@@ -105,6 +105,8 @@ python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 **Step 2 reads that same listing again for `highest-id`, and the two reads stay separate.** Reusing this file there would save a request and make the id arithmetic depend on a listing fetched before the reviewer ran, which by then may be behind the pull request - a discard record, or a re-spawn's own read. One paginated read is the cheaper of the two mistakes.
 
 **At or past the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries.
+
+**Then print the one exit, in the owner's terms**, the way the push gate's refusal below prints its own: **`authorise`** is the word they type at that standing refusal to charge a further pass and have this step spawn after all, per *The pass cap* in `references/review-protocol.md`, which owns the word and what it costs. **Go to *Which reviewer runs is a per-repo fact* below and continue from there** - never back to the budget, which would read the same count and refuse the pass that was just bought, and never forward to the head read, which would skip the block that resolves the appointed agent and its model and hand the owner a pass they paid for run by the wrong reviewer. Say what it buys before they choose - one further reading of the whole branch, charged like every other, with the next stop one pass later. **Nothing else buys it**: a sentence that sounds like assent is not the word, and the refusal stands until the word is typed.
 
 **Then what the pull request is left holding, read rather than recalled.** The open findings are the unresolved nodes of the GraphQL `reviewThreads` read the convention checks already make before this step, for *Every resolved thread has recorded owner authority*; take each thread's `body` in the same query and an uncertified verdict is legible in the thread that carries it. **Never fill this from an earlier round's report**, which is prose written before every resolve and every `rnp` since, nor from a re-review record, which counts verdicts without naming which finding each belongs to - handing the owner a stale account of what is open is the one thing this refusal exists to avoid.
 
@@ -146,7 +148,7 @@ Spawn it with the PR number and the pin, and nothing else, beside the model para
 **Print the exits under it in the owner's terms**, because the verdict line is what they read first and the pass is theirs to spend:
 
 - **Waiting** costs nothing and loses nothing. The reviewer finishes, the findings land, and the push they wanted is the one step 7 makes anyway.
-- **`discard`** posts the discard record below for this pass, which charges it under *The pass cap*, and then the push is free. Say what it costs before they choose: at a cap of one, discarding is this pull request's reading of the branch, and a further pass is then theirs to authorise rather than the round's to take.
+- **`discard`** posts the discard record below for this pass, which charges it under *The pass cap*, and then the push is free. Say what it costs before they choose: at a cap of one, discarding is this pull request's reading of the branch, and a further pass is then theirs to buy with `authorise` rather than the round's to take.
 
 **Never warn and push.** The record is what makes the count true, and a pass killed without one reads afterwards as a pass that never ran.
 
@@ -176,7 +178,7 @@ Everything after this is unchanged: the same script, the same call, the same ids
 
 **Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. The pin is not an exception to this, because it is not in this class at all: every item here is a claim about what the diff contains, and a sha is a claim about nothing. It fetches its own context, and evidence chosen by the author of the code is not independent evidence. Handing it your reading of the diff is the one way to spend a subagent and get your own opinion back.
 
-It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit** - post the discard record below, then re-read the budget and refuse rather than re-spawn when that pass would be beyond it, which at a cap of one it always is. So say plainly that a further reading of the branch is the owner's to authorise, and stop.
+It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit** - post the discard record below, then re-read the budget and refuse rather than re-spawn when that pass would be beyond it, which at a cap of one it always is. So say plainly that a further reading of the branch is the owner's to buy with `authorise`, print the refusal that names it, and stop.
 
 **A pass whose findings never reach the pull request posts a record, whether anything is re-spawned or not.** That is the whole condition: the charge follows the pass being spent, per *A discarded pass counts* in `references/review-protocol.md`, and a path that ends the round has spent the pass exactly as a path that tries again has. **Where a re-spawn does follow, the record goes up first** - a session that dies in between has then already charged the pass it lost.
 
@@ -227,7 +229,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
 
    **Both head arguments are required here**, exactly as `--unpushed-diff` and `--anchored-at` are required on the re-review's own block in Step 5, and the script refuses a full pass missing either. This block and that required set are read together whenever either moves: `scripts/test-post-review.sh` builds its own argument list rather than reading this file, so nothing else can catch a block that has drifted from the script it invokes.
 
-   It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. **A refusal here is not something to work around by posting by hand.** It means the findings file is malformed, and the answer is to say what is wrong and stop. **A re-spawn here would be a pass too**, so post the discard record, re-read the budget, and name a further pass as the owner's to authorise - at a cap of one there is no second reading to take.
+   It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. **A refusal here is not something to work around by posting by hand.** It means the findings file is malformed, and the answer is to say what is wrong and stop. **A re-spawn here would be a pass too**, so post the discard record, re-read the budget, and name `authorise` as what buys a further pass - at a cap of one there is no second reading the round can take on its own.
 5. **Post it:**
 
    ```bash
@@ -368,7 +370,7 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 
 - **Never read the diff and never review.** The emptiness test is `changedFiles`, the analysis is the reviewer subagent's, and the judgement is the owner's.
 - **The reviewer is spawned with a PR number and the pin, and nothing else**, or on the re-review with a commit range, the findings and the id-to-commit map. Never with your reading of the diff: each of those is an address, and an address is what this rule admits.
-- **Never spawn a reviewer without reading the budget first.** The spawn is what the cap counts, so a check made after it has already spent what it was protecting - and a lost pass posts its discard record before anything else, never after. At a cap of one that record is also what puts the pull request at the cap, so what follows it is a stop rather than a re-spawn.
+- **Never spawn a reviewer without reading the budget first.** The spawn is what the cap counts, so a check made after it has already spent what it was protecting - and a lost pass posts its discard record before anything else, never after. At a cap of one that record is also what puts the pull request at the cap, so what follows it is a stop rather than a re-spawn, and only `authorise` moves it.
 - **Never post a round at a head the reviewer did not read.** Step 1 pins the head and hands it over, Step 2 passes the pin and the head-now to the script, and the script refuses on either disagreement rather than attempting the post: the call is atomic, so one stale anchor costs the whole round.
 - **Never post a finding by hand.** `scripts/post-review.py` builds every payload, and a refusal from it is a stop rather than an obstacle.
 - **Never post threads one at a time.** One call carries every thread and the record Review, so either the whole round is on the PR or none of it is.

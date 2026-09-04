@@ -87,7 +87,7 @@ Based on the argument above, do exactly one of the following and nothing else:
 ## Supporting files
 
 - **`workflows/`** - one file per sub-command: `workflows/create.md`, `workflows/status.md`, `workflows/search.md`, `workflows/validate.md`, `workflows/state.md`, `workflows/help.md`
-- **`references/standards.md`** - the index of the three below, and nothing else
+- **`references/standards.md`** - the index of `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md`, and nothing else
 - **`references/issue-shape.md`** - hierarchy and sizing, titles, bodies, acceptance criteria, spikes
 - **`references/tracker-fields.md`** - labels and the mandatory axis, dependencies, milestones, state, issue types
 - **`references/formats.md`** - branch names, commit subjects, pull request titles, plan filenames

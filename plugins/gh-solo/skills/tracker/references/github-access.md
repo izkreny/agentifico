@@ -32,7 +32,7 @@ If authentication fails, `gh auth login` and pick SSH or HTTPS to match the remo
 
 **A label that does not exist is a hard error, not a silent skip.** `gh issue create --label epic` fails outright if nobody ran `gh label create epic`. The message names the label, but it arrives after the title and body were accepted, so it reads like the create failed for a deeper reason. Run `gh label list` before a batch create and make the missing ones first.
 
-**`--type` fails on a repository that cannot have issue types.** An unknown type is an error rather than a no-op, and a repository owned by a personal account has no types at all, so every `--type` there fails. That is normal rather than misconfigured, and the *Issue types are for organizations only* section of `references/standards.md` has the why and the one exception.
+**`--type` fails on a repository that cannot have issue types.** An unknown type is an error rather than a no-op, and a repository owned by a personal account has no types at all, so every `--type` there fails. That is normal rather than misconfigured, and the *Issue types are for organizations only* section of `references/tracker-fields.md` has the why and the one exception.
 
 **`--project` needs a scope the default login does not grant.** A token from a plain `gh auth login` typically carries `repo`, `read:org` and `gist`, and adding an issue to a Project needs `project` on top. The failure is a 403 mentioning scopes, not a message about projects. Fix with `gh auth refresh -s project`, and only if the repo actually uses Projects; a solo tracker usually does not need one.
 

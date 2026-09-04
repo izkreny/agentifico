@@ -82,15 +82,15 @@ The dotted line back is the point worth noticing: nothing gets moved by hand. Th
 
 ## Layout
 
-| Path                           | Holds                                                             |
-|--------------------------------|-------------------------------------------------------------------|
-| `SKILL.md`                     | routing, the eligibility rule, the shared vocabulary              |
-| `references/standards.md`      | an index pointing at the three below                              |
-| `references/issue-shape.md`    | hierarchy and sizing, titles, bodies, acceptance criteria, spikes |
-| `references/tracker-fields.md` | labels, dependencies, milestones, state, issue types              |
-| `references/formats.md`        | branch names, commit subjects, PR titles, plan filenames          |
-| `references/github-access.md`  | `gh` setup, and the failures that look like something else        |
-| `workflows/`                   | one file per command                                              |
+| Path                           | Holds                                                                                                        |
+|--------------------------------|--------------------------------------------------------------------------------------------------------------|
+| `SKILL.md`                     | routing, the eligibility rule, the shared vocabulary                                                         |
+| `references/standards.md`      | an index pointing at `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md` |
+| `references/issue-shape.md`    | hierarchy and sizing, titles, bodies, acceptance criteria, spikes                                            |
+| `references/tracker-fields.md` | labels, dependencies, milestones, state, issue types                                                         |
+| `references/formats.md`        | branch names, commit subjects, PR titles, plan filenames                                                     |
+| `references/github-access.md`  | `gh` setup, and the failures that look like something else                                                   |
+| `workflows/`                   | one file per command                                                                                         |
 
 Anything specific to one repository — its own label set, a different branch convention — belongs in `.agents/gh-solo.md` in that repository, never in this skill. `pr-flow` reads the same file, so the two skills cannot disagree about a repository's conventions.
 
