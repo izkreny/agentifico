@@ -26,7 +26,7 @@ An issue you want in the backlog before you have time or information to describe
 
 **Auto-triggers**
 
-Any of the phrasings in the routing table of `SKILL.md` reaches the matching command without you typing it - that table is the one list, and this page deliberately does not copy it, because the copy had already lost three rows. What the table covers: reading an issue, moving its state, searching, picking what is next, validating one against the standards, breaking work into issues, and the milestone operations.
+Any of the phrasings in the routing table of `SKILL.md` reaches the matching command without you typing it - that table is the one list, and this page deliberately does not copy it: a second copy drifts from the first the moment a row moves, and a reader given two lists cannot tell which one is current. What the table covers: reading an issue, moving its state, searching, picking what is next, validating one against the standards, breaking work into issues, and the milestone operations.
 
 **Prerequisites**
 
