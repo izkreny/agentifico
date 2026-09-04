@@ -2,7 +2,7 @@
 
 # Gate a push while a round is in flight
 
-Closes #19. A push asked for while the reviewer is reading is refused, and the refusal names two ways forward: wait for the round report, or abandon the pass, which posts the discard record and then frees the push. The owner's word still decides; it decides through a door that records what it spent.
+Closes #19. A push asked for while the reviewer is reading is refused, and the refusal names two ways forward: wait for the round report, or discard the pass, which posts the discard record and then frees the push. The owner's word still decides; it decides through a door that records what it spent.
 
 It is the fifth branch of the #26 stack, cut from #63's tip and stacked on PR #82.
 
@@ -24,11 +24,11 @@ It is the fifth branch of the #26 stack, cut from #63's tip and stacked on PR #8
 
 ## The refusal, and the two exits
 
-**Abandoning the pass needs no new mechanism.** `scripts/post-review.py discard` takes a disclaimer, the head the pass was told to read, a reason and an output path, and no findings file - so a pass with nothing returned yet can still be charged. That is what makes the second exit honest: the count on the pull request reflects a pass that was spent, and the next session can tell a spent pass from an unspent one.
+**Discarding the pass needs no new mechanism.** `scripts/post-review.py discard` takes a disclaimer, the head the pass was told to read, a reason and an output path, and no findings file - so a pass with nothing returned yet can still be charged. That is what makes the second exit honest: the count on the pull request reflects a pass that was spent, and the next session can tell a spent pass from an unspent one.
 
 **Warn-and-proceed was the alternative and it loses the count.** A pass killed by a push it was warned about leaves no discard record, so `scripts/post-review.py passes` reads as though it never ran and the cap that exists to bound a runaway round silently gains a pass. The refusal is not about doubting the owner; it is about the round being able to say what it cost.
 
-**#18 will want this shape and should not rebuild it.** Its third criterion asks that ending a round early be a named outcome with a stated shape, and the abandon exit is one. This branch does not do #18's work: it names the exit for the in-flight push and nothing else.
+**#18 will want this shape and should not rebuild it.** Its third criterion asks that ending a round early be a named outcome with a stated shape, and the discard exit is one. This branch does not do #18's work: it names the exit for the in-flight push and nothing else.
 
 ## Every path that can push, and which one needs the check
 
@@ -47,7 +47,7 @@ It is the fifth branch of the #26 stack, cut from #63's tip and stacked on PR #8
 
 - Add the answer to `plugins/gh-solo/skills/pr-flow/references/review-protocol.md`: a push asked for while a reviewer is reading is refused, the refusal names the two exits, and the reason is stated as whose call it is rather than only as what happens to the anchors.
 - Define "in flight" in that file as session-local, and state what it cannot reach and what catches those cases instead.
-- Give `plugins/gh-solo/skills/pr-flow/workflows/review.md` the refusal at the point it holds a spawned reviewer, with the verdict wording and the `discard` invocation the abandon exit takes.
+- Give `plugins/gh-solo/skills/pr-flow/workflows/review.md` the refusal at the point it holds a spawned reviewer, with the verdict wording and the `scripts/post-review.py discard` invocation the discard exit takes.
 - Extend the `sync` refusal in `plugins/gh-solo/skills/pr-flow/workflows/stack.md` to the reviewer's window, and say the check is per stack because a force-push moves every branch in it.
 - Say in `plugins/gh-solo/skills/pr-flow/workflows/resolve.md` that its own push is outside this gate, so nobody reads the new refusal as reaching step 7.
 - Move `plugins/gh-solo/.claude-plugin/plugin.json` to `4.6.0`.
@@ -65,8 +65,9 @@ It is the fifth branch of the #26 stack, cut from #63's tip and stacked on PR #8
 
 ## Open questions
 
-- The refusal's verdict line has to name the abandon exit as something the owner types. Whether that is a new word or a sentence they say is open; a sentence costs no vocabulary and a word is unambiguous. Recommend a sentence, since the case is rare and a word nobody remembers is worse than one they never learned.
+- None.
 
 ## Settled
 
-- What the flow does about an in-flight push. It refuses the bare push and names two exits, wait or abandon, rather than warning and proceeding: a pass killed after a warning leaves no discard record, so the pass count reads as though it never ran and the cap silently gains a pass.
+- What the refusal's verdict line calls the second exit, given the plan recommended a sentence rather than a word. It is the word `discard`, which the package already uses for this act - `scripts/post-review.py discard` and the discard record it posts - so the exit and its record wear one name instead of two.
+- What the flow does about an in-flight push. It refuses the bare push and names two exits, wait or discard, rather than warning and proceeding: a pass killed after a warning leaves no discard record, so the pass count reads as though it never ran and the cap silently gains a pass.
