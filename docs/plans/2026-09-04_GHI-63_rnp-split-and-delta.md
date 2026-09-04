@@ -62,8 +62,9 @@ It is the fourth branch of the #26 stack, cut from #34's tip and stacked on PR #
 
 ## Open questions
 
-- Dropping "you can merge" from the `rnp` triggers removes a phrase already in use. The alternative is to keep it routing to `plugins/gh-solo/skills/pr-flow/workflows/resolve.md` and have the report say the merge did not happen, which reads as the command ignoring half of what was said. Recommend dropping it.
+None.
 
 ## Settled
 
+- Whether "you can merge" should stay an `rnp` trigger, given it is a phrase already in use. It should not: after the split it would authorise a push and then not merge, so it routes to the merge workflow, whose Step 1 refuses on unpushed commits and names `rnp` as the remedy.
 - Whether an index row should carry the commit subject as well as `path:start-end` and the id. It should not: the fix map posted at step 4 already names each commit, and the column would roughly double a row's width for a fact one hop away.
