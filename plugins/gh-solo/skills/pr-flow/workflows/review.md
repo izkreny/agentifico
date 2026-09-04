@@ -79,7 +79,7 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 | A comment in the owner's own voice, no disclaimer                               | A note they wrote themselves. Never restate it as a finding                                                         |
 | A mentor or other reviewer                                                      | Advice the owner may have weighed and declined. Never re-raise it, and name it in the round report as unanswered    |
 
-   **The reviewer gets none of this.** It is spawned with a number and fetches its own context, and handing it an earlier round's findings is the one thing that would make its read dependent on the last one. What this read is for is your own posting: not repeating a convention finding, and having something to say about a mentor in the report.
+   **The reviewer gets none of this.** It is spawned with a number and a pin and fetches its own context, and handing it an earlier round's findings is the one thing that would make its read dependent on the last one. What this read is for is your own posting: not repeating a convention finding, and having something to say about a mentor in the report.
 4. **Check the conventions**, per *Convention checks* at the end of this file, and post the failures as one Review:
 
    ```bash

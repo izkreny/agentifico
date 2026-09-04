@@ -2,7 +2,7 @@
 
 # reviewer
 
-The thing that reads your diff and tells you what is wrong with it. A pull request number goes in, a findings file comes out, and nothing else happens: it does not write to the pull request, does not touch your working tree, and does not tell you how to fix anything.
+The thing that reads your diff and tells you what is wrong with it. A pull request number and the head to read go in, a findings file comes out, and nothing else happens: it does not write to the pull request, does not touch your working tree, and does not tell you how to fix anything.
 
 ## You do not run this
 
