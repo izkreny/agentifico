@@ -135,6 +135,21 @@ Spawn it with the PR number and the pin, and nothing else, beside the model para
 
 **The pin is admissible in the prompt where an account of the diff is not**, and the distinction is already this plugin's: `../../agents/reviewer.md` sanctions the `rescope` prompt carrying a commit range because "each is an address rather than an account". A sha is an address by the same test - it says where to look and claims nothing about what is there - so it takes nothing away from the reviewer fetching its own context, which is what "nothing else" exists to protect.
 
+#### While it reads, a push is refused
+
+**From the spawn until Step 2 has posted, a push asked for in the session is refused**, per *The push gate, while a reviewer is reading* in `references/review-protocol.md`, which owns the rule and the reason. It binds the scoped spawns in Step 5 the same way, and it binds however the push was phrased: `git push`, `gh stack sync`, "just push it".
+
+```
+⛔ REFUSED - a reviewer is reading this pull request at {sha}; wait for the round report, or type discard to charge the pass and free the push
+```
+
+**Print the exits under it in the owner's terms**, because the verdict line is what they read first and the pass is theirs to spend:
+
+- **Waiting** costs nothing and loses nothing. The reviewer finishes, the findings land, and the push they wanted is the one step 7 makes anyway.
+- **`discard`** posts the discard record below for this pass, which charges it under *The pass cap*, and then the push is free. Say what it costs before they choose: at a cap of one, discarding is this pull request's reading of the branch, and a further pass is then theirs to authorise rather than the round's to take.
+
+**Never warn and push.** The record is what makes the count true, and a pass killed without one reads afterwards as a pass that never ran.
+
 #### Where the appointed reviewer is a command
 
 `.agents/gh-solo.md` may instead carry a `Reviewer command:` line, for a capability that is invoked rather than spawned. Run it as written, substituting the PR number for `{pr}` and the pin for `{sha}`.
