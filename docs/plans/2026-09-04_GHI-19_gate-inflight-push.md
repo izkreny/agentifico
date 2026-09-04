@@ -58,7 +58,7 @@ It is the fifth branch of the #26 stack, cut from #63's tip and stacked on PR #8
 - `python3 scripts/version-check.py`.
 - `python3 scripts/manifest-check.py`, owed because the version bump touches `plugins/gh-solo/.claude-plugin/plugin.json`, one of the two manifests that file's agreement is checked across.
 
-**Neither sees whether the refusal fires.** They see that paths resolve and that a version moved. The gate is prose an orchestrator follows, and the only thing that exercises it is a real push asked for while a real reviewer is reading - which is not to be manufactured, for the same reason #63's index was not: a gate seen passing on a case built to make it pass is a gate seen doing nothing.
+**None of them sees whether the refusal fires.** They see that paths resolve, that a version moved and that the two manifests agree. The gate is prose an orchestrator follows, and the only thing that exercises it is a real push asked for while a real reviewer is reading - which is not to be manufactured, for the same reason #63's index was not: a gate seen passing on a case built to make it pass is a gate seen doing nothing.
 
 **`scripts/version-check.py` cannot see this branch's own bump**, because `origin/main...HEAD` on an upper branch of a stack already contains every bump below it. The bump holds because this plan makes it a step.
 
