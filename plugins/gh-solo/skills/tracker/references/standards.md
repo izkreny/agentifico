@@ -6,7 +6,7 @@ Everything here assumes **one person owns the repo and does the work**. Where a 
 
 ---
 
-The standards are `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md`, split because no workflow needs all of them at once and this one was read whole by workflows that needed a fraction:
+The standards are `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md`, split because no workflow needs all of them at once:
 
 | File                           | What it holds                                                               | Read it when                                          |
 |--------------------------------|-----------------------------------------------------------------------------|-------------------------------------------------------|
