@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(git:*)` for the branch, `Bash(gh:*)` for `gh issue view` and `gh label list`, `Read` for the standards.
 
-Check an issue against `references/standards.md` and report what is wrong.
+Check an issue against the standards Step 2 loads and report what is wrong.
 
 ## Step 1 - Resolve the issue number
 
@@ -49,7 +49,7 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 **`## Technical notes` and `## Dependencies` are optional**, so an absent one is never a failure. A body that names a blocker in prose is still checked for the matching `blockedBy` relation, per the Dependencies row above.
 
-**The issue type is not checked**, and is not even fetched. *Issue types are for organizations only* in the standards settles it: a personal-account repository returns `null` for every issue, so a check would pass on everything.
+**The issue type is not checked**, and is not even fetched. *Issue types are for organizations only* in `references/tracker-fields.md` settles it: a personal-account repository returns `null` for every issue, so a check would pass on everything.
 
 **Priority is optional**, so its absence is never a failure. Report it as present or absent under Notes and pass the issue either way. There is no size label to check for; *How big is one issue* in the standards explains why.
 
