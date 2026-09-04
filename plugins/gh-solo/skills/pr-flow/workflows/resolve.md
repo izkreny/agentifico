@@ -124,7 +124,7 @@ One Conversation comment naming every hunk the push carried, so what the round's
 git log -p --format='%n::commit %h %s%n%b%n::body-end' <before-head>..HEAD
 ```
 
-`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body names - the `implement` skill's `fix` workflow requires every fix commit to name each id it closes - and emit one row per hunk in that commit's diff. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is the one thing this comment exists to do.
+`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - the `implement` skill's `fix` workflow requires a fix commit to name each id it closes, and its `Closes` list is that claim - and emit one row per hunk in that commit's diff. **An id the body merely mentions is not one of them:** a commit explaining what it corrects about an earlier fix names that fix's id in prose, and crediting it would put a hunk under a finding that never asked for it. The same trap `scripts/post-review.py` avoids by counting `::RF{n}::` rather than any `RF{n}` it can see. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is the one thing this comment exists to do.
 
 **The row is the hunk's `path:start-end` as a link, then the `RF{n}` its commit named, or `-` where it named none:**
 
