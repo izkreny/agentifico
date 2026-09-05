@@ -40,6 +40,21 @@ The package axis is also the repository's label axis, which `.agents/gh-solo.md`
 
 **A package is tagged only after its own whole-package sweep has run.** What a tag asserts is that the package was read whole rather than diff by diff, and no branch's review can supply that: a review reads a diff, so a file no branch has touched since it was written is never read whole by anyone. For a skill package the sweep is `/skills-maker review` over that skill's directory. For a plugin it is the same command over each skill under its own `skills/`, plus a read of the files that belong to no skill - the manifest, the agents, the hooks and the README - which nothing else covers. An open sweep issue asserts nothing; `.agents/gh-solo.md` is where that requirement is enforced.
 
+**The tag is cut by hand, once that package's sweep issue is closed, and never as part of a branch's merge.** `gh stack merge` and an ordinary squash merge both land code and neither tags anything, so cutting the tag is a separate act, at a moment of its own: the version it names is one the trunk already carries.
+
+**It goes on that package's own last squash commit, which is the trunk tip only when nothing has landed since.** This repository ships several packages onto one trunk, so a tag cut at the tip can claim another package's work. The commit wanted is the newest one touching the package's own directory - `plugins/<name>` for a plugin, `skills/<name>` for a standalone skill - and `<package-dir>` stands for whichever applies.
+
+**The tag is annotated rather than lightweight, because the message is what a release needs recorded.** A lightweight tag is only a name for a commit. The message opens with `<name> <version>` as its subject line, carries the AI disclaimer beneath it, then says what shipped, then names what breaks where anything does. It is wrapped at 72 columns as a commit body is, and nothing rewraps a tag message afterwards.
+
+```bash
+git fetch origin main                        # origin/main moves on a fetch, never on its own
+git log -1 origin/main -- <package-dir>      # the commit the tag goes on
+git tag -a <name>_<version> <sha>            # no -m: the editor takes the message
+git push origin <name>_<version>
+```
+
+**So a package can carry published versions that no tag names.** *A plugin's `version` field is the release, not a label on one* and the sweep precondition settle it between them: the bump publishes to everyone installed the moment it reaches the trunk, while the tag waits for a sweep that has not run yet. The tag that eventually lands covers every version bumped in that gap at once.
+
 **A hotfix runs the sweep too.** What it does differently is triage: a finding that touches none of the files the hotfix changed is deferred to the next release rather than fixed on that branch, so the fix stays small without the tag ever standing on a package nobody swept.
 
 **This repository creates no GitHub Releases.** Tags here are per-package, and Releases is a repository-level surface: one list, and one "Latest" badge for the whole repository. Promoting per-package tags into it would interleave unrelated packages in date order and badge whichever was tagged last, so someone looking for the current version of one package could be shown another package's tag as the latest thing here.
