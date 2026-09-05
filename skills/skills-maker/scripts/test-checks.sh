@@ -158,10 +158,9 @@ for want in one/skills/review two/skills/review; do
   esac
 done
 
-# The name check. It is a script rather than a documented shell loop because
-# the loop it replaces produced five of this pull request's eleven findings,
-# every one a quoting or word-splitting defect - so the cases that bit are
-# fixtures here instead of prose nobody runs.
+# The name check. Its cases are the ones shell written as prose gets wrong: a
+# missing name, a mismatch, a name whose directory carries glob metacharacters,
+# an empty target's exit code.
 mk .fx/names/good      'name: good\ndescription: |\n  x'
 mk .fx/names/mismatch  'name: something-else\ndescription: |\n  x'
 mk '.fx/names/my [1] skill' 'name: wrong\ndescription: |\n  x'
@@ -197,6 +196,25 @@ nempty="$(node "$here/check-names.js" "$tmp/empty")"; nempty_code=$?
 case "$nempty$nempty_code" in
   *'nothing was checked1') printf 'PASS  names %-16s %s\n' empty-target 'nothing was checked, exit 1' ;;
   *) printf 'FAIL  names %-16s got "%s" exit %s\n' empty-target "$nempty" "$nempty_code"; fail=1 ;;
+esac
+
+# The argument shapes the description check is benched against apply here too,
+# since both read the same walk: a package root is the shape the whole widening
+# was for, and a name check that never saw one proves nothing about it.
+npkg="$(node "$here/check-names.js" "$tmp/.fx/pkg")"; npkg_code=$?
+case "$npkg$npkg_code" in
+  *'2 skill(s) checked, 0 with defects0') printf 'PASS  names %-16s %s\n' package-root 'the skills under a package root' ;;
+  *) printf 'FAIL  names %-16s got "%s" exit %s\n' package-root "$npkg" "$npkg_code"; fail=1 ;;
+esac
+
+# A quoted name and a name carrying a trailing comment both parse to the bare
+# word, so neither is a mismatch.
+mk .fx/scalars/quoted   'name: "quoted"\ndescription: |\n  x'
+mk .fx/scalars/commented 'name: commented # note\ndescription: |\n  x'
+nscal="$(node "$here/check-names.js" "$tmp/.fx/scalars")"; nscal_code=$?
+case "$nscal$nscal_code" in
+  *'2 skill(s) checked, 0 with defects0') printf 'PASS  names %-16s %s\n' yaml-scalars 'quoted and commented names parse first' ;;
+  *) printf 'FAIL  names %-16s got "%s" exit %s\n' yaml-scalars "$nscal" "$nscal_code"; fail=1 ;;
 esac
 
 nself="$(node "$here/check-names.js" "$tmp/good-block")"

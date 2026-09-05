@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(node:*)` and, where present, `Bash(ruby:*)` for the frontmatter checks in `scripts/`, `Bash(bash:*)` for their regression bench, `Glob` to enumerate skills.
 
-The mechanical audit. Run it after writing or editing any skill, and before reviewing one. Every check here takes the same target and finds its skills through `scripts/walk.js`, so one discovery rule serves all of them.
+The mechanical audit. Run it after writing or editing any skill, and before reviewing one. Every check here takes the same target; the node checks find their skills through `scripts/walk.js`, and `scripts/check-differential.rb` carries its own copy of the same rule because it is Ruby and cannot read that file.
 
 ## The description check
 
@@ -19,7 +19,7 @@ Each run ends with a count of what it checked, and checking nothing exits non-ze
 
 **`check-differential.rb`** is the supplement for machines that have Ruby, whose standard library carries a real YAML parser: it parses the frontmatter and compares the parsed description against the raw line, where any difference means a trap fired. Skip it without concern where Ruby is absent, since the sweep covers the same ground heuristically. A YAML parser or linter alone cannot replace the sweep: the silent class is valid YAML, which is exactly its disguise, so a parser returns the corrupted value without complaint. Do not bundle a YAML library or a compiled helper to close that gap: vendored parser code is exactly the unreviewable bulk the security notes in `references/managing.md` warn about, and the differential needs nothing beyond a stdlib.
 
-After editing either check, run `scripts/test-checks.sh`: it generates one fixture per known trap in a temp directory (never shipped as real `SKILL.md` files, which some agents discover recursively) and asserts the checks still catch every one, pass every good form, and fail on a target with no skill under it. It carries the argument shapes too - a package root, package roots side by side, and a directory of symlinks - because every check here reads the one discovery rule, so a change to it moves all of them at once.
+After editing either check, run `scripts/test-checks.sh`: it generates one fixture per known trap in a temp directory (never shipped as real `SKILL.md` files, which some agents discover recursively) and asserts the checks still catch every one, pass every good form, and fail on a target with no skill under it. It carries the argument shapes too - a package root, package roots side by side, and a directory of symlinks - and it runs them against the node checks and the Ruby one alike, which is what catches the two copies of the rule drifting apart.
 
 ## The name check
 
@@ -29,7 +29,7 @@ Every skill's frontmatter `name` must match its own directory, and the same targ
 node scripts/check-names.js ~/.claude/skills
 ```
 
-**It is a script rather than a loop written out here**, because the loop it replaced produced five of the eleven findings on the pull request that added it - a pipe that swallowed an exit code, an empty capture that ran the body once on nothing, and three separate word-splitting and glob defects. Shell in prose gets read; a script gets `scripts/test-checks.sh`, where each of those cases is a fixture.
+**It is a script rather than a loop written out here.** Shell written as prose carries quoting, word-splitting and glob hazards that nothing runs and nothing tests: a pipe swallows an exit code, an empty capture runs the body once on nothing, an unquoted expansion splits a name on its spaces and matches its brackets against the working directory. A script gets `scripts/test-checks.sh`, where each of those is a fixture.
 
 Then, per skill. These are the mechanical faces of the authoring rules in `workflows/new.md`, which owns each rule and its reason; this list carries only what a sweep can look for:
 

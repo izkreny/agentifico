@@ -1,5 +1,7 @@
-// The discovery rule, in one place because every check here reads it and a
-// second copy would drift from this one.
+// The discovery rule for the node checks, which share it here rather than each
+// carrying a copy that could drift. check-differential.rb states the same rule
+// in Ruby, since it cannot read this file; scripts/test-checks.sh runs both
+// against the same fixtures, which is what catches the two drifting apart.
 // A SKILL.md at the target means the target is one skill; otherwise walk down
 // and stop the descent at each SKILL.md found, so a SKILL.md quoted inside a
 // skill is part of that skill rather than a second one. Symlinks are followed

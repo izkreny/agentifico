@@ -10,8 +10,7 @@ const { root, skills: found } = skills(process.argv[2]);
 // can each ship a skill called review.
 const targets = found.map(s => [s.rel || s.name, s.skill]);
 let defects = 0;
-for (const [rel, p] of targets) {
-  const s = rel || path.basename(root);
+for (const [s, p] of targets) {
   const m = fs.readFileSync(p, "utf8").match(/^---\n([\s\S]*?)\n---/);
   const fm = m ? m[1] : "", bad = [];
   const dl = fm.split("\n").filter(l => l.startsWith("description:"));
