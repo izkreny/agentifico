@@ -54,7 +54,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 ## Step 4 - Report
 
-Rank findings by consequence, not by reading order. For each: the file and line, the specific defect, and what it costs when it bites. Propose the fix; apply it only when asked. **Name every skill read, by path**, which is Step 1's reporting requirement at the unit a multi-skill path is measured in.
+Rank findings by consequence, not by reading order. For each: the file and line, the specific defect, and what it costs when it bites. Propose the fix; apply it only when asked. **Name every skill read, by path**, alongside the files Step 1 asks for rather than instead of them: a package's manifest, agents and hooks sit under no skill, so a skill list leaves exactly those unaccounted for.
 
 Separate what is wrong from what is merely different. A skill written in a style you would not choose is not defective, and expectations tier to the skill's size: a single-file skill needs no `workflows/` or `references/`, and the absence of structure it does not need is not a finding.
 
