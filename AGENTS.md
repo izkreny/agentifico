@@ -42,7 +42,7 @@ The package axis is also the repository's label axis, which `.agents/gh-solo.md`
 
 **The tag is cut by hand, once that package's sweep issue is closed, and never as part of a branch's merge.** `gh stack merge` and an ordinary squash merge both land code and neither tags anything, so cutting the tag is a separate act, at a moment of its own: the version it names is one the trunk already carries.
 
-**It goes on that package's own last squash commit, which is not the trunk tip.** A tag cut at the tip would claim every other package's work that landed since, and this repository ships several packages onto one trunk. The commit wanted is the newest one touching the package's own directory - `plugins/<name>` for a plugin, `skills/<name>` for a standalone skill.
+**It goes on that package's own last squash commit, which is the trunk tip only when nothing has landed since.** This repository ships several packages onto one trunk, so a tag cut at the tip can claim another package's work. The commit wanted is the newest one touching the package's own directory - `plugins/<name>` for a plugin, `skills/<name>` for a standalone skill.
 
 **The tag is annotated rather than lightweight, because the message is what a release needs recorded.** A lightweight tag is only a name for a commit. The message opens with `<name> <version>` as its subject line, carries the AI disclaimer beneath it, then says what shipped, then names what breaks where anything does. It is wrapped at 72 columns as a commit body is, and nothing rewraps a tag message afterwards.
 
@@ -52,7 +52,7 @@ git tag -a gh-solo_4.7.0 <sha>              # no -m: the editor takes the messag
 git push origin gh-solo_4.7.0
 ```
 
-**So a package can carry published versions that no tag names.** *A plugin's `version` field is the release, not a label on one* and the sweep precondition settle it between them: the bump publishes to everyone installed the moment it reaches the trunk, while the tag waits for a sweep that has not run yet. Every version bumped in that gap is fetchable and unnamed here, and the tag that eventually lands covers all of them at once.
+**So a package can carry published versions that no tag names.** *A plugin's `version` field is the release, not a label on one* and the sweep precondition settle it between them: the bump publishes to everyone installed the moment it reaches the trunk, while the tag waits for a sweep that has not run yet. The tag that eventually lands covers every version bumped in that gap at once.
 
 **A hotfix runs the sweep too.** What it does differently is triage: a finding that touches none of the files the hotfix changed is deferred to the next release rather than fixed on that branch, so the fix stays small without the tag ever standing on a package nobody swept.
 
