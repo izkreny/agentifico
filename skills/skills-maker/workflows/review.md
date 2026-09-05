@@ -2,9 +2,17 @@
 
 Review an existing skill. Find what is wrong and name the specific defect; agreement is not the output being asked for.
 
-## Step 1 - Read the whole skill
+## Step 1 - Read the whole target
 
 Read every file in the skill's directory, whatever the layout: `SKILL.md`, what it routes to under `workflows/` and `references/`, what it runs from `scripts/`, the `README.md` written for humans, and any directory the author added beyond the conventions, since the spec allows arbitrary files and a defect does not care which folder it sits in. A defect in a routing skill is usually a contradiction between two files rather than a flaw in one, and it is invisible if only one was read; a script disagreeing with the doc that invokes it is the same defect in executable form.
+
+**The path may be a package root rather than one skill.** A plugin's skills sit at `<root>/skills/`, and a whole-package sweep is what a release tag asserts, so `review` takes the root and reads what is under it. `workflows/check.md` states the argument shapes; the scope rules below are this file's own.
+
+**Everything under the root is in scope, not only the files under its skills.** A package's manifest, its agents, its hooks and its own `README.md` belong to no skill, and nothing else ever reads them whole: a branch review reads a diff, so a file no branch has touched since it was written is read by nobody. That residue is exactly where a sweep earns its cost.
+
+**Reachability is by walking the tree, never by following references out of the skills.** Following references is the plausible design and it misses the files that matter most: a plugin's agent definition is spawned by name at runtime and cited by path in no skill under it, so a reference-following scope skips the agent every review round runs.
+
+**Report which files were read.** Without it, a run that covered part of a package and a run that covered all of it produce the same shape of output, and the tag's whole claim is that nothing was missed.
 
 ## Step 2 - Run the mechanical check
 

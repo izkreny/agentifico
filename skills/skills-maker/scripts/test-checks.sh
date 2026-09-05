@@ -147,6 +147,16 @@ shape symlink-dir   "$tmp/.fx/linked" '2 skill(s) checked, 0 with defects0' '2 s
 # The name a package root reports is the path relative to the target: two
 # plugins can each ship a skill called review, and bare names cannot tell them
 # apart.
+# --list is the discovery rule on its own, so the name check in the workflow
+# reuses it instead of walking the tree a second time.
+listed="$(node "$here/check-descriptions.js" --list "$tmp/.fx/pkg")"
+if [ "$listed" = "skills/alpha
+skills/beta" ]; then
+  printf 'PASS  sweep %-14s %s\n' list-flag 'paths only, one per line'
+else
+  printf 'FAIL  sweep %-14s got "%s"\n' list-flag "$listed"; fail=1
+fi
+
 names="$(node "$here/check-descriptions.js" "$tmp/.fx/many")"
 for want in one/skills/review two/skills/review; do
   case "$names" in

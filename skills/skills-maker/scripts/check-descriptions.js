@@ -1,10 +1,15 @@
 // Raw-line sweep over every skill's frontmatter description.
-// Usage: node check-descriptions.js [target]   (defaults to the current directory)
+// Usage: node check-descriptions.js [--list] [target]   (target defaults to the current directory)
 // The target is one skill's own directory, a directory of skills, or a package
 // root whose skills sit further down - a plugin's at <root>/skills/.
+// --list prints the skills the walk found, one relative path per line, and
+// checks nothing: it is how anything else reuses this discovery rule instead of
+// writing a second walk that can drift from it.
 // A real YAML parser cannot replace this: the silent traps are valid YAML.
 const fs = require("fs"), path = require("path");
-process.chdir(process.argv[2] || ".");
+const args = process.argv.slice(2);
+const listOnly = args[0] === "--list";
+process.chdir((listOnly ? args[1] : args[0]) || ".");
 const root = process.cwd();
 // One discovery rule: a SKILL.md here means this directory is a skill, and
 // otherwise walk down. Symlinks are followed because an agent's own skills
@@ -31,6 +36,11 @@ collect(".", dirs, new Set());
 // The name is the path relative to the target, not the basename: two plugins
 // can each ship a skill called review.
 const targets = dirs.map(d => [path.relative(".", d) || path.basename(root), path.join(d, "SKILL.md")]);
+if (listOnly) {
+  for (const [s] of targets) console.log(s);
+  process.exitCode = targets.length ? 0 : 1;
+  return;
+}
 let defects = 0;
 for (const [s, p] of targets) {
   const m = fs.readFileSync(p, "utf8").match(/^---\n([\s\S]*?)\n---/);
