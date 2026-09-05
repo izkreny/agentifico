@@ -13,11 +13,10 @@
 // parser. A real one - remark, or any mdast producer - would give listItem
 // nodes whose paragraph children could simply be counted, and would need none
 // of the content-column arithmetic, fence tracking or frontmatter skipping
-// here. It is hand-rolled only because this skill has so far shipped with no
-// dependency beyond Node, and #101 is where that constraint is being lifted;
-// until it lands, what the approximation costs is written as fixtures rather
-// than claimed here, so a shape it decides wrongly is a fixture nobody has
-// written yet.
+// here. It is hand-rolled because this skill ships with no dependency beyond
+// Node, and what the approximation costs is written as fixtures rather than
+// claimed here, so a shape it decides wrongly is a fixture nobody has written
+// yet.
 const fs = require("fs"), path = require("path");
 const { skills } = require("./walk.js");
 

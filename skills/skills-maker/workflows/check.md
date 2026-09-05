@@ -44,7 +44,7 @@ Then, per skill. These are the mechanical faces of the authoring rules in `workf
 
 ## The continuation check
 
-A list item carries at most one continuation paragraph, and a continuation opening with a bolded lead-in is over that cap whatever its count; `workflows/new.md` owns the rule and its reason. The target is the one *The description check* states, and every markdown file under a skill is read rather than its `SKILL.md` alone, since a rule about prose applies wherever the skill keeps prose:
+`workflows/new.md` owns the rule on continuation paragraphs under a list item, and its reason; this check is its mechanical face. The target is the one *The description check* states, and every markdown file under a skill is read rather than its `SKILL.md` alone, since a rule about prose applies wherever the skill keeps prose:
 
 ```bash
 node scripts/check-continuations.js ~/.claude/skills
