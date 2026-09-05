@@ -41,6 +41,7 @@ Then, per skill. These are the mechanical faces of the authoring rules in `workf
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
 - **Line lengths.** Body prose is one line per paragraph, unwrapped. Fenced code, tables and frontmatter keep their own structure.
 - **Portable paths.** Nothing absolute to one machine's home directory; skill-relative or `~/`-relative instead.
+- **Continuation paragraphs under a list item.** `^  \*\*` catches a bolded continuation under a bullet and `^   \*\*` one under a numbered item, and their unbolded equivalents count how many paragraphs an item carries; the grep cannot decide whether the item has a heading level free to take the promotion, and it matches a frontmatter block scalar and an indented code fence, neither of which is a continuation.
 
 ## Reporting
 
