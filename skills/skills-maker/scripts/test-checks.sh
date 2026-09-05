@@ -243,6 +243,9 @@ cdoc c-table    '1. **one.** its lead\n\n| a | b |\n|---|---|\n| c | d |\n\n   a
 cdoc c-nested   '- **outer.** its lead\n\n  - **inner.** a nested item at the parent content column\n\n  the reason\n\n  a second paragraph\n\n  **a bolded third.** which must still be seen\n'
 cdoc c-nested4  '- **outer.** its lead\n\n    - nested a\n    - nested b\n\n  the one continuation\n'
 cdoc c-nestedown '- **outer.** its lead\n\n  - **inner.** a nested item\n\n    the nested item'"'"'s own paragraph\n\n  the parent'"'"'s one continuation\n'
+cdoc c-fencechar  '- **lead.** first\n\n  ````\n  ~~~~\n  para a\n\n  para b\n  ````\n\n  the one continuation\n'
+cdoc c-fencelen   '- **lead.** first\n\n  ````\n  ```\n  para a\n\n  para b\n  ````\n\n  the one continuation\n'
+cdoc c-fencealone '- **lead.** first\n\n  ````\n  ```` trailing text\n  para a\n\n  para b\n  ````\n\n  the one continuation\n'
 
 cexpect() {
   got="$(node "$here/check-continuations.js" "$tmp/.fx/cont/$1" 2>&1)"
@@ -262,6 +265,9 @@ cexpect c-table   '1 skill(s) checked, 0 with defects'  'a column-0 table ends t
 cexpect c-nested  '3 continuation paragraphs, cap is 1' 'the scan resumes after a nested item rather than going blind'
 cexpect c-nested4 '1 skill(s) checked, 0 with defects'  'four-space nested items are items, not the parent paragraphs'
 cexpect c-nestedown '1 skill(s) checked, 0 with defects' 'a nested item keeps its own paragraphs, the parent does not count them'
+cexpect c-fencechar  '1 skill(s) checked, 0 with defects' 'a run of the other fence character does not close a fence'
+cexpect c-fencelen   '1 skill(s) checked, 0 with defects' 'a shorter run does not close a fence'
+cexpect c-fencealone '1 skill(s) checked, 0 with defects' 'a closer with trailing text does not close a fence'
 
 # What the frontmatter skip protects against is a YAML sequence item, `- Read`
 # under `allowed-tools:`, claiming the body below it as its continuations. A
@@ -294,6 +300,11 @@ mkdir -p .fx/cont/c-ext
 printf -- '---\nname: c-ext\ndescription: |\n  x\n---\nbody\n' > .fx/cont/c-ext/SKILL.md
 printf -- '- **lead.** first\n\n  the reason\n\n  a second paragraph\n' > .fx/cont/c-ext/notes.txt
 cexpect c-ext '1 skill(s) checked, 0 with defects' 'a non-markdown file is not prose the rule reaches'
+
+mkdir -p .fx/cont/c-dot/.hidden
+printf -- '---\nname: c-dot\ndescription: |\n  x\n---\nbody\n' > .fx/cont/c-dot/SKILL.md
+printf -- '- **lead.** first\n\n  the reason\n\n  a second paragraph\n' > .fx/cont/c-dot/.hidden/w.md
+cexpect c-dot '1 skill(s) checked, 0 with defects' 'a dot-directory is skipped, as in the walk'
 
 [ "$fail" -eq 0 ] && echo 'ALL CHECKS VERIFIED' || echo 'BENCH FAILED'
 exit "$fail"
