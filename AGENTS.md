@@ -42,13 +42,13 @@ The package axis is also the repository's label axis, which `.agents/gh-solo.md`
 
 **The tag is cut by hand, once that package's sweep issue is closed, and never as part of a branch's merge.** `gh stack merge` and an ordinary squash merge both land code and neither tags anything, so cutting the tag is a separate act, at a moment of its own: the version it names is one the trunk already carries.
 
-**It goes on that package's own last squash commit, which is the trunk tip only when nothing has landed since.** This repository ships several packages onto one trunk, so a tag cut at the tip can claim another package's work. The commit wanted is the newest one touching the package's own directory - `plugins/<name>` for a plugin, `skills/<name>` for a standalone skill.
+**It goes on that package's own last squash commit, which is the trunk tip only when nothing has landed since.** This repository ships several packages onto one trunk, so a tag cut at the tip can claim another package's work. The commit wanted is the newest one touching the package's own directory, which the block below calls `<package-dir>`: `plugins/<name>` for a plugin, `skills/<name>` for a standalone skill.
 
 **The tag is annotated rather than lightweight, because the message is what a release needs recorded.** A lightweight tag is only a name for a commit. The message opens with `<name> <version>` as its subject line, carries the AI disclaimer beneath it, then says what shipped, then names what breaks where anything does. It is wrapped at 72 columns as a commit body is, and nothing rewraps a tag message afterwards.
 
 ```bash
 git fetch origin main                        # origin/main moves on a fetch, never on its own
-git log -1 origin/main -- plugins/<name>     # the commit the tag goes on
+git log -1 origin/main -- <package-dir>      # the commit the tag goes on
 git tag -a <name>_<version> <sha>            # no -m: the editor takes the message
 git push origin <name>_<version>
 ```
