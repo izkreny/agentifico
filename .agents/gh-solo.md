@@ -120,6 +120,8 @@ gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -lab
 
 **The sweep is its own issue, one per package, and it must have run before that package's `<name>_<version>` tag is cut**, carrying that package's own label. Open is not run: an issue nobody has worked is a review nobody has done, and a tag over one asserts something untrue, which is the whole thing a tag is for here. A release is when the whole file matters, and a trigger tied to one fires where a habit does not.
 
+**Where a package's work is an epic, that sweep issue is the epic's last child**, per *How a package is released* in `AGENTS.md`, which owns the rule and the reason.
+
 **The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
 
 ## An epic child's blocker is its stack parent, not a wait
