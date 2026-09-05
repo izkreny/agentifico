@@ -47,9 +47,10 @@ The package axis is also the repository's label axis, which `.agents/gh-solo.md`
 **The tag is annotated rather than lightweight, because the message is what a release needs recorded.** A lightweight tag is only a name for a commit. The message opens with `<name> <version>` as its subject line, carries the AI disclaimer beneath it, then says what shipped, then names what breaks where anything does. It is wrapped at 72 columns as a commit body is, and nothing rewraps a tag message afterwards.
 
 ```bash
-git log -1 origin/main -- plugins/gh-solo   # the commit the tag goes on
-git tag -a gh-solo_4.7.0 <sha>              # no -m: the editor takes the message
-git push origin gh-solo_4.7.0
+git fetch origin main                        # origin/main moves on a fetch, never on its own
+git log -1 origin/main -- plugins/<name>     # the commit the tag goes on
+git tag -a <name>_<version> <sha>            # no -m: the editor takes the message
+git push origin <name>_<version>
 ```
 
 **So a package can carry published versions that no tag names.** *A plugin's `version` field is the release, not a label on one* and the sweep precondition settle it between them: the bump publishes to everyone installed the moment it reaches the trunk, while the tag waits for a sweep that has not run yet. The tag that eventually lands covers every version bumped in that gap at once.
