@@ -41,7 +41,18 @@ Then, per skill. These are the mechanical faces of the authoring rules in `workf
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
 - **Line lengths.** Body prose is one line per paragraph, unwrapped. Fenced code, tables and frontmatter keep their own structure.
 - **Portable paths.** Nothing absolute to one machine's home directory; skill-relative or `~/`-relative instead.
-- **Continuation paragraphs under a list item.** `^  \*\*` and `^  [A-Za-z]` catch a continuation under a `- item`, `^   \*\*` and `^   [A-Za-z]` one under a `1. item`, the bolded pair finding the shape breach and the unbolded pair counting how many paragraphs an item carries. Each pattern fixes its indent at one width, so a continuation indented wider is missed - legal under `-   item`, under a nested bullet and under a two-digit ordinal - and `[A-Za-z]` misses one opening with a backtick, a digit or a bracket, an anchor kept narrow deliberately because widening it to `[^ *+-]` was measured at 356 matches against 47 across this repository's own `skills/` and `plugins/`. The unbolded pair matches a frontmatter block scalar and the body lines of any code fence whose contents are indented, its opener at column 0 or indented alike, which is the larger source of matches here; whether the item has a heading level free to be promoted to is a judgement no grep makes.
+
+## The continuation check
+
+A list item carries at most one continuation paragraph, and a continuation opening with a bolded lead-in is over that cap whatever its count; `workflows/new.md` owns the rule and its reason. The target is the same as above, and every markdown file under a skill is read rather than its `SKILL.md` alone, since a rule about prose applies wherever the skill keeps prose:
+
+```bash
+node scripts/check-continuations.js ~/.claude/skills
+```
+
+**It is a script rather than a grep, for the reason the name check is one, and the evidence is sharper here.** A pattern written as prose has to disclaim its indent width, its leading character, a frontmatter sequence and a fenced body, and every one of those disclaimers is a claim nothing runs; each is a branch of this script instead, with a fixture in `scripts/test-checks.sh` that was watched failing before the branch was trusted.
+
+**What it cannot decide is whether the item has a heading level free to be promoted to.** That is the judgement `workflows/new.md` leaves with the writer, so a report from this check names the item and the writer chooses between promoting it and unindenting it.
 
 ## Reporting
 
