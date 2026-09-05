@@ -55,12 +55,12 @@ The criterion that `check` accepts the same shapes as `review` reaches more than
 
 ## Verification
 
-- [ ] `bash skills/skills-maker/scripts/test-checks.sh` - the bench, which owns the package-root and symlink shapes.
-- [ ] `node skills/skills-maker/scripts/check-descriptions.js skills/skills-maker` - the one-skill shape still behaves as it did.
-- [ ] `ruby skills/skills-maker/scripts/check-differential.rb skills/skills-maker` - the same, in the differential.
-- [ ] `node skills/skills-maker/scripts/check-descriptions.js plugins/gh-solo` - the shape this issue exists for, against a real package.
-- [ ] The docs-check command `.agents/gh-solo.md` states, run unpiped with its exit code read.
-- [ ] `python3 scripts/version-check.py`.
+- `bash skills/skills-maker/scripts/test-checks.sh` - the bench, which owns the package-root and symlink shapes.
+- `node skills/skills-maker/scripts/check-descriptions.js skills/skills-maker` - the one-skill shape still behaves as it did.
+- `ruby skills/skills-maker/scripts/check-differential.rb skills/skills-maker` - the same, in the differential.
+- `node skills/skills-maker/scripts/check-descriptions.js plugins/gh-solo` - the shape this issue exists for, against a real package.
+- The docs-check command `.agents/gh-solo.md` states, run unpiped with its exit code read.
+- `python3 scripts/version-check.py`.
 
 **What these gates cannot see.** `skills/` is deliberately not a docs-check target, per `.agents/gh-solo.md`, so nothing mechanical reads the prose this branch adds to `skills/skills-maker/workflows/review.md` or `skills/skills-maker/workflows/check.md`. Whether the walk rule reads as a rule, whether `AGENTS.md`'s collapsed sentence still says what a plugin sweep covers, and whether the residue paragraph earns its length are the owner's judgement. `python3 scripts/manifest-check.py` is not owed: no manifest changes.
 
