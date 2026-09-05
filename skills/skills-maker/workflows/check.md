@@ -44,13 +44,11 @@ Then, per skill. These are the mechanical faces of the authoring rules in `workf
 
 ## The continuation check
 
-A list item carries at most one continuation paragraph, and a continuation opening with a bolded lead-in is over that cap whatever its count; `workflows/new.md` owns the rule and its reason. The target is the same as above, and every markdown file under a skill is read rather than its `SKILL.md` alone, since a rule about prose applies wherever the skill keeps prose:
+A list item carries at most one continuation paragraph, and a continuation opening with a bolded lead-in is over that cap whatever its count; `workflows/new.md` owns the rule and its reason. The target is the one *The description check* states, and every markdown file under a skill is read rather than its `SKILL.md` alone, since a rule about prose applies wherever the skill keeps prose:
 
 ```bash
 node scripts/check-continuations.js ~/.claude/skills
 ```
-
-**It is a script rather than a grep, for the reason the name check is one, and the evidence is sharper here.** A pattern written as prose has to disclaim its indent width, its leading character, a frontmatter sequence and a fenced body, and every one of those disclaimers is a claim nothing runs; each is a branch of this script instead, with a fixture in `scripts/test-checks.sh` that was watched failing before the branch was trusted.
 
 **What it cannot decide is whether the item has a heading level free to be promoted to.** That is the judgement `workflows/new.md` leaves with the writer, so a report from this check names the item and the writer chooses between promoting it and unindenting it.
 

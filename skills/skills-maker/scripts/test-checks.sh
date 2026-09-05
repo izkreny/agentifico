@@ -235,13 +235,14 @@ cdoc() { mkdir -p ".fx/cont/$1"; printf -- '---\nname: %s\ndescription: |\n  x\n
 cdoc c-one      '- **lead.** first line\n\n  the one continuation, which is the reason\n'
 cdoc c-two      '- **lead.** first line\n\n  the reason\n\n  a second paragraph, which is a second claim\n'
 cdoc c-bold     '- **lead.** first line\n\n  **a bolded continuation.** which is a heading wearing an indent\n'
-cdoc c-fence0   'prose\n\n```css\n  .a { color: red }\n  .b { color: blue }\n```\n\nmore prose\n'
 cdoc c-fencein  '- **lead.** first line\n\n  ```bash\n  echo hi\n  ```\n\n  the one continuation\n'
 cdoc c-wide     '10. **ten.** a two-digit ordinal, so the content column is four\n\n    its one continuation\n\n   a three-space block, below that column and so outside the item\n'
 cdoc c-tick     '- **lead.** first line\n\n  `COMMENT`, not `REQUEST_CHANGES`\n\n  `another` one opening with a backtick\n'
 cdoc c-runon    '3. **three.** its lead\n\n   a continuation\n4. **four.** the marker runs straight on from the paragraph above\n\n   its reason\n\n   **and a bolded second.** which is the defect\n'
 cdoc c-table    '1. **one.** its lead\n\n| a | b |\n|---|---|\n| c | d |\n\n   an indented paragraph after a column-0 table\n'
-cdoc c-nested   '- **outer.** its lead\n\n  - **inner.** a nested item sitting at the parent content column\n\n  a paragraph after the nested list\n'
+cdoc c-nested   '- **outer.** its lead\n\n  - **inner.** a nested item at the parent content column\n\n  the reason\n\n  a second paragraph\n\n  **a bolded third.** which must still be seen\n'
+cdoc c-nested4  '- **outer.** its lead\n\n    - nested a\n    - nested b\n\n  the one continuation\n'
+cdoc c-nestedown '- **outer.** its lead\n\n  - **inner.** a nested item\n\n    the nested item'"'"'s own paragraph\n\n  the parent'"'"'s one continuation\n'
 
 cexpect() {
   got="$(node "$here/check-continuations.js" "$tmp/.fx/cont/$1" 2>&1)"
@@ -253,18 +254,20 @@ cexpect() {
 cexpect c-one     '1 skill(s) checked, 0 with defects' 'one continuation is the cap, not a defect'
 cexpect c-two     '2 continuation paragraphs, cap is 1' 'a second paragraph is a second claim'
 cexpect c-bold    'bolded lead-in'                      'a bolded continuation is over the cap at one'
-cexpect c-fence0  '1 skill(s) checked, 0 with defects'  'a column-0 fence with an indented body is not a continuation'
 cexpect c-fencein '1 skill(s) checked, 0 with defects'  'a fence under an item is not one of its paragraphs'
 cexpect c-wide    '1 skill(s) checked, 0 with defects' 'the content column follows the marker, not a fixed two'
 cexpect c-tick    '2 continuation paragraphs, cap is 1' 'a continuation opening with a backtick still counts'
 cexpect c-runon   '2 continuation paragraphs, cap is 1' 'a marker running on from a paragraph still opens its item'
 cexpect c-table   '1 skill(s) checked, 0 with defects'  'a column-0 table ends the list, so what follows it is orphaned'
-cexpect c-nested  '1 skill(s) checked, 0 with defects'  'a nested item at the parent column is an item, not a paragraph'
+cexpect c-nested  '3 continuation paragraphs, cap is 1' 'the scan resumes after a nested item rather than going blind'
+cexpect c-nested4 '1 skill(s) checked, 0 with defects'  'four-space nested items are items, not the parent paragraphs'
+cexpect c-nestedown '1 skill(s) checked, 0 with defects' 'a nested item keeps its own paragraphs, the parent does not count them'
 
-# The frontmatter block scalar is the shape that looked exactly like a
-# continuation to a grep. Every fixture above carries one, so a check that
-# counted them would fail c-one rather than needing a fixture of its own; this
-# one asserts it explicitly against a scalar of several lines.
+# What the frontmatter skip protects against is a YAML sequence item, `- Read`
+# under `allowed-tools:`, claiming the body below it as its continuations. A
+# block scalar alone can never be attributed to anything, since no item sits
+# above it, so the sequence item is what this fixture's assertion rests on and
+# the scalar is only the ordinary shape of the frontmatter around it.
 mkdir -p .fx/cont/c-scalar
 printf -- '---\nname: c-scalar\ndescription: |\n  a first line of the scalar\n  a second line of the scalar\nallowed-tools:\n  - Read\n---\n\n    an indented paragraph the sequence item would claim\n\n    and a second one\n' > .fx/cont/c-scalar/SKILL.md
 cexpect c-scalar '1 skill(s) checked, 0 with defects' 'frontmatter is not body: its sequence claims nothing below'

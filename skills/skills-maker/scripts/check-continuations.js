@@ -90,12 +90,20 @@ function defects(file, text) {
     const item = bs[i];
     if (item.content === null) continue;
     const conts = [];
+    let nested = null;
     for (let j = i + 1; j < bs.length; j++) {
       const b = bs[j];
-      // A block below the content column has left the item; a marker at or
-      // above it is the next item rather than this one's continuation.
+      // A block below the content column has left the item. A sibling marker
+      // sits below it too, so this one test ends the item either way.
       if (b.indent < item.content) break;
-      if (b.content !== null && b.indent <= item.content) break;
+      // A marker at or beyond the content column is a nested item: inside the
+      // parent, so it neither ends the scan nor counts as a paragraph, and the
+      // blocks at or beyond its own content column are its rather than the
+      // parent's. The parent's scan resumes on the first block that comes
+      // back out below that column.
+      if (nested && b.indent >= nested.content) continue;
+      nested = null;
+      if (b.content !== null) { nested = b; continue; }
       conts.push(b);
     }
     for (const c of conts) if (c.bold) found.push({ line: c.line, why: "continuation opens with a bolded lead-in", file });
@@ -104,28 +112,22 @@ function defects(file, text) {
   return found;
 }
 
-// Requirable so the bench can drive the parser directly, which is what lets a
-// fixture assert where a block starts rather than only what the sweep printed.
-module.exports = { blocks, defects };
-
-if (require.main === module) {
-  const { root, skills: list } = skills(process.argv[2]);
-  let bad = 0;
-  for (const s of list) {
-    const files = [];
-    markdown(s.dir, files);
-    const found = [];
-    for (const f of files) found.push(...defects(path.relative(s.dir, f), fs.readFileSync(f, "utf8")));
-    const label = s.rel || ".";
-    if (found.length) {
-      bad++;
-      for (const d of found) console.log(label.padEnd(30) + "  " + d.file + ":" + d.line + "  " + d.why);
-    }
+const { root, skills: list } = skills(process.argv[2]);
+let bad = 0;
+for (const s of list) {
+  const files = [];
+  markdown(s.dir, files);
+  const found = [];
+  for (const f of files) found.push(...defects(path.relative(s.dir, f), fs.readFileSync(f, "utf8")));
+  const label = s.rel || ".";
+  if (found.length) {
+    bad++;
+    for (const d of found) console.log(label.padEnd(30) + "  " + d.file + ":" + d.line + "  " + d.why);
   }
-  // Checking nothing is a failure, for the same reason as in the sibling sweeps:
-  // a target with no skill under it is a wrong target, and its silence reads
-  // exactly like a clean sweep.
-  if (!list.length) console.log("no SKILL.md found in " + root + ": nothing was checked");
-  else console.log(list.length + " skill(s) checked, " + bad + " with defects");
-  process.exitCode = (bad || !list.length) ? 1 : 0;
 }
+// Checking nothing is a failure, for the same reason as in the sibling sweeps:
+// a target with no skill under it is a wrong target, and its silence reads
+// exactly like a clean sweep.
+if (!list.length) console.log("no SKILL.md found in " + root + ": nothing was checked");
+else console.log(list.length + " skill(s) checked, " + bad + " with defects");
+process.exitCode = (bad || !list.length) ? 1 : 0;
