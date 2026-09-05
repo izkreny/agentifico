@@ -211,9 +211,11 @@ esac
 # word, so neither is a mismatch.
 mk .fx/scalars/quoted   'name: "quoted"\ndescription: |\n  x'
 mk .fx/scalars/commented 'name: commented # note\ndescription: |\n  x'
+mk .fx/scalars/twospace  'name: twospace  # two spaces before the comment\ndescription: |\n  x'
+mk .fx/scalars/quotecom  'name: "quotecom" # a quoted value ends at its own quote\ndescription: |\n  x'
 nscal="$(node "$here/check-names.js" "$tmp/.fx/scalars")"; nscal_code=$?
 case "$nscal$nscal_code" in
-  *'2 skill(s) checked, 0 with defects0') printf 'PASS  names %-16s %s\n' yaml-scalars 'quoted and commented names parse first' ;;
+  *'4 skill(s) checked, 0 with defects0') printf 'PASS  names %-16s %s\n' yaml-scalars 'quoted and commented names parse first' ;;
   *) printf 'FAIL  names %-16s got "%s" exit %s\n' yaml-scalars "$nscal" "$nscal_code"; fail=1 ;;
 esac
 
