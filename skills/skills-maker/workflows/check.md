@@ -6,7 +6,7 @@ The mechanical audit. Run it after writing or editing any skill, and before revi
 
 This is the one that matters, because its failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap it tests was watched failing in a real YAML parser before it earned its place; `scripts/test-checks.sh` re-runs that evidence on demand.
 
-The checks live as files under this skill's `scripts/`. The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory:
+The checks live as files under this skill's `scripts/`. The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory. How a review reads a target covering more than one skill is `workflows/review.md` Step 1's:
 
 ```bash
 node scripts/check-descriptions.js ~/.claude/skills

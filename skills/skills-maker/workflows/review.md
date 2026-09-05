@@ -12,6 +12,14 @@ Read every file in the skill's directory, whatever the layout: `SKILL.md`, what 
 
 **Find them by walking the tree, never by following references out of the skills.** A plugin's agent is spawned by name at runtime and cited by path in no skill under it.
 
+**A path covering more than one skill is read inline, as one document, in one pass.** Never a subagent per skill.
+
+**What a fan-out cannot see is the reason**: a contradiction that spans two skills, and a cross-reference from one skill to a rule another skill removed. The same argument is already made one level down, where a routing skill's defect is usually a contradiction between two files rather than a flaw in one; across skills it is the same blindness, and in a plugin it is the class that matters most, because the skills cite each other by path.
+
+**A path that is one skill's own directory behaves exactly as it does today**, and Step 5's resumed reviewer is a different act on a different question, so neither is what this rule forbids.
+
+**A reader who cannot hold the whole set says where it ran thin, by skill.** Reading several skills whole is what makes the cross-skill question answerable and it is also what runs a session low, so the honest answer is to name the shortfall rather than finish quietly on a shallow read of whatever came last.
+
 **Report which files were read**, so a run that covered part of a package is distinguishable from one that covered all of it.
 
 ## Step 2 - Run the mechanical check
@@ -44,7 +52,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 ## Step 4 - Report
 
-Rank findings by consequence, not by reading order. For each: the file and line, the specific defect, and what it costs when it bites. Propose the fix; apply it only when asked.
+Rank findings by consequence, not by reading order. For each: the file and line, the specific defect, and what it costs when it bites. Propose the fix; apply it only when asked. **Name every skill read, by path**, so a run that covered part of a multi-skill path is distinguishable from one that covered all of it.
 
 Separate what is wrong from what is merely different. A skill written in a style you would not choose is not defective, and expectations tier to the skill's size: a single-file skill needs no `workflows/` or `references/`, and the absence of structure it does not need is not a finding.
 
