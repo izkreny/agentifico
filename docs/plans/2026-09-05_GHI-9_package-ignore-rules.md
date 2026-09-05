@@ -8,13 +8,13 @@ Independent of every open branch: one file changes, it is repository-level, and 
 
 ## The rule follows from a sentence the section already carries
 
-`## Each plugin, and each skill under `skills/`, is a package` already establishes that every path outside a `plugins/<name>/` or `skills/<name>/` directory is repository-level. Once that holds, where an ignore rule belongs is not a fresh decision: an ignore rule is a fact about one package's tooling, so putting it at a repository-level path would state one package's business where the repository states its own. The new prose therefore uses `repository-level` as the term that section defines, rather than re-deriving it - a second copy of that sentence is exactly what the issue's fifth criterion bars.
+*Each plugin, and each skill under `skills/`, is a package* already establishes that every path outside a `plugins/<name>/` or `skills/<name>/` directory is repository-level. Once that holds, where an ignore rule belongs is not a fresh decision: an ignore rule is a fact about one package's tooling, so putting it at a repository-level path would state one package's business where the repository states its own. The new prose therefore uses `repository-level` as the term that section defines, rather than re-deriving it: a second copy of a sentence in the same section is one that can drift from the sentence that owns it.
 
 ## One paragraph, in the package section
 
-It goes in `## Each plugin, and each skill under `skills/`, is a package` rather than in a section of its own: the rule is a consequence of the package model, and a heading for one paragraph would suggest the topic is bigger than it is. The paragraph carries all three cases the issue asks for - the package's own file, what a root file would be for, and the tool that ignores itself - because they are one rule read at three scopes rather than three rules.
+It goes in *Each plugin, and each skill under `skills/`, is a package* rather than in a section of its own: the rule is a consequence of the package model, and a heading for one paragraph would suggest the topic is bigger than it is. The paragraph carries all three cases the issue asks for - the package's own file, what a root file would be for, and the tool that ignores itself - because they are one rule read at three scopes rather than three rules.
 
-**No root `.gitignore` is created.** Nothing in the tree belongs to no package: `.ruby-lsp/` writes its own `.gitignore` containing `*`, and the scripts under `scripts/` are invoked rather than imported, so they leave no bytecode cache. The prose says what a root file is *for* without claiming one exists.
+**No root `.gitignore` is created.** Nothing in the tree belongs to no package: ruby-lsp's own directory writes a `.gitignore` containing `*` and ignores itself, and the scripts under `scripts/` are invoked rather than imported, so they leave no bytecode cache. The prose says what a root file is *for* without claiming one exists.
 
 ## A correction the issue owes
 
@@ -22,7 +22,7 @@ Its criterion reads `git ls-files --ignored --exclude-standard`, which exits 128
 
 ## Steps
 
-- Add the rule to `## Each plugin, and each skill under `skills/`, is a package` in `AGENTS.md`, as one paragraph: a package's build artifacts are ignored by a `.gitignore` in that package's own directory, because an ignore rule is a fact about that package's tooling and a root file would state it at a repository-level path.
+- Add the rule to *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`, as one paragraph: a package's build artifacts are ignored by a `.gitignore` in that package's own directory, because an ignore rule is a fact about that package's tooling and a root file would state it at a repository-level path.
 - Say in the same paragraph what a root `.gitignore` is for - an artifact belonging to no package - without enumerating what one would hold.
 - Say that a tool writing its own self-ignoring `.gitignore` needs no entry anywhere else.
 - Name `plugins/gh-solo/skills/pr-flow/scripts/.gitignore` as the instance, and what produces the artifact it covers.
