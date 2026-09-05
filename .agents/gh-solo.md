@@ -134,6 +134,12 @@ gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -lab
 
 **Never clear the relation to get past the stop.** `blockedBy` is what records the stack's order, and removing it to satisfy a gate destroys the only typed record of which branch sits under which.
 
-## What is deliberately not here
+## The commit header format
 
-No branch `{type}` vocabulary, because the plugin's own is what this repository uses.
+No branch `{type}` vocabulary is recorded here, because the plugin's own is what this repository uses.
+
+**A branch commit here carries its package label as a scope**, `fix(gh-solo): the description (#63)` and `docs(repo): the description (#84)`, where *Branch and commit type* in `plugins/gh-solo/skills/tracker/references/formats.md` leaves the header at `{type}: {description} (#{issue-number})`. That is an override under *Repository-specific conventions live in the repository* in `plugins/gh-solo/skills/pr-flow/SKILL.md`, not a second opinion about the plugin's rule.
+
+**The ban's reasons do not decide it here.** The value does repeat on a branch, and it costs nothing to: it is decided once by the issue's package label, and it buys a commit that names its package in any read crossing branches, which a repository shipping several packages has and a single-deliverable one does not. Squashing deletes it, which is why the pull request title carries it onto the trunk.
+
+**The pull request title's own scope rule is unchanged, and a pushed header is never rewritten to match this record.**
