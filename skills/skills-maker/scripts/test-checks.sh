@@ -150,26 +150,6 @@ shape symlink-dir   "$tmp/.fx/linked" '2 skill(s) checked, 0 with defects0' '2 s
 # The name a package root reports is the path relative to the target: two
 # plugins can each ship a skill called review, and bare names cannot tell them
 # apart.
-# --list is the discovery rule on its own, so the name check in the workflow
-# reuses it instead of walking the tree a second time.
-listed="$(node "$here/check-descriptions.js" --list "$tmp/.fx/pkg")"
-if [ "$listed" = "skills/alpha
-skills/beta" ]; then
-  printf 'PASS  sweep %-14s %s\n' list-flag 'paths only, one per line'
-else
-  printf 'FAIL  sweep %-14s got "%s"\n' list-flag "$listed"; fail=1
-fi
-
-# The target that is itself a skill lists as ".", a path a consumer can join
-# onto the target; a basename here sends the name loop to a path that does not
-# exist and reports a correctly named skill as misnamed.
-selflisted="$(node "$here/check-descriptions.js" --list "$tmp/good-block")"
-if [ "$selflisted" = "." ]; then
-  printf 'PASS  sweep %-14s %s\n' list-self '. for the root-is-skill target'
-else
-  printf 'FAIL  sweep %-14s got "%s"\n' list-self "$selflisted"; fail=1
-fi
-
 names="$(node "$here/check-descriptions.js" "$tmp/.fx/many")"
 for want in one/skills/review two/skills/review; do
   case "$names" in
@@ -177,6 +157,53 @@ for want in one/skills/review two/skills/review; do
     *) printf 'FAIL  sweep %-14s wanted "%s", got "%s"\n' relative-name "$want" "$names"; fail=1 ;;
   esac
 done
+
+# The name check. It is a script rather than a documented shell loop because
+# the loop it replaces produced five of this pull request's eleven findings,
+# every one a quoting or word-splitting defect - so the cases that bit are
+# fixtures here instead of prose nobody runs.
+mk .fx/names/good      'name: good\ndescription: |\n  x'
+mk .fx/names/mismatch  'name: something-else\ndescription: |\n  x'
+mk '.fx/names/my [1] skill' 'name: wrong\ndescription: |\n  x'
+mkdir -p '.fx/names/no-name'; printf -- '---\ndescription: |\n  x\n---\nbody\n' > '.fx/names/no-name/SKILL.md'
+mkdir -p 'my 1 skill'   # the decoy the old loop's glob expanded onto
+
+names_out="$(cd "$tmp" && node "$here/check-names.js" "$tmp/.fx/names")"; names_code=$?
+nexpect() {
+  case "$(printf '%s\n' "$names_out" | grep -- "$1")" in
+    *"$2"*) printf 'PASS  names %-16s %s\n' "$1" "$2" ;;
+    *) printf 'FAIL  names %-16s wanted "%s", got "%s"\n' "$1" "$2" "$names_out"; fail=1 ;;
+  esac
+}
+nexpect 'mismatch'      'name is "something-else", directory is "mismatch"'
+nexpect 'no-name'       'no name'
+nexpect '4 skill(s)'    '4 skill(s) checked, 3 with defects'
+case "$(printf '%s\n' "$names_out" | grep -c '^good ')" in
+  0) printf 'PASS  names %-16s %s\n' good 'a matching name is silent' ;;
+  *) printf 'FAIL  names %-16s reported a good fixture\n' good; fail=1 ;;
+esac
+# A directory whose name carries glob metacharacters is reported as itself. The
+# fixture is deliberately misnamed so that it prints at all: an assertion on a
+# well-named one could never fail, whatever the code did. The shell loop this
+# replaced expanded the name onto the decoy above and never read the real one.
+case "$(printf '%s\n' "$names_out" | grep 'my \[1\] skill')" in
+  *'directory is "my [1] skill"') printf 'PASS  names %-16s %s\n' glob-name 'reported as itself, not glob-expanded' ;;
+  *) printf 'FAIL  names %-16s got "%s"\n' glob-name "$names_out"; fail=1 ;;
+esac
+[ "$names_code" -eq 1 ] && printf 'PASS  names %-16s %s\n' exit-code 'non-zero on defects' \
+  || { printf 'FAIL  names %-16s wanted exit 1, got %s\n' exit-code "$names_code"; fail=1; }
+
+nempty="$(node "$here/check-names.js" "$tmp/empty")"; nempty_code=$?
+case "$nempty$nempty_code" in
+  *'nothing was checked1') printf 'PASS  names %-16s %s\n' empty-target 'nothing was checked, exit 1' ;;
+  *) printf 'FAIL  names %-16s got "%s" exit %s\n' empty-target "$nempty" "$nempty_code"; fail=1 ;;
+esac
+
+nself="$(node "$here/check-names.js" "$tmp/good-block")"
+case "$nself" in
+  *'1 skill(s) checked, 0 with defects') printf 'PASS  names %-16s %s\n' single-skill 'the root-is-skill target checks itself' ;;
+  *) printf 'FAIL  names %-16s got "%s"\n' single-skill "$nself"; fail=1 ;;
+esac
 
 [ "$fail" -eq 0 ] && echo 'ALL CHECKS VERIFIED' || echo 'BENCH FAILED'
 exit "$fail"

@@ -1,48 +1,14 @@
 // Raw-line sweep over every skill's frontmatter description.
-// Usage: node check-descriptions.js [--list] [target]   (target defaults to the current directory)
+// Usage: node check-descriptions.js [target]   (defaults to the current directory)
 // The target is one skill's own directory, a directory of skills, or a package
 // root whose skills sit further down - a plugin's at <root>/skills/.
-// --list prints the skills the walk found, one relative path per line, and
-// checks nothing: it is how anything else reuses this discovery rule instead of
-// writing a second walk that can drift from it.
 // A real YAML parser cannot replace this: the silent traps are valid YAML.
-const fs = require("fs"), path = require("path");
-const args = process.argv.slice(2);
-const listOnly = args[0] === "--list";
-process.chdir((listOnly ? args[1] : args[0]) || ".");
-const root = process.cwd();
-// One discovery rule: a SKILL.md here means this directory is a skill, and
-// otherwise walk down. Symlinks are followed because an agent's own skills
-// directory is a directory of them, pointing into the canonical tree; realpath
-// bounds the cycles that follow. The descent stops at each skill, so a SKILL.md
-// quoted inside one is part of that skill rather than a second one.
-function collect(dir, found, seen) {
-  let real;
-  try { real = fs.realpathSync(dir); } catch { return; }
-  if (seen.has(real)) return;
-  seen.add(real);
-  let entries;
-  try { entries = fs.readdirSync(dir).sort(); } catch { return; }
-  if (entries.includes("SKILL.md")) { found.push(dir); return; }
-  for (const e of entries) {
-    if (e.startsWith(".")) continue;
-    const p = path.join(dir, e);
-    try { if (!fs.statSync(p).isDirectory()) continue; } catch { continue; }
-    collect(p, found, seen);
-  }
-}
-const dirs = [];
-collect(".", dirs, new Set());
+const fs = require("fs");
+const { skills } = require("./walk.js");
+const { root, skills: found } = skills(process.argv[2]);
 // The name is the path relative to the target, not the basename: two plugins
 // can each ship a skill called review.
-const targets = dirs.map(d => [path.relative(".", d), path.join(d, "SKILL.md")]);
-if (listOnly) {
-  // "." is the target itself, which is what a consumer joining onto the target
-  // needs; the checking output below names that case by its basename instead.
-  for (const [s] of targets) console.log(s || ".");
-  process.exitCode = targets.length ? 0 : 1;
-  return;
-}
+const targets = found.map(s => [s.rel || s.name, s.skill]);
 let defects = 0;
 for (const [rel, p] of targets) {
   const s = rel || path.basename(root);

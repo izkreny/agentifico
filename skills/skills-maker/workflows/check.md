@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(node:*)` and, where present, `Bash(ruby:*)` for the frontmatter checks in `scripts/`, `Bash(bash:*)` for their regression bench, `Glob` to enumerate skills.
 
-The mechanical audit. Run it after writing or editing any skill, and before reviewing one. Everything here takes the same target, and the loop under "The rest" gets its skill directories from the description check rather than walking the tree itself.
+The mechanical audit. Run it after writing or editing any skill, and before reviewing one. Every check here takes the same target and finds its skills through `scripts/walk.js`, so one discovery rule serves all of them.
 
 ## The description check
 
@@ -19,23 +19,17 @@ Each run ends with a count of what it checked, and checking nothing exits non-ze
 
 **`check-differential.rb`** is the supplement for machines that have Ruby, whose standard library carries a real YAML parser: it parses the frontmatter and compares the parsed description against the raw line, where any difference means a trap fired. Skip it without concern where Ruby is absent, since the sweep covers the same ground heuristically. A YAML parser or linter alone cannot replace the sweep: the silent class is valid YAML, which is exactly its disguise, so a parser returns the corrupted value without complaint. Do not bundle a YAML library or a compiled helper to close that gap: vendored parser code is exactly the unreviewable bulk the security notes in `references/managing.md` warn about, and the differential needs nothing beyond a stdlib.
 
-After editing either check, run `scripts/test-checks.sh`: it generates one fixture per known trap in a temp directory (never shipped as real `SKILL.md` files, which some agents discover recursively) and asserts the checks still catch every one, pass every good form, and fail on a target with no skill under it. It carries the argument shapes too - a package root, package roots side by side, and a directory of symlinks - because both checks and the name loop in *The rest* all read the one discovery rule, so a change to it moves every one of them at once.
+After editing either check, run `scripts/test-checks.sh`: it generates one fixture per known trap in a temp directory (never shipped as real `SKILL.md` files, which some agents discover recursively) and asserts the checks still catch every one, pass every good form, and fail on a target with no skill under it. It carries the argument shapes too - a package root, package roots side by side, and a directory of symlinks - because every check here reads the one discovery rule, so a change to it moves all of them at once.
 
-## The rest
+## The name check
+
+Every skill's frontmatter `name` must match its own directory, and the same target as above:
 
 ```bash
-target=~/.claude/skills
-listed=$(node scripts/check-descriptions.js --list "$target") || echo "$target: nothing was checked"
-( IFS=$'\n'; set -f
-  for d in $listed; do
-    n=$(basename "$(cd "$target/$d" && pwd)")
-    grep -q "^name: $n$" "$target/$d/SKILL.md" || echo "$d: name does not match directory"
-  done )
+node scripts/check-names.js ~/.claude/skills
 ```
 
-**`--list` is what keeps this one discovery rule.** A `for d in */` reads a package root's `agents` and `hooks` directories as skills and reports both as misnamed, and a second walk written here would drift from the one the checks use.
-
-**The list is captured rather than piped**, so its exit code is read: through a pipe the status is the loop's, and a target with no skill under it prints nothing and passes, which is the silent success *The description check* rules out. **The loop is a `for` over the captured value rather than a `read` over an `echo` of it**, because an empty capture still echoes one blank line and would run the body once on an empty name. **`IFS` is a newline and `set -f` is on for the same loop**, because the producer emits one path per line and the two hazards of an unquoted expansion need one answer each: `IFS` governs field splitting, so it alone stops a space becoming a word boundary, while pathname expansion runs afterwards regardless of it and only `set -f` stops a `[`, `*` or `?` in a directory name being matched against the working directory. **Both live in a subshell** so neither outlives the block, which is pasted into a session that goes on to run other things. The name compared is the directory's own rather than the path relative to the target, since that is what the frontmatter carries.
+**It is a script rather than a loop written out here**, because the loop it replaced produced five of the eleven findings on the pull request that added it - a pipe that swallowed an exit code, an empty capture that ran the body once on nothing, and three separate word-splitting and glob defects. Shell in prose gets read; a script gets `scripts/test-checks.sh`, where each of those cases is a fixture.
 
 Then, per skill. These are the mechanical faces of the authoring rules in `workflows/new.md`, which owns each rule and its reason; this list carries only what a sweep can look for:
 
