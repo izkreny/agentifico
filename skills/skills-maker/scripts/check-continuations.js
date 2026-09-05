@@ -77,6 +77,9 @@ function blocks(text) {
       // than being fixed at two or three by whoever wrote the pattern.
       content: m ? m[1].length + line.slice(m[1].length).indexOf(m[2]) + m[2].length : null,
       bold: /^\s*\*\*/.test(line),
+      // A table or a blockquote at the content column is inside the item but
+      // is not a paragraph, and the rule counts paragraphs.
+      aside: /^\s*[|>]/.test(line),
     };
     out.push(cur);
   }
@@ -104,6 +107,7 @@ function defects(file, text) {
       if (nested && b.indent >= nested.content) continue;
       nested = null;
       if (b.content !== null) { nested = b; continue; }
+      if (b.aside) continue;
       conts.push(b);
     }
     for (const c of conts) if (c.bold) found.push({ line: c.line, why: "continuation opens with a bolded lead-in", file });

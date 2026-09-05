@@ -246,6 +246,8 @@ cdoc c-nestedown '- **outer.** its lead\n\n  - **inner.** a nested item\n\n    t
 cdoc c-fencechar  '- **lead.** first\n\n  ````\n  ~~~~\n  para a\n\n  para b\n  ````\n\n  the one continuation\n'
 cdoc c-fencelen   '- **lead.** first\n\n  ````\n  ```\n  para a\n\n  para b\n  ````\n\n  the one continuation\n'
 cdoc c-fencealone '- **lead.** first\n\n  ````\n  ```` trailing text\n  para a\n\n  para b\n  ````\n\n  the one continuation\n'
+cdoc c-tablein  '- **lead.** first\n\n  the reason\n\n  | a | b |\n  |---|---|\n  | c | d |\n'
+cdoc c-quotein  '- **lead.** first\n\n  the reason\n\n  > a quoted line, which is not a paragraph of the item\n'
 
 cexpect() {
   got="$(node "$here/check-continuations.js" "$tmp/.fx/cont/$1" 2>&1)"
@@ -268,6 +270,8 @@ cexpect c-nestedown '1 skill(s) checked, 0 with defects' 'a nested item keeps it
 cexpect c-fencechar  '1 skill(s) checked, 0 with defects' 'a run of the other fence character does not close a fence'
 cexpect c-fencelen   '1 skill(s) checked, 0 with defects' 'a shorter run does not close a fence'
 cexpect c-fencealone '1 skill(s) checked, 0 with defects' 'a closer with trailing text does not close a fence'
+cexpect c-tablein '1 skill(s) checked, 0 with defects'  'a table at the content column is not a paragraph'
+cexpect c-quotein '1 skill(s) checked, 0 with defects'  'a blockquote at the content column is not a paragraph'
 
 # What the frontmatter skip protects against is a YAML sequence item, `- Read`
 # under `allowed-tools:`, claiming the body below it as its continuations. A
