@@ -26,16 +26,16 @@ After editing either check, run `scripts/test-checks.sh`: it generates one fixtu
 ```bash
 target=~/.claude/skills
 listed=$(node scripts/check-descriptions.js --list "$target") || echo "$target: nothing was checked"
-IFS=$'\n'
-for d in $listed; do
-  n=$(basename "$(cd "$target/$d" && pwd)")
-  grep -q "^name: $n$" "$target/$d/SKILL.md" || echo "$d: name does not match directory"
-done
+( IFS=$'\n'; set -f
+  for d in $listed; do
+    n=$(basename "$(cd "$target/$d" && pwd)")
+    grep -q "^name: $n$" "$target/$d/SKILL.md" || echo "$d: name does not match directory"
+  done )
 ```
 
 **`--list` is what keeps this one discovery rule.** A `for d in */` reads a package root's `agents` and `hooks` directories as skills and reports both as misnamed, and a second walk written here would drift from the one the checks use.
 
-**The list is captured rather than piped**, so its exit code is read: through a pipe the status is the loop's, and a target with no skill under it prints nothing and passes, which is the silent success *The description check* rules out. **The loop is a `for` over the captured value rather than a `read` over an `echo` of it**, because an empty capture still echoes one blank line and would run the body once on an empty name. **`IFS` is a newline for the same loop**, because the producer emits one path per line and an unquoted expansion otherwise splits every space and expands every glob, turning one directory into several that do not exist. The name compared is the directory's own rather than the path relative to the target, since that is what the frontmatter carries.
+**The list is captured rather than piped**, so its exit code is read: through a pipe the status is the loop's, and a target with no skill under it prints nothing and passes, which is the silent success *The description check* rules out. **The loop is a `for` over the captured value rather than a `read` over an `echo` of it**, because an empty capture still echoes one blank line and would run the body once on an empty name. **`IFS` is a newline and `set -f` is on for the same loop**, because the producer emits one path per line and the two hazards of an unquoted expansion need one answer each: `IFS` governs field splitting, so it alone stops a space becoming a word boundary, while pathname expansion runs afterwards regardless of it and only `set -f` stops a `[`, `*` or `?` in a directory name being matched against the working directory. **Both live in a subshell** so neither outlives the block, which is pasted into a session that goes on to run other things. The name compared is the directory's own rather than the path relative to the target, since that is what the frontmatter carries.
 
 Then, per skill. These are the mechanical faces of the authoring rules in `workflows/new.md`, which owns each rule and its reason; this list carries only what a sweep can look for:
 
