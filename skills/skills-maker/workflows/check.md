@@ -6,7 +6,7 @@ The mechanical audit. Run it after writing or editing any skill, and before revi
 
 This is the one that matters, because its failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap it tests was watched failing in a real YAML parser before it earned its place; `scripts/test-checks.sh` re-runs that evidence on demand.
 
-The checks live as files under this skill's `scripts/`. The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory. How a review reads a target covering more than one skill is `workflows/review.md` Step 1's:
+The checks live as files under this skill's `scripts/`. The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory:
 
 ```bash
 node scripts/check-descriptions.js ~/.claude/skills
@@ -14,6 +14,8 @@ command -v ruby >/dev/null && ruby scripts/check-differential.rb ~/.claude/skill
 ```
 
 Each run ends with a count of what it checked, and checking nothing exits non-zero: a target with no skill under it is a wrong target, and its silence is indistinguishable from a clean sweep.
+
+How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
 **`check-descriptions.js`** is the raw-line sweep. `ok` means the description is a block scalar (immune to every trap here), or a plain or quoted scalar carrying none of them. Everything else names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`"; what matters here is that neither class is loud. The silent class corrupts the triggers while the skill keeps working, and the parse-error class is swallowed by the harness, so the skill simply never appears in the listing.
 
