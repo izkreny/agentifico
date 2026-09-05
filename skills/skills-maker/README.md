@@ -24,7 +24,7 @@ A skill that never fires looks identical to a skill that was never written. Ever
 | Argument | What it does |
 |---|---|
 | `new <name>` | Author a skill from scratch |
-| `review <path>` | Review an existing skill for the defects that actually occur |
+| `review <path>` | Review an existing skill, or a whole package, for the defects that actually occur |
 | `check`, or no argument | Mechanical audit across every installed skill |
 | `export <path>` | Publish a local skill to a shared repository |
 
