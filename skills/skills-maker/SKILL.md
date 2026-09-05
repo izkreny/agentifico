@@ -6,7 +6,7 @@ argument-hint: "[new <name> | review <path> | check | export <path>]"
 disable-model-invocation: true
 compatibility: Requires Node for the frontmatter checks. Ruby (optional) adds the differential check; the gh CLI is needed only for export.
 metadata:
-  version: "1.2.0"
+  version: "1.3.0"
 allowed-tools: Bash(gh:*), Bash(node:*), Bash(ruby:*), Bash(bash:*), Bash(skills:*), Bash(npx skills:*), Read, Write, Edit, Grep, Glob
 ---
 
@@ -58,7 +58,7 @@ Then avoid ` #` in the prose anyway. Write "a numbered PR" rather than "PR #N", 
 Based on the argument above, do exactly one of the following:
 
 - If it starts with `new` → read `workflows/new.md` and follow it.
-- If it starts with `review` → read `workflows/review.md` and follow it.
+- If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
 - If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
 - If it starts with `export` → read `workflows/export.md` and follow it.
 - If the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`.
