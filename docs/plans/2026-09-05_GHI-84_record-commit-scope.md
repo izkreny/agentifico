@@ -24,7 +24,7 @@ The override clause in `plugins/gh-solo/skills/pr-flow/SKILL.md` is already gene
 - State why the ban's premise fails here - one deliverable versus several packages on their own tags - and that a stacked branch's `git log --oneline` is where the scope earns it.
 - Name *Repository-specific conventions live in the repository* in `plugins/gh-solo/skills/pr-flow/SKILL.md` in the record, so it reads as an override.
 - Say in the record that the pull request title's scope rule is unchanged, and that a pushed header is never rewritten to match.
-- Place it so a reader checking whether the commit format is overridden finds the `{type}` answer and the scope answer together, per the open question below.
+- Rename `## What is deliberately not here` to `## The commit header format`, keeping its `{type}` paragraph first and the scope record beneath it, so a reader checking whether the commit format is overridden finds both answers under a heading true of both.
 
 ## Verification
 
@@ -37,8 +37,8 @@ The override clause in `plugins/gh-solo/skills/pr-flow/SKILL.md` is already gene
 
 ## Open questions
 
-- **Which heading the record sits under.** The issue points at `## What is deliberately not here`, whose one paragraph today says the branch `{type}` vocabulary is the plugin's. That gets the reader to one place for both answers, but a positive override stated under a heading that promises absences is a heading that lies about its contents. **Recommendation: rename the section to one true of both paragraphs, `## The commit header format`**, keeping the `{type}` paragraph first and the scope record beneath it. Nothing in the repository cites the old heading - `plugins/gh-solo/skills/tracker/references/github-access.md` has a heading of the same name, but it is that file's own - so the rename costs one line and no cross-reference. The alternative, a separate `## The commit scope` section, keeps the heading honest and splits the two answers, which is the thing the issue asked to avoid.
+- None.
 
 ## Settled
 
-- None yet.
+- **Which heading the record sits under.** The issue points at `## What is deliberately not here`, whose one paragraph today says the branch `{type}` vocabulary is the plugin's. That gets the reader to one place for both answers, but a positive override under a heading that promises absences is a heading that lies about its contents. The decision is the plan's recommendation: rename the section to `## The commit header format`, true of both paragraphs, keeping the `{type}` paragraph first and the scope record beneath it. The alternative, a separate `## The commit scope` section, keeps the heading honest and splits the two answers, which is what the issue asked to avoid.
