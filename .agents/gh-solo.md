@@ -134,6 +134,16 @@ gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -lab
 
 **Never clear the relation to get past the stop.** `blockedBy` is what records the stack's order, and removing it to satisfy a gate destroys the only typed record of which branch sits under which.
 
-## What is deliberately not here
+## The commit header format
 
-No branch `{type}` vocabulary, because the plugin's own is what this repository uses.
+No branch `{type}` vocabulary is recorded here, because the plugin's own is what this repository uses.
+
+**A branch commit here carries its package label as a scope**, `fix(gh-solo): the description (#63)` and `docs(repo): the description (#84)`, where *Branch and commit type* in `plugins/gh-solo/skills/tracker/references/formats.md` says branch commits carry none and leaves the header at `{type}: {description} (#{issue-number})`. Read that as an override under *Repository-specific conventions live in the repository* in `plugins/gh-solo/skills/pr-flow/SKILL.md`, which is what licenses a repository to differ, rather than as a second opinion to be weighed against the plugin: where the two disagree, this file is the answer for this repository and the plugin is the answer everywhere else.
+
+**Neither reason the ban gives reaches here.** The first is that every commit on a branch "would repeat the same value", which holds where a repository ships one deliverable. This one ships a plugin and several standalone skills, each released on its own `<name>_<version>` tag, so the scope answers a question that exists here and not there: which package a commit is for. On a stacked epic branch `git log --oneline` spans several branches at once, and the scope is what separates them.
+
+**Its second reason, that "squashing deletes that history anyway", mistakes when the value is read.** A branch commit's readers are the review diff and a mid-branch `git bisect`, both of which run while the branch is alive; the squash comes after all of them. The pull request title carries the scope onto the trunk, so nothing is lost there either.
+
+**The pull request title's scope is untouched by this.** That one is the issue's package label, per the *Labels* section of this file, and it already agrees with the plugin - so what this record changes is what a branch commit carries, and nothing else.
+
+**A pushed commit header is never rewritten to match this record.** Rewriting one strands the review threads anchored against it, and a scopeless header costs nothing to leave alone.
