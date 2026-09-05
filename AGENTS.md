@@ -24,6 +24,8 @@ A package is released on its own tag, `<name>_<version>`, and carries its own ve
 
 **A change to a package's own files moves that package's version, on the branch that makes the change.** Which part moves follows from what the change does to whoever installs the package: a breaking change moves the major, new behaviour the minor, and everything else the patch, with a `!` or a `BREAKING CHANGE:` trailer on the commit marking the first. The commit type is a hint at that and never the rule, since a `feat` can break an interface and a `chore` can leave one alone. Every path outside a `plugins/<name>/` or `skills/<name>/` directory is repository-level, owns no version and moves none, so a change confined to such paths leaves every version where it was.
 
+**A package's build artifacts are ignored by a `.gitignore` inside that package's own directory.** An ignore rule is a fact about one package's tooling, so stating it at a repository-level path would put that package's business where the repository states its own: `plugins/gh-solo/skills/pr-flow/scripts/.gitignore` covers the bytecode cache left behind when that package's own bench imports one of its scripts as a module. The repository root's `.gitignore` is for an artifact belonging to no package, and a tool that writes its own self-ignoring `.gitignore` needs no entry anywhere else.
+
 The package axis is also the repository's label axis, which `.agents/gh-solo.md` records.
 
 ## How a package is released
