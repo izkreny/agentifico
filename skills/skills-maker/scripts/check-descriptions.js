@@ -35,14 +35,17 @@ const dirs = [];
 collect(".", dirs, new Set());
 // The name is the path relative to the target, not the basename: two plugins
 // can each ship a skill called review.
-const targets = dirs.map(d => [path.relative(".", d) || path.basename(root), path.join(d, "SKILL.md")]);
+const targets = dirs.map(d => [path.relative(".", d), path.join(d, "SKILL.md")]);
 if (listOnly) {
-  for (const [s] of targets) console.log(s);
+  // "." is the target itself, which is what a consumer joining onto the target
+  // needs; the checking output below names that case by its basename instead.
+  for (const [s] of targets) console.log(s || ".");
   process.exitCode = targets.length ? 0 : 1;
   return;
 }
 let defects = 0;
-for (const [s, p] of targets) {
+for (const [rel, p] of targets) {
+  const s = rel || path.basename(root);
   const m = fs.readFileSync(p, "utf8").match(/^---\n([\s\S]*?)\n---/);
   const fm = m ? m[1] : "", bad = [];
   const dl = fm.split("\n").filter(l => l.startsWith("description:"));

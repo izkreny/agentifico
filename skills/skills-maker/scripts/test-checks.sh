@@ -106,6 +106,7 @@ target empty-target "$tmp/empty"      'nothing was checked1'                'not
 mk .fx/pkg/skills/alpha 'name: alpha\ndescription: |\n  Alpha, under a package root.'
 mk .fx/pkg/skills/beta  'name: beta\ndescription: |\n  Beta, under the same root.'
 mk .fx/pkg/skills/alpha/references 'name: example\ndescription: |\n  An example SKILL.md quoted inside a skill.'
+mk .fx/pkg/.hidden 'name: hidden\ndescription: |\n  A skill inside a dot-directory, which the walk must not descend into.'
 mkdir -p .fx/pkg/agents .fx/pkg/hooks .fx/pkg/.claude-plugin
 echo body > .fx/pkg/agents/reviewer.md
 echo body > .fx/pkg/hooks/hook.py
@@ -139,7 +140,9 @@ shape() {
 }
 
 # A skill's own directory is never descended into, so the example SKILL.md under
-# alpha's references/ is part of alpha rather than a third skill.
+# alpha's references/ is part of alpha rather than a third skill; and the walk
+# skips dot-directories, so .hidden/ is not a fourth. Remove either rule and the
+# count below is wrong.
 shape package-root  "$tmp/.fx/pkg"    '2 skill(s) checked, 0 with defects0' '2 skill(s) checked, 0 with defects0'
 shape nested-roots  "$tmp/.fx/many"   '2 skill(s) checked, 0 with defects0' '2 skill(s) checked, 0 with defects0'
 shape symlink-dir   "$tmp/.fx/linked" '2 skill(s) checked, 0 with defects0' '2 skill(s) checked, 0 with defects0'
@@ -155,6 +158,16 @@ skills/beta" ]; then
   printf 'PASS  sweep %-14s %s\n' list-flag 'paths only, one per line'
 else
   printf 'FAIL  sweep %-14s got "%s"\n' list-flag "$listed"; fail=1
+fi
+
+# The target that is itself a skill lists as ".", a path a consumer can join
+# onto the target; a basename here sends the name loop to a path that does not
+# exist and reports a correctly named skill as misnamed.
+selflisted="$(node "$here/check-descriptions.js" --list "$tmp/good-block")"
+if [ "$selflisted" = "." ]; then
+  printf 'PASS  sweep %-14s %s\n' list-self '. for the root-is-skill target'
+else
+  printf 'FAIL  sweep %-14s got "%s"\n' list-self "$selflisted"; fail=1
 fi
 
 names="$(node "$here/check-descriptions.js" "$tmp/.fx/many")"
