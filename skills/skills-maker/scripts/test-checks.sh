@@ -99,5 +99,61 @@ target single-skill "$tmp/good-block" '1 skill(s) checked, 0 with defects0' '1 s
 target single-bad   "$tmp/t-comment"  '1 skill(s) checked, 1 with defects1' 'SILENTLY MUTATED'
 target empty-target "$tmp/empty"      'nothing was checked1'                'nothing was checked1'
 
+# Package roots. A plugin's skills sit at <root>/skills/ and its manifest,
+# agents, hooks and README belong to no skill, so a root is neither of the two
+# shapes the checks accepted before. The fixtures live under a dot-directory so
+# the whole-tree sweep above keeps the target set it was written for.
+mk .fx/pkg/skills/alpha 'name: alpha\ndescription: |\n  Alpha, under a package root.'
+mk .fx/pkg/skills/beta  'name: beta\ndescription: |\n  Beta, under the same root.'
+mk .fx/pkg/skills/alpha/references 'name: example\ndescription: |\n  An example SKILL.md quoted inside a skill.'
+mkdir -p .fx/pkg/agents .fx/pkg/hooks .fx/pkg/.claude-plugin
+echo body > .fx/pkg/agents/reviewer.md
+echo body > .fx/pkg/hooks/hook.py
+echo '{}' > .fx/pkg/.claude-plugin/plugin.json
+echo body > .fx/pkg/README.md
+
+# Two package roots side by side: the same skill name under each, which is why
+# a skill is reported by its path relative to the target rather than its name.
+mk .fx/many/one/skills/review 'name: review\ndescription: |\n  One plugin review skill.'
+mk .fx/many/two/skills/review 'name: review\ndescription: |\n  Another plugin review skill.'
+
+# A directory of symlinks into the canonical tree, which is what an agent's own
+# skills directory is. A walk that does not follow them finds nothing here.
+mkdir -p .fx/linked
+ln -s ../pkg/skills/alpha .fx/linked/alpha
+ln -s ../../good-block .fx/linked/good-block
+
+shape() {
+  sout="$(node "$here/check-descriptions.js" "$2")"; scode=$?
+  case "$sout$scode" in
+    *"$3"*) printf 'PASS  sweep %-14s %s\n' "$1" "$3" ;;
+    *) printf 'FAIL  sweep %-14s wanted "%s", got "%s" exit %s\n' "$1" "$3" "$sout" "$scode"; fail=1 ;;
+  esac
+  if command -v ruby >/dev/null; then
+    rout="$(ruby "$here/check-differential.rb" "$2")"; rcode=$?
+    case "$rout$rcode" in
+      *"$4"*) printf 'PASS  diff  %-14s %s\n' "$1" "$4" ;;
+      *) printf 'FAIL  diff  %-14s wanted "%s", got "%s" exit %s\n' "$1" "$4" "$rout" "$rcode"; fail=1 ;;
+    esac
+  fi
+}
+
+# A skill's own directory is never descended into, so the example SKILL.md under
+# alpha's references/ is part of alpha rather than a third skill.
+shape package-root  "$tmp/.fx/pkg"    '2 skill(s) checked, 0 with defects0' '2 skill(s) checked, 0 with defects0'
+shape nested-roots  "$tmp/.fx/many"   '2 skill(s) checked, 0 with defects0' '2 skill(s) checked, 0 with defects0'
+shape symlink-dir   "$tmp/.fx/linked" '2 skill(s) checked, 0 with defects0' '2 skill(s) checked, 0 with defects0'
+
+# The name a package root reports is the path relative to the target: two
+# plugins can each ship a skill called review, and bare names cannot tell them
+# apart.
+names="$(node "$here/check-descriptions.js" "$tmp/.fx/many")"
+for want in one/skills/review two/skills/review; do
+  case "$names" in
+    *"$want"*) printf 'PASS  sweep %-14s %s\n' relative-name "$want" ;;
+    *) printf 'FAIL  sweep %-14s wanted "%s", got "%s"\n' relative-name "$want" "$names"; fail=1 ;;
+  esac
+done
+
 [ "$fail" -eq 0 ] && echo 'ALL CHECKS VERIFIED' || echo 'BENCH FAILED'
 exit "$fail"
