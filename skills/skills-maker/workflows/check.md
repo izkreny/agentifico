@@ -19,18 +19,22 @@ Each run ends with a count of what it checked, and checking nothing exits non-ze
 
 **`check-differential.rb`** is the supplement for machines that have Ruby, whose standard library carries a real YAML parser: it parses the frontmatter and compares the parsed description against the raw line, where any difference means a trap fired. Skip it without concern where Ruby is absent, since the sweep covers the same ground heuristically. A YAML parser or linter alone cannot replace the sweep: the silent class is valid YAML, which is exactly its disguise, so a parser returns the corrupted value without complaint. Do not bundle a YAML library or a compiled helper to close that gap: vendored parser code is exactly the unreviewable bulk the security notes in `references/managing.md` warn about, and the differential needs nothing beyond a stdlib.
 
-After editing either check, run `scripts/test-checks.sh`: it generates one fixture per known trap in a temp directory (never shipped as real `SKILL.md` files, which some agents discover recursively) and asserts the checks still catch every one, pass every good form, and fail on a target with no skill under it. It carries the argument shapes too - a package root, package roots side by side, and a directory of symlinks - because the discovery rule is now something the rest of this file depends on rather than an implementation detail.
+After editing either check, run `scripts/test-checks.sh`: it generates one fixture per known trap in a temp directory (never shipped as real `SKILL.md` files, which some agents discover recursively) and asserts the checks still catch every one, pass every good form, and fail on a target with no skill under it. It carries the argument shapes too - a package root, package roots side by side, and a directory of symlinks - because both checks and the name loop below all read the one discovery rule, so a change to it moves everything here at once.
 
 ## The rest
 
 ```bash
 target=~/.claude/skills
-node scripts/check-descriptions.js --list "$target" | while read -r d; do
-  grep -q "^name: $(basename "$d")$" "$target/$d/SKILL.md" || echo "$d: name does not match directory"
+listed=$(node scripts/check-descriptions.js --list "$target") || echo "$target: nothing was checked"
+echo "$listed" | while read -r d; do
+  n=$(basename "$(cd "$target/$d" && pwd)")
+  grep -q "^name: $n$" "$target/$d/SKILL.md" || echo "$d: name does not match directory"
 done
 ```
 
-**`--list` is what keeps this one discovery rule.** A `for d in */` reads a package root's `agents` and `hooks` directories as skills and reports both as misnamed, and a second walk written here would drift from the one the checks use. The name compared is the directory's own, not the relative path, since that is what the frontmatter carries.
+**`--list` is what keeps this one discovery rule.** A `for d in */` reads a package root's `agents` and `hooks` directories as skills and reports both as misnamed, and a second walk written here would drift from the one the checks use.
+
+**The list is captured rather than piped**, so its exit code is read: through a pipe the status is the loop's, and a target with no skill under it prints nothing and passes, which is the silence this file rules out above. The name compared is the directory's own rather than the path relative to the target, since that is what the frontmatter carries.
 
 Then, per skill. These are the mechanical faces of the authoring rules in `workflows/new.md`, which owns each rule and its reason; this list carries only what a sweep can look for:
 
