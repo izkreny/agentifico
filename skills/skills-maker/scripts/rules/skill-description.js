@@ -15,8 +15,9 @@ export function defects(fm) {
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
   const raw = (dl[0] || "").slice(12).trim();
   const block = dl.length && /^[|>][+-]?$/.test(raw);
-  // A plain scalar is judged on its folded value: a continuation line can carry
-  // the same traps as the first, and a legal fold is not one of them.
+  // A plain or quoted scalar is judged on its folded value: a continuation line
+  // can carry the same traps as the first, a quote may close on it, and a legal
+  // fold is not a defect.
   const plain = dl.length ? folded(fm, fm.indexOf(dl[0])) : "";
   // Only a value that opens with a curly quote is pretending to be quoted; a
   // typographic apostrophe inside a value is harmless, and a block scalar is
@@ -28,14 +29,14 @@ export function defects(fm) {
     // The value ends at its own closing quote, so a comment after it is outside
     // the value and not a defect; anything else after it is a parse error, and
     // an unescaped inner quote is the usual way that happens.
-    const m = raw.slice(1).match(/^((?:[^"\\]|\\.)*)"(.*)$/);
+    const m = plain.slice(1).match(/^((?:[^"\\]|\\.)*)"(.*)$/);
     if (!m) bad.push("unclosed double quote: parse error");
     else {
       if (/\\(?![\\"nt])/.test(m[1])) bad.push("risky backslash escape in double quotes");
       if (!TRAILING.test(m[2])) bad.push("text after the closing double quote, an unescaped inner double quote: parse error");
     }
   } else if (raw.startsWith("'")) {
-    const m = raw.slice(1).match(/^((?:[^']|'')*)'(.*)$/);
+    const m = plain.slice(1).match(/^((?:[^']|'')*)'(.*)$/);
     if (!m || !TRAILING.test(m[2])) bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
   } else if (dl.length) {
     const cut = plain.search(/\s#/);
