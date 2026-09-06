@@ -331,6 +331,7 @@ ifx i-quoted     'description: |\n  Explicit invocation only.\nuser-invocable: "
 ifx i-dupe       'description: |\n  Explicit invocation only.\ndisable-model-invocation: true\ndisable-model-invocation: false'
 ifx i-comment    'description: |\n  Explicit invocation only.\ndisable-model-invocation: true # the owner types it'
 ifx i-para       'description: |\n  Does a thing for the user.\n\n  Only when the user invokes it by name.\ndisable-model-invocation: true'
+ifx flow         'description: |\n  Hands the branch off to `/gh-solo:pr-flow` when the work is done.\ndisable-model-invocation: true'
 
 inv_out="$(node "$here/check-invocation.js" "$tmp/.fx/inv")"; inv_code=$?
 iexpect() {
@@ -360,8 +361,9 @@ iexpect i-caps       'not true or false'                        'True is the sam
 iexpect i-empty      'not true or false'                        'an empty value is not a boolean'
 iexpect i-quoted     'quoted'                                   'a quoted false is the string false'
 iexpect i-dupe       'duplicate'                                'the last key silently wins'
+iexpect flow         'description says nothing about invocation' 'another skill'"'"'s slash command ending in this name credits nothing'
 case "$inv_out$inv_code" in
-  *'15 skill(s) checked, 7 with defects1') printf 'PASS  inv   %-14s %s\n' count 'every fixture counted, exit 1 on defects' ;;
+  *'16 skill(s) checked, 8 with defects1') printf 'PASS  inv   %-14s %s\n' count 'every fixture counted, exit 1 on defects' ;;
   *) printf 'FAIL  inv   %-14s got "%s" exit %s\n' count "$(printf '%s\n' "$inv_out" | tail -1)" "$inv_code"; fail=1 ;;
 esac
 
