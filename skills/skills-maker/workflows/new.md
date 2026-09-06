@@ -23,7 +23,7 @@ A skill is worth writing when one of these happened: a multi-step workflow prove
 | `description` | The trigger surface. **Write it as a `\|` block scalar** (the trap family is in `SKILL.md`). Name the phrases the user actually says, not a summary of the topic |
 | `argument-hint` | Shown in the slash-command UI, e.g. `"[view \| add \| submit]"`. Only advertise verbs that route somewhere |
 | `allowed-tools` | Narrow it. `Bash(gh:*)` rather than bare `Bash` |
-| `disable-model-invocation` | `true` means explicit invocation only, never auto-discovered. Use it for anything with side effects, and for reference material that would otherwise fire on unrelated work. It also blocks the model's call through the Skill tool, a spawned subagent's included (Claude Code 2.1.252), so it never goes on a skill an agent loads that way; `user-invocable: false` is the field for that case |
+| `disable-model-invocation` | `true` means explicit invocation only, never auto-discovered, and it blocks the model's call through the Skill tool, a spawned subagent's included (Claude Code 2.1.252). Use it for side effects the owner should trigger themselves, and for reference material that would otherwise fire on unrelated work. A skill an agent loads through the Skill tool takes `user-invocable: false` instead, whatever its side effects, because this field would block that very call |
 | `user-invocable` | Defaults to `true`. `false` hides the skill from the `/` menu and from `/name` while the model can still invoke it: the field for a skill whose only caller is an agent, through the Skill tool |
 
 Write the description as trigger phrases plus a boundary. **Say what the skill is not for**: one boundary sentence prevents more misfires than another trigger phrase adds.
