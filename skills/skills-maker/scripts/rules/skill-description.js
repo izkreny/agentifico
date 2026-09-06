@@ -15,11 +15,12 @@ export function defects(fm) {
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
   const raw = (dl[0] || "").slice(12).trim();
   const block = dl.length && /^[|>][+-]?$/.test(raw);
-  // The value under judgement, folded as YAML folds it, whatever its style:
-  // a continuation line can carry the same traps as the first, a quote may
+  // The value under judgement, whatever its style, joined the way YAML folds a
+  // run of indented continuation lines; a fold across a blank line is not read.
+  // A continuation line can carry the same traps as the first, a quote may
   // close on it, and a legal fold is not a defect. `raw`, the first line,
-  // decides which style the value has and carries the two traps that live on
-  // the first line alone, a curly opening quote and a leading special character.
+  // decides which style the value has and carries the traps that live on the
+  // first line alone, a curly opening quote and a leading special character.
   const value = dl.length ? folded(fm, fm.indexOf(dl[0])) : "";
   // Only a value that opens with a curly quote is pretending to be quoted; a
   // typographic apostrophe inside a value is harmless, and a block scalar is
