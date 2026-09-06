@@ -25,7 +25,7 @@ const block = (name, text = "Fine.") => `name: ${name}\ndescription: |\n  ${text
 
 function run(target) {
   const r = spawnSync(process.execPath, [check, target], { encoding: "utf8" });
-  const linted = /^Linting: (\d+) file/m.exec(r.stdout);
+  const linted = /^(\d+) files checked/m.exec(r.stdout);
   return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
 }
 
@@ -49,8 +49,24 @@ before(() => {
   fs.writeFileSync(path.join(pkg, "README.md"), "# Package\n\nbody\n");
 
   // Two package roots side by side, each with a skill of the same name.
-  mk(path.join(tmp, "many", "one", "skills", "review"), block("review", "One plugin's review skill."));
-  mk(path.join(tmp, "many", "two", "skills", "review"), block("review", "Another plugin's review skill."));
+  mk(path.join(tmp, "many", "one", "skills", "review"), "name: review\ndescription: review PR #N in one plugin");
+  mk(path.join(tmp, "many", "two", "skills", "review"), "name: review\ndescription: review PR #N in another");
+
+  // A target carrying its own markdownlint configuration, in both file shapes,
+  // each trying to switch off a rule that its skill breaks.
+  const configured = path.join(tmp, "configured");
+  mk(configured, "name: configured\ndescription: review PR #N and more");
+  fs.appendFileSync(path.join(configured, "SKILL.md"), "trailing space here \n");
+  fs.writeFileSync(path.join(configured, ".markdownlint-cli2.jsonc"), '{ "config": { "skill-description": false, "skill-description-parsed": false } }\n');
+  fs.writeFileSync(path.join(configured, ".markdownlint.json"), '{ "default": false }\n');
+
+  // A copy of this package under the target, with no node_modules: its rule
+  // files are markdown-free and must never be imported.
+  const copy = path.join(tmp, "copy", "skills-maker");
+  mk(copy, block("skills-maker"));
+  fs.mkdirSync(path.join(copy, "scripts", "rules"), { recursive: true });
+  fs.writeFileSync(path.join(copy, "scripts", "lint-config.js"), 'import "nothing-installed-here";\n');
+  fs.writeFileSync(path.join(copy, "scripts", "rules", "x.js"), "export default {};\n");
 
   // A directory of symlinks into the canonical tree, which is what an agent's
   // own skills directory is.
@@ -106,10 +122,25 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "pkg", "skills", "alpha", "references"));
     assert.equal(r.code, 0, r.out);
   });
-  it("two package roots side by side, reported by their paths", () => {
+  it("two package roots side by side, each reported by its own path", () => {
     const r = run(path.join(tmp, "many"));
-    assert.equal(r.code, 0, r.out);
+    assert.equal(r.code, 1);
     assert.equal(r.linted, 2);
+    assert.match(r.out, /one\/skills\/review\/SKILL\.md:\d+ skill-description/);
+    assert.match(r.out, /two\/skills\/review\/SKILL\.md:\d+ skill-description/);
+  });
+  it("configuration under the target changes nothing", () => {
+    // A target that could switch off the rules judging it would make a clean
+    // run mean nothing; both markdownlint config file shapes are ignored.
+    const r = run(path.join(tmp, "configured"));
+    assert.equal(r.code, 1);
+    assert.match(r.out, /TRUNCATED/);
+    assert.match(r.out, /MD009/);
+  });
+  it("a copy of this package under the target is linted, never imported", () => {
+    const r = run(path.join(tmp, "copy"));
+    assert.equal(r.code, 0, r.out);
+    assert.equal(r.linted, 1);
   });
   it("a directory of symlinks into the canonical tree is followed", () => {
     const r = run(path.join(tmp, "linked"));

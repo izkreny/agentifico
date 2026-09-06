@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills.
 
-The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, and this skill's own rules, which are markdownlint custom rules loaded from the `.markdownlint-cli2.jsonc` beside `SKILL.md`. A finding names its file, its line and its rule, and the run ends with a count of what it checked.
+The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, and this skill's own rules, which are markdownlint custom rules listed in `scripts/lint-config.js` beside the configuration. Each finding prints as its file, line and rule with the detail beside it, and the run ends with one line, `N files checked, M issues`, which is the line to read.
 
 ## Setup, once per install
 
@@ -18,13 +18,13 @@ The target is one skill's own directory, a directory of skills, or a package roo
 node <skill-dir>/scripts/check.js ~/.agents/skills
 ```
 
-Every markdown file under the target is read, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep.
+Every markdown file under the target is read, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep.
 
 How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
 ## What the general lint covers
 
-markdownlint's own rules run at their defaults and catch what no local rule states: list indentation, blank lines around lists, heading increments, duplicate headings, trailing whitespace, and the rest of its set. A rule that is off is named in `.markdownlint-cli2.jsonc` with its reason beside it, and a rule may be turned off there for a reason and never for quiet.
+markdownlint's own rules run at their defaults and catch what no local rule states: list indentation, blank lines around lists, heading increments, duplicate headings, trailing whitespace, and the rest of its set. A rule that is off is named in `scripts/lint-config.js` with its reason beside it, and a rule may be turned off there for a reason and never for quiet.
 
 ## The description rules
 
@@ -54,9 +54,9 @@ These are the ones that matter, because their failure modes are silent twice ove
 
 **`skill-layout`**: a `SKILL.md` with another `SKILL.md` in an ancestor directory under the target is a skill inside a skill. Some agents discover skills recursively and would read it as a broken skill, so an example quoted inside a skill's own tree is a finding rather than something the check tolerates. The search stops at the target.
 
-## Why markdownlint-cli2
+## Why markdownlint
 
-The choice was made on 2026-09-06 against stated criteria - maintenance, CommonMark conformance, whether every local rule could live in the same tool as the general lint - and markdownlint-cli2 is the one that met all three: the reference implementation of the markdownlint rule set, micromark under it, a custom-rule API that hands a rule the raw frontmatter lines apart from the body, the CommonMark token tree and a line-numbered report, and string input in its library, which is what lets the suite hold its fixtures as strings. The alternatives, and why each lost: rumdl is a runtime-free binary approximating the same rule set under one maintainer, with no rule API; mdl is a Ruby gem with no CommonMark parser under it and a three-space list default; remark-lint lacks two of the general rules named above; a parser library alone would have left the general lint and the local rules in two tools with two parsers.
+The choice was made on 2026-09-06 against stated criteria - maintenance, CommonMark conformance, whether every local rule could live in the same tool as the general lint - and markdownlint is the one that met every criterion: the reference implementation of the markdownlint rule set, micromark under it, a custom-rule API that hands a rule the raw frontmatter lines apart from the body, the CommonMark token tree and a line-numbered report, and string input, which is what lets the suite hold its fixtures as strings. It runs as a library called from `scripts/check.js` rather than through its command-line wrapper, because the wrapper reads configuration files from the directories it lints and a target must not get to choose which rules judge it. The alternatives, and why each lost: rumdl is a runtime-free binary approximating the same rule set under one maintainer, with no rule API; mdl is a Ruby gem with no CommonMark parser under it and a three-space list default; remark-lint has no rule for trailing spaces and none for blank lines around lists; a parser library alone would have left the general lint and the local rules in two tools with two parsers.
 
 ## The suite
 
@@ -80,6 +80,6 @@ These are the mechanical faces of the authoring rules in `workflows/new.md`, whi
 
 ## Reporting
 
-State what was checked, not just what failed. "7 files checked, 0 issues" is a result; silence is not.
+State what was checked, not just what failed. The run's last line, `7 files checked, 0 issues`, is a result; silence is not.
 
 If a skill was edited to fix a finding, re-run the check afterwards. Editing frontmatter is exactly how a quoted description loses its quotes.

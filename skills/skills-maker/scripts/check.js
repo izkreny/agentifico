@@ -1,39 +1,42 @@
 // The mechanical audit, as one command over one target: a skill's own
 // directory, a directory of skills, or a package root whose skills sit further
-// down, defaulting to the current directory. It runs markdownlint-cli2 with this
-// package's configuration, which carries the general lint and the local rules,
-// so the target may live anywhere and the rules still apply. What cli2 alone
-// does not give is the one thing added here: a target with no markdown under it
-// is a wrong target, and its silence reads exactly like a clean sweep, so
-// linting nothing exits non-zero.
+// down, defaulting to the current directory. It globs the markdown under the
+// target and runs markdownlint over it with this package's configuration and
+// nothing else: no file under the target is read as configuration, so the
+// tree being audited cannot switch off the rules that judge it, and the same
+// rules apply wherever the target lives. A target with no markdown under it is
+// a wrong target, and its silence reads exactly like a clean sweep, so
+// checking nothing exits non-zero.
 // Usage: node check.js [target]
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { main } from "markdownlint-cli2";
+import { globby } from "globby";
+import { lint } from "markdownlint/promise";
+import { config, rules } from "./lint-config.js";
 
 const target = path.resolve(process.argv[2] ?? ".");
-const here = path.dirname(fileURLToPath(import.meta.url));
-const config = path.join(here, "..", ".markdownlint-cli2.jsonc");
 
-let linted = null;
-const code = await main({
-  directory: target,
-  // cli2 globs with `dot: true`, so dot-directories are excluded here: an
-  // agent's skills directory carries its own dot-directories, and a fixture
-  // tree keeps its fixtures under one so a whole-tree sweep does not read them.
-  argv: ["--config", config, "**/*.md", "#**/.*/**", "#**/node_modules/**"],
-  // The layout rule stops its ancestor search at the target.
-  optionsOverride: { config: { "skill-layout": { root: target } } },
-  logMessage: (message) => {
-    const m = /^Linting: (\d+) file/.exec(message);
-    if (m) linted = Number(m[1]);
-    console.log(message);
-  },
-  logError: (message) => console.error(message),
-});
+// Dot-directories are left out by default, which is what the walk did: an
+// agent's skills directory carries its own, and a fixture tree keeps its
+// fixtures under one. Symlinks are followed, because an agent's skills
+// directory is a directory of them pointing into the canonical tree.
+const files = (await globby(["**/*.md", "!**/node_modules/**"], { cwd: target, absolute: true })).sort();
 
-if (!linted) {
+if (!files.length) {
   console.log(`no markdown file found under ${target}: nothing was checked`);
   process.exit(1);
 }
-process.exit(code);
+
+// The layout rule stops its ancestor search at the target.
+const results = await lint({ files, customRules: rules, config: { ...config, "skill-layout": { root: target } } });
+
+let issues = 0;
+for (const file of files) {
+  for (const e of results[file] ?? []) {
+    issues++;
+    const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
+    const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
+    console.log(`${path.relative(target, file)}:${e.lineNumber} ${e.ruleNames.join("/")} ${e.ruleDescription}${detail}${context}`);
+  }
+}
+console.log(`${files.length} files checked, ${issues} issues`);
+process.exit(issues ? 1 : 0);
