@@ -70,4 +70,4 @@ Based on the argument above, do exactly one of the following:
 - **`workflows/check.md`** - the mechanical audit across every installed skill
 - **`workflows/export.md`** - publishing a local skill to a shared repository
 - **`references/managing.md`** - installing and updating skills, and why not to hand-edit an installed one
-- **`scripts/`** - the frontmatter checks as runnable files, the node ones sharing `walk.js` and `scalar.js`, plus `test-checks.sh`, the trap-fixture bench that re-verifies them after any edit
+- **`scripts/`** - the frontmatter checks as runnable files, the node ones sharing `walk.js`, the name and invocation checks also `scalar.js`, plus `test-checks.sh`, the trap-fixture bench that re-verifies them after any edit
