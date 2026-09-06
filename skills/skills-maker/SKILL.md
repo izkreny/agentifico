@@ -38,7 +38,7 @@ The corollary matters when refactoring: moving a rule out of a global instructio
 description: Use when asked to review PR #N, or check what needs review.
 ```
 
-Everything from ` #N` onward is gone. Backticks do not protect against it: a description containing `` `#123` `` survives only because the character before the `#` is a backtick rather than a space, which is luck, not correctness.
+Everything from the space before `#N` onward is gone. Backticks do not protect against it: a description containing `` `#123` `` survives only because the character before the `#` is a backtick rather than a space, which is luck, not correctness.
 
 **Write the description as a block scalar.** It has no comment, anchor, tag or escape processing, so it is immune to this trap and to every relative of it:
 
@@ -47,9 +47,9 @@ description: |
     Use when asked to review PR #N, or check what needs review.
 ```
 
-Quoting also survives ` #`, but every quote style carries its own trap: inside `"..."` a backslash or an unescaped inner `"` is a parse error, inside `'...'` an apostrophe must be doubled, and curly “smart” quotes are not quotes at all, so a description that merely looks quoted still truncates. The family goes further, all verified against a real parser: a leading `&` or `!` silently eats the first word, a duplicate `description:` key silently discards the first value, a bare `yes` becomes a boolean in some parsers, and a stray `:` or a leading `*`, `[`, `{`, `%` or `@` is a parse error. A parse error is not loud in practice: the harness swallows it and the skill simply vanishes from the listing. `workflows/check.md` tests for all of these.
+Quoting also survives a space followed by `#`, but every quote style carries its own trap: inside `"..."` a backslash or an unescaped inner `"` is a parse error, inside `'...'` an apostrophe must be doubled, and curly “smart” quotes are not quotes at all, so a description that merely looks quoted still truncates. The family goes further, all verified against a real parser: a leading `&` or `!` silently eats the first word, a duplicate `description:` key silently discards the first value, a bare `yes` becomes a boolean in some parsers, and a stray `:` or a leading `*`, `[`, `{`, `%` or `@` is a parse error. A parse error is not loud in practice: the harness swallows it and the skill simply vanishes from the listing. `workflows/check.md` tests for all of these.
 
-Then avoid ` #` in the prose anyway. Write "a numbered PR" rather than "PR #N", so the text stays safe under any later edit that changes the form.
+Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" rather than "PR #N", so the text stays safe under any later edit that changes the form.
 
 ---
 
