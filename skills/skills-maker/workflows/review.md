@@ -46,7 +46,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **Advertised verbs that route nowhere.** Check `argument-hint` against the routing table. An argument the skill accepts but does not handle is a promise it breaks.
 
-**A placeholder standing in for a payload.** `-f body='...'` is one line, so the payload test in `workflows/new.md` passes it, while the prose around it describes a multi-paragraph body with a blockquote. Read what the skill says the placeholder stands for, and test that.
+**A placeholder standing in for a payload.** `-f body='...'` is one line, so *A payload that breaks a line, or carries a backtick or a `#`, travels in a file* in `workflows/new.md` passes it, while the prose around it describes a multi-paragraph body with a blockquote. Read what the skill says the placeholder stands for, and test that.
 
 **Rationale that restates the rule.** "Never do X. Doing X is bad." The second sentence should say what breaks, or go. Over-writing clusters where the author was least sure, so a section that reads as an essay is also the section to check for a defect underneath it.
 
