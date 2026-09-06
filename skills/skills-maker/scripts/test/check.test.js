@@ -60,14 +60,15 @@ before(() => {
   fs.writeFileSync(path.join(configured, ".markdownlint-cli2.jsonc"), '{ "config": { "skill-description": false, "skill-description-parsed": false } }\n');
   fs.writeFileSync(path.join(configured, ".markdownlint.json"), '{ "default": false }\n');
 
-  // A copy of this package under the target, with no node_modules, carrying a
-  // cli2 configuration that names a rule module: a runner that discovers
-  // configuration imports that module and aborts on its missing dependency.
-  const copy = path.join(tmp, "copy", "skills-maker");
-  mk(copy, block("skills-maker"));
-  fs.mkdirSync(path.join(copy, "scripts", "rules"), { recursive: true });
-  fs.writeFileSync(path.join(copy, ".markdownlint-cli2.jsonc"), '{ "customRules": ["./scripts/rules/x.js"] }\n');
-  fs.writeFileSync(path.join(copy, "scripts", "rules", "x.js"), 'import "nothing-installed-here";\nexport default {};\n');
+  // A package under the target carrying its own cli2 configuration, which
+  // names a rule module whose dependency is not installed: a runner that
+  // discovers configuration imports that module and aborts, where this check
+  // reads the package's markdown and nothing else.
+  const configuredPackage = path.join(tmp, "configured-package", "some-skill");
+  mk(configuredPackage, block("some-skill"));
+  fs.mkdirSync(path.join(configuredPackage, "scripts", "rules"), { recursive: true });
+  fs.writeFileSync(path.join(configuredPackage, ".markdownlint-cli2.jsonc"), '{ "customRules": ["./scripts/rules/x.js"] }\n');
+  fs.writeFileSync(path.join(configuredPackage, "scripts", "rules", "x.js"), 'import "nothing-installed-here";\nexport default {};\n');
 
   // A directory of symlinks into the canonical tree, which is what an agent's
   // own skills directory is.
@@ -138,8 +139,8 @@ describe("check.js", () => {
     assert.match(r.out, /TRUNCATED/);
     assert.match(r.out, /MD009/);
   });
-  it("a copy of this package under the target is linted, never imported", () => {
-    const r = run(path.join(tmp, "copy"));
+  it("a package with its own cli2 configuration under the target is linted, never imported", () => {
+    const r = run(path.join(tmp, "configured-package"));
     assert.equal(r.code, 0, r.out);
     assert.equal(r.linted, 1);
   });
