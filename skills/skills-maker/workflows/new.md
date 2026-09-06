@@ -85,7 +85,11 @@ An agent executes a skill's commands through its shell tool, which is Bash; fish
 
 ### A payload that breaks a line, or carries a backtick or a `#`, travels in a file
 
-Write it to a file and pass the path - `--body-file <file>`, `-F body=@<file>` - because a line break marks the payload as prose, and prose carries the `'`, the backtick and the `#` that shell quoting mangles: the `'` ends a single-quoted string, the backtick executes inside a double-quoted one, and the `#` opens a comment wherever the quoting slips, so the payload lands mangled, as posted, under the owner's name. A payload is text the command carries to a reader - a body, a comment, a description - and never the command's own syntax: a `-f query='...'` spanning lines is a query, and stays in the command. The test is the payload's own text in the skill rather than where it is going: a one-line title, a label or a date gains nothing from a file, and a quoted payload that breaks a line or carries either character is over the line whatever it is bound to.
+Write it to a file and pass the path - `--body-file <file>`, `-F body=@<file>` - because a line break marks the payload as prose, and prose carries the `'`, the backtick and the `#` that shell quoting mangles: the `'` ends a single-quoted string, the backtick executes inside a double-quoted one, and the `#` opens a comment wherever the quoting slips, so the payload lands mangled, as posted, under the owner's name.
+
+**A payload is text the command carries to a reader** - a body, a comment, a description - never the command's own syntax: a `-f query='...'` spanning lines is a query, and stays in the command.
+
+**The test is the payload's own text in the skill, not where it is going.** A one-line title, a label or a date gains nothing from a file; a quoted payload that breaks a line, or carries a backtick or a `#`, is over the line whatever it is bound to.
 
 ### Paths must survive any working directory and any machine
 
