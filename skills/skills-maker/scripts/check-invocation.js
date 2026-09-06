@@ -33,12 +33,13 @@ function description(fm) {
 
 // Whether the description says anything about invocation at all: the word
 // itself, spawning, or the skill's own slash command, bare or under a plugin
-// prefix ending in a colon - never another skill's command that happens to end
-// in this name.
+// prefix ending in a colon - never another skill's command that this name only
+// ends or only opens, so the name is bounded on both sides by something no
+// skill name contains.
 // Whether what it says matches the field is the reviewer's to judge; this only
 // catches the description that is silent.
 function statesPolicy(text, name) {
-  const slash = new RegExp("/(?:[\\w.-]+:)?" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b");
+  const slash = new RegExp("/(?:[\\w.-]+:)?" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![\\w-])");
   return /invo[ck]|spawn/i.test(text) || slash.test(text);
 }
 
