@@ -29,6 +29,16 @@ export const FRONTMATTER_LINE = 1;
 // Every raw line for one key. More than one is the last-wins trap.
 export const keyLines = (fm, key) => fm.filter((l) => l.startsWith(`${key}:`));
 
+// A plain or quoted scalar may continue on indented lines, and YAML folds them
+// into one value joined by spaces; a rule reading the first line alone would
+// call a legal fold a truncation, and would miss a policy stated on the
+// second line.
+export function folded(fm, i) {
+  const parts = [fm[i].slice(fm[i].indexOf(":") + 1).trim()];
+  for (let j = i + 1; j < fm.length && /^\s+\S/.test(fm[j]); j++) parts.push(fm[j].trim());
+  return parts.join(" ");
+}
+
 // What YAML makes of one raw value, so a quoted value and a value carrying a
 // trailing comment are compared by what they parse to rather than by their
 // punctuation. The traps in how a value is quoted belong to the description
@@ -55,7 +65,7 @@ export function description(fm) {
   const i = fm.findIndex((l) => l.startsWith("description:"));
   if (i < 0) return "";
   const raw = fm[i].slice(12).trim();
-  if (!/^[|>][+-]?$/.test(raw)) return raw;
+  if (!/^[|>][+-]?$/.test(raw)) return folded(fm, i);
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar
   // ends at the first non-empty line with no indent rather than at the first

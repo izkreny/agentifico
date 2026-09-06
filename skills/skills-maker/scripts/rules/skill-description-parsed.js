@@ -4,7 +4,7 @@
 // load at all. It supplements the raw sweep rather than replacing it, since the
 // silent traps are valid YAML and a parser returns the corrupted value happily.
 import { parseDocument } from "yaml";
-import { FRONTMATTER_LINE, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
+import { FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
 
 export function defects(fm) {
   // YAML 1.1 is the reading under which `yes` becomes a boolean, which is the
@@ -20,11 +20,14 @@ export function defects(fm) {
   if (d !== undefined && d !== null && typeof d !== "string") bad.push(`description is ${typeof d}, not a string`);
   // The first line is the one a reader believes; a duplicate key later is what
   // a last-wins parser reads instead, and the difference is the finding.
-  const raw = (keyLines(fm, "description")[0] || "").slice(12).trim();
+  const line = keyLines(fm, "description")[0];
+  const raw = (line || "").slice(12).trim();
   // Only a plain scalar is compared: a quoted or block value is immune, and an
-  // absent one is the raw sweep's finding.
+  // absent one is the raw sweep's finding. A plain scalar folded across lines
+  // is compared as YAML folds it, so a legal fold is not a mutation.
   if (raw === "" || /^[|>"']/.test(raw)) return bad;
-  if (d !== raw) bad.push(`SILENTLY MUTATED: raw line says ${JSON.stringify(raw)} but parses as ${JSON.stringify(d)}`);
+  const plain = folded(fm, fm.indexOf(line));
+  if (d !== plain) bad.push(`SILENTLY MUTATED: raw line says ${JSON.stringify(plain)} but parses as ${JSON.stringify(d)}`);
   return bad;
 }
 

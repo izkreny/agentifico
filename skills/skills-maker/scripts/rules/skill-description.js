@@ -3,7 +3,7 @@
 // corrupted value without complaint. SKILL.md owns the membership of the trap
 // classes, under "YAML eats the description at `#`"; this is where each is
 // decided.
-import { FRONTMATTER_LINE, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
+import { FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
 
 // What may follow a closing quote: nothing, or a comment.
 const TRAILING = /^(\s+#.*)?$/;
@@ -15,6 +15,9 @@ export function defects(fm) {
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
   const raw = (dl[0] || "").slice(12).trim();
   const block = dl.length && /^[|>][+-]?$/.test(raw);
+  // A plain scalar is judged on its folded value: a continuation line can carry
+  // the same traps as the first, and a legal fold is not one of them.
+  const plain = dl.length ? folded(fm, fm.indexOf(dl[0])) : "";
   // Only a value that opens with a curly quote is pretending to be quoted; a
   // typographic apostrophe inside a value is harmless, and a block scalar is
   // immune to the whole family, so neither is a defect.
@@ -35,11 +38,11 @@ export function defects(fm) {
     const m = raw.slice(1).match(/^((?:[^']|'')*)'(.*)$/);
     if (!m || !TRAILING.test(m[2])) bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
   } else if (dl.length) {
-    const cut = raw.search(/\s#/);
-    if (cut >= 0) bad.push(`TRUNCATED at ' #', silently loses ${raw.length - cut} chars`);
+    const cut = plain.search(/\s#/);
+    if (cut >= 0) bad.push(`TRUNCATED at ' #', silently loses ${plain.length - cut} chars`);
     if (/^[&*![{%@]/.test(raw)) bad.push(`leading ${raw[0]} changes meaning or is a parse error`);
-    if (/:(\s|$)/.test(raw)) bad.push("colon inside or ending an unquoted value: parse error");
-    if (/^(yes|no|on|off|true|false|null|~)$/i.test(raw)) bad.push("becomes boolean or null in some parsers");
+    if (/:(\s|$)/.test(plain)) bad.push("colon inside or ending an unquoted value: parse error");
+    if (/^(yes|no|on|off|true|false|null|~)$/i.test(plain)) bad.push("becomes boolean or null in some parsers");
   }
   return bad;
 }

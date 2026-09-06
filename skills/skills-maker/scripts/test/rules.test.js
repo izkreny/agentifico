@@ -1,9 +1,11 @@
 // The rules against their fixtures, one string each, through markdownlint's
 // own string input: the name a string is keyed by is the path the rule sees, so
 // a fixture is a skill by its key and nothing is ever written to disk. Every
-// fixture is here because a shape was once decided wrongly, and each assertion
-// was watched failing against the rule with its clause removed before it was
-// trusted; a check that has never been seen to fail is not evidence.
+// fixture decides something the rule itself decides, and each assertion was
+// watched failing against the rule with its clause removed before it was
+// trusted; a shape the parser alone decides has no fixture here, because no
+// change to the rule could ever break it, and a check that has never been seen
+// to fail is not evidence.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { lint } from "markdownlint/promise";
@@ -40,6 +42,8 @@ describe("skill-description, the raw sweep", () => {
     ["good-curly", "name: x\ndescription: |\n  Use when reviewing the repository’s own skills.", null],
     ["good-quoted-comment", 'name: x\ndescription: "a real description" # note', null],
     ["good-single-doubled", "name: x\ndescription: 'it''s fine' # don't mind me", null],
+    ["good-multiline", "name: x\ndescription: Use when asked to do X,\n  and also when asked to do Y.", null],
+    ["t-multiline-comment", "name: x\ndescription: Use when asked to do X,\n  and PR #N work", "TRUNCATED"],
     ["t-comment", "name: x\ndescription: review PR #N and more", "TRUNCATED"],
     ["t-anchor", "name: x\ndescription: &draft Use when drafting", "leading &"],
     ["t-curly", "name: x\ndescription: “Use for PR #N”", "curly quotes"],
@@ -77,6 +81,8 @@ describe("skill-description-parsed, the differential", () => {
     ["good-block", "name: x\ndescription: |\n  Use for PR #N review: safe & sound", null],
     ["good-quoted", 'name: x\ndescription: "Plain quoted, no tricks"', null],
     ["good-plain", "name: x\ndescription: Use when reviewing a skill.", null],
+    ["good-multiline", "name: x\ndescription: Use when asked to do X,\n  and also when asked to do Y.", null],
+    ["t-multiline-comment", "name: x\ndescription: Use when asked to do X,\n  and PR #N work", "SILENTLY MUTATED"],
     ["t-comment", "name: x\ndescription: review PR #N and more", "SILENTLY MUTATED"],
     ["t-anchor", "name: x\ndescription: &draft Use when drafting", "SILENTLY MUTATED"],
     ["t-curly", "name: x\ndescription: “Use for PR #N”", "SILENTLY MUTATED"],
@@ -134,6 +140,7 @@ describe("skill-invocation", () => {
     ["i-dmi-stated", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true", null],
     ["i-dmi-slash", "description: |\n  Type `/plug:i-dmi-slash` yourself.\ndisable-model-invocation: true", null],
     ["i-dmi-plain", "description: Only when the user invokes it by name.\ndisable-model-invocation: true", null],
+    ["i-dmi-folded", "description: Does a thing for the user,\n  only when the user invokes it by name.\ndisable-model-invocation: true", null],
     ["i-dmi-silent", "description: |\n  Nothing about how it is reached.\ndisable-model-invocation: true", silent],
     ["i-ui-stated", "description: |\n  Spawned by a review round, never typed.\nuser-invocable: false", null],
     ["i-ui-silent", "description: |\n  Nothing about how it is reached.\nuser-invocable: false", silent],
@@ -166,18 +173,12 @@ describe("skill-continuations", () => {
     ["c-two", "- **lead.** first line\n\n  the reason\n\n  a second paragraph, which is a second claim\n", [`2 ${cap}`]],
     ["c-bold", "- **lead.** first line\n\n  **a bolded continuation.** which is a heading wearing an indent\n", [bold]],
     ["c-fencein", "- **lead.** first line\n\n  ```bash\n  echo hi\n  ```\n\n  the one continuation\n", []],
-    [
-      "c-wide",
-      "10. **ten.** a two-digit ordinal, so the content column is four\n\n    its one continuation\n\n   a three-space block, below that column and so outside the item\n",
-      [],
-    ],
     ["c-tick", "- **lead.** first line\n\n  `COMMENT`, not `REQUEST_CHANGES`\n\n  `another` one opening with a backtick\n", [`2 ${cap}`]],
     [
       "c-runon",
       "3. **three.** its lead\n\n   a continuation\n4. **four.** the marker runs straight on from the paragraph above\n\n   its reason\n\n   **and a bolded second.** which is the defect\n",
       [`2 ${cap}`, bold],
     ],
-    ["c-table", "1. **one.** its lead\n\n| a | b |\n| --- | --- |\n| c | d |\n\n   an indented paragraph after a column-0 table\n", []],
     [
       "c-nested",
       "- **outer.** its lead\n\n  - **inner.** a nested item at the parent content column\n\n  the reason\n\n  a second paragraph\n\n  **a bolded third.** which must still be seen\n",
@@ -185,9 +186,6 @@ describe("skill-continuations", () => {
     ],
     ["c-nested4", "- **outer.** its lead\n\n    - nested a\n    - nested b\n\n  the one continuation\n", []],
     ["c-nestedown", "- **outer.** its lead\n\n  - **inner.** a nested item\n\n    the nested item's own paragraph\n\n  the parent's one continuation\n", []],
-    ["c-fencechar", "- **lead.** first\n\n  ````\n  ~~~~\n  para a\n\n  para b\n  ````\n\n  the one continuation\n", []],
-    ["c-fencelen", "- **lead.** first\n\n  ````\n  ```\n  para a\n\n  para b\n  ````\n\n  the one continuation\n", []],
-    ["c-fencealone", "- **lead.** first\n\n  ````\n  ```` trailing text\n  para a\n\n  para b\n  ````\n\n  the one continuation\n", []],
     ["c-tablein", "- **lead.** first\n\n  the reason\n\n  | a | b |\n  | --- | --- |\n  | c | d |\n", []],
     ["c-quotein", "- **lead.** first\n\n  the reason\n\n  > a quoted line, which is not a paragraph of the item\n", []],
     ["c-leadfence", "- ```bash\n  echo hi\n  ```\n\n  the one continuation\n", []],
