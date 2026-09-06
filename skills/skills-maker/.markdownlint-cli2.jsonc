@@ -1,0 +1,26 @@
+{
+  // The general lint and this package's own rules, in one run. Every rule of
+  // markdownlint's runs at its default unless it is named below, and a rule
+  // named below is off for the reason beside it, never for quiet.
+  "config": {
+    "default": true,
+    // A paragraph is one unwrapped line here, per No hard wrapping in
+    // workflows/new.md, so a line-length cap would flag every paragraph.
+    "MD013": false,
+    // A skill file opens with its tools blockquote, not a heading, per the
+    // layout workflows/new.md states.
+    "MD041": false,
+    // The trap this skill documents is the two-character sequence of a space
+    // and a `#`, written as a code span with its leading space on purpose; the
+    // rule reads that space as a slip.
+    "MD038": false
+  },
+  "customRules": [
+    "./scripts/rules/skill-description.js",
+    "./scripts/rules/skill-description-parsed.js",
+    "./scripts/rules/skill-name.js",
+    "./scripts/rules/skill-invocation.js",
+    "./scripts/rules/skill-continuations.js",
+    "./scripts/rules/skill-layout.js"
+  ]
+}

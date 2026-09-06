@@ -1,0 +1,22 @@
+{
+  "name": "skills-maker-checks",
+  "private": true,
+  "description": "The mechanical checks of the skills-maker skill: markdownlint-cli2 with this package's own rules, and their bench",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check": "node scripts/check.js",
+    "test": "node --test 'scripts/test/*.test.js'",
+    "lint": "biome check scripts/"
+  },
+  "dependencies": {
+    "markdownlint": "0.41.1",
+    "markdownlint-cli2": "0.23.2",
+    "yaml": "2.9.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.12"
+  }
+}
