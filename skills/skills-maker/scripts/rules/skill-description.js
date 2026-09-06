@@ -17,8 +17,9 @@ export function defects(fm) {
   const block = dl.length && /^[|>][+-]?$/.test(raw);
   // The value under judgement, folded as YAML folds it, whatever its style:
   // a continuation line can carry the same traps as the first, a quote may
-  // close on it, and a legal fold is not a defect. `raw`, the first line, only
-  // decides which style the value has.
+  // close on it, and a legal fold is not a defect. `raw`, the first line,
+  // decides which style the value has and carries the two traps that live on
+  // the first line alone, a curly opening quote and a leading special character.
   const value = dl.length ? folded(fm, fm.indexOf(dl[0])) : "";
   // Only a value that opens with a curly quote is pretending to be quoted; a
   // typographic apostrophe inside a value is harmless, and a block scalar is
