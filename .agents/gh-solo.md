@@ -15,7 +15,7 @@ python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .ag
   --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*' --ignore 'skills/skills-maker/scripts/*'
 ```
 
-The ignore set is not optional and is not tuning. The last span belongs to the plans that named the scripts skills-maker carried before #101 replaced them: a plan is a record of intent and stays as written, so the paths it names go stale by design. Without it the run reports every backticked path that belongs to a repository the plugin serves rather than to this one, and the output reads as failure. The script's own usage note documents the set that keeps the *plugin's* tree clean; for this repository the command above is the authority, and it is narrower.
+The ignore set is not optional and is not tuning. The `skills/skills-maker/scripts/*` span belongs to the plans that named the scripts skills-maker carried before #101 replaced them: a plan is a record of intent and stays as written, so the paths it names go stale by design. Without it the run reports every backticked path that belongs to a repository the plugin serves rather than to this one, and the output reads as failure. The script's own usage note documents the set that keeps the *plugin's* tree clean; for this repository the command above is the authority, and it is narrower.
 
 **Why it is narrower.** `--ignore` skips a matching *span* rather than a file, so `--ignore 'AGENTS.md'`, `--ignore 'CLAUDE.md'` and `--ignore '.agents/*'` would skip exactly the cross-links between this file and `AGENTS.md` - the spans most worth checking, since both files exist here where in a served repository they do not. Never add them back to make an output quieter.
 
