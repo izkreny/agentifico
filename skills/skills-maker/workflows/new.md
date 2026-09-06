@@ -23,11 +23,12 @@ A skill is worth writing when one of these happened: a multi-step workflow prove
 | `description` | The trigger surface. **Write it as a `\|` block scalar** (the trap family is in `SKILL.md`). Name the phrases the user actually says, not a summary of the topic |
 | `argument-hint` | Shown in the slash-command UI, e.g. `"[view \| add \| submit]"`. Only advertise verbs that route somewhere |
 | `allowed-tools` | Narrow it. `Bash(gh:*)` rather than bare `Bash` |
-| `disable-model-invocation` | `true` means explicit invocation only, never auto-discovered. Use it for anything with side effects, and for reference material that would otherwise fire on unrelated work |
+| `disable-model-invocation` | `true` means explicit invocation only, never auto-discovered, and it blocks the model's call through the Skill tool, a spawned subagent's included (Claude Code 2.1.252). Use it for side effects the owner should trigger themselves, and for reference material that would otherwise fire on unrelated work. A skill an agent loads through the Skill tool takes `user-invocable: false` instead, whatever its side effects, because this field would block that very call |
+| `user-invocable` | Defaults to `true`. `false` hides the skill from the `/` menu and from `/name` while the model can still invoke it: the field for a skill whose only caller is an agent, through the Skill tool |
 
 Write the description as trigger phrases plus a boundary. **Say what the skill is not for**: one boundary sentence prevents more misfires than another trigger phrase adds.
 
-The format's authority is the [Agent Skills specification](https://agentskills.io/specification): `name` and `description` are its only required fields, `license`, `compatibility` and `metadata` are optional (quote metadata values, `version: "1.0"`, since a bare `1.0` parses as a float), and `allowed-tools` is in the spec but experimental. `argument-hint` and `disable-model-invocation` are Claude Code extensions that other agents silently ignore, so never let behaviour depend on them alone: a skill meant for explicit invocation only says so in its description too, because on an agent that ignores the flag the description is all that holds.
+The format's authority is the [Agent Skills specification](https://agentskills.io/specification): `name` and `description` are its only required fields, `license`, `compatibility` and `metadata` are optional (quote metadata values, `version: "1.0"`, since a bare `1.0` parses as a float), and `allowed-tools` is in the spec but experimental. `argument-hint`, `disable-model-invocation` and `user-invocable` are Claude Code extensions that other agents silently ignore, so never let behaviour depend on them alone: a skill meant for explicit invocation only, or for an agent only, says so in its description too, because on an agent that ignores the field the description is all that holds.
 
 ## Step 3 - Pick the layout
 

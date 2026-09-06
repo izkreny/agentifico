@@ -42,6 +42,18 @@ Then, per skill. These are the mechanical faces of the authoring rules in `workf
 - **Line lengths.** Body prose is one line per paragraph, unwrapped. Fenced code, tables and frontmatter keep their own structure.
 - **Portable paths.** Nothing absolute to one machine's home directory; skill-relative or `~/`-relative instead.
 
+## The invocation check
+
+`disable-model-invocation` and `user-invocable` decide who may invoke a skill, and `workflows/new.md` owns what each does; this check is their mechanical face, over the same target:
+
+```bash
+node scripts/check-invocation.js ~/.claude/skills
+```
+
+A field present must be lowercase `true` or `false`, once and unquoted: `yes` and `True` are booleans in some parsers and strings in others, a quoted value is a string in every parser, and a duplicate key is the last-wins trap the description check reports. A field at a non-default value has to be matched by a description that says something about invocation, because another agent ignores the field silently and there the description is all that holds.
+
+**What it cannot decide is whether the sentence it found matches the field.** It tells a description silent on invocation from one that speaks, and stops there; a description stating the wrong policy is the reviewer's to catch.
+
 ## The continuation check
 
 `workflows/new.md` owns the rule on continuation paragraphs under a list item, and its reason; this check is its mechanical face. The target is the one *The description check* states, and every markdown file under a skill is read rather than its `SKILL.md` alone, since a rule about prose applies wherever the skill keeps prose:
