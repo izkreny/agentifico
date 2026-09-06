@@ -1,4 +1,4 @@
-> **Tools used:** `Read` to load the skill, `Grep` to cross-check against other skills, `Bash(node:*)` and, where present, `Bash(ruby:*)` for the frontmatter checks run via `workflows/check.md`.
+> **Tools used:** `Read` to load the skill, `Grep` to cross-check against other skills, `Bash(node:*)` for the check run via `workflows/check.md`.
 
 Review an existing skill. Find what is wrong and name the specific defect; agreement is not the output being asked for.
 

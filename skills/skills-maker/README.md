@@ -13,7 +13,7 @@ A defective skill does not error. It loads, it works when it happens to load, an
 The mechanical facts that make that silence possible, each learned from a real failure rather than from documentation:
 
 - **The frontmatter `description:` is the entire trigger surface.** Nothing reads a skill's body until something has already decided to load it, so a trigger phrase written anywhere else never fires.
-- **Unquoted YAML eats the description at ` #`.** In an unquoted scalar, a space followed by `#` starts a comment: everything after it is discarded with no parse error and no warning. The skill still loads and still works; the only symptom is triggers that never fire. Found live on a skill whose description contained "review PR #N" and was silently losing 160 characters of trigger text.
+- **Unquoted YAML eats the description at a space followed by `#`.** In an unquoted scalar that pair starts a comment: everything after it is discarded with no parse error and no warning. The skill still loads and still works; the only symptom is triggers that never fire. Found live on a skill whose description contained "review PR #N" and was silently losing 160 characters of trigger text.
 
 A skill that never fires looks identical to a skill that was never written. Every workflow here exists to tell the two apart before the difference costs you.
 
@@ -22,7 +22,7 @@ A skill that never fires looks identical to a skill that was never written. Ever
 `SKILL.md` is a router: it reads the argument, loads exactly one workflow file, and follows it inline, so the loaded context stays proportional to the task rather than to the skill.
 
 | Argument | What it does |
-|---|---|
+| --- | --- |
 | `new <name>` | Author a skill from scratch |
 | `review <path>` | Review an existing skill, or a whole package, for the defects that actually occur |
 | `check`, or no argument | Mechanical audit across every installed skill |
@@ -55,10 +55,10 @@ Plan and author a new skill with the most capable model available to you, and ru
 npx skills add izkreny/agentifico -g -y -s skills-maker
 ```
 
-That is the [skills CLI](https://skills.sh) in its no-install `npx` form. To have `skills` as a real command instead, [mise](https://mise.jdx.dev) installs it in one line, `mise use -g npm:skills`, and the `npx` prefix goes away. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
+That is the [skills CLI](https://skills.sh) in its no-install `npx` form. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in; `workflows/check.md` states the command. To have `skills` as a real command instead, [mise](https://mise.jdx.dev) installs it in one line, `mise use -g npm:skills`, and the `npx` prefix goes away. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
 
 ## Similar tools, and why this exists anyway
 
-This skill is agent-agnostic: it assumes a shell, a filesystem and Node, not one vendor's harness. The nearest neighbours are not: on Anthropic's official plugin marketplace, the `skill-creator` plugin measures skill behaviour with evals but has no review mode, and the `plugin-dev` plugin's `skill-reviewer` agent reviews text but enforces its own description style. Both, like every validator that parses frontmatter with a real YAML parser, silently accept the ` #` truncation, because the truncation is valid YAML; this skill checks the raw line instead, so the trap is visible to it alone. For behavioural doubts the tools are complementary, and `workflows/review.md` says to measure with whatever eval tooling the agent in use provides, naming Claude Code's built-in `claude plugin eval` as the example.
+This skill is agent-agnostic: it assumes a shell, a filesystem and Node 22 or later with one `npm ci` in the installed directory, not one vendor's harness. The nearest neighbours are not: on Anthropic's official plugin marketplace, the `skill-creator` plugin measures skill behaviour with evals but has no review mode, and the `plugin-dev` plugin's `skill-reviewer` agent reviews text but enforces its own description style. Both, like every validator that parses frontmatter with a real YAML parser, silently accept the space-and-`#` truncation, because the truncation is valid YAML; this skill checks the raw line instead, so the trap is visible to it alone. For behavioural doubts the tools are complementary, and `workflows/review.md` says to measure with whatever eval tooling the agent in use provides, naming Claude Code's built-in `claude plugin eval` as the example.
 
 Worth a look rather than a dependency: [Hermes](https://github.com/nousresearch/hermes-agent) (Nous Research) genuinely self-learns, creating and patching its own skills from its sessions and gating agent-written ones behind approval and a content scanner; its creation triggers are the same judgement `workflows/new.md` encodes. [pi](https://pi.dev/docs/latest/skills) and [opencode](https://opencode.ai/docs/skills/) consume the same skill format but ship no creation or review tooling; both discover skills from other agents' directories, `~/.agents/skills/` included, which is exactly the shared layout `SKILL.md` recommends. None of them reviews skills, and none sees the truncation trap.
