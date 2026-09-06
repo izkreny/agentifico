@@ -310,5 +310,70 @@ printf -- '---\nname: c-dot\ndescription: |\n  x\n---\nbody\n' > .fx/cont/c-dot/
 printf -- '- **lead.** first\n\n  the reason\n\n  a second paragraph\n' > .fx/cont/c-dot/.hidden/w.md
 cexpect c-dot '1 skill(s) checked, 0 with defects' 'a dot-directory is skipped, as in the walk'
 
+# The invocation check. Each fixture is one way a skill can rely on a field
+# another agent ignores: a bad value, a duplicate key, a value quoted into a
+# string, and above all a non-default value whose description says nothing
+# about invocation, which works exactly as intended on one agent and is wide
+# open on every other. A field at its default relies on nothing.
+ifx() { mkdir -p ".fx/inv/$1"; printf -- '---\nname: %s\n%b\n---\nbody\n' "$1" "$2" > ".fx/inv/$1/SKILL.md"; }
+ifx i-default    'description: |\n  Nothing about how it is reached.'
+ifx i-dflt-set   'description: |\n  Nothing about how it is reached.\nuser-invocable: true\ndisable-model-invocation: false'
+ifx i-dmi-stated 'description: |\n  Explicit invocation only.\ndisable-model-invocation: true'
+ifx i-dmi-slash  'description: |\n  Type `/plug:i-dmi-slash` yourself.\ndisable-model-invocation: true'
+ifx i-dmi-plain  'description: Only when the user invokes it by name.\ndisable-model-invocation: true'
+ifx i-dmi-silent 'description: |\n  Nothing about how it is reached.\ndisable-model-invocation: true'
+ifx i-ui-stated  'description: |\n  Spawned by a review round, never typed.\nuser-invocable: false'
+ifx i-ui-silent  'description: |\n  Nothing about how it is reached.\nuser-invocable: false'
+ifx i-yes        'description: |\n  Explicit invocation only.\ndisable-model-invocation: yes'
+ifx i-caps       'description: |\n  Explicit invocation only.\ndisable-model-invocation: True'
+ifx i-empty      'description: |\n  Explicit invocation only.\ndisable-model-invocation:'
+ifx i-quoted     'description: |\n  Explicit invocation only.\nuser-invocable: "false"'
+ifx i-dupe       'description: |\n  Explicit invocation only.\ndisable-model-invocation: true\ndisable-model-invocation: false'
+ifx i-comment    'description: |\n  Explicit invocation only.\ndisable-model-invocation: true # the owner types it'
+
+inv_out="$(node "$here/check-invocation.js" "$tmp/.fx/inv")"; inv_code=$?
+iexpect() {
+  case "$(printf '%s\n' "$inv_out" | grep "^$1 ")" in
+    *"$2"*) printf 'PASS  inv   %-14s %s\n' "$1" "$3" ;;
+    *) printf 'FAIL  inv   %-14s wanted "%s", got "%s"\n' "$1" "$2" "$inv_out"; fail=1 ;;
+  esac
+}
+iclean() {
+  case "$(printf '%s\n' "$inv_out" | grep -c "^$1 ")" in
+    0) printf 'PASS  inv   %-14s %s\n' "$1" "$2" ;;
+    *) printf 'FAIL  inv   %-14s flagged: %s\n' "$1" "$(printf '%s\n' "$inv_out" | grep "^$1 ")"; fail=1 ;;
+  esac
+}
+iclean  i-default    'no field, nothing to check'
+iclean  i-dflt-set   'a field at its default relies on nothing'
+iclean  i-dmi-stated 'the description names invocation'
+iclean  i-dmi-slash  'the description names the slash command, prefix and all'
+iclean  i-dmi-plain  'a plain-scalar description is read too'
+iclean  i-ui-stated  'spawned is a statement of who invokes it'
+iclean  i-comment    'a trailing comment is outside the value'
+iexpect i-dmi-silent 'description says nothing about invocation' 'the field alone is a policy other agents ignore'
+iexpect i-ui-silent  'description says nothing about invocation' 'the same for the field that hides a skill from the owner'
+iexpect i-yes        'not true or false'                        'yes is a boolean in some parsers and a string in others'
+iexpect i-caps       'not true or false'                        'True is the same trap'
+iexpect i-empty      'not true or false'                        'an empty value is not a boolean'
+iexpect i-quoted     'quoted'                                   'a quoted false is the string false'
+iexpect i-dupe       'duplicate'                                'the last key silently wins'
+case "$inv_out$inv_code" in
+  *'14 skill(s) checked, 7 with defects1') printf 'PASS  inv   %-14s %s\n' count 'every fixture counted, exit 1 on defects' ;;
+  *) printf 'FAIL  inv   %-14s got "%s" exit %s\n' count "$(printf '%s\n' "$inv_out" | tail -1)" "$inv_code"; fail=1 ;;
+esac
+
+iempty="$(node "$here/check-invocation.js" "$tmp/empty")"; iempty_code=$?
+case "$iempty$iempty_code" in
+  *'nothing was checked1') printf 'PASS  inv   %-14s %s\n' empty-target 'nothing was checked, exit 1' ;;
+  *) printf 'FAIL  inv   %-14s got "%s" exit %s\n' empty-target "$iempty" "$iempty_code"; fail=1 ;;
+esac
+
+ipkg="$(node "$here/check-invocation.js" "$tmp/.fx/pkg")"; ipkg_code=$?
+case "$ipkg$ipkg_code" in
+  *'2 skill(s) checked, 0 with defects0') printf 'PASS  inv   %-14s %s\n' package-root 'the skills under a package root' ;;
+  *) printf 'FAIL  inv   %-14s got "%s" exit %s\n' package-root "$ipkg" "$ipkg_code"; fail=1 ;;
+esac
+
 [ "$fail" -eq 0 ] && echo 'ALL CHECKS VERIFIED' || echo 'BENCH FAILED'
 exit "$fail"
