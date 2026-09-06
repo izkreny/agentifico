@@ -15,7 +15,7 @@ npm --prefix <skill-dir> ci
 The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree, and dot-directories are skipped:
 
 ```bash
-node <skill-dir>/scripts/check.js ~/.claude/skills
+node <skill-dir>/scripts/check.js ~/.agents/skills
 ```
 
 Every markdown file under the target is read, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep.
