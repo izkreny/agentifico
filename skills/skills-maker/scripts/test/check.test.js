@@ -60,13 +60,14 @@ before(() => {
   fs.writeFileSync(path.join(configured, ".markdownlint-cli2.jsonc"), '{ "config": { "skill-description": false, "skill-description-parsed": false } }\n');
   fs.writeFileSync(path.join(configured, ".markdownlint.json"), '{ "default": false }\n');
 
-  // A copy of this package under the target, with no node_modules: its rule
-  // files are markdown-free and must never be imported.
+  // A copy of this package under the target, with no node_modules, carrying a
+  // cli2 configuration that names a rule module: a runner that discovers
+  // configuration imports that module and aborts on its missing dependency.
   const copy = path.join(tmp, "copy", "skills-maker");
   mk(copy, block("skills-maker"));
   fs.mkdirSync(path.join(copy, "scripts", "rules"), { recursive: true });
-  fs.writeFileSync(path.join(copy, "scripts", "lint-config.js"), 'import "nothing-installed-here";\n');
-  fs.writeFileSync(path.join(copy, "scripts", "rules", "x.js"), "export default {};\n");
+  fs.writeFileSync(path.join(copy, ".markdownlint-cli2.jsonc"), '{ "customRules": ["./scripts/rules/x.js"] }\n');
+  fs.writeFileSync(path.join(copy, "scripts", "rules", "x.js"), 'import "nothing-installed-here";\nexport default {};\n');
 
   // A directory of symlinks into the canonical tree, which is what an agent's
   // own skills directory is.
@@ -159,8 +160,6 @@ describe("check.js", () => {
   it("the default target is the working directory", () => {
     const r = spawnSync(process.execPath, [check], { cwd: path.join(tmp, "bad"), encoding: "utf8" });
     assert.equal(r.status, 1);
-    // cli2's formatter writes findings through the error log, so the record is
-    // on stderr and the progress on stdout.
-    assert.match(r.stdout + r.stderr, /TRUNCATED/);
+    assert.match(r.stdout, /TRUNCATED/);
   });
 });
