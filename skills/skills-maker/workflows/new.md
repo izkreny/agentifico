@@ -83,6 +83,10 @@ Duplication between a global instructions file and a skill drifts, and the drift
 
 An agent executes a skill's commands through its shell tool, which is Bash; fish or zsh syntax in a skill fails at execution time, on the machine of whoever installed it.
 
+### A payload that breaks a line, or carries a backtick or a `#`, travels in a file
+
+Write it to a file and pass the path - `--body-file <file>`, `-F body=@<file>`. A payload is text the command carries to a reader - a body, a comment, a description - never the command's own syntax, such as a `-f query='...'`. The test is the payload's own characters: a line break, a backtick or a `#` sends it to a file, because those are what shell quoting mangles and a line break marks prose that carries them; a one-line payload without them stays inline whatever else it says, and picks the quote that fits it.
+
 ### Paths must survive any working directory and any machine
 
 Inside the skill, relative to the skill's own directory and say so; for user locations, `~/`-relative. A path absolute to the author's home directory breaks on every other machine.

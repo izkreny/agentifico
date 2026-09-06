@@ -6,7 +6,7 @@ argument-hint: "[new <name> | review <path> | check | export <path>]"
 disable-model-invocation: true
 compatibility: Requires Node for the frontmatter checks. Ruby (optional) adds the differential check; the gh CLI is needed only for export.
 metadata:
-  version: "1.4.0"
+  version: "1.5.0"
 allowed-tools: Bash(gh:*), Bash(node:*), Bash(ruby:*), Bash(bash:*), Bash(skills:*), Bash(npx skills:*), Read, Write, Edit, Grep, Glob
 ---
 
