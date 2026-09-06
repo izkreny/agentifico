@@ -24,7 +24,10 @@ function description(fm) {
   const raw = lines[i].slice(12).trim();
   if (!/^[|>][+-]?$/.test(raw)) return raw;
   const body = [];
-  for (let j = i + 1; j < lines.length && /^\s/.test(lines[j]); j++) body.push(lines[j]);
+  // A paragraph break inside a block scalar is an empty line, so the scalar
+  // ends at the first non-empty line with no indent rather than at the first
+  // line without one.
+  for (let j = i + 1; j < lines.length && (lines[j] === "" || /^\s/.test(lines[j])); j++) body.push(lines[j]);
   return body.join("\n");
 }
 

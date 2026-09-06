@@ -330,6 +330,7 @@ ifx i-empty      'description: |\n  Explicit invocation only.\ndisable-model-inv
 ifx i-quoted     'description: |\n  Explicit invocation only.\nuser-invocable: "false"'
 ifx i-dupe       'description: |\n  Explicit invocation only.\ndisable-model-invocation: true\ndisable-model-invocation: false'
 ifx i-comment    'description: |\n  Explicit invocation only.\ndisable-model-invocation: true # the owner types it'
+ifx i-para       'description: |\n  Does a thing for the user.\n\n  Only when the user invokes it by name.\ndisable-model-invocation: true'
 
 inv_out="$(node "$here/check-invocation.js" "$tmp/.fx/inv")"; inv_code=$?
 iexpect() {
@@ -351,6 +352,7 @@ iclean  i-dmi-slash  'the description names the slash command, prefix and all'
 iclean  i-dmi-plain  'a plain-scalar description is read too'
 iclean  i-ui-stated  'spawned is a statement of who invokes it'
 iclean  i-comment    'a trailing comment is outside the value'
+iclean  i-para       'a policy stated after a paragraph break is still read'
 iexpect i-dmi-silent 'description says nothing about invocation' 'the field alone is a policy other agents ignore'
 iexpect i-ui-silent  'description says nothing about invocation' 'the same for the field that hides a skill from the owner'
 iexpect i-yes        'not true or false'                        'yes is a boolean in some parsers and a string in others'
@@ -359,7 +361,7 @@ iexpect i-empty      'not true or false'                        'an empty value 
 iexpect i-quoted     'quoted'                                   'a quoted false is the string false'
 iexpect i-dupe       'duplicate'                                'the last key silently wins'
 case "$inv_out$inv_code" in
-  *'14 skill(s) checked, 7 with defects1') printf 'PASS  inv   %-14s %s\n' count 'every fixture counted, exit 1 on defects' ;;
+  *'15 skill(s) checked, 7 with defects1') printf 'PASS  inv   %-14s %s\n' count 'every fixture counted, exit 1 on defects' ;;
   *) printf 'FAIL  inv   %-14s got "%s" exit %s\n' count "$(printf '%s\n' "$inv_out" | tail -1)" "$inv_code"; fail=1 ;;
 esac
 
