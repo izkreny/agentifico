@@ -27,8 +27,10 @@ tokens:
   - '(?:two|three|four|five|six|seven|eight|nine|ten) (?:[a-z]+ )?(?:below|above)'
   # An enumeration announced by its number: "Three cures." 7b06a2e; "Two
   # lines matter:" ae1cd1a; "Two causes remain." f3af74d; "It runs in three
-  # parts:" PR 46; "Two things sit outside it" PR 37.
-  - '^(?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+(?: [a-z]+)?(?:[:.]| remain| matter| sit| are| were)'
+  # parts:" PR 46; "Two things sit outside it" PR 37. The closing shapes sit
+  # in a lookahead, because Vale appends a word boundary to every token and
+  # a boundary after the punctuation itself would never be satisfied.
+  - '^(?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+(?: [a-z]+)?(?=[:.]| remain| matter| sit| are| were)'
   - 'runs in (?:two|three|four|five|six) [a-z]+'
   # "Both checks are per stack" PR 86; "under both refusals above" PR 86;
   # "Both workflows end" and "required on both verdicts" ae1cd1a; nineteen

@@ -63,4 +63,4 @@ tokens:
   - 'the (?:first|second|third|fourth|last|next|previous|final) (?:[a-z]+ ){0,2}(?:bullet|paragraph|row|section|sentence|entry|column|thing this)'
   # An ordinal pair walking the document's own list: "The first is a check",
   # "The second is" #2; "the third row is the finding" #7.
-  - '^the (?:first|second|third) (?:is|was)\\b'
+  - '^the (?:first|second|third) (?:is|was)\b'

@@ -6,9 +6,9 @@
 // fixture that trips it and a guards fixture of lines it must leave alone, and
 // each assertion was watched failing against the rule with its token removed
 // or the fixture with its defect removed before it was trusted. The coverage
-// test at the end is the mechanical form of that: a Vale rule that matches
-// nothing fails silently, so a rule no fixture reaches is indistinguishable
-// from one that is broken.
+// tests at the end are the mechanical form of that: a Vale rule or token that
+// matches nothing fails silently, so one no fixture reaches is
+// indistinguishable from one that is broken.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -16,38 +16,49 @@ import os from "node:os";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import YAML from "yaml";
 
 const styles = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "styles");
+const styleDir = path.join(styles, "Agentifico");
 let tmp;
 let ini;
 const fired = new Set();
 
+// Quoted text is ignored as .vale.ini ignores it, since the rule files quote
+// their own bad examples; the same line goes into every configuration the
+// suite writes.
+const tokenIgnores = 'TokenIgnores = ("[^"\\n]+"), (“[^”\\n]+”)';
+
 // The suite's own configuration: the file-length rules are on for a fixture
 // whose name says it stands for a SKILL.md, and off elsewhere, which is what
-// .vale.ini does for a real one through its own section, and quoted text is
-// ignored as .vale.ini ignores it, since the rule files quote their own bad
-// examples. A section glob is matched against the whole path, so it opens
-// with **/ to reach a basename.
+// .vale.ini does for a real one through its own section. A section glob is
+// matched against the whole path, so it opens with **/ to reach a basename.
 before(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), "skills-maker-vale-"));
   ini = path.join(tmp, ".vale.ini");
   fs.writeFileSync(
     ini,
-    `StylesPath = ${styles}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = Agentifico\nTokenIgnores = ("[^"\\n]+"), (“[^”\\n]+”)\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n\n[**/skill-*.md]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = YES\nAgentifico.SkillLength = YES\n`,
+    `StylesPath = ${styles}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = Agentifico\n${tokenIgnores}\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n\n[**/skill-*.md]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = YES\nAgentifico.SkillLength = YES\n`,
   );
 });
 after(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
-// Lints one fixture and returns its alerts as rule, line, severity, match and
-// message. Vale's exit code is not read: it is non-zero only for an error, and
-// a fixture that trips a warning is a pass here too.
+// Runs Vale with one configuration over one file and returns the alerts on it.
+// Vale's exit code is not read: it is non-zero only for an error, and a
+// fixture that trips a warning is a pass here too.
+function vale(config, file) {
+  const r = spawnSync("vale", ["--config", config, "--no-global", "--output=JSON", file], { encoding: "utf8" });
+  assert.equal(r.error, undefined, `vale did not run: ${r.error}`);
+  assert.notEqual(r.status, 2, `vale refused the configuration: ${r.stderr || r.stdout}`);
+  return (r.stdout.trim() ? JSON.parse(r.stdout)[file] : []) ?? [];
+}
+
+// Lints one fixture with the suite's configuration and returns its alerts as
+// rule, line, severity, match and message.
 function alerts(name, content) {
   const file = path.join(tmp, name);
   fs.writeFileSync(file, content);
-  const r = spawnSync("vale", ["--config", ini, "--no-global", "--output=JSON", file], { encoding: "utf8" });
-  assert.equal(r.error, undefined, `vale did not run: ${r.error}`);
-  assert.notEqual(r.status, 2, `vale refused the configuration: ${r.stderr || r.stdout}`);
-  const found = (r.stdout.trim() ? JSON.parse(r.stdout)[file] : []) ?? [];
+  const found = vale(ini, file);
   for (const a of found) fired.add(a.Check);
   return found.map((a) => ({ rule: a.Check.replace("Agentifico.", ""), line: a.Line, severity: a.Severity, match: a.Match, message: a.Message }));
 }
@@ -106,27 +117,63 @@ describe("SkillSplit and SkillLength, the file caps", () => {
   });
 });
 
-// The phrase rules: each fixture line carries one shape a review caught in
-// this repository, so a token that stops matching its own record fails here,
-// and the guards fixture carries the sanctioned forms beside each.
+// The phrase rules. Each trip fixture is a list of lines, one recorded shape
+// per line, so a token that stops matching its own record fails here; the
+// per-token coverage at the end reads these same lists, so a line here is
+// what makes a token count as watched failing. The guards fixture beside each
+// carries the sanctioned forms.
+const TRIP = {
+  Counts: [
+    "It covers all three forms of appointment.",
+    "Reads the two caps above and the three most memorable ones.",
+    "The standards are the three below.",
+    "Two lines matter: the subject and the body.",
+    "It runs in three parts: read, judge, post.",
+    "Both checks are per stack rather than per branch.",
+    "Take whichever of the two applies.",
+    "Two of them change what an agent does, and both sources are named.",
+    "Three cures.",
+  ],
+  Position: [
+    "Per the escape above, the row below is what the table means.",
+    "The target is the same as above.",
+    "It is stated in *Labels* above.",
+    "That is the one place a cap is stated, and nowhere else.",
+    "Nothing else states what follows, and every other site points here.",
+    "Read the next bullet and the last paragraph of this section.",
+    "This repository's one plugin is the newest section's subject.",
+    "The above holds; a skill list leaves exactly those unaccounted for.",
+    "This is the one that works.",
+    "The first is a check a tool could answer.",
+    "The keys are stated here in full.",
+  ],
+  History: [
+    "This reverses an earlier rule that capped the watch.",
+    "It does not stop it any more, and no longer reads the config.",
+    "Where it previously mandated plain text, the read now happens later.",
+    "The old check refused first; the block it replaced spent nothing.",
+    "The discovery rule is now something the rest depends on, restored from the loop.",
+    "It behaves exactly as it does today, which was never the reason.",
+    "The constraint is being lifted; until it lands, the paths named before #101 stay.",
+    "Worth doing, not yet done, since that reasoning still holds.",
+    "The scope rule is unchanged and the contract survives untouched, as before.",
+    "This supersedes the fix; it currently forbids a parser, a risk the gate has retired.",
+    "The first draft of this issue said so; an earlier shape of it was dropped.",
+    "It used to ignore the hook, and the loop was replaced by a glob.",
+    "The trap was first seen on a live skill, in the past, at the time of the push.",
+    "The rule has been moved to check.md and the script was dropped from the package.",
+    "The analysis stands as it was written rather than left standing.",
+    "The criterion first said the field stays; the rebuild dropped that rule.",
+  ],
+};
+const tripFixture = (rule) => `# Title\n\n${TRIP[rule].join("\n")}\n`;
+// The trip lines start on line 3 of the fixture.
+const tripLines = (rule) => TRIP[rule].map((_, i) => i + 3);
+
 describe("Counts, a count of adjacent content", () => {
   it("fires on each recorded shape, once per line", () => {
-    const found = alerts(
-      "counts.md",
-      [
-        "# Title",
-        "",
-        "It covers all three forms of appointment.", // 3
-        "Reads the two caps above and the three most memorable ones.", // 4
-        "The standards are the three below.", // 5
-        "Two lines matter: the subject and the body.", // 6
-        "It runs in three parts: read, judge, post.", // 7
-        "Both checks are per stack rather than per branch.", // 8
-        "Take whichever of the two applies.", // 9
-        "Two of them change what an agent does, and both sources are named.", // 10
-      ].join("\n"),
-    );
-    for (const line of [3, 4, 5, 6, 7, 8, 9, 10]) expectHit(found, "Counts", line);
+    const found = alerts("counts.md", tripFixture("Counts"));
+    for (const line of tripLines("Counts")) expectHit(found, "Counts", line);
     assert.equal(only(found, "Counts")[0].severity, "error");
   });
   it("leaves caps, quoted examples and a bare both alone", () => {
@@ -148,23 +195,8 @@ describe("Counts, a count of adjacent content", () => {
 
 describe("Position, a claim of position or uniqueness", () => {
   it("fires on each recorded shape, once per line", () => {
-    const found = alerts(
-      "position.md",
-      [
-        "# Title",
-        "",
-        "Per the escape above, the row below is what the table means.", // 3
-        "The target is the same as above.", // 4
-        "It is stated in *Labels* above.", // 5
-        "That is the one place a cap is stated, and nowhere else.", // 6
-        "Nothing else states what follows, and every other site points here.", // 7
-        "Read the next bullet and the last paragraph of this section.", // 8
-        "This repository's one plugin is the newest section's subject.", // 9
-        "The above holds; a skill list leaves exactly those unaccounted for.", // 10
-        "This is the one that works. The first is a check a tool could answer.", // 11
-      ].join("\n"),
-    );
-    for (const line of [3, 4, 5, 6, 7, 8, 9, 10, 11]) expectHit(found, "Position", line);
+    const found = alerts("position.md", tripFixture("Position"));
+    for (const line of tripLines("Position")) expectHit(found, "Position", line);
   });
   it("leaves the sanctioned forms alone", () => {
     const found = alerts(
@@ -187,25 +219,8 @@ describe("Position, a claim of position or uniqueness", () => {
 
 describe("History, the file's own history", () => {
   it("fires on each recorded shape, once per line", () => {
-    const found = alerts(
-      "history.md",
-      [
-        "# Title",
-        "",
-        "This reverses an earlier rule that capped the watch.", // 3
-        "It does not stop it any more, and no longer reads the config.", // 4
-        "Where it previously mandated plain text, the reads now happen later.", // 5
-        "The old check refused first; the block it replaced spent nothing.", // 6
-        "The discovery rule is now something the rest depends on, restored from the loop.", // 7
-        "It behaves exactly as it does today, which was never the reason.", // 8
-        "The constraint is being lifted; until it lands, the paths named before #101 stay.", // 9
-        "Worth doing, not yet done, since that reasoning still holds.", // 10
-        "The scope rule is unchanged and the contract survives untouched, as before.", // 11
-        "This supersedes the fix; it currently forbids a parser, a risk the gate has retired.", // 12
-        "The first draft of this issue said so; an earlier shape of it was dropped.", // 13
-      ].join("\n"),
-    );
-    for (const line of [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]) expectHit(found, "History", line);
+    const found = alerts("history.md", tripFixture("History"));
+    for (const line of tripLines("History")) expectHit(found, "History", line);
   });
   it("leaves quoted examples, imperatives and state alone", () => {
     const found = alerts(
@@ -256,14 +271,38 @@ describe("Banner, a version or date banner in the opening lines", () => {
   });
 });
 
-// Last, because it reads what every test above fired.
+// Last, because they read what every test above fired and wrote.
 describe("coverage", () => {
   it("every rule in the style fired on some fixture", () => {
     const rules = fs
-      .readdirSync(path.join(styles, "Agentifico"))
+      .readdirSync(styleDir)
       .filter((f) => f.endsWith(".yml"))
       .map((f) => `Agentifico.${f.replace(/\.yml$/, "")}`);
     const missing = rules.filter((r) => !fired.has(r));
     assert.deepEqual(missing, [], `no fixture reaches: ${missing.join(", ")}`);
+  });
+
+  // One alert anywhere in a rule marks the rule covered, so a token no line
+  // trips would hide behind its neighbours. Each token of a phrase rule is
+  // copied into a one-token style of its own and run over that rule's trip
+  // fixture; a token that matches nothing there is the gate for a phrasing
+  // nobody has seen it catch.
+  it("every token of every phrase rule fired on its rule's own fixture", () => {
+    const tokDir = path.join(tmp, "tok");
+    const tokIni = path.join(tokDir, ".vale.ini");
+    fs.mkdirSync(path.join(tokDir, "T"), { recursive: true });
+    fs.writeFileSync(tokIni, `StylesPath = ${tokDir}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = T\n${tokenIgnores}\n`);
+    const unreached = [];
+    for (const rule of Object.keys(TRIP)) {
+      const source = YAML.parse(fs.readFileSync(path.join(styleDir, `${rule}.yml`), "utf8"));
+      const fixture = path.join(tokDir, `${rule.toLowerCase()}.md`);
+      fs.writeFileSync(fixture, tripFixture(rule));
+      for (const token of source.tokens) {
+        const one = { ...source, tokens: [token] };
+        fs.writeFileSync(path.join(tokDir, "T", `${rule}.yml`), YAML.stringify(one));
+        if (vale(tokIni, fixture).length === 0) unreached.push(`${rule}: ${token}`);
+      }
+    }
+    assert.deepEqual(unreached, [], `no fixture line trips:\n${unreached.join("\n")}`);
   });
 });
