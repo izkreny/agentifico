@@ -4,7 +4,7 @@ description: |
   Write, review, maintain and export agent skills. Covers the frontmatter contract, the traps that fail silently, the routing-skill layout, installing and updating skills, and publishing a local skill for others. Explicit invocation only: type `/skills-maker`.
 argument-hint: "[new <name> | review <path> | check | export <path>]"
 disable-model-invocation: true
-compatibility: Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.20 or later on PATH, for the checks; the gh CLI is needed only for export.
+compatibility: Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.20 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
 metadata:
   version: "2.1.0"
 allowed-tools: Bash(gh:*), Bash(node:*), Bash(npm:*), Bash(skills:*), Bash(npx skills:*), Read, Write, Edit, Grep, Glob
