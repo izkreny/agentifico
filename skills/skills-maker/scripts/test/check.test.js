@@ -23,8 +23,8 @@ function mk(dir, fm) {
 }
 const block = (name, text = "Fine.") => `name: ${name}\ndescription: |\n  ${text}`;
 
-function run(target) {
-  const r = spawnSync(process.execPath, [check, target], { encoding: "utf8" });
+function run(target, env = process.env) {
+  const r = spawnSync(process.execPath, [check, target], { encoding: "utf8", env });
   const linted = /^(\d+) files checked/m.exec(r.stdout);
   return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
 }
@@ -107,6 +107,15 @@ describe("check.js", () => {
     assert.equal(r.code, 0, r.out);
     assert.match(r.out, /SKILL\.md:1 Agentifico\.SkillSplit \(warning\)/);
     assert.match(r.out, /1 files checked, 0 issues, 1 warnings/);
+  });
+  it("without vale the structural findings are still printed, and the run fails", () => {
+    // PATH holds only node's own directory, so vale is not found while the
+    // check itself still runs.
+    const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.dirname(process.execPath) });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /skill-description/);
+    assert.match(r.out, /1 files checked, \d+ issues, prose rules not run/);
+    assert.match(r.out, /vale is not on PATH/);
   });
   it("a target with nothing under it fails rather than passing silently", () => {
     const r = run(path.join(tmp, "empty"));
