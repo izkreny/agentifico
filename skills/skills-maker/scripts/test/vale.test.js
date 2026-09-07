@@ -292,9 +292,15 @@ describe("coverage", () => {
     const tokIni = path.join(tokDir, ".vale.ini");
     fs.mkdirSync(path.join(tokDir, "T"), { recursive: true });
     fs.writeFileSync(tokIni, `StylesPath = ${tokDir}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = T\n${tokenIgnores}\n`);
+    // The rules come from the style directory rather than from TRIP, so a
+    // tokens-based rule added without a trip fixture fails here instead of
+    // passing unchecked.
     const unreached = [];
-    for (const rule of Object.keys(TRIP)) {
-      const source = YAML.parse(fs.readFileSync(path.join(styleDir, `${rule}.yml`), "utf8"));
+    for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
+      const rule = file.replace(/\.yml$/, "");
+      const source = YAML.parse(fs.readFileSync(path.join(styleDir, file), "utf8"));
+      if (!Array.isArray(source.tokens)) continue;
+      assert.ok(TRIP[rule], `${rule} has tokens and no trip fixture in TRIP`);
       const fixture = path.join(tokDir, `${rule.toLowerCase()}.md`);
       fs.writeFileSync(fixture, tripFixture(rule));
       for (const token of source.tokens) {

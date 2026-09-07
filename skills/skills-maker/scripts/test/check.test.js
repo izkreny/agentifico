@@ -109,9 +109,10 @@ describe("check.js", () => {
     assert.match(r.out, /1 files checked, 0 issues, 1 warnings/);
   });
   it("without vale the structural findings are still printed, and the run fails", () => {
-    // PATH holds only node's own directory, so vale is not found while the
-    // check itself still runs.
-    const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.dirname(process.execPath) });
+    // PATH holds one empty directory, so vale is not found whatever bin
+    // directory this machine keeps it in; the check itself is spawned by its
+    // absolute path and needs no PATH.
+    const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "empty") });
     assert.equal(r.code, 1);
     assert.match(r.out, /skill-description/);
     assert.match(r.out, /1 files checked, \d+ issues, prose rules not run/);
