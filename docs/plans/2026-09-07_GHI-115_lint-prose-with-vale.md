@@ -22,9 +22,9 @@ Prior art was searched the same day and is recorded in the owner's knowledge bas
 
 **Vale runs inside the one command the workflows already describe.** `skills/skills-maker/scripts/check.js` spawns `vale --output=JSON --no-global --config <package>/.vale.ini` over the same file list it hands markdownlint, merges the alerts into its own output, and keeps the one exit code: non-zero on any markdownlint finding or Vale `error`, zero otherwise, with Vale warnings printed and counted on their own. One target argument, one summary line, and no new tool grant, since `Bash(node:*)` already covers it; a `vale` binary missing from `PATH`, or Vale's own exit code 2 for a configuration or rule that failed to load, is reported as a setup failure naming what to fix, and exits non-zero, because a check that silently skips half its rules reads as a clean sweep. The choice against a second command is an open question below, since two acceptance criteria read as if one were expected.
 
-**The configuration is a .vale.ini at the package root, with `StylesPath = styles` and the style named `SkillsMaker`.** `MinAlertLevel = suggestion` so nothing is hidden; a `[*.md]` section carries `BasedOnStyles = SkillsMaker`; a path section on SKILL.md adds the file-length rules to skill files alone, and restates `BasedOnStyles`, because a later matching section's value replaces an earlier one's rather than adding to it; that the phrase rules still reach a SKILL.md is verified on the installed binary before the first fixture is trusted. No `Packages` key and no `vale sync`: the rules ship with the skill they enforce, per the issue's note that Vale's published styles are house styles for other houses.
+**The configuration is a .vale.ini at the package root, with `StylesPath = styles` and the style named `Agentifico`, after the repository that owns the rules rather than the one skill that ships them, so a rule id reads `Agentifico.Counts` wherever it is reported.** `MinAlertLevel = suggestion` so nothing is hidden; a `[*.md]` section carries `BasedOnStyles = Agentifico`; a path section on SKILL.md adds the file-length rules to skill files alone, and restates `BasedOnStyles`, because a later matching section's value replaces an earlier one's rather than adding to it; that the phrase rules still reach a SKILL.md is verified on the installed binary before the first fixture is trusted. No `Packages` key and no `vale sync`: the rules ship with the skill they enforce, per the issue's note that Vale's published styles are house styles for other houses.
 
-**One rule file per mechanical half, under styles/SkillsMaker/ in the package, each `message` opening with the `skills/skills-maker/workflows/new.md` heading it enforces** and each carrying a `link` to that file. The rules, with their level and the rule they serve:
+**One rule file per mechanical half, under styles/Agentifico/ in the package, each `message` opening with the `skills/skills-maker/workflows/new.md` heading it enforces** and each carrying a `link` to that file. The rules, with their level and the rule they serve:
 
 - **Counts**: `existence`, `level: error`, for a count of adjacent content. Serves *Write sentences that survive change*.
 - **Position**: `existence`, `level: error`, for a claim of uniqueness, recency or position. The other mechanical half of the same rule, in its own file so the message can say which half fired.
@@ -43,19 +43,19 @@ Prior art was searched the same day and is recorded in the owner's knowledge bas
 
 `skills/skills-maker/workflows/check.md` gains the setup step for Vale beside the `npm ci` one, a section on what the prose rules cover with one entry per rule and what each cannot decide, and moves the phrase-shaped items out of *What a sweep still looks for by hand* while adding the judgement halves the tools cannot take: whether a paragraph's second claim is new, whether a sentence is history in substance. `skills/skills-maker/SKILL.md` names Vale 3.20 or later on `PATH` in `compatibility:`, with the Vale documentation's installation page as the install step and no machine-specific route; its tools line names the style directory. `skills/skills-maker/README.md` adds Vale to the sentence naming what the skill assumes. `metadata.version` moves from 2.0.0 to 2.1.0.
 
-`.agents/gh-solo.md` is repository-level and this is a package branch. What it would say depends on the first open question, and the edit is asked about below rather than assumed.
+`.agents/gh-solo.md` is repository-level and this is a package branch. The owner approved the edit on this branch on 2026-09-07, confined to *Check commands*: one sentence saying the package's check now needs Vale on `PATH`, since the command itself is unchanged.
 
 ## Steps
 
 - Install Vale, at the owner's approval of the prompt, and record the version the branch verified against beside the claims that depend on it.
 - Mine the phrase lists: a subagent reads the `RF` findings on merged PRs' prose files, the fix commits on prose files, and the examples in `skills/skills-maker/workflows/new.md`, and returns each phrase with its source.
-- Write the .vale.ini at the package root and the rule files under styles/SkillsMaker/, each token commented with its source.
+- Write the .vale.ini at the package root and the rule files under styles/Agentifico/, each token commented with its source.
 - Extend `skills/skills-maker/scripts/check.js` to spawn Vale over the same files, merge its alerts, fail on a missing binary, and keep one exit code.
 - Write the Vale test file: a fixture per rule, a guards fixture per phrase rule, the coverage test; add the long SKILL.md to the wrapper test's temporary tree; watch each fail before trusting it.
 - Run the check over `skills/skills-maker`, triage every Vale finding, fix or except with the reason beside the exception.
 - Rewrite `skills/skills-maker/workflows/check.md`, the `compatibility:` and tools line of `skills/skills-maker/SKILL.md`, and the assumptions sentence in `skills/skills-maker/README.md`.
 - Move `metadata.version` in `skills/skills-maker/SKILL.md` from 2.0.0 to 2.1.0.
-- Edit *Check commands* in `.agents/gh-solo.md` as the owner decides on the open question.
+- Add the sentence on Vale to *Check commands* in `.agents/gh-solo.md`.
 
 ## Verification
 
