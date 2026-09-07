@@ -1,0 +1,81 @@
+# "Never write the file's own history" in workflows/new.md: a reader cannot
+# locate the past being described, and in a file read as instructions a claim
+# about a rule that no longer exists reads as a rule about the present. Each
+# token is the wording of a history claim a review removed here, named by the
+# pull request or commit. What survives is the durable reason, so the tokens
+# are the words that anchor a sentence to a moment rather than to a reason.
+extends: existence
+message: "Never write the file's own history: '%s' anchors the sentence to a past a reader cannot locate; state the durable reason instead."
+link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
+level: error
+ignorecase: true
+tokens:
+  # "it does not stop it any more" fb26bb7; "no longer" is the rule's own
+  # example and the shape two commit bodies and PR 105 carried.
+  - 'no longer'
+  - 'any ?more'
+  # "where pr-flow previously mandated" 187f851.
+  - 'previously'
+  # "we used to cap the watch" is the rule's own example; "it used to ignore"
+  # ae1cd1a.
+  - '(?:it|we|that|this|which|they|and) used to'
+  # "the old check refused first" PR 66; "the older test was wrong" is the
+  # rule's own example.
+  - 'the (?:old|older|earlier|original|former|previous) (?:[a-z]+ )?(?:rule|check|test|loop|version|form|wording|name|block|shape|behaviou?r|design|section|file|command|paragraph|sentence)'
+  # "rather than the shell block it replaced" PR 87; "before #101 replaced
+  # them" PR 116; "restored" PR 66.
+  - 'it replace[sd]'
+  - '(?:was|were|been) replaced'
+  - 'replaced by'
+  - 'restored'
+  # "The reads below now happen before" PR 66; "the discovery rule is now
+  # something the rest of this file depends on" PR 100.
+  - '(?:is|are|was|were|has|have|does|do) now\b'
+  - 'now (?:happens|runs|reads|does|says|names|carries|lives)'
+  # "behaves exactly as it does today" PR 103.
+  - 'today'
+  # "Found live on a skill" and "where the trap was first seen" 35e4733;
+  # "was never the reason" 187f851 at two sites; "That reasoning still
+  # holds" fb26bb7; "at the time" live in skills/rails-style.
+  - 'first (?:tried|seen|saw)'
+  - 'was never the reason'
+  - 'still holds'
+  - 'in the past'
+  - 'at the time'
+  # "#101 is where that constraint is being lifted; until it lands" PR 105;
+  # "before #101 replaced them" PR 116; "Worth doing, not yet done" ae1cd1a.
+  - '(?:has|have|had) been (?:moved|removed|renamed|replaced|dropped|deleted|lifted)'
+  - '(?:was|were) (?:moved|removed|renamed|dropped|deleted) (?:to|from|in|out)'
+  - 'before #\d+'
+  - 'until (?:it|that|#\d+) lands'
+  - 'is being (?:lifted|removed|replaced|rewritten)'
+  - 'not yet done'
+  # "This reverses an earlier rule" fb26bb7, and the rule's own example.
+  - 'this reverses'
+  - 'reverses an earlier'
+  # A non-change asserted against a past the reader cannot see: "The pull
+  # request title's own scope rule is unchanged" .agents/gh-solo.md, "still
+  # stand" #44, "survives untouched" #52, "stands as it was written" #24,
+  # "hits it exactly as before" #52; fifteen "unchanged" and six "untouched"
+  # across the tracker.
+  - '(?:is|are|remains?|stays?|left|rule|contract) (?:unchanged|untouched)'
+  - 'survives untouched'
+  - 'still (?:holds|stands?|true|says|claims|reads as|carries|armed|binding)'
+  - 'stands as it was written'
+  - 'as before'
+  # "This supersedes the wording-only fix" #22; "a risk the gate has retired"
+  # #80; "rewritten rather than left standing" #101; "it currently forbids
+  # bundling a parser, which this issue reverses" #101; seventeen "currently"
+  # across the tracker, each dating the sentence it sits in.
+  - 'supersede[sd]?'
+  - 'has retired'
+  - 'left standing'
+  - 'currently'
+  # The document narrating its own drafting: "The first draft of this issue"
+  # #7, "An earlier shape of this issue" #17, "the reasoning first written
+  # here was wrong" #55, "dropped that rule" #3.
+  - '(?:the|its) first (?:draft|version|reading|form) of'
+  - 'an earlier (?:shape|version|form|draft) of'
+  - 'first (?:said|written|wrote)'
+  - '(?:was|were|been) dropped'
+  - 'dropped that'

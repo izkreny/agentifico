@@ -55,7 +55,7 @@ Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" ra
 
 ## Routing
 
-Based on the argument above, do exactly one of the following:
+Based on `$ARGUMENTS`, do exactly one of the following:
 
 - If it starts with `new` → read `workflows/new.md` and follow it.
 - If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
@@ -70,4 +70,4 @@ Based on the argument above, do exactly one of the following:
 - **`workflows/check.md`** - the mechanical audit across every installed skill
 - **`workflows/export.md`** - publishing a local skill to a shared repository
 - **`references/managing.md`** - installing and updating skills, and why not to hand-edit an installed one
-- **`scripts/`** - `check.js`, the one command that runs markdownlint over a target with this skill's own rules; `lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, sharing `scripts/rules/frontmatter.js`; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit
+- **`scripts/`** - `check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, sharing `scripts/rules/frontmatter.js`; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit

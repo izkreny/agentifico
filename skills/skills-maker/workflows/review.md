@@ -8,7 +8,7 @@ Read every file in the skill's directory, whatever the layout: `SKILL.md`, what 
 
 **The path may be a package root rather than one skill.** `workflows/check.md` states the argument shapes.
 
-**Read every file under the root, not only the files under its skills.** A package's manifest, its agents, its hooks and its own `README.md` belong to no skill, and a branch review reads a diff, so nothing else reads them whole.
+**Read every file under the root, not only the files under its skills.** A package's manifest, its agents, its hooks and its own `README.md` belong to no skill, and a branch review reads a diff, so a sweep is what reads them whole.
 
 **Find them by walking the tree, never by following references out of the skills.** A plugin's agent is spawned by name at runtime and cited by path in no skill under it.
 
@@ -16,7 +16,7 @@ Read every file in the skill's directory, whatever the layout: `SKILL.md`, what 
 
 **What a fan-out cannot see is the reason**: a contradiction that spans two skills, and a cross-reference from one skill to a rule another skill removed. Reading one skill at a time hides those exactly as reading one file at a time hides a contradiction between two, and in a plugin it is the class that matters most, because the skills cite each other by path.
 
-**A path that is one skill's own directory is unchanged by this rule**, which binds only a path covering several.
+**This rule binds only a path covering several skills**; a path that is one skill's own directory is read as it always is, one skill at a time.
 
 **The rule governs this step's read and nothing later.** Step 5 judges fixes against a review that has already happened, so its agent is not a way to perform the read that this step requires be done here.
 
@@ -30,11 +30,11 @@ Follow `workflows/check.md` first. It catches the silent failures cheaply, and t
 
 ## Step 3 - The defects that actually occur
 
-First hold the skill against every rule in `workflows/new.md`: whatever authoring requires, review enforces, and its absence in an existing skill is a defect. That file is the authority, so a rule added there is picked up here without this file changing. The entries below are the field notes on top: how violations actually manifest, and what no authoring rule anticipated.
+First hold the skill against every rule in `workflows/new.md`: whatever authoring requires, review enforces, and its absence in an existing skill is a defect. That file is the authority, so a rule added there is picked up here without this file changing. This step's entries are the field notes on top: how violations actually manifest, and what no authoring rule anticipated.
 
 **Triggers that only exist in the body.** Every phrase meant to fire the skill must be in `description:`. Grep the body for "use this when" and similar, and confirm each has a counterpart in the frontmatter.
 
-**A premise that is no longer true.** Skills accumulate assumptions stated as fact: "there is no planning", "every issue gets X", "this repo always Y". Check each against what the user actually does now. One false premise usually appears in four or five places, so when you find one, grep for its restatements rather than fixing only the sentence you were shown.
+**A premise that has stopped being true.** Skills accumulate assumptions stated as fact: "there is no planning", "every issue gets X", "this repo always Y". Check each against what the user actually does. One false premise usually appears in four or five places, so when you find one, grep for its restatements rather than fixing only the sentence you were shown.
 
 **Duplication with a global instructions file.** Anything stated in both the user's global instructions file (AGENTS.md, CLAUDE.md or equivalent) and a skill will drift. Decide which owns it, and if the skill wins, confirm the trigger survives in the description.
 
