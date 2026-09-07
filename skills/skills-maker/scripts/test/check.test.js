@@ -76,6 +76,12 @@ before(() => {
   fs.symlinkSync(path.join(pkg, "skills", "beta"), path.join(tmp, "linked", "beta"));
   fs.symlinkSync(path.join(tmp, "good"), path.join(tmp, "linked", "good"));
 
+  // A SKILL.md past the split figure, which the production .vale.ini reaches
+  // through its own section: a warning that is printed and does not fail.
+  const long = Array.from({ length: 41 }, (_, i) => Array.from({ length: 50 }, (_, j) => `word${i}x${j}`).join(" ")).join("\n\n");
+  mk(path.join(tmp, "long"), block("long", "A long skill."));
+  fs.appendFileSync(path.join(tmp, "long", "SKILL.md"), `\n${long}\n`);
+
   // A skill whose dot-directory holds prose the rule must not reach.
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
@@ -95,6 +101,12 @@ describe("check.js", () => {
     assert.equal(r.code, 1);
     assert.match(r.out, /skill-description/);
     assert.match(r.out, /TRUNCATED/);
+  });
+  it("a long SKILL.md gets the split warning, counted apart and not failing", () => {
+    const r = run(path.join(tmp, "long"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /SKILL\.md:1 Agentifico\.SkillSplit \(warning\)/);
+    assert.match(r.out, /1 files checked, 0 issues, 1 warnings/);
   });
   it("a target with nothing under it fails rather than passing silently", () => {
     const r = run(path.join(tmp, "empty"));

@@ -1,0 +1,12 @@
+# The first figure in "Let size decide whether to split" in workflows/new.md:
+# under roughly 2,000 words one SKILL.md is right, past it the shared model
+# stays and each operation moves to its own workflow file. A warning, since
+# the rule says roughly and the count is Vale's prose metric rather than
+# wc -w, which also counts code blocks. Enabled for a SKILL.md alone, in
+# .vale.ini.
+extends: metric
+message: "Let size decide whether to split: this SKILL.md carries %s words of prose, past the point where operations move to workflows/ files."
+link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
+level: warning
+formula: words
+condition: "> 2000"
