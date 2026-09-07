@@ -4,13 +4,13 @@ description: |
   Write, review, maintain and export agent skills. Covers the frontmatter contract, the traps that fail silently, the routing-skill layout, installing and updating skills, and publishing a local skill for others. Explicit invocation only: type `/skills-maker`.
 argument-hint: "[new <name> | review <path> | check | export <path>]"
 disable-model-invocation: true
-compatibility: Requires Node 22 or later and an `npm ci` in the installed skill directory for the checks; the gh CLI is needed only for export.
+compatibility: Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.20 or later on PATH, for the checks; the gh CLI is needed only for export.
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
 allowed-tools: Bash(gh:*), Bash(node:*), Bash(npm:*), Bash(skills:*), Bash(npx skills:*), Read, Write, Edit, Grep, Glob
 ---
 
-> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` / `Bash(npx skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `styles/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` / `Bash(npx skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 

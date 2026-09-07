@@ -35,7 +35,7 @@ It compares `origin/main...HEAD` by default and takes a range or a single commit
 
 Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
 
-**The skills-maker package's checks**, after any edit under `skills/skills-maker/`: its suite, and its own check run over itself, both needing a one-time `npm --prefix skills/skills-maker ci`:
+**The skills-maker package's checks**, after any edit under `skills/skills-maker/`: its suite, and its own check run over itself, both needing a one-time `npm --prefix skills/skills-maker ci` and Vale 3.20 or later on `PATH`, since the check runs the package's prose rules through it:
 
 ```bash
 npm --prefix skills/skills-maker test
