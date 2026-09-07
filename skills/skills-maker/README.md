@@ -13,7 +13,7 @@ A defective skill does not error. It loads, it works when it happens to load, an
 The mechanical facts that make that silence possible, each learned from a real failure rather than from documentation:
 
 - **The frontmatter `description:` is the entire trigger surface.** Nothing reads a skill's body until something has already decided to load it, so a trigger phrase written anywhere else never fires.
-- **Unquoted YAML eats the description at a space followed by `#`.** In an unquoted scalar that pair starts a comment: everything after it is discarded with no parse error and no warning. The skill still loads and still works; the only symptom is triggers that never fire. Found live on a skill whose description contained "review PR #N" and was silently losing 160 characters of trigger text.
+- **Unquoted YAML eats the description at a space followed by `#`.** In an unquoted scalar that pair starts a comment: everything after it is discarded with no parse error and no warning. The skill still loads and still works; the only symptom is triggers that never fire.
 
 A skill that never fires looks identical to a skill that was never written. Every workflow here exists to tell the two apart before the difference costs you.
 
