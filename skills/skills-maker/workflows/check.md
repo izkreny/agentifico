@@ -54,10 +54,6 @@ These are the ones that matter, because their failure modes are silent twice ove
 
 **`skill-layout`**: a `SKILL.md` with another `SKILL.md` in an ancestor directory under the target is a skill inside a skill. Some agents discover skills recursively and would read it as a broken skill, so an example quoted inside a skill's own tree is a finding rather than something the check tolerates. The search stops at the target.
 
-## Why markdownlint
-
-The choice was made on 2026-09-06 against stated criteria - maintenance, CommonMark conformance, whether every local rule could live in the same tool as the general lint - and markdownlint is the one that met every criterion: the reference implementation of the markdownlint rule set, micromark under it, a custom-rule API that hands a rule the raw frontmatter lines apart from the body, the CommonMark token tree and a line-numbered report, and string input, which is what lets the suite hold its fixtures as strings. It runs as a library called from `scripts/check.js` rather than through its command-line wrapper, because the wrapper reads configuration files from the directories it lints and a target must not get to choose which rules judge it. The alternatives, and why each lost: rumdl is a runtime-free binary approximating the same rule set under one maintainer, with no rule API; mdl is a Ruby gem with no CommonMark parser under it and a three-space list default; remark-lint has no rule for trailing spaces and none for blank lines around lists; a parser library alone would have left the general lint and the local rules in two tools with two parsers.
-
 ## The suite
 
 After editing a rule or the check itself, run the suite. Each rule's fixtures are strings passed through markdownlint's own string input, so no fixture is ever written as a real `SKILL.md`, which some agents would discover recursively as a broken skill; the argument shapes - a package root, roots side by side, a directory of symlinks, a dot-directory, a skill inside a skill, an empty target - run against the check in a temporary directory that the suite creates and removes:
