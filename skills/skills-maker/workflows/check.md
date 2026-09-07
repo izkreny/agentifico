@@ -71,7 +71,7 @@ Vale runs the `Agentifico` style under `styles/`, one rule file per mechanical h
 
 After editing a rule or the check itself, run the suite. Each markdownlint rule's fixtures are strings passed through markdownlint's own string input, and each Vale rule's are files in a temporary directory the suite creates and removes, so no fixture is ever written as a real `SKILL.md`, which some agents would discover recursively as a broken skill.
 
-Every Vale rule has a fixture that trips it and a guards fixture of the forms it must leave alone, and the suite fails on any rule no fixture reaches, since a Vale rule that matches nothing fails silently. The argument shapes - a package root, roots side by side, a directory of symlinks, a dot-directory, a skill inside a skill, an empty target - run against the check in a temporary directory that the suite creates and removes:
+Every Vale rule has a fixture that trips it and a guards fixture of the forms it must leave alone, and the suite fails on any rule no fixture reaches, since a Vale rule that matches nothing fails silently. The argument shapes the wrapper test names run against the check in a temporary directory that the suite creates and removes:
 
 ```bash
 npm --prefix <skill-dir> test
@@ -88,7 +88,7 @@ These are the faces of the authoring rules in `workflows/new.md`, which owns eac
 - **Referenced files exist.** A router pointing at `workflows/foo.md` that was never written fails only when that path is taken, which may be months later.
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
 - **Portable paths.** Nothing absolute to one machine's home directory; skill-relative or `~/`-relative instead.
-- **The judgement half of every prose rule.** Whether a long paragraph's second claim is new, whether a sentence is history in substance without a history word, whether a uniqueness claim is true by construction, whether an enumeration ending in "and the rest" was doing any work: a regex catches the wording of a defect and never its substance, so a clean prose run says only that the recorded phrasings are absent.
+- **The judgement half of every prose rule.** A regex catches the wording of a defect and never its substance, so a clean prose run says only that the recorded phrasings are absent.
 
 ## Reporting
 
