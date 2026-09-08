@@ -34,7 +34,9 @@ export function defects(fm) {
   // immune to the whole family, so neither is a defect.
   if (!block && /^[“”‘’]/.test(raw)) bad.push("curly quotes are not YAML quotes");
   if (block) {
-    // block scalar: immune to every trap below
+    // A block scalar reaches none of the style branches: it has no quotes to
+    // close and no plain-scalar comment to be cut at. The checks it does reach
+    // are the ones decided before this branch.
   } else if (raw.startsWith('"')) {
     // The value ends at its own closing quote, so a comment after it is outside
     // the value and not a defect; anything else after it is a parse error, and

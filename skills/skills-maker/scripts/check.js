@@ -13,9 +13,9 @@ const valeConfig = path.join(here, "..", ".vale.ini");
 
 const target = path.resolve(process.argv[2] ?? ".");
 
-// Dot-directories are left out by default, which is what the walk did: an
-// agent's skills directory carries its own, and a fixture tree keeps its
-// fixtures under one. Symlinks are followed, because an agent's skills
+// Dot-directories are left out because an agent's skills directory carries its
+// own and a fixture tree keeps its fixtures under one, so walking them reports
+// findings against trees nobody is auditing. Symlinks are followed, because an agent's skills
 // directory is a directory of them pointing into the canonical tree.
 const files = (await globby(["**/*.md", "!**/node_modules/**"], { cwd: target, absolute: true })).sort();
 
@@ -24,7 +24,8 @@ if (!files.length) {
   process.exit(1);
 }
 
-// The layout rule stops its ancestor search at the target.
+// Without the target the layout rule would walk past it and call a skill
+// nested under someone else's tree a defect of this one.
 const results = await lint({ files, customRules: rules, config: { ...config, "skill-layout": { root: target } } });
 
 // One line per markdownlint finding, in file order, printed before Vale runs

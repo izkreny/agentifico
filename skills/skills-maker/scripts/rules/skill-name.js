@@ -1,4 +1,6 @@
-// Every skill's frontmatter `name` must match its own directory.
+// The directory match is the half a reader expects; the specification's
+// charset and its 64-character ceiling are the half a matching name can still
+// fail, which is why both live here rather than in the sweep's own reading.
 import path from "node:path";
 import { FRONTMATTER_LINE, frontmatter, isSkillFile, keyLines, scalar } from "./frontmatter.js";
 
