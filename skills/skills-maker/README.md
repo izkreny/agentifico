@@ -4,7 +4,7 @@
 
 A skill for writing, reviewing, maintaining and exporting agent skills. Explicit invocation only: it never fires on its own; you type `/skills-maker <argument>` yourself.
 
-It targets the [Agent Skills](https://agentskills.io) format, the open standard originally developed by Anthropic and since adopted across the agent ecosystem (Claude Code, Cursor, Gemini CLI, GitHub Copilot, opencode, pi, Hermes and many more). The [specification](https://agentskills.io/specification) is the authority on the format, and the standard ships a [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference validator; the traps this skill exists to catch live below the spec's radar, since a truncated description is still valid YAML.
+It targets the [Agent Skills](https://agentskills.io) format, the open standard originally developed by Anthropic and since adopted across the agent ecosystem. The [specification](https://agentskills.io/specification) is the authority on the format, and the standard ships a [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference validator; the traps this skill exists to catch live below the spec's radar, since a truncated description is still valid YAML.
 
 ## Why it exists
 
@@ -52,10 +52,10 @@ Plan and author a new skill with the most capable model available to you, and ru
 ## Install
 
 ```bash
-npx skills add izkreny/agentifico -g -y -s skills-maker
+skills add izkreny/agentifico -g -y -s skills-maker
 ```
 
-That is the [skills CLI](https://skills.sh) in its no-install `npx` form. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `workflows/check.md` states both. To have `skills` as a real command instead, [mise](https://mise.jdx.dev) installs it in one line, `mise use -g npm:skills`, and the `npx` prefix goes away. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
+That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) installs in one line, `mise use -g npm:skills`. Where it is not installed, `npx skills add ...` runs the same command without installing anything, which is the form skills.sh itself documents. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `workflows/check.md` states both. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
 
 ## Similar tools, and why this exists anyway
 

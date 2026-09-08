@@ -1,13 +1,13 @@
 # Installing, updating and removing skills
 
-The manager is the `skills` CLI ([skills.sh](https://skills.sh), `vercel-labs/skills`). The commands in this file use `npx`, the invocation skills.sh itself documents, which needs no install; when the CLI is installed as a real command (for example through mise's npm backend), drop the `npx`.
+The manager is the `skills` CLI ([skills.sh](https://skills.sh), `vercel-labs/skills`). The commands in this file call it as an installed command, which mise's npm backend supplies in one line, `mise use -g npm:skills`. Where it is not installed, prefix any of them with `npx`, the no-install invocation skills.sh itself documents.
 
 ```bash
-npx skills add <owner/repo> -l                          # list what a repo offers, installs nothing
-npx skills add <owner/repo> -g -y -s <name> -s <name>   # global, non-interactive, named skills only
-npx skills list
-npx skills update
-npx skills remove <name> -g
+skills add <owner/repo> -l                          # list what a repo offers, installs nothing
+skills add <owner/repo> -g -y -s <name> -s <name>   # global, non-interactive, named skills only
+skills list
+skills update
+skills remove <name> -g
 ```
 
 - `-s` selects skills by name and must be repeated per name; a comma-separated list matches nothing. Without `-s` the whole repository lands.
