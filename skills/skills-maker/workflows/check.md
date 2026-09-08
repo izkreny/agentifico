@@ -36,7 +36,9 @@ markdownlint's own rules run at their defaults and catch what no local rule stat
 
 These are the ones that matter, because their failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap they test was watched failing in a real YAML parser before it earned its place, and the suite re-runs that evidence on demand.
 
-**`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description is a block scalar, immune to every trap here, or a plain or quoted scalar carrying none of them; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
+**`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description carries none of the traps here. A block scalar is immune to the whole quote-and-truncation family but not to the empty-value check, which reports a block scalar whose body never arrived exactly as it reports an absent key; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
+
+It also holds the description to the specification's ceiling of 1,024 characters, measured on the value a parser would produce rather than on the lines as written, since a block scalar's indentation is not part of its value.
 
 **`skill-frontmatter-parsed`** is the differential: it parses the same frontmatter with a real YAML parser and compares every top-level plain scalar against its raw line. Any difference means a trap fired, and a parse error means the skill will not load at all. It parses under YAML 1.1, the reading under which `yes` becomes a boolean, because the trap it catches is what some parsers make of a value and the stricter reading is the one that can fail. A parser alone cannot replace the sweep, since the silent class is valid YAML and a parser returns the corrupted value without complaint; the sweep and the differential each run on every target.
 
@@ -44,7 +46,9 @@ It reads every key rather than the description alone, because a space and a hash
 
 ## The name rule
 
-**`skill-name`**: every skill's frontmatter `name` must match its own directory. It is a rule rather than a loop written out here because shell written as prose carries quoting, word-splitting and glob hazards that nothing runs and nothing tests: a pipe swallows an exit code, an empty capture runs the body once on nothing, an unquoted expansion splits a name on its spaces and matches its brackets against the working directory. A rule gets the suite, where each of those is a fixture.
+**`skill-name`**: every skill's frontmatter `name` must match its own directory, and must be what the specification allows a name to be - at most 64 characters of lowercase alphanumerics joined by single hyphens, so no leading, trailing or doubled hyphen.
+
+The directory match cannot decide the charset on its own, because a directory may carry anything the filesystem allows, so a name matching its own directory exactly can still be one the standard's validator rejects. It is a rule rather than a loop written out here because shell written as prose carries quoting, word-splitting and glob hazards that nothing runs and nothing tests: a pipe swallows an exit code, an empty capture runs the body once on nothing, an unquoted expansion splits a name on its spaces and matches its brackets against the working directory. A rule gets the suite, where each of those is a fixture.
 
 ## The invocation rule
 
@@ -94,7 +98,7 @@ These are the faces of the authoring rules in `workflows/new.md`, which owns eac
 - **Referenced files exist.** A router pointing at `workflows/foo.md` that was never written fails only when that path is taken, which may be months later.
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
 - **Portable paths.** Nothing absolute to one machine's home directory; skill-relative or `~/`-relative instead.
-- **The opening line of every file.** `MD041` is off because nothing here opens with a top-level heading, which leaves what a file *does* open with unchecked: a skill file and a workflow open with the tools blockquote, per the layout `workflows/new.md` states, and a `README.md` with the AI disclaimer line.
+- **The opening line of every file.** `MD041` is off because the files here open with different things and no one rule fits them all: a skill file and a workflow with the tools blockquote, per the layout `workflows/new.md` states, a `README.md` with the AI disclaimer line, and a file under `references/` with a heading. Which of those a given file owes is what a sweep reads for.
 - **The judgement half of every prose rule.** A regex catches the wording of a defect and never its substance, so a clean prose run says only that the recorded phrasings are absent.
 
 ## Reporting

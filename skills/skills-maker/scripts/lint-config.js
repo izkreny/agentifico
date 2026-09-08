@@ -17,9 +17,10 @@ export const config = {
   // A paragraph is one unwrapped line here, per No hard wrapping in
   // workflows/new.md, so a line-length cap would flag every paragraph.
   MD013: false,
-  // Nothing here opens with a top-level heading: a skill file and a workflow
-  // open with the tools blockquote per the layout workflows/new.md states, and
-  // a README with the disclaimer. Which of those a given file owes is a
-  // judgement, so it sits in the by-hand list in workflows/check.md.
+  // The files here open with different things and no one rule fits them all: a
+  // skill file and a workflow with the tools blockquote per the layout
+  // workflows/new.md states, a README with the disclaimer, a reference with a
+  // heading. Which one a given file owes is a judgement, so it sits in the
+  // by-hand list in workflows/check.md.
   MD041: false,
 };

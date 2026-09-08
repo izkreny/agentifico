@@ -25,7 +25,7 @@ A skill that never fires looks identical to a skill that was never written. Ever
 | --- | --- |
 | `new <name>` | Author a skill from scratch |
 | `review <path>` | Review an existing skill, or a whole package, for the defects that actually occur |
-| `check`, or no argument | Mechanical audit across every installed skill |
+| `check`, or no argument | Mechanical audit of one skill, or a survey across a directory of them |
 | `export <path>` | Publish a local skill to a shared repository |
 
 Requests about installing, updating or removing someone else's skill carry no verb of their own; the router sends them to `references/managing.md`.
@@ -35,7 +35,7 @@ flowchart TD
     A["/skills-maker &lt;argument&gt;"] --> R{"SKILL.md router"}
     R -->|new| N["workflows/new.md<br/>author a skill from scratch"]
     R -->|review| V["workflows/review.md<br/>find the defects that actually occur"]
-    R -->|"check, or no argument"| C["workflows/check.md<br/>mechanical audit across installed skills"]
+    R -->|"check, or no argument"| C["workflows/check.md<br/>mechanical audit of one skill,<br/>or a survey across many"]
     R -->|export| E["workflows/export.md<br/>publish a local skill to a shared repository"]
     R -->|"install, update, remove"| M["references/managing.md<br/>the skills CLI, its lock, one manager per skill"]
     N -->|verifies with| C
