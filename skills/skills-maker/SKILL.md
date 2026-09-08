@@ -40,7 +40,7 @@ description: Use when asked to review PR #N, or check what needs review.
 
 Everything from the space before `#N` onward is gone. Backticks do not protect against it: a description containing `` `#123` `` survives only because the character before the `#` is a backtick rather than a space, which is luck, not correctness.
 
-**Write the description as a block scalar.** It has no comment, anchor, tag or escape processing, so it is immune to this trap and to every relative of it:
+**Write the description as a block scalar.** It has no comment, anchor, tag or escape processing, so a trap that needs a plain or quoted value cannot reach it:
 
 ```yaml
 description: |
