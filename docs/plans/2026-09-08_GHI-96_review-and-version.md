@@ -6,7 +6,9 @@ The epic's whole-package sweep, and the top branch of its stack. Cut from `feat/
 
 ## The run is the owner's, not this branch's
 
-`skills/skills-maker/SKILL.md` carries `disable-model-invocation: true`, the frontmatter as #57 left it. So the issue's conditional resolves to its first branch: the sweep is started by the owner typing `/skills-maker review skills/skills-maker`, and the findings land in that session, where the inline read #88 mandates puts them beside the files they are about. Nothing here invokes the skill, and its `skills/skills-maker/workflows/review.md` is not hand-read as a substitute - the flag exists to stop exactly that.
+`skills/skills-maker/SKILL.md` carries `disable-model-invocation: true`, the frontmatter as #57 left it. So the issue's conditional resolves to its first branch: the sweep is started by the owner typing `/skills-maker review skills/skills-maker`, and the findings land in that session. Nothing here invokes the skill, and its `skills/skills-maker/workflows/review.md` is not hand-read as a substitute - the flag exists to stop exactly that.
+
+The run is inline, and the flag rather than #88 is why. That issue's inline rule binds a path covering several skills, and this path is one skill's own directory, so the read is the unchanged single-skill shape. What forces inline is that no subagent can load the skill either, which costs the re-verification in Step 5 of `skills/skills-maker/workflows/review.md` its cheaper half: resuming the reviewer that produced the findings is unavailable, so judging the fixes falls back to a fresh review pointed at the fix commit.
 
 That makes this branch the sweep's **triage**, the shape #58 took for `gh-solo`: the review produces a reading, the branch produces the fixes.
 
