@@ -64,4 +64,10 @@ Separate what is wrong from what is merely different. A skill written in a style
 
 When the review ran in a subagent and its findings were then fixed, resume that same agent to judge the fixes rather than starting a fresh review. The resumed agent keeps its full audit context, every file it read and what each finding actually meant, so re-verification is cheaper and sharper than a second audit, and it judges the fixes against what it originally meant rather than re-deriving the findings.
 
-Keep the agent's id from the run that produced the findings. After the fixes are committed, send it the fix commit and ask for: a per-finding verdict (CLOSED / NOT CLOSED / REGRESSED), its judgement on any fix that resolved a finding by a different design than it proposed, confirmation or refutation of any finding that was set aside as phantom, and a short regression pass over the changed files. Have it list the file set first and read in full any file that did not exist at review time: new files are the resumed context's one blind spot, and fixes routinely add them. Report-only, no edits. If the harness cannot resume the agent, fall back to a fresh review pointed at the fix commit.
+Keep the agent's id from the run that produced the findings. After the fixes are committed, send it the fix commit and ask for a verdict per finding:
+
+- CLOSED - the fix resolves the finding as it stands.
+- NOT CLOSED - the finding stands, with what the fix missed.
+- REGRESSED - the fix broke something the finding did not name.
+
+Ask it also to judge any fix that resolved a finding by a different design than it proposed, to confirm or refute any finding set aside as phantom, and to run a short regression pass over the changed files. Have it list the file set first and read in full any file that did not exist at review time: new files are the resumed context's one blind spot, and fixes routinely add them. Report-only, no edits. If the harness cannot resume the agent, fall back to a fresh review pointed at the fix commit.
