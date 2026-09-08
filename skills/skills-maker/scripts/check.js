@@ -1,13 +1,5 @@
-// The mechanical audit, as one command over one target: a skill's own
-// directory, a directory of skills, or a package root whose skills sit further
-// down, defaulting to the current directory. It globs the markdown under the
-// target and runs two linters over it with this package's configuration and
-// nothing else: markdownlint with the rules in lint-config.js for what a file
-// is, and Vale with the style in ../styles for what it says. No file under the
-// target is read as configuration, so the tree being audited cannot switch off
-// the rules that judge it, and the same rules apply wherever the target lives.
-// A target with no markdown under it is a wrong target, and its silence reads
-// exactly like a clean sweep, so checking nothing exits non-zero.
+// The mechanical audit as one command. workflows/check.md states the target
+// shapes, the two linters, the exclusions and what each exit code means.
 // Usage: node check.js [target]
 import { spawnSync } from "node:child_process";
 import path from "node:path";

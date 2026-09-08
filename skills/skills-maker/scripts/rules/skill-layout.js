@@ -1,9 +1,6 @@
-// A SKILL.md with another SKILL.md in an ancestor directory is a skill inside a
-// skill. Some agents discover skills recursively and would read it as a broken
-// skill, so an example quoted inside a skill's own tree is a finding rather
-// than something the discovery tolerates. The search stops at the target the
-// check was run over, which check.js passes as `root`; without one it stops at
-// the working directory.
+// The skill-inside-a-skill rule workflows/check.md describes. The search stops
+// at the target the check was run over, which check.js passes as `root`;
+// without one it stops at the working directory.
 import fs from "node:fs";
 import path from "node:path";
 import { FRONTMATTER_LINE, isSkillFile } from "./frontmatter.js";

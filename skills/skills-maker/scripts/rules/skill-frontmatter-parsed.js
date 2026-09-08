@@ -1,8 +1,5 @@
-// The differential: parse the frontmatter with a real YAML parser and compare
-// every top-level plain scalar against its raw line. Any difference means a
-// silent trap fired; a parse error means the skill will not load at all. It
-// supplements the raw sweep rather than replacing it, since the silent traps
-// are valid YAML and a parser returns the corrupted value without complaint.
+// The differential workflows/check.md describes: this is where the comparison
+// and the shapes it leaves alone are decided.
 import { parseDocument } from "yaml";
 import { FRONTMATTER_LINE, folded, frontmatter, isSkillFile } from "./frontmatter.js";
 

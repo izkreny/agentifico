@@ -1,8 +1,6 @@
-// Raw-line sweep over a skill's frontmatter description. A real YAML parser
-// cannot replace it: the silent traps are valid YAML, so a parser returns the
-// corrupted value without complaint. SKILL.md owns the membership of the trap
-// classes, under "YAML eats the description at `#`"; this is where each is
-// decided.
+// The raw-line sweep workflows/check.md describes. SKILL.md owns the
+// membership of the trap classes, under "YAML eats the description at `#`";
+// this is where each one is decided.
 import { BLOCK_SCALAR, description as descriptionText, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
 
 // What may follow a closing quote: nothing, or a comment.

@@ -1,7 +1,6 @@
-// The one configuration the check runs with: markdownlint's own rules at their
-// defaults unless named below, and this package's rules. It is a module rather
-// than a config file so that nothing under a target is ever read as
-// configuration: the tree being audited does not get to choose which rules
+// The one configuration the check runs with, per workflows/check.md. It is a
+// module rather than a config file so that nothing under a target is ever read
+// as configuration: the tree being audited does not get to choose which rules
 // judge it, and a copy of this package under the target is never imported.
 import skillContinuations from "./rules/skill-continuations.js";
 import skillDescription from "./rules/skill-description.js";

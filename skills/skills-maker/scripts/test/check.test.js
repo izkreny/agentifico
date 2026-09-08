@@ -1,7 +1,5 @@
-// The wrapper against the argument shapes: a skill's own directory, a directory
-// of skills, a package root, two roots side by side, a directory of symlinks, a
-// dot-directory, a skill inside a skill, and a target with nothing under it.
-// These need a filesystem, so they run in a temporary directory that setup
+// The wrapper against the argument shapes workflows/check.md states. These
+// need a filesystem, so they run in a temporary directory that setup
 // creates and teardown removes, outside any tree an agent discovers: a fixture
 // is never shipped as a real SKILL.md, which some agents would read as a broken
 // skill.

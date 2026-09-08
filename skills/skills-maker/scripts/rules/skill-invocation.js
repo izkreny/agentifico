@@ -1,9 +1,5 @@
-// The frontmatter fields that decide who may invoke a skill. Both are Claude
-// Code extensions that other agents ignore silently, so a skill relying on
-// either has to state the same policy in its description, and that is the
-// defect worth more than a bad value: a bad value misbehaves the first time it
-// is tried, a policy held only by the field works exactly as intended on one
-// agent and is wide open on every other.
+// The invocation fields workflows/check.md describes and workflows/new.md
+// owns; this is where each defect is decided.
 import path from "node:path";
 import { description, FRONTMATTER_LINE, frontmatter, isSkillFile, keyLines, scalar } from "./frontmatter.js";
 
