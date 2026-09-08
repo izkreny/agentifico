@@ -27,7 +27,8 @@ export function frontmatter(params) {
 // no line inside it; the detail names the key, which is what the reader needs.
 export const FRONTMATTER_LINE = 1;
 
-// Every raw line for one key. More than one is the last-wins trap.
+// More than one line for a key is the last-wins trap, so every one is kept
+// rather than the first.
 export const keyLines = (fm, key) => fm.filter((l) => l.startsWith(`${key}:`));
 
 // A plain or quoted scalar may continue on indented lines, and YAML folds them
@@ -67,7 +68,8 @@ export function scalar(raw) {
 // the plain scalar's own traps on YAML that loads correctly.
 export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/;
 
-// The description's text, whatever scalar style it uses.
+// Two callers need the text rather than the line, and the folding differs by
+// scalar style, so deriving it lives here rather than twice in the rules.
 export function description(fm) {
   const i = fm.findIndex((l) => l.startsWith("description:"));
   if (i < 0) return "";
@@ -82,6 +84,10 @@ export function description(fm) {
   // sets, so the text has to be dedented here rather than in each caller: a
   // caller measuring or matching against what the parser produces would
   // otherwise be judging characters no parsed value ever carries.
-  const indent = body.find((l) => l.trim() !== "")?.match(/^\s*/)[0].length ?? 0;
+  // An explicit indentation indicator wins over the first line's indent, since
+  // YAML keeps anything past it as value text; inferring from the first line
+  // instead strips those spaces and under-measures the value.
+  const declared = raw.split(/\s/)[0].match(/[1-9]/);
+  const indent = declared ? Number(declared[0]) : (body.find((l) => l.trim() !== "")?.match(/^\s*/)[0].length ?? 0);
   return body.map((l) => l.slice(indent)).join("\n");
 }

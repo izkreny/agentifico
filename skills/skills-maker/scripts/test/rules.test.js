@@ -75,6 +75,10 @@ describe("skill-description, the raw sweep", () => {
     // RF2: the ceiling measures the parsed value, so a block scalar whose text
     // is inside 1024 passes even though the indented lines joined are over it.
     ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
+    // An explicit indentation indicator: with `|2` and a body indented four,
+    // YAML keeps two spaces per line as value text, so the value is over the
+    // ceiling while stripping all four leaves it under and reports nothing.
+    ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {

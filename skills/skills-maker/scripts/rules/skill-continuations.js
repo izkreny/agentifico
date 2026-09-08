@@ -13,11 +13,10 @@ function walk(tokens, fn) {
   }
 }
 
-// The paragraph a content block carries, if it carries one.
 const paragraphOf = (t) => (t.type === "content" ? t.children.find((c) => c.type === "paragraph") : undefined);
 
-// Each item as the line its marker sits on and its paragraphs after the lead,
-// where the lead is whatever block opens the item, paragraph or not.
+// The lead is whatever block opens an item, paragraph or not, so a paragraph
+// after it is a continuation whatever the item began with.
 export function items(list) {
   const out = [];
   let item = null;

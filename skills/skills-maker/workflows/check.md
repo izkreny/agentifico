@@ -38,7 +38,7 @@ These are the ones that matter, because their failure modes are silent twice ove
 
 **`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description carries none of the traps here. A block scalar is immune to the quote and truncation traps, which need a plain or quoted value to bite; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
 
-A check decided before the value's style is looked at holds for a block scalar as well.
+A check decided before the value's style is looked at holds for a block scalar as well: the absent key, the duplicate key, the empty value and the 1,024-character ceiling.
 
 It also holds the description to the specification's ceiling of 1,024 characters, measured on the value a parser would produce rather than on the lines as written, since a block scalar's indentation is not part of its value.
 

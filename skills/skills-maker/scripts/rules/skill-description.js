@@ -3,7 +3,8 @@
 // this is where each one is decided.
 import { BLOCK_SCALAR, description as descriptionText, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
 
-// What may follow a closing quote: nothing, or a comment.
+// A comment after the closing quote sits outside the value, so it is not a
+// defect; anything else there is a parse error.
 const TRAILING = /^(\s+#.*)?$/;
 
 export function defects(fm) {
