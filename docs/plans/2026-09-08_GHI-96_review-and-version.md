@@ -28,7 +28,7 @@ Two figures the issue carries are a pre-#101 baseline rather than a target. `met
 ## Steps
 
 - Take the owner's sweep findings from `/skills-maker review skills/skills-maker` and write them down with an id each, so the triage and the fixes have something stable to reference.
-- Triage every finding: fixed here, or declined with the reason recorded on #96. A finding touching none of the files this epic changed is deferred to the next release, unless it is a defect this epic introduced.
+- Fix every finding the sweep raises, whichever file it lands in and whether or not a child of this epic touched it. Nothing is deferred and nothing is declined: a tag asserts the package was read whole, and leaving a found defect standing is what would make that false. `AGENTS.md` defers only on a hotfix, where keeping the fix small is the point.
 - Land the fixes grouped by defect class rather than by file, so a class fixed in one pass stays consistent across the package.
 - Trim the comments under `skills/skills-maker/scripts/`: the file headers that restate the runner, the config and the target shapes shrink to one sentence pointing at `skills/skills-maker/workflows/check.md`, and every surviving comment says why rather than what.
 - Read the package for a rule this epic states twice, and for a cross-reference pointing at a rule one of the children moved.
@@ -44,7 +44,7 @@ Two figures the issue carries are a pre-#101 baseline rather than a target. `met
 - [ ] The docs-check command `.agents/gh-solo.md` states, run unpiped with its exit code read.
 - [ ] `python3 scripts/version-check.py`.
 
-**What none of these gates see.** Whether a deferral was the right call, since a deferral is a decision and the only check on it is a reader weighing the reason. Whether a trimmed comment still carries the why it existed for, rather than merely being shorter. Whether the sweep read the skill whole, which is the assertion the tag rests on and which no exit code can supply. The version check is the one whose pass proves least here: `.agents/gh-solo.md` records that its `origin/main...HEAD` range resolves through a merge base predating the whole stack, so a lower branch's bump satisfies it and this branch's `2.1.1` holds by discipline rather than by gate. There is no CI in this repository, so the checks on the pull request will report nothing, and that is the expected answer rather than a missing one.
+**What none of these gates see.** Whether a trimmed comment still carries the why it existed for, rather than merely being shorter. Whether the sweep read the skill whole, which is the assertion the tag rests on and which no exit code can supply. The version check is the one whose pass proves least here: `.agents/gh-solo.md` records that its `origin/main...HEAD` range resolves through a merge base predating the whole stack, so a lower branch's bump satisfies it and this branch's `2.1.1` holds by discipline rather than by gate. There is no CI in this repository, so the checks on the pull request will report nothing, and that is the expected answer rather than a missing one.
 
 ## Open questions
 
