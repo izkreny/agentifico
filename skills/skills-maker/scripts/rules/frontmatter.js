@@ -60,12 +60,18 @@ export function scalar(raw) {
   return (cut >= 0 ? raw.slice(0, cut) : raw).trim();
 }
 
+// A block scalar's header line. YAML allows a chomping indicator and an
+// indentation indicator in either order after the `|` or `>`, plus a comment,
+// so a header this misses is read as a plain scalar instead and libelled with
+// the plain scalar's own traps on YAML that loads correctly.
+export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/;
+
 // The description's text, whatever scalar style it uses.
 export function description(fm) {
   const i = fm.findIndex((l) => l.startsWith("description:"));
   if (i < 0) return "";
   const raw = fm[i].slice(12).trim();
-  if (!/^[|>][+-]?$/.test(raw)) return folded(fm, i);
+  if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar
   // ends at the first non-empty line with no indent rather than at the first

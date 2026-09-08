@@ -59,6 +59,19 @@ describe("skill-description, the raw sweep", () => {
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "apostrophe"],
     ["t-bool", "name: x\ndescription: yes", "boolean"],
     ["t-missing", "name: x", "no description"],
+    // SM-04: a legal block scalar header carrying an indentation indicator, in
+    // either order with the chomping one, or a trailing comment. Each of these
+    // loads, so a finding on any of them is the check libelling correct YAML.
+    ["good-block-indent", "name: x\ndescription: |2\n   Use when reviewing X: safe & sound", null],
+    ["good-block-indent-chomp", "name: x\ndescription: |-2\n   Use when reviewing X: safe & sound", null],
+    ["good-block-chomp-indent", "name: x\ndescription: |2-\n   Use when reviewing X: safe & sound", null],
+    ["good-block-comment", "name: x\ndescription: | # note\n  Use when reviewing X: safe & sound", null],
+    // SM-13: a present key with no value advertises exactly as much as an
+    // absent one, so it earns the same finding rather than silence.
+    ["t-empty", "name: x\ndescription:", "never advertised"],
+    ["t-empty-block", "name: x\ndescription: |", "never advertised"],
+    // SM-03: the spec's own ceiling on the value.
+    ["t-toolong", `name: x\ndescription: ${"a".repeat(1025)}`, "1024"],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -122,6 +135,10 @@ describe("skill-name", () => {
     ["commented", "name: commented # note\ndescription: |\n  x", null],
     ["twospace", "name: twospace  # two spaces before the comment\ndescription: |\n  x", null],
     ["quotecom", 'name: "quotecom" # a quoted value ends at its own quote\ndescription: |\n  x', null],
+    // SM-03: the spec's charset for a name, which the directory match alone
+    // cannot decide - both of these match their directory exactly.
+    ["My_Skill--v2", "name: My_Skill--v2\ndescription: |\n  x", "lowercase"],
+    ["-leading-hyphen", "name: -leading-hyphen\ndescription: |\n  x", "hyphen"],
   ];
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {

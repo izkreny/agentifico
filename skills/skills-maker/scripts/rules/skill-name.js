@@ -6,8 +6,14 @@ export function defects(fm, dir) {
   const line = keyLines(fm, "name")[0];
   if (line === undefined) return ["no name: nothing can match it"];
   const declared = scalar(line.slice(5).trim());
-  if (declared !== dir) return [`name is ${JSON.stringify(declared)}, directory is ${JSON.stringify(dir)}`];
-  return [];
+  const bad = [];
+  // The specification's charset, which the directory match alone cannot decide:
+  // a directory may carry anything the filesystem allows, so a name matching
+  // its own directory exactly can still be one the standard's validator rejects.
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(declared)) bad.push(`name ${JSON.stringify(declared)} is not lowercase alphanumerics joined by single hyphens`);
+  if (declared.length > 64) bad.push(`name is ${declared.length} characters, over the spec's 64`);
+  if (declared !== dir) bad.push(`name is ${JSON.stringify(declared)}, directory is ${JSON.stringify(dir)}`);
+  return bad;
 }
 
 export default {
