@@ -38,11 +38,11 @@ Two figures the issue carries are a pre-#101 baseline rather than a target. `met
 
 ## Verification
 
-- [ ] `node skills/skills-maker/scripts/check.js skills/skills-maker`, from the repository root, exits zero.
-- [ ] `npm --prefix skills/skills-maker test`.
-- [ ] `npm --prefix skills/skills-maker run lint`.
-- [ ] The docs-check command `.agents/gh-solo.md` states, run unpiped with its exit code read.
-- [ ] `python3 scripts/version-check.py`.
+- `node skills/skills-maker/scripts/check.js skills/skills-maker`, from the repository root, exits zero.
+- `npm --prefix skills/skills-maker test`.
+- `npm --prefix skills/skills-maker run lint`.
+- The docs-check command `.agents/gh-solo.md` states, run unpiped with its exit code read.
+- `python3 scripts/version-check.py`.
 
 **What none of these gates see.** Whether a trimmed comment still carries the why it existed for, rather than merely being shorter. Whether the sweep read the skill whole, which is the assertion the tag rests on and which no exit code can supply. The version check is the one whose pass proves least here: `.agents/gh-solo.md` records that its `origin/main...HEAD` range resolves through a merge base predating the whole stack, so a lower branch's bump satisfies it and this branch's `2.2.0` holds by discipline rather than by gate. There is no CI in this repository, so the checks on the pull request will report nothing, and that is the expected answer rather than a missing one.
 
