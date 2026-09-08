@@ -66,9 +66,6 @@ describe("skill-description, the raw sweep", () => {
     ["good-block-indent-chomp", "name: x\ndescription: |-2\n   Use when reviewing X: safe & sound", null],
     ["good-block-chomp-indent", "name: x\ndescription: |2-\n   Use when reviewing X: safe & sound", null],
     ["good-block-comment", "name: x\ndescription: | # note\n  Use when reviewing X: safe & sound", null],
-    // RF2: the ceiling measures the parsed value, so a block scalar whose text
-    // is inside 1024 passes even though the indented lines joined are over it.
-    ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -128,6 +125,7 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["t-empty-blank", 'name: x\ndescription: "   "', "never advertised"],
     ["t-toolong", `name: x\ndescription: ${"a".repeat(1025)}`, "1024"],
     ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
+    ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
     ["good-quoted-under-cap", `name: x\ndescription: "${"a".repeat(1023)}"`, null],
   ];
   for (const [id, fm, want] of cases) {

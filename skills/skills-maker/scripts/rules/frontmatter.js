@@ -68,8 +68,9 @@ export function scalar(raw) {
 // the plain scalar's own traps on YAML that loads correctly.
 export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/;
 
-// Two callers need the text rather than the line, and the folding differs by
-// scalar style, so deriving it lives here rather than twice in the rules.
+// Reading a description's text out of the frontmatter is a frontmatter
+// concern, so it sits with the rest of them rather than inside whichever rule
+// happens to want it.
 export function description(fm) {
   const i = fm.findIndex((l) => l.startsWith("description:"));
   if (i < 0) return "";

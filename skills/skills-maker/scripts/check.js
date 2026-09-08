@@ -15,8 +15,9 @@ const target = path.resolve(process.argv[2] ?? ".");
 
 // Dot-directories are left out because an agent's skills directory carries
 // its own and a fixture tree keeps its fixtures under one, so walking them
-// reports findings against trees nobody is auditing. Symlinks are followed, because an agent's skills
-// directory is a directory of them pointing into the canonical tree.
+// reports findings against trees nobody is auditing. Symlinks are followed,
+// because an agent's skills directory is a directory of them pointing into
+// the canonical tree.
 const files = (await globby(["**/*.md", "!**/node_modules/**"], { cwd: target, absolute: true })).sort();
 
 if (!files.length) {

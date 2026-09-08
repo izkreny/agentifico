@@ -1,6 +1,7 @@
 // The continuation-paragraph rule workflows/new.md owns and
-// workflows/check.md describes. The parser owns everything else: in micromark's tree a list token holds its
-// item prefixes and its content blocks as siblings, so an item is the run of
+// workflows/check.md describes. The parser owns everything else: in
+// micromark's tree a list token holds its item prefixes and its content
+// blocks as siblings, so an item is the run of
 // children between one prefix and the next, its paragraphs are the paragraphs
 // in that run, and a nested list, a fence, a table or a blockquote in the run
 // is a different token type that counts for nothing.

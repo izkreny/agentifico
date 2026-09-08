@@ -40,6 +40,7 @@ These are the ones that matter, because their failure modes are silent twice ove
 
 A check decided before the value's style is looked at holds for a block scalar as well: the absent key and the duplicate key. The empty value and the ceiling are judged against the value rather than the line, so `skill-frontmatter-parsed` owns them.
 
+
 It also holds the description to the specification's ceiling of 1,024 characters and reports a present key whose value is empty, both measured on what the parser read rather than on the lines as written: a block scalar's indentation is not part of its value, a quote character is not either, and every empty shape is one empty string only once a parser has read it.
 
 **`skill-frontmatter-parsed`** is the differential: it parses the same frontmatter with a real YAML parser and compares every top-level plain scalar against its raw line. Any difference means a trap fired, and a parse error means the skill will not load at all. It parses under YAML 1.1, the reading under which `yes` becomes a boolean, because the trap it catches is what some parsers make of a value and the stricter reading is the one that can fail. A parser alone cannot replace the sweep, since the silent class is valid YAML and a parser returns the corrupted value without complaint; the sweep and the differential each run on every target.
