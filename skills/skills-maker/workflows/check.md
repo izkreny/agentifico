@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills.
 
-The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own rules on what a file is, which are markdownlint custom rules listed in `scripts/lint-config.js` beside the configuration, and Vale with this skill's own rules on what a file says, which live under `styles/` and are named in `.vale.ini`. Each finding prints as its file, line and rule with the detail beside it, and the run ends with one line, `N files checked, M issues, K warnings`, which is the line to read: an issue fails the run, a warning is a helper that points a reviewer somewhere and fails nothing.
+The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own rules on what a file is, which are markdownlint custom rules listed in `scripts/lint-config.js` beside the configuration, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`. Each finding prints as its file, line and rule with the detail beside it, and the run ends with one line, `N files checked, M issues, K warnings`, which is the line to read: an issue fails the run, a warning is a helper that points a reviewer somewhere and fails nothing.
 
 When Vale is missing or refuses its configuration the line reads `N files checked, M issues, prose rules not run`, with the reason beneath it, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep.
 
@@ -70,7 +70,7 @@ The directory match cannot decide the charset on its own, because a directory ma
 
 ## The prose rules
 
-Vale runs the `Agentifico` style under `styles/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history, each named in the rule file by the finding or commit that removed it, so a token with no source is not there. A token added later carries its own source the same way, which is what keeps the list evidence rather than taste. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
+Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history, each named in the rule file by the finding or commit that removed it, so a token with no source is not there. A token added later carries its own source the same way, which is what keeps the list evidence rather than taste. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
 
 - **`Counts`**, for *Write sentences that survive change*: a count of adjacent content. An error. A cap is not matched, since a figure that constrains future content stays true when an item lands, and a count of things outside the document is not adjacent content, so the nouns a bare "both" may count are the ones the record carries rather than any plural.
 - **`Position`**, the other half of the same rule: a pointer by direction, a uniqueness claim, a recency claim, or an ordinal into the document's own list. An error. Whether a uniqueness claim is true by construction is a reading, and such a phrase is an exception in the rule file with its reason beside it.
@@ -91,7 +91,7 @@ npm --prefix <skill-dir> test
 
 Every assertion in it was watched failing against the behaviour it exists to catch before it was trusted. A check that has never been seen to fail is not evidence.
 
-**`styles/` sits at the skill's own root**, because `StylesPath` is resolved from the `.vale.ini` beside it and that is the layout a Vale reader already knows. The rule files are machine-read definitions rather than prose a reader loads or code the check runs, so neither `references/` nor `scripts/` is their home.
+**The rule files live in `assets/`**, which the Agent Skills specification names for static resources including configuration and data files. They are machine-read definitions rather than prose a reader loads or code the check runs, so `references/` and `scripts/` are both the wrong home. `StylesPath` points at `assets` itself rather than a directory inside it, because Vale requires the path to be the one holding the style's own directory, and `Agentifico/` is that directory.
 
 ## What a sweep still looks for by hand
 

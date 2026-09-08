@@ -18,7 +18,7 @@ import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 
-const styles = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "styles");
+const styles = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "assets");
 const styleDir = path.join(styles, "Agentifico");
 let tmp;
 let ini;
