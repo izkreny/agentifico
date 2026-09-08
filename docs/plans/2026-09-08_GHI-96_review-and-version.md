@@ -48,10 +48,10 @@ Two figures the issue carries are a pre-#101 baseline rather than a target. `met
 
 ## Open questions
 
-- **Does the first criterion's "every other child of the epic merged" mean "below it in the stack"?** Read that way, per the issue's own Overview and the release train in `AGENTS.md`; all seven are in this branch's ancestry, and none of them can merge before it.
 
 ## Settled
 
+- **Does the first criterion's "every other child of the epic merged" mean "below it in the stack"?** It can mean nothing else, per the owner on 2026-09-08. `gh stack merge` lands the stack at once, so no child merges before the top branch, which makes the criterion unsatisfiable as written rather than ambiguous. All seven children sit in this branch's ancestry, which is the checkable form of what it was reaching for. #139 carries the rule for the next epic.
 - **Is the version a patch?** No, a minor: `2.1.0` to `2.2.0`. SM-02, SM-03 and SM-13 each make the shipped check report findings on frontmatter that passes today, and SM-11's reorder changes the install command a reader is given, so an installed copy's own runs come back different. The owner settled the procedure on 2026-09-08, to lift according to the changes, and this is what the changes are.
 
 - **Does the tag criterion belong on this issue at all?** No. Dropped from #96 by the owner on 2026-09-08, leaving it to #95's *Done when*, which already carried the line; #58, the `gh-solo` sweep, had carried no such criterion either.
