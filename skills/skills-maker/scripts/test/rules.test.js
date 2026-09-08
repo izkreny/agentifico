@@ -66,19 +66,9 @@ describe("skill-description, the raw sweep", () => {
     ["good-block-indent-chomp", "name: x\ndescription: |-2\n   Use when reviewing X: safe & sound", null],
     ["good-block-chomp-indent", "name: x\ndescription: |2-\n   Use when reviewing X: safe & sound", null],
     ["good-block-comment", "name: x\ndescription: | # note\n  Use when reviewing X: safe & sound", null],
-    // SM-13: a present key with no value advertises exactly as much as an
-    // absent one, so it earns the same finding rather than silence.
-    ["t-empty", "name: x\ndescription:", "never advertised"],
-    ["t-empty-block", "name: x\ndescription: |", "never advertised"],
-    // SM-03: the spec's own ceiling on the value.
-    ["t-toolong", `name: x\ndescription: ${"a".repeat(1025)}`, "1024"],
     // RF2: the ceiling measures the parsed value, so a block scalar whose text
     // is inside 1024 passes even though the indented lines joined are over it.
     ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
-    // An explicit indentation indicator: with `|2` and a body indented four,
-    // YAML keeps two spaces per line as value text, so the value is over the
-    // ceiling while stripping all four leaves it under and reports nothing.
-    ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -129,6 +119,16 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["good-nested-key", 'name: x\ndescription: |\n  ok\nmetadata:\n  version: "1.0"', null],
     ["good-boolean-key", "name: x\ndescription: |\n  ok\ndisable-model-invocation: true", null],
     ["good-value-on-next-line", "name: x\ndescription: |\n  ok\ncompatibility:\n  Requires Node 22 or later", null],
+    // Anything judged against the value is decided here, where a parser has
+    // read it: every empty shape is the same empty string, and the ceiling
+    // counts neither a quote character nor a trailing comment.
+    ["t-empty", "name: x\ndescription:", "never advertised"],
+    ["t-empty-block", "name: x\ndescription: |", "never advertised"],
+    ["t-empty-quoted", 'name: x\ndescription: ""', "never advertised"],
+    ["t-empty-blank", 'name: x\ndescription: "   "', "never advertised"],
+    ["t-toolong", `name: x\ndescription: ${"a".repeat(1025)}`, "1024"],
+    ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
+    ["good-quoted-under-cap", `name: x\ndescription: "${"a".repeat(1023)}"`, null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {

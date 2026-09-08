@@ -1,7 +1,7 @@
 // The raw-line sweep workflows/check.md describes. SKILL.md owns the
 // membership of the trap classes, under "YAML eats the description at `#`";
 // this is where each one is decided.
-import { BLOCK_SCALAR, description as descriptionText, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
+import { BLOCK_SCALAR, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
 
 // A comment after the closing quote sits outside the value, so it is not a
 // defect; anything else there is a parse error.
@@ -12,14 +12,9 @@ export function defects(fm) {
   const dl = keyLines(fm, "description");
   if (!dl.length) bad.push("no description: never advertised");
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
-  // A present key with an empty value advertises exactly as much as an absent
-  // one and is the worse of the two, because it reads as present to anyone
-  // scanning the frontmatter. Both scalar shapes reach it: a bare key, and a
-  // block scalar whose body never arrived.
-  const text = dl.length ? descriptionText(fm) : "";
-  if (dl.length && text.trim() === "") bad.push("empty description: never advertised");
-  // The specification's own ceiling on the value.
-  else if (text.length > 1024) bad.push(`description is ${text.length} characters, over the spec's 1024`);
+  // Anything judged against the value rather than against the line belongs to
+  // skill-frontmatter-parsed, which has what a parser produced. Deciding it
+  // here would mean measuring a value this rule is defined never to parse.
   const raw = (dl[0] || "").slice(12).trim();
   const block = dl.length && BLOCK_SCALAR.test(raw);
   // The value under judgement, whatever its style, joined the way YAML folds a

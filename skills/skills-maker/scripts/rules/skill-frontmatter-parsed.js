@@ -19,6 +19,17 @@ export function defects(fm) {
   const bad = [];
   const d = parsed.description;
   if (d !== undefined && d !== null && typeof d !== "string") bad.push(`description is ${typeof d}, not a string`);
+  // A present key whose value is empty advertises exactly as much as an absent
+  // one and is the worse of the two, because it reads as present to anyone
+  // scanning the frontmatter. Judged here rather than in the raw sweep because
+  // every empty shape - a bare key, a bodiless block scalar, "" and a
+  // whitespace-only value - is the same value only once a parser has read it.
+  // A bare key parses to null and a bodiless block scalar to the empty string,
+  // so both shapes of present-but-empty are tested rather than only the second.
+  if (d === null || (typeof d === "string" && d.trim() === "")) bad.push("empty description: never advertised");
+  // The specification's ceiling, on the value rather than on the line, so the
+  // quote characters and a trailing comment are not counted into it.
+  else if (typeof d === "string" && d.length > 1024) bad.push(`description is ${d.length} characters, over the spec's 1024`);
   // Truncation at ` #` is not a description-only trap. The same edit anywhere
   // in the frontmatter drops the tail of whatever key it lands in, and this
   // package's own `compatibility` is that exact shape: a long plain scalar
@@ -51,7 +62,8 @@ export function defects(fm) {
 
 export default {
   names: ["skill-frontmatter-parsed"],
-  description: "A skill's frontmatter parses, and every top-level plain scalar parses to its raw line",
+  description:
+    "A skill's frontmatter parses, every top-level plain scalar parses to its raw line, and the description is neither empty nor over the spec's ceiling",
   tags: ["skills-maker"],
   parser: "none",
   function(params, onError) {
