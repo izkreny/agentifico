@@ -46,7 +46,11 @@ Two figures the issue carries are a pre-#101 baseline rather than a target. `met
 
 ## Open questions
 
-- **Does the tag criterion belong on this issue at all?** It cannot close before the merge that closes #96: `AGENTS.md` cuts the tag by hand, after the sweep issue is closed, on the package's own last squash commit, and the epic's *Done when* already carries the same line. #58, the `gh-solo` sweep, carried no such criterion. Recommend dropping it from #96 and leaving it to #95. Not edited here, because it is a tracker edit on an issue this branch does not own.
-- **Where is the sweep run recorded?** The issue's first criterion is the run, ticked by whoever runs it. Every box in `## Verification` is a gate with an exit code, so the run appears in the prose beneath them instead of as a box that only the owner could close.
 - **Is `2.1.1` the right move?** Assumed, since the comment trim alone guarantees a change under the package. A triage finding that changes what an installed copy does would make it a minor instead.
 - **Does the first criterion's "every other child of the epic merged" mean "below it in the stack"?** Read that way, per the issue's own Overview and the release train in `AGENTS.md`; all seven are in this branch's ancestry, and none of them can merge before it.
+
+## Settled
+
+- **Does the tag criterion belong on this issue at all?** No. Dropped from #96 by the owner on 2026-09-08, leaving it to #95's *Done when*, which already carried the line; #58, the `gh-solo` sweep, had carried no such criterion either.
+- **Where is the sweep run recorded?** The owner runs `/skills-maker review skills/skills-maker` and ticks the issue's first criterion. Every box under `## Verification` is a gate with an exit code, so the run appears in the prose beneath them rather than as a box only the owner could close.
+- **The issue's pre-#101 figures were corrected on #96 itself** on 2026-09-08, so it now reads `metadata.version` 2.1.0 and 230 comment lines to 1211 total across twelve files. The baseline section above stands as first measured and is not rewritten, because a plan records intent at plan time.
