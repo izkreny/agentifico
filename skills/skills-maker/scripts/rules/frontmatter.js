@@ -1,6 +1,7 @@
 // What the frontmatter rules share, so each fact about reading a SKILL.md's
-// frontmatter exists once: which files are skills, where the frontmatter is,
-// what YAML makes of one raw scalar, and where the description's text is.
+// frontmatter is decided once. A second copy of any of it drifts, and two
+// rules disagreeing about what a value is would each be right about a
+// different string, which is how a check comes to libel YAML that loads.
 import path from "node:path";
 
 // The frontmatter rules apply to a skill file and nothing else; the general lint
@@ -77,5 +78,10 @@ export function description(fm) {
   // ends at the first non-empty line with no indent rather than at the first
   // line without one.
   for (let j = i + 1; j < fm.length && (fm[j] === "" || /^\s/.test(fm[j])); j++) body.push(fm[j]);
-  return body.join("\n");
+  // YAML strips the block's own indentation, which its first non-empty line
+  // sets, so the text has to be dedented here rather than in each caller: a
+  // caller measuring or matching against what the parser produces would
+  // otherwise be judging characters no parsed value ever carries.
+  const indent = body.find((l) => l.trim() !== "")?.match(/^\s*/)[0].length ?? 0;
+  return body.map((l) => l.slice(indent)).join("\n");
 }

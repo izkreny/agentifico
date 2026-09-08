@@ -72,6 +72,9 @@ describe("skill-description, the raw sweep", () => {
     ["t-empty-block", "name: x\ndescription: |", "never advertised"],
     // SM-03: the spec's own ceiling on the value.
     ["t-toolong", `name: x\ndescription: ${"a".repeat(1025)}`, "1024"],
+    // RF2: the ceiling measures the parsed value, so a block scalar whose text
+    // is inside 1024 passes even though the indented lines joined are over it.
+    ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -114,9 +117,11 @@ describe("skill-frontmatter-parsed, the differential", () => {
     // ` #` edit drops the tail of whatever key it lands in.
     ["good-compat", "name: x\ndescription: |\n  ok\ncompatibility: Requires Node 22 or later", null],
     ["t-compat-comment", "name: x\ndescription: |\n  ok\ncompatibility: Requires Node 22 # and Vale 3.20", "compatibility SILENTLY MUTATED"],
-    // The two shapes a naive widening reports falsely: a nested mapping, whose
-    // indented lines are not the key's own text, and a value the parser reads
-    // as a boolean rather than as text.
+    // The two shapes a naive widening reports falsely, one fixture each:
+    // good-boolean-key for a value the parser reads as a boolean rather than
+    // as text, and good-value-on-next-line for a value whose text begins on
+    // the following line. good-nested-key documents the shape and proves
+    // neither guard on its own, since either one alone catches it.
     ["good-nested-key", 'name: x\ndescription: |\n  ok\nmetadata:\n  version: "1.0"', null],
     ["good-boolean-key", "name: x\ndescription: |\n  ok\ndisable-model-invocation: true", null],
     ["good-value-on-next-line", "name: x\ndescription: |\n  ok\ncompatibility:\n  Requires Node 22 or later", null],
@@ -149,6 +154,9 @@ describe("skill-name", () => {
     // cannot decide - both of these match their directory exactly.
     ["My_Skill--v2", "name: My_Skill--v2\ndescription: |\n  x", "lowercase"],
     ["-leading-hyphen", "name: -leading-hyphen\ndescription: |\n  x", "hyphen"],
+    // RF1: the spec's 64-character ceiling, which no fixture reached. The name
+    // is all lowercase letters, so only the length clause can decide it.
+    [`${"a".repeat(65)}`, `name: ${"a".repeat(65)}\ndescription: |\n  x`, "over the spec's 64"],
   ];
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {
