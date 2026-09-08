@@ -34,6 +34,13 @@ before(() => {
   mk(path.join(tmp, "good"), block("good"));
   mk(path.join(tmp, "bad"), "name: bad\ndescription: review PR #N and more");
   fs.mkdirSync(path.join(tmp, "empty"));
+  // A vale that refuses its configuration: exit 2 with a message on stderr, the
+  // shape Vale itself uses for a config it cannot parse. The real .vale.ini is
+  // resolved from the script's own directory, so it cannot be corrupted from a
+  // target, and a stub on PATH is what reaches that branch.
+  const refuses = path.join(tmp, "refuses-bin");
+  fs.mkdirSync(refuses);
+  fs.writeFileSync(path.join(refuses, "vale"), '#!/bin/sh\necho "E100 [core] cannot parse config: bad line" >&2\nexit 2\n', { mode: 0o755 });
   fs.mkdirSync(path.join(tmp, "notes"));
   fs.writeFileSync(path.join(tmp, "notes", "notes.txt"), "- **lead.** first\n\n  the reason\n\n  a second paragraph\n");
 
@@ -117,6 +124,15 @@ describe("check.js", () => {
     assert.match(r.out, /skill-description/);
     assert.match(r.out, /1 files checked, \d+ issues, prose rules not run/);
     assert.match(r.out, /vale is not on PATH/);
+  });
+  it("a vale that refuses its configuration fails the run, and says so", () => {
+    // SM-09: the branch handled ENOENT, exit 2 and any other spawn error, and
+    // only ENOENT had ever been seen to fail.
+    const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "refuses-bin") });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /1 files checked, \d+ issues, prose rules not run/);
+    assert.match(r.out, /vale could not run/);
+    assert.match(r.out, /cannot parse config/);
   });
   it("a target with nothing under it fails rather than passing silently", () => {
     const r = run(path.join(tmp, "empty"));
