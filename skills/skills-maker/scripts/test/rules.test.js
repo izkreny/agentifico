@@ -11,7 +11,7 @@ import { describe, it } from "node:test";
 import { lint } from "markdownlint/promise";
 import continuations from "../rules/skill-continuations.js";
 import description from "../rules/skill-description.js";
-import parsed from "../rules/skill-description-parsed.js";
+import parsed from "../rules/skill-frontmatter-parsed.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
 
@@ -92,7 +92,7 @@ describe("skill-description, the raw sweep", () => {
   });
 });
 
-describe("skill-description-parsed, the differential", () => {
+describe("skill-frontmatter-parsed, the differential", () => {
   const cases = [
     ["good-block", "name: x\ndescription: |\n  Use for PR #N review: safe & sound", null],
     ["good-quoted", 'name: x\ndescription: "Plain quoted, no tricks"', null],
@@ -110,18 +110,28 @@ describe("skill-description-parsed, the differential", () => {
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "PARSE ERROR"],
     ["t-backslash", 'name: x\ndescription: "matches \\d+ digits"', "PARSE ERROR"],
     ["t-scalar-doc", "just a string", "not a mapping"],
+    // SM-02: the differential covers every top-level plain scalar, because the
+    // ` #` edit drops the tail of whatever key it lands in.
+    ["good-compat", "name: x\ndescription: |\n  ok\ncompatibility: Requires Node 22 or later", null],
+    ["t-compat-comment", "name: x\ndescription: |\n  ok\ncompatibility: Requires Node 22 # and Vale 3.20", "compatibility SILENTLY MUTATED"],
+    // The two shapes a naive widening reports falsely: a nested mapping, whose
+    // indented lines are not the key's own text, and a value the parser reads
+    // as a boolean rather than as text.
+    ["good-nested-key", 'name: x\ndescription: |\n  ok\nmetadata:\n  version: "1.0"', null],
+    ["good-boolean-key", "name: x\ndescription: |\n  ok\ndisable-model-invocation: true", null],
+    ["good-value-on-next-line", "name: x\ndescription: |\n  ok\ncompatibility:\n  Requires Node 22 or later", null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(fm), parsed);
-      if (want) expectDetail(found, "skill-description-parsed", want);
-      else expectClean(found, "skill-description-parsed");
+      if (want) expectDetail(found, "skill-frontmatter-parsed", want);
+      else expectClean(found, "skill-frontmatter-parsed");
     });
   }
   it("a blank line after the closing delimiter is not part of the frontmatter", async () => {
     // Without the trailing-blank strip the closing `---` is parsed as a second
     // document and every real skill file reports a parse error.
-    expectClean(await findings("fx/x/SKILL.md", skill('name: x\ndescription: |\n  Fine.\nmetadata:\n  version: "1.0"'), parsed), "skill-description-parsed");
+    expectClean(await findings("fx/x/SKILL.md", skill('name: x\ndescription: |\n  Fine.\nmetadata:\n  version: "1.0"'), parsed), "skill-frontmatter-parsed");
   });
 });
 

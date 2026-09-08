@@ -57,7 +57,7 @@ before(() => {
   const configured = path.join(tmp, "configured");
   mk(configured, "name: configured\ndescription: review PR #N and more");
   fs.appendFileSync(path.join(configured, "SKILL.md"), "trailing space here \n");
-  fs.writeFileSync(path.join(configured, ".markdownlint-cli2.jsonc"), '{ "config": { "skill-description": false, "skill-description-parsed": false } }\n');
+  fs.writeFileSync(path.join(configured, ".markdownlint-cli2.jsonc"), '{ "config": { "skill-description": false, "skill-frontmatter-parsed": false } }\n');
   fs.writeFileSync(path.join(configured, ".markdownlint.json"), '{ "default": false }\n');
 
   // A package under the target carrying its own cli2 configuration, which

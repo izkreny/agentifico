@@ -5,12 +5,12 @@
 // judge it, and a copy of this package under the target is never imported.
 import skillContinuations from "./rules/skill-continuations.js";
 import skillDescription from "./rules/skill-description.js";
-import skillDescriptionParsed from "./rules/skill-description-parsed.js";
+import skillFrontmatterParsed from "./rules/skill-frontmatter-parsed.js";
 import skillInvocation from "./rules/skill-invocation.js";
 import skillLayout from "./rules/skill-layout.js";
 import skillName from "./rules/skill-name.js";
 
-export const rules = [skillDescription, skillDescriptionParsed, skillName, skillInvocation, skillContinuations, skillLayout];
+export const rules = [skillDescription, skillFrontmatterParsed, skillName, skillInvocation, skillContinuations, skillLayout];
 
 // A rule named here is off for the reason beside it, never for quiet.
 export const config = {
