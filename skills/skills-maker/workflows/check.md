@@ -16,13 +16,15 @@ The prose rules run through Vale, 3.20 or later, on `PATH`. Its [installation pa
 
 ## The check
 
-The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree, and dot-directories are skipped:
+The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
 
 ```bash
-node <skill-dir>/scripts/check.js ~/.agents/skills
+node <skill-dir>/scripts/check.js path/to/the-skill
 ```
 
-Every markdown file under the target is read, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep.
+**One skill is the gate; a wider target is a survey.** Against a single skill the exit code answers "is this skill clean", which is what a branch and a sweep both want. Against a directory of skills or a package root it answers only "does anything under here have findings", and it will usually be non-zero: the run reports every skill it reaches, and `references/managing.md` forbids editing a manager-installed one, so a finding there is a report to that skill's author rather than work for the runner.
+
+Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep.
 
 How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
@@ -62,7 +64,7 @@ It reads every key rather than the description alone, because a space and a hash
 
 ## The prose rules
 
-Vale runs the `Agentifico` style under `styles/`, one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history, each named in the rule file by the finding or commit that removed it, so a token with no source is not there; how a list grows afterwards is #130's to document. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
+Vale runs the `Agentifico` style under `styles/`, one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history, each named in the rule file by the finding or commit that removed it, so a token with no source is not there. A token added later carries its own source the same way, which is what keeps the list evidence rather than taste. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
 
 - **`Counts`**, for *Write sentences that survive change*: a count of adjacent content. An error. A cap is not matched, since a figure that constrains future content stays true when an item lands, and a count of things outside the document is not adjacent content, so the nouns a bare "both" may count are the ones the record carries rather than any plural.
 - **`Position`**, the other half of the same rule: a pointer by direction, a uniqueness claim, a recency claim, or an ordinal into the document's own list. An error. Whether a uniqueness claim is true by construction is a reading, and such a phrase is an exception in the rule file with its reason beside it.
@@ -92,10 +94,11 @@ These are the faces of the authoring rules in `workflows/new.md`, which owns eac
 - **Referenced files exist.** A router pointing at `workflows/foo.md` that was never written fails only when that path is taken, which may be months later.
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
 - **Portable paths.** Nothing absolute to one machine's home directory; skill-relative or `~/`-relative instead.
+- **The opening line of every file.** `MD041` is off because nothing here opens with a top-level heading, which leaves what a file *does* open with unchecked: a skill file and a workflow open with the tools blockquote, per the layout `workflows/new.md` states, and a `README.md` with the AI disclaimer line.
 - **The judgement half of every prose rule.** A regex catches the wording of a defect and never its substance, so a clean prose run says only that the recorded phrasings are absent.
 
 ## Reporting
 
-State what was checked, not just what failed. The run's last line, `7 files checked, 0 issues`, is a result; silence is not.
+State what was checked, not just what failed. The run's last line, `7 files checked, 0 issues, 0 warnings`, is a result; silence is not.
 
 If a skill was edited to fix a finding, re-run the check afterwards. Editing frontmatter is exactly how a quoted description loses its quotes.
