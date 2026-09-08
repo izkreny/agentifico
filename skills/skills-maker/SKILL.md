@@ -7,10 +7,10 @@ disable-model-invocation: true
 compatibility: Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.20 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
 metadata:
   version: "2.2.0"
-allowed-tools: Bash(gh:*), Bash(node:*), Bash(npm:*), Bash(skills:*), Bash(npx skills:*), Read, Write, Edit, Grep, Glob
+allowed-tools: Bash(gh:*), Bash(node:*), Bash(npm:*), Bash(skills:*), Read, Write, Edit, Grep, Glob
 ---
 
-> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `styles/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` / `Bash(npx skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `styles/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 
