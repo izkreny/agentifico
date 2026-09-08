@@ -36,7 +36,9 @@ markdownlint's own rules run at their defaults and catch what no local rule stat
 
 These are the ones that matter, because their failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap they test was watched failing in a real YAML parser before it earned its place, and the suite re-runs that evidence on demand.
 
-**`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description carries none of the traps here. A block scalar is immune to the whole quote-and-truncation family but not to the empty-value check, which reports a block scalar whose body never arrived exactly as it reports an absent key; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
+**`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description carries none of the traps here. A block scalar is immune to the quote and truncation traps, which need a plain or quoted value to bite; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
+
+Two checks reach a block scalar anyway: an empty body earns the finding an absent key earns, and a duplicate `description:` key is decided on the keys rather than on the value's style.
 
 It also holds the description to the specification's ceiling of 1,024 characters, measured on the value a parser would produce rather than on the lines as written, since a block scalar's indentation is not part of its value.
 

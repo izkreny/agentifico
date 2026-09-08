@@ -48,6 +48,7 @@ Two figures the issue carries are a pre-#101 baseline rather than a target. `met
 
 ## Open questions
 
+None.
 
 ## Settled
 
