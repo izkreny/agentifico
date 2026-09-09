@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills.
 
-The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own rules on what a file is, which are markdownlint custom rules listed in `scripts/lint-config.js` beside the configuration, and Vale with this skill's own rules on what a file says, which live under `styles/` and are named in `.vale.ini`. Each finding prints as its file, line and rule with the detail beside it, and the run ends with one line, `N files checked, M issues, K warnings`, which is the line to read: an issue fails the run, a warning is a helper that points a reviewer somewhere and fails nothing.
+The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own rules on what a file is, which are markdownlint custom rules listed in `scripts/lint-config.js` beside the configuration, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`. Each finding prints as its file, line and rule with the detail beside it, and the run ends with one line, `N files checked, M issues, K warnings`, which is the line to read: an issue fails the run, a warning is a helper that points a reviewer somewhere and fails nothing.
 
 When Vale is missing or refuses its configuration the line reads `N files checked, M issues, prose rules not run`, with the reason beneath it, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep.
 
@@ -16,13 +16,15 @@ The prose rules run through Vale, 3.20 or later, on `PATH`. Its [installation pa
 
 ## The check
 
-The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree, and dot-directories are skipped:
+The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
 
 ```bash
-node <skill-dir>/scripts/check.js ~/.agents/skills
+node <skill-dir>/scripts/check.js path/to/the-skill
 ```
 
-Every markdown file under the target is read, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep.
+**One skill is the gate; a wider target is a survey.** Against a single skill the exit code answers "is this skill clean", which is what a branch and a sweep both want. Against a directory of skills or a package root it answers only "does anything under here have findings", and it will usually be non-zero: the run reports every skill it reaches, and `references/managing.md` forbids editing a manager-installed one, so a finding there is a report to that skill's author rather than work for the runner.
+
+Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep.
 
 How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
@@ -34,13 +36,21 @@ markdownlint's own rules run at their defaults and catch what no local rule stat
 
 These are the ones that matter, because their failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap they test was watched failing in a real YAML parser before it earned its place, and the suite re-runs that evidence on demand.
 
-**`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description is a block scalar, immune to every trap here, or a plain or quoted scalar carrying none of them; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
+**`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description carries none of the traps here. A block scalar is immune to the quote and truncation traps, which need a plain or quoted value to bite; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
 
-**`skill-description-parsed`** is the differential: it parses the same frontmatter with a real YAML parser and compares the parsed description against the raw line. Any difference on a plain scalar means a trap fired, and a parse error means the skill will not load at all. It parses under YAML 1.1, the reading under which `yes` becomes a boolean, because the trap it catches is what some parsers make of a value and the stricter reading is the one that can fail. A parser alone cannot replace the sweep, since the silent class is valid YAML and a parser returns the corrupted value without complaint; the sweep and the differential each run on every target.
+A check decided before the value's style is looked at holds for a block scalar as well: the absent key and the duplicate key. The empty value and the ceiling are judged against the value rather than the line, so `skill-frontmatter-parsed` owns them.
+
+It also holds the description to the specification's ceiling of 1,024 characters and reports a present key whose value is empty, both measured on what the parser read rather than on the lines as written: a block scalar's indentation is not part of its value, a quote character is not either, and every empty shape is one empty string only once a parser has read it.
+
+**`skill-frontmatter-parsed`** is the differential: it parses the same frontmatter with a real YAML parser and compares every top-level plain scalar against its raw line. Any difference means a trap fired, and a parse error means the skill will not load at all. It parses under YAML 1.1, the reading under which `yes` becomes a boolean, because the trap it catches is what some parsers make of a value and the stricter reading is the one that can fail. A parser alone cannot replace the sweep, since the silent class is valid YAML and a parser returns the corrupted value without complaint; the sweep and the differential each run on every target.
+
+It reads every key rather than the description alone, because a space and a hash inserted anywhere in the frontmatter drops the tail of whatever key it lands in. Two shapes are left alone: a value the parser reads as something other than text, which belongs to the rule that owns it, and a value whose text begins on the next line, which has nothing on its own key line to compare.
 
 ## The name rule
 
-**`skill-name`**: every skill's frontmatter `name` must match its own directory. It is a rule rather than a loop written out here because shell written as prose carries quoting, word-splitting and glob hazards that nothing runs and nothing tests: a pipe swallows an exit code, an empty capture runs the body once on nothing, an unquoted expansion splits a name on its spaces and matches its brackets against the working directory. A rule gets the suite, where each of those is a fixture.
+**`skill-name`**: every skill's frontmatter `name` must match its own directory, and must be what the specification allows a name to be - at most 64 characters of lowercase alphanumerics joined by single hyphens, so no leading, trailing or doubled hyphen.
+
+The directory match cannot decide the charset on its own, because a directory may carry anything the filesystem allows, so a name matching its own directory exactly can still be one the standard's validator rejects. It is a rule rather than a loop written out here because shell written as prose carries quoting, word-splitting and glob hazards that nothing runs and nothing tests: a pipe swallows an exit code, an empty capture runs the body once on nothing, an unquoted expansion splits a name on its spaces and matches its brackets against the working directory. A rule gets the suite, where each of those is a fixture.
 
 ## The invocation rule
 
@@ -60,7 +70,9 @@ These are the ones that matter, because their failure modes are silent twice ove
 
 ## The prose rules
 
-Vale runs the `Agentifico` style under `styles/`, one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history, each named in the rule file by the finding or commit that removed it, so a token with no source is not there; how a list grows afterwards is #130's to document. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
+**`assets/` is where the Agent Skills specification puts them**, as the data files it names lookup tables and schemas alongside. They are machine-read definitions rather than prose a reader loads or code the check runs, so `references/` and `scripts/` are both the wrong home. `StylesPath` points at that directory itself rather than one inside it, because Vale requires the path to hold the style's own subdirectory.
+
+Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history, each named in the rule file by the finding or commit that removed it, so a token with no source is not there. A token added later carries its own source the same way, which is what keeps the list evidence rather than taste. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
 
 - **`Counts`**, for *Write sentences that survive change*: a count of adjacent content. An error. A cap is not matched, since a figure that constrains future content stays true when an item lands, and a count of things outside the document is not adjacent content, so the nouns a bare "both" may count are the ones the record carries rather than any plural.
 - **`Position`**, the other half of the same rule: a pointer by direction, a uniqueness claim, a recency claim, or an ordinal into the document's own list. An error. Whether a uniqueness claim is true by construction is a reading, and such a phrase is an exception in the rule file with its reason beside it.
@@ -90,10 +102,11 @@ These are the faces of the authoring rules in `workflows/new.md`, which owns eac
 - **Referenced files exist.** A router pointing at `workflows/foo.md` that was never written fails only when that path is taken, which may be months later.
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
 - **Portable paths.** Nothing absolute to one machine's home directory; skill-relative or `~/`-relative instead.
+- **The opening line of every file.** `MD041` is off because the files here open with different things and no one rule fits them all: a skill file and a workflow with the tools blockquote, per the layout `workflows/new.md` states, a `README.md` with the AI disclaimer line, and a file under `references/` with a heading. Which of those a given file owes is what a sweep reads for.
 - **The judgement half of every prose rule.** A regex catches the wording of a defect and never its substance, so a clean prose run says only that the recorded phrasings are absent.
 
 ## Reporting
 
-State what was checked, not just what failed. The run's last line, `7 files checked, 0 issues`, is a result; silence is not.
+State what was checked, not just what failed. The run's last line, `7 files checked, 0 issues, 0 warnings`, is a result; silence is not.
 
 If a skill was edited to fix a finding, re-run the check afterwards. Editing frontmatter is exactly how a quoted description loses its quotes.

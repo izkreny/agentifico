@@ -1,6 +1,7 @@
 // What the frontmatter rules share, so each fact about reading a SKILL.md's
-// frontmatter exists once: which files are skills, where the frontmatter is,
-// what YAML makes of one raw scalar, and where the description's text is.
+// frontmatter is decided once. A second copy of any of it drifts, and two
+// rules disagreeing about what a value is would each be right about a
+// different string, which is how a check comes to libel YAML that loads.
 import path from "node:path";
 
 // The frontmatter rules apply to a skill file and nothing else; the general lint
@@ -26,7 +27,8 @@ export function frontmatter(params) {
 // no line inside it; the detail names the key, which is what the reader needs.
 export const FRONTMATTER_LINE = 1;
 
-// Every raw line for one key. More than one is the last-wins trap.
+// More than one line for a key is the last-wins trap, so every one is kept
+// rather than the first.
 export const keyLines = (fm, key) => fm.filter((l) => l.startsWith(`${key}:`));
 
 // A plain or quoted scalar may continue on indented lines, and YAML folds them
@@ -60,16 +62,33 @@ export function scalar(raw) {
   return (cut >= 0 ? raw.slice(0, cut) : raw).trim();
 }
 
-// The description's text, whatever scalar style it uses.
+// A block scalar's header line. YAML allows a chomping indicator and an
+// indentation indicator in either order after the `|` or `>`, plus a comment,
+// so a header this misses is read as a plain scalar instead and libelled with
+// the plain scalar's own traps on YAML that loads correctly.
+export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/;
+
+// Reading a description's text out of the frontmatter is a frontmatter
+// concern, so it sits with the rest of them rather than inside whichever rule
+// happens to want it.
 export function description(fm) {
   const i = fm.findIndex((l) => l.startsWith("description:"));
   if (i < 0) return "";
   const raw = fm[i].slice(12).trim();
-  if (!/^[|>][+-]?$/.test(raw)) return folded(fm, i);
+  if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar
   // ends at the first non-empty line with no indent rather than at the first
   // line without one.
   for (let j = i + 1; j < fm.length && (fm[j] === "" || /^\s/.test(fm[j])); j++) body.push(fm[j]);
-  return body.join("\n");
+  // YAML strips the block's own indentation, which its first non-empty line
+  // sets, so the text has to be dedented here rather than in each caller: a
+  // caller measuring or matching against what the parser produces would
+  // otherwise be judging characters no parsed value ever carries.
+  // An explicit indentation indicator wins over the first line's indent, since
+  // YAML keeps anything past it as value text; inferring from the first line
+  // instead strips those spaces and under-measures the value.
+  const declared = raw.split(/\s/)[0].match(/[1-9]/);
+  const indent = declared ? Number(declared[0]) : (body.find((l) => l.trim() !== "")?.match(/^\s*/)[0].length ?? 0);
+  return body.map((l) => l.slice(indent)).join("\n");
 }

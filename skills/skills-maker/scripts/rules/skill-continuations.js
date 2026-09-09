@@ -1,8 +1,7 @@
-// A list item carries at most one continuation paragraph, and that paragraph
-// is the item's reason; a continuation opening with a bolded lead-in is over
-// the cap whatever its count. workflows/new.md owns the rule and its reason.
-// The parser owns everything else: in micromark's tree a list token holds its
-// item prefixes and its content blocks as siblings, so an item is the run of
+// The continuation-paragraph rule workflows/new.md owns and
+// workflows/check.md describes. The parser owns everything else: in
+// micromark's tree a list token holds its item prefixes and its content
+// blocks as siblings, so an item is the run of
 // children between one prefix and the next, its paragraphs are the paragraphs
 // in that run, and a nested list, a fence, a table or a blockquote in the run
 // is a different token type that counts for nothing.
@@ -15,11 +14,10 @@ function walk(tokens, fn) {
   }
 }
 
-// The paragraph a content block carries, if it carries one.
 const paragraphOf = (t) => (t.type === "content" ? t.children.find((c) => c.type === "paragraph") : undefined);
 
-// Each item as the line its marker sits on and its paragraphs after the lead,
-// where the lead is whatever block opens the item, paragraph or not.
+// The lead is whatever block opens an item, paragraph or not, so a paragraph
+// after it is a continuation whatever the item began with.
 export function items(list) {
   const out = [];
   let item = null;

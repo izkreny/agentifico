@@ -11,7 +11,7 @@ import { describe, it } from "node:test";
 import { lint } from "markdownlint/promise";
 import continuations from "../rules/skill-continuations.js";
 import description from "../rules/skill-description.js";
-import parsed from "../rules/skill-description-parsed.js";
+import parsed from "../rules/skill-frontmatter-parsed.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
 
@@ -59,6 +59,13 @@ describe("skill-description, the raw sweep", () => {
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "apostrophe"],
     ["t-bool", "name: x\ndescription: yes", "boolean"],
     ["t-missing", "name: x", "no description"],
+    // SM-04: a legal block scalar header carrying an indentation indicator, in
+    // either order with the chomping one, or a trailing comment. Each of these
+    // loads, so a finding on any of them is the check libelling correct YAML.
+    ["good-block-indent", "name: x\ndescription: |2\n   Use when reviewing X: safe & sound", null],
+    ["good-block-indent-chomp", "name: x\ndescription: |-2\n   Use when reviewing X: safe & sound", null],
+    ["good-block-chomp-indent", "name: x\ndescription: |2-\n   Use when reviewing X: safe & sound", null],
+    ["good-block-comment", "name: x\ndescription: | # note\n  Use when reviewing X: safe & sound", null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -79,7 +86,7 @@ describe("skill-description, the raw sweep", () => {
   });
 });
 
-describe("skill-description-parsed, the differential", () => {
+describe("skill-frontmatter-parsed, the differential", () => {
   const cases = [
     ["good-block", "name: x\ndescription: |\n  Use for PR #N review: safe & sound", null],
     ["good-quoted", 'name: x\ndescription: "Plain quoted, no tricks"', null],
@@ -97,18 +104,41 @@ describe("skill-description-parsed, the differential", () => {
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "PARSE ERROR"],
     ["t-backslash", 'name: x\ndescription: "matches \\d+ digits"', "PARSE ERROR"],
     ["t-scalar-doc", "just a string", "not a mapping"],
+    // SM-02: the differential covers every top-level plain scalar, because the
+    // ` #` edit drops the tail of whatever key it lands in.
+    ["good-compat", "name: x\ndescription: |\n  ok\ncompatibility: Requires Node 22 or later", null],
+    ["t-compat-comment", "name: x\ndescription: |\n  ok\ncompatibility: Requires Node 22 # and Vale 3.20", "compatibility SILENTLY MUTATED"],
+    // The two shapes a naive widening reports falsely, one fixture each:
+    // good-boolean-key for a value the parser reads as a boolean rather than
+    // as text, and good-value-on-next-line for a value whose text begins on
+    // the following line. good-nested-key documents the shape and proves
+    // neither guard on its own, since either one alone catches it.
+    ["good-nested-key", 'name: x\ndescription: |\n  ok\nmetadata:\n  version: "1.0"', null],
+    ["good-boolean-key", "name: x\ndescription: |\n  ok\ndisable-model-invocation: true", null],
+    ["good-value-on-next-line", "name: x\ndescription: |\n  ok\ncompatibility:\n  Requires Node 22 or later", null],
+    // Anything judged against the value is decided here, where a parser has
+    // read it: every empty shape is the same empty string, and the ceiling
+    // counts neither a quote character nor a trailing comment.
+    ["t-empty", "name: x\ndescription:", "never advertised"],
+    ["t-empty-block", "name: x\ndescription: |", "never advertised"],
+    ["t-empty-quoted", 'name: x\ndescription: ""', "never advertised"],
+    ["t-empty-blank", 'name: x\ndescription: "   "', "never advertised"],
+    ["t-toolong", `name: x\ndescription: ${"a".repeat(1025)}`, "1024"],
+    ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
+    ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
+    ["good-quoted-under-cap", `name: x\ndescription: "${"a".repeat(1023)}"`, null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(fm), parsed);
-      if (want) expectDetail(found, "skill-description-parsed", want);
-      else expectClean(found, "skill-description-parsed");
+      if (want) expectDetail(found, "skill-frontmatter-parsed", want);
+      else expectClean(found, "skill-frontmatter-parsed");
     });
   }
   it("a blank line after the closing delimiter is not part of the frontmatter", async () => {
     // Without the trailing-blank strip the closing `---` is parsed as a second
     // document and every real skill file reports a parse error.
-    expectClean(await findings("fx/x/SKILL.md", skill('name: x\ndescription: |\n  Fine.\nmetadata:\n  version: "1.0"'), parsed), "skill-description-parsed");
+    expectClean(await findings("fx/x/SKILL.md", skill('name: x\ndescription: |\n  Fine.\nmetadata:\n  version: "1.0"'), parsed), "skill-frontmatter-parsed");
   });
 });
 
@@ -122,6 +152,13 @@ describe("skill-name", () => {
     ["commented", "name: commented # note\ndescription: |\n  x", null],
     ["twospace", "name: twospace  # two spaces before the comment\ndescription: |\n  x", null],
     ["quotecom", 'name: "quotecom" # a quoted value ends at its own quote\ndescription: |\n  x', null],
+    // SM-03: the spec's charset for a name, which the directory match alone
+    // cannot decide - both of these match their directory exactly.
+    ["My_Skill--v2", "name: My_Skill--v2\ndescription: |\n  x", "lowercase"],
+    ["-leading-hyphen", "name: -leading-hyphen\ndescription: |\n  x", "hyphen"],
+    // RF1: the spec's 64-character ceiling, which no fixture reached. The name
+    // is all lowercase letters, so only the length clause can decide it.
+    [`${"a".repeat(65)}`, `name: ${"a".repeat(65)}\ndescription: |\n  x`, "over the spec's 64"],
   ];
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {

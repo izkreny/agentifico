@@ -4,7 +4,7 @@
 
 A skill for writing, reviewing, maintaining and exporting agent skills. Explicit invocation only: it never fires on its own; you type `/skills-maker <argument>` yourself.
 
-It targets the [Agent Skills](https://agentskills.io) format, the open standard originally developed by Anthropic and since adopted across the agent ecosystem (Claude Code, Cursor, Gemini CLI, GitHub Copilot, opencode, pi, Hermes and many more). The [specification](https://agentskills.io/specification) is the authority on the format, and the standard ships a [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference validator; the traps this skill exists to catch live below the spec's radar, since a truncated description is still valid YAML.
+It targets the [Agent Skills](https://agentskills.io) format, the open standard originally developed by Anthropic and since adopted across the agent ecosystem. The [specification](https://agentskills.io/specification) is the authority on the format, and the standard ships a [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference validator; the traps this skill exists to catch live below the spec's radar, since a truncated description is still valid YAML.
 
 ## Why it exists
 
@@ -25,7 +25,7 @@ A skill that never fires looks identical to a skill that was never written. Ever
 | --- | --- |
 | `new <name>` | Author a skill from scratch |
 | `review <path>` | Review an existing skill, or a whole package, for the defects that actually occur |
-| `check`, or no argument | Mechanical audit across every installed skill |
+| `check`, or no argument | Mechanical audit of one skill, or a survey across a directory of them |
 | `export <path>` | Publish a local skill to a shared repository |
 
 Requests about installing, updating or removing someone else's skill carry no verb of their own; the router sends them to `references/managing.md`.
@@ -35,7 +35,7 @@ flowchart TD
     A["/skills-maker &lt;argument&gt;"] --> R{"SKILL.md router"}
     R -->|new| N["workflows/new.md<br/>author a skill from scratch"]
     R -->|review| V["workflows/review.md<br/>find the defects that actually occur"]
-    R -->|"check, or no argument"| C["workflows/check.md<br/>mechanical audit across installed skills"]
+    R -->|"check, or no argument"| C["workflows/check.md<br/>mechanical audit of one skill,<br/>or a survey across many"]
     R -->|export| E["workflows/export.md<br/>publish a local skill to a shared repository"]
     R -->|"install, update, remove"| M["references/managing.md<br/>the skills CLI, its lock, one manager per skill"]
     N -->|verifies with| C
@@ -52,10 +52,10 @@ Plan and author a new skill with the most capable model available to you, and ru
 ## Install
 
 ```bash
-npx skills add izkreny/agentifico -g -y -s skills-maker
+skills add izkreny/agentifico -g -y -s skills-maker
 ```
 
-That is the [skills CLI](https://skills.sh) in its no-install `npx` form. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `workflows/check.md` states both. To have `skills` as a real command instead, [mise](https://mise.jdx.dev) installs it in one line, `mise use -g npm:skills`, and the `npx` prefix goes away. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
+That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) installs in one line, `mise use -g npm:skills`. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `workflows/check.md` states both. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
 
 ## Similar tools, and why this exists anyway
 

@@ -1,11 +1,10 @@
-// Raw-line sweep over a skill's frontmatter description. A real YAML parser
-// cannot replace it: the silent traps are valid YAML, so a parser returns the
-// corrupted value without complaint. SKILL.md owns the membership of the trap
-// classes, under "YAML eats the description at `#`"; this is where each is
-// decided.
-import { FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
+// The raw-line sweep workflows/check.md describes. SKILL.md owns the
+// membership of the trap classes, under "YAML eats the description at `#`";
+// this is where each one is decided.
+import { BLOCK_SCALAR, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
 
-// What may follow a closing quote: nothing, or a comment.
+// A comment after the closing quote sits outside the value, so it is not a
+// defect; anything else there is a parse error.
 const TRAILING = /^(\s+#.*)?$/;
 
 export function defects(fm) {
@@ -13,8 +12,11 @@ export function defects(fm) {
   const dl = keyLines(fm, "description");
   if (!dl.length) bad.push("no description: never advertised");
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
+  // Anything judged against the value rather than against the line belongs to
+  // skill-frontmatter-parsed, which has what a parser produced. Deciding it
+  // here would mean measuring a value this rule is defined never to parse.
   const raw = (dl[0] || "").slice(12).trim();
-  const block = dl.length && /^[|>][+-]?$/.test(raw);
+  const block = dl.length && BLOCK_SCALAR.test(raw);
   // The value under judgement, whatever its style, joined the way YAML folds a
   // run of indented continuation lines; a fold across a blank line is not read.
   // A continuation line can carry the same traps as the first, a quote may
@@ -27,7 +29,9 @@ export function defects(fm) {
   // immune to the whole family, so neither is a defect.
   if (!block && /^[“”‘’]/.test(raw)) bad.push("curly quotes are not YAML quotes");
   if (block) {
-    // block scalar: immune to every trap below
+    // A block scalar reaches none of the style branches: it has no quotes to
+    // close and no plain-scalar comment to be cut at. The checks it does reach
+    // are the ones decided before this branch.
   } else if (raw.startsWith('"')) {
     // The value ends at its own closing quote, so a comment after it is outside
     // the value and not a defect; anything else after it is a parse error, and

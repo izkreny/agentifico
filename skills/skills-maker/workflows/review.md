@@ -12,13 +12,9 @@ Read every file in the skill's directory, whatever the layout: `SKILL.md`, what 
 
 **Find them by walking the tree, never by following references out of the skills.** A plugin's agent is spawned by name at runtime and cited by path in no skill under it.
 
-**A path covering more than one skill is read inline, as one document, in one pass.** Never a subagent per skill.
-
-**What a fan-out cannot see is the reason**: a contradiction that spans two skills, and a cross-reference from one skill to a rule another skill removed. Reading one skill at a time hides those exactly as reading one file at a time hides a contradiction between two, and in a plugin it is the class that matters most, because the skills cite each other by path.
+**A path covering more than one skill is read inline, as one document, in one pass, never a subagent per skill.** What a fan-out cannot see is the reason: a contradiction spanning two skills, and a cross-reference from one skill to a rule another removed. Reading one skill at a time hides those exactly as reading one file at a time hides a contradiction between two, and in a plugin that is the class that matters most, because the skills cite each other by path.
 
 **This rule binds only a path covering several skills**; a path that is one skill's own directory is read as it always is, one skill at a time.
-
-**The rule governs this step's read and nothing later.** Step 5 judges fixes against a review that has already happened, so its agent is not a way to perform the read that this step requires be done here.
 
 **A reader who cannot hold the whole set says where it ran thin, by skill.** Reading several skills whole is what makes the cross-skill question answerable and it is also what runs a session low, so the honest answer is to name the shortfall rather than finish quietly on a shallow read of whatever came last.
 
@@ -61,6 +57,8 @@ Rank findings by consequence, not by reading order. For each: the file and line,
 Separate what is wrong from what is merely different. A skill written in a style you would not choose is not defective, and expectations tier to the skill's size: a single-file skill needs no `workflows/` or `references/`, and the absence of structure it does not need is not a finding.
 
 ## Step 5 - Re-verify fixes with the same reviewer
+
+**Step 1's inline-read rule governs that step and not this one.** This step judges fixes against a review that has already happened, so resuming an agent here is never a way to perform the read Step 1 requires be done there.
 
 When the review ran in a subagent and its findings were then fixed, resume that same agent to judge the fixes rather than starting a fresh review. The resumed agent keeps its full audit context, every file it read and what each finding actually meant, so re-verification is cheaper and sharper than a second audit, and it judges the fixes against what it originally meant rather than re-deriving the findings.
 

@@ -6,11 +6,11 @@ argument-hint: "[new <name> | review <path> | check | export <path>]"
 disable-model-invocation: true
 compatibility: Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.20 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
 metadata:
-  version: "2.1.0"
-allowed-tools: Bash(gh:*), Bash(node:*), Bash(npm:*), Bash(skills:*), Bash(npx skills:*), Read, Write, Edit, Grep, Glob
+  version: "3.0.0"
+allowed-tools: Bash(gh:*), Bash(node:*), Bash(npm:*), Bash(skills:*), Read, Write, Edit, Grep, Glob
 ---
 
-> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `styles/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` / `Bash(npx skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 
@@ -40,7 +40,7 @@ description: Use when asked to review PR #N, or check what needs review.
 
 Everything from the space before `#N` onward is gone. Backticks do not protect against it: a description containing `` `#123` `` survives only because the character before the `#` is a backtick rather than a space, which is luck, not correctness.
 
-**Write the description as a block scalar.** It has no comment, anchor, tag or escape processing, so it is immune to this trap and to every relative of it:
+**Write the description as a block scalar.** It has no comment, anchor, tag or escape processing, so a trap that needs a plain or quoted value cannot reach it:
 
 ```yaml
 description: |
@@ -67,7 +67,7 @@ Based on `$ARGUMENTS`, do exactly one of the following:
 
 - **`workflows/new.md`** - authoring a skill from scratch: frontmatter, layout, content rules
 - **`workflows/review.md`** - reviewing an existing skill against the defects that actually occur
-- **`workflows/check.md`** - the mechanical audit across every installed skill
+- **`workflows/check.md`** - the mechanical audit: a gate over one skill, a survey over a directory of them
 - **`workflows/export.md`** - publishing a local skill to a shared repository
 - **`references/managing.md`** - installing and updating skills, and why not to hand-edit an installed one
 - **`scripts/`** - `check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, sharing `scripts/rules/frontmatter.js`; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit

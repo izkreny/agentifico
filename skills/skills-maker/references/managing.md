@@ -1,13 +1,13 @@
 # Installing, updating and removing skills
 
-The manager is the `skills` CLI ([skills.sh](https://skills.sh), `vercel-labs/skills`). The commands in this file use `npx`, the invocation skills.sh itself documents, which needs no install; when the CLI is installed as a real command (for example through mise's npm backend), drop the `npx`.
+The manager is the `skills` CLI ([skills.sh](https://skills.sh), `vercel-labs/skills`). The commands in this file call it as an installed command, which mise's npm backend supplies in one line, `mise use -g npm:skills`.
 
 ```bash
-npx skills add <owner/repo> -l                          # list what a repo offers, installs nothing
-npx skills add <owner/repo> -g -y -s <name> -s <name>   # global, non-interactive, named skills only
-npx skills list
-npx skills update
-npx skills remove <name> -g
+skills add <owner/repo> -l                          # list what a repo offers, installs nothing
+skills add <owner/repo> -g -y -s <name> -s <name>   # global, non-interactive, named skills only
+skills list
+skills update
+skills remove <name> -g
 ```
 
 - `-s` selects skills by name and must be repeated per name; a comma-separated list matches nothing. Without `-s` the whole repository lands.
@@ -17,7 +17,7 @@ npx skills remove <name> -g
 
 ## Security
 
-Installing a skill is installing instructions an agent will follow with all of its permissions; treat it like installing software, because it is. Review what actually arrived on disk before first use, and install from an exact `owner/repo` already trusted rather than from search results: registry popularity metrics belong to the repository, not to the skill inside it. `npx` adds its own surface, fetching and running the latest published CLI on every invocation; pin it as `npx skills@<version>` when that matters.
+Installing a skill is installing instructions an agent will follow with all of its permissions; treat it like installing software, because it is. Review what actually arrived on disk before first use, and install from an exact `owner/repo` already trusted rather than from search results: registry popularity metrics belong to the repository, not to the skill inside it. The CLI is pinned by whatever installed it, so `mise use -g npm:skills@<version>` is where a version gets fixed when which one runs matters.
 
 ## One manager per skill
 

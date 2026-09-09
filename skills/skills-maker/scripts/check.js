@@ -1,13 +1,5 @@
-// The mechanical audit, as one command over one target: a skill's own
-// directory, a directory of skills, or a package root whose skills sit further
-// down, defaulting to the current directory. It globs the markdown under the
-// target and runs two linters over it with this package's configuration and
-// nothing else: markdownlint with the rules in lint-config.js for what a file
-// is, and Vale with the style in ../styles for what it says. No file under the
-// target is read as configuration, so the tree being audited cannot switch off
-// the rules that judge it, and the same rules apply wherever the target lives.
-// A target with no markdown under it is a wrong target, and its silence reads
-// exactly like a clean sweep, so checking nothing exits non-zero.
+// The mechanical audit as one command. workflows/check.md states the target
+// shapes, the two linters, the exclusions and what each exit code means.
 // Usage: node check.js [target]
 import { spawnSync } from "node:child_process";
 import path from "node:path";
@@ -21,10 +13,11 @@ const valeConfig = path.join(here, "..", ".vale.ini");
 
 const target = path.resolve(process.argv[2] ?? ".");
 
-// Dot-directories are left out by default, which is what the walk did: an
-// agent's skills directory carries its own, and a fixture tree keeps its
-// fixtures under one. Symlinks are followed, because an agent's skills
-// directory is a directory of them pointing into the canonical tree.
+// Dot-directories are left out because an agent's skills directory carries
+// its own and a fixture tree keeps its fixtures under one, so walking them
+// reports findings against trees nobody is auditing. Symlinks are followed,
+// because an agent's skills directory is a directory of them pointing into
+// the canonical tree.
 const files = (await globby(["**/*.md", "!**/node_modules/**"], { cwd: target, absolute: true })).sort();
 
 if (!files.length) {
@@ -32,7 +25,8 @@ if (!files.length) {
   process.exit(1);
 }
 
-// The layout rule stops its ancestor search at the target.
+// Without the target the layout rule would walk past it and call a skill
+// nested under someone else's tree a defect of this one.
 const results = await lint({ files, customRules: rules, config: { ...config, "skill-layout": { root: target } } });
 
 // One line per markdownlint finding, in file order, printed before Vale runs
