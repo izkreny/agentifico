@@ -1,12 +1,14 @@
 // Raw-line sweep over every skill's frontmatter description.
 // Usage: node check-descriptions.js [target]   (defaults to the current directory)
-// The target is a directory of skills, or one skill's own directory.
+// The target is one skill's own directory, a directory of skills, or a package
+// root whose skills sit further down - a plugin's at <root>/skills/.
 // A real YAML parser cannot replace this: the silent traps are valid YAML.
-const fs = require("fs"), path = require("path");
-process.chdir(process.argv[2] || ".");
-const targets = fs.existsSync("SKILL.md")
-  ? [[path.basename(process.cwd()), "SKILL.md"]]
-  : fs.readdirSync(".").sort().filter(s => fs.existsSync(s + "/SKILL.md")).map(s => [s, s + "/SKILL.md"]);
+const fs = require("fs");
+const { skills } = require("./walk.js");
+const { root, skills: found } = skills(process.argv[2]);
+// The name is the path relative to the target, not the basename: two plugins
+// can each ship a skill called review.
+const targets = found.map(s => [s.rel || s.name, s.skill]);
 let defects = 0;
 for (const [s, p] of targets) {
   const m = fs.readFileSync(p, "utf8").match(/^---\n([\s\S]*?)\n---/);
@@ -43,6 +45,6 @@ for (const [s, p] of targets) {
 }
 // Checking nothing is a failure, not a pass: a target with no SKILL.md under it
 // is a wrong target, and silence there reads exactly like a clean sweep.
-if (!targets.length) console.log("no SKILL.md found in " + process.cwd() + ": nothing was checked");
+if (!targets.length) console.log("no SKILL.md found in " + root + ": nothing was checked");
 else console.log(targets.length + " skill(s) checked, " + defects + " with defects");
 process.exitCode = (defects || !targets.length) ? 1 : 0;

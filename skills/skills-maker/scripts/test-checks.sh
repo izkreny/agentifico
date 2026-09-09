@@ -99,5 +99,131 @@ target single-skill "$tmp/good-block" '1 skill(s) checked, 0 with defects0' '1 s
 target single-bad   "$tmp/t-comment"  '1 skill(s) checked, 1 with defects1' 'SILENTLY MUTATED'
 target empty-target "$tmp/empty"      'nothing was checked1'                'nothing was checked1'
 
+# Package roots. A plugin's skills sit at <root>/skills/ and its manifest,
+# agents, hooks and README belong to no skill, so a root is neither of the two
+# shapes the checks accepted before. The fixtures live under a dot-directory so
+# the whole-tree sweep above keeps the target set it was written for.
+mk .fx/pkg/skills/alpha 'name: alpha\ndescription: |\n  Alpha, under a package root.'
+mk .fx/pkg/skills/beta  'name: beta\ndescription: |\n  Beta, under the same root.'
+mk .fx/pkg/skills/alpha/references 'name: example\ndescription: |\n  An example SKILL.md quoted inside a skill.'
+mk .fx/pkg/.hidden 'name: hidden\ndescription: |\n  A skill inside a dot-directory, which the walk must not descend into.'
+mkdir -p .fx/pkg/agents .fx/pkg/hooks .fx/pkg/.claude-plugin
+echo body > .fx/pkg/agents/reviewer.md
+echo body > .fx/pkg/hooks/hook.py
+echo '{}' > .fx/pkg/.claude-plugin/plugin.json
+echo body > .fx/pkg/README.md
+
+# Two package roots side by side: the same skill name under each, which is why
+# a skill is reported by its path relative to the target rather than its name.
+mk .fx/many/one/skills/review 'name: review\ndescription: |\n  One plugin review skill.'
+mk .fx/many/two/skills/review 'name: review\ndescription: |\n  Another plugin review skill.'
+
+# A directory of symlinks into the canonical tree, which is what an agent's own
+# skills directory is. A walk that does not follow them finds nothing here.
+mkdir -p .fx/linked
+ln -s ../pkg/skills/alpha .fx/linked/alpha
+ln -s ../../good-block .fx/linked/good-block
+
+shape() {
+  sout="$(node "$here/check-descriptions.js" "$2")"; scode=$?
+  case "$sout$scode" in
+    *"$3"*) printf 'PASS  sweep %-14s %s\n' "$1" "$3" ;;
+    *) printf 'FAIL  sweep %-14s wanted "%s", got "%s" exit %s\n' "$1" "$3" "$sout" "$scode"; fail=1 ;;
+  esac
+  if command -v ruby >/dev/null; then
+    rout="$(ruby "$here/check-differential.rb" "$2")"; rcode=$?
+    case "$rout$rcode" in
+      *"$4"*) printf 'PASS  diff  %-14s %s\n' "$1" "$4" ;;
+      *) printf 'FAIL  diff  %-14s wanted "%s", got "%s" exit %s\n' "$1" "$4" "$rout" "$rcode"; fail=1 ;;
+    esac
+  fi
+}
+
+# A skill's own directory is never descended into, so the example SKILL.md under
+# alpha's references/ is part of alpha rather than a third skill; and the walk
+# skips dot-directories, so .hidden/ is not a fourth. Remove either rule and the
+# count below is wrong.
+shape package-root  "$tmp/.fx/pkg"    '2 skill(s) checked, 0 with defects0' '2 skill(s) checked, 0 with defects0'
+shape nested-roots  "$tmp/.fx/many"   '2 skill(s) checked, 0 with defects0' '2 skill(s) checked, 0 with defects0'
+shape symlink-dir   "$tmp/.fx/linked" '2 skill(s) checked, 0 with defects0' '2 skill(s) checked, 0 with defects0'
+
+# The name a package root reports is the path relative to the target: two
+# plugins can each ship a skill called review, and bare names cannot tell them
+# apart.
+names="$(node "$here/check-descriptions.js" "$tmp/.fx/many")"
+for want in one/skills/review two/skills/review; do
+  case "$names" in
+    *"$want"*) printf 'PASS  sweep %-14s %s\n' relative-name "$want" ;;
+    *) printf 'FAIL  sweep %-14s wanted "%s", got "%s"\n' relative-name "$want" "$names"; fail=1 ;;
+  esac
+done
+
+# The name check. Its cases are the ones shell written as prose gets wrong: a
+# missing name, a mismatch, a name whose directory carries glob metacharacters,
+# an empty target's exit code.
+mk .fx/names/good      'name: good\ndescription: |\n  x'
+mk .fx/names/mismatch  'name: something-else\ndescription: |\n  x'
+mk '.fx/names/my [1] skill' 'name: wrong\ndescription: |\n  x'
+mkdir -p '.fx/names/no-name'; printf -- '---\ndescription: |\n  x\n---\nbody\n' > '.fx/names/no-name/SKILL.md'
+mkdir -p 'my 1 skill'   # the decoy the old loop's glob expanded onto
+
+names_out="$(cd "$tmp" && node "$here/check-names.js" "$tmp/.fx/names")"; names_code=$?
+nexpect() {
+  case "$(printf '%s\n' "$names_out" | grep -- "$1")" in
+    *"$2"*) printf 'PASS  names %-16s %s\n' "$1" "$2" ;;
+    *) printf 'FAIL  names %-16s wanted "%s", got "%s"\n' "$1" "$2" "$names_out"; fail=1 ;;
+  esac
+}
+nexpect 'mismatch'      'name is "something-else", directory is "mismatch"'
+nexpect 'no-name'       'no name'
+nexpect '4 skill(s)'    '4 skill(s) checked, 3 with defects'
+case "$(printf '%s\n' "$names_out" | grep -c '^good ')" in
+  0) printf 'PASS  names %-16s %s\n' good 'a matching name is silent' ;;
+  *) printf 'FAIL  names %-16s reported a good fixture\n' good; fail=1 ;;
+esac
+# A directory whose name carries glob metacharacters is reported as itself. The
+# fixture is deliberately misnamed so that it prints at all: an assertion on a
+# well-named one could never fail, whatever the code did. The shell loop this
+# replaced expanded the name onto the decoy above and never read the real one.
+case "$(printf '%s\n' "$names_out" | grep 'my \[1\] skill')" in
+  *'directory is "my [1] skill"') printf 'PASS  names %-16s %s\n' glob-name 'reported as itself, not glob-expanded' ;;
+  *) printf 'FAIL  names %-16s got "%s"\n' glob-name "$names_out"; fail=1 ;;
+esac
+[ "$names_code" -eq 1 ] && printf 'PASS  names %-16s %s\n' exit-code 'non-zero on defects' \
+  || { printf 'FAIL  names %-16s wanted exit 1, got %s\n' exit-code "$names_code"; fail=1; }
+
+nempty="$(node "$here/check-names.js" "$tmp/empty")"; nempty_code=$?
+case "$nempty$nempty_code" in
+  *'nothing was checked1') printf 'PASS  names %-16s %s\n' empty-target 'nothing was checked, exit 1' ;;
+  *) printf 'FAIL  names %-16s got "%s" exit %s\n' empty-target "$nempty" "$nempty_code"; fail=1 ;;
+esac
+
+# The argument shapes the description check is benched against apply here too,
+# since both read the same walk: a package root is the shape the whole widening
+# was for, and a name check that never saw one proves nothing about it.
+npkg="$(node "$here/check-names.js" "$tmp/.fx/pkg")"; npkg_code=$?
+case "$npkg$npkg_code" in
+  *'2 skill(s) checked, 0 with defects0') printf 'PASS  names %-16s %s\n' package-root 'the skills under a package root' ;;
+  *) printf 'FAIL  names %-16s got "%s" exit %s\n' package-root "$npkg" "$npkg_code"; fail=1 ;;
+esac
+
+# A quoted name and a name carrying a trailing comment both parse to the bare
+# word, so neither is a mismatch.
+mk .fx/scalars/quoted   'name: "quoted"\ndescription: |\n  x'
+mk .fx/scalars/commented 'name: commented # note\ndescription: |\n  x'
+mk .fx/scalars/twospace  'name: twospace  # two spaces before the comment\ndescription: |\n  x'
+mk .fx/scalars/quotecom  'name: "quotecom" # a quoted value ends at its own quote\ndescription: |\n  x'
+nscal="$(node "$here/check-names.js" "$tmp/.fx/scalars")"; nscal_code=$?
+case "$nscal$nscal_code" in
+  *'4 skill(s) checked, 0 with defects0') printf 'PASS  names %-16s %s\n' yaml-scalars 'quoted and commented names parse first' ;;
+  *) printf 'FAIL  names %-16s got "%s" exit %s\n' yaml-scalars "$nscal" "$nscal_code"; fail=1 ;;
+esac
+
+nself="$(node "$here/check-names.js" "$tmp/good-block")"
+case "$nself" in
+  *'1 skill(s) checked, 0 with defects') printf 'PASS  names %-16s %s\n' single-skill 'the root-is-skill target checks itself' ;;
+  *) printf 'FAIL  names %-16s got "%s"\n' single-skill "$nself"; fail=1 ;;
+esac
+
 [ "$fail" -eq 0 ] && echo 'ALL CHECKS VERIFIED' || echo 'BENCH FAILED'
 exit "$fail"
