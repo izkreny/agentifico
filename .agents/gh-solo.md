@@ -121,6 +121,10 @@ gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -lab
 
 **A new value in the table above is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
 
+## The reviewer model
+
+Reviewer model: opus
+
 ## The skill review is its own issue, not a branch's gate
 
 **`/skills-maker review <path>` reviews a whole skill, so it is never a `## Verification` entry.** A skill change carries no such box. Run once against `plugins/gh-solo/skills/pr-flow`, it returned nine findings and not one was in the diff of the branch that triggered it; a per-branch gate built on a whole-file review reports something unrelated every time, and such a gate gets waved through.
