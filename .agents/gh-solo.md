@@ -133,6 +133,22 @@ Reviewer model: opus
 
 **Where a package's work is an epic, that sweep issue is the epic's last child**, per *How a package is released* in `AGENTS.md`, which owns the rule and the reason.
 
+**The sweep's invocation, with the context a run needs**, so starting one is a paste rather than a recall. `<package-dir>` is `plugins/<name>` or `skills/<name>`, per *How a package is released* in `AGENTS.md`:
+
+```text
+/skills-maker review <package-dir>
+
+Read the whole package rather than a diff: this is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
+```
+
+**The invocation and its context travel in one message.** `skills/skills-maker/SKILL.md` sets `disable-model-invocation: true`, so the skill fires when the owner types it, and context sent a turn later arrives at a run that has already read the package.
+
+**How that path is read, and what the report carries, belong to `skills/skills-maker/workflows/review.md`**: its Step 1 for the read, its Step 4 for the report, and `skills/skills-maker/workflows/check.md` for the argument shapes a target may take.
+
+**Every finding is fixed on the sweep's own branch, nothing deferred and nothing declined.** The tag asserts the package was read whole, so a defect the reading found and left standing makes that assertion false. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
+
+**The run is inline in a session the owner keeps open**, and that session is what `skills/skills-maker/workflows/review.md` Step 5 wants when it later judges the fix commit: it resumes the reviewer that produced the findings, and a closed session leaves nothing to resume.
+
 **The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
 
 ## An epic child's blocker is its stack parent, not a wait
