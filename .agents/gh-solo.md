@@ -127,8 +127,6 @@ Reviewer model: opus
 
 **The key is unconditional, and that is what makes it worth writing down.** `plugins/gh-solo/skills/pr-flow/workflows/review.md` Step 1 passes this value as the reviewer spawn's model parameter, and absent the line `plugins/gh-solo/agents/reviewer.md` leaves `model` inherited, so the reviewer runs on whatever the orchestrating session runs on - which is the author's session. A round instructed otherwise in the session can cite only the session, and the session dies. So the line names one model for every round here, a session already orchestrating on Opus included; which model reviews under which orchestrator is a rule the owner keeps in their own instructions, and this is the floor beneath it rather than a second copy of it.
 
-**No `Reviewer agent:` line, deliberately.** This repository uses the bundled `reviewer` agent, and a key that restates a default is a drift surface: it can never be read as anything but agreement, and it can stop agreeing.
-
 ## The skill review is its own issue, not a branch's gate
 
 **`/skills-maker review <path>` reviews a whole skill, so it is never a `## Verification` entry.** A skill change carries no such box. Run once against `plugins/gh-solo/skills/pr-flow`, it returned nine findings and not one was in the diff of the branch that triggered it; a per-branch gate built on a whole-file review reports something unrelated every time, and such a gate gets waved through.
