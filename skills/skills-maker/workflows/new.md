@@ -18,7 +18,7 @@ A skill is worth writing when one of these happened: a multi-step workflow prove
 ## Step 2 - Write the frontmatter
 
 | Field | Purpose |
-|---|---|
+| --- | --- |
 | `name` | Must match the directory name exactly |
 | `description` | The trigger surface. **Write it as a `\|` block scalar** (the trap family is in `SKILL.md`). Name the phrases the user actually says, not a summary of the topic |
 | `argument-hint` | Shown in the slash-command UI, e.g. `"[view \| add \| submit]"`. Only advertise verbs that route somewhere |

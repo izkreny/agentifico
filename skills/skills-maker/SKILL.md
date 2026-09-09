@@ -4,19 +4,19 @@ description: |
   Write, review, maintain and export agent skills. Covers the frontmatter contract, the traps that fail silently, the routing-skill layout, installing and updating skills, and publishing a local skill for others. Explicit invocation only: type `/skills-maker`.
 argument-hint: "[new <name> | review <path> | check | export <path>]"
 disable-model-invocation: true
-compatibility: Requires Node for the frontmatter checks. Ruby (optional) adds the differential check; the gh CLI is needed only for export.
+compatibility: Requires Node 22 or later and an `npm ci` in the installed skill directory for the checks; the gh CLI is needed only for export.
 metadata:
-  version: "1.6.0"
-allowed-tools: Bash(gh:*), Bash(node:*), Bash(ruby:*), Bash(bash:*), Bash(skills:*), Bash(npx skills:*), Read, Write, Edit, Grep, Glob
+  version: "2.0.0"
+allowed-tools: Bash(gh:*), Bash(node:*), Bash(npm:*), Bash(skills:*), Bash(npx skills:*), Read, Write, Edit, Grep, Glob
 ---
 
-> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` / `Bash(ruby:*)` for the frontmatter checks in `scripts/`, `Bash(bash:*)` for their regression bench, `Bash(skills:*)` / `Bash(npx skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` / `Bash(npx skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 
 This is a **routing skill**. Read `$ARGUMENTS` and the conversation context, pick exactly one workflow, read that workflow file, and follow its instructions inline.
 
-All paths below are **relative to this skill's own directory**. Resolve them against wherever this skill is installed rather than assuming a location.
+All paths below are **relative to this skill's own directory**. Resolve them against wherever this skill is installed rather than assuming a location. A fenced command is different, because whoever pastes it stands in their own working directory rather than in the skill: there the skill's own files are named through `<skill-dir>`, which stands for the directory this skill is installed to, and every workflow here uses that one placeholder rather than a bare `scripts/...` that runs only from inside the skill.
 
 ## Where skills live
 
@@ -38,7 +38,7 @@ The corollary matters when refactoring: moving a rule out of a global instructio
 description: Use when asked to review PR #N, or check what needs review.
 ```
 
-Everything from ` #N` onward is gone. Backticks do not protect against it: a description containing `` `#123` `` survives only because the character before the `#` is a backtick rather than a space, which is luck, not correctness.
+Everything from the space before `#N` onward is gone. Backticks do not protect against it: a description containing `` `#123` `` survives only because the character before the `#` is a backtick rather than a space, which is luck, not correctness.
 
 **Write the description as a block scalar.** It has no comment, anchor, tag or escape processing, so it is immune to this trap and to every relative of it:
 
@@ -47,9 +47,9 @@ description: |
     Use when asked to review PR #N, or check what needs review.
 ```
 
-Quoting also survives ` #`, but every quote style carries its own trap: inside `"..."` a backslash or an unescaped inner `"` is a parse error, inside `'...'` an apostrophe must be doubled, and curly “smart” quotes are not quotes at all, so a description that merely looks quoted still truncates. The family goes further, all verified against a real parser: a leading `&` or `!` silently eats the first word, a duplicate `description:` key silently discards the first value, a bare `yes` becomes a boolean in some parsers, and a stray `:` or a leading `*`, `[`, `{`, `%` or `@` is a parse error. A parse error is not loud in practice: the harness swallows it and the skill simply vanishes from the listing. `workflows/check.md` tests for all of these.
+Quoting also survives a space followed by `#`, but every quote style carries its own trap: inside `"..."` a backslash or an unescaped inner `"` is a parse error, inside `'...'` an apostrophe must be doubled, and curly “smart” quotes are not quotes at all, so a description that merely looks quoted still truncates. The family goes further, all verified against a real parser: a leading `&` or `!` silently eats the first word, a duplicate `description:` key silently discards the first value, a bare `yes` becomes a boolean in some parsers, and a stray `:` or a leading `*`, `[`, `{`, `%` or `@` is a parse error. A parse error is not loud in practice: the harness swallows it and the skill simply vanishes from the listing. `workflows/check.md` tests for all of these.
 
-Then avoid ` #` in the prose anyway. Write "a numbered PR" rather than "PR #N", so the text stays safe under any later edit that changes the form.
+Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" rather than "PR #N", so the text stays safe under any later edit that changes the form.
 
 ---
 
@@ -70,4 +70,4 @@ Based on the argument above, do exactly one of the following:
 - **`workflows/check.md`** - the mechanical audit across every installed skill
 - **`workflows/export.md`** - publishing a local skill to a shared repository
 - **`references/managing.md`** - installing and updating skills, and why not to hand-edit an installed one
-- **`scripts/`** - the frontmatter checks as runnable files, the node ones sharing `walk.js`, the name and invocation checks also `scalar.js`, plus `test-checks.sh`, the trap-fixture bench that re-verifies them after any edit
+- **`scripts/`** - `check.js`, the one command that runs markdownlint over a target with this skill's own rules; `lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, sharing `scripts/rules/frontmatter.js`; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit
