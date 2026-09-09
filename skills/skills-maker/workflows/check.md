@@ -15,6 +15,8 @@ command -v ruby >/dev/null && ruby scripts/check-differential.rb ~/.claude/skill
 
 Each run ends with a count of what it checked, and checking nothing exits non-zero: a target with no skill under it is a wrong target, and its silence is indistinguishable from a clean sweep.
 
+How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
+
 **`check-descriptions.js`** is the raw-line sweep. `ok` means the description is a block scalar (immune to every trap here), or a plain or quoted scalar carrying none of them. Everything else names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`"; what matters here is that neither class is loud. The silent class corrupts the triggers while the skill keeps working, and the parse-error class is swallowed by the harness, so the skill simply never appears in the listing.
 
 **`check-differential.rb`** is the supplement for machines that have Ruby, whose standard library carries a real YAML parser: it parses the frontmatter and compares the parsed description against the raw line, where any difference means a trap fired. Skip it without concern where Ruby is absent, since the sweep covers the same ground heuristically. A YAML parser or linter alone cannot replace the sweep: the silent class is valid YAML, which is exactly its disguise, so a parser returns the corrupted value without complaint. Do not bundle a YAML library or a compiled helper to close that gap: vendored parser code is exactly the unreviewable bulk the security notes in `references/managing.md` warn about, and the differential needs nothing beyond a stdlib.
