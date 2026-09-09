@@ -1,6 +1,6 @@
 # Installing, updating and removing skills
 
-The manager is the `skills` CLI ([skills.sh](https://skills.sh), `vercel-labs/skills`). The commands below use `npx`, the invocation skills.sh itself documents, which needs no install; when the CLI is installed as a real command (for example through mise's npm backend), drop the `npx`.
+The manager is the `skills` CLI ([skills.sh](https://skills.sh), `vercel-labs/skills`). The commands in this file use `npx`, the invocation skills.sh itself documents, which needs no install; when the CLI is installed as a real command (for example through mise's npm backend), drop the `npx`.
 
 ```bash
 npx skills add <owner/repo> -l                          # list what a repo offers, installs nothing
@@ -29,4 +29,4 @@ The lock records a hash of what was installed. Editing the file in place makes t
 
 ## Versions
 
-There is no documented pin syntax; installs track the source repository's default branch. Before trusting that a repository's release tag says anything about the skill inside it, check what upstream actually tags: projects that ship a skill alongside a binary usually tag the binary, and the skill carries its own independent version, so "matching" the two numbers can fetch an older manual rather than a matched one. When a skill documents a versioned tool, verify unfamiliar flags against the tool's own `--help` rather than against version arithmetic.
+There is no documented pin syntax; installs track the source repository's default branch. Before trusting that a repository's release tag says anything about the skill inside it, check what upstream actually tags: projects that ship a skill alongside a binary usually tag the binary, and the skill carries its own independent version, so matching the skill's version to the binary's tag can fetch an older manual rather than a matched one. When a skill documents a versioned tool, verify unfamiliar flags against the tool's own `--help` rather than against version arithmetic.

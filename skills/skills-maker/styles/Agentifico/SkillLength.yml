@@ -1,0 +1,10 @@
+# The second figure in "Let size decide whether to split" in workflows/new.md:
+# roughly 3,500 words is the cap on a SKILL.md, the spec's 5,000 loaded tokens
+# at about three quarters of a word each. A warning, for the same reasons
+# SkillSplit is one. Enabled for a SKILL.md alone, in .vale.ini.
+extends: metric
+message: "Let size decide whether to split: this SKILL.md carries %s words of prose, over the cap the spec's token budget allows."
+link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
+level: warning
+formula: words
+condition: "> 3500"

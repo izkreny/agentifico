@@ -1,0 +1,15 @@
+# The mechanical half of "Cut every paragraph to its one new claim" in
+# workflows/new.md: a helper that points a reviewer at a paragraph long enough
+# to be read for a second claim, not a verdict that it carries one. The cap is
+# calibrated against this package on 2026-09-07, where 84 body paragraphs ran
+# to a median of 41 words and a maximum of 135, so 120 names the three longest
+# and nothing else; two other skill collections measured the same day sat
+# under it at their 95th percentile. An occurrence rule rather than a scoped
+# metric, because scoping a metric needs Vale 3.21.0 and this ships on 3.20.0.
+extends: occurrence
+message: "Cut every paragraph to its one new claim: this one runs to %d words, so read it for a second claim."
+link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
+level: warning
+scope: paragraph
+max: 120
+token: '\b(\w+)\b'

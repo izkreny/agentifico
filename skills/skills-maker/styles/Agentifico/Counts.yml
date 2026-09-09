@@ -1,0 +1,40 @@
+# The counting half of "Write sentences that survive change" in
+# workflows/new.md: a count of adjacent content is a cache of the list beside
+# it, and whoever adds an item edits the list, never the sentence. Each token
+# is a shape a review caught in this repository, named by the pull request or
+# commit that removed it. A cap ("five sentences at most", "three times at
+# most in a round") constrains future content and is not matched: none of
+# these shapes reaches "at most", "no more than" or "roughly".
+extends: existence
+message: "Write sentences that survive change: '%s' counts adjacent content, and the list is the authority on its own length."
+link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
+level: error
+ignorecase: true
+tokens:
+  # "all three forms" PR 27; "met all three" PR 116; "one of the three
+  # prefixes" PR 87; "whichever of the two applies" PR 92; "two of the
+  # general rules" PR 116; "either of two" and "one of those two" live in
+  # plugins/gh-solo at the first run.
+  - '(?:all|both of|each of|either of|neither of|one of|any of|which of|whichever of|two of|three of) (?:the |these |those |its |them )?(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|twenty)'
+  # "Two of them change what an agent does" #30; "Say which of the two it is"
+  # .agents/gh-solo.md.
+  - '(?:two|three|four|five) of them'
+  # "the two caps above" PR 68; "the two traps" PR 116; "the three most
+  # memorable ones" 187f851; "the two axes" and "the two hazards" ae1cd1a,
+  # 600884c; "the three," ae1cd1a; "those two lists" live in plugins/gh-solo.
+  - '(?:the|these|those|its) (?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+'
+  # "the three below" at three sites and "three above" 25ca57b.
+  - '(?:two|three|four|five|six|seven|eight|nine|ten) (?:[a-z]+ )?(?:below|above)'
+  # An enumeration announced by its number: "Three cures." 7b06a2e; "Two
+  # lines matter:" ae1cd1a; "Two causes remain." f3af74d; "It runs in three
+  # parts:" PR 46; "Two things sit outside it" PR 37. The closing shapes sit
+  # in a lookahead, because Vale appends a word boundary to every token and
+  # a boundary after the punctuation itself would never be satisfied.
+  - '^(?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+(?: [a-z]+)?(?=[:.]| remain| matter| sit| are| were)'
+  - 'runs in (?:two|three|four|five|six) [a-z]+'
+  # "Both checks are per stack" PR 86; "under both refusals above" PR 86;
+  # "Both workflows end" and "required on both verdicts" ae1cd1a; nineteen
+  # removals of "both" across eight commits. The nouns are the ones the
+  # record and the first run over plugins/gh-solo carry, since a bare "both"
+  # also counts things no edit can add to, "both directions" among them.
+  - 'both (?:the |these |those )?(?:checks|workflows|verdicts|refusals|passes|rules|files|sections|steps|entries|bullets|items|paragraphs|lists|tables|halves|forms|cases|reads|axes|loops|surfaces|conditions|sides|skills|threads|variables|results|lines|jobs|inputs|questions|addresses|counts|copies|names|fields|keys|manifests|commands|sources|reasons|tests|places|axes)\b'

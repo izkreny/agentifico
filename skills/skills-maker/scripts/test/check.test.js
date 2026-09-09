@@ -23,8 +23,8 @@ function mk(dir, fm) {
 }
 const block = (name, text = "Fine.") => `name: ${name}\ndescription: |\n  ${text}`;
 
-function run(target) {
-  const r = spawnSync(process.execPath, [check, target], { encoding: "utf8" });
+function run(target, env = process.env) {
+  const r = spawnSync(process.execPath, [check, target], { encoding: "utf8", env });
   const linted = /^(\d+) files checked/m.exec(r.stdout);
   return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
 }
@@ -76,6 +76,12 @@ before(() => {
   fs.symlinkSync(path.join(pkg, "skills", "beta"), path.join(tmp, "linked", "beta"));
   fs.symlinkSync(path.join(tmp, "good"), path.join(tmp, "linked", "good"));
 
+  // A SKILL.md past the split figure, which the production .vale.ini reaches
+  // through its own section: a warning that is printed and does not fail.
+  const long = Array.from({ length: 41 }, (_, i) => Array.from({ length: 50 }, (_, j) => `word${i}x${j}`).join(" ")).join("\n\n");
+  mk(path.join(tmp, "long"), block("long", "A long skill."));
+  fs.appendFileSync(path.join(tmp, "long", "SKILL.md"), `\n${long}\n`);
+
   // A skill whose dot-directory holds prose the rule must not reach.
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
@@ -95,6 +101,22 @@ describe("check.js", () => {
     assert.equal(r.code, 1);
     assert.match(r.out, /skill-description/);
     assert.match(r.out, /TRUNCATED/);
+  });
+  it("a long SKILL.md gets the split warning, counted apart and not failing", () => {
+    const r = run(path.join(tmp, "long"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /SKILL\.md:1 Agentifico\.SkillSplit \(warning\)/);
+    assert.match(r.out, /1 files checked, 0 issues, 1 warnings/);
+  });
+  it("without vale the structural findings are still printed, and the run fails", () => {
+    // PATH holds one empty directory, so vale is not found whatever bin
+    // directory this machine keeps it in; the check itself is spawned by its
+    // absolute path and needs no PATH.
+    const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "empty") });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /skill-description/);
+    assert.match(r.out, /1 files checked, \d+ issues, prose rules not run/);
+    assert.match(r.out, /vale is not on PATH/);
   });
   it("a target with nothing under it fails rather than passing silently", () => {
     const r = run(path.join(tmp, "empty"));
