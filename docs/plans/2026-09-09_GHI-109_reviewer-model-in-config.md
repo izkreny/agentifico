@@ -23,8 +23,8 @@ Two things the value has to satisfy, both of which review.md Step 1 validates be
 
 ## Verification
 
-- [ ] `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*' --ignore 'skills/skills-maker/scripts/*'` exits `0`, run unpiped so the exit code is the script's own
-- [ ] `python3 scripts/version-check.py` exits `0`
+- The docs-check command `.agents/gh-solo.md` states, run unpiped with its exit code read.
+- `python3 scripts/version-check.py`.
 
 What those gates cannot see: whether the line is in the form review.md Step 1 actually reads. Neither script parses the key, so the only proof is a round reporting the model as read from the file rather than from the session - which is this issue's second acceptance criterion, and which the review round on this branch is what closes.
 
