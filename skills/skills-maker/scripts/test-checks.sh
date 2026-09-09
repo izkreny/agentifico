@@ -225,5 +225,90 @@ case "$nself" in
   *) printf 'FAIL  names %-16s got "%s"\n' single-skill "$nself"; fail=1 ;;
 esac
 
+
+# The continuation check. Every fixture is a shape the rule has to decide, and
+# each one is here because a pattern written as prose got it wrong: the indent
+# width, the leading character, a fenced body, a frontmatter block scalar, and a
+# marker running straight on from the paragraph above it.
+cdoc() { mkdir -p ".fx/cont/$1"; printf -- '---\nname: %s\ndescription: |\n  x\n---\n%b\n' "$1" "$2" > ".fx/cont/$1/SKILL.md"; }
+
+cdoc c-one      '- **lead.** first line\n\n  the one continuation, which is the reason\n'
+cdoc c-two      '- **lead.** first line\n\n  the reason\n\n  a second paragraph, which is a second claim\n'
+cdoc c-bold     '- **lead.** first line\n\n  **a bolded continuation.** which is a heading wearing an indent\n'
+cdoc c-fencein  '- **lead.** first line\n\n  ```bash\n  echo hi\n  ```\n\n  the one continuation\n'
+cdoc c-wide     '10. **ten.** a two-digit ordinal, so the content column is four\n\n    its one continuation\n\n   a three-space block, below that column and so outside the item\n'
+cdoc c-tick     '- **lead.** first line\n\n  `COMMENT`, not `REQUEST_CHANGES`\n\n  `another` one opening with a backtick\n'
+cdoc c-runon    '3. **three.** its lead\n\n   a continuation\n4. **four.** the marker runs straight on from the paragraph above\n\n   its reason\n\n   **and a bolded second.** which is the defect\n'
+cdoc c-table    '1. **one.** its lead\n\n| a | b |\n|---|---|\n| c | d |\n\n   an indented paragraph after a column-0 table\n'
+cdoc c-nested   '- **outer.** its lead\n\n  - **inner.** a nested item at the parent content column\n\n  the reason\n\n  a second paragraph\n\n  **a bolded third.** which must still be seen\n'
+cdoc c-nested4  '- **outer.** its lead\n\n    - nested a\n    - nested b\n\n  the one continuation\n'
+cdoc c-nestedown '- **outer.** its lead\n\n  - **inner.** a nested item\n\n    the nested item'"'"'s own paragraph\n\n  the parent'"'"'s one continuation\n'
+cdoc c-fencechar  '- **lead.** first\n\n  ````\n  ~~~~\n  para a\n\n  para b\n  ````\n\n  the one continuation\n'
+cdoc c-fencelen   '- **lead.** first\n\n  ````\n  ```\n  para a\n\n  para b\n  ````\n\n  the one continuation\n'
+cdoc c-fencealone '- **lead.** first\n\n  ````\n  ```` trailing text\n  para a\n\n  para b\n  ````\n\n  the one continuation\n'
+cdoc c-tablein  '- **lead.** first\n\n  the reason\n\n  | a | b |\n  |---|---|\n  | c | d |\n'
+cdoc c-quotein  '- **lead.** first\n\n  the reason\n\n  > a quoted line, which is not a paragraph of the item\n'
+
+cexpect() {
+  got="$(node "$here/check-continuations.js" "$tmp/.fx/cont/$1" 2>&1)"
+  case "$got" in
+    *"$2"*) printf 'PASS  cont  %-16s %s\n' "$1" "$3" ;;
+    *) printf 'FAIL  cont  %-16s wanted "%s", got "%s"\n' "$1" "$2" "$got"; fail=1 ;;
+  esac
+}
+cexpect c-one     '1 skill(s) checked, 0 with defects' 'one continuation is the cap, not a defect'
+cexpect c-two     '2 continuation paragraphs, cap is 1' 'a second paragraph is a second claim'
+cexpect c-bold    'bolded lead-in'                      'a bolded continuation is over the cap at one'
+cexpect c-fencein '1 skill(s) checked, 0 with defects'  'a fence under an item is not one of its paragraphs'
+cexpect c-wide    '1 skill(s) checked, 0 with defects' 'the content column follows the marker, not a fixed two'
+cexpect c-tick    '2 continuation paragraphs, cap is 1' 'a continuation opening with a backtick still counts'
+cexpect c-runon   '2 continuation paragraphs, cap is 1' 'a marker running on from a paragraph still opens its item'
+cexpect c-table   '1 skill(s) checked, 0 with defects'  'a column-0 table ends the list, so what follows it is orphaned'
+cexpect c-nested  '3 continuation paragraphs, cap is 1' 'the scan resumes after a nested item rather than going blind'
+cexpect c-nested4 '1 skill(s) checked, 0 with defects'  'four-space nested items are items, not the parent paragraphs'
+cexpect c-nestedown '1 skill(s) checked, 0 with defects' 'a nested item keeps its own paragraphs, the parent does not count them'
+cexpect c-fencechar  '1 skill(s) checked, 0 with defects' 'a run of the other fence character does not close a fence'
+cexpect c-fencelen   '1 skill(s) checked, 0 with defects' 'a shorter run does not close a fence'
+cexpect c-fencealone '1 skill(s) checked, 0 with defects' 'a closer with trailing text does not close a fence'
+cexpect c-tablein '1 skill(s) checked, 0 with defects'  'a table at the content column is not a paragraph'
+cexpect c-quotein '1 skill(s) checked, 0 with defects'  'a blockquote at the content column is not a paragraph'
+
+# What the frontmatter skip protects against is a YAML sequence item, `- Read`
+# under `allowed-tools:`, claiming the body below it as its continuations. A
+# block scalar alone can never be attributed to anything, since no item sits
+# above it, so the sequence item is what this fixture's assertion rests on and
+# the scalar is only the ordinary shape of the frontmatter around it.
+mkdir -p .fx/cont/c-scalar
+printf -- '---\nname: c-scalar\ndescription: |\n  a first line of the scalar\n  a second line of the scalar\nallowed-tools:\n  - Read\n---\n\n    an indented paragraph the sequence item would claim\n\n    and a second one\n' > .fx/cont/c-scalar/SKILL.md
+cexpect c-scalar '1 skill(s) checked, 0 with defects' 'frontmatter is not body: its sequence claims nothing below'
+
+cempty="$(node "$here/check-continuations.js" "$tmp/empty")"; cempty_code=$?
+case "$cempty$cempty_code" in
+  *'nothing was checked1') printf 'PASS  cont  %-16s %s\n' empty-target 'nothing was checked, exit 1' ;;
+  *) printf 'FAIL  cont  %-16s got "%s" exit %s\n' empty-target "$cempty" "$cempty_code"; fail=1 ;;
+esac
+
+cpkg="$(node "$here/check-continuations.js" "$tmp/.fx/pkg")"; cpkg_code=$?
+case "$cpkg$cpkg_code" in
+  *'2 skill(s) checked, 0 with defects0') printf 'PASS  cont  %-16s %s\n' package-root 'the skills under a package root' ;;
+  *) printf 'FAIL  cont  %-16s got "%s" exit %s\n' package-root "$cpkg" "$cpkg_code"; fail=1 ;;
+esac
+
+# The rule reaches every markdown file a skill keeps, not only its SKILL.md.
+mkdir -p .fx/cont/c-sub/workflows
+printf -- '---\nname: c-sub\ndescription: |\n  x\n---\nbody\n' > .fx/cont/c-sub/SKILL.md
+printf -- '- **lead.** first\n\n  the reason\n\n  a second paragraph\n' > .fx/cont/c-sub/workflows/w.md
+cexpect c-sub '2 continuation paragraphs, cap is 1' 'a workflow file is read, not only SKILL.md'
+
+mkdir -p .fx/cont/c-ext
+printf -- '---\nname: c-ext\ndescription: |\n  x\n---\nbody\n' > .fx/cont/c-ext/SKILL.md
+printf -- '- **lead.** first\n\n  the reason\n\n  a second paragraph\n' > .fx/cont/c-ext/notes.txt
+cexpect c-ext '1 skill(s) checked, 0 with defects' 'a non-markdown file is not prose the rule reaches'
+
+mkdir -p .fx/cont/c-dot/.hidden
+printf -- '---\nname: c-dot\ndescription: |\n  x\n---\nbody\n' > .fx/cont/c-dot/SKILL.md
+printf -- '- **lead.** first\n\n  the reason\n\n  a second paragraph\n' > .fx/cont/c-dot/.hidden/w.md
+cexpect c-dot '1 skill(s) checked, 0 with defects' 'a dot-directory is skipped, as in the walk'
+
 [ "$fail" -eq 0 ] && echo 'ALL CHECKS VERIFIED' || echo 'BENCH FAILED'
 exit "$fail"
