@@ -39,11 +39,11 @@ It is stated as a rule about any package that ships a `lint` script in its own m
 
 ## Verification
 
-- [ ] The new docs-check command, run from the repository root without a pipe, exits 0.
-- [ ] The new command exits 1 when this branch's own plan file is given a backticked path that does not resolve, and 0 again once that edit is reverted.
-- [ ] The old target set with `skills/skills-maker/scripts/*` dropped exits 1 on stale paths in merged plans, and the new command over the same tree exits 0.
-- [ ] The new command with `--ignore '.claude/*'` dropped exits 1, and with `--ignore '*GHI-50*'` dropped exits 1.
-- [ ] `python3 scripts/version-check.py` exits 0 and reports no package touched.
+- The new docs-check command, run from the repository root without a pipe, exits 0.
+- The new command exits 1 when this branch's own plan file is given a backticked path that does not resolve, and 0 again once that edit is reverted.
+- The old target set with `skills/skills-maker/scripts/*` dropped exits 1 on stale paths in merged plans, and the new command over the same tree exits 0.
+- The new command with `--ignore '.claude/*'` dropped exits 1, and with `--ignore '*GHI-50*'` dropped exits 1.
+- `python3 scripts/version-check.py` exits 0 and reports no package touched.
 
 What these cannot see: whether the substitution behaves the same in fish, which is the shell the commands are pasted into, and whether a future stacked branch pulling in the plans of every branch below it is wanted or merely harmless. Nothing under `plugins/`, `skills/` or `scripts/` changes, so no bench and no package suite is owed by this branch, and the lint this branch names as a gate is exercised by the next branch to touch that package rather than by this one.
 
