@@ -143,7 +143,7 @@ This is the sweep that precedes the <name>_<version> tag. Give every finding a s
 
 **Every finding the reading stands behind is fixed on the sweep's own branch, and nothing waits for a later release.** The tag asserts the package was read whole, so a defect found and left standing makes that assertion false. Whether a finding is a defect at all is settled by `skills/skills-maker/workflows/review.md` Step 5, which has the resumed reviewer confirm or refute one set aside as phantom. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
 
-**The run is inline, and the reviewer that produced the findings is kept resumable with its id**, which is what `skills/skills-maker/workflows/review.md` Step 5 asks for when it later judges the fix commit. Where the harness cannot resume it, that step's own fallback stands: a fresh review pointed at the fix commit.
+**The run is inline, and the reviewer that produced the findings is kept resumable with its id**, which is what `skills/skills-maker/workflows/review.md` Step 5 asks for when it later judges the fix commit.
 
 **The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
 
