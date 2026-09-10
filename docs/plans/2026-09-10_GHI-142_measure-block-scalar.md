@@ -24,17 +24,22 @@ So `|-` matches and nothing else does. Two rules are at work. Chomping decides t
 
 **The ceiling is not leaking.** `skill-frontmatter-parsed` measures it on `parsed.description`, which is the `yaml` package's own value, so `description()` never reaches it. A `|` block whose parsed value is exactly 1,025 characters was run through that rule and reported: `description is 1025 characters, over the spec's 1024`.
 
-**`skills/skills-maker/workflows/check.md`'s claim is therefore true as written**, since the value it says is measured on what the parser read is measured on what the parser read. The issue's second acceptance criterion is met before this branch starts, and the plan proposes no edit there.
+**`skills/skills-maker/workflows/check.md`'s claim is therefore true as written**, since the value it says is measured on what the parser read is measured on what the parser read. The plan proposes no edit there, and the criterion that asked for one is gone from the issue.
 
 **What the divergence actually reaches is `statesPolicy()`** in `skills/skills-maker/scripts/rules/skill-invocation.js`, the one caller of `description()`. Its tests are `/invo[ck]|spawn/i` and a slash-command pattern, and a word broken across a fold boundary fails both readings alike, so no case is known where the two answers differ today. The reason to fix it is that `description()` is a function whose whole purpose is to return what the parser returns, and a future caller that measures or matches it is correct by construction rather than by luck.
 
 ## Steps
 
-- Give `description()` the chomping rule: read the indicator off the header, strip every trailing newline for `-`, keep exactly one for the bare form, and keep all of them for `+`. The empty-body case stays the empty string.
-- Give it the folding rule for a `>` header: join equally indented content lines with a space, turn a run of n blank lines into n newlines, and keep a more indented line verbatim with its breaks. A `|` header keeps every break as it stands.
-- Add one fixture per style to `skills/skills-maker/scripts/test/rules.test.js`, each asserting `description(fm)` against `parseDocument(fm.join("\n"))`'s own value for the same frontmatter rather than against a string written into the test, so a later divergence fails the suite instead of needing a fresh probe. Cover `|`, `|-`, `|+`, `>`, `>-`, `>+`, a fold across one blank and across two, a more indented line inside a fold, and an indentation indicator on each of the two header kinds.
-- Watch every fixture fail before trusting it, per the header rule in that file: the differential table above says which shape each one catches, so each is run against the current reader first.
-- Move `metadata.version` in `skills/skills-maker/SKILL.md` from `3.1.0` to `3.1.1`. A patch: no report changes for any skill in the tree, since `statesPolicy()` is the only caller and its answer is unchanged, so nothing an installer sees moves.
+The reimplementation is deleted rather than corrected. The `yaml` package is already a dependency and the differential already parses these same lines, so the shortest correct `description()` is one that asks it.
+
+- Add a `parsed(fm)` helper to `skills/skills-maker/scripts/rules/frontmatter.js` holding the one `parseDocument(fm.join("\n"), { version: "1.1", uniqueKeys: false })` call, and have `skills/skills-maker/scripts/rules/skill-frontmatter-parsed.js` use it instead of its own. That file's header comment says the rules never parse except the differential, which stops being true, so it moves with the code.
+- Replace `description()`'s block-scalar branch with the parsed value, read off that helper. It is last-wins on a duplicate `description:` key for free, where the raw reader takes the first.
+- Keep a deliberately crude fallback for a frontmatter the parser rejects: the block body's lines joined as they stand, with no dedent and no indicator handling. Its only consumer is two indentation-insensitive regexes, on a file the differential is already reporting as unloadable, and a second dedent-and-chomp implementation there would recreate what this branch removes.
+- Leave `folded()` reading raw lines, untouched.
+- Add fixtures to `skills/skills-maker/scripts/test/rules.test.js` covering `|`, `|-`, `|+`, `>`, `>-`, `>+`, a fold across one blank and across two, a more indented line inside a fold, an indentation indicator on each header kind, a duplicate `description:` key reading as the last, and a frontmatter that does not parse still yielding text `statesPolicy()` matches.
+- Assert each against a literal value from a real run, not against a live `parseDocument` call. That file's header rule excludes a shape the parser alone decides, and once `description()` asks the parser, an assertion computed by asking it again can only fail if the two calls disagree about options. A literal also fails loudly if the pinned `yaml` ever changes its answer, where a parser-derived expectation would silently follow it.
+- Watch every fixture fail against the current reader before trusting it. The table above says which shape each of the style fixtures catches; the duplicate-key and parse-error fixtures fail against the current code for reasons of their own.
+- Move `metadata.version` in `skills/skills-maker/SKILL.md` from `3.1.0` to `3.1.1`. A patch, and the evidence is a run rather than an argument: the check's own report over every skill in the tree reads identically before and after.
 
 ## Verification
 
@@ -44,11 +49,16 @@ So `|-` matches and nothing else does. Two rules are at work. Chomping decides t
 - `node skills/skills-maker/scripts/check.js skills/skills-maker`
 - `npm --prefix skills/skills-maker run lint`
 
-`description()` stays a raw reader and never calls a parser: the header comment in `skills/skills-maker/scripts/rules/frontmatter.js` makes the differential the one rule that parses, and this fix must not become the second. What no gate can see is that distinction, since a `description()` that simply returned the parser's value would pass every fixture above while destroying the reason the differential means anything.
+`folded()` is the function that must not parse, and no gate can see the difference. `skill-frontmatter-parsed` compares its raw reading against the parsed value and reports a silent mutation on any difference, so a `folded()` that returned that value would compare a value against itself, could never fire, and would still pass every fixture in the suite. `description()` is the opposite case and always was: its caller wants the string an agent actually reads, so asking the parser is what makes it right. The two live in one file and the distinction between them is the thing to hold on to.
 
 `frontmatter()` strips trailing blank lines before either reader sees them, so a `|+` scalar's own trailing blanks never reach this comparison. That is a limit of `frontmatter()` rather than of this fix, and it is out of scope here.
 
 ## Open questions
 
-- Does #142's Overview get corrected? Two of its claims are false as written: the ceiling is measured on the parser's value already, and `skills/skills-maker/workflows/check.md` is accurate. Editing the issue is the tracker's act and the owner's call, so nothing here touches it.
-- Is the patch the right part, given the reason the criterion gives for moving the version is the ceiling, which was never wrong? The plan reads it as a patch because no report changes for any existing skill.
+None.
+
+## Settled
+
+- Does #142's Overview get corrected? "Correct it." Applied to the issue directly: the ceiling claim and the `skills/skills-maker/workflows/check.md` claim are gone, and the Overview now states the divergence that is real.
+- Is the patch the right part, given that the criterion's stated reason was the ceiling? "Rescope it.", read as rescoping the criterion rather than the version move. It now asks for evidence instead of giving a reason: the check's report identical before and after.
+- Teach `description()` chomping and folding, or delete it in favour of the parser? The parser, decided in the session. The `yaml` dependency is already pinned and already used by the differential, the divergence table above is a list of what a reimplementation has to get right, and `statesPolicy()`'s verdict cannot change either way, so the raw reader buys nothing here.
