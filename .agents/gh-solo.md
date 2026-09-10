@@ -138,7 +138,7 @@ Reviewer model: opus
 ```text
 /skills-maker review <package-dir>
 
-Read the whole package rather than a diff: this is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
+This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
 ```
 
 **The invocation and its context travel in one message.** `skills/skills-maker/SKILL.md` sets `disable-model-invocation: true`, so the skill fires when the owner types it, and context sent a turn later arrives at a run that has already read the package.
