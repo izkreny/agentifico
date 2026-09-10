@@ -40,7 +40,12 @@ export const keyLines = (fm, key) => fm.filter((l) => l.startsWith(`${key}:`));
 // after them belong to no value: the scalar had already ended at the last one
 // that carried text.
 export function folded(fm, i) {
-  const parts = [fm[i].slice(fm[i].indexOf(":") + 1).trim()];
+  const first = fm[i].slice(fm[i].indexOf(":") + 1).trim();
+  const parts = [first];
+  // A comment line ends a plain scalar, so it is not folded in; inside a quoted
+  // one the same line is ordinary text, and a guard that did not ask which style
+  // it was reading would cut a quoted value short of its own closing quote.
+  const quoted = /^["']/.test(first);
   let blanks = 0;
   for (let j = i + 1; j < fm.length; j++) {
     if (fm[j].trim() === "") {
@@ -48,6 +53,7 @@ export function folded(fm, i) {
       continue;
     }
     if (!/^\s+\S/.test(fm[j])) break;
+    if (!quoted && fm[j].trim().startsWith("#")) break;
     parts.push(blanks ? "\n".repeat(blanks) : " ", fm[j].trim());
     blanks = 0;
   }
