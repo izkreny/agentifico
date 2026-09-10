@@ -141,11 +141,29 @@ Reviewer model: opus
 This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
 ```
 
-**Every finding the reading stands behind is fixed on the sweep's own branch, and nothing waits for a later release.** The tag asserts the package was read whole, so a defect found and left standing makes that assertion false. Whether a finding is a defect at all is settled by `skills/skills-maker/workflows/review.md` Step 5, which has the resumed reviewer confirm or refute one set aside as phantom. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
+**Every finding the reading stands behind is fixed on the sweep's own branch, and nothing waits for a later release.** This is the rule for every sweep, an epic's last child included, so no epic states an answer of its own to it. The tag asserts the package was read whole, so a defect found and left standing makes that assertion false. Whether a finding is a defect at all is settled by `skills/skills-maker/workflows/review.md` Step 5, which has the resumed reviewer confirm or refute one set aside as phantom. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
 
 **The run is inline, and the reviewer that produced the findings is kept resumable with its id**, which is what `skills/skills-maker/workflows/review.md` Step 5 asks for when it later judges the fix commit.
 
 **The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
+
+## What an epic here must carry
+
+**This section is addressed to whoever writes an epic, where *How a package is released* in `AGENTS.md` addresses whoever cuts the release.** Those are the same rules read from two ends, and an epic author reading the release end has to re-derive what their own issue owes. What is here is what the epic body has to say and what a child's criteria may not; each rule stated elsewhere is pointed at rather than copied.
+
+**The children stack, and the last child is the package's sweep issue whose branch is the stack's top.** Both rules and their reasons are *An epic's work is stacked, and the stack is the release train* and *A package epic's last child is that package's sweep issue, and its branch is the stack's top branch* in `AGENTS.md`. What the epic author owes is the shape those rules assume: the sweep opened as a child of the epic rather than beside it, and written last so that its branch is the one every other child sits under.
+
+**A child that joins an epic already carrying a sweep goes below the sweep, never after it.** The sweep's branch is the stack's top because it contains every branch below it, so a child stacked above the sweep ships in the same tag as a package the sweep never read. It follows from the last-child rule rather than adding to it, and it is stated here because a child arriving mid-epic is when the question is asked.
+
+**The sweep's finding rule is not the epic's to answer.** It is stated once, for every sweep, under *The skill review is its own issue, not a branch's gate*, which owns it and names the hotfix exception `AGENTS.md` carries. An epic that writes its own version of it acquires a second copy that can disagree with the first.
+
+**`blocked-by` on an epic child records the stack's order, and that order is usually serialisation on shared files rather than a logical dependency.** The child below often has to land first only because both edit the same paths, which is a different fact from needing its work, and the child's `## Dependencies` says which of the two it is so a reader is not left inferring a need that is not there. The relation is never cleared to get past a gate, per *An epic child's blocker is its stack parent, not a wait*.
+
+**The tag belongs to the epic's own `## Done when`, so no child carries it as an acceptance criterion.** Cutting it is an act after every child has merged, per *The tag is cut by hand, once that package's sweep issue is closed, and never as part of a branch's merge* in `AGENTS.md`, so a child holding that box holds one its own branch cannot close.
+
+**No child's criteria turn on another child being merged.** `gh stack merge` lands the stack at once and no child merges before the top branch, so such a criterion is unsatisfiable at the moment the child is asked to close it rather than merely awkward. The checkable relation to write instead is that the other children sit in that branch's ancestry, which is readable off the branch.
+
+**A package-labelled child's criteria may not require editing a repository-level file without the owner's say.** The package axis is the release boundary, so a package child carrying a `repo` edit puts two deliverables in one diff and one review. The child names the edit in its `## Technical notes` and asks on the branch, or the edit becomes a `repo`-labelled issue of its own; landing it in the package branch anyway is the owner's exception to grant, never the child's to assume.
 
 ## An epic child's blocker is its stack parent, not a wait
 
