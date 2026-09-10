@@ -8,14 +8,19 @@ Per-repository facts the `gh-solo` plugin reads. Only what differs from its defa
 
 There is no CI and no build. Everything below runs locally, and nothing else is a gate.
 
-**The plugin's own files, this file, `AGENTS.md` and every plan**, from the repository root:
+**The plugin's own files, this file, `AGENTS.md` and the open branch's own plan**, from the repository root:
 
 ```bash
-python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans \
-  --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*' --ignore 'skills/skills-maker/scripts/*'
+python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md \
+  $(git diff --name-only origin/main...HEAD -- docs/plans) \
+  --ignore '.claude/*' --ignore '*GHI-50*'
 ```
 
-The ignore set is not optional and is not tuning. The `skills/skills-maker/scripts/*` span belongs to the plans that named the scripts skills-maker carried before #101 replaced them: a plan is a record of intent and stays as written, so the paths it names go stale by design. Without it the run reports every backticked path that belongs to a repository the plugin serves rather than to this one, and the output reads as failure. The script's own usage note documents the set that keeps the *plugin's* tree clean; for this repository the command above is the authority, and it is narrower.
+**A merged plan is not read, and the open branch's own plan is.** A plan is a record of intent and stays as written, so the paths a merged one names go stale by design: reading them back asks for a permanent ignore span per rewrite the repository has ever done. The substitution names every plan still being written, which on the upper branch of a stack is one per branch in it, per *The stacked release train asks nothing of this script, and the reason is not that each branch is checked alone*. It is unquoted on purpose: the script falls back to the whole tree when it is handed no target, and `Path("")` is the current directory, so a quoted substitution on a branch that carries no plan yet would hand it an empty string and scan the repository root. Unquoted, an empty result contributes no word at all and the named targets stand alone; plan filenames carry no spaces, so nothing else splits.
+
+**A plan may not backtick a path it will create or delete.** This command reads the open branch's own plan, and a plan is frozen at plan time. So a span naming a file the branch has yet to write, or one it removes, never resolves, and the branch has no way to reach a green run. Write such a path in single quotes instead, as 'scripts/new-check.py'. The script reads backticked spans only, so a quoted one is invisible to it; what that costs is the code styling on that one path.
+
+The ignore set is not optional and is not tuning. `.claude/*` covers the spans naming the agent config of a repository the plugin serves, which its skill files carry and this repository does not have. `*GHI-50*` covers the example plan filename in `plugins/gh-solo/skills/pr-flow/workflows/open.md` and `plugins/gh-solo/skills/tracker/references/formats.md`. Each was kept by dropping it and reading the exit code rather than by reasoning about it, and each fails the run when absent. The script's own usage note documents the set that keeps the *plugin's* tree clean; for this repository the command above is the authority, and it is narrower.
 
 **Why it is narrower.** `--ignore` skips a matching *span* rather than a file, so `--ignore 'AGENTS.md'`, `--ignore 'CLAUDE.md'` and `--ignore '.agents/*'` would skip exactly the cross-links between this file and `AGENTS.md` - the spans most worth checking, since both files exist here where in a served repository they do not. Never add them back to make an output quieter.
 
@@ -35,12 +40,15 @@ It compares `origin/main...HEAD` by default and takes a range or a single commit
 
 Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
 
-**The skills-maker package's checks**, after any edit under `skills/skills-maker/`: its suite, and its own check run over itself, both needing a one-time `npm --prefix skills/skills-maker ci` and Vale 3.20 or later on `PATH`, since the check runs the package's prose rules through it:
+**The skills-maker package's checks**, after any edit under `skills/skills-maker/`: its suite, its own check run over itself, and its lint. Each needs a one-time `npm --prefix skills/skills-maker ci`, and the suite and the check each need Vale 3.20 or later on `PATH`, since the check runs the package's prose rules through it and the suite runs those same rules against their fixtures:
 
 ```bash
 npm --prefix skills/skills-maker test
 node skills/skills-maker/scripts/check.js skills/skills-maker
+npm --prefix skills/skills-maker run lint
 ```
+
+**A package that declares a `lint` script in its own manifest owes that run beside its suite.** The rule is the manifest rather than the command, so a package that later ships a linter is already covered and owes this file no edit. What `skills/skills-maker/package.json` declares today is `biome check scripts/`, which neither its suite nor its own check invokes, so a branch that skips it leaves that package's JavaScript unlinted and nothing else catches it.
 
 **The version check's bench**, after any edit to `scripts/version-check.py`:
 
