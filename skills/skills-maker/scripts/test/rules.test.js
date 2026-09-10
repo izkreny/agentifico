@@ -225,6 +225,10 @@ describe("skill-invocation", () => {
     // loads with, which is the last one, so the first saying nothing about
     // invocation cannot produce a finding against a second that does.
     ["i-dupe-desc", "description: |\n  Nothing about how it is reached.\ndescription: |\n  Explicit invocation only.\ndisable-model-invocation: true", null],
+    // A policy stated in a YAML comment states nothing: the parser cuts a plain
+    // scalar at ` #`, so the value the skill loads with is silent whatever the
+    // line says, and this rule reports what the agent will be given.
+    ["i-plain-comment", "description: Use for X # invoked by hand\ndisable-model-invocation: true", silent],
     // Frontmatter the parser rejects still yields description text, so the
     // unloadable file gets the differential's parse error and not a second,
     // false finding here.
