@@ -112,11 +112,13 @@ export function description(fm) {
   return rough(fm);
 }
 
-// Only for frontmatter the parser rejected, where the differential is already
-// reporting that the skill will not load at all. Its one consumer matches a
-// word and a slash token, so neither the indentation nor the line endings
-// change its answer, and a dedent-and-chomp implementation here would rebuild
-// exactly what asking the parser removed.
+// The fallback, reached when the parser rejects the frontmatter and also when
+// it accepts one whose description is not a string: a boolean, a number or a
+// mapping. Neither case can be served a parsed string, and the differential
+// reports each on its own, so this only has to hand `statesPolicy` something
+// to match a word and a slash token in, which the block body joined as it
+// stands does. A dedent-and-chomp implementation here would rebuild exactly
+// what asking the parser removed.
 function rough(fm) {
   const i = fm.findIndex((l) => l.startsWith("description:"));
   if (i < 0) return "";

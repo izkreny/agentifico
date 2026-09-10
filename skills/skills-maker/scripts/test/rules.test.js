@@ -3,9 +3,10 @@
 // a fixture is a skill by its key and nothing is ever written to disk. Every
 // fixture decides something the rule itself decides, and each assertion was
 // watched failing against the rule with its clause removed before it was
-// trusted; a shape the parser alone decides has no fixture here, because no
-// change to the rule could ever break it, and a check that has never been seen
-// to fail is not evidence.
+// trusted; a shape the parser decides earns a fixture only where this package
+// chooses to ask the parser, because a reader that stopped asking would break
+// it, and a shape no change here could reach has none. A check that has never
+// been seen to fail is not evidence.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { lint } from "markdownlint/promise";
