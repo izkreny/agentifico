@@ -31,14 +31,27 @@ export const FRONTMATTER_LINE = 1;
 // rather than the first.
 export const keyLines = (fm, key) => fm.filter((l) => l.startsWith(`${key}:`));
 
-// A plain or quoted scalar may continue on indented lines, and YAML folds them
-// into one value joined by spaces; a rule reading the first line alone would
-// call a legal fold a truncation, and would miss a policy stated on the
-// second line.
+// A plain or quoted scalar may continue on indented lines, and YAML folds a
+// line break between two content lines into a space and a run of n empty lines
+// between them into n newlines; a rule reading the first line alone would call
+// a legal fold a truncation, and would miss a policy stated on the second line.
+// Empty lines are crossed rather than ended on, and their newlines are written
+// by the content line that arrives, because empty lines with no content line
+// after them belong to no value: the scalar had already ended at the last one
+// that carried text.
 export function folded(fm, i) {
   const parts = [fm[i].slice(fm[i].indexOf(":") + 1).trim()];
-  for (let j = i + 1; j < fm.length && /^\s+\S/.test(fm[j]); j++) parts.push(fm[j].trim());
-  return parts.join(" ");
+  let blanks = 0;
+  for (let j = i + 1; j < fm.length; j++) {
+    if (fm[j].trim() === "") {
+      blanks++;
+      continue;
+    }
+    if (!/^\s+\S/.test(fm[j])) break;
+    parts.push(blanks ? "\n".repeat(blanks) : " ", fm[j].trim());
+    blanks = 0;
+  }
+  return parts.join("");
 }
 
 // What YAML makes of one raw value, so a quoted value and a value carrying a

@@ -18,7 +18,7 @@ export function defects(fm) {
   const raw = (dl[0] || "").slice(12).trim();
   const block = dl.length && BLOCK_SCALAR.test(raw);
   // The value under judgement, whatever its style, joined the way YAML folds a
-  // run of indented continuation lines; a fold across a blank line is not read.
+  // run of continuation lines, a blank line among them included.
   // A continuation line can carry the same traps as the first, a quote may
   // close on it, and a legal fold is not a defect. `raw`, the first line,
   // decides which style the value has and carries the traps that live on the

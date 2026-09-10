@@ -66,6 +66,12 @@ describe("skill-description, the raw sweep", () => {
     ["good-block-indent-chomp", "name: x\ndescription: |-2\n   Use when reviewing X: safe & sound", null],
     ["good-block-chomp-indent", "name: x\ndescription: |2-\n   Use when reviewing X: safe & sound", null],
     ["good-block-comment", "name: x\ndescription: | # note\n  Use when reviewing X: safe & sound", null],
+    // A plain scalar folds across a blank line, so a ` #` on a line after it
+    // truncates the value exactly as one on the first line does. The clean fold
+    // has no fixture here: this rule reports nothing on it either way, so no
+    // change to the rule could break it, and a check that has never been seen
+    // to fail is not evidence.
+    ["t-blank-fold-comment", "name: x\ndescription: one\n  two\n\n  three #x", "TRUNCATED"],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -127,6 +133,17 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
     ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
     ["good-quoted-under-cap", `name: x\ndescription: "${"a".repeat(1023)}"`, null],
+    // YAML folds a run of n blank lines inside a plain scalar into n newlines
+    // and keeps reading, so the raw reading has to cross them. Each trap
+    // fixture asserts the raw text the detail names rather than the finding
+    // alone, because a short read reports the same finding for the wrong
+    // reason. good-blank-then-key is the guard: blanks before a dedented key
+    // belong to no value, and a reading that emits their newlines anyway
+    // reports a mutation on frontmatter the parser reads exactly as written.
+    ["good-blank-fold", "name: x\ndescription: one\n  two\n\n  three", null],
+    ["t-blank-fold-comment", "name: x\ndescription: one\n  two\n\n  three #x", 'raw line says "one two\\nthree #x"'],
+    ["t-two-blank-fold", "name: x\ndescription: one\n\n\n  two #x", 'raw line says "one\\n\\ntwo #x"'],
+    ["good-blank-then-key", "name: x\ndescription: one\n  two\n\ncompatibility: c", null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
