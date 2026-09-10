@@ -36,11 +36,11 @@ The issue's third acceptance criterion asks that the comment above `folded()` st
 
 ## Verification
 
-- [ ] `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md $(git diff --name-only origin/main...HEAD -- docs/plans) --ignore '.claude/*' --ignore '*GHI-50*'`
-- [ ] `python3 scripts/version-check.py`
-- [ ] `npm --prefix skills/skills-maker test`
-- [ ] `node skills/skills-maker/scripts/check.js skills/skills-maker`
-- [ ] `npm --prefix skills/skills-maker run lint`
+- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md $(git diff --name-only origin/main...HEAD -- docs/plans) --ignore '.claude/*' --ignore '*GHI-50*'`
+- `python3 scripts/version-check.py`
+- `npm --prefix skills/skills-maker test`
+- `node skills/skills-maker/scripts/check.js skills/skills-maker`
+- `npm --prefix skills/skills-maker run lint`
 
 Vale 3.20.0 is on PATH and `skills/skills-maker/node_modules` is installed, so the suite and the check have what they need. What no gate here can see is whether the reading is the parser's rather than merely self-consistent: the suite compares the rule against fixtures whose expected values this plan took from a parser run, so a mistake in that run would be a green suite over a wrong answer. The differential itself is the standing guard against that, since it parses every skill's real frontmatter on every run.
 
