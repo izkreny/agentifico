@@ -145,9 +145,9 @@ This is the sweep that precedes the <name>_<version> tag. Give every finding a s
 
 **How that path is read, and what the report carries, belong to `skills/skills-maker/workflows/review.md`**: its Step 1 for the read, its Step 4 for the report, and `skills/skills-maker/workflows/check.md` for the argument shapes a target may take.
 
-**Every finding is fixed on the sweep's own branch, nothing deferred and nothing declined.** The tag asserts the package was read whole, so a defect the reading found and left standing makes that assertion false. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
+**Every finding the reading stands behind is fixed on the sweep's own branch, and nothing waits for a later release.** The tag asserts the package was read whole, so a defect found and left standing makes that assertion false. Whether a finding is a defect at all is settled by `skills/skills-maker/workflows/review.md` Step 5, which has the resumed reviewer confirm or refute one set aside as phantom. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
 
-**The run is inline in a session the owner keeps open**, and that session is what `skills/skills-maker/workflows/review.md` Step 5 wants when it later judges the fix commit: it resumes the reviewer that produced the findings, and a closed session leaves nothing to resume.
+**The run is inline, and the reviewer that produced the findings is kept resumable with its id**, which is what `skills/skills-maker/workflows/review.md` Step 5 asks for when it later judges the fix commit. Where the harness cannot resume it, that step's own fallback stands: a fresh review pointed at the fix commit.
 
 **The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
 
