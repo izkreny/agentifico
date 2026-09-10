@@ -133,6 +133,18 @@ Reviewer model: opus
 
 **Where a package's work is an epic, that sweep issue is the epic's last child**, per *How a package is released* in `AGENTS.md`, which owns the rule and the reason.
 
+**The sweep's invocation, with the context a run needs**, so starting one is a paste rather than a recall. `<package-dir>` is `plugins/<name>` or `skills/<name>`, per *How a package is released* in `AGENTS.md`:
+
+```text
+/skills-maker review <package-dir>
+
+This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
+```
+
+**Every finding the reading stands behind is fixed on the sweep's own branch, and nothing waits for a later release.** The tag asserts the package was read whole, so a defect found and left standing makes that assertion false. Whether a finding is a defect at all is settled by `skills/skills-maker/workflows/review.md` Step 5, which has the resumed reviewer confirm or refute one set aside as phantom. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
+
+**The run is inline, and the reviewer that produced the findings is kept resumable with its id**, which is what `skills/skills-maker/workflows/review.md` Step 5 asks for when it later judges the fix commit.
+
 **The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-maker rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
 
 ## An epic child's blocker is its stack parent, not a wait
