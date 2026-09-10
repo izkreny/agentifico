@@ -159,7 +159,7 @@ This is the sweep that precedes the <name>_<version> tag. Give every finding a s
 
 **What `blockedBy` records on an epic child is usually serialisation on shared files rather than a logical dependency.** The child below often has to land first only because both edit the same paths, which is a different fact from needing its work, and the child's `## Dependencies` says which of the two it is so a reader is not left inferring a need that is not there. That the relation records the stack's order, and is never cleared to get past a gate, is *An epic child's blocker is its stack parent, not a wait*.
 
-**The tag belongs to the epic's own `## Done when`, so no child carries it as an acceptance criterion.** Cutting it is an act after every child has merged, per *The tag is cut by hand, once that package's sweep issue is closed, and never as part of a branch's merge* in `AGENTS.md`, so a child holding that box holds one its own branch cannot close.
+**The tag belongs to the epic's own `## Done when`, so no child carries it as an acceptance criterion.** It is cut by hand rather than by any branch's merge, per *The tag is cut by hand, once that package's sweep issue is closed, and never as part of a branch's merge* in `AGENTS.md`, so a child holding that box holds one its own branch cannot close.
 
 **No child's criteria turn on another child being merged.** `gh stack merge` lands the stack at once and no child merges before the top branch, so such a criterion is unsatisfiable at the moment the child is asked to close it rather than merely awkward. The checkable relation to write instead is that the other children sit in that branch's ancestry, which is readable off the branch.
 
