@@ -53,4 +53,4 @@ None.
 
 ## Settled
 
-None yet.
+**Can a branch's plan backtick a path that does not exist yet?** No, and the section now says so. RF2 found that the new target makes such a span unsatisfiable: a plan is frozen at plan time, so a branch naming a file it is about to write can never reach a green run. Settled in the session on 2026-09-10, against giving the section an escape, which would reopen the ignore-span growth this issue exists to end. Such a path goes in single quotes, which the script does not read as a span.
