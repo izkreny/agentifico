@@ -96,11 +96,12 @@ export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/;
 // parsers an agent actually runs read it.
 export const parsed = (fm) => parseDocument(fm.join("\n"), { version: "1.1", uniqueKeys: false });
 
-// The string a caller is given, read here because reading a description out of
-// the frontmatter is a frontmatter concern rather than the business of whichever
-// rule wants it. It is the parser's value rather than the lines': chomping, folding, the indentation indicator and the last-wins
-// duplicate key are all the parser's to decide, and a reimplementation of them
-// here agreed with it on `|-` alone. `folded` above stays raw because the
+// The string a caller is given, read here because reading a description out
+// of the frontmatter is a frontmatter concern rather than the business of
+// whichever rule wants it. It is the parser's value rather than the lines':
+// chomping, folding, the indentation indicator and the last-wins duplicate
+// key are all the parser's to decide, and a reimplementation of them here
+// agreed with it on `|-` alone. `folded` above stays raw because the
 // differential compares it against this reading; a caller matching or
 // measuring the description wants what the agent will be handed.
 export function description(fm) {
