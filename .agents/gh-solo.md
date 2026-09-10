@@ -8,14 +8,17 @@ Per-repository facts the `gh-solo` plugin reads. Only what differs from its defa
 
 There is no CI and no build. Everything below runs locally, and nothing else is a gate.
 
-**The plugin's own files, this file, `AGENTS.md` and every plan**, from the repository root:
+**The plugin's own files, this file, `AGENTS.md` and the open branch's own plan**, from the repository root:
 
 ```bash
-python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md docs/plans \
-  --ignore '.claude/*' --ignore 'docs/plans*' --ignore '*GHI-50*' --ignore 'skills/skills-maker/scripts/*'
+python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md \
+  $(git diff --name-only origin/main...HEAD -- docs/plans) \
+  --ignore '.claude/*' --ignore '*GHI-50*'
 ```
 
-The ignore set is not optional and is not tuning. The `skills/skills-maker/scripts/*` span belongs to the plans that named the scripts skills-maker carried before #101 replaced them: a plan is a record of intent and stays as written, so the paths it names go stale by design. Without it the run reports every backticked path that belongs to a repository the plugin serves rather than to this one, and the output reads as failure. The script's own usage note documents the set that keeps the *plugin's* tree clean; for this repository the command above is the authority, and it is narrower.
+**A merged plan is not read, and the open branch's own plan is.** A plan is a record of intent and stays as written, so the paths a merged one names go stale by design: reading them back asks for a permanent ignore span per rewrite the repository has ever done, which is what the `skills/skills-maker/scripts/*` span was. The substitution names the only plan still being written. It is unquoted on purpose: the script falls back to the whole tree when it is handed no target, and `Path("")` is the current directory, so a quoted substitution on a branch that carries no plan yet would hand it an empty string and scan the repository root. Unquoted, an empty result contributes no word at all and the named targets stand alone; plan filenames carry no spaces, so nothing else splits.
+
+The ignore set is not optional and is not tuning. `.claude/*` covers the spans naming the agent config of a repository the plugin serves, which its skill files carry and this repository does not have. `*GHI-50*` covers the example plan filename in `plugins/gh-solo/skills/pr-flow/workflows/open.md` and `plugins/gh-solo/skills/tracker/references/formats.md`. Each was kept by dropping it and reading the exit code rather than by reasoning about it, and each fails the run when absent. The script's own usage note documents the set that keeps the *plugin's* tree clean; for this repository the command above is the authority, and it is narrower.
 
 **Why it is narrower.** `--ignore` skips a matching *span* rather than a file, so `--ignore 'AGENTS.md'`, `--ignore 'CLAUDE.md'` and `--ignore '.agents/*'` would skip exactly the cross-links between this file and `AGENTS.md` - the spans most worth checking, since both files exist here where in a served repository they do not. Never add them back to make an output quieter.
 
