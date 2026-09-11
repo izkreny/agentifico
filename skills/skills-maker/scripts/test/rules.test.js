@@ -66,6 +66,19 @@ describe("skill-description, the raw sweep", () => {
     ["good-block-indent-chomp", "name: x\ndescription: |-2\n   Use when reviewing X: safe & sound", null],
     ["good-block-chomp-indent", "name: x\ndescription: |2-\n   Use when reviewing X: safe & sound", null],
     ["good-block-comment", "name: x\ndescription: | # note\n  Use when reviewing X: safe & sound", null],
+    // A plain scalar folds across a blank line, so a ` #` on a line after it
+    // truncates the value exactly as one on the first line does. The clean fold
+    // has no fixture here: this rule reports nothing on it either way, so no
+    // change to the rule could break it, and a check that has never been seen
+    // to fail is not evidence.
+    ["t-blank-fold-comment", "name: x\ndescription: one\n  two\n\n  three #x", "TRUNCATED"],
+    // RF1: a line whose first non-space character is `#` is a comment to YAML
+    // and ends a plain scalar, so it is not folded in as content - while inside
+    // a quoted scalar the same line is content, which is why the guard reads
+    // the opening character of the value.
+    ["good-blank-then-comment", "name: x\ndescription: Use when doing X,\n  and when doing Y.\n\n  # unsure\ncompatibility: node 22", null],
+    ["good-comment-line", "name: x\ndescription: one\n  # c\ncompatibility: node 22", null],
+    ["good-quoted-hash-continuation", 'name: x\ndescription: "one\n  # two"', null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -127,6 +140,22 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
     ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
     ["good-quoted-under-cap", `name: x\ndescription: "${"a".repeat(1023)}"`, null],
+    // YAML folds a run of n blank lines inside a plain scalar into n newlines
+    // and keeps reading, so the raw reading has to cross them. Each trap
+    // fixture asserts the raw text the detail names rather than the finding
+    // alone, because a short read reports the same finding for the wrong
+    // reason. good-blank-then-key is the guard: blanks before a dedented key
+    // belong to no value, and a reading that emits their newlines anyway
+    // reports a mutation on frontmatter the parser reads exactly as written.
+    ["good-blank-fold", "name: x\ndescription: one\n  two\n\n  three", null],
+    ["t-blank-fold-comment", "name: x\ndescription: one\n  two\n\n  three #x", 'raw line says "one two\\nthree #x"'],
+    ["t-two-blank-fold", "name: x\ndescription: one\n\n\n  two #x", 'raw line says "one\\n\\ntwo #x"'],
+    ["good-blank-then-key", "name: x\ndescription: one\n  two\n\ncompatibility: c", null],
+    // RF1: the same comment-line rule seen by the differential, which is where
+    // the false SILENTLY MUTATED landed. good-comment-line carries no blank, so
+    // it is the instance that reported falsely before the fold crossed one.
+    ["good-blank-then-comment", "name: x\ndescription: Use when doing X,\n  and when doing Y.\n\n  # unsure\ncompatibility: node 22", null],
+    ["good-comment-line", "name: x\ndescription: one\n  # c\ncompatibility: node 22", null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
