@@ -56,7 +56,7 @@ Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" ra
 
 ## Routing
 
-**`$ARGUMENTS` is Claude Code's substitution, not the specification's**, so on an agent that does not expand it the placeholder reaches the model intact. Read the argument from the conversation in that case: the owner typed it, and it is the last thing they said before this skill loaded.
+**Where `$ARGUMENTS` arrives unexpanded**, read the argument from the conversation instead: the owner typed it, and it is the last thing they said before this skill loaded. `workflows/new.md` owns the account of why a router owes that fallback.
 
 Based on `$ARGUMENTS`, do exactly one of the following:
 
