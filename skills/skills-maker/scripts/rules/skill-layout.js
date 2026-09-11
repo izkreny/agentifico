@@ -8,7 +8,11 @@ import { FRONTMATTER_LINE, isSkillFile } from "./frontmatter.js";
 export function enclosingSkill(file, root) {
   const stop = path.resolve(root);
   let dir = path.dirname(path.dirname(path.resolve(file)));
-  while (dir.startsWith(stop) && dir.length >= stop.length) {
+  // Containment is a fact about path segments, never about the string: a plain
+  // prefix test puts /a/bc inside /a/b. check.js globs under its target so it
+  // cannot reach that case, and this function is exported and called on its own.
+  const inside = (d) => d === stop || d.startsWith(stop + path.sep);
+  while (inside(dir)) {
     if (fs.existsSync(path.join(dir, "SKILL.md"))) return dir;
     const up = path.dirname(dir);
     if (up === dir) break;

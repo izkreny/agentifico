@@ -10,6 +10,7 @@ import os from "node:os";
 import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { enclosingSkill } from "../rules/skill-layout.js";
 
 const check = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "check.js");
 let tmp;
@@ -272,5 +273,20 @@ describe("check.js", () => {
     const r = spawnSync(process.execPath, [check], { cwd: path.join(tmp, "bad"), encoding: "utf8" });
     assert.equal(r.status, 1);
     assert.match(r.stdout, /TRUNCATED/);
+  });
+});
+
+// The search's own boundary test, exercised directly because check.js globs
+// under its target and so can never hand the function a path outside it, while
+// the function is exported and callable on its own.
+describe("enclosingSkill", () => {
+  it("a sibling whose name extends the target's is outside it", () => {
+    // <tmp>/ab is not inside <tmp>/a, though its path string opens with it.
+    mk(path.join(tmp, "ab"), block("ab"));
+    mk(path.join(tmp, "ab", "x"), block("x"));
+    assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), path.join(tmp, "a")), null);
+  });
+  it("a skill directly above the file, inside the target, is still found", () => {
+    assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), tmp), path.join(tmp, "ab"));
   });
 });
