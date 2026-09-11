@@ -36,7 +36,7 @@ markdownlint's own rules run at their defaults and catch what no local rule stat
 
 ## The description rules
 
-These are the ones that matter, because their failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap they test was watched failing in a real YAML parser before it earned its place, and the suite re-runs that evidence on demand.
+These are the ones that matter, because their failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap they test earns its place under *A check that has never been seen to fail is not evidence* in `workflows/new.md`, and the suite re-runs that evidence on demand.
 
 **`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description carries none of the traps here. A block scalar is immune to the quote and truncation traps, which need a plain or quoted value to bite; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
 
@@ -95,7 +95,7 @@ Every Vale rule has a fixture that trips it and a guards fixture of the forms it
 npm --prefix <skill-dir> test
 ```
 
-Every assertion in it was watched failing against the behaviour it exists to catch before it was trusted. A check that has never been seen to fail is not evidence.
+Every assertion in it is held to *A check that has never been seen to fail is not evidence* in `workflows/new.md`, which owns that rule and its reason.
 
 ## What a sweep still looks for by hand
 
