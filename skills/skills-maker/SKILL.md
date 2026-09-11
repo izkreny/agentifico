@@ -55,6 +55,8 @@ Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" ra
 
 ## Routing
 
+**`$ARGUMENTS` is Claude Code's substitution, not the specification's**, so on an agent that does not expand it the placeholder reaches the model intact. Read the argument from the conversation in that case: the owner typed it, and it is the last thing they said before this skill loaded.
+
 Based on `$ARGUMENTS`, do exactly one of the following:
 
 - If it starts with `new` → read `workflows/new.md` and follow it.
@@ -62,6 +64,7 @@ Based on `$ARGUMENTS`, do exactly one of the following:
 - If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
 - If it starts with `export` → read `workflows/export.md` and follow it.
 - If the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`.
+- If it matches no verb in this list → say so and name the verbs, rather than guessing which was meant. A mistyped verb and a verb this skill does not have look identical from here, and both are answered by printing the list.
 
 ## Supporting files
 

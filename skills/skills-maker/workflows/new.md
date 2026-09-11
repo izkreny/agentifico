@@ -30,6 +30,8 @@ Write the description as trigger phrases plus a boundary. **Say what the skill i
 
 The format's authority is the [Agent Skills specification](https://agentskills.io/specification): `name` and `description` are its only required fields, `license`, `compatibility` and `metadata` are optional (quote metadata values, `version: "1.0"`, since a bare `1.0` parses as a float), and `allowed-tools` is in the spec but experimental. `argument-hint`, `disable-model-invocation` and `user-invocable` are Claude Code extensions that other agents silently ignore, so never let behaviour depend on them alone: a skill meant for explicit invocation only, or for an agent only, says so in its description too, because on an agent that ignores the field the description is all that holds.
 
+**`$ARGUMENTS` is the same kind of extension, in the body rather than the frontmatter.** Claude Code substitutes the typed argument for it before the skill reaches the model; an agent that does not reads the literal `$ARGUMENTS` and has nothing to route on. A router built on it therefore says what to do when it arrives unexpanded, which is to take the argument from the conversation, and the spec's own field list is where to check whether any other placeholder is yours or your harness's.
+
 ## Step 3 - Pick the layout
 
 ### Let size decide whether to split
