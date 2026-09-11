@@ -3,14 +3,16 @@
 // rules disagreeing about what a value is would each be right about a
 // different string, which is how a check comes to libel YAML that loads.
 import path from "node:path";
+import { parseDocument } from "yaml";
 
 // The frontmatter rules apply to a skill file and nothing else; the general lint
 // and the continuation rule read every markdown file.
 export const isSkillFile = (name) => path.basename(name) === "SKILL.md";
 
 // markdownlint strips the frontmatter before tokenising and hands it over as
-// raw lines, delimiters included. Rules read it as strings and never parse it,
-// except the differential, whose whole job is to parse and compare.
+// raw lines, delimiters included. Rules read it as strings; `parsed` below is
+// the one reading of it as YAML, which the differential compares those strings
+// against and which `description` returns to its caller.
 export function frontmatter(params) {
   const lines = params.frontMatterLines;
   if (!lines.length) return null;
@@ -87,10 +89,38 @@ export function scalar(raw) {
 // the plain scalar's own traps on YAML that loads correctly.
 export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/;
 
-// Reading a description's text out of the frontmatter is a frontmatter
-// concern, so it sits with the rest of them rather than inside whichever rule
-// happens to want it.
+// One reading of the frontmatter as YAML, so two rules can never disagree
+// about which parser they meant. Version 1.1 is the reading under which `yes`
+// becomes a boolean, which is the trap the differential exists to catch, and
+// duplicate keys are allowed so the document parses the way the last-wins
+// parsers an agent actually runs read it.
+export const parsed = (fm) => parseDocument(fm.join("\n"), { version: "1.1", uniqueKeys: false });
+
+// The string a caller is given, read here because reading a description out
+// of the frontmatter is a frontmatter concern rather than the business of
+// whichever rule wants it. It is the parser's value rather than the lines':
+// chomping, folding, the indentation indicator and the last-wins duplicate
+// key are all the parser's to decide, and a reimplementation of them here
+// agreed with it on `|-` alone. `folded` above stays raw because the
+// differential compares it against this reading; a caller matching or
+// measuring the description wants what the agent will be handed.
 export function description(fm) {
+  const doc = parsed(fm);
+  if (!doc.errors.length) {
+    const value = doc.toJS()?.description;
+    if (typeof value === "string") return value;
+  }
+  return rough(fm);
+}
+
+// The fallback, reached when the parser rejects the frontmatter and also when
+// it accepts one whose description is not a string: a boolean, a number or a
+// mapping. Neither case can be served a parsed string, and the differential
+// reports each on its own, so this only has to hand `statesPolicy` something
+// to match a word and a slash token in, which the block body joined as it
+// stands does. A dedent-and-chomp implementation here would rebuild exactly
+// what asking the parser removed.
+function rough(fm) {
   const i = fm.findIndex((l) => l.startsWith("description:"));
   if (i < 0) return "";
   const raw = fm[i].slice(12).trim();
@@ -100,14 +130,5 @@ export function description(fm) {
   // ends at the first non-empty line with no indent rather than at the first
   // line without one.
   for (let j = i + 1; j < fm.length && (fm[j] === "" || /^\s/.test(fm[j])); j++) body.push(fm[j]);
-  // YAML strips the block's own indentation, which its first non-empty line
-  // sets, so the text has to be dedented here rather than in each caller: a
-  // caller measuring or matching against what the parser produces would
-  // otherwise be judging characters no parsed value ever carries.
-  // An explicit indentation indicator wins over the first line's indent, since
-  // YAML keeps anything past it as value text; inferring from the first line
-  // instead strips those spaces and under-measures the value.
-  const declared = raw.split(/\s/)[0].match(/[1-9]/);
-  const indent = declared ? Number(declared[0]) : (body.find((l) => l.trim() !== "")?.match(/^\s*/)[0].length ?? 0);
-  return body.map((l) => l.slice(indent)).join("\n");
+  return body.join("\n");
 }

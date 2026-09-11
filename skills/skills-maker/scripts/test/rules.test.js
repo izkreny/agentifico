@@ -3,12 +3,14 @@
 // a fixture is a skill by its key and nothing is ever written to disk. Every
 // fixture decides something the rule itself decides, and each assertion was
 // watched failing against the rule with its clause removed before it was
-// trusted; a shape the parser alone decides has no fixture here, because no
-// change to the rule could ever break it, and a check that has never been seen
-// to fail is not evidence.
+// trusted; a shape the parser decides earns a fixture only where this package
+// chooses to ask the parser, because a reader that stopped asking would break
+// it, and a shape no change here could reach has none. A check that has never
+// been seen to fail is not evidence.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { lint } from "markdownlint/promise";
+import { description as descriptionValue } from "../rules/frontmatter.js";
 import continuations from "../rules/skill-continuations.js";
 import description from "../rules/skill-description.js";
 import parsed from "../rules/skill-frontmatter-parsed.js";
@@ -220,6 +222,18 @@ describe("skill-invocation", () => {
     ["i-dupe", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true\ndisable-model-invocation: false", "duplicate"],
     ["i-comment", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true # the owner types it", null],
     ["i-para", "description: |\n  Does a thing for the user.\n\n  Only when the user invokes it by name.\ndisable-model-invocation: true", null],
+    // A duplicate description key: the rule reads the value the skill actually
+    // loads with, which is the last one, so the first saying nothing about
+    // invocation cannot produce a finding against a second that does.
+    ["i-dupe-desc", "description: |\n  Nothing about how it is reached.\ndescription: |\n  Explicit invocation only.\ndisable-model-invocation: true", null],
+    // A policy stated in a YAML comment states nothing: the parser cuts a plain
+    // scalar at ` #`, so the value the skill loads with is silent whatever the
+    // line says, and this rule reports what the agent will be given.
+    ["i-plain-comment", "description: Use for X # invoked by hand\ndisable-model-invocation: true", silent],
+    // Frontmatter the parser rejects still yields description text, so the
+    // unloadable file gets the differential's parse error and not a second,
+    // false finding here.
+    ["i-unparsed", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true\nother: [1, 2", null],
     // Another skill's slash command that this name only ends, or only opens,
     // credits nothing.
     ["flow", "description: |\n  Hands the branch off to `/gh-solo:pr-flow` when the work is done.\ndisable-model-invocation: true", silent],
@@ -232,6 +246,42 @@ describe("skill-invocation", () => {
       else expectClean(found, "skill-invocation");
     });
   }
+});
+
+// The one block that calls a reader directly rather than through a rule. Its
+// subject is which string `description()` hands its caller, and no rule can
+// see that: a fold turns a line break into a space where a raw read turns it
+// into a newline, and `statesPolicy()` matches a single word and a slash token,
+// neither of which a fold can split. So the two readings give `skill-invocation`
+// the same verdict on every shape, and only the value itself distinguishes them.
+//
+// Each want is a literal from a run against the pinned yaml, never a live parse
+// of the same lines: `description()` asks that parser, so an assertion that
+// asks it again could only fail if the two calls disagreed about options. A
+// literal also fails loudly if the pinned parser ever changes its answer, where
+// a parser-derived want would follow it in silence.
+describe("description(), the value a caller reads", () => {
+  const cases = [
+    ["pipe keeps one trailing newline", ["description: |", "  one", "  two"], "one\ntwo\n"],
+    ["pipe-strip keeps none", ["description: |-", "  one", "  two"], "one\ntwo"],
+    ["pipe-keep keeps what is there", ["description: |+", "  one", "  two"], "one\ntwo\n"],
+    ["a fold joins with a space", ["description: >", "  one", "  two"], "one two\n"],
+    ["fold-strip folds and strips", ["description: >-", "  one", "  two"], "one two"],
+    ["fold-keep folds and keeps", ["description: >+", "  one", "  two"], "one two\n"],
+    ["one blank line is one newline", ["description: >", "  one", "", "  two"], "one\ntwo\n"],
+    ["two blank lines are two", ["description: >", "  one", "", "", "  two"], "one\n\ntwo\n"],
+    ["a deeper line keeps its breaks", ["description: >", "  one", "    deep", "  two"], "one\n  deep\ntwo\n"],
+    ["an indicator wins over the first line", ["description: |3", "   one", "    two"], "one\n two\n"],
+    ["an indicator wins on a fold too", ["description: >3", "   one", "    two"], "one\n two\n"],
+    ["a duplicate key reads as the last", ["description: |", "  first", "description: |", "  second"], "second\n"],
+  ];
+  for (const [label, fm, want] of cases) {
+    it(label, () => assert.equal(descriptionValue(["name: x", ...fm]), want));
+  }
+  it("falls back to text a rejected parse cannot supply", () => {
+    const got = descriptionValue(["name: x", "description: |", "  Explicit invocation only.", "other: [1, 2"]);
+    assert.match(got, /invocation/);
+  });
 });
 
 describe("skill-continuations", () => {
