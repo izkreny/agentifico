@@ -88,12 +88,13 @@ before(() => {
   fs.appendFileSync(path.join(tmp, "long", "SKILL.md"), `\n${long}\n`);
 
   // A skill carrying a finding of every class at once: a truncated description
-  // for this package's own rules, a trailing space for markdownlint's defaults,
-  // and a positional pointer for Vale. The grouping is only legible on a target
-  // that reaches every heading, so it is watched here rather than on a clean one.
+  // for the contract rules, a list item over the continuation cap for the
+  // prose-shape rule, a trailing space for markdownlint's defaults, and a
+  // positional pointer for Vale. The grouping is only legible on a target that
+  // reaches every heading, so it is watched here rather than on a clean one.
   const classes = path.join(tmp, "classes");
   mk(classes, "name: classes\ndescription: review PR #N and more");
-  fs.appendFileSync(path.join(classes, "SKILL.md"), "\nthe example above says so. \n");
+  fs.appendFileSync(path.join(classes, "SKILL.md"), "\nthe example above says so. \n\n- lead\n\n  one\n\n  two\n");
 
   // Markdown under a target that keeps no skill: a different answer from the
   // empty target, which is a wrong target rather than a legitimate one.
@@ -210,25 +211,31 @@ describe("check.js", () => {
     assert.equal(r.code, 1);
     assert.match(r.out, /^skill rules: 2$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-description .*TRUNCATED/m);
+    assert.match(r.out, /^prose shape: 1$/m);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-continuations .*cap is 1/m);
     assert.match(r.out, /^general lint: 1$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ MD009/m);
     assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ Agentifico\.Position \(error\)/m);
   });
-  it("the class this skill exists to catch prints before the general lint", () => {
+  it("the class this skill exists to catch prints first, and the prose shape apart from it", () => {
     // The whole point of the grouping: on a real run the one silent-failure
-    // finding sat in the middle of the markdownlint wall.
+    // finding sat in the middle of the markdownlint wall, and on a target with
+    // many continuation findings it would be buried among those instead.
     const r = run(path.join(tmp, "classes"));
-    const own = r.out.indexOf("skill rules:");
+    const contract = r.out.indexOf("skill rules:");
+    const shape = r.out.indexOf("prose shape:");
     const general = r.out.indexOf("general lint:");
     const prose = r.out.indexOf("prose rules:");
-    assert.ok(own > -1 && own < general && general < prose, r.out);
-    assert.ok(r.out.indexOf("skill-description") < general, r.out);
+    assert.ok(contract > -1 && contract < shape && shape < general && general < prose, r.out);
+    assert.ok(r.out.indexOf("skill-description") < shape, r.out);
+    assert.ok(r.out.indexOf("skill-continuations") > shape && r.out.indexOf("skill-continuations") < general, r.out);
   });
   it("a clean run states each class rather than leaving it silent", () => {
     const r = run(path.join(tmp, "good"));
     assert.equal(r.code, 0, r.out);
     assert.match(r.out, /^skill rules: none$/m);
+    assert.match(r.out, /^prose shape: none$/m);
     assert.match(r.out, /^general lint: none$/m);
     assert.match(r.out, /^prose rules: none$/m);
   });

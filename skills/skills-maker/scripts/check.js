@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { globby } from "globby";
 import { lint } from "markdownlint/promise";
-import { config, ownRuleNames, rules } from "./lint-config.js";
+import { config, contractRuleNames, proseShapeRuleNames, rules } from "./lint-config.js";
 import { isSkillFile } from "./rules/frontmatter.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -57,12 +57,13 @@ const report = (label, lines, summary = lines.length || "none") => {
 // nested under someone else's tree a defect of this one.
 const results = await lint({ files, customRules: rules, config: { ...config, "skill-layout": { root: target } } });
 
-// Two passes over the same findings, in file order, both printed before Vale
+// A pass per markdownlint class, in file order, every one printed before Vale
 // runs so that a structural finding is never withheld by a prose linter that
-// cannot start. Which pass a finding lands in is `ownRuleNames`'s answer, so
-// a rule added to lint-config.js needs no edit here.
+// cannot start. Which class a finding lands in is lint-config.js's answer, so
+// a rule added there needs no edit here.
 let issues = 0;
-const ownFindings = [];
+const contractFindings = [];
+const proseShapeFindings = [];
 const generalFindings = [];
 for (const file of files) {
   const rel = path.relative(target, file);
@@ -71,10 +72,16 @@ for (const file of files) {
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
     const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")} ${e.ruleDescription}${detail}${context}`;
-    (e.ruleNames.some((name) => ownRuleNames.has(name)) ? ownFindings : generalFindings).push(line);
+    const bucket = e.ruleNames.some((name) => contractRuleNames.has(name))
+      ? contractFindings
+      : e.ruleNames.some((name) => proseShapeRuleNames.has(name))
+        ? proseShapeFindings
+        : generalFindings;
+    bucket.push(line);
   }
 }
-report("skill rules", ownFindings);
+report("skill rules", contractFindings);
+report("prose shape", proseShapeFindings);
 report("general lint", generalFindings);
 
 // Vale reads the same files, from this package's configuration and no other:

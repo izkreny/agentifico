@@ -9,12 +9,20 @@ import skillInvocation from "./rules/skill-invocation.js";
 import skillLayout from "./rules/skill-layout.js";
 import skillName from "./rules/skill-name.js";
 
-export const rules = [skillDescription, skillFrontmatterParsed, skillName, skillInvocation, skillContinuations, skillLayout];
+// One array per printed class, so a rule added later is filed by answering
+// which heading it belongs under rather than by remembering a second list.
+// The contract rules decide what a file is, and their failure is silent; the
+// prose-shape rule decides how a paragraph sits under a list item, and burying
+// a contract finding under prose-shape ones is what the grouping prevents.
+const contractRules = [skillDescription, skillFrontmatterParsed, skillName, skillInvocation, skillLayout];
+const proseShapeRules = [skillContinuations];
+export const rules = [...contractRules, ...proseShapeRules];
 
-// Which names belong to this package rather than to markdownlint, so check.js
-// asks the array that already answers it. A membership test written over there
-// would be a second copy, and the copy is what goes stale when a rule arrives.
-export const ownRuleNames = new Set(rules.flatMap((rule) => rule.names));
+// check.js asks these rather than testing a name itself, so the membership a
+// rule joins is stated where the rule is registered and nowhere else.
+const namesOf = (group) => new Set(group.flatMap((rule) => rule.names));
+export const contractRuleNames = namesOf(contractRules);
+export const proseShapeRuleNames = namesOf(proseShapeRules);
 
 // A rule named here is off for the reason beside it, never for quiet.
 export const config = {
