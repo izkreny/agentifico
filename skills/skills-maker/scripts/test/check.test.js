@@ -124,6 +124,8 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "long"));
     assert.equal(r.code, 0, r.out);
     assert.match(r.out, /SKILL\.md:1 Agentifico\.SkillSplit \(warning\)/);
+    // RF5: one figure summing the two read as a failure count on a passing run.
+    assert.match(r.out, /^prose rules: 0 issues, 1 warnings$/m);
     assert.match(r.out, /1 files checked, 0 issues, 1 warnings/);
   });
   it("without vale the structural findings are still printed, and the run fails", () => {
@@ -210,7 +212,7 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-description .*TRUNCATED/m);
     assert.match(r.out, /^general lint: 1$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ MD009/m);
-    assert.match(r.out, /^prose rules: 1$/m);
+    assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ Agentifico\.Position \(error\)/m);
   });
   it("the class this skill exists to catch prints before the general lint", () => {
@@ -252,7 +254,7 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "prose-only"));
     assert.equal(r.code, 1);
     assert.match(r.out, /^no skill found under .*prose-only$/m);
-    assert.match(r.out, /^prose rules: 1$/m);
+    assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/m);
     assert.match(r.out, /1 files checked, 1 issues, 0 warnings/);
   });
   it("a relative target resolves against the working directory", () => {

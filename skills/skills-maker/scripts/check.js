@@ -37,11 +37,21 @@ const skills = files
 console.log(skills.length ? `${skills.length} skill(s) found under ${target}` : `no skill found under ${target}`);
 for (const skill of skills) console.log(`  ${skill}`);
 
+// Each heading is named once. The prose class is printed from two places -
+// here and the branch that reports a Vale which could not start - and a rename
+// reaching only one of them would print a heading no other run uses, on the
+// run whose reader most needs to recognise it.
+const SKILL_RULES = "skill rules";
+const GENERAL_LINT = "general lint";
+const PROSE_RULES = "prose rules";
+
 // A heading with its count, then its findings indented beneath it. A count of
 // zero prints too: a reader who has to infer from silence that the class this
-// skill exists to catch found nothing is the reader this grouping is for.
-const report = (label, lines) => {
-  console.log(`${label}: ${lines.length || "none"}`);
+// skill exists to catch found nothing is the reader this grouping is for. The
+// summary argument carries a class that counts something other than issues, or
+// that did not run at all.
+const report = (label, lines, summary = lines.length || "none") => {
+  console.log(`${label}: ${summary}`);
   for (const line of lines) console.log(`  ${line}`);
 };
 
@@ -66,8 +76,8 @@ for (const file of files) {
     (e.ruleNames.some((name) => ownRuleNames.has(name)) ? ownFindings : generalFindings).push(line);
   }
 }
-report("skill rules", ownFindings);
-report("general lint", generalFindings);
+report(SKILL_RULES, ownFindings);
+report(GENERAL_LINT, generalFindings);
 
 // Vale reads the same files, from this package's configuration and no other:
 // --config names it so the search for one never starts, and --no-global drops
@@ -83,7 +93,7 @@ if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
     vale.error?.code === "ENOENT"
       ? "vale is not on PATH: the prose rules did not run. Install Vale 3.20 or later, per workflows/check.md, and run the check again."
       : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`;
-  console.log("prose rules: not run");
+  report(PROSE_RULES, [], "not run");
   console.log(`${files.length} files checked, ${issues} issues, prose rules not run`);
   console.log(why);
   process.exit(1);
@@ -93,17 +103,22 @@ const alerts = vale.stdout.trim() ? JSON.parse(vale.stdout) : {};
 // One line per Vale alert, in file order. Its severity decides which count it
 // lands in: an error is an issue and fails the run, a warning or suggestion is
 // a helper that points a reviewer somewhere and is printed and counted without
-// failing anything.
+// failing anything. The heading therefore states the issues and the warnings
+// apart, where one figure summing them reads as a failure count on a run that
+// passed; the markdownlint headings need no such split, having no warnings.
 let warnings = 0;
+let proseIssues = 0;
 const proseFindings = [];
 for (const file of files) {
   const rel = path.relative(target, file);
   for (const a of alerts[file] ?? []) {
-    if (a.Severity === "error") issues++;
-    else warnings++;
+    if (a.Severity === "error") {
+      issues++;
+      proseIssues++;
+    } else warnings++;
     proseFindings.push(`${rel}:${a.Line} ${a.Check} (${a.Severity}) ${a.Message}`);
   }
 }
-report("prose rules", proseFindings);
+report(PROSE_RULES, proseFindings, proseFindings.length ? `${proseIssues} issues, ${warnings} warnings` : "none");
 console.log(`${files.length} files checked, ${issues} issues, ${warnings} warnings`);
 process.exit(issues ? 1 : 0);
