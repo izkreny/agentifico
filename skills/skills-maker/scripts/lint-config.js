@@ -12,8 +12,9 @@ import skillName from "./rules/skill-name.js";
 // One array per printed class, so a rule added later is filed by answering
 // which heading it belongs under rather than by remembering a second list.
 // The contract rules decide what a file is, and their failure is silent; the
-// prose-shape rule decides how a paragraph sits under a list item, and burying
-// a contract finding under prose-shape ones is what the grouping prevents.
+// prose-shape rules judge how a file lays its prose out, which a reader sees
+// and no agent is misled by. Burying a contract finding under prose-shape
+// ones is what the grouping prevents.
 const contractRules = [skillDescription, skillFrontmatterParsed, skillName, skillInvocation, skillLayout];
 const proseShapeRules = [skillContinuations];
 export const rules = [...contractRules, ...proseShapeRules];

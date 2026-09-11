@@ -1,10 +1,10 @@
 > **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills.
 
-The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own rules on what a file is, which are markdownlint custom rules listed in `scripts/lint-config.js` beside the configuration, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
+The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
 **The run opens on what it read**, naming the skills it found under the target rather than only counting the files, so a sweep that covered one skill of a package is distinguishable from one that covered all of them. A target holding markdown but no skill says so and carries on, since prose under a package root that keeps no skill is still a target worth reading.
 
-**Then a heading per class, with its count and its findings indented under it.** `skill rules` carries the rules that decide what a file is, whose failure is silent; `prose shape` carries the rule about how a paragraph sits under a list item; `general lint` carries markdownlint's defaults; `prose rules` carries Vale's alerts, and reads `not run` where Vale could not start.
+**Then a heading per class, with its count and its findings indented under it.** `skill rules` carries the rules that decide what a file is, whose failure is silent; `prose shape` carries the rules on how a file lays its prose out; `general lint` carries markdownlint's defaults; `prose rules` carries Vale's alerts, and reads `not run` where Vale could not start.
 
 **Which of the markdownlint headings a finding lands under is `scripts/lint-config.js`'s answer**, where a rule is registered in the array for the heading it prints beneath, so a rule added there is grouped without a second edit; membership of `prose rules` is decided by Vale having produced the alert.
 
