@@ -8,11 +8,11 @@ Issue [#148](https://github.com/izkreny/agentifico/issues/148), the bottom child
 
 The package requires no check to be watched failing before its pass is trusted. The practice is real: every fixture added since `skills/skills-maker/scripts/test/rules.test.js` was written records it in its own header. But `skills/skills-maker/workflows/new.md` is where an authoring rule lives, and it says nothing about this. So the next check added is bound by nothing.
 
-`skills/skills-maker/workflows/check.md` states the practice twice, both times in the past tense. Line 39 says the description rules' traps "was watched failing in a real YAML parser before it earned its place". Line 98 says "Every assertion in it was watched failing against the behaviour it exists to catch before it was trusted", then states the rule proper: "A check that has never been seen to fail is not evidence." A claim about work already done is history, which *Never write the file's own history* in `skills/skills-maker/workflows/new.md` forbids, and the rule sentence riding along with it makes `workflows/check.md` a home for a rule `workflows/new.md` should own.
+`skills/skills-maker/workflows/check.md` states the practice twice, both times in the past tense. Line 39 says the description rules' traps "was watched failing in a real YAML parser before it earned its place". Line 98 says "Every assertion in it was watched failing against the behaviour it exists to catch before it was trusted", then states the rule proper: "A check that has never been seen to fail is not evidence." A claim about work already done is history, which *Never write the file's own history* in `skills/skills-maker/workflows/new.md` forbids, and the rule sentence riding along with it makes `skills/skills-maker/workflows/check.md` a home for a rule `skills/skills-maker/workflows/new.md` should own.
 
 ## Where the rule goes
 
-Under `## Step 4 - Write the body` in `skills/skills-maker/workflows/new.md`, as a `###` heading beside the other authoring rules. That is the section `skills/skills-maker/workflows/review.md` Step 3 reaches: it holds a skill against every rule in that file, and says a rule added there is picked up without `workflows/review.md` changing. So the third acceptance criterion is met by putting the rule in the right file and `workflows/review.md` is not edited.
+Under `## Step 4 - Write the body` in `skills/skills-maker/workflows/new.md`, as a `###` heading beside the other authoring rules. That is the section `skills/skills-maker/workflows/review.md` Step 3 reaches: it holds a skill against every rule in that file, and says a rule added there is picked up without `skills/skills-maker/workflows/review.md` changing. So the third acceptance criterion is met by putting the rule in the right file and `skills/skills-maker/workflows/review.md` is not edited.
 
 The rule's reason is the one worth stating. A check that passes on everything and a check that passes on nothing look identical from the outside. Only a watched failure separates them.
 
@@ -22,7 +22,7 @@ The rule's reason is the one worth stating. A check that passes on everything an
 
 ## What is read and left alone
 
-The headers of `skills/skills-maker/scripts/test/vale.test.js` and `skills/skills-maker/scripts/test/check.test.js` record what was done to their own fixtures. That is evidence, not a rule, and it stays. The last sentence of the header of `skills/skills-maker/scripts/test/rules.test.js` is different: it states the rule itself, word for word as `workflows/check.md` line 98 does, so it is a third home and it goes with the second. This is wider than the issue's second criterion, which names `workflows/check.md` only, and it serves that criterion's goal of one home rather than three.
+The headers of `skills/skills-maker/scripts/test/vale.test.js` and `skills/skills-maker/scripts/test/check.test.js` record what was done to their own fixtures. That is evidence, not a rule, and it stays. The last sentence of the header of `skills/skills-maker/scripts/test/rules.test.js` is different: it states the rule itself, word for word as `skills/skills-maker/workflows/check.md` line 98 does, so it is a third home and it goes with the second. This is wider than the issue's second criterion, which names `skills/skills-maker/workflows/check.md` only, and it serves that criterion's goal of one home rather than three.
 
 ## Steps
 
