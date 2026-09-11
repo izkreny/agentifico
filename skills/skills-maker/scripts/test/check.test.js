@@ -54,6 +54,12 @@ before(() => {
   fs.writeFileSync(path.join(pkg, "agents", "reviewer.md"), "# Reviewer\n\nbody\n");
   fs.writeFileSync(path.join(pkg, "README.md"), "# Package\n\nbody\n");
 
+  // A skill whose directory name extends a sibling path's, for enclosingSkill's
+  // own boundary: <tmp>/ab is not inside <tmp>/a, though its path string opens
+  // with it.
+  mk(path.join(tmp, "ab"), block("ab"));
+  mk(path.join(tmp, "ab", "x"), block("x"));
+
   // Two package roots side by side, each with a skill of the same name.
   mk(path.join(tmp, "many", "one", "skills", "review"), "name: review\ndescription: review PR #N in one plugin");
   mk(path.join(tmp, "many", "two", "skills", "review"), "name: review\ndescription: review PR #N in another");
@@ -281,12 +287,14 @@ describe("check.js", () => {
 // the function is exported and callable on its own.
 describe("enclosingSkill", () => {
   it("a sibling whose name extends the target's is outside it", () => {
-    // <tmp>/ab is not inside <tmp>/a, though its path string opens with it.
-    mk(path.join(tmp, "ab"), block("ab"));
-    mk(path.join(tmp, "ab", "x"), block("x"));
     assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), path.join(tmp, "a")), null);
   });
   it("a skill directly above the file, inside the target, is still found", () => {
     assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), tmp), path.join(tmp, "ab"));
+  });
+  it("the filesystem root is a stop like any other", () => {
+    // path.sep appended to "/" is "//", which no resolved path opens with, so a
+    // prefix built without care stops the walk before it starts.
+    assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), "/"), path.join(tmp, "ab"));
   });
 });
