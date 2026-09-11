@@ -29,7 +29,7 @@ A skill that never fires looks identical to a skill that was never written. Ever
 | `export <path>` | Publish a local skill to a shared repository |
 | `manage` | Install, update, pin or remove a skill someone else wrote |
 
-Requests about installing, updating or removing someone else's skill reach the same place phrased as a sentence; the router sends both to `references/managing.md`.
+Requests about installing, updating or removing someone else's skill reach the same place phrased as a sentence, which the router sends to `references/managing.md` as it sends the verb.
 
 ```mermaid
 flowchart TD
