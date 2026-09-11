@@ -28,6 +28,11 @@ export function defects(fm) {
   // The specification's ceiling, on the value rather than on the line, so the
   // quote characters and a trailing comment are not counted into it.
   else if (typeof d === "string" && d.length > 1024) bad.push(`description is ${d.length} characters, over the spec's 1024`);
+  // The spec caps `compatibility` at 500, and it is measured here for the same
+  // reason the description is: on the value a parser produced rather than on
+  // the lines, so a block scalar's indentation does not count toward it.
+  const c = mapping.compatibility;
+  if (typeof c === "string" && c.length > 500) bad.push(`compatibility is ${c.length} characters, over the spec's 500`);
   // Truncation at ` #` is not a description-only trap. The same edit anywhere
   // in the frontmatter drops the tail of whatever key it lands in, and this
   // package's own `compatibility` is that exact shape: a long plain scalar
@@ -61,7 +66,7 @@ export function defects(fm) {
 export default {
   names: ["skill-frontmatter-parsed"],
   description:
-    "A skill's frontmatter parses, every top-level plain scalar parses to its raw line, and the description is neither empty nor over the spec's ceiling",
+    "A skill's frontmatter parses, every top-level plain scalar parses to its raw line, the description is neither empty nor over the spec's ceiling, and compatibility is within its own",
   tags: ["skills-maker"],
   parser: "none",
   function(params, onError) {
