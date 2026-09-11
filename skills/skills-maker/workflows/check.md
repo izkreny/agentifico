@@ -2,17 +2,9 @@
 
 The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
-**The run opens on what it read**, naming the skills it found under the target rather than only counting the files, so a sweep that covered one skill of a package is distinguishable from one that covered all of them. A target holding markdown but no skill says so and carries on, since prose under a package root that keeps no skill is still a target worth reading.
+**Findings group by heading**, which is what a rule you add has to be filed against: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `prose rules` for Vale's alerts. Register a new rule in `scripts/lint-config.js`, in the array for the heading it belongs under; Vale needs no registration.
 
-**Then a heading per class, with its count and its findings indented under it.** `skill rules` carries the rules that decide what a file is, whose failure is silent; `prose shape` carries the rules on how a file lays its prose out; `general lint` carries markdownlint's defaults; `prose rules` carries Vale's alerts, and reads `not run` where Vale could not start.
-
-**Which of the markdownlint headings a finding lands under is `scripts/lint-config.js`'s answer**, where a rule is registered in the array for the heading it prints beneath, so a rule added there is grouped without a second edit; membership of `prose rules` is decided by Vale having produced the alert.
-
-**A heading whose count is zero prints `none`**, because a clean class is worth stating rather than inferring from silence. The prose heading states its issues and its warnings apart, since a warning fails nothing and a single figure summing them reads as a failure count on a run that passed.
-
-Each finding prints as its file, line and rule with the detail beside it, and the run ends with one line, `N files checked, M issues, K warnings`, which is the line to read: an issue fails the run, a warning is a helper that points a reviewer somewhere and fails nothing.
-
-When Vale is missing or refuses its configuration the line reads `N files checked, M issues, prose rules not run`, with the reason beneath it, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep.
+**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep.
 
 ## Setup, once per install
 
@@ -34,7 +26,7 @@ node <skill-dir>/scripts/check.js path/to/the-skill
 
 **One skill is the gate; a wider target is a survey.** Against a single skill the exit code answers "is this skill clean", which is what a branch and a sweep both want. Against a directory of skills or a package root it answers only "does anything under here have findings", and it will usually be non-zero: the run reports every skill it reaches, and `references/managing.md` forbids editing a manager-installed one, so a finding there is a report to that skill's author rather than work for the runner.
 
-Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep.
+Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep. A target holding markdown but no skill is a legitimate one and is read.
 
 How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
