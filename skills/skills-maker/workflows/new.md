@@ -76,6 +76,12 @@ Whether it fires on its own or has to be typed, and for a routing skill every ar
 
 A command's actual output beats a description of it.
 
+### A check that has never been seen to fail is not evidence
+
+Watch a new check, fixture, grep or assertion fail on the case it exists to catch before its pass is trusted, because a check that passes on everything and a check that passes on nothing look identical from the outside.
+
+In this package the mechanical half is `describe("coverage")` in `scripts/test/vale.test.js`, which fails the suite when a rule no fixture reaches is added. It proves a fixture exists and never that the fixture was ever red, so whether the failure was actually watched is a judgement no exit code supplies.
+
 ### Put a version next to the claim it qualifies, never as a banner at the top
 
 A banner ages into a lie because nothing updates it; a version attached to a specific behavioural claim tells the reader what to re-check and when.
