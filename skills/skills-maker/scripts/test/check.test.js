@@ -87,6 +87,19 @@ before(() => {
   mk(path.join(tmp, "long"), block("long", "A long skill."));
   fs.appendFileSync(path.join(tmp, "long", "SKILL.md"), `\n${long}\n`);
 
+  // A skill carrying a finding of every class at once: a truncated description
+  // for this package's own rules, a trailing space for markdownlint's defaults,
+  // and a positional pointer for Vale. The grouping is only legible on a target
+  // that reaches every heading, so it is watched here rather than on a clean one.
+  const classes = path.join(tmp, "classes");
+  mk(classes, "name: classes\ndescription: review PR #N and more");
+  fs.appendFileSync(path.join(classes, "SKILL.md"), "\nthe example above says so. \n");
+
+  // Markdown under a target that keeps no skill: a different answer from the
+  // empty target, which is a wrong target rather than a legitimate one.
+  fs.mkdirSync(path.join(tmp, "prose-only"));
+  fs.writeFileSync(path.join(tmp, "prose-only", "notes.md"), "# Notes\n\nthe example above says so.\n");
+
   // A skill whose dot-directory holds prose the rule must not reach.
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
@@ -189,6 +202,58 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "dotted"));
     assert.equal(r.code, 0, r.out);
     assert.equal(r.linted, 1);
+  });
+  it("each class of finding prints under its own heading", () => {
+    const r = run(path.join(tmp, "classes"));
+    assert.equal(r.code, 1);
+    assert.match(r.out, /^skill rules: 2$/m);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-description .*TRUNCATED/m);
+    assert.match(r.out, /^general lint: 1$/m);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ MD009/m);
+    assert.match(r.out, /^prose rules: 1$/m);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ Agentifico\.Position \(error\)/m);
+  });
+  it("the class this skill exists to catch prints before the general lint", () => {
+    // The whole point of the grouping: on a real run the one silent-failure
+    // finding sat in the middle of the markdownlint wall.
+    const r = run(path.join(tmp, "classes"));
+    const own = r.out.indexOf("skill rules:");
+    const general = r.out.indexOf("general lint:");
+    const prose = r.out.indexOf("prose rules:");
+    assert.ok(own > -1 && own < general && general < prose, r.out);
+    assert.ok(r.out.indexOf("skill-description") < general, r.out);
+  });
+  it("a clean run states each class rather than leaving it silent", () => {
+    const r = run(path.join(tmp, "good"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^skill rules: none$/m);
+    assert.match(r.out, /^general lint: none$/m);
+    assert.match(r.out, /^prose rules: none$/m);
+  });
+  it("without vale the prose heading says so rather than going missing", () => {
+    const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "empty") });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /^prose rules: not run$/m);
+  });
+  it("a single skill is named, as the target itself", () => {
+    const r = run(path.join(tmp, "good"));
+    assert.match(r.out, /^1 skill\(s\) found under .*good$/m);
+    assert.match(r.out, /^ {2}\.$/m);
+  });
+  it("a package root names every skill under it, by its own path", () => {
+    const r = run(path.join(tmp, "pkg"));
+    assert.match(r.out, /^3 skill\(s\) found under /m);
+    assert.match(r.out, /^ {2}skills\/alpha$/m);
+    assert.match(r.out, /^ {2}skills\/alpha\/references$/m);
+    assert.match(r.out, /^ {2}skills\/beta$/m);
+  });
+  it("markdown under a target with no skill is read and reported as such", () => {
+    // Distinct from the empty target, which fails as a wrong target.
+    const r = run(path.join(tmp, "prose-only"));
+    assert.equal(r.code, 1);
+    assert.match(r.out, /^no skill found under .*prose-only$/m);
+    assert.match(r.out, /^prose rules: 1$/m);
+    assert.match(r.out, /1 files checked, 1 issues, 0 warnings/);
   });
   it("a relative target resolves against the working directory", () => {
     const r = spawnSync(process.execPath, [check, "good"], { cwd: tmp, encoding: "utf8" });

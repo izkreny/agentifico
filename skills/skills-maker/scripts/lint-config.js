@@ -11,6 +11,11 @@ import skillName from "./rules/skill-name.js";
 
 export const rules = [skillDescription, skillFrontmatterParsed, skillName, skillInvocation, skillContinuations, skillLayout];
 
+// Which names belong to this package rather than to markdownlint, so check.js
+// asks the array that already answers it. A membership test written over there
+// would be a second copy, and the copy is what goes stale when a rule arrives.
+export const ownRuleNames = new Set(rules.flatMap((rule) => rule.names));
+
 // A rule named here is off for the reason beside it, never for quiet.
 export const config = {
   default: true,

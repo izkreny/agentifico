@@ -6,7 +6,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { globby } from "globby";
 import { lint } from "markdownlint/promise";
-import { config, rules } from "./lint-config.js";
+import { config, ownRuleNames, rules } from "./lint-config.js";
+import { isSkillFile } from "./rules/frontmatter.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const valeConfig = path.join(here, "..", ".vale.ini");
@@ -25,23 +26,48 @@ if (!files.length) {
   process.exit(1);
 }
 
+// What was read, before anything found in it. A file count alone cannot tell a
+// sweep that covered one skill of a package from one that covered all of them,
+// and a target holding prose but no skill is a legitimate target rather than
+// the wrong-target failure above.
+const skills = files
+  .filter(isSkillFile)
+  .map((file) => path.relative(target, path.dirname(file)) || ".")
+  .sort();
+console.log(skills.length ? `${skills.length} skill(s) found under ${target}` : `no skill found under ${target}`);
+for (const skill of skills) console.log(`  ${skill}`);
+
+// A heading with its count, then its findings indented beneath it. A count of
+// zero prints too: a reader who has to infer from silence that the class this
+// skill exists to catch found nothing is the reader this grouping is for.
+const report = (label, lines) => {
+  console.log(`${label}: ${lines.length || "none"}`);
+  for (const line of lines) console.log(`  ${line}`);
+};
+
 // Without the target the layout rule would walk past it and call a skill
 // nested under someone else's tree a defect of this one.
 const results = await lint({ files, customRules: rules, config: { ...config, "skill-layout": { root: target } } });
 
-// One line per markdownlint finding, in file order, printed before Vale runs
-// so that a structural finding is never withheld by a prose linter that
-// cannot start.
+// Two passes over the same findings, in file order, both printed before Vale
+// runs so that a structural finding is never withheld by a prose linter that
+// cannot start. Which pass a finding lands in is `ownRuleNames`'s answer, so
+// a rule added to lint-config.js needs no edit here.
 let issues = 0;
+const ownFindings = [];
+const generalFindings = [];
 for (const file of files) {
   const rel = path.relative(target, file);
   for (const e of results[file] ?? []) {
     issues++;
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
-    console.log(`${rel}:${e.lineNumber} ${e.ruleNames.join("/")} ${e.ruleDescription}${detail}${context}`);
+    const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")} ${e.ruleDescription}${detail}${context}`;
+    (e.ruleNames.some((name) => ownRuleNames.has(name)) ? ownFindings : generalFindings).push(line);
   }
 }
+report("skill rules", ownFindings);
+report("general lint", generalFindings);
 
 // Vale reads the same files, from this package's configuration and no other:
 // --config names it so the search for one never starts, and --no-global drops
@@ -57,6 +83,7 @@ if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
     vale.error?.code === "ENOENT"
       ? "vale is not on PATH: the prose rules did not run. Install Vale 3.20 or later, per workflows/check.md, and run the check again."
       : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`;
+  console.log("prose rules: not run");
   console.log(`${files.length} files checked, ${issues} issues, prose rules not run`);
   console.log(why);
   process.exit(1);
@@ -68,13 +95,15 @@ const alerts = vale.stdout.trim() ? JSON.parse(vale.stdout) : {};
 // a helper that points a reviewer somewhere and is printed and counted without
 // failing anything.
 let warnings = 0;
+const proseFindings = [];
 for (const file of files) {
   const rel = path.relative(target, file);
   for (const a of alerts[file] ?? []) {
     if (a.Severity === "error") issues++;
     else warnings++;
-    console.log(`${rel}:${a.Line} ${a.Check} (${a.Severity}) ${a.Message}`);
+    proseFindings.push(`${rel}:${a.Line} ${a.Check} (${a.Severity}) ${a.Message}`);
   }
 }
+report("prose rules", proseFindings);
 console.log(`${files.length} files checked, ${issues} issues, ${warnings} warnings`);
 process.exit(issues ? 1 : 0);
