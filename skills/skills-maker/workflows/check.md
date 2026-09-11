@@ -104,7 +104,7 @@ These are the faces of the authoring rules in `workflows/new.md`, which owns eac
 - **Referenced files exist.** A router pointing at `workflows/foo.md` that was never written fails only when that path is taken, which may be months later.
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
 - **Portable paths.** Nothing absolute to one machine's home directory; skill-relative or `~/`-relative instead.
-- **The opening line of every file.** `MD041` is off because the files here open with different things and no one rule fits them all: a skill file and a workflow with the tools blockquote, per the layout `workflows/new.md` states, a `README.md` with the AI disclaimer line, and a file under `references/` with a heading. Which of those a given file owes is what a sweep reads for.
+- **The opening line of every file.** `MD041` is off because the files here open with different things and no one rule fits them all: a skill file and a workflow with the tools blockquote, per the layout `workflows/new.md` states, a `README.md` with whatever it is written to open with, a heading or a byline, and a file under `references/` with a heading. Which of those a given file owes is what a sweep reads for, and a repository's own convention for that opening is the authority on its own files: `workflows/export.md` states why, which is that the skill may practise its author's conventions and must not require them.
 - **The judgement half of every prose rule.** A regex catches the wording of a defect and never its substance, so a clean prose run says only that the recorded phrasings are absent.
 
 ## Reporting
