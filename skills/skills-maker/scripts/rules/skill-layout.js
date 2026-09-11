@@ -11,7 +11,10 @@ export function enclosingSkill(file, root) {
   // Containment is a fact about path segments, never about the string: a plain
   // prefix test puts /a/bc inside /a/b. check.js globs under its target so it
   // cannot reach that case, and this function is exported and called on its own.
-  const inside = (d) => d === stop || d.startsWith(stop + path.sep);
+  // The filesystem root already ends in the separator, and appending a second
+  // one yields a prefix no resolved path opens with.
+  const prefix = stop.endsWith(path.sep) ? stop : stop + path.sep;
+  const inside = (d) => d === stop || d.startsWith(prefix);
   while (inside(dir)) {
     if (fs.existsSync(path.join(dir, "SKILL.md"))) return dir;
     const up = path.dirname(dir);
