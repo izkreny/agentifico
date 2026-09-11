@@ -46,7 +46,7 @@ A check decided before the value's style is looked at holds for a block scalar a
 
 It also holds the description to the specification's ceiling of 1,024 characters and reports a present key whose value is empty, both measured on what the parser read rather than on the lines as written: a block scalar's indentation is not part of its value, a quote character is not either, and every empty shape is one empty string only once a parser has read it.
 
-It holds `compatibility` to the specification's own ceiling of 500 characters the same way. A clipped block scalar keeps one trailing newline, and that newline is part of the value, so a field written at exactly its ceiling in text measures one over it.
+It holds `compatibility` to the specification's own ceiling of 500 characters the same way. Both are measured on what the author wrote: a clipped block scalar keeps one trailing newline that the style adds rather than the author, so it is trimmed before the comparison and a ceiling does not depend on which style carries the text.
 
 It reads every key rather than the description alone, because a space and a hash inserted anywhere in the frontmatter drops the tail of whatever key it lands in. Two shapes are left alone: a value the parser reads as something other than text, which belongs to the rule that owns it, and a value whose text begins on the next line, which has nothing on its own key line to compare.
 

@@ -146,11 +146,13 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["t-toolong", `name: x\ndescription: ${"a".repeat(1025)}`, "1024"],
     // The spec caps `compatibility` at 500 as it caps the description at
     // 1,024, and a block scalar is the shape that grows past it unnoticed,
-    // so the fixtures are the safe style rather than the plain one. A clipped
-    // block scalar keeps one trailing newline, which is part of the value and
-    // counts, so 499 characters of text is what sits exactly at the cap.
-    ["good-compat-at-cap", `name: x\ndescription: |\n  ok\ncompatibility: |\n  ${"a".repeat(499)}`, null],
-    ["t-compat-toolong", `name: x\ndescription: |\n  ok\ncompatibility: |\n  ${"a".repeat(500)}`, "500"],
+    // so the fixtures are the safe style rather than the plain one. The cap is
+    // measured on authored text: a clipped block scalar's trailing newline is
+    // the style's artifact, so the same content passes in either style.
+    ["good-compat-at-cap", `name: x\ndescription: |\n  ok\ncompatibility: |\n  ${"a".repeat(500)}`, null],
+    ["t-compat-toolong", `name: x\ndescription: |\n  ok\ncompatibility: |\n  ${"a".repeat(501)}`, "500"],
+    ["good-compat-plain-at-cap", `name: x\ndescription: |\n  ok\ncompatibility: ${"a".repeat(500)}`, null],
+    ["good-desc-block-at-cap", `name: x\ndescription: |\n  ${"a".repeat(1024)}`, null],
     ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
     ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
     ["good-quoted-under-cap", `name: x\ndescription: "${"a".repeat(1023)}"`, null],
