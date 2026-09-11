@@ -27,8 +27,9 @@ A skill that never fires looks identical to a skill that was never written. Ever
 | `review <path>` | Review an existing skill, or a whole package, for the defects that actually occur |
 | `check`, or no argument | Mechanical audit of one skill, or a survey across a directory of them |
 | `export <path>` | Publish a local skill to a shared repository |
+| `manage` | Install, update, pin or remove a skill someone else wrote |
 
-Requests about installing, updating or removing someone else's skill carry no verb of their own; the router sends them to `references/managing.md`.
+Requests about installing, updating or removing someone else's skill reach the same place phrased as a sentence; the router sends both to `references/managing.md`.
 
 ```mermaid
 flowchart TD
@@ -37,7 +38,7 @@ flowchart TD
     R -->|review| V["workflows/review.md<br/>find the defects that actually occur"]
     R -->|"check, or no argument"| C["workflows/check.md<br/>mechanical audit of one skill,<br/>or a survey across many"]
     R -->|export| E["workflows/export.md<br/>publish a local skill to a shared repository"]
-    R -->|"install, update, remove"| M["references/managing.md<br/>the skills CLI, its lock, one manager per skill"]
+    R -->|"manage, or install, update, remove"| M["references/managing.md<br/>the skills CLI, its lock, one manager per skill"]
     N -->|verifies with| C
     V -->|runs first| C
     E -->|verifies with| C
