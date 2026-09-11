@@ -27,8 +27,9 @@ A skill that never fires looks identical to a skill that was never written. Ever
 | `review <path>` | Review an existing skill, or a whole package, for the defects that actually occur |
 | `check`, or no argument | Mechanical audit of one skill, or a survey across a directory of them |
 | `export <path>` | Publish a local skill to a shared repository |
+| `manage` | Install, update, pin or remove a skill someone else wrote |
 
-Requests about installing, updating or removing someone else's skill carry no verb of their own; the router sends them to `references/managing.md`.
+Requests about installing, updating or removing someone else's skill reach the same place phrased as a sentence, which the router sends to `references/managing.md` as it sends the verb.
 
 ```mermaid
 flowchart TD
@@ -37,7 +38,7 @@ flowchart TD
     R -->|review| V["workflows/review.md<br/>find the defects that actually occur"]
     R -->|"check, or no argument"| C["workflows/check.md<br/>mechanical audit of one skill,<br/>or a survey across many"]
     R -->|export| E["workflows/export.md<br/>publish a local skill to a shared repository"]
-    R -->|"install, update, remove"| M["references/managing.md<br/>the skills CLI, its lock, one manager per skill"]
+    R -->|"manage, or install, update, remove"| M["references/managing.md<br/>the skills CLI, its lock, one manager per skill"]
     N -->|verifies with| C
     V -->|runs first| C
     E -->|verifies with| C
@@ -57,10 +58,8 @@ skills add izkreny/agentifico -g -y -s skills-maker
 
 That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) installs in one line, `mise use -g npm:skills`. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `workflows/check.md` states both. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
 
-## Similar tools, and why this exists anyway
+## What a YAML parser cannot see
 
-This skill is agent-agnostic: it assumes a shell, a filesystem, Node 22 or later with one `npm ci` in the installed directory, and [Vale](https://vale.sh) 3.20 or later on `PATH` for the prose rules, not one vendor's harness. The nearest neighbours are not: on Anthropic's official plugin marketplace, the `skill-creator` plugin measures skill behaviour with evals but has no review mode, and the `plugin-dev` plugin's `skill-reviewer` agent reviews text but enforces its own description style.
+**A validator that reads frontmatter through a YAML parser cannot see the space-and-`#` truncation.** The truncation is valid YAML, so the parser is handed a description that already ends early and has nothing to report. This skill checks the raw line instead, which is what lets it catch a family of traps a parsed read is defined not to reach; `workflows/check.md` lists them and `SKILL.md` explains each.
 
-Both, like every validator that parses frontmatter with a real YAML parser, silently accept the space-and-`#` truncation, because the truncation is valid YAML; this skill checks the raw line instead, so the trap is visible to it alone. For behavioural doubts the tools are complementary, and `workflows/review.md` says to measure with whatever eval tooling the agent in use provides, naming Claude Code's built-in `claude plugin eval` as the example.
-
-Worth a look rather than a dependency: [Hermes](https://github.com/nousresearch/hermes-agent) (Nous Research) genuinely self-learns, creating and patching its own skills from its sessions and gating agent-written ones behind approval and a content scanner; its creation triggers are the same judgement `workflows/new.md` encodes. [pi](https://pi.dev/docs/latest/skills) and [opencode](https://opencode.ai/docs/skills/) consume the same skill format but ship no creation or review tooling; both discover skills from other agents' directories, `~/.agents/skills/` included, which is exactly the shared layout `SKILL.md` recommends. None of them reviews skills, and none sees the truncation trap.
+Behaviour is a different question, and this skill does not answer it. `workflows/review.md` says to measure that with whatever eval tooling the agent in use provides, naming Claude Code's built-in `claude plugin eval` as the example.

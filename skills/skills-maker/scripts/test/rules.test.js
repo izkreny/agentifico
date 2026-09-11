@@ -53,6 +53,11 @@ describe("skill-description, the raw sweep", () => {
     ["t-anchor", "name: x\ndescription: &draft Use when drafting", "leading &"],
     ["t-curly", "name: x\ndescription: “Use for PR #N”", "curly quotes"],
     ["t-dupe", "name: x\ndescription: first\ndescription: second", "duplicate description"],
+    // The duplicate that matters: the first line is clean and the one the
+    // parser loads carries a trap. Sweeping the first reports the duplicate
+    // and calls the winning value clean, which is the one reading under which
+    // a truncation ships.
+    ["t-dupe-winner-trapped", "name: x\ndescription: Plain and clean.\ndescription: “Use for PR #N”", "curly quotes"],
     ["t-colon", "name: x\ndescription: Use when: reviewing", "colon inside"],
     ["t-tailcolon", "name: x\ndescription: Use when reviewing:", "colon inside"],
     ["t-backslash", 'name: x\ndescription: "matches \\d+ digits"', "risky backslash"],
@@ -139,6 +144,15 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["t-empty-quoted", 'name: x\ndescription: ""', "never advertised"],
     ["t-empty-blank", 'name: x\ndescription: "   "', "never advertised"],
     ["t-toolong", `name: x\ndescription: ${"a".repeat(1025)}`, "1024"],
+    // The spec caps `compatibility` at 500 as it caps the description at
+    // 1,024, and a block scalar is the shape that grows past it unnoticed,
+    // so the fixtures are the safe style rather than the plain one. The cap is
+    // measured on authored text: a clipped block scalar's trailing newline is
+    // the style's artifact, so the same content passes in either style.
+    ["good-compat-at-cap", `name: x\ndescription: |\n  ok\ncompatibility: |\n  ${"a".repeat(500)}`, null],
+    ["t-compat-toolong", `name: x\ndescription: |\n  ok\ncompatibility: |\n  ${"a".repeat(501)}`, "500"],
+    ["good-compat-plain-at-cap", `name: x\ndescription: |\n  ok\ncompatibility: ${"a".repeat(500)}`, null],
+    ["good-desc-block-at-cap", `name: x\ndescription: |\n  ${"a".repeat(1024)}`, null],
     ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
     ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
     ["good-quoted-under-cap", `name: x\ndescription: "${"a".repeat(1023)}"`, null],

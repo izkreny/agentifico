@@ -6,6 +6,13 @@ import { FRONTMATTER_LINE, folded, frontmatter, isSkillFile, parsed } from "./fr
 // the indented lines belonging to a nested value.
 const TOP_LEVEL = /^([^\s:#][^:]*):/;
 
+// What the author wrote, for the length ceilings only. A clipped block scalar
+// keeps one trailing newline that the style adds rather than the author, so
+// measuring the value raw makes a ceiling depend on which style carries the
+// text: the same content passes plain and fails as a block scalar, and a block
+// scalar is the style this skill tells authors to use.
+const authored = (v) => v.replace(/\n$/, "");
+
 export function defects(fm) {
   // The options this needs - 1.1, under which `yes` becomes a boolean, and
   // duplicate keys allowed so the document reads the last-wins way - are the
@@ -27,7 +34,12 @@ export function defects(fm) {
   if (d === null || (typeof d === "string" && d.trim() === "")) bad.push("empty description: never advertised");
   // The specification's ceiling, on the value rather than on the line, so the
   // quote characters and a trailing comment are not counted into it.
-  else if (typeof d === "string" && d.length > 1024) bad.push(`description is ${d.length} characters, over the spec's 1024`);
+  else if (typeof d === "string" && authored(d).length > 1024) bad.push(`description is ${authored(d).length} characters, over the spec's 1024`);
+  // The spec caps `compatibility` at 500, measured for the same reason the
+  // description is: on the value a parser produced rather than on the lines, so
+  // a block scalar's indentation does not count toward it.
+  const c = mapping.compatibility;
+  if (typeof c === "string" && authored(c).length > 500) bad.push(`compatibility is ${authored(c).length} characters, over the spec's 500`);
   // Truncation at ` #` is not a description-only trap. The same edit anywhere
   // in the frontmatter drops the tail of whatever key it lands in, and this
   // package's own `compatibility` is that exact shape: a long plain scalar
@@ -61,7 +73,7 @@ export function defects(fm) {
 export default {
   names: ["skill-frontmatter-parsed"],
   description:
-    "A skill's frontmatter parses, every top-level plain scalar parses to its raw line, and the description is neither empty nor over the spec's ceiling",
+    "A skill's frontmatter parses, every top-level plain scalar parses to its raw line, the description is neither empty nor over the spec's ceiling, and compatibility is within its own",
   tags: ["skills-maker"],
   parser: "none",
   function(params, onError) {

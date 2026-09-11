@@ -2,11 +2,12 @@
 name: skills-maker
 description: |
   Write, review, maintain and export agent skills. Covers the frontmatter contract, the traps that fail silently, the routing-skill layout, installing and updating skills, and publishing a local skill for others. Explicit invocation only: type `/skills-maker`.
-argument-hint: "[new <name> | review <path> | check | export <path>]"
+argument-hint: "[new <name> | review <path> | check | export <path> | manage]"
 disable-model-invocation: true
-compatibility: Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.20 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
+compatibility: |
+  Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.20 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
 metadata:
-  version: "3.2.0"
+  version: "3.3.0"
 allowed-tools: Bash(gh:*), Bash(node:*), Bash(npm:*), Bash(skills:*), Read, Write, Edit, Grep, Glob
 ---
 
@@ -55,13 +56,16 @@ Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" ra
 
 ## Routing
 
+**Where `$ARGUMENTS` arrives unexpanded**, read the argument from the conversation instead: the owner typed it, and it is the last thing they said before this skill loaded. `workflows/new.md` owns the account of why a router owes that fallback.
+
 Based on `$ARGUMENTS`, do exactly one of the following:
 
 - If it starts with `new` → read `workflows/new.md` and follow it.
 - If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
 - If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
 - If it starts with `export` → read `workflows/export.md` and follow it.
-- If the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`.
+- If it starts with `manage`, or the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`.
+- If it matches no verb in this list → say so and name the verbs, rather than guessing which was meant. A mistyped verb and a verb this skill does not have look identical from here, and both are answered by printing the list.
 
 ## Supporting files
 
