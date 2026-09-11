@@ -7,7 +7,7 @@ disable-model-invocation: true
 compatibility: |
   Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.20 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
 metadata:
-  version: "3.2.0"
+  version: "3.3.0"
 allowed-tools: Bash(gh:*), Bash(node:*), Bash(npm:*), Bash(skills:*), Read, Write, Edit, Grep, Glob
 ---
 
