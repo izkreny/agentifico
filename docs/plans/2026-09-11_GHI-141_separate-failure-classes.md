@@ -62,4 +62,4 @@ None.
 
 ## Settled
 
-None yet.
+- Does the `skill rules` heading take every rule in the `rules` array, or only the rules about what a file is? Only those, decided on RF1's thread. The array's own membership was the plan's answer, and a run over `plugins/gh-solo` showed what it costs: the heading read 25, all of them `skill-continuations`, so a silent-failure finding there would have been buried inside them. `skills/skills-maker/scripts/lint-config.js` now registers a rule in the array for the heading it prints beneath, and `skills/skills-maker/scripts/check.js` prints `prose shape` as a heading of its own rather than letting that rule fall into `general lint`, whose name would then stop meaning markdownlint's defaults.
