@@ -4,7 +4,11 @@ The mechanical audit. Run it after writing or editing any skill, and before revi
 
 **The run opens on what it read**, naming the skills it found under the target rather than only counting the files, so a sweep that covered one skill of a package is distinguishable from one that covered all of them. A target holding markdown but no skill says so and carries on, since prose under a package root that keeps no skill is still a target worth reading.
 
-**Then a heading per class, with its count and its findings indented under it.** `skill rules` carries this skill's own rules, whose failure modes are silent twice over; `general lint` carries markdownlint's defaults; `prose rules` carries Vale's alerts, and reads `not run` where Vale could not start. Which heading a finding lands under is decided by `scripts/lint-config.js`, so a rule added there is grouped without a second edit. A heading whose count is zero prints too, because a clean class is worth stating rather than inferring from silence.
+**Then a heading per class, with its count and its findings indented under it.** `skill rules` carries this skill's own rules, which decide what a file is rather than how its prose reads; `general lint` carries markdownlint's defaults; `prose rules` carries Vale's alerts, and reads `not run` where Vale could not start.
+
+**What decides the `skill rules` and `general lint` boundary is `scripts/lint-config.js`**, so a rule added there is grouped without a second edit; membership of `prose rules` is decided by Vale having produced the alert.
+
+**A heading whose count is zero prints `none`**, because a clean class is worth stating rather than inferring from silence. The prose heading states its issues and its warnings apart, since a warning fails nothing and a single figure summing them reads as a failure count on a run that passed.
 
 Each finding prints as its file, line and rule with the detail beside it, and the run ends with one line, `N files checked, M issues, K warnings`, which is the line to read: an issue fails the run, a warning is a helper that points a reviewer somewhere and fails nothing.
 
