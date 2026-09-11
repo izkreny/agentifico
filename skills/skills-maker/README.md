@@ -60,8 +60,6 @@ That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) 
 
 ## What a YAML parser cannot see
 
-This skill is agent-agnostic: it assumes a shell, a filesystem, Node 22 or later with one `npm ci` in the installed directory, and [Vale](https://vale.sh) 3.20 or later on `PATH` for the prose rules, not one vendor's harness.
-
 **A validator that reads frontmatter through a YAML parser cannot see the space-and-`#` truncation.** The truncation is valid YAML, so the parser is handed a description that already ends early and has nothing to report. This skill checks the raw line instead, which is what lets it catch a family of traps a parsed read is defined not to reach; `workflows/check.md` lists them and `SKILL.md` explains each.
 
 Behaviour is a different question, and this skill does not answer it. `workflows/review.md` says to measure that with whatever eval tooling the agent in use provides, naming Claude Code's built-in `claude plugin eval` as the example.
