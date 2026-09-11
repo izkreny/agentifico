@@ -37,10 +37,10 @@ const skills = files
 console.log(skills.length ? `${skills.length} skill(s) found under ${target}` : `no skill found under ${target}`);
 for (const skill of skills) console.log(`  ${skill}`);
 
-// The prose class is the one heading named from more than its own call site:
-// the branch that reports a Vale which could not start prints it too. A rename
-// reaching only one of those sites would print a heading no other run uses, on
-// exactly the run whose reader most needs to recognise it.
+// A constant because the branch that reports a Vale which could not start
+// prints this heading too, and a rename reaching one print site and not the
+// other would put a heading no other run uses on exactly the run whose reader
+// most needs to recognise it.
 const PROSE_RULES = "prose rules";
 
 // A heading with its count, then its findings indented beneath it. A count of
