@@ -37,12 +37,10 @@ const skills = files
 console.log(skills.length ? `${skills.length} skill(s) found under ${target}` : `no skill found under ${target}`);
 for (const skill of skills) console.log(`  ${skill}`);
 
-// Each heading is named once. The prose class is printed from two places -
-// here and the branch that reports a Vale which could not start - and a rename
-// reaching only one of them would print a heading no other run uses, on the
-// run whose reader most needs to recognise it.
-const SKILL_RULES = "skill rules";
-const GENERAL_LINT = "general lint";
+// The prose class is the one heading named from more than its own call site:
+// the branch that reports a Vale which could not start prints it too. A rename
+// reaching only one of those sites would print a heading no other run uses, on
+// exactly the run whose reader most needs to recognise it.
 const PROSE_RULES = "prose rules";
 
 // A heading with its count, then its findings indented beneath it. A count of
@@ -76,8 +74,8 @@ for (const file of files) {
     (e.ruleNames.some((name) => ownRuleNames.has(name)) ? ownFindings : generalFindings).push(line);
   }
 }
-report(SKILL_RULES, ownFindings);
-report(GENERAL_LINT, generalFindings);
+report("skill rules", ownFindings);
+report("general lint", generalFindings);
 
 // Vale reads the same files, from this package's configuration and no other:
 // --config names it so the search for one never starts, and --no-global drops
