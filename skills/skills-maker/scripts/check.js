@@ -6,7 +6,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { globby } from "globby";
 import { lint } from "markdownlint/promise";
-import { config, rules } from "./lint-config.js";
+import { config, contractRuleNames, proseShapeRuleNames, rules } from "./lint-config.js";
+import { isSkillFile } from "./rules/frontmatter.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const valeConfig = path.join(here, "..", ".vale.ini");
@@ -25,23 +26,63 @@ if (!files.length) {
   process.exit(1);
 }
 
+// What was read, before anything found in it. A file count alone cannot tell a
+// sweep that covered one skill of a package from one that covered all of them,
+// and a target holding prose but no skill is a legitimate target rather than
+// the wrong-target failure above.
+const skills = files
+  .filter(isSkillFile)
+  .map((file) => path.relative(target, path.dirname(file)) || ".")
+  .sort();
+console.log(skills.length ? `${skills.length} skill(s) found under ${target}` : `no skill found under ${target}`);
+for (const skill of skills) console.log(`  ${skill}`);
+
+// A constant because the branch that reports a Vale which could not start
+// prints this heading too, and a rename reaching one print site and not the
+// other would put a heading no other run uses on exactly the run whose reader
+// most needs to recognise it.
+const PROSE_RULES = "prose rules";
+
+// A heading with its count, then its findings indented beneath it. A count of
+// zero prints too: a reader who has to infer from silence that the class this
+// skill exists to catch found nothing is the reader this grouping is for. The
+// summary argument carries a class that counts something other than issues, or
+// that did not run at all.
+const report = (label, lines, summary = lines.length || "none") => {
+  console.log(`${label}: ${summary}`);
+  for (const line of lines) console.log(`  ${line}`);
+};
+
 // Without the target the layout rule would walk past it and call a skill
 // nested under someone else's tree a defect of this one.
 const results = await lint({ files, customRules: rules, config: { ...config, "skill-layout": { root: target } } });
 
-// One line per markdownlint finding, in file order, printed before Vale runs
-// so that a structural finding is never withheld by a prose linter that
-// cannot start.
+// A pass per markdownlint class, in file order, every one printed before Vale
+// runs so that a structural finding is never withheld by a prose linter that
+// cannot start. Which class a finding lands in is lint-config.js's answer, so
+// a rule added there needs no edit here.
 let issues = 0;
+const contractFindings = [];
+const proseShapeFindings = [];
+const generalFindings = [];
 for (const file of files) {
   const rel = path.relative(target, file);
   for (const e of results[file] ?? []) {
     issues++;
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
-    console.log(`${rel}:${e.lineNumber} ${e.ruleNames.join("/")} ${e.ruleDescription}${detail}${context}`);
+    const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")} ${e.ruleDescription}${detail}${context}`;
+    const bucket = e.ruleNames.some((name) => contractRuleNames.has(name))
+      ? contractFindings
+      : e.ruleNames.some((name) => proseShapeRuleNames.has(name))
+        ? proseShapeFindings
+        : generalFindings;
+    bucket.push(line);
   }
 }
+report("skill rules", contractFindings);
+report("prose shape", proseShapeFindings);
+report("general lint", generalFindings);
 
 // Vale reads the same files, from this package's configuration and no other:
 // --config names it so the search for one never starts, and --no-global drops
@@ -57,6 +98,7 @@ if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
     vale.error?.code === "ENOENT"
       ? "vale is not on PATH: the prose rules did not run. Install Vale 3.20 or later, per workflows/check.md, and run the check again."
       : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`;
+  report(PROSE_RULES, [], "not run");
   console.log(`${files.length} files checked, ${issues} issues, prose rules not run`);
   console.log(why);
   process.exit(1);
@@ -66,15 +108,22 @@ const alerts = vale.stdout.trim() ? JSON.parse(vale.stdout) : {};
 // One line per Vale alert, in file order. Its severity decides which count it
 // lands in: an error is an issue and fails the run, a warning or suggestion is
 // a helper that points a reviewer somewhere and is printed and counted without
-// failing anything.
+// failing anything. The heading therefore states the issues and the warnings
+// apart, where one figure summing them reads as a failure count on a run that
+// passed; the markdownlint headings need no such split, having no warnings.
 let warnings = 0;
+let proseIssues = 0;
+const proseFindings = [];
 for (const file of files) {
   const rel = path.relative(target, file);
   for (const a of alerts[file] ?? []) {
-    if (a.Severity === "error") issues++;
-    else warnings++;
-    console.log(`${rel}:${a.Line} ${a.Check} (${a.Severity}) ${a.Message}`);
+    if (a.Severity === "error") {
+      issues++;
+      proseIssues++;
+    } else warnings++;
+    proseFindings.push(`${rel}:${a.Line} ${a.Check} (${a.Severity}) ${a.Message}`);
   }
 }
+report(PROSE_RULES, proseFindings, proseFindings.length ? `${proseIssues} issues, ${warnings} warnings` : "none");
 console.log(`${files.length} files checked, ${issues} issues, ${warnings} warnings`);
 process.exit(issues ? 1 : 0);

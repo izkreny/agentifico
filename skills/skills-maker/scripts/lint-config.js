@@ -9,7 +9,21 @@ import skillInvocation from "./rules/skill-invocation.js";
 import skillLayout from "./rules/skill-layout.js";
 import skillName from "./rules/skill-name.js";
 
-export const rules = [skillDescription, skillFrontmatterParsed, skillName, skillInvocation, skillContinuations, skillLayout];
+// One array per printed class, so a rule added later is filed by answering
+// which heading it belongs under rather than by remembering a second list.
+// The contract rules decide what a file is, and their failure is silent; the
+// prose-shape rules judge how a file lays its prose out, which a reader sees
+// and no agent is misled by. Burying a contract finding under prose-shape
+// ones is what the grouping prevents.
+const contractRules = [skillDescription, skillFrontmatterParsed, skillName, skillInvocation, skillLayout];
+const proseShapeRules = [skillContinuations];
+export const rules = [...contractRules, ...proseShapeRules];
+
+// check.js asks these rather than testing a name itself, so the membership a
+// rule joins is stated where the rule is registered and nowhere else.
+const namesOf = (group) => new Set(group.flatMap((rule) => rule.names));
+export const contractRuleNames = namesOf(contractRules);
+export const proseShapeRuleNames = namesOf(proseShapeRules);
 
 // A rule named here is off for the reason beside it, never for quiet.
 export const config = {

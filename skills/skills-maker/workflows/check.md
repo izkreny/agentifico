@@ -1,8 +1,10 @@
 > **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills.
 
-The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own rules on what a file is, which are markdownlint custom rules listed in `scripts/lint-config.js` beside the configuration, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`. Each finding prints as its file, line and rule with the detail beside it, and the run ends with one line, `N files checked, M issues, K warnings`, which is the line to read: an issue fails the run, a warning is a helper that points a reviewer somewhere and fails nothing.
+The mechanical audit. Run it after writing or editing any skill, and before reviewing one. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
-When Vale is missing or refuses its configuration the line reads `N files checked, M issues, prose rules not run`, with the reason beneath it, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep.
+**Findings group by heading**, which is what a rule you add has to be filed against: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `prose rules` for Vale's alerts. Register a new rule in `scripts/lint-config.js`, in the array for the heading it belongs under; Vale needs no registration.
+
+**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep.
 
 ## Setup, once per install
 
@@ -24,7 +26,7 @@ node <skill-dir>/scripts/check.js path/to/the-skill
 
 **One skill is the gate; a wider target is a survey.** Against a single skill the exit code answers "is this skill clean", which is what a branch and a sweep both want. Against a directory of skills or a package root it answers only "does anything under here have findings", and it will usually be non-zero: the run reports every skill it reaches, and `references/managing.md` forbids editing a manager-installed one, so a finding there is a report to that skill's author rather than work for the runner.
 
-Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep.
+Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep. A target holding markdown but no skill is a legitimate one and is read.
 
 How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
