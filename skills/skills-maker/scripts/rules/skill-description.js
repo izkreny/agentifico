@@ -12,18 +12,23 @@ export function defects(fm) {
   const dl = keyLines(fm, "description");
   if (!dl.length) bad.push("no description: never advertised");
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
+  // The last `description:` line, because that is the one a last-wins parser
+  // loads and therefore the only value whose traps can reach a reader;
+  // skill-invocation reads its own fields the same way. Sweeping the first
+  // line instead reports the duplicate and calls the winning value clean.
   // Anything judged against the value rather than against the line belongs to
   // skill-frontmatter-parsed, which has what a parser produced. Deciding it
   // here would mean measuring a value this rule is defined never to parse.
-  const raw = (dl[0] || "").slice(12).trim();
+  const raw = (dl.at(-1) || "").slice(12).trim();
   const block = dl.length && BLOCK_SCALAR.test(raw);
   // The value under judgement, whatever its style, joined the way YAML folds a
   // run of continuation lines, a blank line among them included.
   // A continuation line can carry the same traps as the first, a quote may
-  // close on it, and a legal fold is not a defect. `raw`, the first line,
-  // decides which style the value has and carries the traps that live on the
-  // first line alone, a curly opening quote and a leading special character.
-  const value = dl.length ? folded(fm, fm.indexOf(dl[0])) : "";
+  // close on it, and a legal fold is not a defect. `raw`, the winning key's
+  // own line, decides which style the value has and carries the traps that
+  // live on that line alone, a curly opening quote and a leading special
+  // character.
+  const value = dl.length ? folded(fm, fm.lastIndexOf(dl.at(-1))) : "";
   // Only a value that opens with a curly quote is pretending to be quoted; a
   // typographic apostrophe inside a value is harmless, and a block scalar is
   // immune to the whole family, so neither is a defect.

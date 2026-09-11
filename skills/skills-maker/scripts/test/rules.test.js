@@ -53,6 +53,11 @@ describe("skill-description, the raw sweep", () => {
     ["t-anchor", "name: x\ndescription: &draft Use when drafting", "leading &"],
     ["t-curly", "name: x\ndescription: “Use for PR #N”", "curly quotes"],
     ["t-dupe", "name: x\ndescription: first\ndescription: second", "duplicate description"],
+    // The duplicate that matters: the first line is clean and the one the
+    // parser loads carries a trap. Sweeping the first reports the duplicate
+    // and calls the winning value clean, which is the one reading under which
+    // a truncation ships.
+    ["t-dupe-winner-trapped", "name: x\ndescription: Plain and clean.\ndescription: “Use for PR #N”", "curly quotes"],
     ["t-colon", "name: x\ndescription: Use when: reviewing", "colon inside"],
     ["t-tailcolon", "name: x\ndescription: Use when reviewing:", "colon inside"],
     ["t-backslash", 'name: x\ndescription: "matches \\d+ digits"', "risky backslash"],
