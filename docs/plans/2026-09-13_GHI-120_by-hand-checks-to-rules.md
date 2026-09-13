@@ -26,7 +26,7 @@ Over `plugins/gh-solo`, fifty-six spans do not resolve. They are `.agents/gh-sol
 
 The issue says the rule takes no ignore list because "a skill tree has no such files". A skill that serves another repository names that repository's files by design, and fifty-six such spans are the demonstration. So `plugins/gh-solo` cannot reach a clean run under a rule with no escape hatch, and the criterion that allows "or every finding they print is reported on the pull request" is what this branch will rely on.
 
-The plan follows the issue: no ignore list, the findings reported, and clearing them left to a `gh-solo`-labelled issue of its own, because that tree is another package and a package child may not carry a second deliverable in one diff. `## Open questions` is where that decision is open to be overruled.
+The plan follows the issue: no ignore list, and the findings reported. Clearing them is a `skills-maker` issue rather than a `gh-solo` one, because what closes it is the rule learning what to do with a skill that names its served repository's files, not fifty-six edits to another package's prose. The fifty-six spans are correct as written, so reading this as a `gh-solo` defect would send the wrong package a bill for a gap in this one.
 
 ## Two span predicates, not one
 
@@ -62,10 +62,9 @@ Vale 3.20.0 is on PATH and `skills/skills-maker/node_modules` is installed. The 
 
 ## Open questions
 
-- The ignore question above: no ignore list and fifty-six reported findings on `plugins/gh-solo`, cleared later by its own issue, is what this plan assumes. The alternative is rewriting those spans in single quotes, which is a `gh-solo` diff either way.
 - The bare 'check.js' and 'lint-config.js' spans are read here as real findings worth fixing rather than as a false-positive class worth teaching the rule about. A rule that understood a bullet's lead would be a scoping mechanism with one caller.
 - Whether `skill-portable-paths` gains a marker an author can put beside a deliberate bad example. No such example exists in the tree, so this plan adds none.
 
 ## Settled
 
-None yet.
+- Which package owns clearing the fifty-six spans on `plugins/gh-solo`. Settled on the pull request: a `skills-maker` issue, not a `gh-solo` one. The deliverable is this package's rule gaining an answer for a skill that names its served repository's files; the spans themselves are correct as written.
