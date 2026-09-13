@@ -62,9 +62,10 @@ Vale 3.20.0 is on PATH and `skills/skills-maker/node_modules` is installed. The 
 
 ## Open questions
 
-- The bare 'check.js' and 'lint-config.js' spans are read here as real findings worth fixing rather than as a false-positive class worth teaching the rule about. A rule that understood a bullet's lead would be a scoping mechanism with one caller.
-- Whether `skill-portable-paths` gains a marker an author can put beside a deliberate bad example. No such example exists in the tree, so this plan adds none.
+None.
 
 ## Settled
 
 - Which package owns clearing the fifty-six spans on `plugins/gh-solo`. Settled on the pull request: a `skills-maker` issue, not a `gh-solo` one. The deliverable is this package's rule gaining an answer for a skill that names its served repository's files; the spans themselves are correct as written.
+- Whether the bare 'check.js' and 'lint-config.js' spans at `skills/skills-maker/SKILL.md` line 77 are a prose defect or a case the rule should understand. Settled on the pull request: the prose, fixed on this branch. A rule that read a bullet's lead would be a scoping mechanism with one caller.
+- Whether `skill-portable-paths` gains a marker for a deliberate bad example. Settled on the pull request: no new mechanism, because single quotes already are one. `.agents/gh-solo.md` reserves them for a span naming nothing on disk, every rule here reads backticked spans only, and this plan's own quoted paths are the working instance.
