@@ -12,12 +12,33 @@ import path from "node:path";
 const NOT_A_PATH = ["$", "*", "{", "}", "<", ">", "|", "://", " ", ".."];
 
 const PATHY_SUFFIXES = [
-  ".md", ".py", ".sh", ".fish", ".bash", ".json", ".toml", ".yaml", ".yml",
-  ".ts", ".tsx", ".js", ".jsx", ".mjs", ".rb", ".rs", ".go", ".txt",
-  ".cfg", ".ini", ".lock", ".sql", ".css", ".html",
+  ".md",
+  ".py",
+  ".sh",
+  ".fish",
+  ".bash",
+  ".json",
+  ".toml",
+  ".yaml",
+  ".yml",
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mjs",
+  ".rb",
+  ".rs",
+  ".go",
+  ".txt",
+  ".cfg",
+  ".ini",
+  ".lock",
+  ".sql",
+  ".css",
+  ".html",
 ];
 
-// The agreement the two path rules are written to keep, stated once here so
+// The agreement both path rules are written to keep, stated once here so
 // neither carries its own copy: a `~/` span is portable, and it names a file on
 // the author's machine that no checkout can resolve. So skill-portable-paths
 // passes it and skill-referenced-paths skips it.
@@ -25,8 +46,10 @@ export const isHomeRelative = (span) => span.startsWith("~/");
 
 // Absolute to one machine, which is the case skill-portable-paths exists to
 // catch. A drive letter counts: a skill written on Windows breaks on Linux the
-// same way.
-export const ABSOLUTE_TO_ONE_MACHINE = /(?:\/home\/|\/Users\/|[A-Za-z]:[\\/])[^\s`"'()[\]]*/g;
+// same way. The lookbehind is what keeps a URL out: the `s:/` of `https://` is
+// a letter, a colon and a slash, so a drive-letter branch without it reports
+// every link a skill carries.
+export const ABSOLUTE_TO_ONE_MACHINE = /(?:\/home\/|\/Users\/|(?<![A-Za-z])[A-Za-z]:[\\/])[^\s`"'()[\]]*/g;
 
 // docs-check.py's looks_like_path. The leading-slash reject is its deliberate
 // blind spot, which drops slash commands and absolute paths together; that is

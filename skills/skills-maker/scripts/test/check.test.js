@@ -63,6 +63,18 @@ before(() => {
   // A skill whose directory name extends a sibling path's, for enclosingSkill's
   // own boundary: <tmp>/ab is not inside <tmp>/a, though its path string opens
   // with it.
+  // skill-referenced-paths' own fixture tree: a skill naming a file that
+  // exists, one naming a file that does not, the same missing path inside a
+  // fence, and the span shapes the predicate must never call a path.
+  const refs = path.join(tmp, "refs");
+  mk(refs, block("refs"));
+  fs.mkdirSync(path.join(refs, "workflows"), { recursive: true });
+  fs.writeFileSync(path.join(refs, "workflows", "new.md"), "# New\n\nbody\n");
+  fs.appendFileSync(
+    path.join(refs, "SKILL.md"),
+    "\nA span `workflows/new.md` resolves and `workflows/gone.md` does not.\n\nNot paths: `feat/GHI-50_login-form`, `github/gh-stack`, `/usr/bin/env`, `~/.agents/skills/x/SKILL.md`, `docs/*.md`.\n\n```bash\ncat workflows/also-gone.md\n```\n",
+  );
+
   // skill-readme's own fixtures: no README at all, and one that exists but
   // names no way to install the skill.
   mk(path.join(tmp, "no-readme"), block("no-readme"), null);
@@ -332,9 +344,35 @@ describe("carriesInstallForm", () => {
   // The forms workflows/new.md names, each asked for on its own, so a form
   // dropped from the regex is a named failure rather than one case fewer.
   const headings = ["## Install", "## Installation", "### Setup", "# Getting started"];
-  const commands = ["skills add owner/repo", "npm install -g thing", "npm ci", "mise use -g npm:skills", "claude plugin install x@y", "git clone https://example.test/r", "ln -s ../skill ~/.agents/skills/x"];
+  const commands = [
+    "skills add owner/repo",
+    "npm install -g thing",
+    "npm ci",
+    "mise use -g npm:skills",
+    "claude plugin install x@y",
+    "git clone https://example.test/r",
+    "ln -s ../skill ~/.agents/skills/x",
+  ];
   for (const h of headings) it(`heading ${h}`, () => assert.ok(carriesInstallForm(`# A skill\n\n${h}\n\ntext\n`)));
   for (const c of commands) it(`command ${c.split(" ")[0]} ${c.split(" ")[1]}`, () => assert.ok(carriesInstallForm(`# A skill\n\n\`\`\`bash\n${c}\n\`\`\`\n`)));
   it("a README with neither carries no install form", () => assert.equal(carriesInstallForm("# A skill\n\nWhat it does.\n"), false));
   it("the word install inside a sentence is not a heading", () => assert.equal(carriesInstallForm("# A skill\n\nYou install it somehow.\n"), false));
+});
+
+describe("skill-referenced-paths", () => {
+  it("reports a span naming a file that was never written, and passes one that resolves", () => {
+    const r = run(path.join(tmp, "refs"));
+    assert.equal(r.code, 1);
+    assert.match(r.out, /SKILL\.md:\d+ skill-referenced-paths .*workflows\/gone\.md does not resolve/);
+    assert.doesNotMatch(r.out, /workflows\/new\.md does not resolve/);
+  });
+  it("reads no fenced content, so a missing path inside a fence passes", () => {
+    const r = run(path.join(tmp, "refs"));
+    assert.doesNotMatch(r.out, /also-gone\.md/);
+  });
+  it("a branch name, a repo slug, an absolute path, a ~/ path and a glob are not paths", () => {
+    const r = run(path.join(tmp, "refs"));
+    for (const span of ["GHI-50_login-form", "gh-stack", "\\/usr\\/bin\\/env", "\\.agents\\/skills", "docs\\/\\*"])
+      assert.doesNotMatch(r.out, new RegExp(`${span}.*does not resolve`));
+  });
 });

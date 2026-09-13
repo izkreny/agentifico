@@ -366,6 +366,10 @@ describe("skill-portable-paths", () => {
     ["good-tilde", "A span `~/.agents/skills/foo/SKILL.md` here.", null],
     ["good-relative", "A span `workflows/new.md` and a [link](references/managing.md).", null],
     ["good-skill-dir", "A span `<skill-dir>/scripts/check.js` here.", null],
+    // A URL is not a path absolute to one machine, and the `s:/` of `https://`
+    // is a letter, a colon and a slash. Found by running the rule over this
+    // package, where it reported every link in the README.
+    ["good-url", "A [link](https://skills.sh) and a span `https://docs.vale.sh/topics/installation`.", null],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
