@@ -60,7 +60,7 @@ It reads every key rather than the description alone, because a space and a hash
 
 **Which spans count as paths**, so a reader can tell a finding from a span the rule was never going to read: one ending in a known file extension, or one ending in a slash, which names a directory. A span carrying a glob, a placeholder, a URL scheme, a space or a `..` is not a path, nor is one opening with `-`, `#`, `@` or a slash. That is what keeps a branch name, a slash command and an `owner/repo` slug out of the findings, and it is why an absolute path is invisible here and belongs to `skill-portable-paths` instead.
 
-**A path the target cannot resolve, and is not meant to, goes in single quotes.** That covers a file nobody has written and a file outside the tree being checked, and it works because the rules read backticked spans only, so a quoted one is invisible to them. '.agents/gh-solo.md' states the narrower version for a plan naming a file its branch will create. This branch's own plan file and the spans quoted in this section are the working instances.
+**A path the target cannot resolve, and is not meant to, goes in single quotes.** That covers a file nobody has written and a file outside the tree being checked, and it works because the rules read backticked spans only, so a quoted one is invisible to them. '.agents/gh-solo.md' states the narrower version for a plan naming a file its branch will create.
 
 **Both path rules give one answer to `~/`, stated once in `scripts/rules/paths.js`**: it is portable, and it names a file on the author's machine that no checkout resolves. So `skill-portable-paths` passes it and `skill-referenced-paths` skips it.
 

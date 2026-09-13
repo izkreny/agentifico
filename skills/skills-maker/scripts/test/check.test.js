@@ -394,7 +394,7 @@ describe("skill-referenced-paths", () => {
   });
   it("a branch name, a repo slug, an absolute path, a ~/ path and a glob are not paths", () => {
     const r = run(path.join(tmp, "refs"));
-    for (const span of ["GHI-50_login-form", "gh-stack", "\\/usr\\/bin\\/env", "\\.agents\\/skills", "docs\\/\\*"])
+    for (const span of ["GHI-50_login-form", "gh-stack", "\\/usr\\/bin\\/env", "\\.agents\\/skills", "docs\\/\\*", "E:\\/work"])
       assert.doesNotMatch(r.out, new RegExp(`${span}.*does not resolve`));
   });
 });

@@ -19,9 +19,9 @@ const INSTALL_COMMAND = /^[^\S\n]*(?:skills add|npm install|npm ci|mise use|clau
 // outside a fence, the command inside one. Without the split, a heading quoted
 // inside a fenced example counts as a real one, and a command named in prose
 // counts as a fenced block nobody wrote. The scan is the one docs-check.py
-// makes, which keeps the fence marker's own length so a longer fence nested
-// inside a shorter one cannot close it early.
-export function fencedAndProse(readme) {
+// makes, which keeps the opening fence's own length so a shorter fence nested
+// inside a longer one cannot close it early.
+function fencedAndProse(readme) {
   const fenced = [];
   const prose = [];
   let open = null;
