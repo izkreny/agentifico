@@ -86,6 +86,12 @@ The directory match cannot decide the charset on its own, because a directory ma
 
 **`skill-layout`**: a `SKILL.md` with another `SKILL.md` in an ancestor directory under the target is a skill inside a skill. Some agents discover skills recursively and would read it as a broken skill, so an example quoted inside a skill's own tree is a finding rather than something the check tolerates. The search stops at the target.
 
+## The directive rule
+
+**`skill-vale-directive`** reports an HTML comment whose text opens with lowercase `vale`. Such a comment is a Vale directive: it switches the prose rules off for the file carrying it, so a target can silence the rules that judge it from inside its own markdown while the run still prints a clean last line.
+
+The match is case-sensitive because Vale's is, so an uppercase directive, which silences nothing, is left alone. So is one written inside a code span or a fenced block, which reaches no HTML token, and that is what lets this file write `<!-- vale off -->` at all. Where a phrase genuinely needs an exception, it belongs in the `exceptions` key of the rule it misfires on, under `assets/`, with its reason beside it, and the rule's message says so.
+
 ## The prose rules
 
 **`assets/` is where the Agent Skills specification puts them**, as the data files it names lookup tables and schemas alongside. They are machine-read definitions rather than prose a reader loads or code the check runs, so `references/` and `scripts/` are both the wrong home. `StylesPath` points at that directory itself rather than one inside it, because Vale requires the path to hold the style's own subdirectory.

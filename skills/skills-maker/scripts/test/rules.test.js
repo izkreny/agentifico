@@ -16,8 +16,9 @@ import parsed from "../rules/skill-frontmatter-parsed.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
+import valeDirective from "../rules/skill-vale-directive.js";
 
-const RULES = [description, parsed, name, invocation, continuations, portablePaths];
+const RULES = [description, parsed, name, invocation, continuations, portablePaths, valeDirective];
 
 // Lints one string as the file at `path`, with only the named rules on, and
 // returns each finding as its rule, line and detail.
@@ -395,5 +396,43 @@ describe("skill-portable-paths", () => {
       found.map((f) => f.line),
       [11],
     );
+  });
+});
+
+describe("skill-vale-directive", () => {
+  const cases = [
+    ["t-off", "<!-- vale off -->\n\nProse the rules no longer read.", true],
+    ["t-assignment", "<!-- vale Agentifico.Counts = NO -->\n\nProse.", true],
+    ["t-indented", "- item\n\n  <!-- vale off -->\n\n  Prose.", true],
+    ["t-inline", "A paragraph carrying <!-- vale off --> mid-sentence.", true],
+    ["t-tight", "<!--vale off-->\n\nProse.", true],
+    ["t-blockquote", "> <!-- vale on -->\n\nProse.", true],
+    ["good-ordinary", "<!-- an ordinary comment -->\n\nProse.", false],
+    ["good-span", "A span `<!-- vale off -->` naming the form.", false],
+    ["good-fenced", "```markdown\n<!-- vale off -->\n```", false],
+    // Vale is case-sensitive here: <!-- VALE OFF --> silences nothing, so a
+    // rule that reported it would name a file that was never silenced.
+    ["good-uppercase", "<!-- VALE OFF -->\n\nProse.", false],
+    // The word has to be the directive's own, not the start of another one.
+    ["good-prefix", "<!-- valerie wrote this -->\n\nProse.", false],
+  ];
+  for (const [id, body, trips] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), valeDirective);
+      if (trips) expectDetail(found, "skill-vale-directive", "exceptions key");
+      else expectClean(found, "skill-vale-directive");
+    });
+  }
+  // markdownlint masks an HTML comment's content in params.lines, so a rule
+  // reading them cannot tell a directive from any other comment. The context
+  // comes off the token instead, and this is what would catch a regression to
+  // the masked line.
+  it("reports the directive's own text, not the masked line", async () => {
+    const results = await lint({
+      strings: { "fx/ctx/SKILL.md": skill("name: ctx\ndescription: |\n  x", "<!-- vale off -->") },
+      customRules: RULES,
+      config: { default: false, "skill-vale-directive": true },
+    });
+    assert.equal(results["fx/ctx/SKILL.md"][0].errorContext, "<!-- vale off -->");
   });
 });
