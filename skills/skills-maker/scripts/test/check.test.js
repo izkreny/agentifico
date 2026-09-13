@@ -72,7 +72,7 @@ before(() => {
   fs.writeFileSync(path.join(refs, "workflows", "new.md"), "# New\n\nbody\n");
   fs.appendFileSync(
     path.join(refs, "SKILL.md"),
-    "\nA span `workflows/new.md` resolves and `workflows/gone.md` does not.\n\nNot paths: `feat/GHI-50_login-form`, `github/gh-stack`, `/usr/bin/env`, `~/.agents/skills/x/SKILL.md`, `docs/*.md`.\n\n```bash\ncat workflows/also-gone.md\n```\n",
+    "\nA span `workflows/new.md` resolves and `workflows/gone.md` does not.\n\nNot paths: `feat/GHI-50_login-form`, `github/gh-stack`, `/usr/bin/env`, `~/.agents/skills/x/SKILL.md`, `docs/*.md`.\n\nThe example-path case, quoted so the rule never sees it: 'workflows/deliberately-absent.md'.\n\n```bash\ncat workflows/also-gone.md\n```\n",
   );
 
   // skill-readme's own fixtures: no README at all, and one that exists but
@@ -369,6 +369,10 @@ describe("skill-referenced-paths", () => {
   it("reads no fenced content, so a missing path inside a fence passes", () => {
     const r = run(path.join(tmp, "refs"));
     assert.doesNotMatch(r.out, /also-gone\.md/);
+  });
+  it("a path quoted as a deliberate example is invisible to the rule", () => {
+    const r = run(path.join(tmp, "refs"));
+    assert.doesNotMatch(r.out, /deliberately-absent/);
   });
   it("a branch name, a repo slug, an absolute path, a ~/ path and a glob are not paths", () => {
     const r = run(path.join(tmp, "refs"));

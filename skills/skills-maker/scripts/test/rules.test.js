@@ -370,6 +370,10 @@ describe("skill-portable-paths", () => {
     // is a letter, a colon and a slash. Found by running the rule over this
     // package, where it reported every link in the README.
     ["good-url", "A [link](https://skills.sh) and a span `https://docs.vale.sh/topics/installation`.", null],
+    // The example-path case: a path quoted as what never to write. Single
+    // quotes are the answer workflows/check.md states, and they work because
+    // the rule reads backticked spans and link destinations only.
+    ["good-quoted-example", "Never write '/home/izkreny/notes.md'; write the `~/` form.", null],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
