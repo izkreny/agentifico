@@ -66,7 +66,7 @@ The failure it prevents, stated concretely. A README that cannot name one usuall
 
 The exact command, copyable. Required even for a skill that never leaves the machine it was written on, where it is the canonical path and the symlink rather than a manager command: a reader who cannot install it cannot use it.
 
-`skill-readme` decides mechanically that the file sits beside `SKILL.md` and that it carries an install form, which is a heading whose text opens with `install`, `installation`, `setup` or `getting started`, or a fenced block carrying a command that installs: `skills add`, `npm install`, `npm ci`, `mise use`, `claude plugin install`, `git clone` or `ln -s`. That list is a cap on what the rule recognises rather than a description of any README here, so a README reaching for a form it does not name owes this list an entry rather than a workaround. Whether the sections say anything worth reading is the judgement no rule makes.
+Give the section a heading opening with `install`, `installation`, `setup` or `getting started`, or put the command in a fenced block: `skills add`, `npm install`, `npm ci`, `mise use`, `claude plugin install`, `git clone` or `ln -s`. Reaching for a form this list does not name means adding it here first.
 
 #### How it is invoked
 

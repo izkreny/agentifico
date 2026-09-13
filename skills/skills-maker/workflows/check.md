@@ -62,7 +62,7 @@ It reads every key rather than the description alone, because a space and a hash
 
 **A path the target cannot resolve, and is not meant to, goes in single quotes.** That covers a file nobody has written and a file outside the tree being checked, and it works because the rules read backticked spans only, so a quoted one is invisible to them. '.agents/gh-solo.md' states the narrower version for a plan naming a file its branch will create.
 
-**Both path rules give one answer to `~/`, stated once in `scripts/rules/paths.js`**: it is portable, and it names a file on the author's machine that no checkout resolves. So `skill-portable-paths` passes it and `skill-referenced-paths` skips it.
+**Write a path that leaves the skill's own tree as `~/`-relative.** It is portable, it names a file no checkout can resolve, and neither path rule reports one.
 
 ## The name rule
 
