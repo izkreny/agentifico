@@ -370,6 +370,12 @@ describe("skill-portable-paths", () => {
     // is a letter, a colon and a slash. Found by running the rule over this
     // package, where it reported every link in the README.
     ["good-url", "A [link](https://skills.sh) and a span `https://docs.vale.sh/topics/installation`.", null],
+    // A URL path can carry /home/ exactly as a filesystem path can, which the
+    // drive-letter lookbehind alone did not cover.
+    ["good-url-home", "A [link](https://example.test/home/izkreny/notes.md) here.", null],
+    // An absolute path is this rule's, so skill-referenced-paths must not also
+    // try to resolve a drive-lettered span: `paths.js` refuses it there.
+    ["t-drive-span", "A span `D:/work/notes.md` here.", "D:/work/notes.md"],
     // The example-path case: a path quoted as what never to write. Single
     // quotes are the answer workflows/check.md states, and they work because
     // the rule reads backticked spans and link destinations only.

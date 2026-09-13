@@ -46,10 +46,11 @@ export const isHomeRelative = (span) => span.startsWith("~/");
 
 // Absolute to one machine, which is the case skill-portable-paths exists to
 // catch. A drive letter counts: a skill written on Windows breaks on Linux the
-// same way. The lookbehind is what keeps a URL out: the `s:/` of `https://` is
-// a letter, a colon and a slash, so a drive-letter branch without it reports
-// every link a skill carries.
-export const ABSOLUTE_TO_ONE_MACHINE = /(?:\/home\/|\/Users\/|(?<![A-Za-z])[A-Za-z]:[\\/])[^\s`"'()[\]]*/g;
+// same way. The lookbehind guards the whole alternation rather than one branch
+// of it, because a URL reaches both: `https://` carries a letter, a colon and a
+// slash, and a URL path can carry /home/ just as a filesystem path can. What it
+// asks is that nothing of a path or a word runs into the match from the left.
+export const ABSOLUTE_TO_ONE_MACHINE = /(?<![A-Za-z0-9._~-])(?:\/home\/|\/Users\/|[A-Za-z]:[\\/])[^\s`"'()[\]]*/g;
 
 // docs-check.py's looks_like_path. The leading-slash reject is its deliberate
 // blind spot, which drops slash commands and absolute paths together; that is
@@ -58,6 +59,9 @@ export const ABSOLUTE_TO_ONE_MACHINE = /(?:\/home\/|\/Users\/|(?<![A-Za-z])[A-Za
 export function looksLikePath(span) {
   if (NOT_A_PATH.some((bad) => span.includes(bad))) return false;
   if (/^[-#@/]/.test(span)) return false;
+  // A drive letter is an absolute path wearing another shape, and an absolute
+  // path is skill-portable-paths' to report, never this predicate's to resolve.
+  if (/^[A-Za-z]:[\\/]/.test(span)) return false;
   if (span.endsWith("/")) return true;
   return PATHY_SUFFIXES.some((suffix) => span.endsWith(suffix));
 }

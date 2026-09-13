@@ -2,7 +2,7 @@
 // describes. It reads the token tree rather than the raw lines, because prose
 // that mentions a home directory in words is not a path: the three token types
 // below are where a path is meant to be copied out and run.
-import { ABSOLUTE_TO_ONE_MACHINE, isHomeRelative } from "./paths.js";
+import { ABSOLUTE_TO_ONE_MACHINE } from "./paths.js";
 
 // A code span's text, a line inside a fenced block, and a link's destination.
 const CARRIES_A_PATH = new Set(["codeTextData", "codeFlowValue", "resourceDestinationString"]);
@@ -24,7 +24,6 @@ export default {
       if (!CARRIES_A_PATH.has(token.type)) return;
       for (const match of String(token.text ?? "").matchAll(ABSOLUTE_TO_ONE_MACHINE)) {
         const found = match[0];
-        if (isHomeRelative(found)) continue;
         onError({
           lineNumber: token.startLine,
           detail: `${found} is absolute to one machine: write it relative to the skill, or as a ~/ path`,

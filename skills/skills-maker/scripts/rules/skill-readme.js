@@ -9,11 +9,38 @@ import { FRONTMATTER_LINE, isSkillFile } from "./frontmatter.js";
 
 // The install forms are workflows/new.md's to state, under "How it is
 // installed", and this is that list. A form added there is added here; the two
-// disagreeing is the defect the single home exists to prevent.
-const INSTALL_HEADING = /^#{1,6}\s+(?:install|installation|setup|getting started)\b/im;
+// disagreeing is the defect the single home exists to prevent. No trailing
+// word boundary on the heading, because that file states the form as a heading
+// whose text *opens with* the word, which "Installing" does.
+const INSTALL_HEADING = /^#{1,6}\s+(?:install|installation|setup|getting started)/im;
 const INSTALL_COMMAND = /^[^\S\n]*(?:skills add|npm install|npm ci|mise use|claude plugin install|git clone|ln -s)\b/im;
 
-export const carriesInstallForm = (readme) => INSTALL_HEADING.test(readme) || INSTALL_COMMAND.test(readme);
+// Each form is looked for where workflows/new.md says it counts: the heading
+// outside a fence, the command inside one. Without the split, a heading quoted
+// inside a fenced example counts as a real one, and a command named in prose
+// counts as a fenced block nobody wrote. The scan is the one docs-check.py
+// makes, which keeps the fence marker's own length so a longer fence nested
+// inside a shorter one cannot close it early.
+export function fencedAndProse(readme) {
+  const fenced = [];
+  const prose = [];
+  let open = null;
+  for (const line of readme.split("\n")) {
+    const marker = /^\s*(`{3,}|~{3,})/.exec(line)?.[1];
+    if (marker) {
+      if (open === null) open = marker;
+      else if (marker.length >= open.length && marker[0] === open[0]) open = null;
+      continue;
+    }
+    (open === null ? prose : fenced).push(line);
+  }
+  return { fenced: fenced.join("\n"), prose: prose.join("\n") };
+}
+
+export function carriesInstallForm(readme) {
+  const { fenced, prose } = fencedAndProse(readme);
+  return INSTALL_HEADING.test(prose) || INSTALL_COMMAND.test(fenced);
+}
 
 export default {
   names: ["skill-readme"],

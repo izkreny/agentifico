@@ -48,7 +48,9 @@ It also holds the description to the specification's ceiling of 1,024 characters
 
 It holds `compatibility` to the specification's own ceiling of 500 characters the same way. Both are measured on what the author wrote: a clipped block scalar keeps one trailing newline that the style adds rather than the author, so it is trimmed before the comparison and a ceiling does not depend on which style carries the text.
 
-## The layout and path rules
+It reads every key rather than the description alone, because a space and a hash inserted anywhere in the frontmatter drops the tail of whatever key it lands in. Two shapes are left alone: a value the parser reads as something other than text, which belongs to the rule that owns it, and a value whose text begins on the next line, which has nothing on its own key line to compare.
+
+## The README and path rules
 
 **`skill-readme`** is anchored to `SKILL.md` rather than to the README, because a README that does not exist is never a file markdownlint visits. It reports a missing `README.md` beside a `SKILL.md`, and one that carries no install form. Which forms count is `workflows/new.md`'s to state, under *How it is installed*, and the rule reads that list rather than inventing one.
 
@@ -58,11 +60,9 @@ It holds `compatibility` to the specification's own ceiling of 500 characters th
 
 **Which spans count as paths**, so a reader can tell a finding from a span the rule was never going to read: one ending in a known file extension, or one ending in a slash, which names a directory. A span carrying a glob, a placeholder, a URL scheme, a space or a `..` is not a path, nor is one opening with `-`, `#`, `@` or a slash. That is what keeps a branch name, a slash command and an `owner/repo` slug out of the findings, and it is why an absolute path is invisible here and belongs to `skill-portable-paths` instead.
 
-**A path a skill deliberately names and does not write goes in single quotes.** The rules read backticked spans only, so a quoted one is invisible to them, which is the same convention '.agents/gh-solo.md' states for a plan naming a file its branch will create. The example router target in the by-hand list further down is written that way for exactly this reason.
+**A path the target cannot resolve, and is not meant to, goes in single quotes.** That covers a file nobody has written and a file outside the tree being checked, and it works because the rules read backticked spans only, so a quoted one is invisible to them. '.agents/gh-solo.md' states the narrower version for a plan naming a file its branch will create. This branch's own plan file and the spans quoted in this section are the working instances.
 
 **Both path rules give one answer to `~/`, stated once in `scripts/rules/paths.js`**: it is portable, and it names a file on the author's machine that no checkout resolves. So `skill-portable-paths` passes it and `skill-referenced-paths` skips it.
-
-It reads every key rather than the description alone, because a space and a hash inserted anywhere in the frontmatter drops the tail of whatever key it lands in. Two shapes are left alone: a value the parser reads as something other than text, which belongs to the rule that owns it, and a value whose text begins on the next line, which has nothing on its own key line to compare.
 
 ## The name rule
 

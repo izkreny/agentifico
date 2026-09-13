@@ -60,19 +60,25 @@ before(() => {
   fs.writeFileSync(path.join(pkg, "agents", "reviewer.md"), "# Reviewer\n\nbody\n");
   fs.writeFileSync(path.join(pkg, "README.md"), "# Package\n\nbody\n");
 
-  // A skill whose directory name extends a sibling path's, for enclosingSkill's
-  // own boundary: <tmp>/ab is not inside <tmp>/a, though its path string opens
-  // with it.
-  // skill-referenced-paths' own fixture tree: a skill naming a file that
-  // exists, one naming a file that does not, the same missing path inside a
-  // fence, and the span shapes the predicate must never call a path.
+  // skill-referenced-paths' own fixture tree, shaped as a package so the
+  // owning skill and the target root are different directories: a fixture that
+  // conflated them could not tell one resolution base from another.
   const refs = path.join(tmp, "refs");
-  mk(refs, block("refs"));
-  fs.mkdirSync(path.join(refs, "workflows"), { recursive: true });
-  fs.writeFileSync(path.join(refs, "workflows", "new.md"), "# New\n\nbody\n");
+  const inner = path.join(refs, "skills", "inner");
+  mk(inner, block("inner"));
+  fs.mkdirSync(path.join(inner, "workflows", "deep"), { recursive: true });
+  fs.writeFileSync(path.join(inner, "workflows", "new.md"), "# New\n\nbody\n");
+  fs.writeFileSync(path.join(refs, "top.md"), "# Top\n\nbody\n");
+  fs.writeFileSync(path.join(inner, "workflows", "deep", "sibling.md"), "body\n");
+  // One file per resolution base, each naming a span that only that base
+  // reaches, so a base dropped from paths.js is a named failure rather than a
+  // fixture that still passes through one of the others.
+  fs.writeFileSync(path.join(inner, "workflows", "deep", "only-skill.md"), "Reaches the owning skill alone: `workflows/new.md`.\n");
+  fs.writeFileSync(path.join(inner, "workflows", "deep", "only-own-dir.md"), "Reaches this file's own directory alone: `sibling.md`.\n");
+  fs.writeFileSync(path.join(inner, "workflows", "deep", "only-root.md"), "Reaches the target root alone: `top.md`.\n");
   fs.appendFileSync(
-    path.join(refs, "SKILL.md"),
-    "\nA span `workflows/new.md` resolves and `workflows/gone.md` does not.\n\nNot paths: `feat/GHI-50_login-form`, `github/gh-stack`, `/usr/bin/env`, `~/.agents/skills/x/SKILL.md`, `docs/*.md`.\n\nThe example-path case, quoted so the rule never sees it: 'workflows/deliberately-absent.md'.\n\n```bash\ncat workflows/also-gone.md\n```\n",
+    path.join(inner, "SKILL.md"),
+    "\nA span `workflows/new.md` resolves and `workflows/gone.md` does not.\n\nNot paths: `feat/GHI-50_login-form`, `github/gh-stack`, `/usr/bin/env`, `~/.agents/skills/x/SKILL.md`, `docs/*.md`, `E:/work/notes.md`.\n\nThe example-path case, quoted so the rule never sees it: 'workflows/deliberately-absent.md'.\n\n```bash\ncat workflows/also-gone.md\n```\n",
   );
 
   // skill-readme's own fixtures: no README at all, and one that exists but
@@ -81,6 +87,9 @@ before(() => {
   mk(path.join(tmp, "readme-no-install"), block("readme-no-install"), "# A skill\n\nWhat it does, and nothing about getting it.\n");
   mk(path.join(tmp, "readme-fenced-install"), block("readme-fenced-install"), "# A skill\n\n## Getting it\n\n```bash\nnpm install -g thing\n```\n");
 
+  // A skill whose directory name extends a sibling path's, for enclosingSkill's
+  // own boundary: <tmp>/ab is not inside <tmp>/a, though its path string opens
+  // with it.
   mk(path.join(tmp, "ab"), block("ab"));
   mk(path.join(tmp, "ab", "x"), block("x"));
 
@@ -191,7 +200,7 @@ describe("check.js", () => {
   });
   it("a package root: the skills under it, the files beside them, and not a dot-directory", () => {
     const r = run(path.join(tmp, "pkg"));
-    // alpha, beta, the quoted example, reviewer.md and README.md; .hidden is not read.
+    // alpha, beta and the quoted example with a README each, reviewer.md and the package's own README.md; .hidden is not read.
     assert.equal(r.linted, 8, r.out);
     assert.doesNotMatch(r.out, /hidden/);
   });
@@ -355,6 +364,9 @@ describe("carriesInstallForm", () => {
   ];
   for (const h of headings) it(`heading ${h}`, () => assert.ok(carriesInstallForm(`# A skill\n\n${h}\n\ntext\n`)));
   for (const c of commands) it(`command ${c.split(" ")[0]} ${c.split(" ")[1]}`, () => assert.ok(carriesInstallForm(`# A skill\n\n\`\`\`bash\n${c}\n\`\`\`\n`)));
+  it("a heading opening with the word counts, without standing bare", () => assert.ok(carriesInstallForm("# A skill\n\n## Installing\n\ntext\n")));
+  it("a heading quoted inside a fence is not a heading", () => assert.equal(carriesInstallForm("# A skill\n\n```markdown\n## Install\n```\n"), false));
+  it("an install command in prose is not a fenced block", () => assert.equal(carriesInstallForm("# A skill\n\nnpm install -g thing, one day.\n"), false));
   it("a README with neither carries no install form", () => assert.equal(carriesInstallForm("# A skill\n\nWhat it does.\n"), false));
   it("the word install inside a sentence is not a heading", () => assert.equal(carriesInstallForm("# A skill\n\nYou install it somehow.\n"), false));
 });
@@ -369,6 +381,12 @@ describe("skill-referenced-paths", () => {
   it("reads no fenced content, so a missing path inside a fence passes", () => {
     const r = run(path.join(tmp, "refs"));
     assert.doesNotMatch(r.out, /also-gone\.md/);
+  });
+  it("each resolution base is reached by a span that reaches no other", () => {
+    const r = run(path.join(tmp, "refs"));
+    assert.doesNotMatch(r.out, /only-skill\.md:\d+ skill-referenced-paths/);
+    assert.doesNotMatch(r.out, /only-own-dir\.md:\d+ skill-referenced-paths/);
+    assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/);
   });
   it("a path quoted as a deliberate example is invisible to the rule", () => {
     const r = run(path.join(tmp, "refs"));
