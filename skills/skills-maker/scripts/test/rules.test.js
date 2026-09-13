@@ -15,8 +15,9 @@ import description from "../rules/skill-description.js";
 import parsed from "../rules/skill-frontmatter-parsed.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
+import portablePaths from "../rules/skill-portable-paths.js";
 
-const RULES = [description, parsed, name, invocation, continuations];
+const RULES = [description, parsed, name, invocation, continuations, portablePaths];
 
 // Lints one string as the file at `path`, with only the named rules on, and
 // returns each finding as its rule, line and detail.
@@ -349,5 +350,36 @@ describe("skill-continuations", () => {
       [3, "cap"],
       [7, "bold"],
     ]);
+  });
+});
+
+describe("skill-portable-paths", () => {
+  // A path is read out of the token tree, so the first pair is the whole point:
+  // the same characters are a finding inside a code span and nothing at all in
+  // a sentence, where no reader copies them anywhere.
+  const cases = [
+    ["t-span", "A span `/home/izkreny/notes.md` here.", "/home/izkreny/notes.md"],
+    ["t-fenced", "```bash\ncat /home/izkreny/notes.md\n```", "/home/izkreny/notes.md"],
+    ["t-link", "A [note](/Users/izkreny/notes.md) here.", "/Users/izkreny/notes.md"],
+    ["t-drive", "A span `C:\\Users\\izkreny\\notes.md` here.", "C:\\Users\\izkreny\\notes.md"],
+    ["good-prose", "The skill reads /home/izkreny/notes.md in prose, where nobody copies it out.", null],
+    ["good-tilde", "A span `~/.agents/skills/foo/SKILL.md` here.", null],
+    ["good-relative", "A span `workflows/new.md` and a [link](references/managing.md).", null],
+    ["good-skill-dir", "A span `<skill-dir>/scripts/check.js` here.", null],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), portablePaths);
+      if (want) expectDetail(found, "skill-portable-paths", want);
+      else expectClean(found, "skill-portable-paths");
+    });
+  }
+  it("names the line the path sits on, not the block's first line", async () => {
+    const body = "intro\n\n```bash\necho one\ncat /home/izkreny/notes.md\n```";
+    const found = await findings("fx/p-line/SKILL.md", skill("name: p-line\ndescription: |\n  x", body), portablePaths);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [11],
+    );
   });
 });
