@@ -326,6 +326,7 @@ describe("skill-continuations", () => {
     ["c-tablein", "- **lead.** first\n\n  the reason\n\n  | a | b |\n  | --- | --- |\n  | c | d |\n", []],
     ["c-quotein", "- **lead.** first\n\n  the reason\n\n  > a quoted line, which is not a paragraph of the item\n", []],
     ["c-leadfence", "- ```bash\n  echo hi\n  ```\n\n  the one continuation\n", []],
+    ["c-markeralone", "-\n  **lead.** its text starts on the line after the marker\n\n  the one continuation\n", []],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
@@ -368,6 +369,7 @@ describe("skill-bolded-runs", () => {
     ["b-ordered", bolded(7, "1."), ["7 bolded-lead items in a row"]],
     ["b-spaced", bolded(7).replaceAll("\n", "\n\n"), ["7 bolded-lead items in a row"]],
     ["b-nested", `${bolded(4)}\n  - **inner a.** x\n  - **inner b.** y\n  - **inner c.** z\n\n${bolded(2)}`, []],
+    ["b-markeralone", "-\n  **lead.** its text starts on the line after the marker\n".repeat(7), ["7 bolded-lead items in a row"]],
     ["b-midbold", "- a lead that is **bolded later** in the line\n".repeat(7), []],
   ];
   for (const [id, body, want] of cases) {

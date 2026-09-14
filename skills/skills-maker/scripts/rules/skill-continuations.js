@@ -18,6 +18,10 @@ const paragraphOf = (t) => (t.type === "content" ? t.children.find((c) => c.type
 
 const opensBold = (p) => p?.children?.[0]?.type === "strong";
 
+// An item's text may start on the line after its marker, so whitespace between
+// the prefix and the first block is never that block.
+const isSpace = (t) => ["listItemIndent", "lineEnding", "lineEndingBlank", "linePrefix"].includes(t.type);
+
 // The lead is whatever block opens an item, paragraph or not, so a paragraph
 // after it is a continuation whatever the item began with. skill-bolded-runs
 // reads the same items, so how an item is found stays in this one function.
@@ -32,7 +36,7 @@ export function items(list) {
       lead = true;
       continue;
     }
-    if (!item || c.type === "listItemIndent") continue;
+    if (!item || isSpace(c)) continue;
     if (lead) {
       item.boldLead = opensBold(paragraphOf(c));
       lead = false;
