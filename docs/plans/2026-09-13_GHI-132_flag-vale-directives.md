@@ -34,6 +34,12 @@ Dumping the token tree over the forms above puts a directive on its own line, on
 
 **A directive indented four spaces at the top level is `codeIndented` and is invisible to the rule.** That is the correct answer rather than a gap: CommonMark reads it as an indented code block, and so does Vale's own markdown parser, so it silences nothing. The indented form the issue asks for is the one inside a list item, which the table above measures and which reaches `htmlFlow`.
 
+## markdownlint's own comments are ignored, not reported
+
+The first review found the premise broken a second way, by markdownlint rather than Vale. `<!-- markdownlint-disable -->` above a Vale directive made the whole run print `0 issues` and exit zero, because markdownlint's inline comments switch off every rule the check runs, this one included.
+
+A rule cannot report such a comment, since the comment suppresses the finding the rule would raise. Measured against the check's own rule set, `-disable`, its per-rule form, `-disable-file`, `-disable-next-line` and `-configure-file` each did. markdownlint's `noInlineConfig` option ignores them all, and with it set every form above leaves the directive reported. An ignored comment silences nothing, so the rule does not report one either.
+
 ## Why the rule is a contract rule
 
 `skills/skills-maker/scripts/lint-config.js` files a rule by whether its failure is silent. A silenced prose run prints a clean last line, which is the definition that array states, so the rule joins `contractRules` rather than the prose-shape array.
@@ -49,6 +55,9 @@ The issue asks that `skills/skills-maker/workflows/check.md` drop the sentence s
 - Register it in `skills/skills-maker/scripts/lint-config.js` among the contract rules.
 - Add its fixtures to `skills/skills-maker/scripts/test/rules.test.js` and the rule to that file's `RULES`: the plain form, the assignment form, the list-item indented form, and a guards set of an ordinary HTML comment, a directive inside a code span and a directive inside a fenced block.
 - Give the rule its own heading in `skills/skills-maker/workflows/check.md`, before the prose rules it guards, saying what it matches, that the match is case-sensitive because Vale's is, and where an exception belongs.
+- Pass `noInlineConfig: true` to the markdownlint call in `skills/skills-maker/scripts/check.js`, and add a wrapper test in `skills/skills-maker/scripts/test/check.test.js` of a target whose `<!-- markdownlint-disable -->` and `<!-- markdownlint-configure-file -->` comments sit above a Vale directive, watched failing with the option removed.
+- Add a guards fixture to `skills/skills-maker/scripts/test/rules.test.js` of a markdownlint comment the rule leaves alone.
+- Say in `skills/skills-maker/workflows/check.md`, beside the rule that is off for a reason, that a comment in the target cannot turn a rule off.
 - Move `metadata.version` in `skills/skills-maker/SKILL.md` from `3.5.0` to `3.6.0`. A minor: one new rule is new behaviour, and no file that passed before starts failing unless it carries a directive.
 
 ## Verification
@@ -67,4 +76,4 @@ None.
 
 ## Settled
 
-None yet.
+- Whether markdownlint's own disable comments are closed on this branch or by a separate issue. Settled on the pull request, in RF1's thread: on this branch, with the issue, this plan and the pull request rewritten to match.
