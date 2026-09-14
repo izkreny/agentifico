@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { lint } from "markdownlint/promise";
 import { description as descriptionValue } from "../rules/frontmatter.js";
+import boldedRuns from "../rules/skill-bolded-runs.js";
 import continuations from "../rules/skill-continuations.js";
 import description from "../rules/skill-description.js";
 import parsed from "../rules/skill-frontmatter-parsed.js";
@@ -18,7 +19,7 @@ import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
 import valeDirective from "../rules/skill-vale-directive.js";
 
-const RULES = [description, parsed, name, invocation, continuations, portablePaths, valeDirective];
+const RULES = [description, parsed, name, invocation, continuations, boldedRuns, portablePaths, valeDirective];
 
 // Lints one string as the file at `path`, with only the named rules on, and
 // returns each finding as its rule, line and detail. noInlineConfig is set as
@@ -353,6 +354,38 @@ describe("skill-continuations", () => {
       [3, "cap"],
       [7, "bold"],
     ]);
+  });
+});
+
+describe("skill-bolded-runs", () => {
+  const cap = "cap is 6";
+  // n items with a bolded lead, one per line, in the given marker.
+  const bolded = (n, marker = "-") => Array.from({ length: n }, (_, i) => `${marker === "1." ? `${i + 1}.` : marker} **lead ${i}.** the rest\n`).join("");
+  const cases = [
+    ["b-seven", bolded(7), ["7 bolded-lead items in a row"]],
+    ["b-six", bolded(6), []],
+    ["b-broken", `${bolded(4)}- a plain item ends the run\n${bolded(3)}`, []],
+    ["b-ordered", bolded(7, "1."), ["7 bolded-lead items in a row"]],
+    ["b-spaced", bolded(7).replaceAll("\n", "\n\n"), ["7 bolded-lead items in a row"]],
+    ["b-nested", `${bolded(4)}\n  - **inner a.** x\n  - **inner b.** y\n  - **inner c.** z\n\n${bolded(2)}`, []],
+    ["b-midbold", "- a lead that is **bolded later** in the line\n".repeat(7), []],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), boldedRuns);
+      for (const w of want) expectDetail(found, "skill-bolded-runs", w);
+      if (!want.length) expectClean(found, "skill-bolded-runs");
+    });
+  }
+  it("a workflow file is read, not only SKILL.md", async () => {
+    expectDetail(await findings("fx/b-sub/workflows/w.md", bolded(7), boldedRuns), "skill-bolded-runs", cap);
+  });
+  it("names the run's first item", async () => {
+    const found = await findings("fx/b-line/w.md", `intro\n\n- a plain item\n${bolded(7)}`, boldedRuns);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [4],
+    );
   });
 });
 
