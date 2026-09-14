@@ -109,6 +109,7 @@ before(() => {
   // reports the Vale directive beneath them, one per comment form RF1 named.
   for (const [dir, comment] of [
     ["inline-disabled", "<!-- markdownlint-disable -->"],
+    ["inline-disabled-rule", "<!-- markdownlint-disable skill-vale-directive -->"],
     ["inline-configured", '<!-- markdownlint-configure-file { "skill-vale-directive": false } -->'],
   ]) {
     mk(path.join(tmp, dir), block(dir));
@@ -242,7 +243,7 @@ describe("check.js", () => {
     assert.match(r.out, /MD009/);
   });
   it("an inline markdownlint comment under the target changes nothing", () => {
-    for (const dir of ["inline-disabled", "inline-configured"]) {
+    for (const dir of ["inline-disabled", "inline-disabled-rule", "inline-configured"]) {
       const r = run(path.join(tmp, dir));
       assert.equal(r.code, 1, `${dir}: ${r.out}`);
       assert.match(r.out, /skill-vale-directive/, dir);
