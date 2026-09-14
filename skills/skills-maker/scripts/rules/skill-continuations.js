@@ -18,9 +18,11 @@ const paragraphOf = (t) => (t.type === "content" ? t.children.find((c) => c.type
 
 const opensBold = (p) => p?.children?.[0]?.type === "strong";
 
-// An item's text may start on the line after its marker, so whitespace between
-// the prefix and the first block is never that block.
-const isSpace = (t) => ["listItemIndent", "lineEnding", "lineEndingBlank", "linePrefix"].includes(t.type);
+// An item's text may start on the line after its marker, and a container's own
+// prefix or indent - a blockquote's, a footnote's - sits between them there, so
+// whitespace is matched by token family rather than by name. listItemPrefix
+// is caught before this test runs.
+const isSpace = (t) => /^lineEnding|^linePrefix$|Prefix$|Indent$/.test(t.type);
 
 // The lead is whatever block opens an item, paragraph or not, so a paragraph
 // after it is a continuation whatever the item began with. skill-bolded-runs
