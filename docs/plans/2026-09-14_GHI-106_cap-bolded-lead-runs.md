@@ -34,7 +34,7 @@ That is 115 runs holding 445 items. The median is 3, the 75th percentile 5, the 
 
 In this package a markdownlint finding is always an issue: `skills/skills-maker/scripts/check.js` gives only Vale's alerts a warning class. Vale cannot count across list items either, since it reads rendered text in which the bolding and the item boundaries are gone. A warning class for markdownlint would reshape the output #141 separated, which is not this issue's work.
 
-A hard rule stays honest because every breach has a fix the writer can apply without deciding anything the rule could not. A run of successive claims is unindented into paragraphs, each keeping its bolded lead. That is the move `skills/skills-maker/workflows/new.md` already gives an item that has outgrown its continuation. A run of parallel members becomes a table, whose first column carries what the bold was doing, or splits into subsections of five or fewer where the set falls into groups. The rule reports the run and the writer chooses the fix, in the same relation `skill-continuations` has to its promote-or-unindent choice.
+A hard rule stays honest because every breach has a fix the writer can apply without deciding anything the rule could not. A run of successive claims splits into subsections of five or fewer under headings of their own. A run of parallel members becomes a table, whose first column carries what the bold was doing, or splits into subsections of five or fewer where the set falls into groups. The rule reports the run and the writer chooses the fix, in the same relation `skill-continuations` has to its promote-or-unindent choice.
 
 ## What counts as a run
 
@@ -48,7 +48,7 @@ Every item whose first block is a paragraph opening with `strong` counts, whethe
 - Add its fixtures to `skills/skills-maker/scripts/test/rules.test.js` and the rule to that file's `RULES`. The fixtures cover a run of seven, a run of six, a run of five, two runs of three broken by a plain item, an ordered run, a nested list whose items do not extend the parent's run, and a run in a workflow file rather than a 'SKILL.md'.
 - Turn the six-item lists in `skills/skills-maker/SKILL.md` and `skills/skills-maker/workflows/check.md` into tables.
 - State the cap in `skills/skills-maker/workflows/new.md` Step 4 under its own heading beside the continuation rule, as a cap with its reason in a sentence, and name both fixes.
-- Give the rule its own heading in `skills/skills-maker/workflows/check.md` after the continuation rule, saying what it reports and that it cannot tell parallel members of one set from a section wearing bullets, so the writer chooses between a table and unindenting.
+- Give the rule its own heading in `skills/skills-maker/workflows/check.md` after the continuation rule, saying what it reports and that it cannot tell parallel members of one set from a section wearing bullets, so the writer chooses between a table and subsections.
 - Watch the rule fail against a real instance: `node skills/skills-maker/scripts/check.js plugins/gh-solo/skills/pr-flow` must report the 15-item run at `plugins/gh-solo/skills/pr-flow/SKILL.md` line 107, a file this branch does not touch, so it reads as it stands at `3531f9e`. Record it in the commit body.
 - Move `metadata.version` in `skills/skills-maker/SKILL.md` from `3.6.0` to `3.7.0`. It is a minor: one new rule is new behaviour, and no file in this package that passed before starts failing.
 
@@ -70,3 +70,4 @@ None.
 
 - Whether the rule fails the run or only warns. It fails the run, as a `proseShapeRules` entry: markdownlint has no warning class here, and each breach has a fix the writer can apply, as *Why the rule fails the run rather than warning* states.
 - Where the cap sits. Six was proposed as the lowest cap leaving this package's own sets green; the plan thread settled on five, with those two sets turned into tables.
+- Whether a run past the cap may be unindented into bolded paragraphs. No, settled in the session: that keeps the run and drops only its markers, and the owner wants no more than five such paragraphs in a row either, so successive claims split into subsections instead.
