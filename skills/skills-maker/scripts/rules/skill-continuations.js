@@ -22,7 +22,7 @@ const opensBold = (p) => p?.children?.[0]?.type === "strong";
 // prefix or indent - a blockquote's, a footnote's - sits between them there, so
 // whitespace is matched by token family rather than by name. listItemPrefix
 // is caught before this test runs.
-const isSpace = (t) => /^lineEnding|^linePrefix$|Prefix$|Indent$/.test(t.type);
+const isSpace = (t) => /^lineEnding|Prefix$|Indent$/.test(t.type);
 
 // The lead is whatever block opens an item, paragraph or not, so a paragraph
 // after it is a continuation whatever the item began with. skill-bolded-runs
