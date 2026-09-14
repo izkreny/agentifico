@@ -118,7 +118,7 @@ Markdown requires the indent, so a stack of paragraphs under a bullet renders co
 
 ### At most six list items in a row open with a bolded lead
 
-A bolded lead announces a claim the way a heading does, so a long run of them is a section wearing bullets, and it renders as correctly as a list while nothing signals that its claims were never promoted.
+A long run of them is a section wearing bullets, since each bolded lead announces a claim for the reason *One continuation paragraph per list item, and it carries the item's reason* gives.
 
 **Each shape a run past the cap can take has its own move.** Successive claims are unindented into paragraphs, each keeping its bolded lead, which is the move an item that has outgrown its continuation already gets. Parallel members of one set become a table, whose first column carries what the bold was doing.
 
