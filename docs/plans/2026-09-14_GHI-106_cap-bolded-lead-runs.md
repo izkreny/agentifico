@@ -28,13 +28,13 @@ Taken at `3531f9e` over every tracked markdown file under `AGENTS.md`, `.agents/
 
 That is 115 runs holding 445 items. The median is 3, the 75th percentile 5, the 90th 6, the 95th 9 and the longest 15. In 92 of the runs, every item in the list has a bolded lead.
 
-**The cap is six.** The distribution breaks just past it: 6 is the 90th percentile, nothing in the tree runs to 8, and everything from 9 up is the tail the issue describes. The longest runs in `skills/skills-maker` itself are exactly six, in the prose-rules list of `skills/skills-maker/workflows/check.md` and the supporting-files list of `skills/skills-maker/SKILL.md`, and both are parallel members of one set. So the package's own gate stays green without any edit to them. The ten runs past the cap all sit in other packages, in `plugins/gh-solo/` and `skills/rails-style/SKILL.md`. Each package changes only on its own branch, so those runs are reports for each package's next sweep rather than work for this one.
+**The cap is five**, the 75th percentile, which the plan thread settled over six, the 90th. At five the two six-item runs in `skills/skills-maker` itself breach: the prose-rules list of `skills/skills-maker/workflows/check.md` and the supporting-files list of `skills/skills-maker/SKILL.md`. Both are parallel members of one set, so this branch turns them into tables. The eighteen other runs past the cap all sit in other packages, in `plugins/gh-solo/` and `skills/rails-style/SKILL.md`. Each package changes only on its own branch, so those runs are reports for each package's next sweep rather than work for this one.
 
 ## Why the rule fails the run rather than warning
 
 In this package a markdownlint finding is always an issue: `skills/skills-maker/scripts/check.js` gives only Vale's alerts a warning class. Vale cannot count across list items either, since it reads rendered text in which the bolding and the item boundaries are gone. A warning class for markdownlint would reshape the output #141 separated, which is not this issue's work.
 
-A hard rule stays honest because every breach has a fix the writer can apply without deciding anything the rule could not. A run of successive claims is unindented into paragraphs, each keeping its bolded lead. That is the move `skills/skills-maker/workflows/new.md` already gives an item that has outgrown its continuation. A run of parallel members becomes a table, whose first column carries what the bold was doing. The rule reports the run and the writer chooses the fix, in the same relation `skill-continuations` has to its promote-or-unindent choice.
+A hard rule stays honest because every breach has a fix the writer can apply without deciding anything the rule could not. A run of successive claims is unindented into paragraphs, each keeping its bolded lead. That is the move `skills/skills-maker/workflows/new.md` already gives an item that has outgrown its continuation. A run of parallel members becomes a table, whose first column carries what the bold was doing, or splits into subsections of five or fewer where the set falls into groups. The rule reports the run and the writer chooses the fix, in the same relation `skill-continuations` has to its promote-or-unindent choice.
 
 ## What counts as a run
 
@@ -43,9 +43,10 @@ Every item whose first block is a paragraph opening with `strong` counts, whethe
 ## Steps
 
 - Extend `items()` in `skills/skills-maker/scripts/rules/skill-continuations.js` to record whether each item's lead block is a paragraph opening with `strong`, so how an item is found stays in one place.
-- Add 'skills/skills-maker/scripts/rules/skill-bolded-runs.js', which imports `items()` and reports each run of more than six such items at its first item's line.
+- Add 'skills/skills-maker/scripts/rules/skill-bolded-runs.js', which imports `items()` and reports each run of more than five such items at its first item's line.
 - Register it in `skills/skills-maker/scripts/lint-config.js` among `proseShapeRules`, since a reader sees the defect and no agent is misled by it.
-- Add its fixtures to `skills/skills-maker/scripts/test/rules.test.js` and the rule to that file's `RULES`. The fixtures cover a run of seven, a run of six, a run of seven broken by a plain item, an ordered run, a nested list whose items do not extend the parent's run, and a run in a workflow file rather than a 'SKILL.md'.
+- Add its fixtures to `skills/skills-maker/scripts/test/rules.test.js` and the rule to that file's `RULES`. The fixtures cover a run of seven, a run of six, a run of five, two runs of three broken by a plain item, an ordered run, a nested list whose items do not extend the parent's run, and a run in a workflow file rather than a 'SKILL.md'.
+- Turn the six-item lists in `skills/skills-maker/SKILL.md` and `skills/skills-maker/workflows/check.md` into tables.
 - State the cap in `skills/skills-maker/workflows/new.md` Step 4 under its own heading beside the continuation rule, as a cap with its reason in a sentence, and name both fixes.
 - Give the rule its own heading in `skills/skills-maker/workflows/check.md` after the continuation rule, saying what it reports and that it cannot tell parallel members of one set from a section wearing bullets, so the writer chooses between a table and unindenting.
 - Watch the rule fail against a real instance: `node skills/skills-maker/scripts/check.js plugins/gh-solo/skills/pr-flow` must report the 15-item run at `plugins/gh-solo/skills/pr-flow/SKILL.md` line 107, a file this branch does not touch, so it reads as it stands at `3531f9e`. Record it in the commit body.
@@ -68,4 +69,4 @@ None.
 ## Settled
 
 - Whether the rule fails the run or only warns. It fails the run, as a `proseShapeRules` entry: markdownlint has no warning class here, and each breach has a fix the writer can apply, as *Why the rule fails the run rather than warning* states.
-- Where the cap sits. Six, from the distribution above, the lowest cap that leaves this package's own sets green, and it still catches the tail.
+- Where the cap sits. Six was proposed as the lowest cap leaving this package's own sets green; the plan thread settled on five, with those two sets turned into tables.
