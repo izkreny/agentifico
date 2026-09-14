@@ -90,6 +90,12 @@ The directory match cannot decide the charset on its own, because a directory ma
 
 **What it cannot decide is whether a run is members of one set or a section wearing bullets.** The shape is identical and the difference is meaning, so a report names the run and the writer chooses among the moves `workflows/new.md` gives each shape.
 
+## The bolded-paragraph rule
+
+**`skill-bolded-paragraphs`**: `workflows/new.md` owns the cap on consecutive paragraphs that open with a bolded lead, what ends a run, and the reason; this is its mechanical face, sharing the bolded-run rule's figure. It reads only the document's top-level blocks, so a paragraph inside a list item or a quote never counts, and a list, a fence or a table between bolded paragraphs sits inside the run rather than ending it. The finding names the run's first paragraph.
+
+**What it cannot decide is where a run's subsections fall.** The headings that group five or fewer claims come from what the claims say, so a report names the run and the writer chooses the seams.
+
 ## The layout rule
 
 **`skill-layout`**: a `SKILL.md` with another `SKILL.md` in an ancestor directory under the target is a skill inside a skill. Some agents discover skills recursively and would read it as a broken skill, so an example quoted inside a skill's own tree is a finding rather than something the check tolerates. The search stops at the target.
