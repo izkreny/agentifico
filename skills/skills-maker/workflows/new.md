@@ -116,6 +116,12 @@ Markdown requires the indent, so a stack of paragraphs under a bullet renders co
 
 **Promote what has outgrown its item, and where no heading level is free, unindent instead.** A continuation inside an already-`###` numbered item has nowhere deeper to go, so the move that always exists is to drop the indent: the item's bolded lead becomes a paragraph of its own and its continuations become the paragraphs beneath it.
 
+### At most six list items in a row open with a bolded lead
+
+A bolded lead announces a claim the way a heading does, so a long run of them is a section wearing bullets, and it renders as correctly as a list while nothing signals that its claims were never promoted.
+
+**Each shape a run past the cap can take has its own move.** Successive claims are unindented into paragraphs, each keeping its bolded lead, which is the move an item that has outgrown its continuation already gets. Parallel members of one set become a table, whose first column carries what the bold was doing.
+
 ### Write sentences that survive change
 
 Never state a count of adjacent content and never claim uniqueness, recency or position ("the four rules below", "the only copy", "the section above"): whoever adds the fifth rule edits the list, never the sentence, and in a skill the false sentence is not read past but obeyed. The test: if adding one more item makes the sentence false, it was a count and it goes; if it makes the item wrong, it is a cap and it stays. When membership is the rule, name the members.
