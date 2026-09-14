@@ -32,7 +32,7 @@ How a review reads a target covering more than one skill is `workflows/review.md
 
 ## What the general lint covers
 
-markdownlint's own rules run at their defaults and catch what no local rule states: list indentation, blank lines around lists, heading increments, duplicate headings, trailing whitespace, and the rest of its set. A rule that is off is named in `scripts/lint-config.js` with its reason beside it, and a rule may be turned off there for a reason and never for quiet.
+markdownlint's own rules run at their defaults and catch what no local rule states: list indentation, blank lines around lists, heading increments, duplicate headings, trailing whitespace, and the rest of its set. A rule that is off is named in `scripts/lint-config.js` with its reason beside it, and a rule may be turned off there for a reason and never for quiet. A comment in the target cannot turn one off: the check runs markdownlint with its inline configuration ignored, so `<!-- markdownlint-disable -->` and every comment of its family silence nothing.
 
 ## The description rules
 

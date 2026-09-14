@@ -21,11 +21,13 @@ import valeDirective from "../rules/skill-vale-directive.js";
 const RULES = [description, parsed, name, invocation, continuations, portablePaths, valeDirective];
 
 // Lints one string as the file at `path`, with only the named rules on, and
-// returns each finding as its rule, line and detail.
+// returns each finding as its rule, line and detail. noInlineConfig is set as
+// check.js sets it, or a fixture's own markdownlint comment would switch off
+// the rule it is there to test.
 async function findings(path, content, ...only) {
   const config = { default: false };
   for (const r of only) config[r.names[0]] = true;
-  const results = await lint({ strings: { [path]: content }, customRules: RULES, config });
+  const results = await lint({ strings: { [path]: content }, customRules: RULES, config, noInlineConfig: true });
   return results[path].map((e) => ({ rule: e.ruleNames[0], line: e.lineNumber, detail: e.errorDetail ?? "" }));
 }
 
@@ -415,6 +417,9 @@ describe("skill-vale-directive", () => {
     ["good-uppercase", "<!-- VALE OFF -->\n\nProse.", false],
     // The word has to be the directive's own, not the start of another one.
     ["good-prefix", "<!-- valerie wrote this -->\n\nProse.", false],
+    // markdownlint's own comments are the check's to ignore rather than this
+    // rule's to report: once ignored they silence nothing.
+    ["good-markdownlint", "<!-- markdownlint-disable -->\n\nProse.", false],
   ];
   for (const [id, body, trips] of cases) {
     it(id, async () => {
