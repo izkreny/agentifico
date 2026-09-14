@@ -413,6 +413,8 @@ describe("skill-bolded-paragraphs", () => {
     ["p-quoted", "> **lead.** a quoted paragraph\n>\n".repeat(7), []],
     ["p-items", "- **lead.** an item\n\n".repeat(7), []],
     ["p-midbold", "a paragraph **bolded later** in the line\n\n".repeat(7), []],
+    ["p-endheading", `${bolded(6)}## a heading\n\n`, ["6 bolded-lead paragraphs in a row"]],
+    ["p-endplain", `${bolded(6)}a plain paragraph\n\n`, ["6 bolded-lead paragraphs in a row"]],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
