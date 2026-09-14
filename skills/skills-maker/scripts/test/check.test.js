@@ -273,7 +273,7 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-description .*TRUNCATED/m);
     assert.match(r.out, /^prose shape: 2$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-continuations .*cap is 1/m);
-    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bolded-runs .*cap is 6/m);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bolded-runs .*cap is 5/m);
     assert.match(r.out, /^general lint: 1$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ MD009/m);
     assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/m);

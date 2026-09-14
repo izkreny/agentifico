@@ -361,16 +361,17 @@ describe("skill-continuations", () => {
 });
 
 describe("skill-bolded-runs", () => {
-  const cap = "cap is 6";
+  const cap = "cap is 5";
   // n items with a bolded lead, one per line, in the given marker.
   const bolded = (n, marker = "-") => Array.from({ length: n }, (_, i) => `${marker === "1." ? `${i + 1}.` : marker} **lead ${i}.** the rest\n`).join("");
   const cases = [
     ["b-seven", bolded(7), ["7 bolded-lead items in a row"]],
-    ["b-six", bolded(6), []],
-    ["b-broken", `${bolded(4)}- a plain item ends the run\n${bolded(3)}`, []],
+    ["b-six", bolded(6), ["6 bolded-lead items in a row"]],
+    ["b-five", bolded(5), []],
+    ["b-broken", `${bolded(3)}- a plain item ends the run\n${bolded(3)}`, []],
     ["b-ordered", bolded(7, "1."), ["7 bolded-lead items in a row"]],
     ["b-spaced", bolded(7).replaceAll("\n", "\n\n"), ["7 bolded-lead items in a row"]],
-    ["b-nested", `${bolded(4)}\n  - **inner a.** x\n  - **inner b.** y\n  - **inner c.** z\n\n${bolded(2)}`, []],
+    ["b-nested", `${bolded(3)}\n  - **inner a.** x\n  - **inner b.** y\n  - **inner c.** z\n\n${bolded(2)}`, []],
     ["b-markeralone", "-\n  **lead.** its text starts on the line after the marker\n".repeat(7), ["7 bolded-lead items in a row"]],
     ["b-quoted", "> -\n>   **lead.** its text starts on the line after the marker\n".repeat(7), ["7 bolded-lead items in a row"]],
     ["b-midbold", "- a lead that is **bolded later** in the line\n".repeat(7), []],

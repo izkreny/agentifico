@@ -5,7 +5,7 @@
 // shape, so the rule reports the run and the writer chooses the fix.
 import { isList, items } from "./skill-continuations.js";
 
-const CAP = 6;
+const CAP = 5;
 
 function walk(tokens, fn) {
   for (const t of tokens) {

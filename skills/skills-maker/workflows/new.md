@@ -116,11 +116,11 @@ Markdown requires the indent, so a stack of paragraphs under a bullet renders co
 
 **Promote what has outgrown its item, and where no heading level is free, unindent instead.** A continuation inside an already-`###` numbered item has nowhere deeper to go, so the move that always exists is to drop the indent: the item's bolded lead becomes a paragraph of its own and its continuations become the paragraphs beneath it.
 
-### At most six list items in a row open with a bolded lead
+### At most five list items in a row open with a bolded lead
 
 A long run of them is a section wearing bullets, since each bolded lead announces a claim for the reason *One continuation paragraph per list item, and it carries the item's reason* gives.
 
-**Each shape a run past the cap can take has its own move.** Successive claims are unindented into paragraphs, each keeping its bolded lead, which is the move an item that has outgrown its continuation already gets. Parallel members of one set become a table, whose first column carries what the bold was doing.
+**Each shape a run past the cap can take has its own move.** Successive claims are unindented into paragraphs, each keeping its bolded lead, which is the move an item that has outgrown its continuation already gets. Parallel members of one set become a table, whose first column carries what the bold was doing, or split into subsections of five or fewer under headings of their own where the set falls into groups.
 
 ### Write sentences that survive change
 
