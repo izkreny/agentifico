@@ -423,6 +423,19 @@ describe("skill-vale-directive", () => {
       else expectClean(found, "skill-vale-directive");
     });
   }
+  // The line is half of the first acceptance criterion and the rest of the
+  // block reads only details, so nothing else here would notice the rule
+  // reporting a constant. skill-portable-paths carries the same assertion for
+  // the same reason.
+  it("names the line the directive sits on, not the item's first line", async () => {
+    const body = "- item\n\n  <!-- vale off -->\n\n  Prose.";
+    const found = await findings("fx/v-line/SKILL.md", skill("name: v-line\ndescription: |\n  x", body), valeDirective);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [9],
+    );
+  });
+
   // markdownlint masks an HTML comment's content in params.lines, so a rule
   // reading them cannot tell a directive from any other comment. The context
   // comes off the token instead, and this is what would catch a regression to
