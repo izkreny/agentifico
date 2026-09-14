@@ -84,7 +84,7 @@ The directory match cannot decide the charset on its own, because a directory ma
 
 ## The bolded-run rule
 
-**`skill-bolded-runs`**: `workflows/new.md` owns the cap on consecutive list items that open with a bolded lead, and its reason; this is its mechanical face, reading the same items the continuation rule reads. A run is counted within one list, so a nested list neither extends nor breaks its parent's run, and the finding names the run's first item. Five is a figure measured against the tree this package ships from, at the 75th percentile of its runs.
+**`skill-bolded-runs`**: `workflows/new.md` owns the cap on consecutive list items that open with a bolded lead, and its reason; this is its mechanical face, reading the same items the continuation rule reads. A run is counted within one list, so a nested list neither extends nor breaks its parent's run, and the finding names the run's first item. Five is a figure measured against the tree this package ships from.
 
 **What it cannot decide is whether a run is members of one set or a section wearing bullets.** The shape is identical and the difference is meaning, so a report names the run and the writer chooses among the moves `workflows/new.md` gives each shape.
 
