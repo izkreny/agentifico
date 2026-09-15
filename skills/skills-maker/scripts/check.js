@@ -19,7 +19,7 @@ if (!files.length) {
   process.exit(1);
 }
 
-// The skills found are printed before the findings because a file count alone cannot tell a sweep that covered one skill of a package from one that covered all of them.
+// The skills found are named because a file count alone cannot tell a sweep that covered one skill of a package from one that covered all of them.
 const skills = files
   .filter(isSkillFile)
   .map((file) => path.relative(target, path.dirname(file)) || ".")
@@ -27,7 +27,7 @@ const skills = files
 console.log(skills.length ? `${skills.length} skill(s) found under ${target}` : `no skill found under ${target}`);
 for (const skill of skills) console.log(`  ${skill}`);
 
-// A constant because the branch reporting a Vale that could not start prints this heading too, and a rename reaching one site and not the other would land on the run whose reader most needs to recognise it.
+// A constant because the branch reporting a Vale that could not start prints this heading too, and a rename reaching one site and not the other would put a heading no other run uses on the run whose reader most needs to recognise it.
 const PROSE_RULES = "prose rules";
 
 // A count of zero prints too, because a reader who has to infer from silence that the class this skill exists to catch found nothing is the reader this grouping is for.

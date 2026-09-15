@@ -16,6 +16,7 @@ export function defects(fm) {
   // Only a value opening with a curly quote is pretending to be quoted, since an apostrophe inside a value is harmless and a block scalar is immune.
   if (!block && /^[“”‘’]/.test(raw)) bad.push("curly quotes are not YAML quotes");
   if (block) {
+    // A block scalar has no quotes to close and no plain-scalar comment to be cut at, so it reaches none of the style branches.
   } else if (raw.startsWith('"')) {
     // Anything after the closing quote but a comment is a parse error, and an unescaped inner quote is the usual way that happens.
     const m = value.slice(1).match(/^((?:[^"\\]|\\.)*)"(.*)$/);

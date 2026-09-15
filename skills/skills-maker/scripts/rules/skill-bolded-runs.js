@@ -1,4 +1,4 @@
-// A nested list is a list of its own, so it neither extends nor breaks its parent's run.
+// A nested list is a list of its own, so it neither extends nor breaks its parent's run, per the skill-bolded-runs entry in workflows/check.md.
 import { isList, items } from "./skill-continuations.js";
 
 export const CAP = 5;

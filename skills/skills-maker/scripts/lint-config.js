@@ -36,6 +36,6 @@ export const config = {
   default: true,
   // A paragraph is one unwrapped line here, so a line-length cap would flag every paragraph.
   MD013: false,
-  // No one rule fits what the files here open with, so which a file owes is the by-hand list's in workflows/check.md.
+  // No one rule fits what the files here open with, and which opening a given file owes is a judgement, so it sits in the by-hand list in workflows/check.md.
   MD041: false,
 };
