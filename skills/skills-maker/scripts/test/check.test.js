@@ -160,6 +160,8 @@ describe("check.js", () => {
     assert.match(r.out, /skill-description/);
     assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
     assert.match(r.out, /vale is not on PATH/);
+    const code = run(path.join(tmp, "code"), { ...process.env, PATH: path.join(tmp, "empty") });
+    assert.match(code.out, /2 files checked, \d+ issues, prose rules not run/);
   });
   it("a vale that refuses its configuration fails the run, and says so", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "refuses-bin") });

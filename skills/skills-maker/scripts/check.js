@@ -82,7 +82,8 @@ if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
       ? "vale is not on PATH: the prose rules did not run. Install Vale 3.21 or later, per workflows/check.md, and run the check again."
       : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`;
   report(PROSE_RULES, [], "not run");
-  console.log(`${valeFiles.length} files checked, ${issues} issues, prose rules not run`);
+  // The markdown files alone, since a code file's only reader is the process that did not start.
+  console.log(`${files.length} files checked, ${issues} issues, prose rules not run`);
   console.log(why);
   process.exit(1);
 }
