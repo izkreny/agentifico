@@ -153,7 +153,7 @@ git log --patch --since=<date> origin/main -- '*.md'
 
 **It gets a line of its own in that rule's `TRIP` list in `scripts/test/vale.test.js`, one only it trips.** The suite's per-token coverage proves a token fires somewhere on its rule's fixture, and where several tokens share a line, a token can pass on a neighbour's line. A line only it trips is what fails the once-per-line test when the token is removed, and that removal is how the line is watched failing before it is trusted, per *A check that has never been seen to fail is not evidence* in `workflows/new.md`.
 
-**Where the phrase has a legitimate use, that use goes in the guards fixture beside the trip list**, as a line the rule must leave alone. A guards line is what stops a later edit to the token from widening it past the record.
+**Where the phrase has a legitimate use, that use goes in the guards fixture beside the trip list**, as a line the rule must leave alone. A guards line is what stops a later edit to the token from widening it past the record. A finding the owner refused in its thread is the same evidence read the other way: the phrase it named goes into the rule's `exceptions` where a token already matches it, or into the guards fixture where none does, with the thread as its reason.
 
 **Then the check runs over this skill, and every place the token fires is fixed or excepted.** A true finding is fixed in the prose. A phrase that is right where it stands goes into the rule's `exceptions` with the reason beside it, never into a directive, per *The directive rule*.
 
