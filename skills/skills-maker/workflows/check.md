@@ -82,6 +82,12 @@ The directory match cannot decide the charset on its own, because a directory ma
 
 **What it cannot decide is whether the item has a heading level free to be promoted to.** That is the judgement `workflows/new.md` leaves with the writer, so a report from this rule names the item and the writer chooses between promoting it and unindenting it.
 
+## The bolded-run rule
+
+**`skill-bolded-runs`**: `workflows/new.md` owns the cap on consecutive list items that open with a bolded lead, and its reason; this is its mechanical face, reading the same items the continuation rule reads. A run is counted within one list, so a nested list neither extends nor breaks its parent's run, and the finding names the run's first item. Five is a figure measured against the tree this package ships from.
+
+**What it cannot decide is whether a run is members of one set or a section wearing bullets.** The shape is identical and the difference is meaning, so a report names the run and the writer chooses among the moves `workflows/new.md` gives each shape.
+
 ## The layout rule
 
 **`skill-layout`**: a `SKILL.md` with another `SKILL.md` in an ancestor directory under the target is a skill inside a skill. Some agents discover skills recursively and would read it as a broken skill, so an example quoted inside a skill's own tree is a finding rather than something the check tolerates. The search stops at the target.
@@ -98,12 +104,14 @@ The match is case-sensitive because Vale's is, so an uppercase directive, which 
 
 Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history, each named in the rule file by the finding or commit that removed it, so a token with no source is not there. A token added later carries its own source the same way, which is what keeps the list evidence rather than taste. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
 
-- **`Counts`**, for *Write sentences that survive change*: a count of adjacent content. An error. A cap is not matched, since a figure that constrains future content stays true when an item lands, and a count of things outside the document is not adjacent content, so the nouns a bare "both" may count are the ones the record carries rather than any plural.
-- **`Position`**, the other half of the same rule: a pointer by direction, a uniqueness claim, a recency claim, or an ordinal into the document's own list. An error. Whether a uniqueness claim is true by construction is a reading, and such a phrase is an exception in the rule file with its reason beside it.
-- **`History`**, for *Never write the file's own history*: the words that anchor a sentence to a moment rather than a reason. An error. A sentence that is history in substance with none of those words is the round's to read.
-- **`Banner`**, for *Put a version next to the claim it qualifies, never as a banner at the top*: a version, a date or a currency claim in a file's opening region, its opening paragraph read past the frontmatter and past a tools blockquote or heading. An error. A version beside the claim it qualifies further down is what the rule asks for and is out of the rule's reach by design; no review in this repository ever caught a banner, so its tokens are borrowed from published Vale styles and the shapes the tracker writes.
-- **`ParagraphLength`**, for *Cut every paragraph to its one new claim*: a body paragraph over 120 words, a figure measured against this package. A warning: the message says the paragraph is long enough to read for a second claim, and whether that claim is new is the reading the rule exists to prompt.
-- **`SkillSplit`** and **`SkillLength`**, for *Let size decide whether to split*: a `SKILL.md` past roughly 2,000 words of prose, where operations move to workflow files, and past roughly 3,500, the cap the spec's token budget allows. Warnings, since both figures are roughly, counted on Vale's prose metric rather than `wc -w`, which also counts code.
+| Rule | For | What it reports | Level | What stays out of its reach |
+| --- | --- | --- | --- | --- |
+| `Counts` | *Write sentences that survive change* | a count of adjacent content | error | A cap is not matched, since a figure that constrains future content stays true when an item lands, and a count of things outside the document is not adjacent content, so the nouns a bare "both" may count are the ones the record carries rather than any plural. |
+| `Position` | *Write sentences that survive change*, its other half | a pointer by direction, a uniqueness claim, a recency claim, or an ordinal into the document's own list | error | Whether a uniqueness claim is true by construction is a reading, and such a phrase is an exception in the rule file with its reason beside it. |
+| `History` | *Never write the file's own history* | the words that anchor a sentence to a moment rather than a reason | error | A sentence that is history in substance with none of those words is the round's to read. |
+| `Banner` | *Put a version next to the claim it qualifies, never as a banner at the top* | a version, a date or a currency claim in a file's opening region, its opening paragraph read past the frontmatter and past a tools blockquote or heading | error | A version beside the claim it qualifies further down is what the rule asks for and is out of the rule's reach by design; no review in this repository ever caught a banner, so its tokens are borrowed from published Vale styles and the shapes the tracker writes. |
+| `ParagraphLength` | *Cut every paragraph to its one new claim* | a body paragraph over 120 words, a figure measured against this package | warning | The message says the paragraph is long enough to read for a second claim, and whether that claim is new is the reading the rule exists to prompt. |
+| `SkillSplit`, `SkillLength` | *Let size decide whether to split* | a `SKILL.md` past roughly 2,000 words of prose, where operations move to workflow files, and past roughly 3,500, the cap the spec's token budget allows | warning | Both figures are roughly, counted on Vale's prose metric rather than `wc -w`, which also counts code. |
 
 ## The suite
 

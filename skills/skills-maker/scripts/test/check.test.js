@@ -139,13 +139,15 @@ before(() => {
   fs.appendFileSync(path.join(tmp, "long", "SKILL.md"), `\n${long}\n`);
 
   // A skill carrying a finding of every class at once: a truncated description
-  // for the contract rules, a list item over the continuation cap for the
-  // prose-shape rule, a trailing space for markdownlint's defaults, and a
-  // positional pointer for Vale. The grouping is only legible on a target that
-  // reaches every heading, so it is watched here rather than on a clean one.
+  // for the contract rules, a list item over the continuation cap and a run
+  // over the bolded-lead cap for the prose-shape rules, a trailing space for
+  // markdownlint's defaults, and a positional pointer for Vale. The grouping is
+  // only legible on a target that reaches every heading, so it is watched here
+  // rather than on a clean one.
   const classes = path.join(tmp, "classes");
   mk(classes, "name: classes\ndescription: review PR #N and more");
   fs.appendFileSync(path.join(classes, "SKILL.md"), "\nthe example above says so. \n\n- lead\n\n  one\n\n  two\n");
+  fs.appendFileSync(path.join(classes, "SKILL.md"), `\n${"- **lead.** a run past the cap\n".repeat(7)}`);
 
   // Markdown under a target that keeps no skill: a different answer from the
   // empty target, which is a wrong target rather than a legitimate one.
@@ -269,8 +271,9 @@ describe("check.js", () => {
     assert.equal(r.code, 1);
     assert.match(r.out, /^skill rules: 2$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-description .*TRUNCATED/m);
-    assert.match(r.out, /^prose shape: 1$/m);
+    assert.match(r.out, /^prose shape: 2$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-continuations .*cap is 1/m);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bolded-runs .*cap is 5/m);
     assert.match(r.out, /^general lint: 1$/m);
     assert.match(r.out, /^ {2}SKILL\.md:\d+ MD009/m);
     assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/m);

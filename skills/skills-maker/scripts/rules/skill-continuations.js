@@ -5,7 +5,7 @@
 // children between one prefix and the next, its paragraphs are the paragraphs
 // in that run, and a nested list, a fence, a table or a blockquote in the run
 // is a different token type that counts for nothing.
-const isList = (t) => t.type === "listOrdered" || t.type === "listUnordered";
+export const isList = (t) => t.type === "listOrdered" || t.type === "listUnordered";
 
 function walk(tokens, fn) {
   for (const t of tokens) {
@@ -16,21 +16,31 @@ function walk(tokens, fn) {
 
 const paragraphOf = (t) => (t.type === "content" ? t.children.find((c) => c.type === "paragraph") : undefined);
 
+const opensBold = (p) => p?.children?.[0]?.type === "strong";
+
+// An item's text may start on the line after its marker, and a container's own
+// prefix or indent - a blockquote's, a footnote's - sits between them there, so
+// whitespace is matched by token family rather than by name. listItemPrefix
+// is caught before this test runs.
+const isSpace = (t) => /^lineEnding|Prefix$|Indent$/.test(t.type);
+
 // The lead is whatever block opens an item, paragraph or not, so a paragraph
-// after it is a continuation whatever the item began with.
+// after it is a continuation whatever the item began with. skill-bolded-runs
+// reads the same items, so how an item is found stays in this one function.
 export function items(list) {
   const out = [];
   let item = null;
   let lead = false;
   for (const c of list.children) {
     if (c.type === "listItemPrefix") {
-      item = { line: c.startLine, continuations: [] };
+      item = { line: c.startLine, boldLead: false, continuations: [] };
       out.push(item);
       lead = true;
       continue;
     }
-    if (!item || c.type === "listItemIndent") continue;
+    if (!item || isSpace(c)) continue;
     if (lead) {
+      item.boldLead = opensBold(paragraphOf(c));
       lead = false;
       continue;
     }
@@ -39,8 +49,6 @@ export function items(list) {
   }
   return out;
 }
-
-const opensBold = (p) => p.children?.[0]?.type === "strong";
 
 export default {
   names: ["skill-continuations"],

@@ -2,6 +2,7 @@
 // module rather than a config file so that nothing under a target is ever read
 // as configuration: the tree being audited does not get to choose which rules
 // judge it, and a copy of this package under the target is never imported.
+import skillBoldedRuns from "./rules/skill-bolded-runs.js";
 import skillContinuations from "./rules/skill-continuations.js";
 import skillDescription from "./rules/skill-description.js";
 import skillFrontmatterParsed from "./rules/skill-frontmatter-parsed.js";
@@ -30,7 +31,7 @@ const contractRules = [
   skillReferencedPaths,
   skillValeDirective,
 ];
-const proseShapeRules = [skillContinuations];
+const proseShapeRules = [skillContinuations, skillBoldedRuns];
 export const rules = [...contractRules, ...proseShapeRules];
 
 // check.js asks these rather than testing a name itself, so the membership a
