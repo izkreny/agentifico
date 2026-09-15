@@ -133,6 +133,8 @@ const TRIP = {
     "Take whichever of the two applies.",
     "Two of them change what an agent does, and both sources are named.",
     "Three cures.",
+    "Its suite and its check, both needing a one-time install, run locally.",
+    "Both, like every validator with a real parser, accept the truncation.",
   ],
   Position: [
     "Per the escape above, the row below is what the table means.",
@@ -146,6 +148,9 @@ const TRIP = {
     "This is the one that works.",
     "The first is a check a tool could answer.",
     "The keys are stated here in full.",
+    "The substitution names the only plan still being written.",
+    "The rule governs this step's read and nothing later.",
+    "This skill checks the raw line instead, so the trap is visible to it alone.",
   ],
   History: [
     "This reverses an earlier rule that capped the watch.",
@@ -164,6 +169,8 @@ const TRIP = {
     "The rule has been moved to check.md and the script was dropped from the package.",
     "The analysis stands as it was written rather than left standing.",
     "The criterion first said the field stays; the rebuild dropped that rule.",
+    "Reading them back asks for a permanent ignore span, which is what the `scripts/*` span was.",
+    "How a list grows afterwards is #130's to document.",
   ],
 };
 const tripFixture = (rule) => `# Title\n\n${TRIP[rule].join("\n")}\n`;
@@ -187,6 +194,7 @@ describe("Counts, a count of adjacent content", () => {
         'The rule quotes "the four rules below" as its own bad example.',
         "Read both, then report both in the handoff, in both directions.",
         "A cap of `the two files` inside a code span is code.",
+        "Both are read, and each command needs Vale.",
       ].join("\n"),
     );
     expectClean(found, "Counts");
@@ -211,6 +219,7 @@ describe("Position, a claim of position or uniqueness", () => {
         "A footer that floats above the page is CSS, and the first of these that is set wins.",
         "The sections named under *Never counted* are excluded; `the table above` is code.",
         "Keep the shared layer in one place.",
+        "The check leaves it alone, and a plan that names nothing later than its own branch is fine.",
       ].join("\n"),
     );
     expectClean(found, "Position");
@@ -234,6 +243,9 @@ describe("History, the file's own history", () => {
         "A claim about a rule that is gone reads as a rule about the present.",
         "The flag is used to name the target, now that the walk is a glob.",
         "A premise that has stopped being true is a defect; the check runs still, and the current branch is read.",
+        "The log records what the flag was set to, which is what the check reads, and #130 is the issue to read.",
+        "The flag names the target, which is what the config says. A test was added for it.",
+        "So which is what the config does? A test was added for it, which is what the plan said! A line was cut.",
       ].join("\n"),
     );
     expectClean(found, "History");

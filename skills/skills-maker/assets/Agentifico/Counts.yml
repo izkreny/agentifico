@@ -38,3 +38,9 @@ tokens:
   # record and the first run over plugins/gh-solo carry, since a bare "both"
   # also counts things no edit can add to, "both directions" among them.
   - 'both (?:the |these |those )?(?:checks|workflows|verdicts|refusals|passes|rules|files|sections|steps|entries|bullets|items|paragraphs|lists|tables|halves|forms|cases|reads|axes|loops|surfaces|conditions|sides|skills|threads|variables|results|lines|jobs|inputs|questions|addresses|counts|copies|names|fields|keys|manifests|commands|sources|reasons|tests|places|axes)\b'
+  # "both needing a one-time npm ci and Vale" PR 155 RF1, 312f745: the count
+  # went false the moment a third command, the lint, landed beside the two.
+  - 'both needing'
+  # "Both, like every validator that parses frontmatter" 783e1a9, counting
+  # the two neighbours the paragraph before it enumerated.
+  - '^both(?=,)'

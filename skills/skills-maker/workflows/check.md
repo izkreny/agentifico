@@ -114,12 +114,48 @@ Vale runs the `Agentifico` style under `assets/`, which is one rule file per mec
 
 | Rule | For | What it reports | Level | What stays out of its reach |
 | --- | --- | --- | --- | --- |
-| `Counts` | *Write sentences that survive change* | a count of adjacent content | error | A cap is not matched, since a figure that constrains future content stays true when an item lands, and a count of things outside the document is not adjacent content, so the nouns a bare "both" may count are the ones the record carries rather than any plural. |
+| `Counts` | *Write sentences that survive change* | a count of adjacent content | error | A cap is not matched, since a figure that constrains future content stays true when an item lands, and a count of things outside the document is not adjacent content, so a bare "both" is matched only in the shapes the record carries: before a recorded noun, opening a line before a comma, and before "needing". |
 | `Position` | *Write sentences that survive change*, its other half | a pointer by direction, a uniqueness claim, a recency claim, or an ordinal into the document's own list | error | Whether a uniqueness claim is true by construction is a reading, and such a phrase is an exception in the rule file with its reason beside it. |
 | `History` | *Never write the file's own history* | the words that anchor a sentence to a moment rather than a reason | error | A sentence that is history in substance with none of those words is the round's to read. |
 | `Banner` | *Put a version next to the claim it qualifies, never as a banner at the top* | a version, a date or a currency claim in a file's opening region, its opening paragraph read past the frontmatter and past a tools blockquote or heading | error | A version beside the claim it qualifies further down is what the rule asks for and is out of the rule's reach by design; no review in this repository ever caught a banner, so its tokens are borrowed from published Vale styles and the shapes the tracker writes. |
 | `ParagraphLength` | *Cut every paragraph to its one new claim* | a body paragraph over 120 words, a figure measured against this package | warning | The message says the paragraph is long enough to read for a second claim, and whether that claim is new is the reading the rule exists to prompt. |
 | `SkillSplit`, `SkillLength` | *Let size decide whether to split* | a `SKILL.md` past roughly 2,000 words of prose, where operations move to workflow files, and past roughly 3,500, the cap the spec's token budget allows | warning | Both figures are roughly, counted on Vale's prose metric rather than `wc -w`, which also counts code. |
+
+## How a phrase list grows
+
+A phrase rule's tokens are evidence, per *The prose rules*, and the records they were mined from keep growing with every merged pull request. Growing a list is a query over those records and a judgement on each phrase they return, run from the repository that owns the rules.
+
+### The sources
+
+**A finding is a review comment carrying `::RF{n}::`**, which is how a `pr-flow` review round posts one, and a finding on prose is one whose `path` names a markdown file. Read the pull requests merged since the last run, then the review comments on each. `gh pr list` cuts its output at `--limit` without saying so, so the count it returns is read against that figure, and the figure is raised when the count reaches it:
+
+```bash
+gh pr list --state merged --limit 200 --search "merged:>=<date>" --json number --jq '.[].number'
+gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate --jq '.[] | select(.path | endswith(".md")) | select(.body | test("::RF[0-9]+::")) | "\(.path):\(.line)\n\(.body)\n"'
+```
+
+**A fix commit's diff carries the phrase removed and the phrase written in its place**, which is a token and its guards line at once. Read every prose commit from a tag or a date onward; the fix commits are the ones whose body cites a finding, and the range between two runs is short enough to read whole:
+
+```bash
+git log --patch <tag>..origin/main -- '*.md'
+git log --patch --since=<date> origin/main -- '*.md'
+```
+
+### Which rule a phrase belongs to
+
+**A phrase belongs to the rule whose `workflows/new.md` heading catches it**, and each rule's `message` opens on that heading. A count of adjacent content, where adding one more item makes the sentence false, is `Counts`. A claim an edit anywhere in the document can falsify is `Position`. A sentence anchored to a moment rather than a reason is `History`. A version or date claim in a file's opening region is `Banner`; the length rules hold no phrases.
+
+**A phrase that belongs to none is reported, with its source, and gets no rule.** A rule whose message names no heading enforces nothing this skill states, and a rule enters `workflows/new.md` before it enters `assets/`.
+
+### How a token lands
+
+**A token lands in the rule file under `assets/Agentifico/`, under a comment naming the finding or commit it came from**, in the form the file uses. A token with no source is not there, per *The prose rules*.
+
+**It gets a line of its own in that rule's `TRIP` list in `scripts/test/vale.test.js`, one only it trips.** The suite's per-token coverage proves a token fires somewhere on its rule's fixture, and where several tokens share a line, a token can pass on a neighbour's line. A line only it trips is what fails the once-per-line test when the token is removed, and that removal is how the line is watched failing before it is trusted, per *A check that has never been seen to fail is not evidence* in `workflows/new.md`.
+
+**Where the phrase has a legitimate use, that use goes in the guards fixture beside the trip list**, as a line the rule must leave alone. A guards line is what stops a later edit to the token from widening it past the record. A finding the owner refused in its thread is the same evidence read the other way: the phrase it named goes into the rule's `exceptions` where a token already matches it, or into the guards fixture where none does, with the thread as its reason.
+
+**Then the check runs over this skill, and every place the token fires is fixed or excepted.** A true finding is fixed in the prose. A phrase that is right where it stands goes into the rule's `exceptions` with the reason beside it, never into a directive, per *The directive rule*.
 
 ## The suite
 
