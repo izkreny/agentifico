@@ -107,7 +107,7 @@ const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output
 if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
   const why =
     vale.error?.code === "ENOENT"
-      ? "vale is not on PATH: the prose rules did not run. Install Vale 3.20 or later, per workflows/check.md, and run the check again."
+      ? "vale is not on PATH: the prose rules did not run. Install Vale 3.21 or later, per workflows/check.md, and run the check again."
       : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`;
   report(PROSE_RULES, [], "not run");
   console.log(`${files.length} files checked, ${issues} issues, prose rules not run`);

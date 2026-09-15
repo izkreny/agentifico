@@ -71,7 +71,7 @@ const expectHit = (found, rule, line) =>
   );
 const expectClean = (found, rule) => assert.equal(only(found, rule).length, 0, `wanted no ${rule}, got ${JSON.stringify(only(found, rule))}`);
 
-// A paragraph of n distinct words, so a word-boundary token counts each once.
+// A paragraph of n words, so the metric reports n.
 const words = (n) => Array.from({ length: n }, (_, i) => `w${i}`).join(" ");
 // A body of n words spread over short paragraphs, none long enough to trip
 // the paragraph cap, so a file-length fixture trips the file rules alone.
@@ -82,7 +82,7 @@ describe("ParagraphLength, the one-claim helper", () => {
     const found = alerts("para-over.md", `# Title\n\nShort.\n\n${words(121)}\n`);
     expectHit(found, "ParagraphLength", 5);
     assert.equal(only(found, "ParagraphLength")[0].severity, "warning");
-    assert.match(only(found, "ParagraphLength")[0].message, /121 words/);
+    assert.match(only(found, "ParagraphLength")[0].message, /121\.00 words/);
   });
   it("a paragraph at the cap is not", () => {
     expectClean(alerts("para-at.md", `# Title\n\n${words(120)}\n`), "ParagraphLength");

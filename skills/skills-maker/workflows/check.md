@@ -14,7 +14,7 @@ The check runs on Node 22 or later with what `package.json` declares, installed 
 npm --prefix <skill-dir> ci
 ```
 
-The prose rules run through Vale, 3.20 or later, on `PATH`. Its [installation page](https://docs.vale.sh/topics/installation) gives a route per machine; a pinned version through a tool manager is the one that keeps the version the rules were written against.
+The prose rules run through Vale, 3.21 or later, on `PATH`. Its [installation page](https://docs.vale.sh/topics/installation) gives a route per machine; a pinned version through a tool manager is the one that keeps the version the rules were written against.
 
 ## The check
 
@@ -120,6 +120,8 @@ Vale runs the `Agentifico` style under `assets/`, which is one rule file per mec
 | `Banner` | *Put a version next to the claim it qualifies, never as a banner at the top* | a version, a date or a currency claim in a file's opening region, its opening paragraph read past the frontmatter and past a tools blockquote or heading | error | A version beside the claim it qualifies further down is what the rule asks for and is out of the rule's reach by design; no review in this repository ever caught a banner, so its tokens are borrowed from published Vale styles and the shapes the tracker writes. |
 | `ParagraphLength` | *Cut every paragraph to its one new claim* | a body paragraph over 120 words, a figure measured against this package | warning | The message says the paragraph is long enough to read for a second claim, and whether that claim is new is the reading the rule exists to prompt. |
 | `SkillSplit`, `SkillLength` | *Let size decide whether to split* | a `SKILL.md` past roughly 2,000 words of prose, where operations move to workflow files, and past roughly 3,500, the cap the spec's token budget allows | warning | Both figures are roughly, counted on Vale's prose metric rather than `wc -w`, which also counts code. |
+
+**No rule caps a section, by decision rather than by omission.** Vale can measure one, with a `metric` scoped to `doc(section:has(> h2))`, and a published style for instruction files caps such a section at 300 words. The selector nests, so an h2 section is measured with every h3 section inside it, and on this package the sections it would name are the ones already split into subsections, which is the shape a section takes when it is given headings rather than cut. A rule file here is the mechanical half of a rule `workflows/new.md` states, and that file states no section cap, so a section grown past its claim is the sweep's to read under *What a sweep still looks for by hand*.
 
 ## How a phrase list grows
 
