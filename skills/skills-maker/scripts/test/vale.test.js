@@ -23,7 +23,7 @@ before(() => {
   ini = path.join(tmp, ".vale.ini");
   fs.writeFileSync(
     ini,
-    `StylesPath = ${styles}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = Agentifico\n${tokenIgnores}\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n\n[**/skill-*.md]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = YES\nAgentifico.SkillLength = YES\n`,
+    `StylesPath = ${styles}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = Agentifico\n${tokenIgnores}\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n\n[**/skill-*.md]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = YES\nAgentifico.SkillLength = YES\n\n[*.{js,py}]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n`,
   );
 });
 after(() => fs.rmSync(tmp, { recursive: true, force: true }));
@@ -254,6 +254,61 @@ describe("Banner, a version or date banner in the opening lines", () => {
       "---\nname: x\ndescription: Use when.\ncompatibility: Requires Vale 3.20 or later, verified against 3.20.0.\n---\n\n> **Tools used:** none\n\nA clean opening paragraph.\n\nThe field is read (Claude Code 2.1.252), and as of 2026 the docs say so; this was tested with a real parser.\n",
     );
     expectClean(found, "Banner");
+  });
+});
+
+const TWO = "The first sentence says why. The second narrates the line.";
+// The directive per tool is written as its tool expects it, since the exception is that none of them ends a sentence.
+const DIRECTIVES = {
+  js: "// biome-ignore lint/suspicious/noExplicitAny: the shape comes from the API and is not ours to type\nconst a = 1;\n/* eslint-disable no-console */\nconsole.log(a);\n",
+  py: "x = 1  # noqa\ny = 2  # type: ignore\n",
+};
+
+describe("CommentSentences, a comment holding a second sentence", () => {
+  it("fires on a line comment in each file kind, with the count, as an error", () => {
+    const js = alerts("comment-two.js", `// ${TWO}\nconst a = 1;\n`);
+    expectHit(js, "CommentSentences", 1);
+    assert.equal(only(js, "CommentSentences")[0].severity, "error");
+    assert.match(only(js, "CommentSentences")[0].message, /2 sentence ends/);
+    expectHit(alerts("comment-two.py", `x = 1\n# ${TWO}\ny = 2\n`), "CommentSentences", 2);
+  });
+  it("fires on a docstring", () => {
+    expectHit(alerts("docstring-two.py", `def f():\n    """${TWO}"""\n    return 1\n`), "CommentSentences", 2);
+  });
+  it("reads a run of line comments as one comment", () => {
+    expectHit(alerts("comment-run.js", "// The first sentence says why.\n// The second narrates the line.\nconst a = 1;\n"), "CommentSentences", 1);
+  });
+  it("leaves a tool directive, an abbreviation, a path and a string literal alone", () => {
+    expectClean(alerts("comment-directives.js", DIRECTIVES.js), "CommentSentences");
+    expectClean(alerts("comment-directives.py", DIRECTIVES.py), "CommentSentences");
+    const guards = alerts(
+      "comment-guards.js",
+      `// One sentence, e.g. this one, naming workflows/new.md and Vale 3.21.0, i.e. the version the rules were written against.\nconst s = "${TWO}";\n`,
+    );
+    expectClean(guards, "CommentSentences");
+  });
+});
+
+describe("CommentLength, the comment cap", () => {
+  it("fires on a comment over the cap in each file kind, with its count, as a warning", () => {
+    const js = alerts("comment-long.js", `// ${words(46)}\nconst a = 1;\n`);
+    expectHit(js, "CommentLength", 1);
+    assert.equal(only(js, "CommentLength")[0].severity, "warning");
+    assert.match(only(js, "CommentLength")[0].message, /46\.00 words/);
+    expectHit(alerts("comment-long.py", `# ${words(46)}\nx = 1\n`), "CommentLength", 1);
+  });
+  it("leaves a comment at the cap, a directive and a string literal alone", () => {
+    expectClean(alerts("comment-at.js", `// ${words(45)}\nconst a = 1;\n`), "CommentLength");
+    expectClean(alerts("comment-directives.js", DIRECTIVES.js), "CommentLength");
+    expectClean(alerts("comment-long-literal.js", `const s = "${words(46)}";\n`), "CommentLength");
+  });
+});
+
+describe("the comment rules and markdown", () => {
+  it("neither reads a markdown file, its HTML comment included", () => {
+    const found = alerts("comment.md", `# Title\n\n<!-- ${TWO} ${words(46)} -->\n\n${TWO} ${words(46)}\n`);
+    expectClean(found, "CommentSentences");
+    expectClean(found, "CommentLength");
   });
 });
 

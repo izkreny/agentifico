@@ -1,0 +1,16 @@
+# The counting half of the same rule as CommentSentences: a helper that points
+# a reviewer at a comment long enough to be read for a second claim, not a
+# verdict that it carries one, which is why it is a warning as ParagraphLength
+# is. A scoped metric measures each comment on its own with Vale's words
+# formula, a run of line comments counting as one. The cap is calibrated
+# against this package by that count on 2026-09-15: its 118 comments ran to a
+# median of 23 words and a maximum of 44, so 45 sits one word above the
+# longest and names nothing in the package. A tool directive with its reason
+# beside it sits far under it.
+extends: metric
+message: "A comment inside code is one sentence saying why: this one runs to %s words, so read it for a second claim."
+link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
+level: warning
+scope: comment
+formula: words
+condition: "> 45"

@@ -12,7 +12,10 @@ const valeConfig = path.join(here, "..", ".vale.ini");
 const target = path.resolve(process.argv[2] ?? ".");
 
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
-const files = (await globby(["**/*.md", "!**/node_modules/**"], { cwd: target, absolute: true })).sort();
+const found = await globby(["**/*.md", "**/*.js", "**/*.py", "!**/node_modules/**"], { cwd: target, absolute: true });
+const files = found.filter((file) => file.endsWith(".md")).sort();
+// A code file reaches Vale alone, which reads it as its comments and docstrings, and never markdownlint.
+const codeFiles = found.filter((file) => !file.endsWith(".md")).sort();
 
 if (!files.length) {
   console.log(`no markdown file found under ${target}: nothing was checked`);
@@ -70,7 +73,8 @@ report("prose shape", proseShapeFindings);
 report("general lint", generalFindings);
 
 // --no-global drops the user's own configuration and default styles directory, where a style of the same name would shadow this one.
-const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...files], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+const valeFiles = [...files, ...codeFiles];
+const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...valeFiles], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 // A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
 if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
   const why =
@@ -78,7 +82,7 @@ if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
       ? "vale is not on PATH: the prose rules did not run. Install Vale 3.21 or later, per workflows/check.md, and run the check again."
       : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`;
   report(PROSE_RULES, [], "not run");
-  console.log(`${files.length} files checked, ${issues} issues, prose rules not run`);
+  console.log(`${valeFiles.length} files checked, ${issues} issues, prose rules not run`);
   console.log(why);
   process.exit(1);
 }
@@ -89,7 +93,7 @@ const alerts = vale.stdout.trim() ? JSON.parse(vale.stdout) : {};
 let warnings = 0;
 let proseIssues = 0;
 const proseFindings = [];
-for (const file of files) {
+for (const file of valeFiles) {
   const rel = path.relative(target, file);
   for (const a of alerts[file] ?? []) {
     if (a.Severity === "error") {
@@ -100,5 +104,5 @@ for (const file of files) {
   }
 }
 report(PROSE_RULES, proseFindings, proseFindings.length ? `${proseIssues} issues, ${warnings} warnings` : "none");
-console.log(`${files.length} files checked, ${issues} issues, ${warnings} warnings`);
+console.log(`${valeFiles.length} files checked, ${issues} issues, ${warnings} warnings`);
 process.exit(issues ? 1 : 0);
