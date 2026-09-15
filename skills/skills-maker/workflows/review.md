@@ -58,7 +58,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **Enumerations that end in "and anything else".** The list was doing no work. Cut it to the rule.
 
-**A comment inside code that narrates the code, or tells its history.** *A comment inside code exists only where the solution is unconventional, and is one sentence saying why* in `workflows/new.md` owns the rule; what reading decides is whether the line the comment sits on is unconventional enough to earn one, and whether the sentence gives a reason rather than a description, since a regex reads neither.
+**A comment inside code that narrates the code, or tells its history.** *A comment inside code exists only where the solution is unconventional, and is one sentence saying why* in `workflows/new.md` owns the rule, and `CommentSentences` and `CommentLength` under `assets/` are its mechanical half, counting a comment's sentence ends and its words; what reading decides is whether the line the comment sits on is unconventional enough to earn one, and whether the sentence gives a reason rather than a description, since a regex reads neither.
 
 **Rationale that restates the rule.** "Never do X. Doing X is bad." The second sentence should say what breaks, or go. Over-writing clusters where the author was least sure, so a section that reads as an essay is also the section to check for a defect underneath it.
 
