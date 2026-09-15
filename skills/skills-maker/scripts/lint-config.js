@@ -8,6 +8,9 @@ import skillFrontmatterParsed from "./rules/skill-frontmatter-parsed.js";
 import skillInvocation from "./rules/skill-invocation.js";
 import skillLayout from "./rules/skill-layout.js";
 import skillName from "./rules/skill-name.js";
+import skillPortablePaths from "./rules/skill-portable-paths.js";
+import skillReadme from "./rules/skill-readme.js";
+import skillReferencedPaths from "./rules/skill-referenced-paths.js";
 
 // One array per printed class, so a rule added later is filed by answering
 // which heading it belongs under rather than by remembering a second list.
@@ -15,7 +18,16 @@ import skillName from "./rules/skill-name.js";
 // prose-shape rules judge how a file lays its prose out, which a reader sees
 // and no agent is misled by. Burying a contract finding under prose-shape
 // ones is what the grouping prevents.
-const contractRules = [skillDescription, skillFrontmatterParsed, skillName, skillInvocation, skillLayout];
+const contractRules = [
+  skillDescription,
+  skillFrontmatterParsed,
+  skillName,
+  skillInvocation,
+  skillLayout,
+  skillReadme,
+  skillPortablePaths,
+  skillReferencedPaths,
+];
 const proseShapeRules = [skillContinuations];
 export const rules = [...contractRules, ...proseShapeRules];
 

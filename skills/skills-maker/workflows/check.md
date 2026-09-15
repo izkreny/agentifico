@@ -50,6 +50,20 @@ It holds `compatibility` to the specification's own ceiling of 500 characters th
 
 It reads every key rather than the description alone, because a space and a hash inserted anywhere in the frontmatter drops the tail of whatever key it lands in. Two shapes are left alone: a value the parser reads as something other than text, which belongs to the rule that owns it, and a value whose text begins on the next line, which has nothing on its own key line to compare.
 
+## The README and path rules
+
+**`skill-readme`** is anchored to `SKILL.md` rather than to the README, because a README that does not exist is never a file markdownlint visits. It reports a missing `README.md` beside a `SKILL.md`, and one that carries no install form. Which forms count is `workflows/new.md`'s to state, under *How it is installed*, and the rule reads that list rather than inventing one.
+
+**`skill-portable-paths`** reads the token tree and reports a path absolute to one machine: a code span, a line inside a fenced block, or a link destination opening '/home/', '/Users/' or a drive letter. Prose that mentions a home directory in words is not a path, which is why the rule never reads a raw line. A `~/` path passes, and a URL is not a drive letter: `https://` carries a letter, a colon and a slash too, so the drive-letter branch refuses one preceded by a letter.
+
+**`skill-referenced-paths`** reports a code span in prose that names a file and resolves against none of the owning skill, the file's own directory and the target root. Fenced content is never read, because a fence carries a command to run rather than a reference into this tree. The span predicate and the resolution bases come from 'plugins/gh-solo/skills/pr-flow/scripts/docs-check.py', cited in `scripts/rules/paths.js` so both stay in step by reference; what does not carry over is that script's `--ignore`, so a span naming a file this tree does not hold is reported rather than silenced.
+
+**Which spans count as paths**, so a reader can tell a finding from a span the rule was never going to read: one ending in a known file extension, or one ending in a slash, which names a directory. A span carrying a glob, a placeholder, a URL scheme, a space or a `..` is not a path, nor is one opening with `-`, `#`, `@` or a slash. That is what keeps a branch name, a slash command and an `owner/repo` slug out of the findings, and it is why an absolute path is invisible here and belongs to `skill-portable-paths` instead.
+
+**A path the target cannot resolve, and is not meant to, goes in single quotes.** That covers a file nobody has written and a file outside the tree being checked, and it works because the rules read backticked spans only, so a quoted one is invisible to them. '.agents/gh-solo.md' states the narrower version for a plan naming a file its branch will create.
+
+**Write a path that leaves the skill's own tree as `~/`-relative.** It is portable, it names a file no checkout can resolve, and neither path rule reports one.
+
 ## The name rule
 
 **`skill-name`**: every skill's frontmatter `name` must match its own directory, and must be what the specification allows a name to be - at most 64 characters of lowercase alphanumerics joined by single hyphens, so no leading, trailing or doubled hyphen.
@@ -102,10 +116,7 @@ Every assertion in it is held to *A check that has never been seen to fail is no
 These are the faces of the authoring rules in `workflows/new.md`, which owns each rule and its reason, that no rule in this file decides, so a sweep reads for them:
 
 - **`argument-hint` against the routing table.** Every advertised verb routes somewhere, and every route is advertised.
-- **A `README.md` exists, and names how the skill is installed.** Both are sweepable: the file is there or it is not, and a grep for an install heading or command says whether a reader who wants the skill can get it.
-- **Referenced files exist.** A router pointing at `workflows/foo.md` that was never written fails only when that path is taken, which may be months later.
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
-- **Portable paths.** Nothing absolute to one machine's home directory; skill-relative or `~/`-relative instead.
 - **The opening line of every file.** `MD041` is off because the files here open with different things and no one rule fits them all: a skill file and a workflow with the tools blockquote, per the layout `workflows/new.md` states, a `README.md` with whatever it is written to open with, a heading or a byline, and a file under `references/` with a heading. Which of those a given file owes is what a sweep reads for, and a repository's own convention for that opening is the authority on its own files: `workflows/export.md` states why, which is that the skill may practise its author's conventions and must not require them.
 - **The judgement half of every prose rule.** A regex catches the wording of a defect and never its substance, so a clean prose run says only that the recorded phrasings are absent.
 

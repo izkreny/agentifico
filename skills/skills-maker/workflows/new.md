@@ -66,6 +66,8 @@ The failure it prevents, stated concretely. A README that cannot name one usuall
 
 The exact command, copyable. Required even for a skill that never leaves the machine it was written on, where it is the canonical path and the symlink rather than a manager command: a reader who cannot install it cannot use it.
 
+Give the section a heading opening with `install`, `installation`, `setup` or `getting started`, or put the command in a fenced block: `skills add`, `npm install`, `npm ci`, `mise use`, `claude plugin install`, `git clone` or `ln -s`. Reaching for a form this list does not name means adding it here first.
+
 #### How it is invoked
 
 Whether it fires on its own or has to be typed, and for a routing skill every argument it accepts. A small table works, and a diagram of the argument-to-workflow map says the routing faster than prose.

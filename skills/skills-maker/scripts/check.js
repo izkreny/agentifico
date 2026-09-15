@@ -54,8 +54,13 @@ const report = (label, lines, summary = lines.length || "none") => {
 };
 
 // Without the target the layout rule would walk past it and call a skill
-// nested under someone else's tree a defect of this one.
-const results = await lint({ files, customRules: rules, config: { ...config, "skill-layout": { root: target } } });
+// nested under someone else's tree a defect of this one, and the referenced-path
+// rule would resolve a span against a tree nobody asked it to read.
+const results = await lint({
+  files,
+  customRules: rules,
+  config: { ...config, "skill-layout": { root: target }, "skill-referenced-paths": { root: target } },
+});
 
 // A pass per markdownlint class, in file order, every one printed before Vale
 // runs so that a structural finding is never withheld by a prose linter that

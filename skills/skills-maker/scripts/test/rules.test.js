@@ -15,8 +15,9 @@ import description from "../rules/skill-description.js";
 import parsed from "../rules/skill-frontmatter-parsed.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
+import portablePaths from "../rules/skill-portable-paths.js";
 
-const RULES = [description, parsed, name, invocation, continuations];
+const RULES = [description, parsed, name, invocation, continuations, portablePaths];
 
 // Lints one string as the file at `path`, with only the named rules on, and
 // returns each finding as its rule, line and detail.
@@ -349,5 +350,50 @@ describe("skill-continuations", () => {
       [3, "cap"],
       [7, "bold"],
     ]);
+  });
+});
+
+describe("skill-portable-paths", () => {
+  // A path is read out of the token tree, so the first pair is the whole point:
+  // the same characters are a finding inside a code span and nothing at all in
+  // a sentence, where no reader copies them anywhere.
+  const cases = [
+    ["t-span", "A span `/home/izkreny/notes.md` here.", "/home/izkreny/notes.md"],
+    ["t-fenced", "```bash\ncat /home/izkreny/notes.md\n```", "/home/izkreny/notes.md"],
+    ["t-link", "A [note](/Users/izkreny/notes.md) here.", "/Users/izkreny/notes.md"],
+    ["t-drive", "A span `C:\\Users\\izkreny\\notes.md` here.", "C:\\Users\\izkreny\\notes.md"],
+    ["good-prose", "The skill reads /home/izkreny/notes.md in prose, where nobody copies it out.", null],
+    ["good-tilde", "A span `~/.agents/skills/foo/SKILL.md` here.", null],
+    ["good-relative", "A span `workflows/new.md` and a [link](references/managing.md).", null],
+    ["good-skill-dir", "A span `<skill-dir>/scripts/check.js` here.", null],
+    // A URL is not a path absolute to one machine, and the `s:/` of `https://`
+    // is a letter, a colon and a slash. Found by running the rule over this
+    // package, where it reported every link in the README.
+    ["good-url", "A [link](https://skills.sh) and a span `https://docs.vale.sh/topics/installation`.", null],
+    // A URL path can carry /home/ exactly as a filesystem path can, which the
+    // drive-letter lookbehind alone did not cover.
+    ["good-url-home", "A [link](https://example.test/home/izkreny/notes.md) here.", null],
+    // An absolute path is this rule's, so skill-referenced-paths must not also
+    // try to resolve a drive-lettered span: `paths.js` refuses it there.
+    ["t-drive-span", "A span `D:/work/notes.md` here.", "D:/work/notes.md"],
+    // The example-path case: a path quoted as what never to write. Single
+    // quotes are the answer workflows/check.md states, and they work because
+    // the rule reads backticked spans and link destinations only.
+    ["good-quoted-example", "Never write '/home/izkreny/notes.md'; write the `~/` form.", null],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), portablePaths);
+      if (want) expectDetail(found, "skill-portable-paths", want);
+      else expectClean(found, "skill-portable-paths");
+    });
+  }
+  it("names the line the path sits on, not the block's first line", async () => {
+    const body = "intro\n\n```bash\necho one\ncat /home/izkreny/notes.md\n```";
+    const found = await findings("fx/p-line/SKILL.md", skill("name: p-line\ndescription: |\n  x", body), portablePaths);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [11],
+    );
   });
 });
