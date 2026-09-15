@@ -31,7 +31,7 @@ Vale 3.21 or later replaces 3.20 in `compatibility:` in `skills/skills-maker/SKI
 
 ## The features skipped as too new
 
-Each item under *Skipped as too new* on #129 is read against the release and the decision recorded in the knowledge-base note, in a section dated to the day of the read. The facts come from the current sources, read rather than recalled: the `vale test` command's registration and its tracking issue, the docs for `doc(...)` and for a scoped `metric`, the current state of `jdkato/Prompts` and `vale-cli/Std`, and the current tokens of `Prompts/TimeSensitive.yml` and `Google/Timeless.yml`.
+Each item under *Skipped as too new* on #129 is read against the release and the decision recorded in the knowledge-base note, in a section dated to the day of the read. The facts come from the current sources, read rather than recalled: the `vale test` command's registration and its tracking issue, the docs for `doc(...)` and for a scoped `metric`, the current state of `jdkato/Prompts` and `vale-cli/Std`, and the current tokens of 'Prompts/TimeSensitive.yml' and 'Google/Timeless.yml'.
 
 **The `Banner` tokens.** Read literally, dropping every token that fired on nothing empties the rule, since none fires on this repository. A token is dropped when its source has stopped carrying it and it has fired on nothing here; a token a published source still carries keeps that source, as the rule's own comment already grounds them. A dropped token takes its fixture line with it, and the rule comment and the `Banner` row of the rule table say what changed.
 
