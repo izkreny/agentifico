@@ -114,7 +114,7 @@ Vale runs the `Agentifico` style under `assets/`, which is one rule file per mec
 
 | Rule | For | What it reports | Level | What stays out of its reach |
 | --- | --- | --- | --- | --- |
-| `Counts` | *Write sentences that survive change* | a count of adjacent content | error | A cap is not matched, since a figure that constrains future content stays true when an item lands, and a count of things outside the document is not adjacent content, so the nouns a bare "both" may count are the ones the record carries rather than any plural. |
+| `Counts` | *Write sentences that survive change* | a count of adjacent content | error | A cap is not matched, since a figure that constrains future content stays true when an item lands, and a count of things outside the document is not adjacent content, so a bare "both" is matched only in the shapes the record carries: before a recorded noun, opening a sentence before a comma, and before "needing". |
 | `Position` | *Write sentences that survive change*, its other half | a pointer by direction, a uniqueness claim, a recency claim, or an ordinal into the document's own list | error | Whether a uniqueness claim is true by construction is a reading, and such a phrase is an exception in the rule file with its reason beside it. |
 | `History` | *Never write the file's own history* | the words that anchor a sentence to a moment rather than a reason | error | A sentence that is history in substance with none of those words is the round's to read. |
 | `Banner` | *Put a version next to the claim it qualifies, never as a banner at the top* | a version, a date or a currency claim in a file's opening region, its opening paragraph read past the frontmatter and past a tools blockquote or heading | error | A version beside the claim it qualifies further down is what the rule asks for and is out of the rule's reach by design; no review in this repository ever caught a banner, so its tokens are borrowed from published Vale styles and the shapes the tracker writes. |
@@ -127,10 +127,10 @@ A phrase rule's tokens are evidence, per *The prose rules*, and the records they
 
 ### The sources
 
-**A finding is a review comment carrying `::RF{n}::`**, which is how a `pr-flow` review round posts one, and a finding on prose is one whose `path` names a markdown file. Read the pull requests merged since the last run, then the review comments on each:
+**A finding is a review comment carrying `::RF{n}::`**, which is how a `pr-flow` review round posts one, and a finding on prose is one whose `path` names a markdown file. Read the pull requests merged since the last run, then the review comments on each. `gh pr list` cuts its output at `--limit` without saying so, so the count it returns is read against that figure, and the figure is raised when the count reaches it:
 
 ```bash
-gh pr list --state merged --search "merged:>=<date>" --json number --jq '.[].number'
+gh pr list --state merged --limit 200 --search "merged:>=<date>" --json number --jq '.[].number'
 gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate --jq '.[] | select(.path | endswith(".md")) | select(.body | test("::RF[0-9]+::")) | "\(.path):\(.line)\n\(.body)\n"'
 ```
 
