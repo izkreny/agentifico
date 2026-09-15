@@ -248,6 +248,11 @@ describe("Banner, a version or date banner in the opening lines", () => {
   it("leaves the verification idiom alone", () => {
     expectClean(alerts("banner-idiom.md", "# Notes\n\nVerified against the plugin documentation rather than recalled.\n"), "Banner");
   });
+  it("leaves an opening 'currently' to History, which reads it anywhere", () => {
+    const found = alerts("banner-currently.md", "# Notes\n\nIt currently reads the config.\n");
+    expectClean(found, "Banner");
+    expectHit(found, "History", 3);
+  });
   it("leaves the frontmatter, a version beside its claim and a later dated claim alone", () => {
     const found = alerts(
       "banner-guards.md",
