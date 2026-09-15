@@ -3,13 +3,12 @@
 # to be read for a second claim, not a verdict that it carries one. A scoped
 # metric measures each body paragraph on its own with Vale's words formula,
 # which is the count the message claims, and leaves a list item, a blockquote
-# and a fenced block alone. The cap was calibrated against this package on
-# 2026-09-07, where 84 body paragraphs ran to a median of 41 words and a
-# maximum of 135, so 120 named the three longest and nothing else; measured
-# again with the words formula on 2026-09-15, its 161 body paragraphs ran to
-# a median of 47 and a maximum of 120, so the cap sits at the longest one.
-# Two other skill collections measured on the first date sat under it at
-# their 95th percentile.
+# and a fenced block alone. The cap is calibrated against this package by
+# that count, read through the package's own configuration on 2026-09-15:
+# its 162 body paragraphs ran to a median of 46 words and a maximum of 119,
+# so 120 sits one word above the longest and names nothing in the package.
+# Every other skill collection in this repository, measured the same way,
+# sits under it at the 95th percentile of its paragraphs.
 extends: metric
 message: "Cut every paragraph to its one new claim: this one runs to %s words, so read it for a second claim."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
