@@ -82,7 +82,7 @@ describe("ParagraphLength, the one-claim helper", () => {
     const found = alerts("para-over.md", `# Title\n\nShort.\n\n${words(121)}\n`);
     expectHit(found, "ParagraphLength", 5);
     assert.equal(only(found, "ParagraphLength")[0].severity, "warning");
-    assert.match(only(found, "ParagraphLength")[0].message, /121 words/);
+    assert.match(only(found, "ParagraphLength")[0].message, /121\.00 words/);
   });
   it("a paragraph at the cap is not", () => {
     expectClean(alerts("para-at.md", `# Title\n\n${words(120)}\n`), "ParagraphLength");

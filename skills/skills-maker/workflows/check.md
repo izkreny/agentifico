@@ -14,7 +14,7 @@ The check runs on Node 22 or later with what `package.json` declares, installed 
 npm --prefix <skill-dir> ci
 ```
 
-The prose rules run through Vale, 3.20 or later, on `PATH`. Its [installation page](https://docs.vale.sh/topics/installation) gives a route per machine; a pinned version through a tool manager is the one that keeps the version the rules were written against.
+The prose rules run through Vale, 3.21 or later, on `PATH`. Its [installation page](https://docs.vale.sh/topics/installation) gives a route per machine; a pinned version through a tool manager is the one that keeps the version the rules were written against.
 
 ## The check
 
