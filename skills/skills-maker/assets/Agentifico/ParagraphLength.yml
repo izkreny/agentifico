@@ -7,8 +7,9 @@
 # that count, read through the package's own configuration on 2026-09-15:
 # its 162 body paragraphs ran to a median of 46 words and a maximum of 119,
 # so 120 sits one word above the longest and names nothing in the package.
-# Every other skill collection in this repository, measured the same way,
-# sits under it at the 95th percentile of its paragraphs.
+# skills/daisyui-designer, skills/rails-style and plugins/gh-solo taken
+# whole, measured the same way, each sit under it at the 95th percentile of
+# their paragraphs.
 extends: metric
 message: "Cut every paragraph to its one new claim: this one runs to %s words, so read it for a second claim."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
