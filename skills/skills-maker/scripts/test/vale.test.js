@@ -245,6 +245,7 @@ describe("History, the file's own history", () => {
         "A premise that has stopped being true is a defect; the check runs still, and the current branch is read.",
         "The log records what the flag was set to, which is what the check reads, and #130 is the issue to read.",
         "The flag names the target, which is what the config says. A test was added for it.",
+        "So which is what the config does? A test was added for it, which is what the plan said! A line was cut.",
       ].join("\n"),
     );
     expectClean(found, "History");
