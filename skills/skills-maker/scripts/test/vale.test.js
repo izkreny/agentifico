@@ -71,7 +71,7 @@ const expectHit = (found, rule, line) =>
   );
 const expectClean = (found, rule) => assert.equal(only(found, rule).length, 0, `wanted no ${rule}, got ${JSON.stringify(only(found, rule))}`);
 
-// A paragraph of n distinct words, so a word-boundary token counts each once.
+// A paragraph of n words, so the metric reports n.
 const words = (n) => Array.from({ length: n }, (_, i) => `w${i}`).join(" ");
 // A body of n words spread over short paragraphs, none long enough to trip
 // the paragraph cap, so a file-length fixture trips the file rules alone.
