@@ -122,6 +122,14 @@ A long run of them is a section wearing bullets, since each bolded lead announce
 
 **Each shape a run past the cap can take has its own move, and unindenting is not one of them.** Unindented, the run keeps its bolded leads as paragraphs, which is the same section without the markers. Successive claims split into subsections of five or fewer under headings of their own. Parallel members of one set become a table, whose first column carries what the bold was doing, or split into subsections the same way where the set falls into groups.
 
+### At most five paragraphs in a row open with a bolded lead
+
+A bolded lead is there to stand out from the paragraphs around it, and a run of them leaves it nothing to stand out from.
+
+**Only a heading or a paragraph that opens plain ends a run.** A list, a fence or a table between bolded paragraphs is not a paragraph the bold could stand out from, so it sits inside the run, and moving one does not break it. A paragraph inside a list item or a quote is not counted.
+
+**A run past the cap splits into subsections of five or fewer under headings of their own**, the move *At most five list items in a row open with a bolded lead* gives successive claims. An item unindented under *One continuation paragraph per list item, and it carries the item's reason* becomes one of these paragraphs, so it counts toward any run it joins.
+
 ### Write sentences that survive change
 
 Never state a count of adjacent content and never claim uniqueness, recency or position ("the four rules below", "the only copy", "the section above"): whoever adds the fifth rule edits the list, never the sentence, and in a skill the false sentence is not read past but obeyed. The test: if adding one more item makes the sentence false, it was a count and it goes; if it makes the item wrong, it is a cap and it stays. When membership is the rule, name the members.

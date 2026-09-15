@@ -50,9 +50,11 @@ It holds `compatibility` to the specification's own ceiling of 500 characters th
 
 It reads every key rather than the description alone, because a space and a hash inserted anywhere in the frontmatter drops the tail of whatever key it lands in. Two shapes are left alone: a value the parser reads as something other than text, which belongs to the rule that owns it, and a value whose text begins on the next line, which has nothing on its own key line to compare.
 
-## The README and path rules
+## The README rule
 
 **`skill-readme`** is anchored to `SKILL.md` rather than to the README, because a README that does not exist is never a file markdownlint visits. It reports a missing `README.md` beside a `SKILL.md`, and one that carries no install form. Which forms count is `workflows/new.md`'s to state, under *How it is installed*, and the rule reads that list rather than inventing one.
+
+## The path rules
 
 **`skill-portable-paths`** reads the token tree and reports a path absolute to one machine: a code span, a line inside a fenced block, or a link destination opening '/home/', '/Users/' or a drive letter. Prose that mentions a home directory in words is not a path, which is why the rule never reads a raw line. A `~/` path passes, and a URL is not a drive letter: `https://` carries a letter, a colon and a slash too, so the drive-letter branch refuses one preceded by a letter.
 
@@ -87,6 +89,12 @@ The directory match cannot decide the charset on its own, because a directory ma
 **`skill-bolded-runs`**: `workflows/new.md` owns the cap on consecutive list items that open with a bolded lead, and its reason; this is its mechanical face, reading the same items the continuation rule reads. A run is counted within one list, so a nested list neither extends nor breaks its parent's run, and the finding names the run's first item. Five is a figure measured against the tree this package ships from.
 
 **What it cannot decide is whether a run is members of one set or a section wearing bullets.** The shape is identical and the difference is meaning, so a report names the run and the writer chooses among the moves `workflows/new.md` gives each shape.
+
+## The bolded-paragraph rule
+
+**`skill-bolded-paragraphs`**: `workflows/new.md` owns the cap on consecutive paragraphs that open with a bolded lead, what ends a run, and the reason; this is its mechanical face, sharing the bolded-run rule's figure. It reads only the document's top-level blocks, so a paragraph inside a list item or a quote never counts, and a list, a fence or a table between bolded paragraphs sits inside the run rather than ending it. The finding names the run's first paragraph.
+
+**What it cannot decide is where a run's subsections fall.** The headings that group five or fewer claims come from what the claims say, so a report names the run and the writer chooses the seams.
 
 ## The layout rule
 

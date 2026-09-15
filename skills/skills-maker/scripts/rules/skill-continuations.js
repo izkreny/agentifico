@@ -14,9 +14,9 @@ function walk(tokens, fn) {
   }
 }
 
-const paragraphOf = (t) => (t.type === "content" ? t.children.find((c) => c.type === "paragraph") : undefined);
+export const paragraphOf = (t) => (t.type === "content" ? t.children.find((c) => c.type === "paragraph") : undefined);
 
-const opensBold = (p) => p?.children?.[0]?.type === "strong";
+export const opensBold = (p) => p?.children?.[0]?.type === "strong";
 
 // An item's text may start on the line after its marker, and a container's own
 // prefix or indent - a blockquote's, a footnote's - sits between them there, so

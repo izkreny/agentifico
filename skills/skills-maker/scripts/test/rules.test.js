@@ -10,6 +10,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { lint } from "markdownlint/promise";
 import { description as descriptionValue } from "../rules/frontmatter.js";
+import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
 import boldedRuns from "../rules/skill-bolded-runs.js";
 import continuations from "../rules/skill-continuations.js";
 import description from "../rules/skill-description.js";
@@ -19,7 +20,7 @@ import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
 import valeDirective from "../rules/skill-vale-directive.js";
 
-const RULES = [description, parsed, name, invocation, continuations, boldedRuns, portablePaths, valeDirective];
+const RULES = [description, parsed, name, invocation, continuations, boldedRuns, boldedParagraphs, portablePaths, valeDirective];
 
 // Lints one string as the file at `path`, with only the named rules on, and
 // returns each finding as its rule, line and detail. noInlineConfig is set as
@@ -391,6 +392,45 @@ describe("skill-bolded-runs", () => {
     assert.deepEqual(
       found.map((f) => f.line),
       [4],
+    );
+  });
+});
+
+describe("skill-bolded-paragraphs", () => {
+  const cap = "cap is 5";
+  // n top-level paragraphs with a bolded lead, a blank line after each.
+  const bolded = (n) => Array.from({ length: n }, (_, i) => `**lead ${i}.** the rest\n\n`).join("");
+  const cases = [
+    ["p-seven", bolded(7), ["7 bolded-lead paragraphs in a row"]],
+    ["p-six", bolded(6), ["6 bolded-lead paragraphs in a row"]],
+    ["p-five", bolded(5), []],
+    ["p-plain", `${bolded(3)}a plain paragraph ends the run\n\n${bolded(3)}`, []],
+    ["p-heading", `${bolded(3)}## a heading ends the run\n\n${bolded(3)}`, []],
+    ["p-setext", `${bolded(3)}a setext heading\n---\n\n${bolded(3)}`, []],
+    ["p-fence", `${bolded(3)}\`\`\`bash\necho hi\n\`\`\`\n\n${bolded(3)}`, ["6 bolded-lead paragraphs in a row"]],
+    ["p-list", `${bolded(3)}- a plain item\n- another\n\n${bolded(3)}`, ["6 bolded-lead paragraphs in a row"]],
+    ["p-table", `${bolded(3)}| a | b |\n| --- | --- |\n| c | d |\n\n${bolded(3)}`, ["6 bolded-lead paragraphs in a row"]],
+    ["p-quoted", "> **lead.** a quoted paragraph\n>\n".repeat(7), []],
+    ["p-items", "- **lead.** an item\n\n".repeat(7), []],
+    ["p-midbold", "a paragraph **bolded later** in the line\n\n".repeat(7), []],
+    ["p-endheading", `${bolded(6)}## a heading\n\n`, ["6 bolded-lead paragraphs in a row"]],
+    ["p-endplain", `${bolded(6)}a plain paragraph\n\n`, ["6 bolded-lead paragraphs in a row"]],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), boldedParagraphs);
+      for (const w of want) expectDetail(found, "skill-bolded-paragraphs", w);
+      if (!want.length) expectClean(found, "skill-bolded-paragraphs");
+    });
+  }
+  it("a workflow file is read, not only SKILL.md", async () => {
+    expectDetail(await findings("fx/p-sub/workflows/w.md", bolded(7), boldedParagraphs), "skill-bolded-paragraphs", cap);
+  });
+  it("names the run's first paragraph", async () => {
+    const found = await findings("fx/p-line/w.md", `intro\n\n${bolded(7)}`, boldedParagraphs);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [3],
     );
   });
 });

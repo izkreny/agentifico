@@ -6,19 +6,23 @@ Review an existing skill. Find what is wrong and name the specific defect; agree
 
 Read every file in the skill's directory, whatever the layout: `SKILL.md`, what it routes to under `workflows/` and `references/`, what it runs from `scripts/`, the `README.md` written for humans, and any directory the author added beyond the conventions, since the spec allows arbitrary files and a defect does not care which folder it sits in. A defect in a routing skill is usually a contradiction between two files rather than a flaw in one, and it is invisible if only one was read; a script disagreeing with the doc that invokes it is the same defect in executable form.
 
+### A package root
+
 **The path may be a package root rather than one skill.** `workflows/check.md` states the argument shapes.
 
 **Read every file under the root, not only the files under its skills.** A package's manifest, its agents, its hooks and its own `README.md` belong to no skill, and a branch review reads a diff, so a sweep is what reads them whole.
 
 **Find them by walking the tree, never by following references out of the skills.** A plugin's agent is spawned by name at runtime and cited by path in no skill under it.
 
+**Report which files were read**, so a run that covered part of a package is distinguishable from one that covered all of it.
+
+### A path covering several skills
+
 **A path covering more than one skill is read inline, as one document, in one pass, never a subagent per skill.** What a fan-out cannot see is the reason: a contradiction spanning two skills, and a cross-reference from one skill to a rule another removed. Reading one skill at a time hides those exactly as reading one file at a time hides a contradiction between two, and in a plugin that is the class that matters most, because the skills cite each other by path.
 
 **This rule binds only a path covering several skills**; a path that is one skill's own directory is read as it always is, one skill at a time.
 
 **A reader who cannot hold the whole set says where it ran thin, by skill.** Reading several skills whole is what makes the cross-skill question answerable and it is also what runs a session low, so the honest answer is to name the shortfall rather than finish quietly on a shallow read of whatever came last.
-
-**Report which files were read**, so a run that covered part of a package is distinguishable from one that covered all of it.
 
 ## Step 2 - Run the mechanical check
 
@@ -28,7 +32,19 @@ Follow `workflows/check.md` first. It catches the silent failures cheaply, and t
 
 First hold the skill against every rule in `workflows/new.md`: whatever authoring requires, review enforces, and its absence in an existing skill is a defect. That file is the authority, so a rule added there is picked up here without this file changing. This step's entries are the field notes on top: how violations actually manifest, and what no authoring rule anticipated.
 
+### Where the skill misfires
+
 **Triggers that only exist in the body.** Every phrase meant to fire the skill must be in `description:`. Grep the body for "use this when" and similar, and confirm each has a counterpart in the frontmatter.
+
+**Advertised verbs that route nowhere.** Check `argument-hint` against the routing table. An argument the skill accepts but does not handle is a promise it breaks.
+
+**A placeholder standing in for a payload.** `-f body='...'` is one line, so *A payload that breaks a line, or carries a backtick or a `#`, travels in a file* in `workflows/new.md` passes it, while the prose around it describes a multi-paragraph body with a blockquote. Read what the skill says the placeholder stands for, and test that.
+
+**A missing boundary.** If the skill never says what it is not for, it will fire on adjacent work. That is the cheapest sentence in the file.
+
+**A triggering doubt reading cannot settle.** Whether a description actually fires on its phrases is behaviour, not text. When that is the question, stop reading and measure with whatever eval tooling the agent in use provides, and read the scored report instead of guessing from the wording. On Claude Code specifically: `claude plugin eval <skill>` is built into its CLI and adds a no-plugin baseline arm, and Anthropic's official skill-creator plugin, when installed, carries a heavier eval loop with graders.
+
+### Claims that go false
 
 **A premise that has stopped being true.** Skills accumulate assumptions stated as fact: "there is no planning", "every issue gets X", "this repo always Y". Check each against what the user actually does. One false premise usually appears in four or five places, so when you find one, grep for its restatements rather than fixing only the sentence you were shown.
 
@@ -36,19 +52,13 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **Version banners.** A "verified against X" line at the top of a file ages into a false claim. Either attach the version to the specific behavioural claim it qualifies, or drop it.
 
-**Enumerations that end in "and anything else".** The list was doing no work. Cut it to the rule.
-
 **A count of adjacent content, or a position claim.** "The two facts below" is true until the third lands, and whoever adds it edits the list, never the sentence, because the sentence is invisible at the moment of the edit. Same class: "the only copy", "the newest section", "the paragraph above", each silently falsified by an edit made anywhere in the document. Caps stay ("five sentences at most" constrains the future); counts go (the list is the authority on its own length).
 
-**Advertised verbs that route nowhere.** Check `argument-hint` against the routing table. An argument the skill accepts but does not handle is a promise it breaks.
+### Text that does no work
 
-**A placeholder standing in for a payload.** `-f body='...'` is one line, so *A payload that breaks a line, or carries a backtick or a `#`, travels in a file* in `workflows/new.md` passes it, while the prose around it describes a multi-paragraph body with a blockquote. Read what the skill says the placeholder stands for, and test that.
+**Enumerations that end in "and anything else".** The list was doing no work. Cut it to the rule.
 
 **Rationale that restates the rule.** "Never do X. Doing X is bad." The second sentence should say what breaks, or go. Over-writing clusters where the author was least sure, so a section that reads as an essay is also the section to check for a defect underneath it.
-
-**A missing boundary.** If the skill never says what it is not for, it will fire on adjacent work. That is the cheapest sentence in the file.
-
-**A triggering doubt reading cannot settle.** Whether a description actually fires on its phrases is behaviour, not text. When that is the question, stop reading and measure with whatever eval tooling the agent in use provides, and read the scored report instead of guessing from the wording. On Claude Code specifically: `claude plugin eval <skill>` is built into its CLI and adds a no-plugin baseline arm, and Anthropic's official skill-creator plugin, when installed, carries a heavier eval loop with graders.
 
 ## Step 4 - Report
 
