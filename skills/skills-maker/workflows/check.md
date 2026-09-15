@@ -4,7 +4,7 @@ The mechanical audit. Run it after writing or editing any skill, and before revi
 
 **Findings group by heading**, which is what a rule you add has to be filed against: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `prose rules` for Vale's alerts. Register a new rule in `scripts/lint-config.js`, in the array for the heading it belongs under; Vale needs no registration.
 
-**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep.
+**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown files alone, since a code file's only reader is the process that did not start.
 
 ## Setup, once per install
 
@@ -28,7 +28,7 @@ node <skill-dir>/scripts/check.js path/to/the-skill
 
 Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep. A target holding markdown but no skill is a legitimate one and is read.
 
-Every `*.js` and `*.py` file under the target is read too, under the same exclusions, by the prose rules alone: Vale reads a code file as its comments and docstrings and skips the code and its string literals, so a comment is held to the rules a paragraph is, and markdownlint never sees the file. A code file counts in the closing line's file count as a markdown one does, so a code file that raised nothing is visible there rather than silently skipped.
+Every `*.js` and `*.py` file under the target is read too, under the same exclusions, by the prose rules alone: Vale reads a code file as its comments and docstrings and skips the code and its string literals, so a comment is held to the rules a paragraph is, and markdownlint never sees the file. When Vale ran, a code file counts in the closing line's file count as a markdown one does, so a code file that raised nothing is visible there rather than silently skipped.
 
 How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
@@ -50,7 +50,7 @@ It also holds the description to the specification's ceiling of 1,024 characters
 
 It holds `compatibility` to the specification's own ceiling of 500 characters the same way. Both are measured on what the author wrote: a clipped block scalar keeps one trailing newline that the style adds rather than the author, so it is trimmed before the comparison and a ceiling does not depend on which style carries the text.
 
-It reads every key rather than the description alone, because a space and a hash inserted anywhere in the frontmatter drops the tail of whatever key it lands in. Two shapes are left alone: a value the parser reads as something other than text, which belongs to the rule that owns it, and a value whose text begins on the next line, which has nothing on its own key line to compare.
+It reads every key rather than the description alone, because a space and a hash inserted anywhere in the frontmatter drops the tail of whatever key it lands in. Left alone are a quoted value and a block scalar, which the family cannot reach; a value the parser reads as something other than text, which belongs to the rule that owns it; and a value whose text begins on the next line, which has nothing on its own key line to compare.
 
 ## The README rule
 
@@ -176,6 +176,12 @@ npm --prefix <skill-dir> test
 ```
 
 Every assertion in it is held to *A check that has never been seen to fail is not evidence* in `workflows/new.md`, which owns that rule and its reason.
+
+The suite reads the scripts as code and never as style, so a rule edit owes the lint beside it, which neither the suite nor the check invokes:
+
+```bash
+npm --prefix <skill-dir> run lint
+```
 
 ## What a sweep still looks for by hand
 

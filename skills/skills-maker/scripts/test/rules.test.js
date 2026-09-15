@@ -368,22 +368,22 @@ describe("skill-bolded-paragraphs", () => {
 describe("skill-portable-paths", () => {
   // The same characters are a finding inside a code span and nothing in a sentence, where no reader copies them anywhere.
   const cases = [
-    ["t-span", "A span `/home/izkreny/notes.md` here.", "/home/izkreny/notes.md"],
-    ["t-fenced", "```bash\ncat /home/izkreny/notes.md\n```", "/home/izkreny/notes.md"],
-    ["t-link", "A [note](/Users/izkreny/notes.md) here.", "/Users/izkreny/notes.md"],
-    ["t-drive", "A span `C:\\Users\\izkreny\\notes.md` here.", "C:\\Users\\izkreny\\notes.md"],
-    ["good-prose", "The skill reads /home/izkreny/notes.md in prose, where nobody copies it out.", null],
+    ["t-span", "A span `/home/someone/notes.md` here.", "/home/someone/notes.md"],
+    ["t-fenced", "```bash\ncat /home/someone/notes.md\n```", "/home/someone/notes.md"],
+    ["t-link", "A [note](/Users/someone/notes.md) here.", "/Users/someone/notes.md"],
+    ["t-drive", "A span `C:\\Users\\someone\\notes.md` here.", "C:\\Users\\someone\\notes.md"],
+    ["good-prose", "The skill reads /home/someone/notes.md in prose, where nobody copies it out.", null],
     ["good-tilde", "A span `~/.agents/skills/foo/SKILL.md` here.", null],
     ["good-relative", "A span `workflows/new.md` and a [link](references/managing.md).", null],
     ["good-skill-dir", "A span `<skill-dir>/scripts/check.js` here.", null],
     // The `s:/` of `https://` is a letter, a colon and a slash, which the drive-letter branch would match.
     ["good-url", "A [link](https://skills.sh) and a span `https://docs.vale.sh/topics/installation`.", null],
     // A URL path can carry /home/ exactly as a filesystem path can.
-    ["good-url-home", "A [link](https://example.test/home/izkreny/notes.md) here.", null],
+    ["good-url-home", "A [link](https://example.test/home/someone/notes.md) here.", null],
     // An absolute path is this rule's, so `paths.js` refuses a drive-lettered span for skill-referenced-paths.
     ["t-drive-span", "A span `D:/work/notes.md` here.", "D:/work/notes.md"],
     // Single quotes hide an example path because the rule reads backticked spans and link destinations only.
-    ["good-quoted-example", "Never write '/home/izkreny/notes.md'; write the `~/` form.", null],
+    ["good-quoted-example", "Never write '/home/someone/notes.md'; write the `~/` form.", null],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
@@ -393,7 +393,7 @@ describe("skill-portable-paths", () => {
     });
   }
   it("names the line the path sits on, not the block's first line", async () => {
-    const body = "intro\n\n```bash\necho one\ncat /home/izkreny/notes.md\n```";
+    const body = "intro\n\n```bash\necho one\ncat /home/someone/notes.md\n```";
     const found = await findings("fx/p-line/SKILL.md", skill("name: p-line\ndescription: |\n  x", body), portablePaths);
     assert.deepEqual(
       found.map((f) => f.line),
