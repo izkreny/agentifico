@@ -1,10 +1,6 @@
-// The raw-line sweep workflows/check.md describes. SKILL.md owns the
-// membership of the trap classes, under "YAML eats the description at `#`";
-// this is where each one is decided.
 import { BLOCK_SCALAR, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
 
-// A comment after the closing quote sits outside the value, so it is not a
-// defect; anything else there is a parse error.
+// A comment after the closing quote sits outside the value, so it is not a defect, and anything else there is a parse error.
 const TRAILING = /^(\s+#.*)?$/;
 
 export function defects(fm) {
@@ -12,35 +8,17 @@ export function defects(fm) {
   const dl = keyLines(fm, "description");
   if (!dl.length) bad.push("no description: never advertised");
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
-  // The last `description:` line, because that is the one a last-wins parser
-  // loads and therefore the only value whose traps can reach a reader;
-  // skill-invocation reads its own fields the same way. Sweeping the first
-  // line instead reports the duplicate and calls the winning value clean.
-  // Anything judged against the value rather than against the line belongs to
-  // skill-frontmatter-parsed, which has what a parser produced. Deciding it
-  // here would mean measuring a value this rule is defined never to parse.
+  // The last `description:` line is swept because that is the one a last-wins parser loads, and sweeping the first would report the duplicate and call the winning value clean.
   const raw = (dl.at(-1) || "").slice(12).trim();
   const block = dl.length && BLOCK_SCALAR.test(raw);
-  // The value under judgement, whatever its style, joined the way YAML folds a
-  // run of continuation lines, a blank line among them included.
-  // A continuation line can carry the same traps as the first, a quote may
-  // close on it, and a legal fold is not a defect. `raw`, the winning key's
-  // own line, decides which style the value has and carries the traps that
-  // live on that line alone, a curly opening quote and a leading special
-  // character.
+  // The value is joined the way YAML folds continuation lines because a continuation can carry the same traps as the first line and a legal fold is not a defect.
   const value = dl.length ? folded(fm, fm.lastIndexOf(dl.at(-1))) : "";
-  // Only a value that opens with a curly quote is pretending to be quoted; a
-  // typographic apostrophe inside a value is harmless, and a block scalar is
-  // immune to the whole family, so neither is a defect.
+  // Only a value opening with a curly quote is pretending to be quoted, since an apostrophe inside a value is harmless and a block scalar is immune.
   if (!block && /^[“”‘’]/.test(raw)) bad.push("curly quotes are not YAML quotes");
   if (block) {
-    // A block scalar reaches none of the style branches: it has no quotes to
-    // close and no plain-scalar comment to be cut at. The checks it does reach
-    // are the ones decided before this branch.
+    // A block scalar has no quotes to close and no plain-scalar comment to be cut at, so it reaches none of the style branches.
   } else if (raw.startsWith('"')) {
-    // The value ends at its own closing quote, so a comment after it is outside
-    // the value and not a defect; anything else after it is a parse error, and
-    // an unescaped inner quote is the usual way that happens.
+    // Anything after the closing quote but a comment is a parse error, and an unescaped inner quote is the usual way that happens.
     const m = value.slice(1).match(/^((?:[^"\\]|\\.)*)"(.*)$/);
     if (!m) bad.push("unclosed double quote: parse error");
     else {

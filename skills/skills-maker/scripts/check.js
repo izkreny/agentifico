@@ -1,6 +1,3 @@
-// The mechanical audit as one command. workflows/check.md states the target
-// shapes, the two linters, the exclusions and what each exit code means.
-// Usage: node check.js [target]
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,11 +11,7 @@ const valeConfig = path.join(here, "..", ".vale.ini");
 
 const target = path.resolve(process.argv[2] ?? ".");
 
-// Dot-directories are left out because an agent's skills directory carries
-// its own and a fixture tree keeps its fixtures under one, so walking them
-// reports findings against trees nobody is auditing. Symlinks are followed,
-// because an agent's skills directory is a directory of them pointing into
-// the canonical tree.
+// Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const files = (await globby(["**/*.md", "!**/node_modules/**"], { cwd: target, absolute: true })).sort();
 
 if (!files.length) {
@@ -26,10 +19,7 @@ if (!files.length) {
   process.exit(1);
 }
 
-// What was read, before anything found in it. A file count alone cannot tell a
-// sweep that covered one skill of a package from one that covered all of them,
-// and a target holding prose but no skill is a legitimate target rather than
-// the wrong-target failure above.
+// The skills found are named because a file count alone cannot tell a sweep that covered one skill of a package from one that covered all of them.
 const skills = files
   .filter(isSkillFile)
   .map((file) => path.relative(target, path.dirname(file)) || ".")
@@ -37,41 +27,25 @@ const skills = files
 console.log(skills.length ? `${skills.length} skill(s) found under ${target}` : `no skill found under ${target}`);
 for (const skill of skills) console.log(`  ${skill}`);
 
-// A constant because the branch that reports a Vale which could not start
-// prints this heading too, and a rename reaching one print site and not the
-// other would put a heading no other run uses on exactly the run whose reader
-// most needs to recognise it.
+// A constant because the branch reporting a Vale that could not start prints this heading too, and a rename reaching one site and not the other would put a heading no other run uses on the run whose reader most needs to recognise it.
 const PROSE_RULES = "prose rules";
 
-// A heading with its count, then its findings indented beneath it. A count of
-// zero prints too: a reader who has to infer from silence that the class this
-// skill exists to catch found nothing is the reader this grouping is for. The
-// summary argument carries a class that counts something other than issues, or
-// that did not run at all.
+// A count of zero prints too, because a reader who has to infer from silence that the class this skill exists to catch found nothing is the reader this grouping is for.
 const report = (label, lines, summary = lines.length || "none") => {
   console.log(`${label}: ${summary}`);
   for (const line of lines) console.log(`  ${line}`);
 };
 
-// Without the target the layout rule would walk past it and call a skill
-// nested under someone else's tree a defect of this one, and the referenced-path
-// rule would resolve a span against a tree nobody asked it to read.
-//
-// noInlineConfig keeps the target's own comments from being read as
-// configuration: <!-- markdownlint-disable --> would otherwise switch off every
-// rule here, skill-vale-directive included, and the run would print a clean
-// last line over the very directive that rule exists to report.
+// The target is passed to the layout and referenced-path rules so neither reads a tree nobody asked it to read.
 const results = await lint({
   files,
   customRules: rules,
   config: { ...config, "skill-layout": { root: target }, "skill-referenced-paths": { root: target } },
+  // Without this a <!-- markdownlint-disable --> in the target would switch off every rule, skill-vale-directive included.
   noInlineConfig: true,
 });
 
-// A pass per markdownlint class, in file order, every one printed before Vale
-// runs so that a structural finding is never withheld by a prose linter that
-// cannot start. Which class a finding lands in is lint-config.js's answer, so
-// a rule added there needs no edit here.
+// Every markdownlint class prints before Vale runs, so a structural finding is never withheld by a prose linter that cannot start.
 let issues = 0;
 const contractFindings = [];
 const proseShapeFindings = [];
@@ -95,15 +69,9 @@ report("skill rules", contractFindings);
 report("prose shape", proseShapeFindings);
 report("general lint", generalFindings);
 
-// Vale reads the same files, from this package's configuration and no other:
-// --config names it so the search for one never starts, and --no-global drops
-// the user's own configuration and default styles directory, where a style of
-// the same name would shadow this one. Its exit code is not read, because it
-// is non-zero only for an error-level alert and every alert is wanted here;
-// the JSON carries them all. A binary that is not there, or a configuration
-// Vale refuses to load, is a setup failure and not a clean run: the summary
-// counts what markdownlint found, and the run fails whatever that count.
+// --no-global drops the user's own configuration and default styles directory, where a style of the same name would shadow this one.
 const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...files], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+// A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
 if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
   const why =
     vale.error?.code === "ENOENT"
@@ -114,14 +82,10 @@ if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
   console.log(why);
   process.exit(1);
 }
+// Vale's exit code is not read because it is non-zero only for an error-level alert and the JSON carries every alert.
 const alerts = vale.stdout.trim() ? JSON.parse(vale.stdout) : {};
 
-// One line per Vale alert, in file order. Its severity decides which count it
-// lands in: an error is an issue and fails the run, a warning or suggestion is
-// a helper that points a reviewer somewhere and is printed and counted without
-// failing anything. The heading therefore states the issues and the warnings
-// apart, where one figure summing them reads as a failure count on a run that
-// passed; the markdownlint headings need no such split, having no warnings.
+// A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
 let warnings = 0;
 let proseIssues = 0;
 const proseFindings = [];

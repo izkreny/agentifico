@@ -1,14 +1,7 @@
-// What the path rules in workflows/check.md share: which spans name a file,
-// where a named file is resolved from, and the one answer both path rules give
-// to a `~/` span. The span predicate and the resolution bases are taken from
-// plugins/gh-solo/skills/pr-flow/scripts/docs-check.py, which has decided the
-// same question for one tree since before these rules existed; read that script
-// rather than this file when the two disagree.
+// The span predicate and the resolution bases are taken from plugins/gh-solo/skills/pr-flow/scripts/docs-check.py, which is read rather than this file when it and this file disagree.
 import fs from "node:fs";
 import path from "node:path";
 
-// A span carrying any of these names nothing on disk: a glob or template
-// marker, a pipe, a URL scheme, a space, or a parent reference.
 const NOT_A_PATH = ["$", "*", "{", "}", "<", ">", "|", "://", " ", ".."];
 
 const PATHY_SUFFIXES = [
@@ -38,41 +31,23 @@ const PATHY_SUFFIXES = [
   ".html",
 ];
 
-// The agreement both path rules are written to keep, stated once here so
-// neither carries its own copy: a `~/` span is portable, and it names a file on
-// the author's machine that no checkout can resolve. So skill-portable-paths
-// passes it and skill-referenced-paths skips it.
+// A `~/` span is portable and names a file no checkout can resolve, so skill-portable-paths passes it and skill-referenced-paths skips it.
 export const isHomeRelative = (span) => span.startsWith("~/");
 
-// Absolute to one machine, which is the case skill-portable-paths exists to
-// catch. A drive letter counts: a skill written on Windows breaks on Linux the
-// same way. The lookbehind guards the whole alternation rather than one branch
-// of it, because a URL reaches both: `https://` carries a letter, a colon and a
-// slash, and a URL path can carry /home/ just as a filesystem path can. What it
-// asks is that nothing of a path or a word runs into the match from the left.
+// The lookbehind guards the whole alternation because a URL reaches both branches: `https://` carries a letter, a colon and a slash, and a URL path can carry /home/.
 export const ABSOLUTE_TO_ONE_MACHINE = /(?<![A-Za-z0-9._~-])(?:\/home\/|\/Users\/|[A-Za-z]:[\\/])[^\s`"'()[\]]*/g;
 
-// docs-check.py's looks_like_path. The leading-slash reject is its deliberate
-// blind spot, which drops slash commands and absolute paths together; that is
-// why skill-portable-paths matches on its own regex above rather than asking
-// this predicate about a span it refuses to look at.
+// The leading-slash reject is docs-check.py's deliberate blind spot, which is why skill-portable-paths matches on its own regex rather than asking this predicate.
 export function looksLikePath(span) {
   if (NOT_A_PATH.some((bad) => span.includes(bad))) return false;
   if (/^[-#@/]/.test(span)) return false;
-  // A drive letter is an absolute path wearing another shape, and an absolute
-  // path is skill-portable-paths' to report, never this predicate's to resolve.
+  // A drive letter is an absolute path wearing another shape, which is skill-portable-paths' to report.
   if (/^[A-Za-z]:[\\/]/.test(span)) return false;
   if (span.endsWith("/")) return true;
   return PATHY_SUFFIXES.some((suffix) => span.endsWith(suffix));
 }
 
-// The skill a file belongs to, which is the first resolution base. It walks up
-// from the file's own directory, where enclosingSkill in skill-layout.js walks
-// from the grandparent: that one answers which skill contains this skill, and
-// a SKILL.md's own directory is the answer wanted here. The walk stops at the
-// target so a run over one skill never resolves a span against a tree outside
-// it, and containment is tested on path segments rather than on the string,
-// which would put /a/bc inside /a/b.
+// The walk stops at the target so a run over one skill never resolves a span against a tree outside it, and containment is tested on path segments because a string test puts /a/bc inside /a/b.
 export function owningSkill(file, root) {
   const stop = path.resolve(root);
   const prefix = stop.endsWith(path.sep) ? stop : stop + path.sep;
@@ -86,10 +61,6 @@ export function owningSkill(file, root) {
   return null;
 }
 
-// docs-check.py resolves against the owning skill, the file's own directory and
-// the target root, and a span that exists under any of them resolves. The
-// trailing slash is stripped first, and a directory satisfies the test as a
-// file does.
 export function resolves(span, file, root) {
   const bases = [owningSkill(file, root), path.dirname(path.resolve(file)), path.resolve(root)];
   const candidate = span.replace(/\/+$/, "");

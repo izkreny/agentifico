@@ -1,14 +1,4 @@
-// The Vale rules against their fixtures. Vale lints files rather than strings,
-// so each fixture is written into a temporary directory that setup creates and
-// teardown removes, beside a configuration of the suite's own that points at
-// this package's style directory; nothing here is ever a real SKILL.md on
-// disk, which some agents would discover as a broken skill. Every rule gets a
-// fixture that trips it and a guards fixture of lines it must leave alone, and
-// each assertion was watched failing against the rule with its token removed
-// or the fixture with its defect removed before it was trusted. The coverage
-// tests at the end are the mechanical form of that: a Vale rule or token that
-// matches nothing fails silently, so one no fixture reaches is
-// indistinguishable from one that is broken.
+// Each fixture is written to a temporary directory because Vale lints files rather than strings, and nothing there is ever a real SKILL.md on disk.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
@@ -24,15 +14,10 @@ let tmp;
 let ini;
 const fired = new Set();
 
-// Quoted text is ignored as .vale.ini ignores it, since the rule files quote
-// their own bad examples; the same line goes into every configuration the
-// suite writes.
+// Quoted text is ignored as .vale.ini ignores it, since the rule files quote their own bad examples.
 const tokenIgnores = 'TokenIgnores = ("[^"\\n]+"), (“[^”\\n]+”)';
 
-// The suite's own configuration: the file-length rules are on for a fixture
-// whose name says it stands for a SKILL.md, and off elsewhere, which is what
-// .vale.ini does for a real one through its own section. A section glob is
-// matched against the whole path, so it opens with **/ to reach a basename.
+// A section glob is matched against the whole path, so it opens with **/ to reach a basename.
 before(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), "skills-maker-vale-"));
   ini = path.join(tmp, ".vale.ini");
@@ -43,9 +28,7 @@ before(() => {
 });
 after(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
-// Runs Vale with one configuration over one file and returns the alerts on it.
-// Vale's exit code is not read: it is non-zero only for an error, and a
-// fixture that trips a warning is a pass here too.
+// Vale's exit code is not read because it is non-zero only for an error, and a fixture that trips a warning is a pass here too.
 function vale(config, file) {
   const r = spawnSync("vale", ["--config", config, "--no-global", "--output=JSON", file], { encoding: "utf8" });
   assert.equal(r.error, undefined, `vale did not run: ${r.error}`);
@@ -53,8 +36,6 @@ function vale(config, file) {
   return (r.stdout.trim() ? JSON.parse(r.stdout)[file] : []) ?? [];
 }
 
-// Lints one fixture with the suite's configuration and returns its alerts as
-// rule, line, severity, match and message.
 function alerts(name, content) {
   const file = path.join(tmp, name);
   fs.writeFileSync(file, content);
@@ -71,10 +52,8 @@ const expectHit = (found, rule, line) =>
   );
 const expectClean = (found, rule) => assert.equal(only(found, rule).length, 0, `wanted no ${rule}, got ${JSON.stringify(only(found, rule))}`);
 
-// A paragraph of n words, so the metric reports n.
 const words = (n) => Array.from({ length: n }, (_, i) => `w${i}`).join(" ");
-// A body of n words spread over short paragraphs, none long enough to trip
-// the paragraph cap, so a file-length fixture trips the file rules alone.
+// Short paragraphs keep the paragraph cap quiet, so a file-length fixture trips the file rules alone.
 const body = (n) => Array.from({ length: Math.ceil(n / 50) }, (_, i) => words(Math.min(50, n - i * 50))).join("\n\n");
 
 describe("ParagraphLength, the one-claim helper", () => {
@@ -117,11 +96,7 @@ describe("SkillSplit and SkillLength, the file caps", () => {
   });
 });
 
-// The phrase rules. Each trip fixture is a list of lines, one recorded shape
-// per line, so a token that stops matching its own record fails here; the
-// per-token coverage at the end reads these same lists, so a line here is
-// what makes a token count as watched failing. The guards fixture beside each
-// carries the sanctioned forms.
+// One recorded shape per line, so a token that stops matching its own record fails here and counts as watched failing.
 const TRIP = {
   Counts: [
     "It covers all three forms of appointment.",
@@ -174,7 +149,6 @@ const TRIP = {
   ],
 };
 const tripFixture = (rule) => `# Title\n\n${TRIP[rule].join("\n")}\n`;
-// The trip lines start on line 3 of the fixture.
 const tripLines = (rule) => TRIP[rule].map((_, i) => i + 3);
 
 describe("Counts, a count of adjacent content", () => {
@@ -283,7 +257,7 @@ describe("Banner, a version or date banner in the opening lines", () => {
   });
 });
 
-// Last, because they read what every test above fired and wrote.
+// Last, because these read what the other tests fired.
 describe("coverage", () => {
   it("every rule in the style fired on some fixture", () => {
     const rules = fs
@@ -294,19 +268,13 @@ describe("coverage", () => {
     assert.deepEqual(missing, [], `no fixture reaches: ${missing.join(", ")}`);
   });
 
-  // One alert anywhere in a rule marks the rule covered, so a token no line
-  // trips would hide behind its neighbours. Each token of a phrase rule is
-  // copied into a one-token style of its own and run over that rule's trip
-  // fixture; a token that matches nothing there is the gate for a phrasing
-  // nobody has seen it catch.
+  // One alert anywhere in a rule marks it covered, so each token is run alone over the trip fixture to catch a phrasing nobody has seen it catch.
   it("every token of every phrase rule fired on its rule's own fixture", () => {
     const tokDir = path.join(tmp, "tok");
     const tokIni = path.join(tokDir, ".vale.ini");
     fs.mkdirSync(path.join(tokDir, "T"), { recursive: true });
     fs.writeFileSync(tokIni, `StylesPath = ${tokDir}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = T\n${tokenIgnores}\n`);
-    // The rules come from the style directory rather than from TRIP, so a
-    // tokens-based rule added without a trip fixture fails here instead of
-    // passing unchecked.
+    // The rules come from the style directory rather than from TRIP, so a tokens-based rule added without a trip fixture fails here.
     const unreached = [];
     for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
       const rule = file.replace(/\.yml$/, "");

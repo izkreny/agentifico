@@ -1,8 +1,4 @@
-// The bolded-run cap workflows/new.md owns and workflows/check.md describes.
-// A run is consecutive items of one list whose lead opens with a bolded
-// phrase; a nested list is a list of its own, so it neither extends nor breaks
-// its parent's run. Whether a run is a set or a section is meaning rather than
-// shape, so the rule reports the run and the writer chooses the fix.
+// A nested list is a list of its own, so it neither extends nor breaks its parent's run, per the skill-bolded-runs entry in workflows/check.md.
 import { isList, items } from "./skill-continuations.js";
 
 export const CAP = 5;

@@ -1,11 +1,4 @@
-// The rules against their fixtures, one string each, through markdownlint's
-// own string input: the name a string is keyed by is the path the rule sees, so
-// a fixture is a skill by its key and nothing is ever written to disk. Every
-// fixture decides something the rule itself decides, and each assertion was
-// watched failing against the rule with its clause removed before it was
-// trusted; a shape the parser decides earns a fixture only where this package
-// chooses to ask the parser, because a reader that stopped asking would break
-// it, and a shape no change here could reach has none.
+// Fixtures go through markdownlint's string input, keyed by the path the rule sees, so nothing is ever written to disk.
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { lint } from "markdownlint/promise";
@@ -22,10 +15,7 @@ import valeDirective from "../rules/skill-vale-directive.js";
 
 const RULES = [description, parsed, name, invocation, continuations, boldedRuns, boldedParagraphs, portablePaths, valeDirective];
 
-// Lints one string as the file at `path`, with only the named rules on, and
-// returns each finding as its rule, line and detail. noInlineConfig is set as
-// check.js sets it, or a fixture's own markdownlint comment would switch off
-// the rule it is there to test.
+// noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
 async function findings(path, content, ...only) {
   const config = { default: false };
   for (const r of only) config[r.names[0]] = true;
@@ -33,9 +23,7 @@ async function findings(path, content, ...only) {
   return results[path].map((e) => ({ rule: e.ruleNames[0], line: e.lineNumber, detail: e.errorDetail ?? "" }));
 }
 
-// A skill file: frontmatter, a blank line, then the body. The blank line is
-// deliberate, since the frontmatter pattern swallows it and the reader has to
-// give it back.
+// The blank line after the frontmatter is deliberate, since the frontmatter pattern swallows it and the reader has to give it back.
 const skill = (fm, body = "body") => `---\n${fm}\n---\n\n${body}\n`;
 
 const has = (found, rule, part) => found.some((f) => f.rule === rule && f.detail.includes(part));
@@ -58,10 +46,7 @@ describe("skill-description, the raw sweep", () => {
     ["t-anchor", "name: x\ndescription: &draft Use when drafting", "leading &"],
     ["t-curly", "name: x\ndescription: “Use for PR #N”", "curly quotes"],
     ["t-dupe", "name: x\ndescription: first\ndescription: second", "duplicate description"],
-    // The duplicate that matters: the first line is clean and the one the
-    // parser loads carries a trap. Sweeping the first reports the duplicate
-    // and calls the winning value clean, which is the one reading under which
-    // a truncation ships.
+    // The first line is clean and the one the parser loads carries a trap, so a sweep of the first line would call the winning value clean.
     ["t-dupe-winner-trapped", "name: x\ndescription: Plain and clean.\ndescription: “Use for PR #N”", "curly quotes"],
     ["t-colon", "name: x\ndescription: Use when: reviewing", "colon inside"],
     ["t-tailcolon", "name: x\ndescription: Use when reviewing:", "colon inside"],
@@ -71,23 +56,14 @@ describe("skill-description, the raw sweep", () => {
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "apostrophe"],
     ["t-bool", "name: x\ndescription: yes", "boolean"],
     ["t-missing", "name: x", "no description"],
-    // SM-04: a legal block scalar header carrying an indentation indicator, in
-    // either order with the chomping one, or a trailing comment. Each of these
-    // loads, so a finding on any of them is the check libelling correct YAML.
+    // Each of these block scalar headers loads, so a finding on any of them is the check libelling correct YAML.
     ["good-block-indent", "name: x\ndescription: |2\n   Use when reviewing X: safe & sound", null],
     ["good-block-indent-chomp", "name: x\ndescription: |-2\n   Use when reviewing X: safe & sound", null],
     ["good-block-chomp-indent", "name: x\ndescription: |2-\n   Use when reviewing X: safe & sound", null],
     ["good-block-comment", "name: x\ndescription: | # note\n  Use when reviewing X: safe & sound", null],
-    // A plain scalar folds across a blank line, so a ` #` on a line after it
-    // truncates the value exactly as one on the first line does. The clean fold
-    // has no fixture here: this rule reports nothing on it either way, so no
-    // change to the rule could break it, and a check that has never been seen
-    // to fail is not evidence.
+    // A ` #` on a line after a blank line truncates the value exactly as one on the first line does.
     ["t-blank-fold-comment", "name: x\ndescription: one\n  two\n\n  three #x", "TRUNCATED"],
-    // RF1: a line whose first non-space character is `#` is a comment to YAML
-    // and ends a plain scalar, so it is not folded in as content - while inside
-    // a quoted scalar the same line is content, which is why the guard reads
-    // the opening character of the value.
+    // A line whose first non-space character is `#` ends a plain scalar while inside a quoted scalar the same line is content, which is why the guard reads the opening character.
     ["good-blank-then-comment", "name: x\ndescription: Use when doing X,\n  and when doing Y.\n\n  # unsure\ncompatibility: node 22", null],
     ["good-comment-line", "name: x\ndescription: one\n  # c\ncompatibility: node 22", null],
     ["good-quoted-hash-continuation", 'name: x\ndescription: "one\n  # two"', null],
@@ -129,31 +105,19 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "PARSE ERROR"],
     ["t-backslash", 'name: x\ndescription: "matches \\d+ digits"', "PARSE ERROR"],
     ["t-scalar-doc", "just a string", "not a mapping"],
-    // SM-02: the differential covers every top-level plain scalar, because the
-    // ` #` edit drops the tail of whatever key it lands in.
+    // The ` #` edit drops the tail of whatever key it lands in, so the differential covers every top-level plain scalar.
     ["good-compat", "name: x\ndescription: |\n  ok\ncompatibility: Requires Node 22 or later", null],
     ["t-compat-comment", "name: x\ndescription: |\n  ok\ncompatibility: Requires Node 22 # and Vale 3.20", "compatibility SILENTLY MUTATED"],
-    // The two shapes a naive widening reports falsely, one fixture each:
-    // good-boolean-key for a value the parser reads as a boolean rather than
-    // as text, and good-value-on-next-line for a value whose text begins on
-    // the following line. good-nested-key documents the shape and proves
-    // neither guard on its own, since either one alone catches it.
+    // good-boolean-key and good-value-on-next-line are the shapes a naive widening reports falsely, and good-nested-key proves neither guard on its own.
     ["good-nested-key", 'name: x\ndescription: |\n  ok\nmetadata:\n  version: "1.0"', null],
     ["good-boolean-key", "name: x\ndescription: |\n  ok\ndisable-model-invocation: true", null],
     ["good-value-on-next-line", "name: x\ndescription: |\n  ok\ncompatibility:\n  Requires Node 22 or later", null],
-    // Anything judged against the value is decided here, where a parser has
-    // read it: every empty shape is the same empty string, and the ceiling
-    // counts neither a quote character nor a trailing comment.
     ["t-empty", "name: x\ndescription:", "never advertised"],
     ["t-empty-block", "name: x\ndescription: |", "never advertised"],
     ["t-empty-quoted", 'name: x\ndescription: ""', "never advertised"],
     ["t-empty-blank", 'name: x\ndescription: "   "', "never advertised"],
     ["t-toolong", `name: x\ndescription: ${"a".repeat(1025)}`, "1024"],
-    // The spec caps `compatibility` at 500 as it caps the description at
-    // 1,024, and a block scalar is the shape that grows past it unnoticed,
-    // so the fixtures are the safe style rather than the plain one. The cap is
-    // measured on authored text: a clipped block scalar's trailing newline is
-    // the style's artifact, so the same content passes in either style.
+    // A block scalar is the shape that grows past the cap unnoticed, and its clipped trailing newline is the style's artifact, so the same content passes in either style.
     ["good-compat-at-cap", `name: x\ndescription: |\n  ok\ncompatibility: |\n  ${"a".repeat(500)}`, null],
     ["t-compat-toolong", `name: x\ndescription: |\n  ok\ncompatibility: |\n  ${"a".repeat(501)}`, "500"],
     ["good-compat-plain-at-cap", `name: x\ndescription: |\n  ok\ncompatibility: ${"a".repeat(500)}`, null],
@@ -161,20 +125,11 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["t-indicator-over-cap", `name: x\ndescription: |2\n    ${"a".repeat(340)}\n    ${"b".repeat(340)}\n    ${"c".repeat(340)}`, "1024"],
     ["good-block-under-cap", `name: x\ndescription: |\n  ${"a".repeat(340)}\n  ${"b".repeat(340)}\n  ${"c".repeat(339)}`, null],
     ["good-quoted-under-cap", `name: x\ndescription: "${"a".repeat(1023)}"`, null],
-    // YAML folds a run of n blank lines inside a plain scalar into n newlines
-    // and keeps reading, so the raw reading has to cross them. Each trap
-    // fixture asserts the raw text the detail names rather than the finding
-    // alone, because a short read reports the same finding for the wrong
-    // reason. good-blank-then-key is the guard: blanks before a dedented key
-    // belong to no value, and a reading that emits their newlines anyway
-    // reports a mutation on frontmatter the parser reads exactly as written.
+    // Each trap fixture asserts the raw text the detail names rather than the finding alone, because a short read reports the same finding for the wrong reason.
     ["good-blank-fold", "name: x\ndescription: one\n  two\n\n  three", null],
     ["t-blank-fold-comment", "name: x\ndescription: one\n  two\n\n  three #x", 'raw line says "one two\\nthree #x"'],
     ["t-two-blank-fold", "name: x\ndescription: one\n\n\n  two #x", 'raw line says "one\\n\\ntwo #x"'],
     ["good-blank-then-key", "name: x\ndescription: one\n  two\n\ncompatibility: c", null],
-    // RF1: the same comment-line rule seen by the differential, which is where
-    // the false SILENTLY MUTATED landed. good-comment-line carries no blank, so
-    // it is the instance that reported falsely before the fold crossed one.
     ["good-blank-then-comment", "name: x\ndescription: Use when doing X,\n  and when doing Y.\n\n  # unsure\ncompatibility: node 22", null],
     ["good-comment-line", "name: x\ndescription: one\n  # c\ncompatibility: node 22", null],
   ];
@@ -186,8 +141,7 @@ describe("skill-frontmatter-parsed, the differential", () => {
     });
   }
   it("a blank line after the closing delimiter is not part of the frontmatter", async () => {
-    // Without the trailing-blank strip the closing `---` is parsed as a second
-    // document and every real skill file reports a parse error.
+    // Without the trailing-blank strip the closing `---` is parsed as a second document and every real skill file reports a parse error.
     expectClean(await findings("fx/x/SKILL.md", skill('name: x\ndescription: |\n  Fine.\nmetadata:\n  version: "1.0"'), parsed), "skill-frontmatter-parsed");
   });
 });
@@ -202,12 +156,10 @@ describe("skill-name", () => {
     ["commented", "name: commented # note\ndescription: |\n  x", null],
     ["twospace", "name: twospace  # two spaces before the comment\ndescription: |\n  x", null],
     ["quotecom", 'name: "quotecom" # a quoted value ends at its own quote\ndescription: |\n  x', null],
-    // SM-03: the spec's charset for a name, which the directory match alone
-    // cannot decide - both of these match their directory exactly.
+    // Each name matches its directory exactly, so only the charset clause can decide it.
     ["My_Skill--v2", "name: My_Skill--v2\ndescription: |\n  x", "lowercase"],
     ["-leading-hyphen", "name: -leading-hyphen\ndescription: |\n  x", "hyphen"],
-    // RF1: the spec's 64-character ceiling, which no fixture reached. The name
-    // is all lowercase letters, so only the length clause can decide it.
+    // The name is all lowercase letters, so only the length clause can decide it.
     [`${"a".repeat(65)}`, `name: ${"a".repeat(65)}\ndescription: |\n  x`, "over the spec's 64"],
   ];
   for (const [dir, fm, want] of cases) {
@@ -241,20 +193,12 @@ describe("skill-invocation", () => {
     ["i-dupe", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true\ndisable-model-invocation: false", "duplicate"],
     ["i-comment", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true # the owner types it", null],
     ["i-para", "description: |\n  Does a thing for the user.\n\n  Only when the user invokes it by name.\ndisable-model-invocation: true", null],
-    // A duplicate description key: the rule reads the value the skill actually
-    // loads with, which is the last one, so the first saying nothing about
-    // invocation cannot produce a finding against a second that does.
+    // The rule reads the last description key, the one the skill loads with, so a silent first cannot produce a finding against a second that speaks.
     ["i-dupe-desc", "description: |\n  Nothing about how it is reached.\ndescription: |\n  Explicit invocation only.\ndisable-model-invocation: true", null],
-    // A policy stated in a YAML comment states nothing: the parser cuts a plain
-    // scalar at ` #`, so the value the skill loads with is silent whatever the
-    // line says, and this rule reports what the agent will be given.
+    // The parser cuts a plain scalar at ` #`, so a policy stated in a YAML comment is silent whatever the line says.
     ["i-plain-comment", "description: Use for X # invoked by hand\ndisable-model-invocation: true", silent],
-    // Frontmatter the parser rejects still yields description text, so the
-    // unloadable file gets the differential's parse error and not a second,
-    // false finding here.
+    // Frontmatter the parser rejects still yields description text, so the unloadable file gets the differential's parse error and not a second finding here.
     ["i-unparsed", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true\nother: [1, 2", null],
-    // Another skill's slash command that this name only ends, or only opens,
-    // credits nothing.
     ["flow", "description: |\n  Hands the branch off to `/gh-solo:pr-flow` when the work is done.\ndisable-model-invocation: true", silent],
     ["pr", "description: |\n  Hands the branch off to `/gh-solo:pr-flow` when the work is done.\ndisable-model-invocation: true", silent],
   ];
@@ -267,18 +211,7 @@ describe("skill-invocation", () => {
   }
 });
 
-// The one block that calls a reader directly rather than through a rule. Its
-// subject is which string `description()` hands its caller, and no rule can
-// see that: a fold turns a line break into a space where a raw read turns it
-// into a newline, and `statesPolicy()` matches a single word and a slash token,
-// neither of which a fold can split. So the two readings give `skill-invocation`
-// the same verdict on every shape, and only the value itself distinguishes them.
-//
-// Each want is a literal from a run against the pinned yaml, never a live parse
-// of the same lines: `description()` asks that parser, so an assertion that
-// asks it again could only fail if the two calls disagreed about options. A
-// literal also fails loudly if the pinned parser ever changes its answer, where
-// a parser-derived want would follow it in silence.
+// Each want is a literal from a run against the pinned yaml, because an assertion that asked the parser again could only fail if two calls disagreed about options.
 describe("description(), the value a caller reads", () => {
   const cases = [
     ["pipe keeps one trailing newline", ["description: |", "  one", "  two"], "one\ntwo\n"],
@@ -339,8 +272,7 @@ describe("skill-continuations", () => {
     });
   }
   it("frontmatter is not body: its sequence item claims nothing below", async () => {
-    // A YAML sequence item under `allowed-tools:` would otherwise read the
-    // indented body paragraphs as its continuations.
+    // A YAML sequence item under `allowed-tools:` would otherwise read the indented body paragraphs as its continuations.
     const content =
       "---\nname: c-scalar\ndescription: |\n  a first line of the scalar\n  a second line of the scalar\nallowed-tools:\n  - Read\n---\n\n    an indented paragraph the sequence item would claim\n\n    and a second one\n";
     expectClean(await findings("fx/c-scalar/SKILL.md", content, continuations), "skill-continuations");
@@ -363,7 +295,6 @@ describe("skill-continuations", () => {
 
 describe("skill-bolded-runs", () => {
   const cap = "cap is 5";
-  // n items with a bolded lead, one per line, in the given marker.
   const bolded = (n, marker = "-") => Array.from({ length: n }, (_, i) => `${marker === "1." ? `${i + 1}.` : marker} **lead ${i}.** the rest\n`).join("");
   const cases = [
     ["b-seven", bolded(7), ["7 bolded-lead items in a row"]],
@@ -398,7 +329,6 @@ describe("skill-bolded-runs", () => {
 
 describe("skill-bolded-paragraphs", () => {
   const cap = "cap is 5";
-  // n top-level paragraphs with a bolded lead, a blank line after each.
   const bolded = (n) => Array.from({ length: n }, (_, i) => `**lead ${i}.** the rest\n\n`).join("");
   const cases = [
     ["p-seven", bolded(7), ["7 bolded-lead paragraphs in a row"]],
@@ -436,9 +366,7 @@ describe("skill-bolded-paragraphs", () => {
 });
 
 describe("skill-portable-paths", () => {
-  // A path is read out of the token tree, so the first pair is the whole point:
-  // the same characters are a finding inside a code span and nothing at all in
-  // a sentence, where no reader copies them anywhere.
+  // The same characters are a finding inside a code span and nothing in a sentence, where no reader copies them anywhere.
   const cases = [
     ["t-span", "A span `/home/izkreny/notes.md` here.", "/home/izkreny/notes.md"],
     ["t-fenced", "```bash\ncat /home/izkreny/notes.md\n```", "/home/izkreny/notes.md"],
@@ -448,19 +376,13 @@ describe("skill-portable-paths", () => {
     ["good-tilde", "A span `~/.agents/skills/foo/SKILL.md` here.", null],
     ["good-relative", "A span `workflows/new.md` and a [link](references/managing.md).", null],
     ["good-skill-dir", "A span `<skill-dir>/scripts/check.js` here.", null],
-    // A URL is not a path absolute to one machine, and the `s:/` of `https://`
-    // is a letter, a colon and a slash. Found by running the rule over this
-    // package, where it reported every link in the README.
+    // The `s:/` of `https://` is a letter, a colon and a slash, which the drive-letter branch would match.
     ["good-url", "A [link](https://skills.sh) and a span `https://docs.vale.sh/topics/installation`.", null],
-    // A URL path can carry /home/ exactly as a filesystem path can, which the
-    // drive-letter lookbehind alone did not cover.
+    // A URL path can carry /home/ exactly as a filesystem path can.
     ["good-url-home", "A [link](https://example.test/home/izkreny/notes.md) here.", null],
-    // An absolute path is this rule's, so skill-referenced-paths must not also
-    // try to resolve a drive-lettered span: `paths.js` refuses it there.
+    // An absolute path is this rule's, so `paths.js` refuses a drive-lettered span for skill-referenced-paths.
     ["t-drive-span", "A span `D:/work/notes.md` here.", "D:/work/notes.md"],
-    // The example-path case: a path quoted as what never to write. Single
-    // quotes are the answer workflows/check.md states, and they work because
-    // the rule reads backticked spans and link destinations only.
+    // Single quotes hide an example path because the rule reads backticked spans and link destinations only.
     ["good-quoted-example", "Never write '/home/izkreny/notes.md'; write the `~/` form.", null],
   ];
   for (const [id, body, want] of cases) {
@@ -491,13 +413,10 @@ describe("skill-vale-directive", () => {
     ["good-ordinary", "<!-- an ordinary comment -->\n\nProse.", false],
     ["good-span", "A span `<!-- vale off -->` naming the form.", false],
     ["good-fenced", "```markdown\n<!-- vale off -->\n```", false],
-    // Vale is case-sensitive here: <!-- VALE OFF --> silences nothing, so a
-    // rule that reported it would name a file that was never silenced.
+    // Vale is case-sensitive here, so a rule reporting <!-- VALE OFF --> would name a file that was never silenced.
     ["good-uppercase", "<!-- VALE OFF -->\n\nProse.", false],
-    // The word has to be the directive's own, not the start of another one.
     ["good-prefix", "<!-- valerie wrote this -->\n\nProse.", false],
-    // markdownlint's own comments are the check's to ignore rather than this
-    // rule's to report: once ignored they silence nothing.
+    // markdownlint's own comments are ignored by the check rather than reported by this rule, so they silence nothing.
     ["good-markdownlint", "<!-- markdownlint-disable -->\n\nProse.", false],
   ];
   for (const [id, body, trips] of cases) {
@@ -507,10 +426,7 @@ describe("skill-vale-directive", () => {
       else expectClean(found, "skill-vale-directive");
     });
   }
-  // The line is half of the first acceptance criterion and the rest of the
-  // block reads only details, so nothing else here would notice the rule
-  // reporting a constant. skill-portable-paths carries the same assertion for
-  // the same reason.
+  // Nothing else here would notice the rule reporting a constant line.
   it("names the line the directive sits on, not the item's first line", async () => {
     const body = "- item\n\n  <!-- vale off -->\n\n  Prose.";
     const found = await findings("fx/v-line/SKILL.md", skill("name: v-line\ndescription: |\n  x", body), valeDirective);
@@ -520,10 +436,7 @@ describe("skill-vale-directive", () => {
     );
   });
 
-  // markdownlint masks an HTML comment's content in params.lines, so a rule
-  // reading them cannot tell a directive from any other comment. The context
-  // comes off the token instead, and this is what would catch a regression to
-  // the masked line.
+  // markdownlint masks an HTML comment's content in params.lines, so the context comes off the token.
   it("reports the directive's own text, not the masked line", async () => {
     const results = await lint({
       strings: { "fx/ctx/SKILL.md": skill("name: ctx\ndescription: |\n  x", "<!-- vale off -->") },

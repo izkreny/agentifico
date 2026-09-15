@@ -1,26 +1,13 @@
-// The README rule workflows/new.md owns and workflows/check.md describes.
-// Anchored to SKILL.md with no parser, because a README that does not exist is
-// never a file markdownlint visits, so a rule anchored to the README could
-// never report the case that matters. skill-layout.js reads the filesystem from
-// a SKILL.md's own path the same way.
+// Anchored to SKILL.md because a README that does not exist is never a file markdownlint visits.
 import fs from "node:fs";
 import path from "node:path";
 import { FRONTMATTER_LINE, isSkillFile } from "./frontmatter.js";
 
-// The install forms are workflows/new.md's to state, under "How it is
-// installed", and this is that list. A form added there is added here; the two
-// disagreeing is the defect the single home exists to prevent. No trailing
-// word boundary on the heading, because that file states the form as a heading
-// whose text *opens with* the word, which "Installing" does.
+// No trailing word boundary on the heading, because workflows/new.md states the form as a heading whose text opens with the word.
 const INSTALL_HEADING = /^#{1,6}\s+(?:install|installation|setup|getting started)/im;
 const INSTALL_COMMAND = /^[^\S\n]*(?:skills add|npm install|npm ci|mise use|claude plugin install|git clone|ln -s)\b/im;
 
-// Each form is looked for where workflows/new.md says it counts: the heading
-// outside a fence, the command inside one. Without the split, a heading quoted
-// inside a fenced example counts as a real one, and a command named in prose
-// counts as a fenced block nobody wrote. The scan is the one docs-check.py
-// makes, which keeps the opening fence's own length so a shorter fence nested
-// inside a longer one cannot close it early.
+// The scan keeps the opening fence's own length so a shorter fence nested inside a longer one cannot close it early.
 function fencedAndProse(readme) {
   const fenced = [];
   const prose = [];
