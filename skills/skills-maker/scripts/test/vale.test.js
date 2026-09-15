@@ -283,7 +283,7 @@ describe("CommentSentences, a comment holding a second sentence", () => {
     expectClean(alerts("comment-directives.py", DIRECTIVES.py), "CommentSentences");
     const guards = alerts(
       "comment-guards.js",
-      `// One sentence, e.g. this one, naming workflows/new.md and Vale 3.21.0, i.e. the version the rules were written against.\nconst s = "${TWO}";\n`,
+      `// One sentence, e.g. this one, naming workflows/new.md, tags etc. and Vale 3.21.0 vs. the version the rules were written against, i.e. the pinned one.\nconst s = "${TWO}";\n`,
     );
     expectClean(guards, "CommentSentences");
   });
