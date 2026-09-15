@@ -121,6 +121,42 @@ Vale runs the `Agentifico` style under `assets/`, which is one rule file per mec
 | `ParagraphLength` | *Cut every paragraph to its one new claim* | a body paragraph over 120 words, a figure measured against this package | warning | The message says the paragraph is long enough to read for a second claim, and whether that claim is new is the reading the rule exists to prompt. |
 | `SkillSplit`, `SkillLength` | *Let size decide whether to split* | a `SKILL.md` past roughly 2,000 words of prose, where operations move to workflow files, and past roughly 3,500, the cap the spec's token budget allows | warning | Both figures are roughly, counted on Vale's prose metric rather than `wc -w`, which also counts code. |
 
+## How a phrase list grows
+
+A phrase rule's tokens are evidence, per *The prose rules*, and the records they were mined from keep growing with every merged pull request. Growing a list is a query over those records and a judgement on each phrase they return, run from the repository that owns the rules.
+
+### The sources
+
+**A finding is a review comment carrying `::RF{n}::`**, which is how a `pr-flow` review round posts one, and a finding on prose is one whose `path` names a markdown file. Read the pull requests merged since the last run, then the review comments on each:
+
+```bash
+gh pr list --state merged --search "merged:>=<date>" --json number --jq '.[].number'
+gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate --jq '.[] | select(.path | endswith(".md")) | select(.body | test("::RF[0-9]+::")) | "\(.path):\(.line)\n\(.body)\n"'
+```
+
+**A fix commit's diff carries the phrase removed and the phrase written in its place**, which is a token and its guards line at once. Read every prose commit from a tag or a date onward; the fix commits are the ones whose body cites a finding, and the range between two runs is short enough to read whole:
+
+```bash
+git log --patch <tag>..origin/main -- '*.md'
+git log --patch --since=<date> origin/main -- '*.md'
+```
+
+### Which rule a phrase belongs to
+
+**A phrase belongs to the rule whose `workflows/new.md` heading catches it**, and each rule's `message` opens on that heading. A count of adjacent content, where adding one more item makes the sentence false, is `Counts`. A claim an edit anywhere in the document can falsify is `Position`. A sentence anchored to a moment rather than a reason is `History`. A version or date claim in a file's opening region is `Banner`; the length rules hold no phrases.
+
+**A phrase that belongs to none is reported, with its source, and gets no rule.** A rule whose message names no heading enforces nothing this skill states, and a rule enters `workflows/new.md` before it enters `assets/`.
+
+### How a token lands
+
+**A token lands in the rule file under `assets/Agentifico/`, under a comment naming the finding or commit it came from**, in the form the file uses. A token with no source is not there, per *The prose rules*.
+
+**It gets a line of its own in that rule's `TRIP` list in `scripts/test/vale.test.js`, one only it trips.** The suite's per-token coverage proves a token fires somewhere on its rule's fixture, and where several tokens share a line, a token can pass on a neighbour's line. A line only it trips is what fails the once-per-line test when the token is removed, and that removal is how the line is watched failing before it is trusted, per *A check that has never been seen to fail is not evidence* in `workflows/new.md`.
+
+**Where the phrase has a legitimate use, that use goes in the guards fixture beside the trip list**, as a line the rule must leave alone. A guards line is what stops a later edit to the token from widening it past the record.
+
+**Then the check runs over this skill, and every place the token fires is fixed or excepted.** A true finding is fixed in the prose. A phrase that is right where it stands goes into the rule's `exceptions` with the reason beside it, never into a directive, per *The directive rule*.
+
 ## The suite
 
 After editing a rule or the check itself, run the suite. Each markdownlint rule's fixtures are strings passed through markdownlint's own string input, and each Vale rule's are files in a temporary directory the suite creates and removes, so no fixture is ever written as a real `SKILL.md`, which some agents would discover recursively as a broken skill.
