@@ -33,6 +33,9 @@ tokens:
   # "the same as above" e3f094d and 6581c8c; "rules out above" 9ed0bb8;
   # "named above" live in plugins/gh-solo.
   - '(?:as|per|see|stated|described|named|listed|mentioned|noted|shown|explained|defined|quoted|said|same as|out) (?:[a-z]+ )?(?:above|below)'
+  # "governs this step's read and nothing later" 54c301c: a pointer at the
+  # steps after this one, falsified when the paragraph moved to a later step.
+  - 'and nothing (?:later|earlier)'
   # A bare "above." or "below," closing a clause, and "the above": "per *Who
   # this is for* above." 187f851, "the above" live in skills/review-text.
   - '(?:above|below)(?=[,.;:)]|$)'
@@ -40,7 +43,12 @@ tokens:
   # A uniqueness claim: "the only one in this table" PR 37, "the one place a
   # body section's cap is stated" PR 46, "the one statement of what follows"
   # PR 82, "the one exception" PR 87, "the only read in this workflow" PR 73.
-  - 'the (?:only|one|single|sole) (?:place|thing|way|copy|exception|exclusion|entrance|statement|read|workflow|site|home|rule|shape|state|point|reason|file|check|command|source|entry|surface|finding|kind)'
+  # "the only plan still being written" PR 155 RF4, false on a stacked
+  # branch, adds "plan".
+  - 'the (?:only|one|single|sole) (?:place|thing|way|copy|exception|exclusion|entrance|statement|read|workflow|site|home|rule|shape|state|point|reason|file|check|command|source|entry|surface|finding|kind|plan)'
+  # "the trap is visible to it alone" 783e1a9: a uniqueness claim postposed
+  # after the pronoun, which the determiner shapes cannot reach.
+  - '(?:to|for) it alone'
   # "This is the one that works" .agents/gh-solo.md; "the one whose absence" AGENTS.md.
   - '(?:this|that|it) is the one (?:that|whose|which)'
   # "and nowhere else" PR 46; "nothing else states what follows" PR 82;

@@ -79,3 +79,11 @@ tokens:
   - 'first (?:said|written|wrote)'
   - '(?:was|were|been) dropped'
   - 'dropped that'
+  # "which is what the scripts/* span was" PR 155 RF3: a sentence naming what
+  # a thing the file no longer carries used to be. An inline code span is
+  # masked to asterisks by the time the token reads it, so the gap is \S+.
+  - 'which is what (?:the|that|this|its) (?:\S+ ){0,3}?(?:span|rule|check|test|command|flag|line|list|set|section|block|loop) was'
+  # "how a list grows afterwards is #130's to document" 54c301c: the file
+  # promising its own future to an issue, which dates it as "until #101
+  # lands" does.
+  - 'is #\d+''s to (?:document|state|add|decide|settle|fix|write|say)'
