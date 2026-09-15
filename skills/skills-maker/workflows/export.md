@@ -37,7 +37,7 @@ The rule and its reason are in `workflows/new.md` ("Code blocks are Bash"), and 
 
 ## Step 5 - Verify the exported copy
 
-Run `workflows/check.md` against the exported directory: description intact and free of the frontmatter traps, name matches the directory, every advertised verb routes, every referenced file exists, no machine-absolute paths left. If the skill carries `metadata.version`, bump it in this same pass whenever the content changed; a version that does not move with the content is the banner lie in frontmatter form. Then grep the copy for the author's username and home directory as a final sweep; zero hits is the exit criterion, with one exception: the destination repository's own name, in a URL such as a rule's `link:` or in the install command in `README.md`, and the author's byline there, since both are public the moment the repository is.
+Run `workflows/check.md` against the exported directory: description intact and free of the frontmatter traps, name matches the directory, every advertised verb routes, every referenced file exists, no machine-absolute paths left. If the skill carries `metadata.version`, bump it in this same pass whenever the content changed; a version that does not move with the content is the banner lie in frontmatter form. Then grep the copy for the author's username and home directory as a final sweep; zero hits is the exit criterion. Excepted, since each is public the moment the repository is: the destination repository's own name, in a URL such as a rule's `link:` or in the install command in `README.md`, and the author's byline there.
 
 ## Step 6 - Hand over, then close the loop
 
