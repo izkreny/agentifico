@@ -1,6 +1,4 @@
-// The skill-inside-a-skill rule workflows/check.md describes. The search stops
-// at the target the check was run over, which check.js passes as `root`;
-// without one it stops at the working directory.
+// The search stops at the target so a skill above the tree being checked is never reported as enclosing one inside it.
 import fs from "node:fs";
 import path from "node:path";
 import { FRONTMATTER_LINE, isSkillFile } from "./frontmatter.js";
@@ -8,11 +6,7 @@ import { FRONTMATTER_LINE, isSkillFile } from "./frontmatter.js";
 export function enclosingSkill(file, root) {
   const stop = path.resolve(root);
   let dir = path.dirname(path.dirname(path.resolve(file)));
-  // Containment is a fact about path segments, never about the string: a plain
-  // prefix test puts /a/bc inside /a/b. check.js globs under its target so it
-  // cannot reach that case, and this function is exported and called on its own.
-  // The filesystem root already ends in the separator, and appending a second
-  // one yields a prefix no resolved path opens with.
+  // A plain prefix test puts /a/bc inside /a/b, and the filesystem root already ends in the separator, so a second one is not appended.
   const prefix = stop.endsWith(path.sep) ? stop : stop + path.sep;
   const inside = (d) => d === stop || d.startsWith(prefix);
   while (inside(dir)) {

@@ -1,18 +1,10 @@
-// The invocation fields workflows/check.md describes and workflows/new.md
-// owns; this is where each defect is decided.
 import path from "node:path";
 import { description, FRONTMATTER_LINE, frontmatter, isSkillFile, keyLines, scalar } from "./frontmatter.js";
 
-// Each field with the value it defaults to; a field at its default relies on
-// nothing, so only the other value triggers the description cross-check.
+// A field at its default relies on nothing, so only the other value triggers the description cross-check.
 const FIELDS = { "disable-model-invocation": "false", "user-invocable": "true" };
 
-// Whether the description says anything about invocation at all: the word
-// itself, spawning, or the skill's own slash command, bare or under a plugin
-// prefix ending in a colon - never another skill's command that this name only
-// ends or only opens, so the name is bounded on both sides by something no
-// skill name contains. Whether what it says matches the field is the
-// reviewer's to judge; this only catches the description that is silent.
+// The name is bounded before and after by something no skill name contains, so another skill's command that this name only ends or only opens does not count.
 export function statesPolicy(text, name) {
   const slash = new RegExp(`/(?:[\\w.-]+:)?${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`);
   return /invo[ck]|spawn/i.test(text) || slash.test(text);
@@ -29,10 +21,7 @@ export function defects(fm, name) {
       .slice(key.length + 1)
       .trim();
     const value = scalar(raw);
-    // Lowercase true and false are what every parser reads as a boolean. yes,
-    // on and True are booleans in some parsers and strings in others, so a
-    // policy written that way holds on some agents; a quoted value is a string
-    // in every parser, whatever it spells.
+    // `yes`, `on` and `True` are booleans in some parsers and strings in others, while a quoted value is a string in every parser.
     if (/^["']/.test(raw)) {
       bad.push(`${key} is quoted, so it is the string ${JSON.stringify(value)} rather than a boolean`);
       continue;

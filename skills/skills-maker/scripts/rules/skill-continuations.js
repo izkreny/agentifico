@@ -1,10 +1,4 @@
-// The continuation-paragraph rule workflows/new.md owns and
-// workflows/check.md describes. The parser owns everything else: in
-// micromark's tree a list token holds its item prefixes and its content
-// blocks as siblings, so an item is the run of
-// children between one prefix and the next, its paragraphs are the paragraphs
-// in that run, and a nested list, a fence, a table or a blockquote in the run
-// is a different token type that counts for nothing.
+// In micromark's tree a list token holds its item prefixes and its content blocks as siblings, so an item is the run of children between one prefix and the next.
 export const isList = (t) => t.type === "listOrdered" || t.type === "listUnordered";
 
 function walk(tokens, fn) {
@@ -18,15 +12,10 @@ export const paragraphOf = (t) => (t.type === "content" ? t.children.find((c) =>
 
 export const opensBold = (p) => p?.children?.[0]?.type === "strong";
 
-// An item's text may start on the line after its marker, and a container's own
-// prefix or indent - a blockquote's, a footnote's - sits between them there, so
-// whitespace is matched by token family rather than by name. listItemPrefix
-// is caught before this test runs.
+// A container's own prefix or indent sits between a marker and text that starts on the next line, so whitespace is matched by token family rather than by name.
 const isSpace = (t) => /^lineEnding|Prefix$|Indent$/.test(t.type);
 
-// The lead is whatever block opens an item, paragraph or not, so a paragraph
-// after it is a continuation whatever the item began with. skill-bolded-runs
-// reads the same items, so how an item is found stays in this one function.
+// The lead is whatever block opens an item, paragraph or not, so a paragraph after it is a continuation whatever the item began with.
 export function items(list) {
   const out = [];
   let item = null;
