@@ -117,6 +117,16 @@ before(() => {
   fs.mkdirSync(path.join(tmp, "prose-only"));
   fs.writeFileSync(path.join(tmp, "prose-only", "notes.md"), "# Notes\n\nthe example above says so.\n");
 
+  // The same comment sits under node_modules so the exclusion is watched on a code file, where a dependency's own comments are nobody's finding.
+  const code = path.join(tmp, "code");
+  mk(code, block("code"));
+  fs.mkdirSync(path.join(code, "scripts", "node_modules", "dep"), { recursive: true });
+  fs.writeFileSync(path.join(code, "scripts", "run.js"), "// The first sentence says why. The second narrates the line.\nconst a = 1;\n");
+  fs.writeFileSync(
+    path.join(code, "scripts", "node_modules", "dep", "index.js"),
+    "// The first sentence says why. The second narrates the line.\nconst a = 1;\n",
+  );
+
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
   fs.writeFileSync(path.join(tmp, "dotted", ".hidden", "w.md"), "- **lead.** first\n\n  the reason\n\n  a second paragraph\n");
@@ -150,6 +160,8 @@ describe("check.js", () => {
     assert.match(r.out, /skill-description/);
     assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
     assert.match(r.out, /vale is not on PATH/);
+    const code = run(path.join(tmp, "code"), { ...process.env, PATH: path.join(tmp, "empty") });
+    assert.match(code.out, /2 files checked, \d+ issues, prose rules not run/);
   });
   it("a vale that refuses its configuration fails the run, and says so", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "refuses-bin") });
@@ -206,7 +218,7 @@ describe("check.js", () => {
   it("a package with its own cli2 configuration under the target is linted, never imported", () => {
     const r = run(path.join(tmp, "configured-package"));
     assert.equal(r.code, 0, r.out);
-    assert.equal(r.linted, 2);
+    assert.equal(r.linted, 3);
   });
   it("a directory of symlinks into the canonical tree is followed", () => {
     const r = run(path.join(tmp, "linked"));
@@ -258,6 +270,13 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "good"));
     assert.match(r.out, /^1 skill\(s\) found under .*good$/m);
     assert.match(r.out, /^ {2}\.$/m);
+  });
+  it("a code file under the target reaches the prose rules, and one under node_modules does not", () => {
+    const r = run(path.join(tmp, "code"));
+    assert.equal(r.code, 1);
+    assert.match(r.out, /^ {2}scripts\/run\.js:1 Agentifico\.CommentSentences \(error\)/m);
+    assert.doesNotMatch(r.out, /node_modules/);
+    assert.equal(r.linted, 3);
   });
   it("a package root names every skill under it, by its own path", () => {
     const r = run(path.join(tmp, "pkg"));

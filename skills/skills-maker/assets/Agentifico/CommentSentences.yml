@@ -1,0 +1,15 @@
+# The mechanical half of "A comment inside code exists only where the solution
+# is unconventional, and is one sentence saying why" in workflows/new.md: a
+# comment holding a second sentence end is a finding, and whether the one
+# sentence is a reason stays with the reviewer. The token counts an end, so a
+# tool directive (biome-ignore, eslint-disable, noqa, type: ignore) carrying
+# no full stop counts nothing and needs no exception, which is as well since
+# an occurrence rule takes none. The lookbehind keeps an abbreviation a
+# comment here writes from counting as an end.
+extends: occurrence
+message: "A comment inside code is one sentence saying why: this one carries %d sentence ends."
+link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
+level: error
+scope: comment
+max: 1
+token: '(?<!\be\.g|\bi\.e|\betc|\bvs)[.!?](?=\s|$)'
