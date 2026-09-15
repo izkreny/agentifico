@@ -105,6 +105,17 @@ before(() => {
   fs.writeFileSync(path.join(configured, ".markdownlint-cli2.jsonc"), '{ "config": { "skill-description": false, "skill-frontmatter-parsed": false } }\n');
   fs.writeFileSync(path.join(configured, ".markdownlint.json"), '{ "default": false }\n');
 
+  // Targets whose markdownlint comments try to switch off the rule that
+  // reports the Vale directive beneath them, one per comment form RF1 named.
+  for (const [dir, comment] of [
+    ["inline-disabled", "<!-- markdownlint-disable -->"],
+    ["inline-disabled-rule", "<!-- markdownlint-disable skill-vale-directive -->"],
+    ["inline-configured", '<!-- markdownlint-configure-file { "skill-vale-directive": false } -->'],
+  ]) {
+    mk(path.join(tmp, dir), block(dir));
+    fs.appendFileSync(path.join(tmp, dir, "SKILL.md"), `\n${comment}\n\n<!-- vale off -->\n`);
+  }
+
   // A package under the target carrying its own cli2 configuration, which
   // names a rule module whose dependency is not installed: a runner that
   // discovers configuration imports that module and aborts, where this check
@@ -230,6 +241,13 @@ describe("check.js", () => {
     assert.equal(r.code, 1);
     assert.match(r.out, /TRUNCATED/);
     assert.match(r.out, /MD009/);
+  });
+  it("an inline markdownlint comment under the target changes nothing", () => {
+    for (const dir of ["inline-disabled", "inline-disabled-rule", "inline-configured"]) {
+      const r = run(path.join(tmp, dir));
+      assert.equal(r.code, 1, `${dir}: ${r.out}`);
+      assert.match(r.out, /skill-vale-directive/, dir);
+    }
   });
   it("a package with its own cli2 configuration under the target is linted, never imported", () => {
     const r = run(path.join(tmp, "configured-package"));

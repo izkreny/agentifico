@@ -16,15 +16,18 @@ import parsed from "../rules/skill-frontmatter-parsed.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
+import valeDirective from "../rules/skill-vale-directive.js";
 
-const RULES = [description, parsed, name, invocation, continuations, portablePaths];
+const RULES = [description, parsed, name, invocation, continuations, portablePaths, valeDirective];
 
 // Lints one string as the file at `path`, with only the named rules on, and
-// returns each finding as its rule, line and detail.
+// returns each finding as its rule, line and detail. noInlineConfig is set as
+// check.js sets it, or a fixture's own markdownlint comment would switch off
+// the rule it is there to test.
 async function findings(path, content, ...only) {
   const config = { default: false };
   for (const r of only) config[r.names[0]] = true;
-  const results = await lint({ strings: { [path]: content }, customRules: RULES, config });
+  const results = await lint({ strings: { [path]: content }, customRules: RULES, config, noInlineConfig: true });
   return results[path].map((e) => ({ rule: e.ruleNames[0], line: e.lineNumber, detail: e.errorDetail ?? "" }));
 }
 
@@ -395,5 +398,59 @@ describe("skill-portable-paths", () => {
       found.map((f) => f.line),
       [11],
     );
+  });
+});
+
+describe("skill-vale-directive", () => {
+  const cases = [
+    ["t-off", "<!-- vale off -->\n\nProse the rules no longer read.", true],
+    ["t-assignment", "<!-- vale Agentifico.Counts = NO -->\n\nProse.", true],
+    ["t-indented", "- item\n\n  <!-- vale off -->\n\n  Prose.", true],
+    ["t-inline", "A paragraph carrying <!-- vale off --> mid-sentence.", true],
+    ["t-tight", "<!--vale off-->\n\nProse.", true],
+    ["t-blockquote", "> <!-- vale on -->\n\nProse.", true],
+    ["good-ordinary", "<!-- an ordinary comment -->\n\nProse.", false],
+    ["good-span", "A span `<!-- vale off -->` naming the form.", false],
+    ["good-fenced", "```markdown\n<!-- vale off -->\n```", false],
+    // Vale is case-sensitive here: <!-- VALE OFF --> silences nothing, so a
+    // rule that reported it would name a file that was never silenced.
+    ["good-uppercase", "<!-- VALE OFF -->\n\nProse.", false],
+    // The word has to be the directive's own, not the start of another one.
+    ["good-prefix", "<!-- valerie wrote this -->\n\nProse.", false],
+    // markdownlint's own comments are the check's to ignore rather than this
+    // rule's to report: once ignored they silence nothing.
+    ["good-markdownlint", "<!-- markdownlint-disable -->\n\nProse.", false],
+  ];
+  for (const [id, body, trips] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), valeDirective);
+      if (trips) expectDetail(found, "skill-vale-directive", "exceptions key");
+      else expectClean(found, "skill-vale-directive");
+    });
+  }
+  // The line is half of the first acceptance criterion and the rest of the
+  // block reads only details, so nothing else here would notice the rule
+  // reporting a constant. skill-portable-paths carries the same assertion for
+  // the same reason.
+  it("names the line the directive sits on, not the item's first line", async () => {
+    const body = "- item\n\n  <!-- vale off -->\n\n  Prose.";
+    const found = await findings("fx/v-line/SKILL.md", skill("name: v-line\ndescription: |\n  x", body), valeDirective);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [9],
+    );
+  });
+
+  // markdownlint masks an HTML comment's content in params.lines, so a rule
+  // reading them cannot tell a directive from any other comment. The context
+  // comes off the token instead, and this is what would catch a regression to
+  // the masked line.
+  it("reports the directive's own text, not the masked line", async () => {
+    const results = await lint({
+      strings: { "fx/ctx/SKILL.md": skill("name: ctx\ndescription: |\n  x", "<!-- vale off -->") },
+      customRules: RULES,
+      config: { default: false, "skill-vale-directive": true },
+    });
+    assert.equal(results["fx/ctx/SKILL.md"][0].errorContext, "<!-- vale off -->");
   });
 });

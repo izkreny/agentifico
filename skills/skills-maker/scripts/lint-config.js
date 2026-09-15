@@ -11,6 +11,7 @@ import skillName from "./rules/skill-name.js";
 import skillPortablePaths from "./rules/skill-portable-paths.js";
 import skillReadme from "./rules/skill-readme.js";
 import skillReferencedPaths from "./rules/skill-referenced-paths.js";
+import skillValeDirective from "./rules/skill-vale-directive.js";
 
 // One array per printed class, so a rule added later is filed by answering
 // which heading it belongs under rather than by remembering a second list.
@@ -27,6 +28,7 @@ const contractRules = [
   skillReadme,
   skillPortablePaths,
   skillReferencedPaths,
+  skillValeDirective,
 ];
 const proseShapeRules = [skillContinuations];
 export const rules = [...contractRules, ...proseShapeRules];
