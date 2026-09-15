@@ -76,4 +76,4 @@ Based on `$ARGUMENTS`, do exactly one of the following:
 | `workflows/check.md` | the mechanical audit: a gate over one skill, a survey over a directory of them |
 | `workflows/export.md` | publishing a local skill to a shared repository |
 | `references/managing.md` | installing and updating skills, and why not to hand-edit an installed one |
-| `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, sharing `scripts/rules/frontmatter.js`; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |
+| `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, and the helpers they share beside them; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |

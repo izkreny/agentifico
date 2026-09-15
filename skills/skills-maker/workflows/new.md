@@ -30,7 +30,7 @@ A skill is worth writing when one of these happened: a multi-step workflow prove
 
 Write the description as trigger phrases plus a boundary. **Say what the skill is not for**: one boundary sentence prevents more misfires than another trigger phrase adds.
 
-The format's authority is the [Agent Skills specification](https://agentskills.io/specification): `name` and `description` are its only required fields, `license`, `compatibility` and `metadata` are optional (quote metadata values, `version: "1.0"`, since a bare `1.0` parses as a float), and `allowed-tools` is in the spec but experimental. `argument-hint`, `disable-model-invocation` and `user-invocable` are Claude Code extensions that other agents silently ignore, so never let behaviour depend on them alone: a skill meant for explicit invocation only, or for an agent only, says so in its description too, because on an agent that ignores the field the description is all that holds.
+The format's authority is the [Agent Skills specification](https://agentskills.io/specification): `name` and `description` are its only required fields, `license`, `compatibility` and `metadata` are optional (quote metadata values, `version: "1.0"`, since a bare `1.0` parses as a float), and `allowed-tools` is in the spec but experimental, as a space-separated string; the comma-separated form is Claude Code's, and this skill's own frontmatter uses it. `argument-hint`, `disable-model-invocation` and `user-invocable` are Claude Code extensions that other agents silently ignore, so never let behaviour depend on them alone: a skill meant for explicit invocation only, or for an agent only, says so in its description too, because on an agent that ignores the field the description is all that holds.
 
 **`$ARGUMENTS` is the same kind of extension, in the body rather than the frontmatter.** Claude Code substitutes the typed argument for it before the skill reaches the model; an agent that does not reads the literal `$ARGUMENTS` and has nothing to route on. A router built on it therefore says what to do when it arrives unexpanded, which is to take the argument from the conversation, and the spec's own field list is where to check whether any other placeholder is yours or your harness's.
 
@@ -38,7 +38,7 @@ The format's authority is the [Agent Skills specification](https://agentskills.i
 
 ### Let size decide whether to split
 
-Under roughly 2,000 words, one `SKILL.md` is right and splitting it is overhead. Measure size in words (`wc -w`) or tokens, never in lines: a line count depends on the author's wrapping style, and an unwrapped paragraph is one line where an 80-column author writes six.
+Under roughly 2,000 words, one `SKILL.md` is right and splitting it is overhead. Measure size in words of prose, which is how `SkillSplit` in `workflows/check.md` counts it, or in tokens, never in lines: a line count depends on the author's wrapping style, and an unwrapped paragraph is one line where an 80-column author writes six.
 
 Past that, split: `SKILL.md` keeps the frontmatter, the shared model and a routing table; each operation gets `workflows/<verb>.md`; long reference material gets `references/<topic>.md`. The router reads exactly one workflow and follows it inline, which keeps loaded context proportional to the task rather than to the skill.
 

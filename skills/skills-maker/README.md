@@ -60,6 +60,6 @@ That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) 
 
 ## What a YAML parser cannot see
 
-**A validator that reads frontmatter through a YAML parser cannot see the space-and-`#` truncation.** The truncation is valid YAML, so the parser is handed a description that already ends early and has nothing to report. This skill checks the raw line instead, which is what lets it catch a family of traps a parsed read is defined not to reach; `workflows/check.md` lists them and `SKILL.md` explains each.
+**A validator that reads frontmatter through a YAML parser cannot see the space-and-`#` truncation.** The truncation is valid YAML, so the parser is handed a description that already ends early and has nothing to report. This skill checks the raw line instead, which is what lets it catch a family of traps a parsed read is defined not to reach; `SKILL.md` names each of them under "YAML eats the description at `#`".
 
 Behaviour is a different question, and this skill does not answer it. `workflows/review.md` says to measure that with whatever eval tooling the agent in use provides, naming Claude Code's built-in `claude plugin eval` as the example.
