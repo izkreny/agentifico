@@ -41,7 +41,7 @@ def decision(cmd, branch, repo=None):
 
 FEAT = "feat/GHI-50_login-form"
 PUSH = "git push origin main"          # the plain form, composed into the shapes below
-# Each of these stayed silent while the command was cut with a regex before quoting was resolved.
+# A regex cut made before quoting is resolved stays silent on every one of these, which is why the guard tokenises instead.
 EVASIONS = [
     (f"({PUSH})", FEAT),
     (f"{PUSH}&", FEAT),
@@ -62,7 +62,7 @@ EVASIONS = [
     (f"xargs -I{{}} {PUSH}", FEAT),
     (f"if true; then {PUSH}; fi", FEAT),
     (f"for r in a; do {PUSH}; done", FEAT),
-    # Until newline was taken out of `lex.whitespace`, every multi-line command collapsed into one segment and the guard went silent on the commonest shape an agent composes.
+    # Newline separates two commands as `&&` does, and shlex eats it as whitespace unless it is taken out of `lex.whitespace`.
     (f"git status\n{PUSH}", FEAT),
     (f"git add -A\ngit commit -m x\n{PUSH}", FEAT),
     (f"{PUSH}\n", FEAT),
@@ -72,7 +72,7 @@ EVASIONS = [
     (f"git status && \\\n{PUSH}", FEAT),
     (f"git push \\\n  origin main", FEAT),
     (f"git add -A \\\n  . && {PUSH}", FEAT),
-    # Reading the second backslash as a continuation swallowed the separator, a regression the continuation fix introduced.
+    # An escaped backslash is data and the newline after it still separates, so the second backslash is never a continuation.
     (f"echo a\\\\\n{PUSH}", FEAT),
     (f"cat <<'EOF' > f\n{PUSH}\nEOF\n{PUSH}", FEAT),   # after the delimiter, commands again
     (f"cat <<-EOF\n{PUSH}\nEOF\n{PUSH}", FEAT),

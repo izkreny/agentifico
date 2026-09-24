@@ -306,7 +306,7 @@ MUST_REFUSE = [
     ("verdict with an empty why", mutate(RERdefault, verdicts=[{"rf": 3, "closed": True, "why": " "}]), 0),
     ("verdict closed not a boolean", mutate(RERdefault, verdicts=[{"rf": 3, "closed": "yes", "why": "x"}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
-    # A level the reviewer never gave, published as the reviewer's, is the half of the protocol's rule the script did not enforce.
+    # A level the reviewer never gave, published as the reviewer's, is a derivation made and not stated, the half of the protocol's rule this case guards.
     ("unrated severity while severity_source is reviewer",
      mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED]), 0),
 ]
@@ -471,7 +471,7 @@ for name, data, continue_from, wants, diff in MUST_BUILD:
         # The absence from the comments array is the whole fix, so it is asserted rather than left to the wants list.
         if "HELD" in proc.stdout and payload["comments"]:
             ok = False
-        # A round records and never approves, which nothing asserted before this case.
+        # A round records and never approves, so an APPROVE event here would let the record stand in for the owner's judgement.
         if payload.get("event") != "COMMENT":
             ok = False
     fails += not ok
@@ -835,7 +835,7 @@ if out.exists():
 
 print("\ndiscard must refuse (exit 2):")
 proc, out = run_discard(disclaimer=bad_disclaimer, name="dc-bad")
-# argparse also exits 2 on an unknown subcommand, so an exit code alone looked green before `discard` existed.
+# argparse also exits 2 on an unknown subcommand, so the stderr text is what proves the refusal fired.
 ok = proc.returncode == 2 and not out.exists() and "disclaimer" in proc.stderr
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a disclaimer without the emoji prefix  (exit {proc.returncode})")
