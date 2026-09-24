@@ -2,7 +2,7 @@
 
 The scoped re-review. You came in by `rescope <pr-number>`, and your prompt handed you the commit range the fixes landed in, the findings they answer with their `RF{n}` ids, and which commit claims which id.
 
-Everything about the finding shape, the findings file, your report and the standing prohibitions is in `SKILL.md`, which sent you here. This file owns what this pass reads, the two questions it answers, and the verdicts it adds.
+Everything about the finding shape, the findings file, your report and the standing prohibitions is in `SKILL.md`, which sent you here. This file owns what this pass reads, the questions it answers, and the verdicts it adds.
 
 ## What you read, and nothing else
 

@@ -83,11 +83,11 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 **Answered questions outlive the discussion that answered them.** The PR body's open questions are where the plan discussion starts, and each one you settle moves to a `## Settled` section with your decision attached, question included. Because the squash merge writes the PR body into the trunk commit, those decisions end up in `git log` permanently - which no comment thread ever does.
 
-**The plan lists steps as bullets; the PR lists the same steps as checkboxes.** Same list, two jobs. The plan records what you *intended*, fixed at the moment it was written. The PR records what has *happened*, and has to be free to change. When the two drift apart, that is worth seeing: it means the scope moved.
+**The plan lists steps as bullets; the PR lists the same steps as checkboxes.** Same list, two jobs. The plan records what you *intended*, fixed at the moment it was written. The PR records what has *happened*, and has to be free to change. When they drift apart, that is worth seeing: it means the scope moved.
 
 **Each place holds its own fact, and none repeats another.** The issue holds what "done" means. The plan holds how. The pull request holds where things stand. One link per hop, which is why "implement PR 60" is a complete instruction on its own.
 
-**There is no plan template.** A plan is written by an agent that has just read the issue and the code, and the sections worth having are the ones that particular problem raises. The fixed headings are the **steps** and how you will know it worked (**verification**), because other things have to find those two lists; everything else is the planner's call.
+**There is no plan template.** A plan is written by an agent that has just read the issue and the code, and the sections worth having are the ones that particular problem raises. The fixed headings are the **steps** and how you will know it worked (**verification**), because other things have to find those lists; everything else is the planner's call.
 
 **Everything squashes.** One issue is one branch is one pull request is **one commit on the trunk**. The trunk becomes a readable list of finished work rather than a transcript of how the work went. The plan commit, the false starts and the review fixes all served their purpose inside the PR and do not need to outlive it.
 

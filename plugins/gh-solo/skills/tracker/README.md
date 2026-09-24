@@ -21,7 +21,7 @@ The plugin's own `README.md` has the local-checkout variant, the requirements, a
 
 ## The full lifecycle
 
-Both skills are one loop. This one is the top half.
+`tracker` and `pr-flow` are one loop. This one is the top half.
 
 ```mermaid
 flowchart TD
@@ -92,6 +92,6 @@ The dotted line back is the point worth noticing: nothing gets moved by hand. Th
 | `references/github-access.md`  | `gh` setup, and the failures that look like something else                                                   |
 | `workflows/`                   | one file per command                                                                                         |
 
-Anything specific to one repository — its own label set, a different branch convention — belongs in `.agents/gh-solo.md` in that repository, never in this skill. `pr-flow` reads the same file, so the two skills cannot disagree about a repository's conventions.
+Anything specific to one repository — its own label set, a different branch convention — belongs in `.agents/gh-solo.md` in that repository, never in this skill. `pr-flow` reads the same file, so the skills cannot disagree about a repository's conventions.
 
 **The formats live here**, in `references/formats.md`: branch names, commit subjects, pull request titles, plan filenames. They belong to the tracker because every one of them encodes an issue number, and `pr-flow` points back here instead of restating them.

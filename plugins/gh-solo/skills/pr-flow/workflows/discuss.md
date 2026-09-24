@@ -106,7 +106,7 @@ mutation($threadId:ID!, $body:String!) {
     comment { url } } }' -f threadId='<thread-id>' -f body='...'
 ```
 
-The `id` from Step 1 is the `threadId`. Both inputs are required.
+The `id` from Step 1 is the `threadId`. Neither input is optional.
 
 **A reply that fails with `user_id can only have one pending review per pull request` is blocked by the owner, not broken.** GitHub allows one `PENDING` review per account per PR, and a review the owner started in the UI and has not submitted holds that slot. Observed on the REST replies endpoint the fix workflow of `implement` uses; whether this mutation is affected too is untested, so treat the 422 by its message rather than by which call raised it. When it lands:
 

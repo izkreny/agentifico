@@ -37,7 +37,7 @@ gh pr checks <pr-number>
 
 Step 1's boxes are self-reported from local runs, so a ticked box is evidence that a command passed *somewhere* - not that the branch is green. CI is the authority on any gate it also runs, and this is the step that asks it. **A red check refuses the flip even when every box is honestly ticked**, and the refusal names which box the check contradicts. A pending check is waited out with `gh pr checks <pr-number> --watch` rather than assumed; zero checks on a repository that has CI is itself a finding, not a pass.
 
-**A locally green gate and a red CI check are two different environments disagreeing** - a library installed on the developer's machine and absent on the runner will pass every local run and fail every CI run of the same command, and both results are true at once. The standing rule in `SKILL.md` owns the posture: the disagreement is the finding, so report both and diagnose the difference, never re-run locally until it looks fine.
+**A locally green gate and a red CI check are two different environments disagreeing** - a library installed on the developer's machine and absent on the runner will pass every local run and fail every CI run of the same command, and each result is true. The standing rule in `SKILL.md` owns the posture: the disagreement is the finding, so report both and diagnose the difference, never re-run locally until it looks fine.
 
 ## Step 3 - Audit the rest of the body
 
@@ -61,7 +61,7 @@ gh pr ready <pr-number>
 
 Open with the verdict line per the standing convention in `SKILL.md`. `✅ ALL PASS` when Step 3 found nothing; `⚠️ PASSED WITH FINDINGS - {the bookkeeping misses}` when it did, naming each - an unticked `## Steps` box whose work is plainly done, or a `## Open questions` entry never moved to `## Settled`. Step 3 defines both as things to report rather than blockers, so the draft still lifts; printing green over them hides the one line the owner reads first. A refusal never reaches this step: the refusals in Steps 1-3 print `⛔ REFUSED - {reason}` as their first line instead. Then one line: the PR number and URL, that it is no longer a draft, and that every `## Verification` box was already ticked with CI green on the same head — which is the fact that authorised the flip.
 
-**If the invocation was the `ready review` chain**, per the routing in `SKILL.md`, do not stop here: continue into `workflows/review.md` on this PR, as if the owner had named it. The chain exists only to remove the wait between the two workflows; a refusal above never reaches this point, so the chain never carries a failed audit forward.
+**If the invocation was the `ready review` chain**, per the routing in `SKILL.md`, do not stop here: continue into `workflows/review.md` on this PR, as if the owner had named it. The chain exists only to remove the wait between `ready` and `review`; a refusal above never reaches this point, so the chain never carries a failed audit forward.
 
 ---
 

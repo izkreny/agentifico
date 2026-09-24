@@ -22,7 +22,7 @@ If a watch is running on this PR, stop it with `TaskStop` before anything else, 
 
 The same GraphQL query `workflows/discuss.md` Step 1 uses, which already carries everything needed: each thread's `id` for the mutation, `isResolved`, its `path` and `line` for the report, and per comment the `author { login }`, the `body` and the `reactions` with their own `user { login }`.
 
-Sort every unresolved thread into one of two piles, per the protocol's account of what a batch covers:
+Sort every unresolved thread into its pile, per the protocol's account of what a batch covers:
 
 - **Covered**: no outstanding owner signal.
 - **Not covered**: waiting on the owner from step 3, or carrying a signal of theirs that has not been answered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the thread is covered, which is what stops one question from parking a thread forever.
@@ -164,7 +164,7 @@ Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow
 
 ## Step 8 - Read the checks
 
-**A red check here reopens nothing**, per the protocol: each finding was closed on its own evidence, and a CI failure contradicts none of it. It is the two-environments finding, so report both sides and diagnose the difference - and it stops the merge until it is answered, which a new commit does rather than a reopened thread.
+**A red check here reopens nothing**, per the protocol: each finding was closed on its own evidence, and a CI failure contradicts none of it. It is the two-environments finding, so report each side and diagnose the difference - and it stops the merge until it is answered, which a new commit does rather than a reopened thread.
 
 ## Step 9 - Confirm
 

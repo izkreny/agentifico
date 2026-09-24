@@ -21,7 +21,7 @@ gh extension list | grep gh-stack              # read the installed binary versi
 
 **The `gh-stack` skill is a prerequisite this plugin does not bundle.** It ships from `github/gh-stack` alongside the extension it documents. How it gets onto a machine is that machine's business rather than this plugin's; what matters here is that the skill and the extension are both present, and that the extension's version is the one the skill documents.
 
-**Do not pin the skill to the extension's version.** Upstream tags releases of the binary, not of the manual, and the skill carries its own separate `version`, which has been seen both behind and ahead of the tag it ships under. The two counters are unrelated, so matching them fetches an arbitrary manual rather than a matched one. Before trusting an unfamiliar flag, check behaviour rather than numbers: `gh extension list` for the binary, and `gh stack <command> --help`, which is authoritative. Note that `gh stack help <command>` is not: it prints the top-level help.
+**Do not pin the skill to the extension's version.** Upstream tags releases of the binary, not of the manual, and the skill carries its own separate `version`, which has been seen both behind and ahead of the tag it ships under. The counters are unrelated, so matching them fetches an arbitrary manual rather than a matched one. Before trusting an unfamiliar flag, check behaviour rather than numbers: `gh extension list` for the binary, and `gh stack <command> --help`, which is authoritative. Note that `gh stack help <command>` is not: it prints the top-level help.
 
 **Agent rules from that manual worth repeating**, because getting them wrong produces confusing failures rather than clean errors:
 
@@ -41,7 +41,7 @@ Ask what the branch depends on. If the answer is `main`, or an already-merged br
 
 A stack is the right answer when the branch depends on work that is **open and unmerged**, because that is the case ordinary branching handles badly: without stacking, the child's diff contains the parent's commits and the review becomes unreadable. Then stacking is the preferred answer and manual rebasing is not: cut from the parent's tip, target its PR at the parent, and let GitHub retarget the child when the parent merges. A manual `git rebase` against `main` rewrites the history the stack tooling manages, which is how a stack loses track of itself.
 
-**The no-rebase rule is about stacked branches only.** An ordinary branch cut from `main` is normal git and may be rebased, squashed or force-pushed freely. Do not generalise this to every branch: check the stack object first, per *Step 1 - Establish which layer knows what*, and let that decide which of the two a branch is.
+**The no-rebase rule is about stacked branches only.** An ordinary branch cut from `main` is normal git and may be rebased, squashed or force-pushed freely. Do not generalise this to every branch: check the stack object first, per *Step 1 - Establish which layer knows what*, and let that decide which a branch is.
 
 ## Step 1 - Establish which layer knows what
 
@@ -200,11 +200,11 @@ The fix, entirely through `gh stack` and never a raw `git rebase`:
 1. `git worktree list` — confirm no other worktree holds any branch in the stack, per *The worktree trap*. Detach if one does.
 2. `gh stack checkout <stack-number>` — adopts the GitHub stack locally if it is not already tracked.
 3. `gh stack rebase` — cascades trunk to bottom to top, stopping at the first conflict with exit code 3.
-4. On conflict, read the file for diff3 markers. The `|||||||` section is the pre-edit common ancestor, which is what lets you see what each side actually changed: **merge both sides' substantive edits rather than picking one.** Then `git add <file>` and `gh stack rebase --continue`. Expect the same conflict one branch up, because that branch's own edit to the line has not yet been reconciled with the branch under it.
+4. On conflict, read the file for diff3 markers. The `|||||||` section is the pre-edit common ancestor, which is what lets you see what each side actually changed: **merge each side's substantive edits rather than picking one.** Then `git add <file>` and `gh stack rebase --continue`. Expect the same conflict one branch up, because that branch's own edit to the line has not yet been reconciled with the branch under it.
 5. Once it reports all branches rebased, `gh stack push`.
 6. Confirm `mergeable` flips to `MERGEABLE` and CI actually runs on the new head (`gh pr checks <pr-number>`). Check the siblings too — a cascade rebase touched all of them.
 
-**The `gh stack push` item in that list force-pushes per branch, and so does `gh stack sync`** - the two are where the no-rebase rule sanctions a force-push, which is why the playbook uses `rebase` then `push`: it puts the push on its own line where the owner can see it, rather than inside a verb that also fetches and rebases. Force pushes may be deny-listed by policy, and a `git -C <path> push --force…` rephrasing that slips past a deny pattern is a loophole rather than an authorisation. Run the plain command so the policy surfaces, then hand it to the owner to run themselves.
+**The `gh stack push` item in that list force-pushes per branch, and so does `gh stack sync`** - they are where the no-rebase rule sanctions a force-push, which is why the playbook uses `rebase` then `push`: it puts the push on its own line where the owner can see it, rather than inside a verb that also fetches and rebases. Force pushes may be deny-listed by policy, and a `git -C <path> push --force…` rephrasing that slips past a deny pattern is a loophole rather than an authorisation. Run the plain command so the policy surfaces, then hand it to the owner to run themselves.
 
 ## Step 3 - Confirm
 

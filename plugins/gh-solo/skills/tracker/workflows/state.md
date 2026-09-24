@@ -80,7 +80,7 @@ gh issue edit <issue-number> --add-blocked-by <blocker-issue-number>
 gh issue edit <issue-number> --add-label blocked
 ```
 
-Prefer the **relation** when the blocker is another issue in the repository, because it is typed, visible from both sides and readable with `--json blockedBy`. Use the **label** only when the blocker is outside the tracker: waiting on a third-party API, a design, an account, an upstream release. Say which one you used and why.
+Prefer the **relation** when the blocker is another issue in the repository, because it is typed, visible from each side and readable with `--json blockedBy`. Use the **label** only when the blocker is outside the tracker: waiting on a third-party API, a design, an account, an upstream release. Say which one you used and why.
 
 When the block clears, remove both:
 

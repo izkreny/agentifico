@@ -88,7 +88,7 @@ The first push of a branch takes `-u`. Without it the branch has no upstream, wh
 gh pr create --draft --assignee @me --title "{type}({scope}): {issue title}" --body-file <file>
 ```
 
-**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` is the issue's **layer label**, read from the issue fetched in Step 1 and omitted when it would repeat the type (`docs: rewrite the readme`, never `docs(docs): …`) — both rules live under *Branch and commit type* in `../tracker/references/formats.md`. A bare issue title would land without any of it, and `main` would be where the convention fails to hold; `workflows/merge.md` owns what happens to this title at merge time.
+**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` is the issue's **layer label**, read from the issue fetched in Step 1 and omitted when it would repeat the type (`docs: rewrite the readme`, never `docs(docs): …`) — each rule lives under *Branch and commit type* in `../tracker/references/formats.md`. A bare issue title would land without any of it, and `main` would be where the convention fails to hold; `workflows/merge.md` owns what happens to this title at merge time.
 
 **`--draft` is not optional.** The PR is the workspace for this branch from here on, so it is open while the work is unfinished, and a draft is how everything else tells the difference. `workflows/review.md` skips drafts for exactly this reason: without the flag, the review loop would offer to review a PR containing nothing but a plan.
 
@@ -145,7 +145,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 ### Body caps
 
-**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement. **This is not the post cap**, which `references/post-caps.md` owns and which puts the PR body outside its domain outright: this one exists because the body becomes a commit message on `main`, so the two are separate caps that happen to agree, and neither is evidence for the other's number:
+**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement. **This is not the post cap**, which `references/post-caps.md` owns and which puts the PR body outside its domain outright: this one exists because the body becomes a commit message on `main`, so they are separate caps that happen to agree, and neither is evidence for the other's number:
 
 - **`## Plan overview`**, the approach.
 - **The paragraph under `## Verification`**, what the gates cannot see.
@@ -191,6 +191,6 @@ This workflow ends here. When the discussion settles, the owner has two ways int
 - **Stop after the draft PR.** This is the gate, and it is the whole reason the PR opens early. Implementation begins after the plan discussion, not after the plan lands. The `workflows/auto.md` chain is the one authorised continuation, and only the literal `auto` command starts it.
 - **Draft at creation.** The other half of the pair — ready when finished — is `workflows/ready.md`. A PR opened ready gets reviewed empty; a PR left in draft after the work lands never gets reviewed at all.
 - **The plan commit is alone and first.** Every other commit on the branch should be as few as make sense — a plan's step list is a list of steps, not a list of commits, and six planned steps are free to land as one commit.
-- **`Closes #{issue-number}` in the PR body, and `--assignee @me` on the command**, every time. GitHub sets neither, and the two arrive by different routes — there is no `--closes` flag, so a body written without that line cannot be fixed by adding an argument.
+- **`Closes #{issue-number}` in the PR body, and `--assignee @me` on the command**, every time. GitHub sets neither, and they arrive by different routes — there is no `--closes` flag, so a body written without that line cannot be fixed by adding an argument.
 - **Checkboxes live in the PR body only.** The plan file lists the same steps as plain bullets, because it records intent rather than progress. The issue holds acceptance criteria, the plan holds the approach and the intended sequence, the PR holds the state.
 - Never open a PR from `main`, and never commit to `main` to make one possible.

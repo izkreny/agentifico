@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(gh:*)` for `gh issue list`.
 
-Find issues. `gh issue list` takes structured filters as flags and free text through `--search`, and the two combine.
+Find issues. `gh issue list` takes structured filters as flags and free text through `--search`, and they combine.
 
 ## Step 1 - Translate the request
 

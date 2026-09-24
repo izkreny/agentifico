@@ -102,7 +102,7 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-fi
 python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 ```
 
-**Step 2 reads that same listing again for `highest-id`, and the two reads stay separate.** Reusing this file there would save a request and make the id arithmetic depend on a listing fetched before the reviewer ran, which by then may be behind the pull request - a discard record, or a re-spawn's own read. One paginated read is the cheaper of the two mistakes.
+**Step 2 reads that same listing again for `highest-id`, and the reads stay separate.** Reusing this file there would save a request and make the id arithmetic depend on a listing fetched before the reviewer ran, which by then may be behind the pull request - a discard record, or a re-spawn's own read. One paginated read is the cheaper mistake.
 
 **At or past the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries.
 
@@ -162,7 +162,7 @@ Spawn it with the PR number and the pin, and nothing else, beside the model para
 
 **No bench can catch a line that lost its `{sha}`**, since `scripts/post-review.py` never sees `.agents/gh-solo.md`. The substitution and the refusal are stated together here, at the point the line is read, and that is all the enforcement there is.
 
-**`Reviewer model:` does not apply to this form.** A capability is invoked rather than spawned, so there is no spawn parameter for the key to travel on, and honouring it would mean inventing a mechanism the capability does not have. Where a repository carries both lines, say in the round report that the model key was not applied and why, so it cannot become a silent no-op that the owner reads as a model they chose.
+**`Reviewer model:` does not apply to this form.** A capability is invoked rather than spawned, so there is no spawn parameter for the key to travel on, and honouring it would mean inventing a mechanism the capability does not have. Where a repository carries the model line beside the command line, say in the round report that the model key was not applied and why, so it cannot become a silent no-op that the owner reads as a model they chose.
 
 **Never with a flag that makes it post its own findings.** On the bundled `/code-review` that flag is `--comment`, and the whole point of this form is that its findings come back to you and go up through the posting script like every other round's. A capability that posts for itself lands threads with no `RF{n}` id, no disclaimer and no `via` line, which `workflows/merge.md` then reads as the owner's own comments vouching for their own resolution. One writer, one convention: that is what this form preserves.
 
@@ -170,7 +170,7 @@ Build the findings file yourself from what it returned. **Every field *The findi
 
 - **`path` and `line`** from its restated findings. The bundled capability is instructed to restate them in its final reply as `file:line  summary` lines, precisely so they survive a session that does not render tool output.
 - **`side` is `RIGHT`.** Prose does not say whether a line was added or deleted, and `RIGHT` is right for either an added or a changed line. A wrong anchor makes the atomic call fail, which refuses the round rather than landing it crooked, so that is the failure to accept rather than guess around.
-- **`axis` is `unrated`.** Its findings are not classified on the two axes and must not be sorted onto them by you.
+- **`axis` is `unrated`.** Its findings are not classified on the axes and must not be sorted onto them by you.
 - **`severity` is read out of each finding's own account of what goes wrong**, with `severity_source` set to `derived` and `severity_basis` stating the rule you applied. The script refuses a derived round with no basis, and refuses a basis on a round whose reviewer assigned its own levels. Where a finding's text supports no judgement, its severity is `unrated`.
 - **Never claim a level came from the capability.** Its own prompt asks its agent for a severity that its reporting tool has no field for, so a ranking looks like it exists and does not. A level you derived and published as the reviewer's is the one dishonesty this whole path is arranged to prevent.
 
@@ -203,7 +203,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
    git rev-parse FETCH_HEAD
    ```
 
-   **You do not compare it here.** It travels to `build` as `--head-now` beside the pin as `--pinned-head`, and the script makes both comparisons and owns both refusals - the reviewer's reported head against the pin, meaning the pass judged something other than what it was told to, and the pin against this value, meaning the branch moved and GitHub would resolve these anchors against content the pass never read. Either way the post is never attempted: it fails atomically, so one stale anchor destroys the whole round rather than the affected finding, and a re-spawn against the new head is what would resume - **but only on the owner's word**, since the discard record you post first puts the pull request at the cap. That is the loop that ran away on the evidence behind the cap, so it is where the refusal is worth the most.
+   **You do not compare it here.** It travels to `build` as `--head-now` beside the pin as `--pinned-head`, and the script makes each comparison and owns each refusal - the reviewer's reported head against the pin, meaning the pass judged something other than what it was told to, and the pin against this value, meaning the branch moved and GitHub would resolve these anchors against content the pass never read. Either way the post is never attempted: it fails atomically, so one stale anchor destroys the whole round rather than the affected finding, and a re-spawn against the new head is what would resume - **but only on the owner's word**, since the discard record you post first puts the pull request at the cap. That is the loop that ran away on the evidence behind the cap, so it is where the refusal is worth the most.
 
    **One home for the comparison, deliberately, and it costs two requests.** The rest of this step's reads run before a moved head is caught, so a round that is going to be refused spends them anyway. That is the price of the refusal being benched rather than composed at the keyboard, and a cheap pre-check added here would be a second place for one rule to live and drift.
 2. **Find the highest `RF{n}` already on the PR**, since ids never restart:
@@ -214,7 +214,7 @@ One call lands every thread and the record Review together, so a half-posted PR 
    python3 <skill-dir>/scripts/post-review.py highest-id --comments <listing-file> --reviews <reviews-file>
    ```
 
-   **An id can live on either of two surfaces, so both are read and neither argument is optional.** A finding whose line only the unpushed fixes carry is held rather than dropped, per Step 5, and its id is reserved in the record Review's body until the push releases it - a surface the comments endpoint does not reach. A read of the threads alone would answer as though that id had never been issued and hand it to a different finding, which is why the script requires `--reviews` instead of defaulting to skipping it.
+   **An id can live on either surface, so each is read and neither argument is optional.** A finding whose line only the unpushed fixes carry is held rather than dropped, per Step 5, and its id is reserved in the record Review's body until the push releases it - a surface the comments endpoint does not reach. A read of the threads alone would answer as though that id had never been issued and hand it to a different finding, which is why the script requires `--reviews` instead of defaulting to skipping it.
 
    **The number comes from the script rather than from a `--jq` filter on the `gh` call**, for the reason the unattended-command bullet in `SKILL.md` states about an aggregate over a paginated result. Getting it wrong here reissues an id that already exists, which breaks *Ids never restart* in `references/review-protocol.md` permanently. `highest-id` prints `0` when no round has posted yet. The listing is the same read step 6 makes, and **`--slurp` must not be added to it** - the script refuses that shape rather than finding no ids in it and answering `0`, which is indistinguishable from a first round.
 3. **Write the disclaimer line to a file**, its wording per the AI-disclaimer bullet in `SKILL.md`. The script refuses a line that does not open with `> 🤖`.
@@ -262,7 +262,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F
 
 Disclaimer and `via` line first: via `pr-flow` review, fix plan, within the length *Post caps* in `SKILL.md` sets - and per its companion rule the plan is the change and the files it touches, never why the finding is right, which the finding itself already said. Code in a **plain fence**, never a `suggestion` fence, for the reason the protocol gives; `scripts/post-review.py` enforces that on the findings themselves and cannot see these replies, so here it is yours to hold.
 
-Which findings get no plan and wait for the owner instead, and what their reply says, is the protocol's. A finding the reviewer marked `needs_owner` in the findings file is the first of the two kinds; the second you can only see yourself, while planning.
+Which findings get no plan and wait for the owner instead, and what their reply says, is the protocol's. A finding the reviewer marked `needs_owner` in the findings file is one kind; the other you can only see yourself, while planning.
 
 ### Step 4 - Fix, commit, report
 
@@ -313,9 +313,9 @@ Then post what it returns:
   **They stay separate rather than folded into the finding's own text**, so the thread `release` opens collects the reply-per-step shape a threaded finding collects: `release` reads this ledger and emits each entry as its own reply for `workflows/resolve.md` to post. A held finding with no follow-up recorded is not an error - its thread simply opens carrying the finding alone, and `release` says which.
 
   **`rnp` is the route, not the owner and not a later pass.** The protocol's step 7 pushes the fixes, which makes those lines part of the pull request's diff, and then `release` reads the ledger back and posts each held finding as a thread under the id it already holds - `workflows/resolve.md` owns that call. **The round report says which findings were threaded and which are held**, so a reader cannot take the second for an absence of findings.
-- **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round. Read both surfaces, exactly as step 2 does: a held id is in the record Review's body only.
+- **Re-read the highest `RF{n}` before building this payload** rather than reusing step 2's number, which was read before step 2 posted and is now stale by the size of the round. Read each surface, exactly as step 2 does: a held id is in the record Review's body only.
 
-The caps on both loops are the protocol's, and with the pass cap they are what ends this block short of the owner.
+The caps on the loops are the protocol's, and with the pass cap they are what ends this block short of the owner.
 
 **The retries and the new-defect fixes get one scoped spawn between them, and it is the round's third and last.** Land every retry and every fix first, then spawn once with the whole range: per thread the spawn count would follow how many findings the pass raised, which is the figure the protocol's ceiling exists to fix. Say in the round report which findings that one pass answered about.
 
@@ -360,9 +360,9 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 | **Commit headers**                                     | `{type}: {description} (#{issue-number})`, no scope, same source                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | **No labels, no milestone**                            | The PR carries neither - both live on the issue only, per *Labels* in `../tracker/references/tracker-fields.md`, and the `Closes` line is the join. A milestoned PR also corrupts the milestone's progress count                                                                                                                                                                                                                                                                                                                                                              |
 | **Not a draft**                                        | If it is still a draft it should not have reached this workflow; say so rather than reviewing it                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| **Every resolved thread has recorded owner authority** | An owner reply in the thread, an owner reaction on it, or an authorisation comment naming its `RF{n}` id. One GraphQL read, the same query `workflows/discuss.md` Step 1 uses, and it carries each thread's `isResolved` and each comment's `body` - which is also what Step 1's cap refusal names the open findings from, so the two needs are one read. A violation is a hard error per *Resolution rests on recorded authority* in `references/review-protocol.md`, and this is the earliest, cheapest place to catch what `workflows/merge.md` will refuse on at the door |
+| **Every resolved thread has recorded owner authority** | An owner reply in the thread, an owner reaction on it, or an authorisation comment naming its `RF{n}` id. One GraphQL read, the same query `workflows/discuss.md` Step 1 uses, and it carries each thread's `isResolved` and each comment's `body` - which is also what Step 1's cap refusal names the open findings from, so one read serves each need. A violation is a hard error per *Resolution rests on recorded authority* in `references/review-protocol.md`, and this is the earliest, cheapest place to catch what `workflows/merge.md` will refuse on at the door  |
 
-`Closes #{issue-number}` and the assignee are the two that matter most, because nothing else enforces either and a PR missing one quietly breaks the tracker: the issue stays open after the code lands, or the in-progress view stops being true.
+`Closes #{issue-number}` and the assignee are the ones that matter most, because nothing else enforces either and a PR missing one quietly breaks the tracker: the issue stays open after the code lands, or the in-progress view stops being true.
 
 ---
 
