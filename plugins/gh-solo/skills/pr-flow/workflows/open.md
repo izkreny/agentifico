@@ -69,10 +69,10 @@ If the plan is only restating the issue in different words, the issue was specif
 ```bash
 git branch --show-current        # read it again, immediately before committing
 git add <the plan file>
-git commit -m "docs: add plan for {short description} (#{issue-number})"
+git commit -F <message-file>     # subject: docs: add plan for {short description} (#{issue-number})
 ```
 
-Then read back the `[branch sha]` line the commit prints. If it names the wrong branch, recover with `git branch -f <feature> <sha>` and `git reset --hard <remote>/main` on `main` - noting the reset discards any uncommitted changes in the tree and trusts the remote-tracking ref as last fetched, so fetch first and stash anything loose.
+The message file carries that subject, a blank line and the AI disclaimer, per the AI-disclaimer bullet in `SKILL.md`; `-m` would land the subject alone, and on the `auto` chain nobody watches this commit land. Then read back the `[branch sha]` line the commit prints. If it names the wrong branch, recover with `git branch -f <feature> <sha>` and `git reset --hard <remote>/main` on `main` - noting the reset discards any uncommitted changes in the tree and trusts the remote-tracking ref as last fetched, so fetch first and stash anything loose.
 
 The commit header follows *Branch and commit type* in `../tracker/references/formats.md`. A plan file is `docs`.
 

@@ -53,7 +53,7 @@ All of them, from chapter 3 of Fowler's *Refactoring*, 2nd edition. The right-ha
 
 ## Source and maintenance
 
-This baseline adapts from the `code-review` skill in mattpocock/skills, at skills/engineering/code-review/SKILL.md, which is MIT licensed, the idea of pairing each smell under *The smells* with the refactorings that resolve it, and the "skip anything tooling enforces" discipline. **The rules under *The rules about the change itself* are not among them** - those restate the repository owner's own code-change standards, which is why they are re-synced against that file rather than against upstream, and why a divergence between them is a defect in this copy:
+This baseline adapts from the `code-review` skill in mattpocock/skills, at skills/engineering/code-review/SKILL.md, which is MIT licensed, the idea of pairing each smell under *The smells* with the refactorings that resolve it, and the "skip anything tooling enforces" discipline. **The rules under *The rules about the change itself* are not among them** - those restate the plugin author's own code-change standards, kept in step by hand with that author's instructions file rather than with upstream, so a divergence between the section and those standards is a defect in this copy:
 
 > MIT License
 >
