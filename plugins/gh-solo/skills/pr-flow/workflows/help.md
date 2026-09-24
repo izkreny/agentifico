@@ -65,7 +65,7 @@ Two kinds of thread wait for you specifically, and the round will have said whic
 
 - `gh`, authenticated. Check with `gh auth status`.
 - For stacks only: the `gh stack` extension and the `gh-stack` skill, both per developer and neither carried by a clone. Run `view` and it will say what is missing.
-- Optional: `.agents/gh-solo.md` in the repository (or `.claude/gh-solo.md`), recording its check commands and any convention that differs from the defaults here.
+- Optional: '.agents/gh-solo.md' in the repository (or '.claude/gh-solo.md'), recording its check commands and any convention that differs from the defaults here.
 
 ## Hard rules
 

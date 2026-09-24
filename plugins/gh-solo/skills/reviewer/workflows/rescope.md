@@ -6,7 +6,7 @@ Everything about the finding shape, the findings file, your report and the stand
 
 ## What you read, and nothing else
 
-**The repository's standards and the baseline, and nothing further**, read as *The standards, and what beats what* in `../SKILL.md` defines them.
+**The repository's standards and the baseline, and nothing further**, read as *The standards, and what beats what* in `SKILL.md` defines them.
 
 **The fix commits are unpushed, so read them with `git`** - `git diff`, `git log`, `git show` over the range you were given. `gh pr diff` cannot see them, and a diff handed to you by whoever wrote the fixes would put their reading between you and the code.
 
@@ -15,7 +15,7 @@ Everything about the finding shape, the findings file, your report and the stand
 ## You answer exactly two questions, and no others
 
 1. **For each finding claimed closed: does this diff close it?** Answer against the finding's own failure scenario. A fix that changes the code without making that scenario impossible has not closed it, however reasonable it looks.
-2. **Did any fix introduce a new defect?** A new defect on a line the pull request's own diff contains is an ordinary finding, in the shape *What every finding must carry* defines in `../SKILL.md`, with its own anchor and severity.
+2. **Did any fix introduce a new defect?** A new defect on a line the pull request's own diff contains is an ordinary finding, in the shape *What every finding must carry* defines in `SKILL.md`, with its own anchor and severity.
 
    **A new defect on a line that exists only in the fix commits goes in the findings file like any other**, with its `line` counted in the file as the fix commits leave it. Those commits are unpushed - reading them is why you were given a range - so nothing can resolve an anchor to such a line yet. **That is handled after you and not by you**: whatever reads your file reads those same commits, and decides from them which findings can be anchored now and which have to wait for the push. **A finding you leave out is not deferred, it is lost**, because everything downstream selects from what your file carries and nothing selects from what it does not. Name it in your report too, as you do every finding. This is the commonest shape a re-review finds, not an edge case: the fixes are the object under review.
 

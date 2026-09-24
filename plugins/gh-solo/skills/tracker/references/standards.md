@@ -1,6 +1,6 @@
 # GitHub issue standards, solo developer
 
-The rulebook this skill validates against and writes to. Per-repo overrides, where a repository wants a different label taxonomy or branch format, live in `.agents/gh-solo.md` in that repository.
+The rulebook this skill validates against and writes to. Per-repo overrides, where a repository wants a different label taxonomy or branch format, live in '.agents/gh-solo.md' in that repository.
 
 Everything here assumes **one person owns the repo and does the work**. Where a team process would add a gate that somebody else clears, this one records a fact and moves on. Where it changes a rule outright rather than relaxing it, the section that does so says why: the priority axis under *Never label the default* drops its middle value because triage is absent.
 

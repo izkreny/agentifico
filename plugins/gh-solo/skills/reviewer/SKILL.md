@@ -34,7 +34,7 @@ Both return the same two things:
 
 ## The standards, and what beats what
 
-Each pass judges against the same sources, in this precedence: the repository's own `AGENTS.md` or `CLAUDE.md`, then `.agents/gh-solo.md` or `.claude/gh-solo.md` where present, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. Those repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
+Each pass judges against the same sources, in this precedence: the repository's own 'AGENTS.md' or 'CLAUDE.md', then '.agents/gh-solo.md' or '.claude/gh-solo.md' where present, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. Those repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
 
 ## What you never do
 

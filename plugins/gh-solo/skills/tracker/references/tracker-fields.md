@@ -50,7 +50,7 @@ Labels that would otherwise creep across the whole tracker depend on this rule:
 
 **`fullstack` is required, not optional, when an issue genuinely spans both.** It is also rarer than it looks. An issue that merely *calls* an endpoint owned by another issue is `frontend`. If each side could merge and be useful on its own, that is not one `fullstack` issue at all, it is a `backend` issue and a `frontend` issue, per the split test in *How big is one issue*.
 
-The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in `.agents/gh-solo.md`. What matters is that the set is small, closed, and mandatory.
+The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in '.agents/gh-solo.md'. What matters is that the set is small, closed, and mandatory.
 
 **Because this axis is mandatory, its absence is a defect rather than a default**, which is what separates it from the other axes in *Labels*. Nothing in a title reveals a missing layer label, so audit for it directly rather than expecting to notice:
 
@@ -206,6 +206,6 @@ GitHub has an **issue type** field separate from labels, exposed as `gh issue cr
 
 So: **`epic`, `bug` and `spike` are labels here**, per *Labels*, and `--type` is never passed. Do not go looking for the field, and do not treat its absence as something misconfigured.
 
-The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in `.agents/gh-solo.md` so no later session probes again. Passing an unknown type is an error rather than a no-op.
+The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in '.agents/gh-solo.md' so no later session probes again. Passing an unknown type is an error rather than a no-op.
 
 ---

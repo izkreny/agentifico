@@ -20,13 +20,13 @@ Check out the branch and pull - and where the owner keeps a worktree per branch,
 
 Then read, in this order:
 
-1. **The plan file** - the branch's first commit; it lives in `docs/plans/` unless the repository keeps plans elsewhere. This is the what and the how.
+1. **The plan file** - the branch's first commit; it lives in 'docs/plans/' unless the repository keeps plans elsewhere. This is the what and the how.
 2. **The issue's acceptance criteria** - `gh issue view <issue-number> --json title,body,labels`, the number parsed from the branch name. This is the why, and the definition of done. **If the labels include `draft`, stop with `⛔ REFUSED`** - the description is unfinished by its own declaration, so there is no definition of done to implement against; the `finish` argument of `tracker`, which enters *Finishing a draft* in that skill's `create` workflow, ends that state. `open` checks the same label, but it checks it once, and the label can arrive on the issue after the PR was opened.
-3. **The repository's own guidance** - its agent instructions file and `.agents/gh-solo.md`, per the contract in `SKILL.md`. Where either is missing or silent on how this repo is tested, note it now as a finding for Step 7.
+3. **The repository's own guidance** - its agent instructions file and '.agents/gh-solo.md', per the contract in `SKILL.md`. Where either is missing or silent on how this repo is tested, note it now as a finding for Step 7.
 
 If the PR body has no `## Steps` or no `## Verification` section, stop with `⛔ REFUSED` and say which: the body is the state carrier for this whole workflow, and a missing section means `open` did not finish its job. That is fixed there, not improvised here.
 
-**A `## Verification` section that is present but names no gate is the same refusal.** An empty list is not a branch with nothing to prove; it is a branch whose gates nobody wrote down, and it fails silently rather than loudly: Step 5 runs "every gate" over nothing, ticks nothing because there is nothing to tick, and reaches `✅ ALL PASS` on unverified code, which `ready` then cannot catch because it refuses only on an *empty box* and there are no boxes. Refuse with `⛔ REFUSED - no gates in ## Verification`. Where `.agents/gh-solo.md` records the repository's check commands, name them so the owner can paste them into the body; where it does not, say that too, since a repository with no recorded gates is the finding underneath this one.
+**A `## Verification` section that is present but names no gate is the same refusal.** An empty list is not a branch with nothing to prove; it is a branch whose gates nobody wrote down, and it fails silently rather than loudly: Step 5 runs "every gate" over nothing, ticks nothing because there is nothing to tick, and reaches `✅ ALL PASS` on unverified code, which `ready` then cannot catch because it refuses only on an *empty box* and there are no boxes. Refuse with `⛔ REFUSED - no gates in ## Verification`. Where '.agents/gh-solo.md' records the repository's check commands, name them so the owner can paste them into the body; where it does not, say that too, since a repository with no recorded gates is the finding underneath this one.
 
 ## Step 2 - Establish where it stands
 

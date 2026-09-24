@@ -37,9 +37,9 @@ On a *stacked* branch none of this applies: the trunk sitting ahead of a `--base
 
 ## Step 2 - Write the implementation plan
 
-**Filename:** `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`, the date being the day the plan is written and never changed afterwards. The `{slug}` matches the branch's. Example: `2026-08-16_GHI-50_login-form.md`.
+**Filename:** `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`, the date being the day the plan is written and never changed afterwards. The `{slug}` matches the branch's. Example: '2026-08-16_GHI-50_login-form.md'.
 
-**Location:** `docs/plans/` unless the repository already keeps them elsewhere, in which case follow what is there. Check before writing; a second plan directory is worse than an unfamiliar one.
+**Location:** 'docs/plans/' unless the repository already keeps them elsewhere, in which case follow what is there. Check before writing; a second plan directory is worse than an unfamiliar one.
 
 **There is no plan template, deliberately.** A plan is written in planning mode by an agent that has just read the issue and the code, and the sections worth having are the ones that ticket raises. Write the plan the problem needs.
 
@@ -74,7 +74,7 @@ Then read back the `[branch sha]` line the commit prints. If it names the wrong 
 
 The commit header follows *Branch and commit type* in `../tracker/references/formats.md`. A plan file is `docs`.
 
-**Run the repository's documentation checks before pushing.** A plan file is a documentation change, and a repo that validates its docs usually does so in CI without a local hook, so nothing catches a broken path or an unclosed fence until the PR is already red. `scripts/docs-check.py` in this skill checks that every backticked path resolves and every code fence closes; pass `--ignore <glob>` (repeatable) for backticked paths that belong to another tree than the one being checked, and the repository may have more checks of its own. **The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings. **The set in the script's own usage note is the one that keeps this plugin's tree clean, not yours**: a served repository's set is narrower and belongs in its `.agents/gh-solo.md`, because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
+**Run the repository's documentation checks before pushing.** A plan file is a documentation change, and a repo that validates its docs usually does so in CI without a local hook, so nothing catches a broken path or an unclosed fence until the PR is already red. `scripts/docs-check.py` in this skill checks that every backticked path resolves and every code fence closes; pass `--ignore <glob>` (repeatable) for backticked paths that belong to another tree than the one being checked, and the repository may have more checks of its own. **The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings. **The set in the script's own usage note is the one that keeps this plugin's tree clean, not yours**: a served repository's set is narrower and belongs in its '.agents/gh-solo.md', because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
 
 ```bash
 git push -u <remote> "$(git branch --show-current)"
@@ -160,7 +160,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 **A `## Settled` entry is not a record row, and it counts.** One line per item is what that exclusion covers; a settled entry is a question and a decision written at whatever length its writer chose. It is the same line drawn under `## Verification`, where the boxes are excluded and the paragraph beneath them is not - and reading the exclusion the other way would leave the one section that grows for the whole branch bounded by nothing.
 
-**The entry that would take a section past its cap moves to the plan file's own `## Settled` heading**, the heading `workflows/discuss.md` already gives a decision settled outside a thread. **The commit message is not the escape here**, however reliably *Post caps* sends overflow there: this body *is* the commit message, so that route is a circle. The plan file is committed under `docs/plans/`, is already linked from `## Plan overview`, and outlives the branch, so moving rather than deleting holds exactly as it does inside the body.
+**The entry that would take a section past its cap moves to the plan file's own `## Settled` heading**, the heading `workflows/discuss.md` already gives a decision settled outside a thread. **The commit message is not the escape here**, however reliably *Post caps* sends overflow there: this body *is* the commit message, so that route is a circle. The plan file is committed under 'docs/plans/', is already linked from `## Plan overview`, and outlives the branch, so moving rather than deleting holds exactly as it does inside the body.
 
 **This section owns the whole route, and each other site points here** rather than restating a leg of it, because a route stated in several places is one that gets half-fixed. Each part below earns its place:
 

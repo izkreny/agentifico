@@ -27,7 +27,7 @@ Those fail differently. Code can obey every convention while implementing the wr
 
 **Scope creep is a first-class finding**, not a footnote. Behaviour in the diff that nobody asked for is behaviour nobody has judged, and it lands on your trunk under an issue that never mentions it.
 
-**Your repository outranks the baseline, always.** It reads your `AGENTS.md` or `CLAUDE.md` and your `.agents/gh-solo.md` first, and where those endorse something the baseline would flag, the baseline loses. A general rulebook that overruled your own conventions would just be reporting your style back to you as a defect.
+**Your repository outranks the baseline, always.** It reads your 'AGENTS.md' or 'CLAUDE.md' and your '.agents/gh-solo.md' first, and where those endorse something the baseline would flag, the baseline loses. A general rulebook that overruled your own conventions would just be reporting your style back to you as a defect.
 
 **Anything your tooling already catches is skipped.** A linter reports the same thing for free, every time, and a review spent on it has bought you nothing.
 
@@ -48,7 +48,7 @@ That exists because the fixes were made by the author of the code under review, 
 
 ## If you want a different reviewer
 
-Your repository can appoint one, in `.agents/gh-solo.md`: another agent to spawn, or a capability to invoke instead. `pr-flow`'s review workflow owns what each must produce. Whatever reads the diff, the round is what posts the findings, so they arrive marked and numbered the same way.
+Your repository can appoint one, in '.agents/gh-solo.md': another agent to spawn, or a capability to invoke instead. `pr-flow`'s review workflow owns what each must produce. Whatever reads the diff, the round is what posts the findings, so they arrive marked and numbered the same way.
 
 ## Layout
 
