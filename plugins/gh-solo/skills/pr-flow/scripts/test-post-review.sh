@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#
 # Every case has been watched refusing or building on the situation it names, because a check only ever seen to pass is indistinguishable from one that passes on everything.
 set -euo pipefail
 

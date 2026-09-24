@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#
 # Every case has been watched to fire, or to stay quiet, on the situation it names, because a guard only ever seen to pass is indistinguishable from one that passes on everything.
 set -euo pipefail
 

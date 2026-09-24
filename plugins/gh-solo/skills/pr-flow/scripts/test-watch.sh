@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#
 # Every case was watched failing on a deliberately broken disclaimer filter first, because without that filter the flow answers itself forever and no reader would spot it in a poll loop's output.
 set -euo pipefail
 
