@@ -4,7 +4,7 @@ Land a reviewed PR on `main` and clean up after it. This is the last step of a b
 
 ## Step 1 - Confirm it was actually reviewed
 
-**First, confirm nothing is still sitting local.** Every other gate in this step reads the *remote* PR, so this is the one check that can catch a review round whose fix commits were never pushed - the protocol in `references/review-protocol.md` deliberately holds them local until the owner authorises the push at its step 7, and "merge it" said mid-round would otherwise pass every remote gate green and land the branch without its fixes. Where the branch exists locally:
+**First, confirm nothing is still sitting local.** Every other gate in this step reads the *remote* PR, so this is the check that can catch a review round whose fix commits were never pushed - the protocol in `references/review-protocol.md` deliberately holds them local until the owner authorises the push at its step 7, and "merge it" said mid-round would otherwise pass every remote gate green and land the branch without its fixes. Where the branch exists locally:
 
 ```bash
 git fetch <remote> && git log <remote>/<branch>..<branch> --oneline
@@ -26,23 +26,23 @@ gh pr view <pr-number> --json reviews --jq '.reviews[] | .body'
 
 **Recognise the record by its `via` line, reading `round record` or `re-review record`, never by the disclaimer alone.** Every agent post opens with the disclaimer, the convention-check Review that `workflows/review.md` posts before a round included, so the disclaimer test passes on a PR whose conventions were checked and whose diff was never read. That is the exact state this gate exists to catch. No record means no round ran: say so and stop rather than merging.
 
-**Do not gate on `reviewDecision`.** It reports whether a branch-protection review *requirement* is satisfied, and a solo repository has no such requirement, so it stays empty however many reviews were posted. Reading it as "not reviewed" would block every merge. That holds even under the branch protection this file recommends below: `required_approving_review_count: 0` means there is no decision to report, so `reviewDecision` is still `""` - verified live on a protected repository, so do not re-litigate it when protection is on.
+**Do not gate on `reviewDecision`.** It reports whether a branch-protection review *requirement* is satisfied, and a solo repository has no such requirement, so it stays empty however many reviews were posted. Reading it as "not reviewed" would block every merge. That holds even under the branch protection *Branch protection on `main`* recommends: `required_approving_review_count: 0` means there is no decision to report, so `reviewDecision` is still `""` - verified live on a protected repository, so do not re-litigate it when protection is on.
 
-The owner's own review is a separate record, submitted under their name through the PR's Files changed tab: a Review with a non-empty body, whose author's login **is** the owner's and whose body does **not** open with the disclaimer - both conditions, per the owner test below, because a mentor's Review body carries no disclaimer either and would otherwise read as the owner's. That test is still not airtight: the owner cannot approve their own PR, so their review is a `COMMENTED` object too, and one submitted with an empty summary body looks exactly like a reply container. If no review reads as the owner's, the code has been annotated but not necessarily read: ask before merging rather than assuming.
+The owner's own review is a separate record, submitted under their name through the PR's Files changed tab: a Review with a non-empty body, whose author's login **is** the owner's and whose body does **not** open with the disclaimer - the conditions *Recognising the owner* in `references/review-protocol.md` states, because a mentor's Review body carries no disclaimer either and would otherwise read as the owner's. That test is still not airtight: the owner cannot approve their own PR, so their review is a `COMMENTED` object too, and one submitted with an empty summary body looks exactly like a reply container. If no review reads as the owner's, the code has been annotated but not necessarily read: ask before merging rather than assuming.
 
 **The thread gate, per *Resolution rests on recorded authority* in `references/review-protocol.md`: every thread resolved, and every resolution resting on recorded owner authority.** Read them with the same GraphQL query `workflows/discuss.md` Step 1 uses - `isResolved`, each thread's comments, and each comment's `reactions`, which arrive in that same query at no extra request.
 
 **Refuse on an unresolved thread**: the owner's walk is not finished.
 
-**Refuse on a resolved thread carrying none of the evidence forms below.** Any one of them is enough, and the list is closed:
+**Refuse on a resolved thread carrying none of these evidence forms.** Any one of them is enough, and the list is closed:
 
 1. **A reply of the owner's in the thread.**
 2. **A reaction of the owner's on any comment in it.** Approval may be a reaction rather than a word, so a gate reading only comments would refuse threads the owner did in fact approve.
 3. **An authorisation comment naming that thread's `RF{n}` id.** `workflows/resolve.md` posts it before a batch resolve and **owns the literal marker line to grep for**; read the wording there rather than guessing at it, because a gate looking for the wrong string finds nothing and refuses a PR that was properly authorised.
 
-**Recognising the owner takes both conditions below** - for the two forms that are the owner's own posts; the authorisation comment is an agent post and opens with the disclaimer by construction, which is why it is found by its marker line and its `RF{n}` id instead. The conditions: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes a mentor, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials. The disclaimer test alone is not enough - a mentor's comment opens with no disclaimer either, so on its own it would let a third party's 👍 authorise a merge. For a reaction there is no body to test, so the login is the whole test.
+**Recognising the owner takes the conditions *Recognising the owner* in `references/review-protocol.md` states** - for the two forms that are the owner's own posts; the authorisation comment is an agent post and opens with the disclaimer by construction, which is why it is found by its marker line and its `RF{n}` id instead. The conditions: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes a mentor, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials. The disclaimer test alone is not enough - a mentor's comment opens with no disclaimer either, so on its own it would let a third party's 👍 authorise a merge. For a reaction there is no body to test, so the login is the whole test.
 
-Nothing can stop a thread being resolved in the browser with no evidence at all; this door is the one place that mistake can be caught, so name the thread's `file:line` in the refusal.
+Nothing can stop a thread being resolved in the browser with no evidence at all; this door is where that mistake can be caught, so name the thread's `file:line` in the refusal.
 
 **Other fields in that query are gates too, each cheaper to check than to recover from:**
 
@@ -126,7 +126,7 @@ git branch -D <branch>
 git remote prune <remote>
 ```
 
-- **Moving off the branch comes first.** `git branch -D` refuses a branch checked out anywhere - `error: cannot delete branch '<branch>' used by worktree at ...` - so the switch above is what frees it.
+- **Moving off the branch comes first.** `git branch -D` refuses a branch checked out anywhere - `error: cannot delete branch '<branch>' used by worktree at ...` - so moving off it first is what frees it.
 - **`-D`, not `-d`.** A squash-merge lands the work on `main` as a different commit, so the branch is unmerged in git's ancestry and `-d` refuses it.
 - **Confirm the remote side where the setting was never checked for this repository.** `gh api repos/{owner}/{repo}/branches/<branch>` returning 404 is the check, `git push <remote> --delete <branch>` the fix. `<remote>` per the remote-name convention in `SKILL.md`.
 
@@ -156,7 +156,7 @@ These are per-repository and none is the default. Check them once per repository
 gh api repos/{owner}/{repo} --jq '{allow_squash_merge, allow_merge_commit, allow_rebase_merge, delete_branch_on_merge, squash_merge_commit_title, squash_merge_commit_message}'
 ```
 
-- **`delete_branch_on_merge: true`** — otherwise every merged branch stays on the remote forever, and this is the only thing that deletes it: Step 3 passes no `--delete-branch`, for the reasons given there. It also covers a PR merged from the GitHub UI, which no flag of this workflow ever could. Where it is off, Step 4's remote check is what catches the leftover branch.
+- **`delete_branch_on_merge: true`** — otherwise every merged branch stays on the remote forever, and this setting is what deletes it: Step 3 passes no `--delete-branch`, for the reasons given there. It also covers a PR merged from the GitHub UI, which no flag of this workflow ever could. Where it is off, Step 4's remote check is what catches the leftover branch.
 - **`squash_merge_commit_title: PR_TITLE`** is what makes the PR title become the commit subject, and it is the **only** value that may accompany `PR_BODY` below - GitHub validates the pair and rejects every other combination with a `422` (`invalid_squash_commit_setting_combo`, whose `field` misleadingly reads `merge_commit_allowed`), so the two settings must be sent together. `PR_TITLE` is also the safer value on its own merits: the alternative, `COMMIT_OR_PR_TITLE`, takes the branch commit's subject on a single-commit PR and discards the PR title - observed live on a pre-flow repository, where a `main` commit carries the branch commit's wording while the PR was titled differently. This flow's plan-commit-first rule makes a single-commit PR impossible anyway, but `PR_TITLE` lands the scoped subject even if that invariant is somehow broken.
 - **`squash_merge_commit_message: PR_BODY`**, because the GitHub default, `COMMIT_MESSAGES`, concatenates every branch commit message into the squash body - the plan commit and each fix commit included, which is exactly the transcript squashing exists to drop. `PR_BODY` puts the PR body there instead, and its first line is the AI disclaimer, which the commit-message convention wants in the body anyway. The body lands as GitHub composes it: unwrapped markdown, checkbox lists and all. That is the documented exception to the 72-column commit-body wrap - git's own convention, and the owner's where their instructions restate it - which governs bodies written by hand; never rewrap or trim the PR body to satisfy it.
 
@@ -196,7 +196,7 @@ The load-bearing values in that shape, each with a trap:
 ## Rules
 
 - **Never merge a PR without a round record Review**, recognised by its `via` line per Step 1 and never by the disclaimer, which every agent post carries including the convention check that runs before a round. Array length proves nothing either - inline discussion inflates `reviews` with empty-bodied containers. The gate is the point of the workflow.
-- **Never merge over an unresolved thread, or a thread resolved with none of the evidence forms.** *Resolution rests on recorded authority* in `references/review-protocol.md`; this door is the only place it is enforceable.
+- **Never merge over an unresolved thread, or a thread resolved with none of the evidence forms.** *Resolution rests on recorded authority* in `references/review-protocol.md`; this door is where it is enforceable.
 - **Never `git merge` or `git push` to `main` to land a branch.** The hard rule in `SKILL.md` holds here too; merging is `gh`'s job.
 - **Never omit the merge method** — `--squash` on `gh pr merge`, `--squash` on `gh stack merge`. Both fall back to something other than policy when it is left off.
 - One PR per invocation. Merging a stack is one operation even though it lands several PRs; merging two unrelated PRs is two.

@@ -41,7 +41,7 @@ Ask what the branch depends on. If the answer is `main`, or an already-merged br
 
 A stack is the right answer when the branch depends on work that is **open and unmerged**, because that is the case ordinary branching handles badly: without stacking, the child's diff contains the parent's commits and the review becomes unreadable. Then stacking is the preferred answer and manual rebasing is not: cut from the parent's tip, target its PR at the parent, and let GitHub retarget the child when the parent merges. A manual `git rebase` against `main` rewrites the history the stack tooling manages, which is how a stack loses track of itself.
 
-**The no-rebase rule is about stacked branches only.** An ordinary branch cut from `main` is normal git and may be rebased, squashed or force-pushed freely. Do not generalise this to every branch: check the stack object first, per the layers below, and let that decide which of the two a branch is.
+**The no-rebase rule is about stacked branches only.** An ordinary branch cut from `main` is normal git and may be rebased, squashed or force-pushed freely. Do not generalise this to every branch: check the stack object first, per *Step 1 - Establish which layer knows what*, and let that decide which of the two a branch is.
 
 ## Step 1 - Establish which layer knows what
 
@@ -55,7 +55,7 @@ gh stack view --json                                          # 3: local trackin
 
 1. **The GitHub stack object is ground truth.** The REST payload carries a `stack` field with the stack number, base, size and position. An empty result means GitHub holds no stack object for that PR.
 2. **PR bases can stack without a stack object, but the base is a positive test only.** A base other than `main` means a stacked PR even when layer 1 is empty, and GitHub still retargets it when the parent merges. Promote a base-only stack with `gh stack link`, which needs no local tracking.
-3. **Local tracking is frequently absent, and `gh stack view` lies when it is.** It only knows stacks tracked in this working tree, so it reports "not part of a stack" for a branch that is in one on GitHub. Never take that at face value; it is also per-worktree, per the trap below.
+3. **Local tracking is frequently absent, and `gh stack view` lies when it is.** It only knows stacks tracked in this working tree, so it reports "not part of a stack" for a branch that is in one on GitHub. Never take that at face value; it is also per-worktree, per *The worktree trap*.
 
 **Never conclude "not stacked" from the base alone.** A base of `main` proves nothing: GitHub retargets a child to `main` when its parent merges, and the stack object survives that. A PR can therefore look ordinary in every respect — base `main`, every ancestor already merged, the last branch standing — and still be stacked, at which point both merge paths refuse it: `gh pr merge` fails with "must be merged using the asynchronous merge REST API", and a plain `PUT /pulls/<pr-number>/merge` answers 403. Only layer 1 explains that, and `gh stack merge --yes --squash` is what lands it.
 
@@ -75,11 +75,11 @@ It discovers the stack, fetches its branches and sets up tracking, and running i
 
 **It is the `git push -u` of stacks**, and for the same reason: one cheap step establishing the local pointer to remote state the tool reasons from, whose omission degrades silently instead of failing. Without `-u`, `git status` goes quiet about ahead and behind; without tracking, `gh stack view` says "not part of a stack". Neither errors, both mislead.
 
-The analogy stops short, and each gap is why the limits below exist. `-u` is once per branch and lives in the shared config; tracking is once per **worktree** and dies with it. And `-u` never touches your working tree, where `checkout` moves HEAD — so a forgotten `-u` costs information and reverses exactly, while a forgotten adoption followed by a write can leave a stack half-moved.
+The analogy stops short, and each gap is a limit *That rule has limits, and each matters* names. `-u` is once per branch and lives in the shared config; tracking is once per **worktree** and dies with it. And `-u` never touches your working tree, where `checkout` moves HEAD — so a forgotten `-u` costs information and reverses exactly, while a forgotten adoption followed by a write can leave a stack half-moved.
 
 **That rule has limits, and each matters.** It does not apply to reads: "is this stacked" and "what is it on" come from layers 1 and 2 with no local state, and `checkout` mutates the working tree, so requiring it to answer a question is a needless collision with the worktree trap. And it is **never** satisfied by `gh stack init` — init is only for branches not stacked anywhere yet, and running it over PRs that already form a GitHub stack is what produces the local/remote divergence prompt during `sync`. If a branch is stacked on GitHub, the verb is always `checkout`.
 
-## Step 2 - Do the one thing asked
+## Step 2 - Do what was asked
 
 ### View
 
@@ -91,7 +91,7 @@ Never bare `view` or `--short`. Summarise as a list from trunk outward, naming e
 
 ### Init - start a new stack
 
-Only for branches that are stacked nowhere yet. A stack that already exists on GitHub is adopted with `checkout`, never with `init`, per the limits above.
+Only for branches that are stacked nowhere yet. A stack that already exists on GitHub is adopted with `checkout`, never with `init`, per *That rule has limits, and each matters*.
 
 ```bash
 gh stack init <branch1> <branch2> ...   # positional branch names, never bare
@@ -101,7 +101,7 @@ Pass `-b <base>` when the stack grows from something other than the default bran
 
 ### Add a dependent branch
 
-Cut from the parent's tip. **If the parent is stacked on GitHub, adopt the stack before adding to it** — this is the mandatory-before-writes rule above, and `gh stack add` against an unseen stack is exactly the half-working case it exists to prevent:
+Cut from the parent's tip. **If the parent is stacked on GitHub, adopt the stack before adding to it** — this is *Adopting tracking is mandatory before any write*, and `gh stack add` against an unseen stack is exactly the half-working case it exists to prevent:
 
 ```bash
 gh stack checkout <stack-number|pr-number|pr-url>   # unless already tracked here
@@ -124,7 +124,7 @@ gh stack submit --auto
 
 Always `--auto`. Without it the command prompts in ways that do not survive a non-interactive run.
 
-**Never add `--open`.** It marks every PR it touches ready for review, and drafts-at-creation is the rule in `workflows/open.md` - `--auto`'s default of opening new PRs as drafts is the correct behaviour, not an accident to fix. `workflows/ready.md` is the only thing that lifts a draft.
+**Never add `--open`.** It marks every PR it touches ready for review, and drafts-at-creation is the rule in `workflows/open.md` - `--auto`'s default of opening new PRs as drafts is the correct behaviour, not an accident to fix. `workflows/ready.md` alone lifts a draft.
 
 **Then repair every PR it opened, immediately.** `gh stack submit` has no flag for a title, a body or an assignee, and `--auto` humanizes the branch name into the title once a branch carries more than one commit - which is always here, since the plan commit lands first and alone. Every stacked PR is therefore born breaking three conventions at once, and `workflows/review.md` would flag all of them by construction. Per PR, after every submit:
 
@@ -136,7 +136,7 @@ The body carries `Closes #{issue-number}` and the rest of the template in `workf
 
 ### Sync or restack
 
-**These are two different commands, and only one of them pushes.** Read the worktree trap below before running either.
+**These are two different commands, and only one of them pushes.** Read *The worktree trap* before running either.
 
 `restack` is the cascade rebase alone, which moves branches locally and leaves the remote untouched:
 
@@ -152,13 +152,13 @@ gh stack sync
 
 **`sync` is refused while a review round holds unpushed fix commits on any branch in the stack.** The round's fix commits sit local for the owner's word, and `references/review-protocol.md` makes step 7 the round's only push; a `sync` in the middle of that pushes them early and re-anchors every thread under a part-finished read, which is the exact failure the push-hold exists to prevent. `rnp` is what releases them. Say which branch holds them, and offer `gh stack rebase` where the intent was only to move onto the trunk.
 
-**The reviewer's read refuses `sync` as well, and that window is the earlier one.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, where no fix commit exists yet - so the refusal above cannot fire there, and a `sync` walks straight through it and costs the pass. What releases this one is not `rnp`: it is the round posting, or the owner typing `discard` at the standing refusal, per *While it reads, a push is refused* in `workflows/review.md`.
+**The reviewer's read refuses `sync` as well, and that window is the earlier one.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, where no fix commit exists yet - so the unpushed-fixes refusal cannot fire there, and a `sync` walks straight through it and costs the pass. What releases this one is not `rnp`: it is the round posting, or the owner typing `discard` at the standing refusal, per *While it reads, a push is refused* in `workflows/review.md`.
 
-**`gh stack push` and the drift playbook are refused on the same terms, because the verb is not what does the damage.** That command force-pushes per branch, as *When CI goes silent: the stack has drifted* states below, so a rebase-then-push run to get around a refused `sync` moves the head under the reviewer exactly as `sync` would. A refusal keyed to one verb would leave its own documented alternative as the way through it.
+**`gh stack push` and the drift playbook are refused on the same terms, because the verb is not what does the damage.** That command force-pushes per branch, as *When CI goes silent: the stack has drifted* states, so a rebase-then-push run to get around a refused `sync` moves the head under the reviewer exactly as `sync` would. A refusal keyed to one verb would leave its own documented alternative as the way through it.
 
 **Each refusal here is checked per stack rather than per branch**, because the commands they name force-push every branch in the stack rather than only the one you are standing on: a round reading a *lower* branch's pull request is moved under by a command run from an upper one, and a check that looked only at the current branch would miss exactly that case.
 
-Where the fetch is not wanted either, the drift playbook below runs `gh stack rebase` and `gh stack push` as separate steps, which is the same work with the push under the owner's eye - and under the refusals above all the same, since its final step pushes.
+Where the fetch is not wanted either, the playbook under *When CI goes silent: the stack has drifted* runs `gh stack rebase` and `gh stack push` as separate steps, which is the same work with the push under the owner's eye - and under the same refusals as `sync` all the same, since its final step pushes.
 
 ### Merge
 
@@ -176,7 +176,7 @@ Before any cascade rebase, list the worktrees and confirm every branch the comma
 git worktree list
 ```
 
-Detach the others with `git -C <path> switch --detach`, or park them off the stack, and re-attach afterwards. `git -C` is correct here and not a loophole: detaching several sibling worktrees in a row is not moving your session into one, which is what the `EnterWorktree` move in the next paragraph is for. Read operations do not care: `view`, PR queries and checking out an unrelated stack are all safe with worktrees attached.
+Detach the others with `git -C <path> switch --detach`, or park them off the stack, and re-attach afterwards. `git -C` is correct here and not a loophole: detaching several sibling worktrees in a row is not moving your session into one, which is what the `EnterWorktree` move is for. Read operations do not care: `view`, PR queries and checking out an unrelated stack are all safe with worktrees attached.
 
 **Never add a second worktree for a branch already in the stack.** When a session needs to move to a sibling stack branch, check that branch out **in the worktree that already holds the stack**: enter it with the `EnterWorktree` tool, passing its `path` - where the owner's global instructions authorise entering a worktree without asking, that rule covers this; where they do not, let the harness prompt - then `git checkout <branch>`. The folder name then disagrees with the branch, which is fine and far cheaper than a pinned branch a cascade cannot move.
 
@@ -197,10 +197,10 @@ Sibling branches getting fresh runs in the same window rules out an outage. The 
 
 The fix, entirely through `gh stack` and never a raw `git rebase`:
 
-1. `git worktree list` — confirm no other worktree holds any branch in the stack, per the trap above. Detach if one does.
+1. `git worktree list` — confirm no other worktree holds any branch in the stack, per *The worktree trap*. Detach if one does.
 2. `gh stack checkout <stack-number>` — adopts the GitHub stack locally if it is not already tracked.
 3. `gh stack rebase` — cascades trunk to bottom to top, stopping at the first conflict with exit code 3.
-4. On conflict, read the file for diff3 markers. The `|||||||` section is the pre-edit common ancestor, which is what lets you see what each side actually changed: **merge both sides' substantive edits rather than picking one.** Then `git add <file>` and `gh stack rebase --continue`. Expect the same conflict one branch up, because that branch's own edit to the line has not yet been reconciled with the new content below it.
+4. On conflict, read the file for diff3 markers. The `|||||||` section is the pre-edit common ancestor, which is what lets you see what each side actually changed: **merge both sides' substantive edits rather than picking one.** Then `git add <file>` and `gh stack rebase --continue`. Expect the same conflict one branch up, because that branch's own edit to the line has not yet been reconciled with the branch under it.
 5. Once it reports all branches rebased, `gh stack push`.
 6. Confirm `mergeable` flips to `MERGEABLE` and CI actually runs on the new head (`gh pr checks <pr-number>`). Check the siblings too — a cascade rebase touched all of them.
 
@@ -217,4 +217,4 @@ One line: what moved, from what to what, and the PR URLs affected. If nothing ch
 - **Never `git rebase` a stacked branch against `main` by hand.** It rewrites the history the stack tooling manages, and the stack loses track of itself. Every restack goes through `gh stack`.
 - **Never commit or push directly to `main`.** This holds even when the change is trivial and even when a stack is not involved.
 - One stack operation per invocation. If the owner asks for two, run them in sequence and confirm each.
-- If a command fails partway through a cascade, stop and report which branches moved and which did not. Do not retry blindly: a half-rebased stack is worse than an unrebased one, and the usual cause is the worktree trap above.
+- If a command fails partway through a cascade, stop and report which branches moved and which did not. Do not retry blindly: a half-rebased stack is worse than an unrebased one, and the usual cause is *The worktree trap*.

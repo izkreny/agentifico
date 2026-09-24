@@ -45,7 +45,7 @@ Found: N
 |-----|-------|-------|--------|
 ```
 
-State the command you ran, not a paraphrase of it. It is the only way the owner can tell an empty result from a wrong filter, and those look identical otherwise.
+State the command you ran, not a paraphrase of it. It is how the owner tells an empty result from a wrong filter, and those look identical otherwise.
 
 If the count equals the limit exactly, say the result is probably truncated and re-run with a higher limit rather than reporting it as a total.
 

@@ -47,7 +47,7 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 ### Not checked, deliberately
 
-**`## Technical notes` and `## Dependencies` are optional**, so an absent one is never a failure. A body that names a blocker in prose is still checked for the matching `blockedBy` relation, per the Dependencies row above.
+**`## Technical notes` and `## Dependencies` are optional**, so an absent one is never a failure. A body that names a blocker in prose is still checked for the matching `blockedBy` relation, per the table's Dependencies row.
 
 **The issue type is not checked**, and is not even fetched. *Issue types are for organizations only* in `references/tracker-fields.md` settles it: a personal-account repository returns `null` for every issue, so a check would pass on everything.
 

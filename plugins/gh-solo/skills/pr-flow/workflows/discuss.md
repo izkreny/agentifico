@@ -37,7 +37,7 @@ When the owner says the plan is settled, name the ways forward and let them type
 
 ## Watching for replies
 
-**The poll loop is `workflows/watch.md`**, armed by the literal `watch` command and by the `auto` and `go` chains at the round's step 6. This round does not arm it and does not stop it: a watch already running stays running through everything below, which is what lets the owner comment at their own pace.
+**The poll loop is `workflows/watch.md`**, armed by the literal `watch` command and by the `auto` and `go` chains at the round's step 6. This round does not arm it and does not stop it: a watch already running stays running through the whole round, which is what lets the owner comment at their own pace.
 
 ## Step 1 - Read every thread, whole
 
@@ -62,7 +62,7 @@ query($owner: String!, $repo: String!) {
 
 **Read each thread as a unit, in order.** A reply's meaning comes from what it answers, and the same sentence means different things at the top of a thread and at the bottom of one.
 
-**Classify by the owner's last signal in the thread, which may be a reaction rather than a comment.** A reaction is judged by who left it, never by the comment it sits on: every agent post is made with the owner's credentials and carries their login, so no test on a comment's author tells agent from human, and a mentor's reaction is not an authorisation. Which comment carries it decides what it refers to, since a finding thread holds the finding, the fix plan and the fix result. What each reaction means is `references/review-protocol.md`'s to say, and it is not restated here; what this workflow owes each one is below.
+**Classify by the owner's last signal in the thread, which may be a reaction rather than a comment.** A reaction is judged by who left it, never by the comment it sits on: every agent post is made with the owner's credentials and carries their login, so no test on a comment's author tells agent from human, and a mentor's reaction is not an authorisation. Which comment carries it decides what it refers to, since a finding thread holds the finding, the fix plan and the fix result. What each reaction means is `references/review-protocol.md`'s to say, and it is not restated here; what this workflow owes each one is stated per signal in this step.
 
 | The owner's last signal                              | What to do                                                                                                       |
 |------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
@@ -95,7 +95,7 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --jq '.[] | s
 gh api --paginate "repos/{owner}/{repo}/issues/<pr-number>/comments" --jq '.[] | {author: .user.login, created_at, body}'
 ```
 
-Drop every body that opens with the AI disclaimer - those are this workflow's own posts, the same filter the watch applies. What remains is the owner's or the mentor's, and each is classified by the table above exactly as a thread comment would be. The differences from threads: there is no resolution state, so "already handled" is read from the record - a body whose ask is answered by a later agent Conversation comment naming it is done; one with no such answer is live, however old it is. And there is no thread to reply into, so an owed answer goes as a Conversation comment (Step 2). An acknowledgement-only body ("Round two", "LGTM so far") gets what an acknowledgement gets: nothing.
+Drop every body that opens with the AI disclaimer - those are this workflow's own posts, the same filter the watch applies. What remains is the owner's or the mentor's, and each is classified by the same table a thread comment is. The differences from threads: there is no resolution state, so "already handled" is read from the record - a body whose ask is answered by a later agent Conversation comment naming it is done; one with no such answer is live, however old it is. And there is no thread to reply into, so an owed answer goes as a Conversation comment (Step 2). An acknowledgement-only body ("Round two", "LGTM so far") gets what an acknowledgement gets: nothing.
 
 ## Step 2 - Answer in the thread
 
@@ -146,7 +146,7 @@ About the fix and its reply:
 
 - **How the fixes are grouped and committed is Step 3 of the `implement` skill's `fix` workflow**, which owns it; this round's own part is the order it gives and the scope of that order. Any `## Verification` gate a fix invalidated is re-run and re-ticked, and those are the repository's own commands, which this skill's narrowed `Bash` cannot run, so **invoke the `gh-solo:implement` skill at its `fix <pr-number>` entrance** and follow it here: entering it by name is what puts the work under that skill's tool grant.
 - **The reply names the commit subject and the `RF{n}`, and says plainly that it is committed locally and not yet pushed.** Never a sha - the owner does not use them, and on a stacked branch a later `gh stack sync` rewrites them. Disclaimer first, as on every reply.
-- **The fix stays scoped to the order.** A defect noticed while fixing goes to the next review pass, per the rule below, not into the commit.
+- **The fix stays scoped to the order.** A defect noticed while fixing goes to the next review pass, never into the commit.
 
 ## Step 5 - Confirm
 

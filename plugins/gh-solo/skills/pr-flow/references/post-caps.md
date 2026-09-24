@@ -4,7 +4,7 @@ How long a post may be, what falls outside the cap, and what sits inside a cappe
 
 **Every post carrying a `via` line is five sentences or bullets at most**, the disclaimer and the `via` line excluded. Count them; mechanical, not a judgement.
 
-**The domain is the `via` line itself**, rather than a list of surfaces, so it reaches a surface nobody has written yet, and it needs no list to be kept in step - the forms listed under *The `via` forms in use* below are examples rather than the set. What falls outside the domain, and what sits inside a capped post without counting toward the five, are *Never capped* and *Never counted* below.
+**The domain is the `via` line itself**, rather than a list of surfaces, so it reaches a surface nobody has written yet, and it needs no list to be kept in step - the forms listed under *The `via` forms in use* are examples rather than the set. What falls outside the domain, and what sits inside a capped post without counting toward the five, are *Never capped* and *Never counted*.
 
 **Never restate what the reader is already looking at.** The companion to the count, and the half a count cannot carry: a fix plan does not re-argue the finding it hangs under, a round report does not re-list findings that are already threads on the pull request, and a closing reply does not paraphrase its own commit. Five sentences of restatement are still five sentences of nothing.
 
@@ -34,4 +34,4 @@ Inside a post the cap does reach, none of this counts toward the five, because n
 
 `via` `implement` implement, the implementation record; `via` `pr-flow` review, convention check; `via` `pr-flow` resolve, the authorisation; `via` `pr-flow` discuss, thread reply; `via` `implement` implement, divergence note. These are examples of the form rather than a closed set - the domain is any post carrying such a line, so a new one needs no edit here.
 
-**The one exception is the PR body, which carries the disclaimer alone.** It is unmistakably itself, and the squash merge lands it in the commit on `main`, where a workflow tag would be noise.
+**The PR body is exempt, and carries the disclaimer alone.** It is unmistakably itself, and the squash merge lands it in the commit on `main`, where a workflow tag would be noise.

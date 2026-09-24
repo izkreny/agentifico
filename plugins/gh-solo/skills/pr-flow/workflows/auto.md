@@ -9,7 +9,7 @@ The entrances here run the lifecycle's workflows back to back, removing the wait
 
 **Only the literal command enters a chain.** Like the `watch` arming rule in `workflows/watch.md`, and for a stronger reason: `auto` skips a stop that exists for the owner's judgement, so no sentence, however clearly it implies one, may start either chain. The owner typing the command is the authorisation for everything the chain does - the plan pushed unread, the implementation, the draft flip, the posts - given in advance, once, for this invocation only.
 
-**Every refusal ends the chain.** The same rule the `ready review` chain states in `SKILL.md`, extended to every stage: a ⛔ anywhere stops with that workflow's own verdict line, carries nothing forward, and names the single command that resumes from where it stopped. A chain is a convenience; a gate is not.
+**Every refusal ends the chain.** The same rule the `ready review` chain states in `SKILL.md`, extended to every stage: a ⛔ anywhere stops with that workflow's own verdict line, carries nothing forward, and names the command that resumes from where it stopped. A chain is a convenience; a gate is not.
 
 ## Step 1 - `auto` only: the branch, the plan, the draft PR
 
@@ -57,9 +57,9 @@ That workflow's own steps 1 to 5 need nothing from the owner, so the chain does 
 
 The chain ends where the round does, at the protocol's step 6, by arming the watch and then printing the run as one block.
 
-**Arm the watch on this PR**, per *The watch survives the round* in `references/review-protocol.md`, whose loop is `workflows/watch.md`. The owner was away for everything above and will now read the threads at their own pace, reacting and replying as they go; without a watch each of those signals waits for them to come back and say so. **This is the one place a watch is armed by anything other than the owner typing `watch`**, and it is not an exception to that rule: the literal `auto` or `go` command is itself the authorisation, given in advance, and `workflows/watch.md` owns the mechanics and the cost.
+**Arm the watch on this PR**, per *The watch survives the round* in `references/review-protocol.md`, whose loop is `workflows/watch.md`. The owner was away for the whole chain and will now read the threads at their own pace, reacting and replying as they go; without a watch each of those signals waits for them to come back and say so. **Here a watch is armed by something other than the owner typing `watch`**, and it is not an exception to that rule: the literal `auto` or `go` command is itself the authorisation, given in advance, and `workflows/watch.md` owns the mechanics and the cost.
 
-**Then the consolidated block**, because the owner saw none of it happen: one line per stage with its verdict, so the whole run reads as one block. The numbers below are a sample - print the run's real issue and PR numbers, so every command is typeable as it stands:
+**Then the consolidated block**, because the owner saw none of it happen: one line per stage with its verdict, so the whole run reads as one block. The block's numbers are a sample - print the run's real issue and PR numbers, so every command is typeable as it stands:
 
 ```text
 auto: issue #50 → PR #60
@@ -73,7 +73,7 @@ Read the threads on the PR, then react or reply:
 When you are through them, type rnp - or say "resolve all and push".
 ```
 
-**RF2 is waiting on you: {why}** and one line like it per owner-gated finding, because a thread the round could not act on is the one thing in that block the owner has to act on before the merge gate will pass.
+**RF2 is waiting on you: {why}** and one line like it per owner-gated finding, because a thread the round could not act on is what the owner has to act on before the merge gate will pass.
 
 ---
 
@@ -81,7 +81,7 @@ When you are through them, type rnp - or say "resolve all and push".
 
 - **Only the literal `auto` or `go` command enters a chain.** No sentence does, however clearly it implies one.
 - **The chain removes waits, never checks.** Every composed workflow runs unchanged, every internal gate intact - a chain that skipped a gate would be indistinguishable from the gate having passed.
-- **Any refusal ends the chain**, with that workflow's own verdict line first and the single resuming command below it. Nothing non-green carries forward.
+- **Any refusal ends the chain**, with that workflow's own verdict line first and the resuming command on the next line. Nothing non-green carries forward.
 - **The chain never reviews its own diff.** The reviewer is a subagent with its own context, spawned by `workflows/review.md`, and that holds here unchanged: a chain that read the diff itself would be the author judging the author.
 - **The chain never pushes and never merges.** It ends at the protocol's step 6 with every fix commit local. Step 7 and `workflows/merge.md` both need words the owner has not said yet.
-- **The chain arms the watch and nothing else does implicitly.** Ending at step 6 without it leaves the owner reacting into silence.
+- **The chain arms the watch, and no other route arms one implicitly.** Ending at step 6 without it leaves the owner reacting into silence.

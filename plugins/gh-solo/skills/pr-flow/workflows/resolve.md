@@ -12,7 +12,7 @@ The owner says it, in the session: "resolve all and push", or types `rnp`. Also 
 
 **"You can merge" is not one of these, and routes to `workflows/merge.md` instead.** After the split it would authorise a push and then not merge, which is worse than a refusal: the owner said the word and watched something else happen. That workflow's Step 1 already refuses on unpushed commits and names `rnp` as the remedy, so the sentence lands on a gate that tells them the word they actually need.
 
-**Their word is the authorisation and nothing else is.** Not a reaction, not a reply in a thread, not a mentor saying the work looks done, and not this workflow's own reading of how settled the threads look. If no such word has been given, there is nothing to do here: say what is still waiting and stop.
+**Their word alone is the authorisation.** Not a reaction, not a reply in a thread, not a mentor saying the work looks done, and not this workflow's own reading of how settled the threads look. If no such word has been given, there is nothing to do here: say what is still waiting and stop.
 
 ## Step 1 - Stop the watch
 
@@ -27,7 +27,7 @@ Sort every unresolved thread into one of two piles, per the protocol's account o
 - **Covered**: no outstanding owner signal.
 - **Not covered**: waiting on the owner from step 3, or carrying a signal of theirs that has not been answered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the thread is covered, which is what stops one question from parking a thread forever.
 
-**Recognising the owner takes both conditions**, per *Recognising the owner takes both conditions* in `references/review-protocol.md`: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. For a reaction there is no body, so the login is the whole test.
+**Recognising the owner takes every condition *Recognising the owner* states**, per that heading in `references/review-protocol.md`: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. For a reaction there is no body, so the login is the whole test.
 
 **A thread that is not covered does not stop this workflow.** Name it in the report, leave it unresolved, and resolve the rest. What it does stop is `workflows/merge.md`, which refuses at the door on any unresolved thread, and that is where the owner learns the round is not finished.
 
@@ -39,7 +39,7 @@ One Conversation comment, posted first, so that no thread is ever resolved befor
 gh pr comment <pr-number> --body-file <scratch-file>
 ```
 
-Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by *Post caps* in the same file, which counts neither the marker line below nor the owner's quoted words - *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
+Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by *Post caps* in the same file, which counts neither the marker line nor the owner's quoted words - *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
 
 ```text
 RESOLVE AUTHORISED: RF1, RF3, RF4
@@ -87,7 +87,7 @@ Resolve `<remote>` by the recipe in `SKILL.md`'s remote-name convention. The che
 
 ## Step 6 - Release the held findings
 
-A round that held a finding reserved its `RF{n}` and gave it no thread, because the line it points at was on this machine only. The push above has just made those lines part of the pull request's diff, so the threads can open now:
+A round that held a finding reserved its `RF{n}` and gave it no thread, because the line it points at was on this machine only. The round's only push has just made those lines part of the pull request's diff, so the threads can open now:
 
 ```bash
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
@@ -126,7 +126,7 @@ One Conversation comment naming every hunk the push carried, so what the round's
 git log -p --format='%n::commit %h %s%n%b%n::body-end' <before-head>..HEAD
 ```
 
-`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - the `implement` skill's `fix` workflow requires a fix commit to name each id it closes, and its `Closes` list is that claim - and emit one row per hunk in that commit's diff. **An id the body merely mentions is not one of them:** a commit explaining what it corrects about an earlier fix names that fix's id in prose, and crediting it would put a hunk under a finding that never asked for it. The same trap `scripts/post-review.py` avoids by counting `::RF{n}::` rather than any `RF{n}` it can see. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is the one thing this comment exists to do.
+`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - the `implement` skill's `fix` workflow requires a fix commit to name each id it closes, and its `Closes` list is that claim - and emit one row per hunk in that commit's diff. **An id the body merely mentions is not one of them:** a commit explaining what it corrects about an earlier fix names that fix's id in prose, and crediting it would put a hunk under a finding that never asked for it. The same trap `scripts/post-review.py` avoids by counting `::RF{n}::` rather than any `RF{n}` it can see. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is what this comment exists to do.
 
 **The row is the hunk's `path:start-end` as a link into that commit's own diff on the pull request, then the `RF{n}` its commit named, or `-` where it named none:**
 

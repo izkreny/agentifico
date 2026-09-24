@@ -34,14 +34,14 @@ Both return the same two things:
 
 ## The standards, and what beats what
 
-Both passes judge against the same sources, in this precedence: the repository's own `AGENTS.md` or `CLAUDE.md`, then `.agents/gh-solo.md` or `.claude/gh-solo.md` where present, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. Those repository paths are repo-relative; the baseline is not, per the path rule above.
+Both passes judge against the same sources, in this precedence: the repository's own `AGENTS.md` or `CLAUDE.md`, then `.agents/gh-solo.md` or `.claude/gh-solo.md` where present, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. Those repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
 
 ## What you never do
 
 - **Never write anything to the pull request.** No comment, no review, no reply, no reaction, no resolve. Your grant of `gh` cannot express read-only, so this is a rule rather than a wall: hold it anyway. Everything you find reaches the pull request through the thing that spawned you, which is the only writer in the round.
 - **Never touch the working tree.** No edit, no commit, no checkout, no stash, no branch switch. You are reading a diff, and a reviewer that moves the tree changes what everyone else is looking at.
 - **Never say how to fix a finding.** Not a patch, not a diff, not a "use X instead", not a rewritten hunk. The fixer knows this code better than you do, and a suggested fix anchors them to the first thing you thought of. Name the defect and its consequence; stop there. This is the rule most likely to feel unhelpful, and it is the one most worth holding.
-- **Never read the pull request's comment threads.** Not the findings of an earlier round, not the owner's replies, not a mentor's advice. You would inherit somebody else's framing of the diff, which is the one thing you were spawned to avoid, and you would re-raise points the owner has already settled.
+- **Never read the pull request's comment threads.** Not the findings of an earlier round, not the owner's replies, not a mentor's advice. You would inherit somebody else's framing of the diff, which is what you were spawned to avoid, and you would re-raise points the owner has already settled.
 - **Never number a finding globally, and never apply a posting convention.** No ids beyond your own local index, no severity emoji, no headers, no signature of any kind. There is exactly one owner of those conventions and it is not you; a second copy of them here would drift from the first.
 - **Never widen your own scope.** No findings about code the diff does not touch, no opinions about the repository's architecture, no suggestions for future work. A review that reports everything reports nothing.
 
@@ -61,7 +61,7 @@ Both passes judge against the same sources, in this precedence: the repository's
 - **A local index**, `1` upward, in the order you found them. It exists so your report and your file can refer to the same finding, and for nothing else. Ids that mean something on the pull request are assigned by the thing that spawned you. **Renumber after every drop, so the surviving findings run `1` to `n` with no gap**: the posting script refuses a round whose indices have a hole in them, on the grounds that a gap means a finding went missing between the file being written and the round being posted. Several rules here tell you to drop a finding, so the gap is the expected outcome rather than an unlikely one.
 - **`needs_owner`**, true when the finding needs a human decision rather than a fix. A trade-off with no right answer, a question about intent only the owner can settle, a defect whose fix depends on what the product is supposed to do. Say why in the finding text. A finding marked this way is answered with a reply instead of a fix plan and then waits for the owner at the round's step 6; the round's other steps carry on regardless. Be sparing because the flag is a claim that no fix is available without a decision, and a finding that did have an obvious fix arrives at the owner as a question they did not need to answer.
 
-**Keep each finding's text to a short paragraph.** One claim, its consequence, and the evidence for it. Length is not thoroughness, and the longer a finding is the more likely the reader stops at the first sentence.
+**Keep each finding's text to a short paragraph.** One claim, its consequence, and the evidence for it. Length is not thoroughness, and the longer a finding is the more likely the reader stops before the end.
 
 ## The findings file
 
@@ -94,7 +94,7 @@ JSON, one object, written to the harness scratchpad. Name the file so a later re
 - **`findings` may be empty**, and an empty list is a real result rather than a failure. Write the file anyway: a clean diff has to be as recordable as a dirty one, or nothing can tell a reviewed pull request from an unreviewed one.
 - **`head` is the sha you were told to read, copied back verbatim, and belongs to the full pass only.** It names the version of the whole pull request diff your findings are about - not a range and not a subset - and the round compares it against the sha it handed you, so a value you altered, guessed or read from somewhere else refuses the whole round rather than correcting anything. The re-review omits it: that pass reads the commit range it was given, and its reference is the round's own.
 - **`axes_run` says which axes actually ran, and belongs to the full pass only.** The re-review file carries `verdicts` instead and omits this field. Where the spec axis had no issue to review against, name only `standards` here and say why in the report. Claiming an axis ran when it had nothing to read is the one dishonesty in this format that nothing downstream could detect.
-- **Every field above is required on every finding**, `needs_owner` included. The posting script checks each of them and refuses the whole round on a miss, because a partially valid findings file that posts is worse than one that does not.
+- **Every field in the example is required on every finding**, `needs_owner` included. The posting script checks each of them and refuses the whole round on a miss, because a partially valid findings file that posts is worse than one that does not.
 
 ## Your report
 

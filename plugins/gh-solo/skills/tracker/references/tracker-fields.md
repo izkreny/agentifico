@@ -12,7 +12,7 @@ gh label create backend --color 1D76DB --description "Backend / API"
 
 **Each label answers one question, and the axes are independent.** An issue carries at most one value from each, and they never contradict: an epic is not an alternative to a bug, because the two axes are not asking the same thing.
 
-Every axis but Layer has a **default**, and the default is expressed by carrying **no label at all**. The right-hand column is the value that never appears in the picker, because creating it is the mistake the next section is about.
+Every axis but Layer has a **default**, and the default is expressed by carrying **no label at all**. The right-hand column is the value that never appears in the picker, because creating it is the mistake *Never label the default* is about.
 
 | Axis          | Question it answers                             | Labels that exist                               | The default, never labelled                                                                       |
 |---------------|-------------------------------------------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------|
@@ -29,9 +29,9 @@ Read the Nature row carefully, because it is the one people try to complete. `bu
 
 ### The Layer axis
 
-Layer is the one mandatory axis, and since titles carry no prefix it is the **only** place the layer is recorded. Set it at creation.
+Layer is the one mandatory axis, and since titles carry no prefix, the label is where the layer is recorded. Set it at creation.
 
-**Exactly one layer label, on every issue that is not an epic.** An epic is exempt because it is a container: its children carry the layers, and it usually spans them, so a layer on the epic itself would either lie or read `fullstack` every time. On everything else: not zero, and never two. This is the axis rule from the table in *Labels*, and it is worth restating here because the layer is the one place two labels look defensible: an issue that touches the API and the UI seems to deserve both. It does not. `fullstack` exists precisely so that pair is never needed, and applying `backend` and `frontend` together is the mistake it was created to prevent.
+**Exactly one layer label, on every issue that is not an epic.** An epic is exempt because it is a container: its children carry the layers, and it usually spans them, so a layer on the epic itself would either lie or read `fullstack` every time. On everything else: not zero, and never two. This is the axis rule from the table in *Labels*, and it is worth restating here because the layer is where two labels look defensible: an issue that touches the API and the UI seems to deserve both. It does not. `fullstack` exists precisely so that pair is never needed, and applying `backend` and `frontend` together is the mistake it was created to prevent.
 
 | Label       | The deliverable is                                                  |
 |-------------|---------------------------------------------------------------------|
@@ -186,7 +186,7 @@ gh issue close 50 --duplicate-of 51         # #51 already covers it
 gh issue reopen 50
 ```
 
-Use one every time; `--reason` accepts `completed`, `not planned` and `duplicate` and rejects anything else, with `--duplicate-of` its own flag rather than a fourth reason. `not planned` is what stops a closed tracker reading as a graveyard of things that were built, and it is the only way a later search can tell "done" from "abandoned". For a duplicate, close with `--duplicate-of <surviving-issue-number>`: it records the target natively, which a bare `--reason duplicate` does not.
+Use one every time; `--reason` accepts `completed`, `not planned` and `duplicate` and rejects anything else, with `--duplicate-of` its own flag rather than a fourth reason. `not planned` is what stops a closed tracker reading as a graveyard of things that were built, and it is how a later search tells "done" from "abandoned". For a duplicate, close with `--duplicate-of <surviving-issue-number>`: it records the target natively, which a bare `--reason duplicate` does not.
 
 **Most closes should not be manual.** A pull request whose body says `Closes #50` closes the issue when it merges, links the two permanently, and records the closing PR in `closedByPullRequestsReferences`. Write that line in every PR body and the tracker maintains itself. Reach for `gh issue close` only for issues no PR resolves: duplicates, abandoned ideas, questions that got answered.
 

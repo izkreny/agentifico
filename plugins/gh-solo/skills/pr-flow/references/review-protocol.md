@@ -6,7 +6,7 @@
 
 A **round** is one pass of review-then-judgement; there may be several.
 
-Each cell below states its own rule, prohibitions included, so a row read out of its column still says what it means.
+Each cell of the table states its own rule, prohibitions included, so a row read out of its column still says what it means.
 
 | Who                  | Does                                                                                                      | Never                                                                                                  |
 |----------------------|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
@@ -19,7 +19,7 @@ Each cell below states its own rule, prohibitions included, so a row read out of
 
 **The orchestrator implements and also fixes.** That is deliberate: it already knows why each line is shaped as it is, so it will not undo something intentional the way a cold agent does. What it must never do is review its own work, which is why the reviewer is a separate agent with its own context.
 
-**The reviewer is a pure function: a PR number and the head to read in, one findings file out.** It is forbidden to write to the PR - a rule rather than a wall, because its `gh` grant cannot express read-only - and it has no knowledge of the conventions below - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence. **What it fetches depends on which entrance it came in by**, and the reviewer skill has one workflow file per entrance owning that list; a second copy here would drift from it.
+**The reviewer is a pure function: a PR number and the head to read in, one findings file out.** It is forbidden to write to the PR - a rule rather than a wall, because its `gh` grant cannot express read-only - and it has no knowledge of this protocol's conventions - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence. **What it fetches depends on which entrance it came in by**, and the reviewer skill has one workflow file per entrance owning that list; a second copy here would drift from it.
 
 **A repository may appoint its own reviewer, and one form of appointment is invoked rather than spawned.** What holds across every form is the shape of the seam: the findings reach the orchestrator and the orchestrator posts them, so there is one writer and one set of conventions however the reading was done. `workflows/review.md` owns each form and the file's shape.
 
@@ -51,11 +51,11 @@ Each cell below states its own rule, prohibitions included, so a row read out of
 ⛔ REFUSED - {n} reviewer passes have run on this pull request, at or past the cap of {cap}; {what} is unresolved; type authorise to charge a further pass
 ```
 
-An owner-spent pass leaves the count above the cap, per the last paragraph of this section, so a test for equality would let every pass after that one through - and a string asserting `{n}` *is* the cap would be false on exactly the path the protocol grants.
+An owner-spent pass leaves the count past the cap, per *The owner's word can spend a further pass* in this section, so a test for equality would let every pass after that one through - and a string asserting `{n}` *is* the cap would be false on exactly the path the protocol grants.
 
 `{what}` names what the pull request is left holding: the findings still open, and any the last pass could not certify closed. A stop that says only that the cap was reached hands the owner a budget and no state.
 
-**The owner's word can spend a further pass, and the word is `authorise`, typed at the standing refusal above.** It buys exactly one: **the refusal lifts for the single spawn that follows the word**, and step 1 resumes at that spawn rather than at the budget read that refused - a re-entry from the top would read the same count, refuse again, and leave the owner typing the word at a stop that never moves. That pass leaves its own marker like any other, and the next stop arrives one pass later. **Only the literal word buys it**, never a sentence that reads as agreement - the same rule, and the same reason, as *Arming it, on the `watch` command and nothing else* in `workflows/watch.md`: what this cap exists to refuse is a reading of the branch nobody asked for, and prose is how one gets taken anyway. The cap bounds the block nobody is watching, not the pull request: work that genuinely earns a further reading gets one when they ask for it, and a cap they could not pass would block such a branch, the cheap way out of which is to stop counting.
+**The owner's word can spend a further pass, and the word is `authorise`, typed at that standing refusal.** It buys exactly one: **the refusal lifts for the single spawn that follows the word**, and step 1 resumes at that spawn rather than at the budget read that refused - a re-entry from the top would read the same count, refuse again, and leave the owner typing the word at a stop that never moves. That pass leaves its own marker like any other, and the next stop arrives one pass later. **Only the literal word buys it**, never a sentence that reads as agreement - the same rule, and the same reason, as *Arming it, on the `watch` command and nothing else* in `workflows/watch.md`: what this cap exists to refuse is a reading of the branch nobody asked for, and prose is how one gets taken anyway. The cap bounds the block nobody is watching, not the pull request: work that genuinely earns a further reading gets one when they ask for it, and a cap they could not pass would block such a branch, the cheap way out of which is to stop counting.
 
 ## The push gate, while a reviewer is reading
 
@@ -63,7 +63,7 @@ An owner-spent pass leaves the count above the cap, per the last paragraph of th
 
 **The refusal is about whose call it is, not only about what happens to the anchors.** The owner's own reading window is theirs to spend as they like, which is why step 7 answers a push there with "no words ask for an earlier one" and leaves the cost of outdated threads with them. This window is not theirs in the same way: what a push spends here belongs to a process whose state they cannot see, and under *The pass cap* above it may be the only reading of the branch this pull request ever gets. The refusal therefore does not overrule them - it makes the spend go through a door that records what it cost.
 
-**Warn-and-proceed is why a warning is not the answer.** A pass killed by a push it was warned about leaves no discard record, so `scripts/post-review.py passes` reads as though it never ran and the cap silently gains a pass. Each exit below leaves the count true instead.
+**Warn-and-proceed is why a warning is not the answer.** A pass killed by a push it was warned about leaves no discard record, so `scripts/post-review.py passes` reads as though it never ran and the cap silently gains a pass. Each exit under *The exits do different things to the round* leaves the count true instead.
 
 **The exits do different things to the round, and the verdict line says which:**
 
@@ -94,7 +94,7 @@ The reviewer is spawned with the PR number and the head it is to read, and nothi
 
 ### 2. Post
 
-The orchestrator wraps each finding in the header and lands every thread *and* the record Review in **one** call to the reviews endpoint, then posts the reviewer's report as a Conversation comment - the same surface, and for the same reason, as the implementation record in the `implement` skill: it expects no answer, and it opens with the disclaimer, which is what keeps every later round's read from taking it for the owner speaking. One call, so a half-posted PR cannot happen: either the whole round is on the PR or none of it is. The finding text below the header is verbatim; only the header is generated. `workflows/review.md` owns the call and the script that builds and validates it.
+The orchestrator wraps each finding in the header and lands every thread *and* the record Review in **one** call to the reviews endpoint, then posts the reviewer's report as a Conversation comment - the same surface, and for the same reason, as the implementation record in the `implement` skill: it expects no answer, and it opens with the disclaimer, which is what keeps every later round's read from taking it for the owner speaking. One call, so a half-posted PR cannot happen: either the whole round is on the PR or none of it is. The finding text under the header is verbatim; only the header is generated. `workflows/review.md` owns the call and the script that builds and validates it.
 
 ### 3. Plan the fix, in the thread
 
@@ -107,7 +107,7 @@ One reply per finding saying what change would close it, with code in a plain fe
 
 The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes, and **nothing is pushed** - step 7 is the round's only push, and says why. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
 
-- **Steps 3 and 4 are two posts and are never merged into one**, even though nothing reads them in between. The gap between the plan and the result is the only place a departure from the plan is visible; combined, it has nowhere to show.
+- **Steps 3 and 4 are two posts and are never merged into one**, even though nothing reads them in between. The gap between the plan and the result is where a departure from the plan is visible; combined, it has nowhere to show.
 - **The fix workflow's carve-out applies to every fix in this block**: a fix the owner might independently reject gets its own commit. There it is the exception; here it is the rule, because nothing in this block has been judged yet.
 - Any gate in `## Verification` the fixes could have invalidated is re-run and re-ticked by whoever ran it, per the standing convention in `SKILL.md`.
 - **A fix that changes what the `## Plan overview` describes brings the overview up to date in the same round.** The overview summarises what the branch does, so a fix that adds or removes a behaviour makes it wrong - and wherever the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `workflows/merge.md`, that text becomes the squash commit message on `main` and can never be corrected afterwards. So this is not a stale document, it is a permanently wrong commit message. The edit is a body edit, read-modify-write per the body-edit convention in `SKILL.md`, never a commit, and it stays inside the overview's cap in *Convention checks*. Name it in the round report next to the fix commits.
@@ -118,16 +118,16 @@ The fixes land as commits grouped by coherent change, each naming the `RF{n}` id
 The reviewer is spawned again with the fix commit *range*, the findings list, and which commit claims which id. A range rather than a diff on purpose: it reads the commits itself, so nothing the author produced sits between it and the code. It answers two questions and no others: for each finding claimed closed, does this diff close it; and did any fix introduce a new defect. It returns verdicts to the orchestrator, which posts them into the threads.
 
 - **This closes a real hole:** the fixes were made by the author of the code under review, unsupervised, and nothing else checks that a fix actually closed its finding. A guard added on the wrong branch leaves every gate green and a thread asserting a closure that never happened.
-- **Nothing else is in scope**, and what the scope excludes is owned by `plugins/gh-solo/skills/reviewer/workflows/rescope.md`, under *You answer exactly two questions, and no others*. A full second review is where iteration counts explode, because each pass finds fresh nitpicks on code nobody asked about.
+- **The scope stops there**, and what it excludes is owned by `plugins/gh-solo/skills/reviewer/workflows/rescope.md`, under *You answer exactly two questions, and no others*. A full second review is where iteration counts explode, because each pass finds fresh nitpicks on code nobody asked about.
 - **A new defect gets its own record, and the first index is left alone.** One record Review per analysis is the standing rule and the re-review is an analysis, so it posts its own, indexing its own pass and the new `RF{n}` ids in it. Nothing goes stale, because no index ever claimed to cover a pass that had not happened when it was written, and no submitted record is rewritten to make it true.
 - **A new defect in a file the unpushed fixes touch is *held*: it gets its `RF{n}` now and its thread after the push.** The fixes are unpushed at step 5, so GitHub cannot resolve an anchor to a line only they carry, and the posting call is atomic - one bad anchor would take the whole record down, verdicts included. **The unit is the file rather than the line**, because a line number counted at local `HEAD` does not survive the pushed head: an unpushed commit inserting lines anywhere above a finding shifts it even when the finding sits outside every hunk, so the file is the unit with no such gap. So `build` keeps it out of the `comments` array and writes it whole into the record Review's own ledger instead, which reserves the id where the next round's highest-id read can see it and keeps *Ids never restart* intact. Step 7's push makes the line ordinary and `release` then posts the thread under that same id, so every finding of every round ends as a thread the merge gate audits. **The round report must say which findings were threaded and which are held**, or a reader takes the second for an absence of findings.
 - **Both loops are capped, because no owner is watching.** A finding the re-review says is not closed gets **one** further plan-and-fix attempt; a second failure sends the thread to the owner instead, since two failures mean the finding is not understood and a third machine attempt costs more than reading it. A new defect the re-review raises gets a fix plan and a fix, and that fix is re-reviewed once, never recursively.
-- **One batched pass covers both loops together, never one pass per thread.** Every retry and every new-defect fix lands first, and then a single scoped spawn reads the whole range and answers about all of them. Per thread the caps above would bound the attempts per finding and leave the spawn count following how many findings a pass happened to raise, which is the dimension that costs; batched, the round's spawns are a number rather than a function of the findings.
+- **One batched pass covers both loops together, never one pass per thread.** Every retry and every new-defect fix lands first, and then a single scoped spawn reads the whole range and answers about all of them. Per thread, step 5's caps would bound the attempts per finding and leave the spawn count following how many findings a pass happened to raise, which is the dimension that costs; batched, the round's spawns are a number rather than a function of the findings.
 - **So the reviewer is spawned three times at most in a round:** the full pass at step 1, the scoped re-review here, and the one batched pass these loops get. What a pull request's own total is follows from that figure and the full passes it has had, since `authorise` under *The pass cap* buys a further pass and a further round with it. It is here so a reader has it without tracing the loops to derive it.
 
 ### 6. The owner judges
 
-The first step that waits for anything. They answer per thread, and the vocabulary is below.
+The first step that waits for anything. They answer per thread, in the vocabulary *The owner's vocabulary* states.
 
 ### 7. Resolve and push, on the owner's word
 
@@ -138,15 +138,15 @@ The batch is one word or sentence from the owner - `rnp`, or "resolve all and pu
 - **Then the push**, with `gh pr checks` read before it is reported done, per the standing convention in `SKILL.md`.
 - **Then the delta index**, one Conversation comment naming every hunk the push carried and the `RF{n}` each answers, or a dash where it answers none. It opens no thread and issues no id; `workflows/resolve.md` owns its shape.
 
-**This step ends at the push, and step 8 is a word of its own.** One word doing both would read the checks below after the branch had already landed, so the sentence about a red check stopping the merge would be describing a gate that cannot fire. `workflows/resolve.md`'s confirm step is where the wording of what the owner types next is decided.
+**This step ends at the push, and step 8 is a word of its own.** One word doing both would read the checks after the branch had already landed, so the sentence about a red check stopping the merge would be describing a gate that cannot fire. `workflows/resolve.md`'s confirm step is where the wording of what the owner types next is decided.
 
-**The index is the only place a fix's incidental half is reported.** Step 4's reply names each finding's own change and any departure from the plan posted at step 3; what has had no home is a rename, a reworded comment or a helper extracted while fixing - visible to the owner in `git log` or not at all.
+**The index is where a fix's incidental half is reported.** Step 4's reply names each finding's own change and any departure from the plan posted at step 3; what has had no home is a rename, a reworded comment or a helper extracted while fixing - visible to the owner in `git log` or not at all.
 
 **Resolving every inline comment thread is a merge requirement, not a push requirement.** Nothing mechanically stops a branch being pushed with threads still open, and step 4's fix commits could have gone up at any point - they are held back to protect the owner's reading, which has nothing to do with resolution. What requires every thread resolved is *Resolution rests on recorded authority*, enforced at `workflows/merge.md`'s door. So the resolve here closes out the round; it does not unlock anything.
 
 **Resolving an inline comment thread posts nothing**, which is why the authorisation comment exists: the resolve leaves no trace of whose decision it was, so without that comment a later reader, `workflows/merge.md` included, sees a closed thread and no evidence behind it.
 
-**A red check after the push reopens nothing.** Each finding is closed on its own evidence - the fix, the re-review's verdict, and the owner's word - none of which a CI failure contradicts. A red check against locally green gates is the two-environments finding per the standing convention in `SKILL.md`: it stops the merge until it is diagnosed, and what answers it is a new commit rather than a reopened thread. **It can stop the merge because the merge has not happened**, which is what the split above buys: this check is read while step 8 is still the owner's to start.
+**A red check after the push reopens nothing.** Each finding is closed on its own evidence - the fix, the re-review's verdict, and the owner's word - none of which a CI failure contradicts. A red check against locally green gates is the two-environments finding per the standing convention in `SKILL.md`: it stops the merge until it is diagnosed, and what answers it is a new commit rather than a reopened thread. **It can stop the merge because the merge has not happened**, which is what splitting step 7 from step 8 buys: this check is read while step 8 is still the owner's to start.
 
 **The authorisation comment** carries a literal marker line a later reader can grep for, the owner's words, and every `RF{n}` id it covers.
 
@@ -172,7 +172,7 @@ How they answer a thread at step 6. **Approval may be a word or a reaction; refu
 | What they do                                                  | What it means                                                                                                                                                                                                                                      |
 |---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | Say "OK", "good", "cool" in the session, naming the finding   | Accepted. A bare word naming nothing is not a signal on any thread                                                                                                                                                                                 |
-| React 👍 `THUMBS_UP` or ❤️ `HEART`                            | Accepted. Exact synonyms of each other and of the words above                                                                                                                                                                                      |
+| React 👍 `THUMBS_UP` or ❤️ `HEART`                            | Accepted. Exact synonyms of each other and of the words said in the session                                                                                                                                                                        |
 | React 👀 `EYES` or 😕 `CONFUSED`, or write "explain" or "?!?" | One canned question, answered in the thread: *"I do not understand. Explain to me like a non-technical person, but use real code names."* The reaction and the word mean exactly the same thing, so neither gets a different answer from the other |
 | Write a reply                                                 | A discussion. `workflows/discuss.md` classifies and answers it                                                                                                                                                                                     |
 | Nothing, or any other reaction                                | No signal. Step 7's batch covers it                                                                                                                                                                                                                |
@@ -187,7 +187,7 @@ How they answer a thread at step 6. **Approval may be a word or a reaction; refu
 
 Every thread ends resolved, and every resolution rests on recorded owner authority, in one of these forms and no other: a reply of theirs in the thread, a reaction of theirs on it, or an authorisation comment naming its `RF{n}` id. Resolving is the orchestrator's act, but the authority for it is never inferred and never lives only in a session - a session dies and `workflows/merge.md` still has to be able to check. Enforcement: `workflows/review.md` checks it early and cheap; `workflows/merge.md` refuses at the door on an unresolved thread, or on a resolved one carrying none of those forms, naming its `file:line`.
 
-#### Recognising the owner takes both conditions
+#### Recognising the owner
 
 Both must hold: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. The first excludes everyone else, the second excludes this plugin's own posts, which carry the owner's login because they are made with their credentials.
 
@@ -195,7 +195,7 @@ Both must hold: the author's login **is** the repository owner's, and the body d
 
 ### The watch survives the round
 
-It watches reactions as well as words, because approval can be a reaction and a watch polling only comments would leave the owner reacting into silence. It stops at step 7 or on `unwatch`, and nowhere else, since step 7 is the only path out of step 6 - so the owner can react and be answered as they go rather than serialising the round.
+It watches reactions as well as words, because approval can be a reaction and a watch polling only comments would leave the owner reacting into silence. It stops at step 7 or on `unwatch`, and on no other signal, since step 7 is the only path out of step 6 - so the owner can react and be answered as they go rather than serialising the round.
 
 The `auto` and `go` chains arm it themselves on reaching step 6. That is an instance of the only-the-literal-command rule in `workflows/watch.md` rather than an exception to it: those are literal commands, and their premise is authorisation given in advance. That workflow owns the mechanics and the cost.
 
@@ -203,4 +203,4 @@ The `auto` and `go` chains arm it themselves on reaching step 6. That is an inst
 
 Nothing in steps 1 to 5 waits for a human, so every stop in that block has to be written down: there is nobody there to apply judgement the rules forgot to ask for. That binds anything added to it later.
 
-The caps that bound it are step 5's cap on a finding the re-review will not certify, its cap on a new defect that pass raises, and the pass cap above, and the last of those is what closes the block's most expensive dimension: step 5's bound what happens to a finding, while a re-spawn discards findings and starts again, so nothing they say constrains it. `workflows/review.md` names the pass cap at every sentence that answers a lost pass with a re-spawn, which is where that loop is actually entered.
+The caps that bound it are step 5's cap on a finding the re-review will not certify, its cap on a new defect that pass raises, and the cap *The pass cap* states, and the last of those is what closes the block's most expensive dimension: step 5's bound what happens to a finding, while a re-spawn discards findings and starts again, so nothing they say constrains it. `workflows/review.md` names the pass cap at every sentence that answers a lost pass with a re-spawn, which is where that loop is actually entered.

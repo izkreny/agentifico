@@ -12,9 +12,9 @@ What the reviewer reviews against **where the repository documents nothing**. Th
 
 These come before any smell, because they are about whether the diff should exist in this shape at all, and a clean implementation of the wrong change is still the wrong change.
 
-- **Solve the stated problem.** A change that solves a different problem than the issue states is wrong even when the implementation is clean. This is the `spec` axis's first question, and it outranks every entry below.
+- **Solve the stated problem.** A change that solves a different problem than the issue states is wrong even when the implementation is clean. This is the `spec` axis's first question, and it outranks every other entry in this baseline.
 - **The diff contains only what the goal requires.** No unrelated refactors, no renames the goal did not ask for, no style-only edits to untouched lines, no scope creep. A file that did not need to be in the diff is a finding.
-- **Build for the case in front of you.** An abstraction with one caller, a parameter no caller passes, a hook for a future nobody has scheduled: each is removable, and each is *Speculative Generality* below arriving early.
+- **Build for the case in front of you.** An abstraction with one caller, a parameter no caller passes, a hook for a future nobody has scheduled: each is removable, and each is *Speculative Generality* arriving early.
 - **"It compiles" is not "it works."** Every change should name how it was verified, and a critical path should have a test. A diff whose `## Verification` section is empty or untouched is a finding on its own.
 - **A check that has never been seen to fail is not evidence.** A new test, grep, gate or assertion earns trust by being watched failing on the case it exists to catch - fed the pre-fix input, the wrong value, the deleted file. A check that passes on everything is indistinguishable from one that passes on nothing, and both look green. So a diff that adds a check without saying it was seen to fail is a finding, and a diff that adds one which cannot fail is a worse one.
 

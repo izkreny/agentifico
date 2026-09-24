@@ -48,7 +48,7 @@ Do not probe any further than that. Setup, scopes and troubleshooting are in `re
 
 Optional. If `.agents/gh-solo.md` exists in the repository, read it, falling back to `.claude/gh-solo.md` where that is what the repository uses. **The file is the authority on its own contents**, and it carries more than this skill acts on - `pr-flow` and `implement` read the same file for their own keys. What this skill takes from it: the label taxonomy and which axis is mandatory, the branch format and its `{type}` vocabulary, whether the repository uses GitHub issue types, the default branch's name where it is not `main`, and the remote's name where `git remote` alone cannot settle it. Where the file is absent, infer what you need with `gh label list` and `gh repo view`, and **never create it unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
 
-Nothing else is project configuration. `gh` resolves owner and repository from the working directory, so there is no key, no cloud ID, no board and no custom field ID to discover or store.
+No other key is project configuration. `gh` resolves owner and repository from the working directory, so there is no key, no cloud ID, no board and no custom field ID to discover or store.
 
 ---
 
@@ -71,7 +71,7 @@ These fire on conversation context. Read the matched workflow and execute it inl
 
 ## Explicit routing
 
-Based on the argument above, do exactly one of the following and nothing else:
+Based on the argument, do exactly one of the following and nothing else:
 
 - If the argument is exactly `help` → read `workflows/help.md`, output its contents, stop.
 - If it starts with `status` → read `workflows/status.md` and follow it.
@@ -80,7 +80,7 @@ Based on the argument above, do exactly one of the following and nothing else:
 - If it starts with `state`, `start`, `close`, `reopen`, `block` or `milestone` → read `workflows/state.md` and follow it.
 - If it starts with `finish` → read `workflows/create.md` and follow its *Finishing a draft* section.
 - If the argument reads as prose describing work to break down - `create issues for X`, or a bare description - → read `workflows/create.md` and follow it.
-- Otherwise → read `workflows/help.md`, output its contents, and say which argument failed to match anything above. A single unrecognised token is a typo or a verb this skill does not have, and sending it into the breakdown workflow would answer it with a proposed breakdown of the typo.
+- Otherwise → read `workflows/help.md`, output its contents, and say which argument failed to match any routing entry. A single unrecognised token is a typo or a verb this skill does not have, and sending it into the breakdown workflow would answer it with a proposed breakdown of the typo.
 
 ---
 

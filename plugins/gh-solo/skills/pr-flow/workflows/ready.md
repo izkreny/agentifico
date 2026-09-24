@@ -8,7 +8,7 @@ This is the far end of `workflows/open.md`, not a continuation of it. That workf
 
 ## Step 1 - Audit the gates. Do not run them
 
-**This workflow runs nothing and ticks nothing.** The agent that implemented the plan is the agent that verified it: running the suite is the last act of implementation, and that agent ticks each box because it is the one that watched the command exit. By the time this workflow starts, the record is either complete or it is not.
+**This workflow runs nothing and ticks nothing.** The agent that implemented the plan is the agent that verified it: running the suite is the last act of implementation, and that agent ticks each box because it watched the command exit. By the time this workflow starts, the record is either complete or it is not.
 
 Read the body's `## Verification` and verify every box has a tick.
 
