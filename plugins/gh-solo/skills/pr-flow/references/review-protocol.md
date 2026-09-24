@@ -77,7 +77,7 @@ The cap bounds the block nobody is watching, not the pull request: work that gen
 
 **The refusal is about whose call it is, not only about what happens to the anchors.** The owner's own reading window is theirs to spend as they like, which is why step 7 answers a push there with "no words ask for an earlier one" and leaves the cost of outdated threads with them. This window is not theirs in the same way: what a push spends here belongs to a process whose state they cannot see, and under *The pass cap* above it may be the only reading of the branch this pull request ever gets. The refusal therefore does not overrule them - it makes the spend go through a door that records what it cost.
 
-**Warn-and-proceed is why a warning is not the answer.** A pass killed by a push it was warned about leaves no discard record, so `scripts/post-review.py passes` reads as though it never ran and the cap silently gains a pass. Each exit under *The exits do different things to the round* leaves the count true instead.
+**Warn-and-proceed is why a warning is not the answer.** A pass killed by a push it was warned about leaves no discard record, so `scripts/post-review.py passes` reads as though it never ran and the cap silently gains a pass. Each exit under *The exits* leaves the count true instead.
 
 ### The exits
 
