@@ -49,7 +49,7 @@ The workflows share these; each is stated once here.
 ## Routing
 
 - If the argument starts with `fix` → read `workflows/fix.md` and follow it. The rest of the argument is the PR number and, when the owner named them, which findings stand.
-- Otherwise → read `workflows/implement.md` and follow it. The argument is the PR number; without one, the PR of the currently checked-out branch.
+- Otherwise → read `workflows/implement.md` and follow it. The argument is the PR number; without one, the PR of the checked-out branch.
 
 ## Supporting files
 

@@ -65,7 +65,7 @@ Before closing manually, check `closedByPullRequestsReferences` and any open PR 
 gh issue reopen <issue-number>
 ```
 
-Reopening clears the close reason. If the issue is being reopened because it was closed wrongly, say what the previous reason was in the confirmation, since it is now gone.
+Reopening clears the close reason. If the issue is being reopened because it was closed wrongly, say what the previous reason was in the confirmation, since the reopen erased it.
 
 **Check the assignee after reopening.** A closed issue keeps whoever was assigned when it closed, and `gh issue reopen` has no flag to clear it, so the issue comes back already claiming to be in progress. Ask whether work is resuming now. If it is not, clear it:
 

@@ -6,7 +6,7 @@
 
 A **round** is one pass of review-then-judgement; there may be several.
 
-Each cell of the table states its own rule, prohibitions included, so a row read out of its column still says what it means.
+Each cell of the table states its own rule, prohibitions included, so a row read out of its column keeps its meaning.
 
 | Who                  | Does                                                                                                      | Never                                                                                                  |
 |----------------------|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
@@ -59,7 +59,7 @@ An owner-spent pass leaves the count past the cap, per *The owner's word can spe
 
 ## The push gate, while a reviewer is reading
 
-**A push asked for while a reviewer is reading is refused, and the refusal names the ways out: wait for the round report, or discard the pass.** The window is the gap between the spawn at step 1 and the post at step 2, and again at each scoped spawn at step 5. A push landing in it moves the head under a subagent that has already spent minutes reading; `scripts/post-review.py build` then refuses the post, because the pin no longer equals the head, and everything that pass read is thrown away.
+**A push asked for while a reviewer is reading is refused, and the refusal names the ways out: wait for the round report, or discard the pass.** The window is the gap between the spawn at step 1 and the post at step 2, and again at each scoped spawn at step 5. A push landing in it moves the head under a subagent that has already spent minutes reading; `scripts/post-review.py build` then refuses the post, because the pin and the head differ, and everything that pass read is thrown away.
 
 **The refusal is about whose call it is, not only about what happens to the anchors.** The owner's own reading window is theirs to spend as they like, which is why step 7 answers a push there with "no words ask for an earlier one" and leaves the cost of outdated threads with them. This window is not theirs in the same way: what a push spends here belongs to a process whose state they cannot see, and under *The pass cap* above it may be the only reading of the branch this pull request ever gets. The refusal therefore does not overrule them - it makes the spend go through a door that records what it cost.
 
@@ -90,7 +90,7 @@ Steps 1 to 5 run unattended, in one block. The owner's first involvement is step
 
 The reviewer is spawned with the PR number and the head it is to read, and nothing else in its prompt, and returns its findings file - carrying back the head it read - plus the text of the round's report. It posts nothing. Where a repository names a model, that travels as a spawn parameter rather than as prompt content, so the prompt carries the number and the head and nothing more.
 
-**The head is pinned rather than discovered, and the reviewer's report of it is a cross-check.** The orchestrator reads the head, hands it over as the scope, and at step 2 refuses on either disagreement: a reported head unequal to the pin means the pass judged something else, and a pin unequal to the head by then means the anchors can no longer resolve. So what the round compares is the version the reviewer was told to read, which is a fact it holds rather than a claim it is given.
+**The head is pinned rather than discovered, and the reviewer's report of it is a cross-check.** The orchestrator reads the head, hands it over as the scope, and at step 2 refuses on either disagreement: a reported head unequal to the pin means the pass judged something else, and a pin unequal to the head by then means the anchors cannot resolve. So what the round compares is the version the reviewer was told to read, which is a fact it holds rather than a claim it is given.
 
 ### 2. Post
 
@@ -153,7 +153,7 @@ The batch is one word or sentence from the owner - `rnp`, or "resolve all and pu
 - **Grep-able rather than inferred**, because it is an agent post and so opens with the disclaimer: nothing that recognises the owner by the *absence* of a disclaimer can find it, which is every reader that matters here.
 - **Id-naming**, because an authorisation covering `RF1` to `RF7` must not silently authorise resolving an `RF9` that was posted afterwards.
 - **What the batch covers:** every thread with no outstanding owner signal. That is the whole point of it - a thread the owner already approved was resolvable on its own, so an authorisation covering only those would do nothing.
-- **What it never covers:** a thread waiting on the owner from step 3, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
+- **What it never covers:** a thread waiting on the owner from step 3, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is not outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
 
 **This is the round's only push, and no words ask for an earlier one.** A push moves the diff, and GitHub recomputes every thread anchor the moment it lands, marking threads outdated beneath a reader part-way through. Holding the push is what keeps the threads anchored to the exact diff the owner is reading.
 

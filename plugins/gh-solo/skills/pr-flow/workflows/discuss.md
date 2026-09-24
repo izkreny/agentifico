@@ -116,9 +116,9 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --jq '.[] | s
 
 Report to the owner: the review id, that their unsubmitted review is holding the slot, and that submitting or discarding it unblocks the round. Then stop - do not retry, and never post the reply anywhere else to get it out.
 
-**Never read that review's comments.** `pulls/<pr-number>/reviews/<id>/comments` returns the bodies of an unsubmitted review to its own author, and that is wording the owner has not published and may still delete. The block is the review's existence, which `state` already told you; its contents cannot help, and an agent that has read them can no longer tell a draft it saw from an order it was given.
+**Never read that review's comments.** `pulls/<pr-number>/reviews/<id>/comments` returns the bodies of an unsubmitted review to its own author, and that is wording the owner has not published and may still delete. The block is the review's existence, which `state` already told you; its contents cannot help, and an agent that has read them cannot afterwards tell a draft it saw from an order it was given.
 
-**Re-read the code before answering.** The finding came from a pass over a diff, and the owner is asking about the code as it stands now, which may have moved since. An answer that describes a version that no longer exists is worse than no answer.
+**Re-read the code before answering.** The finding came from a pass over a diff, and the owner is asking about the code as it stands now, which may have moved since. An answer that describes a version that has gone is worse than no answer.
 
 **Answer the question that was asked.** Not the adjacent one, not the general principle. If the owner asks whether a null check is reachable, the answer names the caller that reaches it or concedes that none does.
 

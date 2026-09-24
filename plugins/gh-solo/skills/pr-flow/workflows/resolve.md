@@ -25,7 +25,7 @@ The same GraphQL query `workflows/discuss.md` Step 1 uses, which already carries
 Sort every unresolved thread into its pile, per the protocol's account of what a batch covers:
 
 - **Covered**: no outstanding owner signal.
-- **Not covered**: waiting on the owner from step 3, or carrying a signal of theirs that has not been answered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the thread is covered, which is what stops one question from parking a thread forever.
+- **Not covered**: waiting on the owner from step 3, or carrying a signal of theirs that has not been answered - a reply not yet replied to, or a question not yet explained. An **answered** question is not outstanding and the thread is covered, which is what stops one question from parking a thread forever.
 
 **Recognising the owner takes every condition *Recognising the owner* states**, per that heading in `references/review-protocol.md`: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. For a reaction there is no body, so the login is the whole test.
 
@@ -170,7 +170,7 @@ Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow
 
 Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved, nothing was held, the delta index either posted or was correctly skipped, and the checks are green; `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered, a held finding was released and now waits on the owner, a release failed, the delta index failed to post, or a check is red. **A span carrying no commits skips the index and stays `✅`**, per Step 7: a skip it was told to make is not a failure.
 
-Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and are now waiting to be read, the commits that went up, how many rows the delta index carried and how many of them answered no finding, and the check result.
+Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and wait to be read, the commits that went up, how many rows the delta index carried and how many of them answered no finding, and the check result.
 
 **Then say that this workflow is over and merging is a word of its own**, since the owner's `rnp` did not ask for one and nothing here is about to run it. The command, flush left:
 
