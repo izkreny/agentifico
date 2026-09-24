@@ -36,7 +36,7 @@ Match commits to acceptance criteria by what they claim to do. Be honest about t
 
 ## Step 4 - Output
 
-```
+```text
 ## #{issue-number} - {title}
 {state}{, reason if closed}   {labels}
 

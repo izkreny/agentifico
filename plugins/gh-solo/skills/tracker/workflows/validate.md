@@ -63,7 +63,7 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 ## Step 5 - Report
 
-```
+```text
 ## Validation - #{issue-number}
 {title}
 {kind}  |  {state}  |  {labels}

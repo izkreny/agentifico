@@ -85,7 +85,7 @@ Then the record: what landed (commits), the box states on PR and issue, CI state
 
 End with the owner's next move, alone on its line, flush left:
 
-```
+```text
 /gh-solo:pr-flow ready review <pr-number>
 ```
 

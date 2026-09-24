@@ -12,7 +12,7 @@ The session that wrote your code cannot review it. It has already reasoned its w
 
 So loading this skill in the session that just implemented something produces a review that agrees with itself. The skill opens with a refusal for exactly that case, and its description says so, but the reliable protection is simply starting rounds the normal way:
 
-```
+```text
 /gh-solo:pr-flow review <pr-number>
 ```
 

@@ -61,7 +61,7 @@ The chain ends where the round does, at the protocol's step 6, by arming the wat
 
 **Then the consolidated block**, because the owner saw none of it happen: one line per stage with its verdict, so the whole run reads as one block. The numbers below are a sample - print the run's real issue and PR numbers, so every command is typeable as it stands:
 
-```
+```text
 auto: issue #50 → PR #60
   open       ✅ plan committed alone, draft PR opened
   implement  ✅ handoff posted on the PR

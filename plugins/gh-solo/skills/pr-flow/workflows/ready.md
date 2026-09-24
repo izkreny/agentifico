@@ -6,7 +6,7 @@ This is the far end of `workflows/open.md`, not a continuation of it. That workf
 
 **The audit: every gate in `## Verification` accounted for, CI agreeing with that record, the rest of the body telling the truth, and then the flag - the first of these being most of it.** **This is the workflow that can say no** — its whole value is refusing to flip a draft whose gates did not all run, so nothing here is a formality to be got through.
 
-## Step 1 - Audit the gates. Do not run them.
+## Step 1 - Audit the gates. Do not run them
 
 **This workflow runs nothing and ticks nothing.** The agent that implemented the plan is the agent that verified it: running the suite is the last act of implementation, and that agent ticks each box because it is the one that watched the command exit. By the time this workflow starts, the record is either complete or it is not.
 

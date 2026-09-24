@@ -47,7 +47,7 @@ Each cell below states its own rule, prohibitions included, so a row read out of
 
 **The test is `{n}` at or past the cap, never equal to it, and the wording is fixed here rather than composed per round:**
 
-```
+```text
 ⛔ REFUSED - {n} reviewer passes have run on this pull request, at or past the cap of {cap}; {what} is unresolved; type authorise to charge a further pass
 ```
 
@@ -169,13 +169,13 @@ Nothing is lost by waiting, because everything the owner judges on is on the PR 
 
 How they answer a thread at step 6. **Approval may be a word or a reaction; refusal must always be written.**
 
-| What they do                                                | What it means                                                                                                                                                                                                                                      |
-|-------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Say "OK", "good", "cool" in the session, naming the finding | Accepted. A bare word naming nothing is not a signal on any thread                                                                                                                                                                                 |
-| React 👍 `THUMBS_UP` or ❤️ `HEART`                           | Accepted. Exact synonyms of each other and of the words above                                                                                                                                                                                      |
+| What they do                                                  | What it means                                                                                                                                                                                                                                      |
+|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Say "OK", "good", "cool" in the session, naming the finding   | Accepted. A bare word naming nothing is not a signal on any thread                                                                                                                                                                                 |
+| React 👍 `THUMBS_UP` or ❤️ `HEART`                            | Accepted. Exact synonyms of each other and of the words above                                                                                                                                                                                      |
 | React 👀 `EYES` or 😕 `CONFUSED`, or write "explain" or "?!?" | One canned question, answered in the thread: *"I do not understand. Explain to me like a non-technical person, but use real code names."* The reaction and the word mean exactly the same thing, so neither gets a different answer from the other |
-| Write a reply                                               | A discussion. `workflows/discuss.md` classifies and answers it                                                                                                                                                                                     |
-| Nothing, or any other reaction                              | No signal. Step 7's batch covers it                                                                                                                                                                                                                |
+| Write a reply                                                 | A discussion. `workflows/discuss.md` classifies and answers it                                                                                                                                                                                     |
+| Nothing, or any other reaction                                | No signal. Step 7's batch covers it                                                                                                                                                                                                                |
 
 - **Every other reaction is no signal, not an unknown to stop and ask about.** 👎 included: it is not a refusal, because a refusal is always written.
 - **Which comment carries the reaction decides what it refers to**, since a thread holds the finding, the fix plan and the fix result. A question on the finding asks about the finding; on the fix plan, about the plan; on the fix result, about what changed.

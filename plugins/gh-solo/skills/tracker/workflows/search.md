@@ -36,7 +36,7 @@ Prefer `--json` with `--jq` over the default table when the result feeds anythin
 
 ## Step 3 - Output
 
-```
+```text
 ## Results
 Query: [the command that ran]
 Found: N

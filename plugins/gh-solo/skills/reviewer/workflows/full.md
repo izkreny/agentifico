@@ -46,7 +46,6 @@ Report, per file or hunk:
 
 **Distinguish a hard violation from a judgement call.** Breaching a documented standard can be hard. A baseline smell never is: it is a labelled heuristic, so write "possible Feature Envy" rather than asserting one. Where a documented standard endorses something the baseline would flag, the standard wins and the smell is suppressed.
 
-
 ### The spec brief
 
 Report:

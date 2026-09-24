@@ -47,7 +47,7 @@ Match on the domain, not the exact wording. Attaching to an existing epic is nea
 
 Output the whole breakdown and **create nothing yet**:
 
-```
+```text
 ## Proposed breakdown
 
 Repository: owner/name
@@ -105,7 +105,7 @@ If any create fails, stop and report which issues exist and which do not. Do not
 
 ## Step 7 - Confirm
 
-```
+```text
 | #   | Title | Labels | Milestone | Parent | Blocked by | URL |
 |-----|-------|--------|-----------|--------|------------|-----|
 ```

@@ -154,7 +154,7 @@ The code a spike produces is a means, not the deliverable, and it is normal to d
 
 Example: `spike - evaluate OpenAPI codegen`
 
-The `spike - ` opener is not a layer prefix and stays. It is part of the sentence, not a tag: without it the title reads as a promise to build the thing rather than to investigate whether to.
+The `spike -` opener is not a layer prefix and stays. It is part of the sentence, not a tag: without it the title reads as a promise to build the thing rather than to investigate whether to.
 
 ### Spike body template
 

@@ -2,7 +2,7 @@
 
 Picks a branch up where the issue tracker leaves off and carries it to `main`. One committer: you review your own code, and nobody else's approval gates a merge. For the tracker itself use `tracker`.
 
-**Commands**
+## Commands
 
 | Command                                 | What it does                                                                                                                                                                        |
 |-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -26,7 +26,7 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 | `restack`                               | The cascade rebase alone (`gh stack rebase`), leaving the remote untouched                                                                                                          |
 | `help`                                  | This page                                                                                                                                                                           |
 
-**A branch's life, in order**
+## A branch's life, in order
 
 1. **issue** - the branch is cut from it; that side is `tracker`
 2. **`open`** - the plan, committed alone, and a draft PR holding nothing else
@@ -41,7 +41,7 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 
 **Two accelerators.** `auto` and `go` run that same life with the waits removed and nothing else: every audit still runs, and any refusal stops the chain where it stands. `auto 50` goes from the issue all the way to step 6 without your plan stop - the trade is that a planning call you would have argued with comes back later as a review finding, so use it for work you trust. `go 60` is for after you have read the plan. Both end at the same place, because it is the only step in the span that is yours: the findings judged. They arm the watch when they get there, so you can react as you read rather than coming back to say you did. Nothing is pushed. Both are literal commands only: no sentence starts a chain, however clearly it implies one.
 
-**The review is yours**
+## The review is yours
 
 The diff is read by a reviewer with its own fresh context, spawned by `review` - never by the session that wrote the code, which has already reasoned its way to why every line looks the way it does and would confirm itself. It does not suggest fixes: it names the defect, the consequence, and a failure scenario you can check. **The judgement is still entirely yours**, and it is the only step in the round nothing else can do.
 
@@ -61,17 +61,17 @@ Two kinds of thread wait for you specifically, and the round will have said whic
 
 `discuss` and `watch` work from the moment the PR exists, not only mid-review - the plan discussion after `open` is the same loop, since the plan file is the whole diff. **Inline on the file's lines in the Files changed tab is the best place to comment**, because a thread anchored to a line is what the round's ids, fix plans and resolves attach to. It is a recommendation rather than a requirement: review summary bodies and Conversation comments are read too, on their own endpoints, so nothing you write goes unread wherever you put it.
 
-**Prerequisites**
+## Prerequisites
 
 - `gh`, authenticated. Check with `gh auth status`.
 - For stacks only: the `gh stack` extension and the `gh-stack` skill, both per developer and neither carried by a clone. Run `view` and it will say what is missing.
 - Optional: `.agents/gh-solo.md` in the repository (or `.claude/gh-solo.md`), recording its check commands and any convention that differs from the defaults here.
 
-**Hard rules**
+## Hard rules
 
 Never commit or push directly to `main`, and never omit a merge method - `--squash` on `gh pr merge`, `--squash` on `gh stack merge`. Both fall back to something other than policy when it is left off.
 
-**Stacking is for one case only**
+## Stacking is for one case only
 
 A branch that depends on another **unmerged** branch. Work that starts from `main` and merges to `main` is an ordinary branch with an ordinary PR, and making it a one-branch stack buys nothing.
 

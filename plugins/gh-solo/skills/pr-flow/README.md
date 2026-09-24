@@ -54,7 +54,7 @@ The rounded steps are yours. They are not delegated, and the skill will not do t
 | **Starting the code review**                       | **you** — nothing else can start it                                                          |
 | **Reading every line, and every comment on it**    | **you**                                                                                      |
 | Reading the diff and finding what is wrong with it | the `reviewer` agent, in its own context - never the session that wrote it                   |
-| **Questioning a finding you disagree with**        | **you**, by replying in its thread, or reacting 👀                                            |
+| **Questioning a finding you disagree with**        | **you**, by replying in its thread, or reacting 👀                                           |
 | Answering that question, in the same thread        | the agent                                                                                    |
 | **Leaving a signal on every thread**               | **you** - a reaction is enough; a thread resolved with no recorded authority stops the merge |
 | **Authorising the resolve**                        | **you**, always — in words, which get recorded on the PR                                     |
@@ -105,23 +105,23 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 
 ## Layout
 
-| Path                            | Holds                                                                                                                                                                            |
-|---------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `SKILL.md`                      | routing, and the conventions that span workflows                                                                                                                                 |
-| `workflows/open.md`             | plan, first commit, draft PR, stop                                                                                                                                               |
-| `workflows/auto.md`             | the `auto` and `go` chains: the same lifecycle, waits removed, gates intact                                                                                                      |
-| `workflows/ready.md`            | auditing that every stated check actually ran and CI agrees, then out of draft                                                                                                   |
-| `workflows/review.md`           | the review round: conventions, the reviewer, the findings, the fixes                                                                                                             |
-| `workflows/discuss.md`          | answering your replies, inside the thread you asked in                                                                                                                           |
-| `workflows/resolve.md`          | your authorisation recorded, the threads resolved, the round's only push, and an index of what that push carried                                                                  |
-| `workflows/merge.md`            | the reviewed-or-not gate, squash, cleanup                                                                                                                                        |
-| `workflows/stack.md`            | everything about stacks                                                                                                                                                          |
-| `workflows/watch.md`            | the `watch` poll loop: what arms it, and what ends it                                                                                                                            |
-| `workflows/help.md`             | printed to you on `help`                                                                                                                                                         |
-| `references/review-protocol.md` | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates                                                      |
+| Path                            | Holds                                                                                                                                                                                                                     |
+|---------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `SKILL.md`                      | routing, and the conventions that span workflows                                                                                                                                                                          |
+| `workflows/open.md`             | plan, first commit, draft PR, stop                                                                                                                                                                                        |
+| `workflows/auto.md`             | the `auto` and `go` chains: the same lifecycle, waits removed, gates intact                                                                                                                                               |
+| `workflows/ready.md`            | auditing that every stated check actually ran and CI agrees, then out of draft                                                                                                                                            |
+| `workflows/review.md`           | the review round: conventions, the reviewer, the findings, the fixes                                                                                                                                                      |
+| `workflows/discuss.md`          | answering your replies, inside the thread you asked in                                                                                                                                                                    |
+| `workflows/resolve.md`          | your authorisation recorded, the threads resolved, the round's only push, and an index of what that push carried                                                                                                          |
+| `workflows/merge.md`            | the reviewed-or-not gate, squash, cleanup                                                                                                                                                                                 |
+| `workflows/stack.md`            | everything about stacks                                                                                                                                                                                                   |
+| `workflows/watch.md`            | the `watch` poll loop: what arms it, and what ends it                                                                                                                                                                     |
+| `workflows/help.md`             | printed to you on `help`                                                                                                                                                                                                  |
+| `references/review-protocol.md` | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates                                                                                               |
 | `scripts/post-review.py`        | builds and validates the one call that posts a round, then reconciles it; also reads the highest `RF{n}` already on the pull request, and how many reviewer passes it has had; `scripts/test-post-review.sh` is its bench |
-| `references/post-caps.md`       | how long a post carrying a `via` line may be, what falls outside that cap, and what sits inside a capped post without counting                                                    |
-| `scripts/docs-check.py`         | path and fence checks, run before any docs or plan push                                                                                                                          |
-| `scripts/watch.py`              | the `watch` poll loop as a script, so it needs no grant beyond `python3`; `scripts/test-watch.sh` is its bench                                                                    |
+| `references/post-caps.md`       | how long a post carrying a `via` line may be, what falls outside that cap, and what sits inside a capped post without counting                                                                                            |
+| `scripts/docs-check.py`         | path and fence checks, run before any docs or plan push                                                                                                                                                                   |
+| `scripts/watch.py`              | the `watch` poll loop as a script, so it needs no grant beyond `python3`; `scripts/test-watch.sh` is its bench                                                                                                            |
 
 Anything specific to one repository — its check commands, a convention that differs — belongs in `.agents/gh-solo.md` in that repository, never in this skill. Check commands especially are never invented: they belong to the repo that runs them.

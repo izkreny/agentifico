@@ -41,7 +41,7 @@ gh pr comment <pr-number> --body-file <scratch-file>
 
 Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by *Post caps* in the same file, which counts neither the marker line below nor the owner's quoted words - *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
 
-```
+```text
 RESOLVE AUTHORISED: RF1, RF3, RF4
 ```
 
@@ -174,7 +174,7 @@ Then the record: how many threads were resolved and which ids, which were left a
 
 **Then say that this workflow is over and merging is a word of its own**, since the owner's `rnp` did not ask for one and nothing here is about to run it. The command, flush left:
 
-```
+```text
 /gh-solo:pr-flow merge <pr-number>
 ```
 
