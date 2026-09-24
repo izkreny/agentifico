@@ -49,7 +49,7 @@ Every post this plugin makes lands under **your** GitHub login, because it uses 
 
 That line is not decoration. The mechanisms that test it:
 
-- the watch filter in `pr-flow`'s discuss workflow, which without it would re-emit the plugin's own replies as fresh comments and answer itself forever
+- the watch filter in `pr-flow`'s watch script, which without it would re-emit the plugin's own replies as fresh comments and answer itself forever
 - the merge gate, which treats a Review whose body opens with it as the proof that the review pass actually ran
 - the thread gate, which reads a comment *without* it as yours, and refuses to merge a thread you never replied in
 - the review workflow, recognising its own records from a previous pass
