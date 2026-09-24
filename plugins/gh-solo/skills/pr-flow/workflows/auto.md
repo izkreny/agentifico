@@ -79,9 +79,14 @@ When you are through them, type rnp - or say "resolve all and push".
 
 ## Rules
 
+### Entering and ending
+
 - **Only the literal `auto` or `go` command enters a chain.** No sentence does, however clearly it implies one.
 - **The chain removes waits, never checks.** Every composed workflow runs unchanged, every internal gate intact - a chain that skipped a gate would be indistinguishable from the gate having passed.
 - **Any refusal ends the chain**, with that workflow's own verdict line first and the resuming command on the next line. Nothing non-green carries forward.
+
+### Its limits
+
 - **The chain never reviews its own diff.** The reviewer is a subagent with its own context, spawned by `workflows/review.md`, and that holds here unchanged: a chain that read the diff itself would be the author judging the author.
 - **The chain never pushes and never merges.** It ends at the protocol's step 6 with every fix commit local. Step 7 and `workflows/merge.md` both need words the owner has not said yet.
 - **The chain arms the watch, and no other route arms one implicitly.** Ending at step 6 without it leaves the owner reacting into silence.

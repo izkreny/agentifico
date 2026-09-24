@@ -54,11 +54,15 @@ The dotted line back is the point worth noticing: nothing gets moved by hand. Th
 
 ## What is load-bearing
 
+### The shape of the work
+
 **One person writes.** Not one person *involved* — a client setting scope and dates is fine, and so is a mentor who comments on issues and reviews pull requests. The line is whether someone's action is a write you have to coordinate with, or a read you can act on at your discretion. A second committer is genuinely out of scope, and the skill says so rather than quietly serving it badly.
 
 **An issue is one branch and one pull request.** That is the entire sizing rule, and it is a shape rather than a number. Nothing is estimated and nothing is recorded — the question gets asked once while the issue is being written, and the answer is a decision, not data. Plain signs in the standards tell you to split instead, and the simplest is this: if the title needs "and" to be honest, it is two issues wearing one title.
 
 **When in doubt, split.** Two issues that turn out to be one merge onto a single branch at no cost. One issue that turns out to be two is discovered halfway through, with a branch already open and criteria you cannot all tick.
+
+### The fields
 
 **No issue is created from a file the tree might have rewritten.** When a breakdown's source is a file in the working tree - a roadmap, a spec - the tree is first checked against the remote and fast-forwarded or read around, because an issue written from a stale spec outlives the session and is indistinguishable from a correct one.
 

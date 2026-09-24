@@ -368,13 +368,21 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 
 ## Rules
 
+### The reviewer
+
 - **Never read the diff and never review.** The emptiness test is `changedFiles`, the analysis is the reviewer subagent's, and the judgement is the owner's.
 - **The reviewer is spawned with a PR number and the pin, and nothing else**, or on the re-review with a commit range, the findings and the id-to-commit map. Never with your reading of the diff: each of those is an address, and an address is what this rule admits.
 - **Never spawn a reviewer without reading the budget first.** The spawn is what the cap counts, so a check made after it has already spent what it was protecting - and a lost pass posts its discard record before anything else, never after. At a cap of one that record is also what puts the pull request at the cap, so what follows it is a stop rather than a re-spawn, and only `authorise` moves it.
 - **Never post a round at a head the reviewer did not read.** Step 1 pins the head and hands it over, Step 2 passes the pin and the head-now to the script, and the script refuses on either disagreement rather than attempting the post: the call is atomic, so one stale anchor costs the whole round.
+
+### The post
+
 - **Never post a finding by hand.** `scripts/post-review.py` builds every payload, and a refusal from it is a stop rather than an obstacle.
 - **Never post threads one at a time.** One call carries every thread and the record Review, so either the whole round is on the PR or none of it is.
 - **Never read a REST list without `--paginate`**, which makes a successful round look failed and a failed one look partial.
+
+### The round
+
 - **Never push.** Steps 1 to 5 write commits and leave them local; the protocol's step 7 is the round's only push.
 - **Never filter on `reviewDecision`.** Whether a round already ran comes from what is posted on the PR, told apart by the `via` line rather than by the disclaimer, which every agent post carries.
 - **One record Review per analysis, and it is an index.** Never restate a finding in it, never one Review per finding, and post it even at zero findings - it is the evidence `workflows/merge.md` gates on.

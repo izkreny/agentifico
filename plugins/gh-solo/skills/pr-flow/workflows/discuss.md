@@ -60,6 +60,8 @@ query($owner: String!, $repo: String!) {
 
 **`owner` and `repo` travel as `-F` fields, never inside the query string.** `gh` substitutes the `{owner}`/`{repo}` placeholders only in the endpoint and in `-F` values; inside a `-f` string they go to GitHub as literal braces and the read fails with "could not resolve to a Repository". The reply mutation in Step 2 is the reverse case: `threadId` and `body` are literal strings, so they take `-f`, which never type-converts.
 
+### Reading the threads
+
 **Read each thread as a unit, in order.** A reply's meaning comes from what it answers, and the same sentence means different things at the top of a thread and at the bottom of one.
 
 **Classify by the owner's last signal in the thread, which may be a reaction rather than a comment.** A reaction is judged by who left it, never by the comment it sits on: every agent post is made with the owner's credentials and carries their login, so no test on a comment's author tells agent from human, and a mentor's reaction is not an authorisation. Which comment carries it decides what it refers to, since a finding thread holds the finding, the fix plan and the fix result. What each reaction means is `references/review-protocol.md`'s to say, and it is not restated here; what this workflow owes each one is stated per signal in this step.
@@ -120,6 +122,8 @@ Report to the owner: the review id, that their unsubmitted review is holding the
 
 **Re-read the code before answering.** The finding came from a pass over a diff, and the owner is asking about the code as it stands now, which may have moved since. An answer that describes a version that has gone is worse than no answer.
 
+### The reply itself
+
 **Answer the question that was asked.** Not the adjacent one, not the general principle. If the owner asks whether a null check is reachable, the answer names the caller that reaches it or concedes that none does.
 
 **Concede plainly when they are right.** "You are right, `x` cannot be null here — the guard at line 40 covers it" ends a thread correctly. Hedging to avoid being wrong wastes the exchange and leaves the thread ambiguous.
@@ -156,9 +160,14 @@ One line per thread touched: the file and line, what the owner asked, and one cl
 
 ## Rules
 
+### Where the answer goes
+
 - **Answer on GitHub, never in the terminal.** In the thread when there is one; as a Conversation comment for a review body or Conversation comment, which have none. A terminal answer is lost the moment the session ends, and the owner asked on GitHub because that is where they wanted the record.
 - **Never push during a round.** An order authorises the fix and the commit only; the push waits for the owner authorising it in the session at the protocol's step 7, per `references/review-protocol.md`. A push mid-read moves the ground under the reviewer.
 - **A question is not a decision.** *Resolution rests on recorded authority* in `references/review-protocol.md` counts a reply of the owner's as authority to resolve, and `workflows/resolve.md` Step 2 sorts the threads on it. What that rule does *not* settle is whether the batch at step 7 covers the thread, which turns on the answered-versus-outstanding distinction the same file draws under its step 7. Misreading a question as a verdict leaves it unanswered forever.
+
+### What a round never does
+
 - **Never open a new finding here.** A defect noticed while answering goes to the next `review` pass, not into an unrelated thread where nobody is looking for it.
 - **An order in a thread never satisfies a terminal gate.** The thread records the order; the terminal is where its gate runs. "Create a ticket" goes through the breakdown-and-confirm gate of `tracker`, whose revise-and-ask loop cannot fit one-reply-per-thread-per-pass; "push it" and "merge it" wait on the owner authorising them in the session, at the protocol's step 7. The reply names the command to type, and nothing is executed from the thread.
 - **Never resolve here, and never close the discussion on the owner's behalf.** Resolving is `workflows/resolve.md`'s act at the protocol's step 7, on authority the owner gave in words; a round of conversation is not that authority.

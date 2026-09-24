@@ -67,17 +67,23 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 ## Why it works this way
 
+### The branch
+
 **The pull request opens at the beginning, not the end.** It is the workspace for the branch, and for its first hours it contains nothing but a plan. That is deliberate: a plan is far easier to disagree with as a diff, on a page, than as a wall of chat you have to scroll back through.
 
 **The work stops after the plan, and does not offer to continue.** Approving a plan is not the same as authorising the first line of code, and the skill treats them as separate decisions because they are. You get a considered gap in which to say "no, not like that" while it is still free.
 
 **The chain commands compress the loop without loosening it.** `auto` runs issue to prepared review as one chain; `go` does the same starting from a plan you have already read. Each exists only as a literal command - typing it is the approval the skipped stop would have collected, given in advance - and none skips a gate: every audit still runs, any refusal ends the chain, and each stops at the step nothing can take from you, judging the findings. They arm the watch when they get there, so you can react as you read.
 
+### The review
+
 **The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, spawned with a PR number and the sha to review, and nothing else, so that the session which wrote the code is not the session that judges it - and so that the round knows which version was judged rather than trusting a claim about it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check. Where your harness cannot spawn one, appoint a capability to invoke instead of an agent to spawn - '.agents/gh-solo.md' takes either - and the round posts its findings for it. What is never substitutable is that the analysis comes from something other than the author.
 
 **Every review is recorded, including a clean one.** A pull request with no comments on it is ambiguous: it might have been read and found fine, or never read at all. So the outcome is always written onto the PR, even when the outcome is "nothing found". Later, that is the difference between knowing and guessing — and it is what merging checks before it will land anything.
 
 **A reviewer pass is a budget, and the pull request holds the count.** Reading the whole branch is the expensive act in a round, and the unattended block can be made to do it again: a post that will not anchor throws its findings away, and the answer to that is another pass. So a pull request gets a fixed number of them, per *The pass cap* in `references/review-protocol.md`, which owns the figure; every pass leaves a mark on the pull request itself - a discarded one included, since that is the pass that costs you most and shows least - and reaching the cap stops and tells you what is still open. Only your word buys another: `authorise`, typed at that stop.
+
+### The records
 
 **Agent posts say which process made them.** Everything an agent posts lands under your own login, so every comment, review and thread reply opens with the AI disclaimer and, under it, a `via` line naming the skill and workflow that posted it; the PR body carries the disclaimer alone, being unmistakably itself. Without the pair, an implementer's record, a divergence note and a review finding on the same PR are indistinguishable - from each other, and from you.
 
@@ -88,6 +94,8 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 **Each place holds its own fact, and none repeats another.** The issue holds what "done" means. The plan holds how. The pull request holds where things stand. One link per hop, which is why "implement PR 60" is a complete instruction on its own.
 
 **There is no plan template.** A plan is written by an agent that has just read the issue and the code, and the sections worth having are the ones that particular problem raises. The fixed headings are the **steps** and how you will know it worked (**verification**), because other things have to find those lists; everything else is the planner's call.
+
+### The merge
 
 **Everything squashes.** One issue is one branch is one pull request is **one commit on the trunk**. The trunk becomes a readable list of finished work rather than a transcript of how the work went. The plan commit, the false starts and the review fixes all served their purpose inside the PR and do not need to outlive it.
 

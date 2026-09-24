@@ -132,10 +132,18 @@ The AI disclaimer opens the body, as it does on the plan file and in the commit 
 
 Why each part earns its place:
 
+### The links
+
 - **`Closes #{issue-number}`** closes the issue on merge and records the link permanently. Nothing else enforces it.
 - **The plan link** is what makes "implement PR 60" a complete instruction: the PR body names the plan, the plan holds the approach, and the issue holds the acceptance criteria. One link per hop, no duplication. It points at `main` rather than the feature branch so it survives the branch being deleted after merge — it 404s until then, which costs nothing while the plan is the first file in the PR's own **Files changed** tab.
+
+### The lists
+
 - **The step checklist** is the plan's `## Steps` as checkboxes. GitHub renders it as a progress counter, so state is readable on the PR without opening a file, and ticking a box costs an edit rather than a commit.
 - **`## Verification` is here for the same reason `## Steps` is**, and carried the same way: the plan's copy is the intended gates, this copy is whether they have actually been run. Every required section of the plan therefore appears in the body as checkboxes, because each has a progress dimension the plan file cannot record. This is the section `workflows/ready.md` audits before the final push — it is the answer to "which checks does this branch owe", written by the agent that had just read the code. Each box is ticked by whoever ran that gate, as it passes; `ready` only reads them, and refuses to lift the draft while one is empty. **So every box here is a gate with an exit code, and a judgement only the owner can make is never one of them.** `workflows/merge.md` refuses on an empty box exactly as `ready` does, so a judgement box blocks the branch it sits on and can be cleared only by ticking it untruthfully, which is what makes the whole record worthless. Judgement goes in the "what these gates cannot see" line, which stays prose: it is a caveat, not a task.
+
+### The discussion
+
 - **Open questions** are here because a PR body is where a comment thread can answer them. In the plan file alone they are rhetorical. An entry leaves this section the moment it is settled - moved into `## Settled`, never deleted.
 - **`## Settled`** is where an answered question lands, question and decision together, because the question is what makes the decision legible to a later reader. Moving rather than deleting matters twice over: `workflows/ready.md` audits `## Open questions` before lifting the draft, and `workflows/merge.md` has the squash merge write the whole PR body into the commit on `main` (`squash_merge_commit_message: PR_BODY`), so a decision recorded here survives in `git log` permanently, where a comment thread never lands. The move happens where the decision does: a discuss round moves an entry the moment the owner's closing decision settles it, per `workflows/discuss.md`, and Step 1's plan-record settle in the `implement` skill catches anything still unmoved before implementation starts - a body edit either way, like ticking a box, never a commit - except the relocation past the cap, whose whole route *Body caps* below owns. A decision settled in the terminal instead of a thread goes into the plan file under the same `## Settled` heading, per `workflows/discuss.md`: one name for the concept everywhere it appears, and the one sanctioned way a plan file changes after plan time.
 
@@ -155,6 +163,8 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 **The unit is the section, never the entry.** A section that collects entries is counted whole, every entry in it summed into one total, which is the only reading under which a section that grows for the length of the branch can breach at all: per entry, a `## Settled` holding a dozen short entries passes forever. `workflows/discuss.md` states the trigger the same way.
 
 **The cap is here because this body becomes a commit message.** Where the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `workflows/merge.md`, the whole body lands in `git log` on `main` and nothing edits a commit message afterwards. The overview is written once and reviewed at plan time; the rest accumulate for the length of the branch, so uncapped the commit message's length tracks how much discussion the branch had rather than what the branch did.
+
+#### What counts
 
 **What does not count is *Never counted* under *Post caps* in `SKILL.md`**, which reaches a body section unchanged. What that list cannot say from where it sits is which of this body's sections it lands on: the `## Steps` and `## Verification` checkbox lists are its record row, their length set by how many steps and gates a branch has rather than by how much was written, so both are uncapped and neither is in the capped list.
 

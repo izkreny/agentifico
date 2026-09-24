@@ -109,8 +109,13 @@ Then the replies each released thread owes, which is why the id read comes after
 gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F body=@<body-file>
 ```
 
+### Running it
+
 - **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote, or whose anchor head this clone does not have, is reported and skipped rather than posted at a guess.
 - **The reads come after the push**, never before it, because the whole reason the anchors resolve now is that the push landed. Running this step ahead of Step 5 answers `422` on every held finding.
+
+### What each id gets
+
 - **An id that already carries a thread is skipped rather than refused.** Nothing rewrites a posted Review, so an earlier round's ledger is still on the pull request at the next `rnp`; the script reports what it skipped.
 - **A failure here loses nothing and refuses nothing.** The push has already happened and the ledger is still in the record Review, so the findings are exactly where they were - report the failure and name this step's commands as the retry, rather than treating it as a failed `rnp`.
 - **The replies are the round's words, not new ones.** They were written during the round and recorded in its follow-up Review; this step copies them, so nothing here composes a plan or a verdict. An entry with no reply recorded opens its thread carrying the finding alone, which `release` reports.
@@ -145,10 +150,15 @@ python3 -c 'import hashlib,sys; print(hashlib.sha256(sys.argv[1].encode()).hexdi
 
 It hashes the path and not the content, so it survives every commit on the branch and breaks only on a rename.
 
+### The link
+
 - **A diff view rather than a file view, which is what makes the fragment land at all.** A `blob` link to a file GitHub renders - Markdown here, and `.ipynb`, `.csv` and `.svg` alike - opens the preview, where a `#L61-L68` fragment matches nothing and drops the reader at the top of the page with no error to tell them so. Appending `?plain=1` rescues that one case; a diff view needs no flag, and it shows the change inside its own hunk rather than the file's later state.
 - **Each link points at the commit that made the hunk, never at the pull request's own diff.** `/pull/<pr-number>/files` diffs the base against the head, so its line numbers are the head's and every later commit shifts them - silently, because the stale anchor still resolves, just onto the wrong lines. On a stacked pull request they all move again at once when its parent merges and GitHub retargets it. A per-commit URL counts lines in that commit's diff, where nothing landing afterwards can reach them.
 - **Which side the range takes:** the `+` side of the hunk header, written `R{start}-R{end}`, for every hunk that adds a line; the `-` side, written `L{start}-L{end}`, for one that only removes. A commit deleting a file outright is that second case and needs no exception of its own, because a commit's diff still shows the file it removed where a `blob` at that commit cannot.
 - **What the sha costs:** a later `gh stack sync` rewrites every commit on the branch, and these links go stale with them. That is correct for a record of one push, read at that push, and is not a defect to fix by pointing at a branch.
+
+### The rows
+
 - **Attribution is commit-level, and that is the point.** A rename made while fixing `RF3` carries `RF3`, so the index shows what that fix actually cost rather than only the lines the finding named.
 - **The `-` rows are the half with no other home**: a commit whose body names no id. An owner-raised change is always one, because `references/review-protocol.md` makes ids mandatory for agent posts only, and so is the relocation `docs:` commit *Body caps* in `workflows/open.md` sends an over-cap entry to.
 
@@ -182,14 +192,22 @@ Then the record: how many threads were resolved and which ids, which were left a
 
 ## Rules
 
+### Before the resolve
+
 - **Only the owner's word in the session starts this** - `rnp`, or the sentence. Never a reaction, never a mentor, never this workflow's own reading of the threads.
 - **The authorisation comment goes up before the first resolve**, always, because the resolve is what it is evidence for.
 - **Never resolve a thread the batch does not cover.** Name it and leave it; `workflows/merge.md` is what refuses on it.
 - **Never name an id in the authorisation that this batch does not resolve**, and never resolve one it does not name.
 - **The marker line is a literal.** `workflows/merge.md` greps it.
+
+### The push
+
 - **Read each mutation's answer.** A resolve posts nothing, so an unchecked failure is invisible.
 - **This is the round's only push**, and the checks are read before it is reported done.
 - **This workflow ends at the push. It never merges**, and never chains into `workflows/merge.md`. Step 9 prints the command; the owner types it.
+
+### After the push
+
 - **The delta index is posted after the push and indexes only what that push carried.** Its span is the before-head Step 5 kept and local `HEAD`, per commit, and it opens no thread and issues no id.
 - **The release comes after the push and never before it.** Its anchors resolve only because the push landed, and a failure there is a retry rather than a refusal - the ledger is still on the pull request.
 - **Never resolve a released thread.** The authorisation named the ids it covered and a released id was not one of them, so it waits on the owner exactly as a fresh finding does.

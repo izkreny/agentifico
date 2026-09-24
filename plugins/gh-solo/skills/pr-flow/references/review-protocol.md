@@ -25,13 +25,21 @@ Each cell of the table states its own rule, prohibitions included, so a row read
 
 ## The finding key
 
+### Ids
+
 - **`RF{n}` ids are assigned by the orchestrator**, not the reviewer, which emits its own local index and nothing else. Continuing an id sequence needs the PR's existing threads, and that is state the reviewer needs for nothing else.
 - **Ids never restart for the life of the PR.** Before numbering, read the existing threads for the highest `RF{n}` already posted and continue from it. `RF3` must mean one thing on this PR forever, including in the fix-plan and fix-result replies that reuse it.
 - **An id is *issued* as `::RF{n}::` and named in prose as `RF{n}`.**
+
+### Severity and scenario
+
 - **Severity is `high`, `medium` or `low`, assigned by the reviewer**, and rendered with its emoji when posted: 🔴 high, 🟡 medium, 🔵 low. It is assigned rather than mapped: the reviewer's brief states the scale, so nothing has to translate one vocabulary into another.
 - **A reviewer that supplies no level is a real case, and it has exactly one honest answer.** Where a repository appoints a reviewer that cannot assign one, the orchestrator reads a level out of each finding's own account of what goes wrong, and **the record Review states the basis it used**. The value `unrated` carries a finding whose text supports no judgement at all. What is forbidden is a level whose source is not stated: a derived level published as though the reviewer gave it is the one failure this rule exists to prevent, and the posting script refuses a round that claims a derivation it did not make, or makes one it does not state.
 - **Every finding carries a failure scenario**: concrete inputs or state, then the wrong output. This is what makes a finding falsifiable, and it is what the orchestrator checks before it changes any code.
 - **No finding says how to fix itself.** The reviewer is forbidden from suggesting a fix, because a suggested fix anchors the fixer, who knows the code better than the reviewer does. What closes a finding is decided at step 3 and stated there.
+
+### The posts
+
 - **Every agent post opens with the AI disclaimer and its `via` line**, per the standing conventions in `SKILL.md`. The header is the orchestrator's to apply, always - it is one convention with one owner, and a second copy of it inside the reviewer would drift.
 - **Owner-posted findings carry none of this.** When the owner or a mentor raises something themselves, it enters at step 6 as an ordinary comment; ids and severities are mandatory for agent posts only.
 
@@ -65,7 +73,9 @@ An owner-spent pass leaves the count past the cap, per *The owner's word can spe
 
 **Warn-and-proceed is why a warning is not the answer.** A pass killed by a push it was warned about leaves no discard record, so `scripts/post-review.py passes` reads as though it never ran and the cap silently gains a pass. Each exit under *The exits do different things to the round* leaves the count true instead.
 
-**The exits do different things to the round, and the verdict line says which:**
+### The exits
+
+**Each exit does something different to the round, and the verdict line says which:**
 
 - **Wait** changes nothing. The reviewer finishes, the round posts at step 2, and the push is the owner's to ask for at step 7, which is where it was going.
 - **Discard**, the word they type while the refusal stands, posts the discard record for that pass, charges it under *The pass cap*, and then frees the push. At a cap of one that charge puts the pull request at the cap, so the round ends there: a further reading of the branch is the owner's to buy with `authorise` rather than the round's to resume. `workflows/review.md` owns the invocation and the verdict's wording.
@@ -121,6 +131,9 @@ The reviewer is spawned again with the fix commit *range*, the findings list, an
 - **The scope stops there**, and what it excludes is owned by `../reviewer/workflows/rescope.md`, under *You answer exactly two questions, and no others*. A full second review is where iteration counts explode, because each pass finds fresh nitpicks on code nobody asked about.
 - **A new defect gets its own record, and the first index is left alone.** One record Review per analysis is the standing rule and the re-review is an analysis, so it posts its own, indexing its own pass and the new `RF{n}` ids in it. Nothing goes stale, because no index ever claimed to cover a pass that had not happened when it was written, and no submitted record is rewritten to make it true.
 - **A new defect in a file the unpushed fixes touch is *held*: it gets its `RF{n}` now and its thread after the push.** The fixes are unpushed at step 5, so GitHub cannot resolve an anchor to a line only they carry, and the posting call is atomic - one bad anchor would take the whole record down, verdicts included. **The unit is the file rather than the line**, because a line number counted at local `HEAD` does not survive the pushed head: an unpushed commit inserting lines anywhere above a finding shifts it even when the finding sits outside every hunk, so the file is the unit with no such gap. So `build` keeps it out of the `comments` array and writes it whole into the record Review's own ledger instead, which reserves the id where the next round's highest-id read can see it and keeps *Ids never restart* intact. Step 7's push makes the line ordinary and `release` then posts the thread under that same id, so every finding of every round ends as a thread the merge gate audits. **The round report must say which findings were threaded and which are held**, or a reader takes the second for an absence of findings.
+
+#### The caps
+
 - **Each loop is capped, because no owner is watching.** A finding the re-review says is not closed gets **one** further plan-and-fix attempt; a second failure sends the thread to the owner instead, since two failures mean the finding is not understood and a third machine attempt costs more than reading it. A new defect the re-review raises gets a fix plan and a fix, and that fix is re-reviewed once, never recursively.
 - **One batched pass covers the loops together, never one pass per thread.** Every retry and every new-defect fix lands first, and then a single scoped spawn reads the whole range and answers about all of them. Per thread, step 5's caps would bound the attempts per finding and leave the spawn count following how many findings a pass happened to raise, which is the dimension that costs; batched, the round's spawns are a number rather than a function of the findings.
 - **So the reviewer is spawned three times at most in a round:** the full pass at step 1, the scoped re-review here, and the one batched pass these loops get. What a pull request's own total is follows from that figure and the full passes it has had, since `authorise` under *The pass cap* buys a further pass and a further round with it. It is here so a reader has it without tracing the loops to derive it.
@@ -142,18 +155,24 @@ The batch is one word or sentence from the owner - `rnp`, or "resolve all and pu
 
 **The index is where a fix's incidental half is reported.** Step 4's reply names each finding's own change and any departure from the plan posted at step 3; what has had no home is a rename, a reworded comment or a helper extracted while fixing - visible to the owner in `git log` or not at all.
 
+#### What resolving means
+
 **Resolving every inline comment thread is a merge requirement, not a push requirement.** Nothing mechanically stops a branch being pushed with threads still open, and step 4's fix commits could have gone up at any point - they are held back to protect the owner's reading, which has nothing to do with resolution. What requires every thread resolved is *Resolution rests on recorded authority*, enforced at `workflows/merge.md`'s door. So the resolve here closes out the round; it does not unlock anything.
 
 **Resolving an inline comment thread posts nothing**, which is why the authorisation comment exists: the resolve leaves no trace of whose decision it was, so without that comment a later reader, `workflows/merge.md` included, sees a closed thread and no evidence behind it.
 
 **A red check after the push reopens nothing.** Each finding is closed on its own evidence - the fix, the re-review's verdict, and the owner's word - none of which a CI failure contradicts. A red check against locally green gates is the two-environments finding per the standing convention in `SKILL.md`: it stops the merge until it is diagnosed, and what answers it is a new commit rather than a reopened thread. **It can stop the merge because the merge has not happened**, which is what splitting step 7 from step 8 buys: this check is read while step 8 is still the owner's to start.
 
-**The authorisation comment** carries a literal marker line a later reader can grep for, the owner's words, and every `RF{n}` id it covers.
+#### The authorisation comment
+
+It carries a literal marker line a later reader can grep for, the owner's words, and every `RF{n}` id it covers.
 
 - **Grep-able rather than inferred**, because it is an agent post and so opens with the disclaimer: nothing that recognises the owner by the *absence* of a disclaimer can find it, which is every reader that matters here.
 - **Id-naming**, because an authorisation covering `RF1` to `RF7` must not silently authorise resolving an `RF9` that was posted afterwards.
 - **What the batch covers:** every thread with no outstanding owner signal. That is the whole point of it - a thread the owner already approved was resolvable on its own, so an authorisation covering only those would do nothing.
 - **What it never covers:** a thread waiting on the owner from step 3, and a thread whose last signal from them is still unanswered - a reply not yet replied to, or a question not yet explained. An **answered** question is not outstanding and the batch does cover it, which is what stops one question from parking a thread forever.
+
+#### The push
 
 **This is the round's only push, and no words ask for an earlier one.** A push moves the diff, and GitHub recomputes every thread anchor the moment it lands, marking threads outdated beneath a reader part-way through. Holding the push is what keeps the threads anchored to the exact diff the owner is reading.
 

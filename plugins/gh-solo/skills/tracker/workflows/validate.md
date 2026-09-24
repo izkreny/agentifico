@@ -53,6 +53,8 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 **Priority is optional**, so its absence is never a failure. Report it as present or absent under Notes and pass the issue either way. There is no size label to check for; *How big is one issue* in `references/issue-shape.md` explains why.
 
+#### Notes, never fails
+
 **Scope is a Note, never a fail.** If the criteria describe more than one branch's worth of work, say so with the split you would make, but pass the issue: it may already be half-built, and retitling an in-flight issue costs more than it returns. The split test belongs in `workflows/create.md`, before the issue exists.
 
 **Assignee is not checked at all.** `@me` records that work is in progress, not that the issue is well written, so unassigned is the normal resting state for anything not being worked on right now. Never offer to add it during validation.
