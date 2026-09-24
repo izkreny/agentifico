@@ -63,7 +63,9 @@ When the last step is ticked, run **every** gate in the PR body's `## Verificati
 
 ## Step 6 - Push and reconcile with CI
 
-**The implementation's work travels in one push, here, after Step 5 has gone green - never a push per step or per commit.** Every push to a PR branch triggers CI, so pushing incrementally buys nothing but red runs against half-done work; one push means the first CI answer is about the finished record. The exception is a session ending before the work does: push then too, as a backup - commits that exist on one disk only are the state this workflow promises never to keep - and say in the report that the branch is mid-work, so a red or missing check reads as expected rather than as the two-environments finding. A branch worked in a fresh clone needs `git push -u <remote> <branch>`. Then the standing rule from `SKILL.md`:
+**The implementation's work travels in one push, here, after Step 5 has gone green - never a push per step or per commit.** Every push to a PR branch triggers CI, so pushing incrementally buys nothing but red runs against half-done work; one push means the first CI answer is about the finished record.
+
+The exception is a session ending before the work does: push then too, as a backup - commits that exist on one disk only are the state this workflow promises never to keep - and say in the report that the branch is mid-work, so a red or missing check reads as expected rather than as the two-environments finding. A branch worked in a fresh clone needs `git push -u <remote> <branch>`. Then the standing rule from `SKILL.md`:
 
 ```bash
 gh pr checks <pr-number>
@@ -81,7 +83,13 @@ Open with the verdict line:
 
 Then the record: what landed (commits), the box states on PR and issue, CI state, and any gate you could not run, by name, with why. This entire handoff is your final report: on the `auto` and `go` chains the orchestrator relays it, and on either entrance nothing may live only in the transcript.
 
-**Post that record as a PR comment before printing it, carrying the same content** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` implement, the implementation record). The session's copy dies with the session; the PR is where this flow keeps state, and the comment is the implementation's own account for whoever reads the PR later - a resuming session, `ready`'s audit, the owner in a week. **Same content is a requirement rather than a convenience**: the `auto` chain relays this comment verbatim in place of the printed handoff, so a comment that says less than the print leaves the chain relaying a different account from the one this workflow produced. The comment carries a `via` line and so falls under *Post caps* in the `pr-flow` skill's `SKILL.md`; the print carries none and is not itself capped, but the same-content requirement binds them together, so in practice the cap sets each. What the cap leaves untouched is the record itself: the commits, the box states and any unrunnable gate are a record row, which *Never counted* excludes, so their length follows how many there are. Keep both the record rather than a second copy of the PR, with a pointer at the divergence comments and never a restatement of them. It lands in the Conversation tab, which is right: it expects no answer, and it opens with the disclaimer, so a later `discuss` round's read excludes it rather than treating it as the owner speaking.
+**Post that record as a PR comment before printing it, carrying the same content** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` implement, the implementation record). The session's copy dies with the session; the PR is where this flow keeps state, and the comment is the implementation's own account for whoever reads the PR later - a resuming session, `ready`'s audit, the owner in a week.
+
+**Same content is a requirement rather than a convenience**: the `auto` chain relays this comment verbatim in place of the printed handoff, so a comment that says less than the print leaves the chain relaying a different account from the one this workflow produced. The comment carries a `via` line and so falls under *Post caps* in the `pr-flow` skill's `SKILL.md`; the print carries none and is not itself capped, but the same-content requirement binds them together, so in practice the cap sets each.
+
+What the cap leaves untouched is the record itself: the commits, the box states and any unrunnable gate are a record row, which *Never counted* excludes, so their length follows how many there are. Keep both the record rather than a second copy of the PR, with a pointer at the divergence comments and never a restatement of them.
+
+It lands in the Conversation tab, which is right: it expects no answer, and it opens with the disclaimer, so a later `discuss` round's read excludes it rather than treating it as the owner speaking.
 
 End with the owner's next move, alone on its line, flush left:
 

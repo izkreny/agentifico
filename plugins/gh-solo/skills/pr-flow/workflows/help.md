@@ -39,7 +39,9 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 
 `open` stops at the draft PR on purpose: the plan is reviewed as a diff before any code is written. Plan approval never authorises the first implementation commit.
 
-**Two accelerators.** `auto` and `go` run that same life with the waits removed and nothing else: every audit still runs, and any refusal stops the chain where it stands. `auto 50` goes from the issue all the way to step 6 without your plan stop - the trade is that a planning call you would have argued with comes back later as a review finding, so use it for work you trust. `go 60` is for after you have read the plan. Both end at the same place, because it is the only step in the span that is yours: the findings judged. They arm the watch when they get there, so you can react as you read rather than coming back to say you did. Nothing is pushed. Both are literal commands only: no sentence starts a chain, however clearly it implies one.
+**Two accelerators.** `auto` and `go` run that same life with the waits removed and nothing else: every audit still runs, and any refusal stops the chain where it stands. `auto 50` goes from the issue all the way to step 6 without your plan stop - the trade is that a planning call you would have argued with comes back later as a review finding, so use it for work you trust. `go 60` is for after you have read the plan.
+
+Both end at the same place, because it is the only step in the span that is yours: the findings judged. They arm the watch when they get there, so you can react as you read rather than coming back to say you did. Nothing is pushed. Both are literal commands only: no sentence starts a chain, however clearly it implies one.
 
 ## The review is yours
 

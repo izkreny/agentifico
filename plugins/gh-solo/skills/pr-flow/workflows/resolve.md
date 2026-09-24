@@ -79,7 +79,9 @@ git push <remote> <branch>
 
 **The after-head needs no read at all.** It is local `HEAD`, which is exactly what this push sent; asking the remote for it buys the same lag back.
 
-**This push sits outside the reviewer's push gate whenever no pass is out, which by step 7 is every ordinary round.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, step 5's scoped spawns included; the owner gives the word for this step after those have returned and posted, so the window is shut before there is anything to authorise. **Where a scoped pass somehow is still out, the gate holds and this step waits for it.** The condition is written out rather than left as a standing exemption because either reading alone breaks something: an unconditional exemption pushes out from under a reviewer that is still reading, and a refusal applied uniformly parks the round's only push behind a gate that cannot open.
+**This push sits outside the reviewer's push gate whenever no pass is out, which by step 7 is every ordinary round.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, step 5's scoped spawns included; the owner gives the word for this step after those have returned and posted, so the window is shut before there is anything to authorise.
+
+**Where a scoped pass somehow is still out, the gate holds and this step waits for it.** The condition is written out rather than left as a standing exemption because either reading alone breaks something: an unconditional exemption pushes out from under a reviewer that is still reading, and a refusal applied uniformly parks the round's only push behind a gate that cannot open.
 
 Resolve `<remote>` by the recipe in `SKILL.md`'s remote-name convention. The checks are read at Step 8, after Steps 6 and 7 have posted whatever the push released and what it carried, so one read covers the whole of what this workflow put on the branch.
 
@@ -131,7 +133,9 @@ One Conversation comment naming every hunk the push carried, so what the round's
 git log -p --format='%n::commit %h %s%n%b%n::body-end' <before-head>..HEAD
 ```
 
-`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - the `implement` skill's `fix` workflow requires a fix commit to name each id it closes, and its `Closes` list is that claim - and emit one row per hunk in that commit's diff. **An id the body merely mentions is not one of them:** a commit explaining what it corrects about an earlier fix names that fix's id in prose, and crediting it would put a hunk under a finding that never asked for it. The same trap `scripts/post-review.py` avoids by counting `::RF{n}::` rather than any `RF{n}` it can see. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is what this comment exists to do.
+`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - the `implement` skill's `fix` workflow requires a fix commit to name each id it closes, and its `Closes` list is that claim - and emit one row per hunk in that commit's diff.
+
+**An id the body merely mentions is not one of them:** a commit explaining what it corrects about an earlier fix names that fix's id in prose, and crediting it would put a hunk under a finding that never asked for it. The same trap `scripts/post-review.py` avoids by counting `::RF{n}::` rather than any `RF{n}` it can see. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is what this comment exists to do.
 
 **The row is the hunk's `path:start-end` as a link into that commit's own diff on the pull request, then the `RF{n}` its commit named, or `-` where it named none:**
 

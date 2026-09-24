@@ -38,7 +38,9 @@ The rounded steps are yours, same rule as everywhere in this flow: the skill wil
 
 ## Why it works this way
 
-**All state lives on the PR and the branch, none in the session.** The ticked boxes are the progress record, the commits are the evidence, and the skill starts every run by reconciling the two. That is what makes implementation resumable: a session that dies mid-branch loses nothing, and the next one picks up at the first unticked step whose work is not in the commits. Even the handoff itself lands as a PR comment, so the work's own account of what it did outlives the session that did it. It is also why boxes are ticked at the moment work lands, never in a batch at the end: a batch-ticked body cannot be resumed from, and cannot be audited.
+**All state lives on the PR and the branch, none in the session.** The ticked boxes are the progress record, the commits are the evidence, and the skill starts every run by reconciling the two. That is what makes implementation resumable: a session that dies mid-branch loses nothing, and the next one picks up at the first unticked step whose work is not in the commits. Even the handoff itself lands as a PR comment, so the work's own account of what it did outlives the session that did it.
+
+It is also why boxes are ticked at the moment work lands, never in a batch at the end: a batch-ticked body cannot be resumed from, and cannot be audited.
 
 **Commits group by coherent change, not by plan step.** Where your repository squash-merges, branch commits never reach the trunk; their readers are your review diff and a mid-branch `git bisect`. Each commit builds and makes sense alone - and neither extreme serves anyone, a commit per keystroke or one monolith carrying the whole branch.
 
@@ -50,7 +52,9 @@ The one legitimate plan edit is the opposite case. A decision you settled in a p
 
 **This skill never marks its own work ready.** It produces the record - ticked steps, ticked gates, green CI - and stops, printing the `ready review` command for you to run. What `ready` adds is a reconciliation with CI, which is a different environment and does not care who ticked the boxes; a session that flipped its own draft would skip the check it cannot influence. The same logic is why a judgement only you can make is never a `## Verification` box: every box there has to close before the branch merges, so one you alone could close would block the branch it sits on.
 
-**Fixes are the same skill through a different door, and they never push.** The doors: the review round calls it at its own step 4, where the work list is the fix plans it already posted, and you call it after judging - "fix all", "fix RF1 and RF3". Either way it lands the fixes as commits grouped by coherent change, each naming the RF ids it closes, replies in each finding's thread, and posts the finding-to-commit map as a PR comment. Nothing leaves the machine: the threads stay anchored to the exact diff you are still reading, and the commits wait for you to type `rnp`, or say "resolve all and push", per the review protocol in `pr-flow`. It never resolves a thread itself either - that happens once, on the authority of those words.
+**Fixes are the same skill through a different door, and they never push.** The doors: the review round calls it at its own step 4, where the work list is the fix plans it already posted, and you call it after judging - "fix all", "fix RF1 and RF3". Either way it lands the fixes as commits grouped by coherent change, each naming the RF ids it closes, replies in each finding's thread, and posts the finding-to-commit map as a PR comment.
+
+Nothing leaves the machine: the threads stay anchored to the exact diff you are still reading, and the commits wait for you to type `rnp`, or say "resolve all and push", per the review protocol in `pr-flow`. It never resolves a thread itself either - that happens once, on the authority of those words.
 
 **The repository says how it is built and tested; the skill never does.** How code is written here comes from the repo's own agent instructions, the check commands from its '.agents/gh-solo.md', and a repo silent on either gets that said in the handoff rather than improvised around. The floor underneath every repo: a behavior change carries a test, and a plan that names no gates stops the work with a question.
 

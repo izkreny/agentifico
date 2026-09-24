@@ -47,7 +47,9 @@ Each cell of the table states its own rule, prohibitions included, so a row read
 
 **A pull request gets one full reviewer pass, and reaching that is a stop at the owner.** A full pass is one reading of the whole branch: the spawn at step 1, and any re-spawn that replaces a pass whose findings never reached the pull request. The scoped passes at step 5 are not full passes - each reads a commit range rather than the branch, and charging them would spend the budget three times over for one reading of the branch.
 
-**At one full pass, a re-spawn is never available unattended, and the sites that name one say so.** Every path that loses a pass - a findings file with no path, a head that moved, a malformed file, an anchor that will not resolve, a pass the owner discarded to free a push under *The push gate, while a reviewer is reading* - is at the cap the moment it charges what it spent, so the re-spawn those sites describe is a thing the owner's word buys rather than a resumption the round can take. That is the intended shape rather than a corner of it: a second reading of the branch with nobody watching is the cost this cap exists to refuse.
+**At one full pass, a re-spawn is never available unattended, and the sites that name one say so.** Every path that loses a pass - a findings file with no path, a head that moved, a malformed file, an anchor that will not resolve, a pass the owner discarded to free a push under *The push gate, while a reviewer is reading* - is at the cap the moment it charges what it spent, so the re-spawn those sites describe is a thing the owner's word buys rather than a resumption the round can take.
+
+That is the intended shape rather than a corner of it: a second reading of the branch with nobody watching is the cost this cap exists to refuse.
 
 **A discarded pass counts.** It consumed the spawn, which is what is being counted, and the runaway this cap exists to bound was made almost entirely of discarded passes: a post refused, the findings thrown away, a fresh pass spawned against a diff that had moved under the last one. Counting only the passes that succeeded would leave the cheap ones charged and the expensive ones free.
 
@@ -63,7 +65,11 @@ An owner-spent pass leaves the count past the cap, per *The owner's word can spe
 
 `{what}` names what the pull request is left holding: the findings still open, and any the last pass could not certify closed. A stop that says only that the cap was reached hands the owner a budget and no state.
 
-**The owner's word can spend a further pass, and the word is `authorise`, typed at that standing refusal.** It buys exactly one: **the refusal lifts for the single spawn that follows the word**, and step 1 resumes at that spawn rather than at the budget read that refused - a re-entry from the top would read the same count, refuse again, and leave the owner typing the word at a stop that never moves. That pass leaves its own marker like any other, and the next stop arrives one pass later. **Only the literal word buys it**, never a sentence that reads as agreement - the same rule, and the same reason, as *Arming it, on the `watch` command and nothing else* in `workflows/watch.md`: what this cap exists to refuse is a reading of the branch nobody asked for, and prose is how one gets taken anyway. The cap bounds the block nobody is watching, not the pull request: work that genuinely earns a further reading gets one when they ask for it, and a cap they could not pass would block such a branch, the cheap way out of which is to stop counting.
+**The owner's word can spend a further pass, and the word is `authorise`, typed at that standing refusal.** It buys exactly one: **the refusal lifts for the single spawn that follows the word**, and step 1 resumes at that spawn rather than at the budget read that refused - a re-entry from the top would read the same count, refuse again, and leave the owner typing the word at a stop that never moves. That pass leaves its own marker like any other, and the next stop arrives one pass later.
+
+**Only the literal word buys it**, never a sentence that reads as agreement - the same rule, and the same reason, as *Arming it, on the `watch` command and nothing else* in `workflows/watch.md`: what this cap exists to refuse is a reading of the branch nobody asked for, and prose is how one gets taken anyway.
+
+The cap bounds the block nobody is watching, not the pull request: work that genuinely earns a further reading gets one when they ask for it, and a cap they could not pass would block such a branch, the cheap way out of which is to stop counting.
 
 ## The push gate, while a reviewer is reading
 

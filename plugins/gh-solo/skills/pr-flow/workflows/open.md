@@ -31,7 +31,9 @@ Two of those fields are gates, not context, and both matter most on the `auto` c
 git fetch <remote> --quiet && git log --oneline HEAD..<remote>/main
 ```
 
-At this point in the branch's life that list should be empty - the branch was just cut. Commits in it mean the branch sits on a stale trunk, usually because it was cut locally from a `main` nobody fetched, and a plan written here would describe a codebase that has moved on - then be committed, pushed, and reviewed as if it did. Recover it with `git merge --ff-only <remote>/main`, which is its own guard: it fast-forwards a branch that carries nothing of its own - say what was done and which commits it picked up - and refuses outright on local commits, on divergence, or on uncommitted work the update would overwrite, with no gap between the check and the move. A refusal is the owner's call: say so and name the commits rather than continuing silently. `<remote>` per the remote-name convention in `SKILL.md`.
+At this point in the branch's life that list should be empty - the branch was just cut. Commits in it mean the branch sits on a stale trunk, usually because it was cut locally from a `main` nobody fetched, and a plan written here would describe a codebase that has moved on - then be committed, pushed, and reviewed as if it did.
+
+Recover it with `git merge --ff-only <remote>/main`, which is its own guard: it fast-forwards a branch that carries nothing of its own - say what was done and which commits it picked up - and refuses outright on local commits, on divergence, or on uncommitted work the update would overwrite, with no gap between the check and the move. A refusal is the owner's call: say so and name the commits rather than continuing silently. `<remote>` per the remote-name convention in `SKILL.md`.
 
 On a *stacked* branch none of this applies: the trunk sitting ahead of a `--base <parent>` child is normal for the stack's whole life, moving the stack is `gh stack sync`'s job per `workflows/stack.md`, and nothing here fast-forwards or resets anything. Say which case it is before reporting staleness.
 
@@ -74,7 +76,11 @@ Then read back the `[branch sha]` line the commit prints. If it names the wrong 
 
 The commit header follows *Branch and commit type* in `../tracker/references/formats.md`. A plan file is `docs`.
 
-**Run the repository's documentation checks before pushing.** A plan file is a documentation change, and a repo that validates its docs usually does so in CI without a local hook, so nothing catches a broken path or an unclosed fence until the PR is already red. `scripts/docs-check.py` in this skill checks that every backticked path resolves and every code fence closes; pass `--ignore <glob>` (repeatable) for backticked paths that belong to another tree than the one being checked, and the repository may have more checks of its own. **The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings. **The set in the script's own usage note is the one that keeps this plugin's tree clean, not yours**: a served repository's set is narrower and belongs in its '.agents/gh-solo.md', because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
+**Run the repository's documentation checks before pushing.** A plan file is a documentation change, and a repo that validates its docs usually does so in CI without a local hook, so nothing catches a broken path or an unclosed fence until the PR is already red. `scripts/docs-check.py` in this skill checks that every backticked path resolves and every code fence closes; pass `--ignore <glob>` (repeatable) for backticked paths that belong to another tree than the one being checked, and the repository may have more checks of its own.
+
+**The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings.
+
+**The set in the script's own usage note is the one that keeps this plugin's tree clean, not yours**: a served repository's set is narrower and belongs in its '.agents/gh-solo.md', because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
 
 ```bash
 git push -u <remote> "$(git branch --show-current)"
