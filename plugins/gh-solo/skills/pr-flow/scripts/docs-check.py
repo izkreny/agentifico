@@ -26,6 +26,7 @@ SKIP_DIRS = {".git", "node_modules", ".venv", "__pycache__", ".next", "dist", "b
 def looks_like_path(span: str) -> bool:
     if any(bad in span for bad in NOT_A_PATH):
         return False
+    # The leading slash keeps slash commands out and also skips every absolute path, a blind spot accepted because slash commands are the commoner span.
     if span.startswith(("-", "#", "@", "/")):
         return False
     if span.endswith("/"):
