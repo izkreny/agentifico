@@ -104,6 +104,8 @@ python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 
 **Step 2 reads that same listing again for `highest-id`, and the reads stay separate.** Reusing this file there would save a request and make the id arithmetic depend on a listing fetched before the reviewer ran, which by then may be behind the pull request - a discard record, or a re-spawn's own read. One paginated read is the cheaper mistake.
 
+#### At the cap
+
 **At or past the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries.
 
 **Then print the one exit, in the owner's terms**, the way the refusal under *While it reads, a push is refused* prints its own: **`authorise`** is the word they type at that standing refusal to charge a further pass and have this step spawn after all, per *The pass cap* in `references/review-protocol.md`, which owns the word and what it costs.
@@ -118,7 +120,9 @@ Never spawn first and check after: the spawn is the thing being counted, so a ch
 
 **A count of `0` on a pull request that visibly had rounds is the marker's own age**, which the script says on stderr rather than leaving you to infer: rounds posted before the marker existed carry none. Say so in the round report rather than treating the number as wrong, and rather than adding a second matcher for the old records - a fallback matcher on the record's prose is exactly what the marker exists instead of.
 
-**Which reviewer runs is a per-repo fact.** The default is the `reviewer` agent this plugin ships. Where '.agents/gh-solo.md', or '.claude/gh-solo.md' where that is what the repository uses, carries a `Reviewer agent:` line naming an agent type, per the per-repo config convention in `SKILL.md`, spawn that one instead.
+#### Which reviewer runs is a per-repo fact
+
+The default is the `reviewer` agent this plugin ships. Where '.agents/gh-solo.md', or '.claude/gh-solo.md' where that is what the repository uses, carries a `Reviewer agent:` line naming an agent type, per the per-repo config convention in `SKILL.md`, spawn that one instead.
 
 - **The appointed agent inherits the whole contract, not only the spawn.** It gets the PR number and the pin, and nothing else, and it must return the absolute path of a findings file in the format the `reviewer` skill's *The findings file* defines, plus its report text. Everything downstream reads that file and nothing else, so an agent that answers in prose cannot be posted.
 - **Refuse if the appointed agent is not registered.** `⛔ REFUSED - {name} is not a registered agent`. Never fall back to the bundled one: the owner would believe they are reading the findings of the agent they appointed and would be reading ours, which is the exact confusion an appointment exists to prevent, and it would silently invalidate any comparison between reviewers.

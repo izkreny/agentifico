@@ -80,7 +80,7 @@ The commit header follows *Branch and commit type* in `../tracker/references/for
 
 **The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings.
 
-**The set in the script's own usage note is the one that keeps this plugin's tree clean, not yours**: a served repository's set is narrower and belongs in its '.agents/gh-solo.md', because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
+**The set in the script's own `--help` is the one that keeps this plugin's tree clean, not yours**: a served repository's set is narrower and belongs in its '.agents/gh-solo.md', because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
 
 ```bash
 git push -u <remote> "$(git branch --show-current)"

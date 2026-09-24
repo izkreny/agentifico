@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
-# Regression bench for post-review.py. Run it after any edit to that file.
 #
-# It exists because a check that has only ever been seen to pass is indistinguishable from
-# one that passes on everything. Every case below has been watched refusing, or building,
-# on the situation it names - the refusals by feeding the malformed finding the check was
-# written for, and the builds by feeding the one it must let through.
+# Every case has been watched refusing or building on the situation it names, because a check only ever seen to pass is indistinguishable from one that passes on everything.
 set -euo pipefail
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/post-review.py"
@@ -33,9 +29,7 @@ FINDING = {
     "finding": "The third acceptance criterion requires an owner at creation; this sets it after save.",
     "needs_owner": False,
 }
-# The pin a full pass is handed, and what a corroborating reviewer reports back. They
-# are equal in the default fixture because that is the ordinary case; the cases below
-# pull them apart one at a time.
+# The pin and the reported head are equal in the default fixture because that is the ordinary case, and the cases pull them apart one at a time.
 PIN = "9a1c4e7"
 REVIEW = {"pr": 61, "pass": "review", "axes_run": ["standards", "spec"],
           "head": PIN, "findings": [FINDING]}
@@ -70,9 +64,7 @@ def with_finding(base, **changes):
     return out
 
 
-# A `git diff -U0` of one unpushed fix commit. `app/models/group.rb` is FINDING's own
-# path, so a re-review handed this diff holds that finding; the OTHER_DIFF touches a file
-# no finding names, so the same finding is threaded instead.
+# `app/models/group.rb` is FINDING's own path, so this diff holds that finding while OTHER_DIFF, touching no finding's file, threads it.
 GROUP_DIFF = """diff --git a/app/models/group.rb b/app/models/group.rb
 index 1111111..2222222 100644
 --- a/app/models/group.rb
@@ -88,9 +80,7 @@ index 3333333..4444444 100644
 +a line
 """
 SHAPELESS_DIFF = "these are notes about a diff, not a diff\n"
-# Real `git diff -U0` output for the three shapes git emits with no ---/+++ pair at all.
-# Taken from actual ranges rather than written by hand: a reader that required that pair
-# refused each of these as malformed and took the whole re-review down with it.
+# Taken from real ranges rather than written by hand, because a reader that required the `---`/`+++` pair refused each of these and took the re-review down with it.
 RENAME_DIFF = """diff --git a/app/models/group.rb b/app/models/team.rb
 similarity index 100%
 rename from app/models/group.rb
@@ -125,8 +115,7 @@ def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
         anchored_at = "1bb80f6" if data.get("pass") == "re-review" else None
     if anchored_at is not None:
         cmd += ["--anchored-at", anchored_at]
-    # The mirror of `anchored_at` above: the pair belongs to the full pass, so it defaults
-    # on and defaults off, and a case naming either explicitly is testing that boundary.
+    # The pair belongs to the full pass, so a case naming either explicitly is testing that boundary.
     review_pass = data.get("pass") == "review"
     if pinned_head == "__auto__":
         pinned_head = PIN if review_pass else None
@@ -252,9 +241,7 @@ def git_fixture(name, first_lines, second_lines):
 BASE = [f"line {n}" for n in range(1, 61)]
 
 
-# The repository the generic release cases run in: its second commit appends below every
-# line, so nothing shifts and each case tests what it says it tests rather than the
-# arithmetic. The shift itself has its own fixtures further down.
+# Its second commit appends below every line, so nothing shifts and each case tests what it says rather than the arithmetic.
 SHARED_REPO, SHARED_AT = None, "0000000"
 
 
@@ -320,20 +307,14 @@ MUST_REFUSE = [
     ("verdict with an empty why", mutate(RERdefault, verdicts=[{"rf": 3, "closed": True, "why": " "}]), 0),
     ("verdict closed not a boolean", mutate(RERdefault, verdicts=[{"rf": 3, "closed": "yes", "why": "x"}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
-    # A level the reviewer never gave, published as the reviewer's. This is the
-    # "makes a derivation it does not state" half of the rule in
-    # references/review-protocol.md, which the script did not enforce.
+    # A level the reviewer never gave, published as the reviewer's, is the half of the protocol's rule the script did not enforce.
     ("unrated severity while severity_source is reviewer",
      mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED]), 0),
 ]
 
-# Each row is (name, findings file, --continue-from, strings the run must produce, diff).
-# The diff is None for a review pass, which refuses the argument outright.
 MUST_BUILD = [
     ("one valid finding", REVIEW, 0, ["RF1", "round record"], None),
-    # An appointed command supplies no level, so the orchestrator derives one and has
-    # to say so. Without both fields this fixture exercised a round claiming the
-    # reviewer assigned `unrated` itself, which no legitimate producer can emit.
+    # Without both fields this fixture exercised a round claiming the reviewer assigned `unrated` itself, which no legitimate producer can emit.
     ("an unrated finding from an appointed command",
      mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED],
             severity_source="derived",
@@ -344,8 +325,6 @@ MUST_BUILD = [
      ["no findings"], None),
     ("re-review with verdicts and no new defect", RERdefault, 3,
      ["no findings", "re-review record"], GROUP_DIFF),
-    # The finding's file is untouched by the unpushed commits, so GitHub can anchor it and
-    # it becomes a thread exactly as a full pass's finding does.
     ("re-review whose new defect is on a file the fixes did not touch",
      mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "1 new finding(s) threaded, 0 held"],
      OTHER_DIFF),
@@ -361,9 +340,7 @@ MUST_BUILD = [
      mutate(REVIEW, severity_source="derived",
             severity_basis="high where the branch does not do what the PR body claims"),
      0, ["The severity basis", "does not do what the PR body claims"], None),
-    # The issue's own case. The finding points at a line only the unpushed fix commits
-    # carry, so it gets its id, stays out of the `comments` array - which is what stops the
-    # atomic call answering 422 - and travels whole in the record's ledger instead.
+    # The finding points at a line only the unpushed fix commits carry, so it stays out of the `comments` array, which is what stops the atomic call answering 422.
     ("re-review whose new defect is on a file the fixes touched",
      mutate(RERdefault, findings=[FINDING]), 3,
      ["RF4", "HELD", "0 new finding(s) threaded, 1 held", "gh_solo_held",
@@ -394,10 +371,7 @@ fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} negative --continue-from")
 
 print("\nmust refuse on the unpushed diff (exit 2):")
-# The argument belongs to the rescope entrance alone, in both directions. Given on a full
-# pass it claims held lines a pass over the pushed head cannot have; missing on a re-review
-# it leaves nothing able to tell an anchorable finding from one only the fixes carry, which
-# is the state that answered 422 on #6 and on izkreny/groupifico#210.
+# Missing on a re-review it leaves nothing able to tell an anchorable finding from one only the fixes carry, which is the state that answered 422.
 cases = [
     ("--unpushed-diff on a review pass", REVIEW, GROUP_DIFF),
     ("--unpushed-diff missing on a re-review", mutate(RERdefault, findings=[FINDING]), None),
@@ -412,8 +386,7 @@ for name, data, diff in cases:
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 print("\nmust refuse on the anchor head (exit 2):")
-# Without it a held finding's line cannot be brought forward to the pushed head, so the
-# release would replay a number counted before the round's later commits landed.
+# Without it the release would replay a number counted before the round's later commits landed.
 cases = [
     ("--anchored-at on a review pass", REVIEW, None, "1bb80f6"),
     ("--anchored-at missing on a re-review",
@@ -429,14 +402,9 @@ for name, data, diff, at in cases:
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 print("\nmust refuse on the pinned head (exit 2):")
-# The pin is what the reviewer was told to read, so two different things can be wrong and
-# the message has to say which: a reviewer that read something else, and a pull request
-# that moved after the pin was issued. A merged message would satisfy neither the owner
-# reading a refusal nor the fourth acceptance criterion of #24.
-# Every case names a string only its own check emits. Exit 2 alone would not do:
-# argparse also exits 2 on an argument it does not recognise, so a case written against a
-# flag that does not exist yet reports ok while proving nothing - which is how the seven
-# refusals here first passed before either flag was added.
+# A merged message would leave the owner unable to tell a reviewer that read something else from a pull request that moved after the pin.
+
+# Each case names a string only its own check emits, because argparse also exits 2 on an unknown flag and an exit code alone reported ok while proving nothing.
 cases = [
     ("the reviewer read something other than the pin",
      mutate(REVIEW, head="beef123"), PIN, PIN, "was told to read"),
@@ -472,8 +440,7 @@ for name, data, pin, now, wants in cases:
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 print("\nthe record must say which head was reviewed (exit 0):")
-# The value outlives the session that read it only if it lands on the pull request, and a
-# round that could not corroborate the pin must not read afterwards as one that did.
+# A round that could not corroborate the pin must not read afterwards as one that did.
 cases = [
     ("a corroborated pin says so", REVIEW, ["Reviewed at", PIN, "corroborated by the reviewer"]),
     ("a reviewer reporting no head is not refused, and the row says uncorroborated",
@@ -502,11 +469,10 @@ for name, data, continue_from, wants, diff in MUST_BUILD:
         ok = not missing
         if payload["comments"] and not payload["comments"][0]["body"].startswith("> 🤖"):
             ok = False
-        # A held finding must be in the record and nowhere in the comments array; that
-        # absence is the whole fix, so it is asserted rather than left to the wants list.
+        # The absence from the comments array is the whole fix, so it is asserted rather than left to the wants list.
         if "HELD" in proc.stdout and payload["comments"]:
             ok = False
-        # A round records; it never approves. Nothing asserted this.
+        # A round records and never approves, which nothing asserted before this case.
         if payload.get("event") != "COMMENT":
             ok = False
     fails += not ok
@@ -521,9 +487,7 @@ cases = [
       {"path": "zzz.rb", "line": 9, "body": "> 🤖 h\n\nRF9 x"}]),
     ("a listing read without --paginate, so a slice",
      [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF1 x"}]),
-    # The second-round hole. An earlier round left RF7 and RF8 on the very lines this round
-    # posted to, and this round's RF1 and RF2 never landed. A path:line check passes here,
-    # and so does any check that only counts RF-marked threads: there are two of each.
+    # A path:line check and a count of RF-marked threads both pass here, because an earlier round left RF7 and RF8 on the very lines this round posted to.
     ("a later round missing, with an earlier round on the same lines",
      [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF7 old"},
       {"path": "b.rb", "line": 2, "body": "> 🤖 h\n\nRF8 old"}]),
@@ -534,9 +498,7 @@ for name, comments in cases:
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
-# A held finding is in no comments array, so the loop over the payload cannot see it. Its
-# only evidence is the ledger in the record Review, and an id reserved nowhere is an id the
-# next round hands to a different finding.
+# An id reserved nowhere is an id the next round hands to a different finding.
 held_payload = {
     "body": ("> \U0001f916 h\n\nScoped re-review.\n\n```json\n"
              + json.dumps({"gh_solo_held": [held_entry(7)]}, ensure_ascii=False, indent=1)
@@ -563,9 +525,7 @@ print(f"  {'ok  ' if ok else 'FAIL'} a held id reserved in the record  (exit {pr
 SHARED_REPO, SHARED_AT = git_fixture("shared", BASE, BASE + ["appended"])
 
 print("\nrelease must build (exit 0):")
-# The other half of the fix: after rnp's push the held line is ordinary, so the ledger in
-# the record Review is read back and each entry becomes the thread it was standing in for,
-# under the id it was reserved with rather than a fresh one.
+# After the push each ledger entry becomes the thread it stood in for, under the id it was reserved with rather than a fresh one.
 proc, out, replies = run_release([ledger_review(held_entry(7))], [], name="release-one",
                         cwd=str(SHARED_REPO))
 ok = proc.returncode == 0 and out.exists()
@@ -581,9 +541,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a held finding round-trips into a thread under its own id")
 
-# The second-round hole. Nothing rewrites a posted Review, so round one's ledger still
-# lists RF7 when round two's rnp runs. Refusing on it would break every round after the
-# first; posting it again would duplicate the thread.
+# Round one's ledger still lists RF7 when round two runs, and refusing on it would break every round after the first while reposting would duplicate the thread.
 proc, out, replies = run_release(
     [ledger_review(held_entry(7)), ledger_review(held_entry(9))],
     [{"body": "> \U0001f916 h\n\nRF7 already a thread"}], name="release-skip",
@@ -596,8 +554,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} an id already carrying a thread is skipped, not reposted")
 
-# Nothing held is the ordinary answer on most rounds, and it must not look like a failure
-# or leave a payload for the workflow to post.
+# Nothing held is the ordinary answer, and it must not look like a failure or leave a payload to post.
 for name, reviews in [("no reviews at all", []),
                       ("reviews with no ledger", [{"body": "> \U0001f916 h\n\nRound one."}]),
                       ("every held id already threaded",
@@ -609,9 +566,7 @@ for name, reviews in [("no reviews at all", []),
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} nothing to release: {name}  (exit {proc.returncode})")
 
-# The ids travel in prose all over this flow: a fix plan, a fix result and a re-review
-# verdict each name the ids they cover. Counting any mention as a posted thread dropped the
-# held finding silently, at exit 0, with no gate downstream able to see it.
+# Counting any mention of an id as a posted thread dropped the held finding silently at exit 0.
 proc, out, replies = run_release(
     [ledger_review(held_entry(9))],
     [{"body": "> \U0001f916 h\n\nvia `implement` fix, closing reply\n\n"
@@ -624,10 +579,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a prose cross-reference does not count as a thread")
 
-# RF8: the stored line counts lines as they stood when the reviewer read them, and the
-# round keeps committing between the hold and the push. Replaying that number anchored the
-# thread to whatever now sat there - and where the shift moved it out of the diff, every
-# later rnp on the pull request failed its release the same way.
+# Replaying the stored line anchored the thread to whatever now sat there, and where the shift moved it out of the diff every later release failed the same way.
 repo, at = git_fixture("shift", BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
 proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-shift", cwd=str(repo))
@@ -649,9 +601,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a change below the finding leaves its line alone")
 
-# A ledger `path` is repo-relative while a git pathspec is relative to the working
-# directory, so from a subdirectory git matched nothing and answered empty at exit 0 -
-# indistinguishable from "unchanged", and the stale line went out silently.
+# From a subdirectory git matched nothing and answered empty at exit 0, indistinguishable from unchanged, so the stale line went out silently.
 repo, at = git_fixture("subdir", BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
 proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-subdir", cwd=str(repo / "app" / "models"))
@@ -661,8 +611,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} run from a subdirectory, the line still moves to 48")
 
-# Defect 2: the refusal had no case, so nothing proved it fired - or that it fires only
-# after the ledger has been judged, leaving every malformed-ledger refusal at exit 2.
+# Nothing proved the refusal fired, or that it fires only after the ledger has been judged.
 proc, out, replies = run_release([ledger_review(held_entry(9))], [], name="release-norepo",
                         cwd=str(work))
 ok = proc.returncode == 1 and not out.exists() and "git repository" in proc.stderr
@@ -676,8 +625,7 @@ print(f"  {'ok  ' if ok else 'FAIL'} a malformed ledger outside a repository is 
       f"  (exit {proc.returncode})")
 
 print("\nrelease must skip rather than guess (exit 0, nothing written):")
-# The one case with no answer: the fixes rewrote the very line the finding points at, so
-# no number can be brought forward and a named gap beats a thread on the wrong statement.
+# The fixes rewrote the very line the finding points at, so a named gap beats a thread on the wrong statement.
 rewritten = list(BASE); rewritten[41] = "rewritten entirely"
 repo, at = git_fixture("rewrite", BASE, rewritten)
 proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
@@ -687,8 +635,7 @@ ok = (proc.returncode == 0 and not out.exists()
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} the fixes rewrote the line the finding points at")
 
-# An `at` no longer in the repository - a fresh clone, a rewritten branch - is reported
-# rather than treated as "no change", which would replay the stale number silently.
+# An `at` the repository does not hold is reported rather than read as no change, which would replay the stale number silently.
 repo, _ = git_fixture("unknown", BASE, BASE + ["appended"])
 proc, out, replies = run_release([ledger_review(held_entry(9, at="deadbee", line=42))], [],
                         name="release-unknown-at", cwd=str(repo))
@@ -696,9 +643,7 @@ ok = proc.returncode == 0 and not out.exists() and "could not diff" in proc.stdo
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} an anchor head git does not have")
 
-# The owner's decision on RF10: the plan, the result and the verdict stay separate and
-# formatted, so a released thread collects the same reply-per-step shape a threaded finding
-# does rather than one comment carrying everything.
+# The plan, the result and the verdict stay separate so a released thread collects the same reply-per-step shape a threaded finding does.
 FU = [{"rf": 9, "kind": "verdict", "text": "Closed: the guard now fires."},
       {"rf": 9, "kind": "plan", "text": "Tighten the guard in `unpushed_paths`."},
       {"rf": 9, "kind": "result", "text": "Closed by `fix: tighten the guard (#8)`."}]
@@ -710,13 +655,11 @@ if ok:
     plan = json.loads(replies.read_text(encoding="utf-8"))
     bodies = plan[0]["bodies"] if plan else []
     ok = (len(plan) == 1 and plan[0]["rf"] == 9 and len(bodies) == 3
-          # plan, then result, then verdict - the order the round produced them, never the
-          # order they happen to sit in the ledger.
+          # The order the round produced them, never the order they sit in the ledger.
           and "released fix plan" in bodies[0]
           and "released fix result" in bodies[1]
           and "released re-review verdict" in bodies[2]
           and all(b.startswith("> \U0001f916") for b in bodies)
-          # and never folded into the finding's own comment
           and "Tighten the guard" not in json.loads(out.read_text())["comments"][0]["body"])
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a released thread's replies stay separate and in order")
@@ -745,8 +688,7 @@ for name, entries in [
     ("a kind outside plan/result/verdict", [{"rf": 9, "kind": "note", "text": "x"}]),
     ("an entry with no id", [{"kind": "plan", "text": "x"}]),
     ("an entry with empty text", [{"rf": 9, "kind": "plan", "text": "  "}]),
-    # The same fence `build` refuses on a finding: it renders a button that commits
-    # straight to the branch, and a released reply is no different.
+    # A suggestion fence renders a button that commits straight to the branch, and a released reply is no different.
     ("a suggestion fence", [{"rf": 9, "kind": "plan", "text": "```suggestion\nx = 1\n```"}]),
 ]:
     proc, out = run_followup(entries, name="fur-" + "".join(c if c.isalnum() else "-" for c in name))
@@ -756,14 +698,12 @@ for name, entries in [
 
 print("\nrelease must refuse (exit 2):")
 cases = [
-    # A thread needs the finding text and the failure scenario, so a ledger entry that
-    # lost one cannot become a thread and must not half-post.
+    # A ledger entry that lost its text or its scenario cannot become a thread and must not half-post.
     ("a ledger entry missing its finding text",
      [ledger_review(held_entry(7, finding=None))], []),
     ("a ledger entry missing its anchor", [ledger_review(held_entry(7, line=None))], []),
     ("a ledger entry with no id", [ledger_review({k: FINDING[k] for k in FINDING})], []),
-    # Two ledgers naming one id means highest-id reissued it, which is the invariant the
-    # widened read exists to keep. Posting both threads would hide that it broke.
+    # Two ledgers naming one id means the widened read let one be reissued, and posting both threads would hide that.
     ("one id held twice", [ledger_review(held_entry(7)), ledger_review(held_entry(7))], []),
 ]
 for name, reviews, comments in cases:
@@ -780,30 +720,23 @@ fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} disclaimer without the emoji prefix  (exit {proc.returncode})")
 
 print("\nhighest-id must print (exit 0):")
-# The number these produce is what `build --continue-from` takes, so a wrong answer here
-# reissues an id that is already on the pull request. Ids never restart.
+# A wrong answer here reissues an id already on the pull request.
 cases = [
     ("an empty listing, a pull request with no comments at all", [], "0"),
     ("comments carrying no id, a plan discussion before any round",
      [{"body": "> 🤖 h\n\nthis line reads oddly"}], "0"),
     ("one round", [{"body": "> 🤖 h\n\nRF1 x"}, {"body": "> 🤖 h\n\nRF2 x"}], "2"),
-    # The listing comes back in creation order, not id order, and a reply can be older than
-    # the finding above it. A reader that took the last id rather than the maximum passes
-    # every case above and fails this one.
+    # A reply can be older than the finding above it, so a reader taking the last id rather than the maximum passes every other case and fails this one.
     ("ids out of order", [{"body": "::RF9:: x"}, {"body": "::RF3:: x"}, {"body": "::RF7:: x"}], "9"),
-    # One body, several ids: a re-review verdict can answer about more than one finding, and
-    # a single `re.search` reads only the first, so it would print 4 here.
+    # A single `re.search` reads only the first id in a body and would print 4 here.
     ("several ids one post issues", [{"body": "::RF4:: and ::RF11:: both close"}], "11"),
-    # The change the delimiter buys: a body naming an id in prose issues nothing, so an
-    # explanation of the flow no longer raises the counter for every round after it.
+    # A body naming an id in prose issues nothing, so an explanation of the flow does not raise the counter.
     ("an id named in prose is not an issued id",
      [{"body": "> h\n\nit gets a number, say RF7, and goes in the summary"}], "0"),
-    # And a legacy finding post, whose id opens a line, still counts for the life of the
-    # pull request that carries it - under-reading would reissue a live id.
+    # A legacy finding post's line-opening id still counts, because under-reading would reissue a live id.
     ("a legacy finding post still counts", [{"body": "> h\n\nRF6 \U0001f534 high - x"}], "6"),
     ("a bare RF with no number", [{"body": "the RF ids restart"}], "0"),
-    # The word boundary earns its place here. Without it PERF123 reads as RF123 and the next
-    # round starts at 124, skipping every id in between and making the sequence unreadable.
+    # Without the word boundary PERF123 reads as RF123 and the next round starts at 124.
     ("PERF123 is not an id", [{"body": "PERF123 regressed"}, {"body": "RF2 x"}], "2"),
     ("a comment with no body field at all", [{"path": "a.rb", "line": 1}], "0"),
 ]
@@ -814,9 +747,7 @@ for name, comments, want in cases:
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (want {want}, got {got or '-'}, exit {proc.returncode})")
 
-# The surface a held id lives on until its push. Read from the comments alone these answer
-# 0 or too low, and the next round reissues an id that is already reserved - which is what
-# made withholding the id the only honest option before this.
+# Read from the comments alone these answer too low and the next round reissues a reserved id.
 cases = [
     ("a held id in a review body and no threads at all", [], [ledger_review(held_entry(7))], "7"),
     ("a review body's id above every threaded one",
@@ -836,9 +767,7 @@ for name, comments, reviews, want in cases:
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (want {want}, got {got or '-'}, exit {proc.returncode})")
 
 print("\nhighest-id must refuse (exit 1):")
-# The listing is the flat array `gh api --paginate` writes. Handed the array-of-arrays that
-# `--paginate --slurp` writes instead, every element is a list and no body is found, so the
-# answer would be a silent 0 - the one wrong answer that looks like a first round.
+# Handed the `--slurp` array-of-arrays, no body is found and the answer is a silent 0 that looks like a first round.
 cases = [
     ("an object rather than an array", {"body": "RF3 x"}),
     ("the array-of-arrays --slurp writes", [[{"body": "RF3 x"}]]),
@@ -849,9 +778,7 @@ for name, comments in cases:
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} comments: {name}  (exit {proc.returncode})")
 
-# The same wrong shape on the new surface, refused for the same reason: found empty it
-# would answer as though no id had ever been reserved, which is indistinguishable from a
-# pull request that has had no round.
+# Found empty it would answer as though no id had ever been reserved.
 for name, reviews in [("an object rather than an array", {"body": "RF3 x"}),
                       ("the array-of-arrays --slurp writes", [[{"body": "RF3 x"}]])]:
     proc = run_highest([], reviews,
@@ -861,9 +788,7 @@ for name, reviews in [("an object rather than an array", {"body": "RF3 x"}),
     print(f"  {'ok  ' if ok else 'FAIL'} reviews: {name}  (exit {proc.returncode})")
 
 print("\npasses must count (exit 0):")
-# The cap is only as good as this count, and the count is only as good as the marker: a
-# reader matching the record's prose instead would answer 0 the first time that sentence
-# was reworded, which is a cap that stops binding with nothing failing.
+# A reader matching the record's prose would answer 0 the first time that sentence was reworded, and a cap that stops binding fails nothing.
 cases = [
     ("a pull request with no reviews at all", [], "0"),
     ("one full pass", [pass_review()], "1"),
@@ -881,8 +806,7 @@ for name, reviews, want in cases:
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (want {want}, got {got or '-'}, exit {proc.returncode})")
 
 print("\npasses must refuse (exit 1):")
-# The same wrong shape the other readers refuse, for a sharper reason here: found empty,
-# this one answers 0, and a cap told no pass has run lets every pass through.
+# Found empty this one answers 0, and a cap told no pass has run lets every pass through.
 for name, reviews in [("an object rather than an array", {"body": "x"}),
                       ("the array-of-arrays --slurp writes", [[pass_review()]])]:
     proc = run_passes(reviews, name="pcr-" + "".join(c if c.isalnum() else "-" for c in name))
@@ -903,8 +827,7 @@ fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a discarded pass lands as a review with no threads"
       f"  (exit {proc.returncode})")
 
-# Round-trip, because the two halves are useless apart: a record `passes` cannot count is
-# a pass that was spent and never charged.
+# A record `passes` cannot count is a pass that was spent and never charged.
 if out.exists():
     proc2 = run_passes([json.loads(out.read_text(encoding="utf-8"))], name="dc-count")
     ok = proc2.returncode == 0 and proc2.stdout.strip() == "1"
@@ -913,16 +836,13 @@ if out.exists():
 
 print("\ndiscard must refuse (exit 2):")
 proc, out = run_discard(disclaimer=bad_disclaimer, name="dc-bad")
-# The stderr test is what stops this passing for the wrong reason: argparse also exits 2
-# on a subcommand it does not know, so an exit code alone would have looked green before
-# `discard` existed at all.
+# argparse also exits 2 on an unknown subcommand, so an exit code alone looked green before `discard` existed.
 ok = proc.returncode == 2 and not out.exists() and "disclaimer" in proc.stderr
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a disclaimer without the emoji prefix  (exit {proc.returncode})")
 
 print("\nthe marker belongs to the full pass alone (exit 0):")
-# A re-review is an analysis and posts its own record, but it is not a pass the cap counts:
-# marking it would charge a round three passes for one reading of the branch.
+# Marking a re-review as a pass would charge a round three passes for one reading of the branch.
 for name, data, want in [("a review pass writes the marker", REVIEW, True),
                          ("a re-review does not", RERdefault, False)]:
     slug = "pm-" + "".join(c if c.isalnum() else "-" for c in name)

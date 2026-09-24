@@ -1,35 +1,19 @@
 #!/usr/bin/env python3
-"""Poll a pull request for the owner's replies and reactions, printing each once.
-
-Invoked as `python3 <skill-dir>/scripts/watch.py <pr-number>`, which is the whole reason
-it is Python rather than the shell block it replaces. The skill's grant is
-`Bash(gh:*)`, `Bash(git:*)`, `Bash(python3:*)` and no bare `Bash`, and the shell block
-opened with `mktemp` and went on through `grep`, `printf`, `date` and `sleep` - none of
-which prefix-match. Whether that prompts or is denied is harness behaviour the skill was
-asserting rather than reporting, so the fix is to need no answer: every command this
-script runs is its own subprocess, and the one Bash call is `python3`.
-
-Reads nothing and writes nothing but stdout. Runs until killed.
-"""
+"""Python rather than a shell block, because the skill's grant has no bare `Bash` and every command here is its own subprocess under the one `python3` call."""
 import json
 import subprocess
 import sys
 import time
 from datetime import datetime, timezone
 
-# The literal every gate in this flow tests, and the reason this filter exists: without
-# it the watch re-emits the round's own posts as fresh comments and answers itself.
+# Without this filter the watch re-emits the round's own posts and answers itself.
 DISCLAIMER_PREFIX = "> \N{ROBOT FACE}"
 POLL_SECONDS = 30
 BODY_CHARS = 140
 
 
 def gh_json(*args):
-    """`gh` output parsed as JSON, or None when the call failed.
-
-    A failed poll is skipped rather than fatal: the owner is mid-review and a transient
-    API error must not end the watch they are relying on.
-    """
+    """A failed poll is skipped rather than fatal, because the owner is mid-review and a transient API error must not end the watch."""
     try:
         r = subprocess.run(("gh",) + args, capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.TimeoutExpired):
