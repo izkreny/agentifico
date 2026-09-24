@@ -10,9 +10,9 @@ GitHub labels are created per repository and do not exist until somebody makes t
 gh label create backend --color 1D76DB --description "Backend / API"
 ```
 
-**Each label answers one question, and the axes are independent.** An issue carries at most one value from each, and they never contradict: an epic is not an alternative to a bug, because the two axes are not asking the same thing.
+**Each label answers one question, and the axes are independent.** An issue carries at most one value from each, and they never contradict: an epic is not an alternative to a bug, because the axes are not asking the same thing.
 
-Every axis but Layer has a **default**, and the default is expressed by carrying **no label at all**. The right-hand column is the value that never appears in the picker, because creating it is the mistake the next section is about.
+Every axis but Layer has a **default**, and the default is expressed by carrying **no label at all**. The right-hand column is the value that never appears in the picker, because creating it is the mistake *Never label the default* is about.
 
 | Axis          | Question it answers                             | Labels that exist                               | The default, never labelled                                                                       |
 |---------------|-------------------------------------------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------|
@@ -29,9 +29,9 @@ Read the Nature row carefully, because it is the one people try to complete. `bu
 
 ### The Layer axis
 
-Layer is the one mandatory axis, and since titles carry no prefix it is the **only** place the layer is recorded. Set it at creation.
+Layer is the one mandatory axis, and since titles carry no prefix, the label is where the layer is recorded. Set it at creation.
 
-**Exactly one layer label, on every issue that is not an epic.** An epic is exempt because it is a container: its children carry the layers, and it usually spans them, so a layer on the epic itself would either lie or read `fullstack` every time. On everything else: not zero, and never two. This is the axis rule from the table in *Labels*, and it is worth restating here because the layer is the one place two labels look defensible: an issue that touches the API and the UI seems to deserve both. It does not. `fullstack` exists precisely so that pair is never needed, and applying `backend` and `frontend` together is the mistake it was created to prevent.
+**Exactly one layer label, on every issue that is not an epic.** An epic is exempt because it is a container: its children carry the layers, and it usually spans them, so a layer on the epic itself would either lie or read `fullstack` every time. On everything else: not zero, and never two. This is the axis rule from the table in *Labels*, and it is worth restating here because the layer is where two labels look defensible: an issue that touches the API and the UI seems to deserve both. It does not. `fullstack` exists precisely so that pair is never needed, and applying `backend` and `frontend` together is the mistake it was created to prevent.
 
 | Label       | The deliverable is                                                  |
 |-------------|---------------------------------------------------------------------|
@@ -50,7 +50,7 @@ Labels that would otherwise creep across the whole tracker depend on this rule:
 
 **`fullstack` is required, not optional, when an issue genuinely spans both.** It is also rarer than it looks. An issue that merely *calls* an endpoint owned by another issue is `frontend`. If each side could merge and be useful on its own, that is not one `fullstack` issue at all, it is a `backend` issue and a `frontend` issue, per the split test in *How big is one issue*.
 
-The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in `.agents/gh-solo.md`. What matters is that the set is small, closed, and mandatory.
+The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in '.agents/gh-solo.md'. What matters is that the set is small, closed, and mandatory.
 
 **Because this axis is mandatory, its absence is a defect rather than a default**, which is what separates it from the other axes in *Labels*. Nothing in a title reveals a missing layer label, so audit for it directly rather than expecting to notice:
 
@@ -61,7 +61,7 @@ gh issue list --state open --limit 100 \
 
 **That exclusion list is the default layer set, so a repository that replaced the set must rebuild it before running this.** The query works by excluding every legal value and reporting what is left; run unchanged against a repository whose axis is named otherwise, it excludes only the epics and reports every other open issue as unlabelled, which reads as a wall of defects and gets the audit ignored. The same trap in the other direction is silent: a set that gains a value the query does not name makes every issue carrying it invisible to the audit. **A new value in the repository's set is a new exclusion here.**
 
-Structure is a **separate** axis, not a fourth value of Nature. An epic with three sub-issues has not stopped being a task or a bug; it is simply also a container. The two questions are orthogonal, and an issue answering "no" to both — no `bug`, no `spike`, no `epic` — is the most common issue in any tracker and carries no label on either axis. That is the design working, not a gap.
+Structure is a **separate** axis, not a fourth value of Nature. An epic with three sub-issues has not stopped being a task or a bug; it is simply also a container. The questions are orthogonal, and an issue answering "no" to each — no `bug`, no `spike`, no `epic` — is the most common issue in any tracker and carries no label on either axis. That is the design working, not a gap.
 
 **Set labels at creation time**, not afterwards. An issue created without its layer label is invisible to every search in `workflows/search.md` that filters on one.
 
@@ -186,9 +186,9 @@ gh issue close 50 --duplicate-of 51         # #51 already covers it
 gh issue reopen 50
 ```
 
-Use one every time; `--reason` accepts `completed`, `not planned` and `duplicate` and rejects anything else, with `--duplicate-of` its own flag rather than a fourth reason. `not planned` is what stops a closed tracker reading as a graveyard of things that were built, and it is the only way a later search can tell "done" from "abandoned". For a duplicate, close with `--duplicate-of <surviving-issue-number>`: it records the target natively, which a bare `--reason duplicate` does not.
+Use one every time; `--reason` accepts `completed`, `not planned` and `duplicate` and rejects anything else, with `--duplicate-of` its own flag rather than a fourth reason. `not planned` is what stops a closed tracker reading as a graveyard of things that were built, and it is how a later search tells "done" from "abandoned". For a duplicate, close with `--duplicate-of <surviving-issue-number>`: it records the target natively, which a bare `--reason duplicate` does not.
 
-**Most closes should not be manual.** A pull request whose body says `Closes #50` closes the issue when it merges, links the two permanently, and records the closing PR in `closedByPullRequestsReferences`. Write that line in every PR body and the tracker maintains itself. Reach for `gh issue close` only for issues no PR resolves: duplicates, abandoned ideas, questions that got answered.
+**Most closes should not be manual.** A pull request whose body says `Closes #50` closes the issue when it merges, links them permanently, and records the closing PR in `closedByPullRequestsReferences`. Write that line in every PR body and the tracker maintains itself. Reach for `gh issue close` only for issues no PR resolves: duplicates, abandoned ideas, questions that got answered.
 
 **In-progress is an assignee, not a state.** Assign `@me` when work starts, clear it when the issue is set aside unfinished. `SKILL.md` has the reasoning and the pull-request half of the rule; the operations are in `workflows/state.md`.
 
@@ -206,6 +206,6 @@ GitHub has an **issue type** field separate from labels, exposed as `gh issue cr
 
 So: **`epic`, `bug` and `spike` are labels here**, per *Labels*, and `--type` is never passed. Do not go looking for the field, and do not treat its absence as something misconfigured.
 
-The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in `.agents/gh-solo.md` so no later session probes again. Passing an unknown type is an error rather than a no-op.
+The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in '.agents/gh-solo.md' so no later session probes again. Passing an unknown type is an error rather than a no-op.
 
 ---

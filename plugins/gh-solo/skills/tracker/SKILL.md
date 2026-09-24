@@ -16,7 +16,7 @@ This is a **routing skill**. Read `$ARGUMENTS` and the conversation context, pic
 
 All paths below are **relative to this skill's own directory**. Resolve them against wherever this skill is installed rather than assuming a location: it ships inside a plugin, so its root is whatever the harness installed the plugin to, and the working directory is the repository being tracked. **A sibling skill of the same plugin resolves as `../<name>/`**, so the `pr-flow` skill's `SKILL.md`, which this file points at for the AI disclaimer's wording among other things, is at `../pr-flow/SKILL.md`. Without that, a pointer at a sibling is unfollowable, and the disclaimer one is on a write path: an agent that cannot find the wording invents a line or omits it, and the omission lands in a public tracker under the owner's name.
 
-**Issue, ticket and task all mean the same thing here: a GitHub issue.** The owner uses the three interchangeably and expects you to. "Write tickets for X", "break this into issues" and "give me the next task" are requests about the same object, and none of them implies a different tool, a different tracker or a different level of granularity.
+**Issue, ticket and task all mean the same thing here: a GitHub issue.** The owner uses them interchangeably and expects you to. "Write tickets for X", "break this into issues" and "give me the next task" are requests about the same object, and none of them implies a different tool, a different tracker or a different level of granularity.
 
 **Every file here is written to the agent, so `you` is the agent reading it.** The human is **the owner**, always in the third person. The exceptions are `workflows/help.md`, whose contents are printed to the owner, and `README.md`, which the owner reads rendered; both address them directly.
 
@@ -32,7 +32,9 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 
 A mentor's comment is advice you weigh; a second committer's issue is a fact you must reconcile. Only the second needs the gates a team process adds.
 
-**The team habit this keeps is assignment, repurposed: `@me` means work has started on this.** A GitHub issue has only open and closed, and assignment supplies the missing middle, so `assignee:@me is:open` is a live answer to "what am I in the middle of" across every repository at once. It does not mean *queued* and it does not mean ownership - every issue in the owner's own repository is implicitly theirs, so assigning on creation would say nothing. **Assignment is its own command, run before any branch**, because not all work reaches a branch: a spike or an investigation still has to appear in the list. Closing needs no unassign, since every view that matters filters on open; reopening and pausing are the two places it has to be corrected by hand, and *Pause work* in `workflows/state.md` is the second of them.
+**The team habit this keeps is assignment, repurposed: `@me` means work has started on this.** A GitHub issue has only open and closed, and assignment supplies the missing middle, so `assignee:@me is:open` is a live answer to "what am I in the middle of" across every repository at once. It does not mean *queued* and it does not mean ownership - every issue in the owner's own repository is implicitly theirs, so assigning on creation would say nothing.
+
+**Assignment is its own command, run before any branch**, because not all work reaches a branch: a spike or an investigation still has to appear in the list. Closing needs no unassign, since every view that matters filters on open; reopening and pausing are where it has to be corrected by hand, and *Pause work* in `workflows/state.md` covers pausing.
 
 Pull request assignment follows the same idea and belongs to `pr-flow`, whose `SKILL.md` states it.
 
@@ -46,9 +48,11 @@ Do not probe any further than that. Setup, scopes and troubleshooting are in `re
 
 ## Per-repo config
 
-Optional. If `.agents/gh-solo.md` exists in the repository, read it, falling back to `.claude/gh-solo.md` where that is what the repository uses. **The file is the authority on its own contents**, and it carries more than this skill acts on - `pr-flow` and `implement` read the same file for their own keys. What this skill takes from it: the label taxonomy and which axis is mandatory, the branch format and its `{type}` vocabulary, whether the repository uses GitHub issue types, the default branch's name where it is not `main`, and the remote's name where `git remote` alone cannot settle it. Where the file is absent, infer what you need with `gh label list` and `gh repo view`, and **never create it unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
+Optional. If '.agents/gh-solo.md' exists in the repository, read it, falling back to '.claude/gh-solo.md' where that is what the repository uses. **The file is the authority on its own contents**, and it carries more than this skill acts on - `pr-flow` and `implement` read the same file for their own keys.
 
-Nothing else is project configuration. `gh` resolves owner and repository from the working directory, so there is no key, no cloud ID, no board and no custom field ID to discover or store.
+What this skill takes from it: the label taxonomy and which axis is mandatory, the branch format and its `{type}` vocabulary, whether the repository uses GitHub issue types, the default branch's name where it is not `main`, and the remote's name where `git remote` alone cannot settle it. Where the file is absent, infer what you need with `gh label list` and `gh repo view`, and **never create it unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
+
+No other key is project configuration. `gh` resolves owner and repository from the working directory, so there is no key, no cloud ID, no board and no custom field ID to discover or store.
 
 ---
 
@@ -71,7 +75,7 @@ These fire on conversation context. Read the matched workflow and execute it inl
 
 ## Explicit routing
 
-Based on the argument above, do exactly one of the following and nothing else:
+Based on the argument, do exactly one of the following and nothing else:
 
 - If the argument is exactly `help` → read `workflows/help.md`, output its contents, stop.
 - If it starts with `status` → read `workflows/status.md` and follow it.
@@ -80,15 +84,17 @@ Based on the argument above, do exactly one of the following and nothing else:
 - If it starts with `state`, `start`, `close`, `reopen`, `block` or `milestone` → read `workflows/state.md` and follow it.
 - If it starts with `finish` → read `workflows/create.md` and follow its *Finishing a draft* section.
 - If the argument reads as prose describing work to break down - `create issues for X`, or a bare description - → read `workflows/create.md` and follow it.
-- Otherwise → read `workflows/help.md`, output its contents, and say which argument failed to match anything above. A single unrecognised token is a typo or a verb this skill does not have, and sending it into the breakdown workflow would answer it with a proposed breakdown of the typo.
+- Otherwise → read `workflows/help.md`, output its contents, and say which argument failed to match any routing entry. A single unrecognised token is a typo or a verb this skill does not have, and sending it into the breakdown workflow would answer it with a proposed breakdown of the typo.
 
 ---
 
 ## Supporting files
 
-- **`workflows/`** - one file per sub-command: `workflows/create.md`, `workflows/status.md`, `workflows/search.md`, `workflows/validate.md`, `workflows/state.md`, `workflows/help.md`
-- **`references/standards.md`** - the index of `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md`, and nothing else
-- **`references/issue-shape.md`** - hierarchy and sizing, titles, bodies, acceptance criteria, spikes
-- **`references/tracker-fields.md`** - labels and the mandatory axis, dependencies, milestones, state, issue types
-- **`references/formats.md`** - branch names, commit subjects, pull request titles, plan filenames
-- **`references/github-access.md`** - `gh` authentication, the scopes each workflow needs, and the failures that read as something else
+| File                           | What it holds                                                                                                                                                     |
+|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `workflows/`                   | one file per sub-command: `workflows/create.md`, `workflows/status.md`, `workflows/search.md`, `workflows/validate.md`, `workflows/state.md`, `workflows/help.md` |
+| `references/standards.md`      | the index of `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md`, and nothing else                                            |
+| `references/issue-shape.md`    | hierarchy and sizing, titles, bodies, acceptance criteria, spikes                                                                                                 |
+| `references/tracker-fields.md` | labels and the mandatory axis, dependencies, milestones, state, issue types                                                                                       |
+| `references/formats.md`        | branch names, commit subjects, pull request titles, plan filenames                                                                                                |
+| `references/github-access.md`  | `gh` authentication, the scopes each workflow needs, and the failures that read as something else                                                                 |

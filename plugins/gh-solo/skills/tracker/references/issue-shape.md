@@ -4,14 +4,14 @@ How work is divided into issues, and how each one is titled and bodied. The othe
 
 ## Hierarchy
 
-The levels of containment, each item nested inside the one above it:
+The levels of containment, each item nested inside the item before it:
 
 1. **Repository** - the tracker itself; everything below lives inside it.
 2. **Epic** - a normal issue, labelled `epic`, holding sub-issues.
 3. **Issue** - the unit of work; one branch, one PR.
 4. **Task-list checkboxes** - `- [ ]` items in an issue's body, for steps too small to track.
 
-**Milestones are deliberately not on this list.** A milestone groups issues by *when they ship*, which cuts across the containment above: one issue can sit in an epic and a milestone at once, and neither implies the other. *Milestones, and why not Projects* covers them; they re-enter the hierarchy only through *Three levels is the limit*, where an epic that outgrows its shape becomes one.
+**Milestones are deliberately not on this list.** A milestone groups issues by *when they ship*, which cuts across that containment: one issue can sit in an epic and a milestone at once, and neither implies the other. *Milestones, and why not Projects* covers them; they re-enter the hierarchy only through *Three levels is the limit*, where an epic that outgrows its shape becomes one.
 
 GitHub has no separate epic or subtask type. An epic is an ordinary issue that other issues name as their **parent**, which `gh` supports natively:
 
@@ -119,7 +119,7 @@ Anything past the cap belongs in `## Technical notes`, or a comment on the issue
 
 **There is no separate TL;DR section**, on any of the templates. The title already says what the issue is, and the opening section already says it in prose, so a third rendering would appear on every issue in the tracker and carry no information — the same mistake as a `feature` label, which *Never label the default* rejects for the same reason.
 
-**There is no `## Done when` on an issue**, though team templates always carry one. Every box it usually holds is a copy of a fact that lives elsewhere or a box nothing can tick: "criteria met" restates the checklist directly above it, "tests pass" is the plan's `## Verification` and the PR's copy of it, "code reviewed" is the review record the `pr-flow` merge gate refuses to land without, and "merged to main" is made true by the very event that closes the issue - the box would sit empty for the issue's whole open life and the progress counter would never reach full. Done, for an issue, is the close reason GitHub records anyway. The epic and spike templates keep their `## Done when` because those close by hand, and a close checklist is real work at a real moment.
+**There is no `## Done when` on an issue**, though team templates always carry one. Every box it usually holds is a copy of a fact that lives elsewhere or a box nothing can tick: "criteria met" restates `## Acceptance criteria`, "tests pass" is the plan's `## Verification` and the PR's copy of it, "code reviewed" is the review record the `pr-flow` merge gate refuses to land without, and "merged to main" is made true by the very event that closes the issue - the box would sit empty for the issue's whole open life and the progress counter would never reach full. Done, for an issue, is the close reason GitHub records anyway. The epic and spike templates keep their `## Done when` because those close by hand, and a close checklist is real work at a real moment.
 
 And acceptance criteria are written as **checkboxes**, not bullets, because on GitHub they render as a progress counter on the issue and in every list that shows it, which is free tracking a solo dev actually benefits from.
 
@@ -154,7 +154,7 @@ The code a spike produces is a means, not the deliverable, and it is normal to d
 
 Example: `spike - evaluate OpenAPI codegen`
 
-The `spike - ` opener is not a layer prefix and stays. It is part of the sentence, not a tag: without it the title reads as a promise to build the thing rather than to investigate whether to.
+The `spike -` opener is not a layer prefix and stays. It is part of the sentence, not a tag: without it the title reads as a promise to build the thing rather than to investigate whether to.
 
 ### Spike body template
 

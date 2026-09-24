@@ -22,10 +22,12 @@ Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow`
 
 - **The `gh` CLI**, authenticated. Every read and write goes through it.
 - **The `gh stack` extension** and the **`gh-stack` skill** from `github/gh-stack`, needed only for stacked pull requests. The stack workflow documents the extension's traps but does not bundle its manual.
-- **A harness that can spawn a subagent**, for the `reviewer` agent a review round uses. Where yours cannot, appoint a capability with a `Reviewer command:` line in `.agents/gh-solo.md`; the round invokes it and posts what it returns. **That line has to carry `{sha}` as well as `{pr}`**, because a round hands its reviewer the exact version to read and refuses a capability it cannot pin. **Reading the diff yourself is not the fallback**, because the session that wrote the code is the one thing a review may not be: the round refuses rather than substituting the author. A pass by an appointed command is also not recorded identically - it lands with `severity_source`, `severity_basis` and the `unrated` axis, which exist precisely so a reader can tell which kind of pass they are looking at.
+- **A harness that can spawn a subagent**, for the `reviewer` agent a review round uses. Where yours cannot, appoint a capability with a `Reviewer command:` line in '.agents/gh-solo.md'; the round invokes it and posts what it returns. **That line has to carry `{sha}` as well as `{pr}`**, because a round hands its reviewer the exact version to read and refuses a capability it cannot pin. **Reading the diff yourself is not the fallback**, because the session that wrote the code is what a review may never be: the round refuses rather than substituting the author. A pass by an appointed command is also not recorded identically - it lands with `severity_source`, `severity_basis` and the `unrated` axis, which exist precisely so a reader can tell which kind of pass they are looking at.
 - **Python 3**, for `hooks/ask-before-trunk-push.py`, `skills/pr-flow/scripts/docs-check.py`, `skills/pr-flow/scripts/post-review.py` and `skills/pr-flow/scripts/watch.py`. The hook is the one that makes this non-optional: it runs on every Bash call in every session and repository, not only while a skill of this plugin is loaded.
 
-**One thing to know about the tool grants.** `/gh-solo:implement` takes bare `Bash`, because it is the skill that runs *your* repository's tests, linters and builds and those cannot be enumerated in advance. Its sibling skills are all narrowed to `gh`, `git` and `python3`. So where the other three are stopped by their grant, that one is stopped by a rule written in its own instructions - never install software, never push to the trunk - the same way the `reviewer` agent's read-only discipline is a rule rather than a wall, because a `gh` grant cannot express read-only either. If your harness can deny command shapes itself, this is the skill to point that at.
+**One thing to know about the tool grants.** `/gh-solo:implement` takes bare `Bash`, because it is the skill that runs *your* repository's tests, linters and builds and those cannot be enumerated in advance. Its sibling skills are all narrowed to `gh`, `git` and `python3`.
+
+So where the other three are stopped by their grant, that one is stopped by a rule written in its own instructions - never install software, never push to the trunk - the same way the `reviewer` agent's read-only discipline is a rule rather than a wall: its grant is bare `Bash`, since an agent's `tools:` takes tool names and never a command pattern, so a `permissions.deny` rule in your own settings is the wall if you want one. If your harness can deny command shapes itself, this is the skill to point that at.
 
 ## Install
 
@@ -47,7 +49,7 @@ Every post this plugin makes lands under **your** GitHub login, because it uses 
 
 That line is not decoration. The mechanisms that test it:
 
-- the watch filter in `pr-flow`'s discuss workflow, which without it would re-emit the plugin's own replies as fresh comments and answer itself forever
+- the watch filter in `pr-flow`'s watch script, which without it would re-emit the plugin's own replies as fresh comments and answer itself forever
 - the merge gate, which treats a Review whose body opens with it as the proof that the review pass actually ran
 - the thread gate, which reads a comment *without* it as yours, and refuses to merge a thread you never replied in
 - the review workflow, recognising its own records from a previous pass
@@ -60,13 +62,13 @@ The default, used when nothing overrides it:
 > 🤖 Written by AI --- read/modified by human! 🤓
 ```
 
-To make it your own, define your line in your agent's global instructions file, the one loaded into every session automatically (`AGENTS.md`, `CLAUDE.md`, or whatever your agent reads). When that file defines a disclaimer line, it wins, and the plugin's default is not used. Keep the `> 🤖` prefix and keep it a single-line markdown blockquote: a `via` line naming which skill and workflow posted goes underneath as the blockquote's second paragraph, which is what keeps an implementation record, a divergence note and a review finding tellable apart on one pull request.
+To make it your own, define your line in your agent's global instructions file, the one loaded into every session automatically ('AGENTS.md', 'CLAUDE.md', or whatever your agent reads). When that file defines a disclaimer line, it wins, and the plugin's default is not used. Keep the `> 🤖` prefix and keep it a single-line markdown blockquote: a `via` line naming which skill and workflow posted goes underneath as the blockquote's second paragraph, which is what keeps an implementation record, a divergence note and a review finding tellable apart on one pull request.
 
 What to know before you change it. It must be a string you would never type by hand yourself, or the thread gate will read your own comment as the agent's. And change it once, early: posts already made under a previous wording keep that wording forever.
 
 ## Working in a fork
 
-Contributing to a project you do not own splits the work across two repositories, and that boundary is the one thing this plugin cannot cross.
+Contributing to a project you do not own splits the work across two repositories, and that boundary is what this plugin cannot cross.
 
 **Everything up to the merge works unchanged inside your fork**: your own issue, the branch, the plan-first draft pull request into your fork's own default branch, the implementation, the review rounds, the ready audit and the merge gate. You administer your fork, so nothing there lacks permission. Turn Issues on first, because a new fork has them switched off and `tracker` would otherwise have nothing to write to.
 
@@ -80,7 +82,7 @@ Untested rather than known in that flow: whether a pull request's author may res
 
 The plugin installs a single hook. A `git push` it can see writing to the trunk asks for confirmation first, and says why. It reads the command the way a shell would: through the quoting, through `&&`, `;` and bare newlines, through a `\`-newline continuation, and into a nested `bash -c` or `eval`. What it cannot see is a destination that only exists at runtime - a variable, a `cd` it deliberately does not follow - and there it fails open rather than guessing. Every skill here states that work reaches the trunk only through a reviewed pull request's squash merge, and a rule written in prose is a request rather than a stop.
 
-It asks rather than refuses, deliberately: a plugin's hook runs on every shell command in every session and every repository, not only while one of these skills is loaded, and plenty of repositories are legitimately trunk-only. `hooks/test-ask-before-trunk-push.sh` is its regression bench, and every case in it has been watched to fire, or to stay quiet, on the situation it names - which is a claim about the cases it holds rather than about every shape a command can take. Four shapes it did not hold were found by reading the code and fixed; a fifth is the reason a new case is added by watching it fail first.
+It asks rather than refuses, deliberately: a plugin's hook runs on every shell command in every session and every repository, not only while one of these skills is loaded, and plenty of repositories are legitimately trunk-only. `hooks/test-ask-before-trunk-push.sh` is its regression bench, and every case in it has been watched to fire, or to stay quiet, on the situation it names - which is a claim about the cases it holds rather than about every shape a command can take. A new case is added by watching it fail first, since a case that has only ever passed proves nothing.
 
 ## What it will not do
 

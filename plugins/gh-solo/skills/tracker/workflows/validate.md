@@ -8,7 +8,7 @@ Same as `status.md`: the argument, else the current branch, else ask.
 
 ## Step 2 - Load the standards
 
-Read `references/issue-shape.md` and `references/tracker-fields.md`, and `.agents/gh-solo.md` if the repository has one. **The per-repo file wins on every conflict.** A repository that declared its own layer set is not failing validation for using it.
+Read `references/issue-shape.md` and `references/tracker-fields.md`, and '.agents/gh-solo.md' if the repository has one. **The per-repo file wins on every conflict.** A repository that declared its own layer set is not failing validation for using it.
 
 ## Step 3 - Fetch
 
@@ -24,16 +24,16 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 ### Issues and spikes
 
-| Check                   | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Title format            | `imperative action`, all lowercase, under the length cap in *Titles* of `references/issue-shape.md`, no bracketed prefix or layer tag                                                                                                                                                                                                                                                                                                   |
-| Mandatory axis          | Exactly one value of the repository's mandatory axis present - `layer` by default, and whatever `.agents/gh-solo.md` names where it replaced the axis. It is the only record of that axis, so absent is a fail and two is a fail. Report the row under the axis's real name and the repository's real values, never the default set's. Two values means either one deliverable, and the axis has a combined value for it, or two issues |
-| Parent                  | Attached to an epic, unless the issue is genuinely standalone                                                                                                                                                                                                                                                                                                                                                                           |
-| Body sections           | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when                                                                                                                                                                                                                                                                                                 |
-| Summary is capped       | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement                                                                                                                                                                                                                                                                                      |
-| Criteria are checkboxes | `- [ ]`, so GitHub counts them                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Criteria are testable   | Each one observable; a reader can say pass or fail                                                                                                                                                                                                                                                                                                                                                                                      |
-| Dependencies            | Anything the body calls a blocker exists as a real `blockedBy` relation                                                                                                                                                                                                                                                                                                                                                                 |
+| Check                   | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Title format            | `imperative action`, all lowercase, under the length cap in *Titles* of `references/issue-shape.md`, no bracketed prefix or layer tag                                                                                                                                                                                                                                                                                                      |
+| Mandatory axis          | Exactly one value of the repository's mandatory axis present - `layer` by default, and whatever '.agents/gh-solo.md' names where it defines its own axis. It is the only record of that axis, so absent is a fail and two is a fail. Report the row under the axis's real name and the repository's real values, never the default set's. Two values means either one deliverable, and the axis has a combined value for it, or two issues |
+| Parent                  | Attached to an epic, unless the issue is genuinely standalone                                                                                                                                                                                                                                                                                                                                                                              |
+| Body sections           | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when                                                                                                                                                                                                                                                                                                    |
+| Summary is capped       | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement                                                                                                                                                                                                                                                                                         |
+| Criteria are checkboxes | `- [ ]`, so GitHub counts them                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Criteria are testable   | Each one observable; a reader can say pass or fail                                                                                                                                                                                                                                                                                                                                                                                         |
+| Dependencies            | Anything the body calls a blocker exists as a real `blockedBy` relation                                                                                                                                                                                                                                                                                                                                                                    |
 
 ### Epics
 
@@ -47,11 +47,13 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 ### Not checked, deliberately
 
-**`## Technical notes` and `## Dependencies` are optional**, so an absent one is never a failure. A body that names a blocker in prose is still checked for the matching `blockedBy` relation, per the Dependencies row above.
+**`## Technical notes` and `## Dependencies` are optional**, so an absent one is never a failure. A body that names a blocker in prose is still checked for the matching `blockedBy` relation, per the table's Dependencies row.
 
 **The issue type is not checked**, and is not even fetched. *Issue types are for organizations only* in `references/tracker-fields.md` settles it: a personal-account repository returns `null` for every issue, so a check would pass on everything.
 
 **Priority is optional**, so its absence is never a failure. Report it as present or absent under Notes and pass the issue either way. There is no size label to check for; *How big is one issue* in `references/issue-shape.md` explains why.
+
+#### Notes, never fails
 
 **Scope is a Note, never a fail.** If the criteria describe more than one branch's worth of work, say so with the split you would make, but pass the issue: it may already be half-built, and retitling an in-flight issue costs more than it returns. The split test belongs in `workflows/create.md`, before the issue exists.
 
@@ -63,7 +65,7 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 ## Step 5 - Report
 
-```
+```text
 ## Validation - #{issue-number}
 {title}
 {kind}  |  {state}  |  {labels}

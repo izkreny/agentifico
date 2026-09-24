@@ -31,19 +31,21 @@ Two of those fields are gates, not context, and both matter most on the `auto` c
 git fetch <remote> --quiet && git log --oneline HEAD..<remote>/main
 ```
 
-At this point in the branch's life that list should be empty - the branch was just cut. Commits in it mean the branch sits on a stale trunk, usually because it was cut locally from a `main` nobody fetched, and a plan written here would describe a codebase that no longer exists - then be committed, pushed, and reviewed as if it did. Recover it with `git merge --ff-only <remote>/main`, which is its own guard: it fast-forwards a branch that carries nothing of its own - say what was done and which commits it picked up - and refuses outright on local commits, on divergence, or on uncommitted work the update would overwrite, with no gap between the check and the move. A refusal is the owner's call: say so and name the commits rather than continuing silently. `<remote>` per the remote-name convention in `SKILL.md`.
+At this point in the branch's life that list should be empty - the branch was just cut. Commits in it mean the branch sits on a stale trunk, usually because it was cut locally from a `main` nobody fetched, and a plan written here would describe a codebase that has moved on - then be committed, pushed, and reviewed as if it did.
+
+Recover it with `git merge --ff-only <remote>/main`, which is its own guard: it fast-forwards a branch that carries nothing of its own - say what was done and which commits it picked up - and refuses outright on local commits, on divergence, or on uncommitted work the update would overwrite, with no gap between the check and the move. A refusal is the owner's call: say so and name the commits rather than continuing silently. `<remote>` per the remote-name convention in `SKILL.md`.
 
 On a *stacked* branch none of this applies: the trunk sitting ahead of a `--base <parent>` child is normal for the stack's whole life, moving the stack is `gh stack sync`'s job per `workflows/stack.md`, and nothing here fast-forwards or resets anything. Say which case it is before reporting staleness.
 
 ## Step 2 - Write the implementation plan
 
-**Filename:** `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`, the date being the day the plan is written and never changed afterwards. The `{slug}` matches the branch's. Example: `2026-08-16_GHI-50_login-form.md`.
+**Filename:** `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`, the date being the day the plan is written and never changed afterwards. The `{slug}` matches the branch's. Example: '2026-08-16_GHI-50_login-form.md'.
 
-**Location:** `docs/plans/` unless the repository already keeps them elsewhere, in which case follow what is there. Check before writing; a second plan directory is worse than an unfamiliar one.
+**Location:** 'docs/plans/' unless the repository already keeps them elsewhere, in which case follow what is there. Check before writing; a second plan directory is worse than an unfamiliar one.
 
 **There is no plan template, deliberately.** A plan is written in planning mode by an agent that has just read the issue and the code, and the sections worth having are the ones that ticket raises. Write the plan the problem needs.
 
-**The sections below are required and must carry these exact names**, because other things read them:
+**`## Steps` and `## Verification` are required and must carry those exact names**, because other things read them:
 
 - **`## Steps`** — the ordered work, as plain bullets. Other things read it, which is why the name is fixed rather than left to the planner: the PR body, where it becomes checkboxes, and the session's own todo list during implementation. Each box is ticked by whoever lands its step, at the moment it lands, per the standing convention in `SKILL.md`; the draft state only means the counter has no reader until `workflows/ready.md` audits it. Note that this file's own `## Step N` headings are the workflow's steps, not the plan's; only the backticked `## Steps` means the plan section.
 - **`## Verification`** — how you will know it worked. Which gate, which command, and what that gate *cannot* see. This is the section most likely to be skipped and most likely to be wanted later. **Only an entry with an exit code belongs in the list**: a `npm test` is a gate an agent can run and tick, while "restart the machine and read the row back" is a procedure the owner has to judge, and a judgement of theirs is never a checkbox. Write the gates as the section's list and the judgement as prose beneath it. Every box in this section has to close before the branch merges, so a box only the owner could close would block its own branch, and the cheap way out of that is to tick it untruthfully.
@@ -67,14 +69,18 @@ If the plan is only restating the issue in different words, the issue was specif
 ```bash
 git branch --show-current        # read it again, immediately before committing
 git add <the plan file>
-git commit -m "docs: add plan for {short description} (#{issue-number})"
+git commit -F <message-file>     # subject: docs: add plan for {short description} (#{issue-number})
 ```
 
-Then read back the `[branch sha]` line the commit prints. If it names the wrong branch, recover with `git branch -f <feature> <sha>` and `git reset --hard <remote>/main` on `main` - noting the reset discards any uncommitted changes in the tree and trusts the remote-tracking ref as last fetched, so fetch first and stash anything loose.
+The message file carries that subject, a blank line and the AI disclaimer, per the AI-disclaimer bullet in `SKILL.md`; `-m` would land the subject alone, and on the `auto` chain nobody watches this commit land. Then read back the `[branch sha]` line the commit prints. If it names the wrong branch, recover with `git branch -f <feature> <sha>` and `git reset --hard <remote>/main` on `main` - noting the reset discards any uncommitted changes in the tree and trusts the remote-tracking ref as last fetched, so fetch first and stash anything loose.
 
 The commit header follows *Branch and commit type* in `../tracker/references/formats.md`. A plan file is `docs`.
 
-**Run the repository's documentation checks before pushing.** A plan file is a documentation change, and a repo that validates its docs usually does so in CI without a local hook, so nothing catches a broken path or an unclosed fence until the PR is already red. `scripts/docs-check.py` in this skill checks that every backticked path resolves and every code fence closes; pass `--ignore <glob>` (repeatable) for backticked paths that belong to another tree than the one being checked, and the repository may have more checks of its own. **The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings. **The set in the script's own usage note is the one that keeps this plugin's tree clean, not yours**: a served repository's set is narrower and belongs in its `.agents/gh-solo.md`, because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
+**Run the repository's documentation checks before pushing.** A plan file is a documentation change, and a repo that validates its docs usually does so in CI without a local hook, so nothing catches a broken path or an unclosed fence until the PR is already red. `scripts/docs-check.py` in this skill checks that every backticked path resolves and every code fence closes; pass `--ignore <glob>` (repeatable) for backticked paths that belong to another tree than the one being checked, and the repository may have more checks of its own.
+
+**The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings.
+
+**The set in the script's own `--help` is the one that keeps this plugin's tree clean, not yours**: a served repository's set is narrower and belongs in its '.agents/gh-solo.md', because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
 
 ```bash
 git push -u <remote> "$(git branch --show-current)"
@@ -88,7 +94,7 @@ The first push of a branch takes `-u`. Without it the branch has no upstream, wh
 gh pr create --draft --assignee @me --title "{type}({scope}): {issue title}" --body-file <file>
 ```
 
-**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` is the issue's **layer label**, read from the issue fetched in Step 1 and omitted when it would repeat the type (`docs: rewrite the readme`, never `docs(docs): …`) — both rules live under *Branch and commit type* in `../tracker/references/formats.md`. A bare issue title would land without any of it, and `main` would be the one place the convention does not hold; `workflows/merge.md` owns what happens to this title at merge time.
+**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` is the issue's **layer label**, read from the issue fetched in Step 1 and omitted when it would repeat the type (`docs: rewrite the readme`, never `docs(docs): …`) — each rule lives under *Branch and commit type* in `../tracker/references/formats.md`. A bare issue title would land without any of it, and `main` would be where the convention fails to hold; `workflows/merge.md` owns what happens to this title at merge time.
 
 **`--draft` is not optional.** The PR is the workspace for this branch from here on, so it is open while the work is unfinished, and a draft is how everything else tells the difference. `workflows/review.md` skips drafts for exactly this reason: without the flag, the review loop would offer to review a PR containing nothing but a plan.
 
@@ -126,16 +132,24 @@ Closes #{issue-number}
 ["None yet." at creation, so the heading is never bare. Each answered question moves here from Open questions, question and decision together, the first one replacing the placeholder.]
 ```
 
-The AI disclaimer goes above all of it, as it does on the plan file and in the commit body. The wording and the rule, including the default used when the owner's global instructions file defines no line, live in the AI-disclaimer bullet of `SKILL.md`; it is not repeated here, because a template is the wrong place to define a convention that applies everywhere.
+The AI disclaimer opens the body, as it does on the plan file and in the commit body. The wording and the rule, including the default used when the owner's global instructions file defines no line, live in the AI-disclaimer bullet of `SKILL.md`; it is not repeated here, because a template is the wrong place to define a convention that applies everywhere.
 
 **The sections that reach `main` as prose carry a length cap**, stated under *Body caps* below and never inside the template, for the same reason.
 
 Why each part earns its place:
 
+### The links
+
 - **`Closes #{issue-number}`** closes the issue on merge and records the link permanently. Nothing else enforces it.
 - **The plan link** is what makes "implement PR 60" a complete instruction: the PR body names the plan, the plan holds the approach, and the issue holds the acceptance criteria. One link per hop, no duplication. It points at `main` rather than the feature branch so it survives the branch being deleted after merge — it 404s until then, which costs nothing while the plan is the first file in the PR's own **Files changed** tab.
+
+### The lists
+
 - **The step checklist** is the plan's `## Steps` as checkboxes. GitHub renders it as a progress counter, so state is readable on the PR without opening a file, and ticking a box costs an edit rather than a commit.
-- **`## Verification` is here for the same reason `## Steps` is**, and carried the same way: the plan's copy is the intended gates, this copy is whether they have actually been run. Every required section of the plan therefore appears in the body as checkboxes, because each has a progress dimension the plan file cannot record. This is the section `workflows/ready.md` audits before the final push — it is the answer to "which checks does this branch owe", written by the agent that had just read the code. Each box is ticked by whoever ran that gate, as it passes; `ready` only reads them, and refuses to lift the draft while one is empty. **So every box here is a gate with an exit code, and a judgement only the owner can make is never one of them.** `workflows/merge.md` refuses on an empty box exactly as `ready` does, so a judgement box blocks the branch it sits on and can be cleared only by ticking it untruthfully, which is the one thing that makes the whole record worthless. Judgement goes in the "what these gates cannot see" line, which stays prose: it is a caveat, not a task.
+- **`## Verification` is here for the same reason `## Steps` is**, and carried the same way: the plan's copy is the intended gates, this copy is whether they have actually been run. Every required section of the plan therefore appears in the body as checkboxes, because each has a progress dimension the plan file cannot record. This is the section `workflows/ready.md` audits before the final push — it is the answer to "which checks does this branch owe", written by the agent that had just read the code. Each box is ticked by whoever ran that gate, as it passes; `ready` only reads them, and refuses to lift the draft while one is empty. **So every box here is a gate with an exit code, and a judgement only the owner can make is never one of them.** `workflows/merge.md` refuses on an empty box exactly as `ready` does, so a judgement box blocks the branch it sits on and can be cleared only by ticking it untruthfully, which is what makes the whole record worthless. Judgement goes in the "what these gates cannot see" line, which stays prose: it is a caveat, not a task.
+
+### The discussion
+
 - **Open questions** are here because a PR body is where a comment thread can answer them. In the plan file alone they are rhetorical. An entry leaves this section the moment it is settled - moved into `## Settled`, never deleted.
 - **`## Settled`** is where an answered question lands, question and decision together, because the question is what makes the decision legible to a later reader. Moving rather than deleting matters twice over: `workflows/ready.md` audits `## Open questions` before lifting the draft, and `workflows/merge.md` has the squash merge write the whole PR body into the commit on `main` (`squash_merge_commit_message: PR_BODY`), so a decision recorded here survives in `git log` permanently, where a comment thread never lands. The move happens where the decision does: a discuss round moves an entry the moment the owner's closing decision settles it, per `workflows/discuss.md`, and Step 1's plan-record settle in the `implement` skill catches anything still unmoved before implementation starts - a body edit either way, like ticking a box, never a commit - except the relocation past the cap, whose whole route *Body caps* below owns. A decision settled in the terminal instead of a thread goes into the plan file under the same `## Settled` heading, per `workflows/discuss.md`: one name for the concept everywhere it appears, and the one sanctioned way a plan file changes after plan time.
 
@@ -145,7 +159,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 ### Body caps
 
-**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement. **This is not the post cap**, which `references/post-caps.md` owns and which puts the PR body outside its domain outright: this one exists because the body becomes a commit message on `main`, so the two are separate caps that happen to agree, and neither is evidence for the other's number:
+**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement. **This is not the post cap**, which `references/post-caps.md` owns and which puts the PR body outside its domain outright: this one exists because the body becomes a commit message on `main`, so they are separate caps that happen to agree, and neither is evidence for the other's number:
 
 - **`## Plan overview`**, the approach.
 - **The paragraph under `## Verification`**, what the gates cannot see.
@@ -156,16 +170,18 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 **The cap is here because this body becomes a commit message.** Where the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `workflows/merge.md`, the whole body lands in `git log` on `main` and nothing edits a commit message afterwards. The overview is written once and reviewed at plan time; the rest accumulate for the length of the branch, so uncapped the commit message's length tracks how much discussion the branch had rather than what the branch did.
 
-**What does not count is *Never counted* under *Post caps* in `SKILL.md`**, which reaches a body section unchanged. What that list cannot say from where it sits is which of this body's sections it lands on: the `## Steps` and `## Verification` checkbox lists are its record row, their length set by how many steps and gates a branch has rather than by how much was written, so both are uncapped and neither is named above.
+#### What counts
+
+**What does not count is *Never counted* under *Post caps* in `SKILL.md`**, which reaches a body section unchanged. What that list cannot say from where it sits is which of this body's sections it lands on: the `## Steps` and `## Verification` checkbox lists are its record row, their length set by how many steps and gates a branch has rather than by how much was written, so both are uncapped and neither is in the capped list.
 
 **A `## Settled` entry is not a record row, and it counts.** One line per item is what that exclusion covers; a settled entry is a question and a decision written at whatever length its writer chose. It is the same line drawn under `## Verification`, where the boxes are excluded and the paragraph beneath them is not - and reading the exclusion the other way would leave the one section that grows for the whole branch bounded by nothing.
 
-**The entry that would take a section past its cap moves to the plan file's own `## Settled` heading**, the heading `workflows/discuss.md` already gives a decision settled outside a thread. **The commit message is not the escape here**, however reliably *Post caps* sends overflow there: this body *is* the commit message, so that route is a circle. The plan file is committed under `docs/plans/`, is already linked from `## Plan overview`, and outlives the branch, so moving rather than deleting holds exactly as it does inside the body.
+**The entry that would take a section past its cap moves to the plan file's own `## Settled` heading**, the heading `workflows/discuss.md` already gives a decision settled outside a thread. **The commit message is not the escape here**, however reliably *Post caps* sends overflow there: this body *is* the commit message, so that route is a circle. The plan file is committed under 'docs/plans/', is already linked from `## Plan overview`, and outlives the branch, so moving rather than deleting holds exactly as it does inside the body.
 
-**This section owns the whole route, and every other site points here** rather than restating a leg of it, because a route stated in several places is one that gets half-fixed. Each part below earns its place:
+**This section owns the whole route, and each other site points here** rather than restating a leg of it, because a route stated in several places is one that gets half-fixed. Each part below earns its place:
 
 - **The relocation is a `docs:` commit, written where the decision settles**, and held exactly like the other commits that round makes. It is never a body edit, since no body edit can put text in a file.
-- **The body's own edit is owed from the moment that commit exists, never lands before its push, and stays owed until it lands.** An invariant rather than a trigger, because a trigger keyed on this round still holding the commit dies with the session that held it, and any push carries the branch rather than selected commits. What discharges it is the first pass to find the commit on the remote with its entry still in `## Open questions`: Step 1's plan-record settle in the `implement` skill, which writes the plan file, pushes it and edits the body in one pass, or the review protocol's step 7, per `workflows/resolve.md`. Both read that condition off the remote and the body, so neither needs to have been the session that made the commit.
+- **The body's own edit is owed from the moment that commit exists, never lands before its push, and stays owed until that edit lands.** An invariant rather than a trigger, because a trigger keyed on this round still holding the commit dies with the session that held it, and any push carries the branch rather than selected commits. What discharges it is the first pass to find the commit on the remote with its entry still in `## Open questions`: Step 1's plan-record settle in the `implement` skill, which writes the plan file, pushes it and edits the body in one pass, or the review protocol's step 7, per `workflows/resolve.md`. Both read that condition off the remote and the body, so neither needs to have been the session that made the commit.
 - **In flight the entry sits in `## Open questions`**, since nothing writes it into `## Settled` until the body edit lands, so no section is ever over its cap during the wait and the **Body capped** row in `workflows/review.md` needs no exemption. What a `ready` or a review run in that window does see is an unmoved entry, which `workflows/ready.md` and `workflows/merge.md` already report as a bookkeeping miss rather than refuse on.
 
 ## Step 5 - Confirm
@@ -191,6 +207,6 @@ This workflow ends here. When the discussion settles, the owner has two ways int
 - **Stop after the draft PR.** This is the gate, and it is the whole reason the PR opens early. Implementation begins after the plan discussion, not after the plan lands. The `workflows/auto.md` chain is the one authorised continuation, and only the literal `auto` command starts it.
 - **Draft at creation.** The other half of the pair — ready when finished — is `workflows/ready.md`. A PR opened ready gets reviewed empty; a PR left in draft after the work lands never gets reviewed at all.
 - **The plan commit is alone and first.** Every other commit on the branch should be as few as make sense — a plan's step list is a list of steps, not a list of commits, and six planned steps are free to land as one commit.
-- **`Closes #{issue-number}` in the PR body, and `--assignee @me` on the command**, every time. GitHub sets neither, and the two arrive by different routes — there is no `--closes` flag, so a body written without that line cannot be fixed by adding an argument.
+- **`Closes #{issue-number}` in the PR body, and `--assignee @me` on the command**, every time. GitHub sets neither, and they arrive by different routes — there is no `--closes` flag, so a body written without that line cannot be fixed by adding an argument.
 - **Checkboxes live in the PR body only.** The plan file lists the same steps as plain bullets, because it records intent rather than progress. The issue holds acceptance criteria, the plan holds the approach and the intended sequence, the PR holds the state.
 - Never open a PR from `main`, and never commit to `main` to make one possible.

@@ -2,7 +2,7 @@
 
 For repositories you own and commit to alone. A client setting scope and dates is fine, and so is a mentor who comments on issues and reviews PRs; a second committer or a QA sign-off that gates a merge is not. The test is who **writes**, not who is involved.
 
-**Commands**
+## Commands
 
 | Command                               | What it does                                                                            |
 |---------------------------------------|-----------------------------------------------------------------------------------------|
@@ -24,19 +24,19 @@ Bare invocation with a description routes to `create`.
 
 An issue you want in the backlog before you have time or information to describe it gets the `draft` label: title and layer label as normal, body a stub. It stays invisible to `next` until `finish` removes the label. `search draft` lists them.
 
-**Auto-triggers**
+## Auto-triggers
 
 Any of the phrasings in the routing table of `SKILL.md` reaches the matching command without you typing it - that table is the one list, and this page deliberately does not copy it: a second copy drifts from the first the moment a row moves, and a reader given two lists cannot tell which one is current. What the table covers: reading an issue, moving its state, searching, picking what is next, validating one against the standards, breaking work into issues, and the milestone operations.
 
-**Prerequisites**
+## Prerequisites
 
 - `gh`, authenticated with the `repo` scope. Check with `gh auth status`.
 - Labels must exist before they can be applied; `gh issue create` fails on an unknown label rather than creating it. See `gh label list`.
-- Optional: `.agents/gh-solo.md` in the repository, recording its label taxonomy, branch format and whether it uses issue types.
+- Optional: '.agents/gh-solo.md' in the repository, recording its label taxonomy, branch format and whether it uses issue types.
 
 Setup and the failures that read as something else: `references/github-access.md`
 
-**What GitHub does not have**
+## What GitHub does not have
 
 No time logging, no story-point gate, no typed "relates to" link, and no status field beyond open and closed. Those are genuinely absent from GitHub rather than declined here. In-progress is carried by the assignee instead: `@me` while you are working on it, cleared when you set it aside, and a PR saying `Closes #50` ends it when the code merges.
 

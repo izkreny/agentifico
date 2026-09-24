@@ -1,30 +1,4 @@
 #!/usr/bin/env python3
-"""Build and reconcile the one API call that lands a review round on a pull request.
-
-The reviewer emits a findings file and knows nothing about posting conventions. This turns
-that file into the payload for `POST repos/{owner}/{repo}/pulls/{pr}/reviews`, which lands
-every finding as an inline thread and the record Review in one request, and afterwards
-reconciles what the pull request actually carries against what was sent.
-
-    post-review.py build      --findings F --disclaimer-file D --continue-from N --out PAYLOAD
-    post-review.py verify     --payload PAYLOAD --comments C
-    post-review.py highest-id --comments C
-
-`build` refuses the whole round on any invalid finding rather than emitting a partial
-payload: a payload that posts is irreversible, and half a round on a pull request is worse
-than none. It writes no network traffic and needs none, so it is safe to re-run.
-
-`verify` takes the pull request's inline comments as JSON, which must be read with
-`gh api --paginate` - that endpoint pages at 30, and an unpaginated read of a pull request
-carrying an ordinary plan discussion returns a slice that looks exactly like a failed post.
-
-`highest-id` reads the same listing and prints the number `build --continue-from` wants. It
-is a subcommand rather than a `--jq` filter on the `gh` call because `--jq` cannot read a
-paginated result whole; the unattended-command bullet in the `pr-flow` skill's SKILL.md owns
-that rule and says why.
-
-Exit codes: 0 all checks passed, 2 a check failed, 1 the arguments or the files were unusable.
-"""
 
 from __future__ import annotations
 
@@ -35,9 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-# `unrated` means the reviewer supplied none, which an appointed command cannot. It is
-# never a guess: a level or an axis that looked like the reviewer's but came from the
-# orchestrator is the fictional mapping this whole flow exists to have removed.
+# `unrated` is never a guess, because a level that looked like the reviewer's but came from the orchestrator is the fictional mapping this flow exists to remove.
 SEVERITIES = {"high": "🔴", "medium": "🟡", "low": "🔵", "unrated": "⚪"}
 AXES = ("standards", "spec", "unrated")
 SIDES = ("RIGHT", "LEFT")
@@ -45,34 +17,15 @@ PASSES = ("review", "re-review")
 SEVERITY_SOURCES = ("reviewer", "derived")
 DISCLAIMER_PREFIX = "> 🤖"
 SUGGESTION_FENCE = "```suggestion"
-# An id a post *issues* is delimited, so prose can name one without being counted: an
-# explanation writing `RF7` to illustrate the flow inflated this counter, and a convention
-# asking writers to remember that is a rule with no gate. The delimiter is the gate.
-# `::` rather than brackets because `[RF8]` is markdown link syntax and can acquire
-# meaning where a reference definition exists, while `::RF8::` renders literally in every
-# markdown dialect and is not something prose types by accident.
+# An issued id is delimited with `::` so prose can name one without being counted, and `::` rather than brackets because `[RF8]` is markdown link syntax.
 ID_PATTERN = r"::RF(\d+)::"
-# What a finding post wrote before the brackets: the id at the start of a line. Read for
-# the life of every pull request that already carries one, because under-reading hands a
-# live id to a second finding, which is the one failure that cannot be undone.
+# A legacy finding post opened a line with the bare id, and under-reading it would hand a live id to a second finding.
 LEGACY_PATTERN = r"^RF(\d+) "
-# A bare id anywhere else is prose. Ignoring it is the whole point, but a *legacy* post put
-# them mid-line too - a verdict answering about several findings - so an ignored one is
-# reported rather than silently dropped.
+# A legacy post put bare ids mid-line too, so an ignored one is reported rather than silently dropped.
 BARE_PATTERN = r"\bRF(\d+)\b"
-# The key that marks a fenced JSON block as this flow's own held-findings ledger. `release`
-# scans every ```json fence in every review body, so a sentinel inside the object is what
-# tells ours from a fence someone else wrote; a heading above it would not survive an edit.
+# A sentinel inside the object tells this flow's ledger from any other ```json fence, where a heading above it would not survive an edit.
 HELD_KEY = "gh_solo_held"
-# The record Review that holds a finding is posted before that finding has a fix plan, a
-# fix result or a verdict - they do not exist yet - and a posted Review is never rewritten.
-# So the round posts a second Review at its end carrying those, keyed by id, and `release`
-# merges the two ledgers: the finding becomes the thread, each follow-up becomes a reply.
-# One full reviewer pass leaves one of these on the pull request, whether it posted its
-# findings or was discarded before it could, and `passes` counts occurrences of it. A
-# marker rather than the record's own prose because the prose is composed here: matching
-# `Review round on N finding(s)` would answer 0 the first time that sentence was reworded,
-# and a cap told no pass has run lets every pass through with nothing failing.
+# A posted Review is never rewritten, so the follow-ups go in a second Review that `release` merges, and `passes` counts a marker rather than prose that gets reworded.
 PASS_MARKER = "::gh-solo-pass::"
 FOLLOWUP_KEY = "gh_solo_held_followup"
 FOLLOWUP_KINDS = ("plan", "result", "verdict")
@@ -88,9 +41,6 @@ FINDING_FIELDS = (
     "finding",
     "needs_owner",
 )
-# What a ledger entry carries: the finding whole, the id it was reserved under, and the
-# head its `line` was counted against - without which the number cannot be brought
-# forward to the pushed head.
 HELD_FIELDS = FINDING_FIELDS + ("rf", "at")
 
 
@@ -104,24 +54,18 @@ def load_json(path: Path, what: str) -> object:
 
 
 def rf_ids(body: str) -> list[int]:
-    """Every id a body *issues*, since one reply can answer about several at once.
-
-    Delimited ids anywhere, plus a legacy post's line-opening bare id. A bare id anywhere
-    else is prose naming a finding rather than a post issuing one.
-    """
+    """Delimited ids anywhere plus a legacy post's line-opening bare id, because a bare id elsewhere is prose naming a finding rather than a post issuing one."""
     found = [int(n) for n in re.findall(ID_PATTERN, body)]
     found += [int(m.group(1)) for m in re.finditer(LEGACY_PATTERN, body, re.M)]
     return found
 
 
 def rf_id(body: str) -> int | None:
-    """The id a posted or built body carries, or None."""
     found = rf_ids(body)
     return found[0] if found else None
 
 
 def ignored_bare_ids(body: str) -> list[int]:
-    """Bare ids this body carries that no longer count, for reporting rather than use."""
     counted = set(rf_ids(body))
     return sorted({int(n) for n in re.findall(BARE_PATTERN, body)} - counted)
 
@@ -215,21 +159,11 @@ def check_indices(findings: list[object], problems: list[str]) -> None:
 
 
 def unpushed_paths(text: str, problems: list[str]) -> set[str]:
-    """The files the unpushed fix commits touch, from a `git diff` of them.
-
-    Held-or-not is decided per *file*, never per hunk, and the reason is line numbers. A
-    rescope finding's `line` counts lines in the file at local HEAD, while GitHub resolves
-    an anchor against the pushed head, so an unpushed commit that inserts lines anywhere
-    above a finding shifts it - including a finding outside every hunk. Holding the whole
-    file is the strict superset that has no such gap, and it over-flags in the direction
-    the design already accepts: a thread minutes later rather than a `422`.
-    """
+    """Held-or-not is decided per file rather than per hunk, because an unpushed commit inserting lines anywhere above a finding shifts its line."""
     paths: set[str] = set()
     saw_header = False
     for line in text.splitlines():
-        # `diff --git` is the one line git emits for every file in every diff. The
-        # `---`/`+++` pair is absent for a pure rename, a mode-only change and a binary
-        # file, so a reader that took only those would refuse a legitimate diff.
+        # `diff --git` is read rather than the `---`/`+++` pair, which a pure rename, a mode-only change and a binary file all lack.
         match = re.match(r"diff --git a/(.*) b/(.*)$", line)
         if match:
             saw_header = True
@@ -253,13 +187,7 @@ def unpushed_paths(text: str, problems: list[str]) -> set[str]:
 
 
 def shift_line(diff_text: str, line: int) -> int | None:
-    """Where `line` has moved to across a diff, or None when the diff changed it.
-
-    A held finding's `line` counts lines in the file as it stood when the reviewer read it,
-    and the round goes on committing between the hold and the push, so replaying that
-    number would anchor the thread to whatever now sits there. `None` is the honest answer
-    where the fixes rewrote the line itself: nothing can say where such a finding belongs.
-    """
+    """`None` where the fixes rewrote the line itself, because nothing can say where such a finding belongs."""
     offset = 0
     for match in re.finditer(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@", diff_text, re.M):
         old_start = int(match.group(1))
@@ -277,7 +205,6 @@ def shift_line(diff_text: str, line: int) -> int | None:
 
 
 def repo_root() -> str | None:
-    """The working tree's top level, or None where this is not a git repository."""
     proc = subprocess.run(
         ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True
     )
@@ -285,14 +212,7 @@ def repo_root() -> str | None:
 
 
 def range_diff(at: str, path: str, root: str) -> str | None:
-    """`git diff` from the head a finding was anchored against to the current one.
-
-    Run at the top level, because a ledger's `path` is repo-relative while a git pathspec
-    is relative to the working directory: from a subdirectory the pathspec matches nothing
-    and git answers empty output at exit 0, which is indistinguishable from "the file did
-    not change" and would replay the stored line silently - the very defect the shift
-    exists to remove.
-    """
+    """Run at the top level, because a repo-relative pathspec from a subdirectory matches nothing and git answers empty at exit 0, which would replay the stored line silently."""
     proc = subprocess.run(
         ["git", "diff", f"{at}..HEAD", "--unified=0", "--", path],
         capture_output=True, text=True, cwd=root,
@@ -301,14 +221,7 @@ def range_diff(at: str, path: str, root: str) -> str | None:
 
 
 def threaded_ids(bodies: list[str]) -> set[int]:
-    """The ids that already carry a finding thread, never the ones merely mentioned.
-
-    Every convention here puts ids in prose - a fix plan, a fix result and a re-review
-    verdict all name the ids they cover - so "any RF{n} anywhere" reads a cross-reference
-    as a posted finding and silently drops the held finding it names. `finding_body` is the
-    only thing that posts a finding and it opens a line with the id, so that shape is the
-    test; it is also what `verify` matches on, which keeps the two halves in agreement.
-    """
+    """Only a line-opening id counts, because every convention here names ids in prose and reading any `RF{n}` would drop the held finding it names."""
     found: set[int] = set()
     for body in bodies:
         first = rf_id(body)
@@ -323,7 +236,6 @@ def threaded_ids(bodies: list[str]) -> set[int]:
 
 
 def ledger_entries(bodies: list[str], key: str) -> list[dict]:
-    """Every entry under `key` in a review body's fenced ledgers, oldest body first."""
     entries: list[dict] = []
     for body in bodies:
         for block in re.findall(r"```json\n(.*?)\n```", body, re.DOTALL):
@@ -337,21 +249,15 @@ def ledger_entries(bodies: list[str], key: str) -> list[dict]:
 
 
 def held_entries(bodies: list[str]) -> list[dict]:
-    """Every held finding recorded in a review body's fenced ledger, oldest body first."""
     return ledger_entries(bodies, HELD_KEY)
 
 
 def followup_entries(bodies: list[str]) -> list[dict]:
-    """Every fix plan, fix result and verdict recorded for a held finding."""
     return ledger_entries(bodies, FOLLOWUP_KEY)
 
 
 def followup(args: argparse.Namespace) -> int:
-    """Post-round: record a held finding's plan, result and verdict for `release` to copy.
-
-    Each is kept as its own entry rather than folded into the finding's text, so the thread
-    `release` opens carries the same reply-per-step shape a threaded finding collects.
-    """
+    """Each is kept as its own entry so the thread `release` opens carries the same reply-per-step shape a threaded finding collects."""
     disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
     data = load_json(Path(args.entries), "follow-up entries")
 
@@ -411,7 +317,6 @@ def header(disclaimer: str, via: str) -> str:
 
 
 def finding_note(kind: str, text: str, disclaimer: str) -> str:
-    """One reply a released thread collects: its fix plan, its fix result or its verdict."""
     via = {"plan": "released fix plan", "result": "released fix result",
            "verdict": "released re-review verdict"}[kind]
     return f"{header(disclaimer, via)}\n\n{text.strip()}"
@@ -443,19 +348,11 @@ def record_body(
         unrated = sum(1 for _, f in assigned if f["severity"] == "unrated")
         tail = f" {unrated} arrived unrated." if unrated else ""
         lines.append(f"Review round on {len(assigned)} finding(s). Axes run: {axes}.{tail}")
-        # A row rather than a sentence, so it reads as one of the record's entries and its
-        # length follows how many there are. No cap is in play either way: *Never capped*
-        # in `../references/post-caps.md` puts anything this script composes outside the
-        # cap's domain and names the record Review doing it. It is here because the head
-        # otherwise lives in one session's memory and dies with it, leaving nobody able to
-        # say afterwards which version of the branch a round actually judged.
+        # A row rather than a sentence, so the head outlives the session that pinned it and reads as one of the record's entries.
         witness = ("corroborated by the reviewer" if corroborated
                    else "not corroborated - the reviewer reported no head")
         lines.append(f"- Reviewed at {reviewed_at} ({witness})")
-        # Its own row rather than a prefix on the one above, so the line `passes` counts
-        # carries no other fact that could be edited out from under it. A re-review gets
-        # none: it is an analysis and posts a record, but it is not a reading of the
-        # branch, and charging it would spend a round's budget three times over for one.
+        # Its own row, so the line `passes` counts carries no other fact that could be edited out from under it.
         lines.append(f"- {PASS_MARKER} one full reviewer pass, counted against this "
                      f"pull request's cap")
     else:
@@ -481,10 +378,7 @@ def record_body(
         lines.append("")
         lines.append("No findings.")
 
-    # The ledger `release` reads back after the push. It carries each held finding whole
-    # rather than the row above, because a thread cannot be opened later from a `file:line`
-    # with no finding text. `json.dumps` never emits a raw newline inside a string, so no
-    # finding's own text can close this fence early.
+    # The ledger carries each held finding whole, because a thread cannot be opened later from a `file:line` with no finding text.
     if held:
         ledger = [
             {**{k: f[k] for k in FINDING_FIELDS}, "rf": rf, "at": anchored_at}
@@ -545,10 +439,7 @@ def build(args: argparse.Namespace) -> int:
         problems.append("findings is missing or not a list")
         findings = []
 
-    # A derived severity is one the orchestrator read out of the finding's own words,
-    # which an appointed command's findings require because such a command supplies no
-    # level. It is honest only if the record says so, which is why the basis is required
-    # here and refused when the reviewer assigned the levels itself.
+    # A derived severity is honest only if the record says so, which is why the basis is required here.
     source = data.get("severity_source", "reviewer")
     basis = data.get("severity_basis")
     if source not in SEVERITY_SOURCES:
@@ -567,10 +458,7 @@ def build(args: argparse.Namespace) -> int:
             "derivation that did not happen"
         )
 
-    # The other half of the same rule. `unrated` exists for a reviewer that cannot assign
-    # a level, so a finding carrying it while the source is `reviewer` publishes a level
-    # the reviewer never gave as the reviewer's own. The check above refuses a derivation
-    # that did not happen; this one refuses one that did and was not stated.
+    # `unrated` from a reviewer that assigned levels would publish a level the reviewer never gave.
     if source == "reviewer":
         unrated = [
             f.get("index") for f in findings
@@ -583,9 +471,7 @@ def build(args: argparse.Namespace) -> int:
                 % ", ".join(str(i) for i in unrated)
             )
 
-    # `--unpushed-diff` belongs to the rescope entrance alone. A full pass runs on the
-    # pushed head, so a finding it cannot anchor is the reviewer failing to anchor, which
-    # `../../reviewer/SKILL.md` already tells it to drop rather than hand on.
+    # `--unpushed-diff` belongs to the rescope entrance alone, because a full pass runs on the pushed head.
     if which_pass == "review" and args.unpushed_diff is not None:
         problems.append(
             "--unpushed-diff was given on a review pass, which reads the pushed head and "
@@ -597,11 +483,7 @@ def build(args: argparse.Namespace) -> int:
             "GitHub can anchor from one only the unpushed fixes carry"
         )
 
-    # The pin is what the reviewer was told to read, so it belongs to the full pass and
-    # the full pass alone: a re-review reads unpushed commits with `git` and takes
-    # `--anchored-at` for the same job. Both directions are refused, as with the pair
-    # above, because an argument that is silently ignored on one entrance is an argument
-    # nobody can reason about on either.
+    # Both directions are refused, because an argument silently ignored on one entrance is one nobody can reason about on either.
     reported = data.get("head")
     if which_pass == "re-review":
         for flag, value in (("--pinned-head", args.pinned_head), ("--head-now", args.head_now)):
@@ -625,15 +507,11 @@ def build(args: argparse.Namespace) -> int:
                 )
             elif not re.fullmatch(r"[0-9a-f]{7,40}", value):
                 problems.append(f"{flag} is not a commit sha: {value!r}")
-        # Optional, because a reviewer a repository appointed may not write it. What it
-        # buys when present is corroboration: the pin says what was asked for, this says
-        # what was read, and only the two together rule out a reviewer that read elsewhere.
+        # Optional because an appointed reviewer may not write it.
         if reported is not None and not re.fullmatch(r"[0-9a-f]{7,40}", str(reported)):
             problems.append(f"head is not a commit sha: {reported!r}")
         else:
-            # Two comparisons, two messages. They fail for different reasons - one means
-            # the pass is invalid, the other that the anchors can no longer resolve - and
-            # a single merged message would leave a reader unable to tell which.
+            # Two messages, because a merged one would leave a reader unable to tell an invalid pass from anchors that cannot resolve.
             if reported is not None and args.pinned_head is not None and reported != args.pinned_head:
                 problems.append(
                     f"the reviewer read {reported} but was told to read "
@@ -703,8 +581,7 @@ def build(args: argparse.Namespace) -> int:
     ordered = sorted(findings, key=lambda f: f["index"])
     assigned = [(args.continue_from + n, f) for n, f in enumerate(ordered, start=1)]
 
-    # Ids run over every finding whether or not it gets a thread, which is the whole point
-    # of holding rather than deferring: the id is reserved now and cannot be reissued.
+    # Ids run over every finding whether or not it gets a thread, so a held id is reserved now and cannot be reissued.
     held = {rf for rf, f in assigned if f["path"] in held_paths}
 
     via_finding = "finding" if which_pass == "review" else "re-review finding"
@@ -762,13 +639,7 @@ def build(args: argparse.Namespace) -> int:
 
 
 def discard(args: argparse.Namespace) -> int:
-    """The record a pass leaves when its findings never reach the pull request.
-
-    A discarded pass posts no record Review, no round report and no thread, so without
-    this it is a spawn nobody is charged for - which is the whole of what the runaway
-    this cap exists to bound was made of. It goes on the reviews surface because the
-    round already reads that one, so counting costs no further request.
-    """
+    """A discarded pass posts nothing else, so without this record it is a spawn nobody is charged for."""
     disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
     if not disclaimer.startswith(DISCLAIMER_PREFIX):
         print(
@@ -798,12 +669,9 @@ def discard(args: argparse.Namespace) -> int:
 
 
 def passes(args: argparse.Namespace) -> int:
-    """Print how many full reviewer passes this pull request has already had."""
     bodies = review_bodies(Path(args.reviews))
     count = sum(1 for body in bodies if PASS_MARKER in body)
-    # Said every time rather than only when it looks wrong, because the undercount is
-    # invisible from here: a pull request whose rounds ran before the marker existed is
-    # indistinguishable from one that has had no round at all.
+    # Said every time, because a pull request whose rounds ran before the marker existed is indistinguishable from one with no round.
     print(
         f"post-review: rounds posted before {PASS_MARKER} existed are not counted",
         file=sys.stderr,
@@ -813,12 +681,7 @@ def passes(args: argparse.Namespace) -> int:
 
 
 def comment_bodies(path: Path) -> list[str]:
-    """Every body in a pull request's inline-comment listing.
-
-    The listing is what `gh api --paginate` writes with no `--slurp`: one flat array of
-    comment objects, pages already merged. `--slurp` would nest one array per page, so a
-    reader written for that shape and a reader written for this one cannot be the same.
-    """
+    """The listing is the flat array `gh api --paginate` writes without `--slurp`, since `--slurp` nests one array per page."""
     posted = load_json(path, "comments listing")
     wrong_shape = (
         "post-review: the comments listing is not one flat JSON array of comments - it must "
@@ -827,22 +690,14 @@ def comment_bodies(path: Path) -> list[str]:
     )
     if not isinstance(posted, list):
         sys.exit(wrong_shape)
-    # A non-object element is the array-of-arrays `--paginate --slurp` writes, one array per
-    # page. Filtering it out rather than refusing would find no bodies at all and answer 0,
-    # which is indistinguishable from a pull request that has had no round.
+    # A non-object element is the `--slurp` shape, and filtering it out would answer 0 like a pull request with no round.
     if any(not isinstance(c, dict) for c in posted):
         sys.exit(wrong_shape)
     return [c["body"] for c in posted if isinstance(c.get("body"), str)]
 
 
 def review_bodies(path: Path) -> list[str]:
-    """Every submitted review's body on a pull request.
-
-    Same shape and same refusal as `comment_bodies`: the flat array `gh api --paginate`
-    writes for `pulls/<pr-number>/reviews`, never the array-of-arrays `--slurp` nests. A
-    reserved id lives only here until its push, so a reader that missed this surface would
-    answer as though the id had never been issued.
-    """
+    """A reserved id lives only in a review body until its push, so a reader that missed this surface would answer as though it had never been issued."""
     posted = load_json(path, "reviews listing")
     wrong_shape = (
         "post-review: the reviews listing is not one flat JSON array of reviews - it must "
@@ -857,11 +712,7 @@ def review_bodies(path: Path) -> list[str]:
 
 
 def release(args: argparse.Namespace) -> int:
-    """Post-push: turn the held ledger back into the threads it was standing in for.
-
-    Exit 0 with no payload written means there was nothing to release, which is the
-    ordinary answer on a round that held nothing.
-    """
+    """Exit 0 with no payload means nothing to release, the ordinary answer on a round that held nothing."""
     disclaimer = Path(args.disclaimer_file).read_text(encoding="utf-8").strip()
     bodies = review_bodies(Path(args.reviews))
     entries = held_entries(bodies)
@@ -885,14 +736,10 @@ def release(args: argparse.Namespace) -> int:
             print(f"  {problem}", file=sys.stderr)
         return 2
 
-    # An id already carrying a thread is skipped rather than refused. Every earlier round's
-    # ledger stays in its own review body for good - nothing rewrites a posted Review - so
-    # on the second `rnp` of a pull request the first round's released ids are still listed
-    # here, and refusing on them would break every round after the first.
+    # Skipped rather than refused, because every earlier round's ledger stays in its Review for good.
     already = sorted({e["rf"] for e in entries} & threaded)
     pending = [e for e in entries if e["rf"] not in threaded]
-    # Two ledgers can name one id only if a round reissued it, which is the invariant the
-    # widened `highest-id` exists to keep; posting it twice would hide that it broke.
+    # Two ledgers naming one id means a round reissued it, and posting it twice would hide that.
     seen: set[int] = set()
     unique = []
     for entry in sorted(pending, key=lambda e: e["rf"]):
@@ -908,12 +755,7 @@ def release(args: argparse.Namespace) -> int:
     if already:
         print("post-review: already threaded, skipped: " + ", ".join(f"RF{n}" for n in already))
 
-    # The stored line was counted against `at`, and the round kept committing after the
-    # hold, so it is brought forward rather than replayed. A line the fixes rewrote cannot
-    # be brought forward at all, and a named gap beats a thread on the wrong statement.
-    # Checked here rather than on entry: a malformed ledger is still a malformed ledger
-    # outside a repository, and refusing earlier turned every existing exit-2 refusal into
-    # an exit 1 that says something else entirely.
+    # Brought forward rather than replayed because the round kept committing after the hold, and checked here rather than on entry so a malformed ledger still exits 2 outside a repository.
     root = repo_root()
     if root is None:
         sys.exit(
@@ -975,9 +817,7 @@ def release(args: argparse.Namespace) -> int:
         json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
     )
 
-    # The replies the workflow posts once the threads above exist and have ids. They are
-    # kept separate rather than folded into the finding's own comment so a released thread
-    # collects the same reply-per-step shape a threaded finding does.
+    # Kept separate from the finding's own comment so a released thread collects the same reply-per-step shape a threaded one does.
     released = {e["rf"] for e in unique}
     plan = [
         {
@@ -1015,12 +855,9 @@ def release(args: argparse.Namespace) -> int:
 
 
 def highest_id(args: argparse.Namespace) -> int:
-    """Print the highest RF id on a pull request, or 0 - what `build --continue-from` wants."""
     bodies = comment_bodies(Path(args.comments)) + review_bodies(Path(args.reviews))
     ids = [rf for body in bodies for rf in rf_ids(body)]
-    # A legacy post could put several ids mid-line, and those no longer count. Say so:
-    # ignoring one that was a real issued id would reissue it, so a round on an older pull
-    # request is told rather than left to find out.
+    # Said rather than dropped, because ignoring a real issued id would reissue it.
     ignored = sorted({n for body in bodies for n in ignored_bare_ids(body)})
     above = [n for n in ignored if n > max(ids, default=0)]
     if above:
@@ -1043,9 +880,7 @@ def verify(args: argparse.Namespace) -> int:
 
     problems: list[str] = []
 
-    # Keyed on this round's own RF ids, never on a path:line anchor and never on a count of
-    # RF-marked threads. Both of those pass by accident on any round after the first, where
-    # an earlier round's threads are in the same listing and can sit on the same line.
+    # Keyed on this round's own ids, because a path:line anchor or a count passes by accident on any round after the first.
     for comment in payload["comments"]:
         rf = rf_id(comment["body"])
         if rf is None:
@@ -1060,10 +895,7 @@ def verify(args: argparse.Namespace) -> int:
 
     sent = len(payload["comments"])
 
-    # A held finding is in no `comments` array, so the loop above cannot see it. Its
-    # evidence is the ledger inside the record Review this payload carries: read the ids
-    # back out of what was sent and require each to be on the pull request as a review
-    # body. An id that reserved nothing is the failure this reconciliation exists to catch.
+    # A held finding is in no comments array, so its evidence is the ledger this payload carries.
     held = [e.get("rf") for e in held_entries([payload.get("body") or ""])]
     posted_reviews = review_bodies(Path(args.reviews))
     for rf in held:
@@ -1089,6 +921,7 @@ def verify(args: argparse.Namespace) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Build and reconcile a review round's single API call.",
+        epilog="Exit codes: 0 all checks passed, 2 a check failed, 1 the arguments or the files were unusable.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     sub = parser.add_subparsers(dest="mode", required=True)

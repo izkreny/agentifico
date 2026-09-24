@@ -2,7 +2,7 @@
 
 What the reviewer reviews against **where the repository documents nothing**. This file is the floor, never the ceiling, and never the authority.
 
-**A documented repository standard always wins.** Where the repository's own `AGENTS.md`, `CLAUDE.md` or `.agents/gh-solo.md` endorses something this file would flag, the standard wins and the finding is suppressed. That is not a tie-break; it is the point. A repository's conventions are decisions somebody made on purpose, and a general baseline that overrode them would report the repository's own style back to its author as a defect.
+**A documented repository standard always wins.** Where the repository's own 'AGENTS.md', 'CLAUDE.md' or '.agents/gh-solo.md' endorses something this file would flag, the standard wins and the finding is suppressed. That is not a tie-break; it is the point. A repository's conventions are decisions somebody made on purpose, and a general baseline that overrode them would report the repository's own style back to its author as a defect.
 
 **Everything here is a judgement call.** Each entry is a labelled heuristic, so a finding written from this file says "possible Feature Envy" rather than asserting one. A documented-standard breach can be a hard violation; a baseline smell never is. Where *The rules about the change itself* conflicts with *The smells*, the rules win.
 
@@ -12,9 +12,9 @@ What the reviewer reviews against **where the repository documents nothing**. Th
 
 These come before any smell, because they are about whether the diff should exist in this shape at all, and a clean implementation of the wrong change is still the wrong change.
 
-- **Solve the stated problem.** A change that solves a different problem than the issue states is wrong even when the implementation is clean. This is the `spec` axis's first question, and it outranks every entry below.
+- **Solve the stated problem.** A change that solves a different problem than the issue states is wrong even when the implementation is clean. This is the `spec` axis's first question, and it outranks every other entry in this baseline.
 - **The diff contains only what the goal requires.** No unrelated refactors, no renames the goal did not ask for, no style-only edits to untouched lines, no scope creep. A file that did not need to be in the diff is a finding.
-- **Build for the case in front of you.** An abstraction with one caller, a parameter no caller passes, a hook for a future nobody has scheduled: each is removable, and each is *Speculative Generality* below arriving early.
+- **Build for the case in front of you.** An abstraction with one caller, a parameter no caller passes, a hook for a future nobody has scheduled: each is removable, and each is *Speculative Generality* arriving early.
 - **"It compiles" is not "it works."** Every change should name how it was verified, and a critical path should have a test. A diff whose `## Verification` section is empty or untouched is a finding on its own.
 - **A check that has never been seen to fail is not evidence.** A new test, grep, gate or assertion earns trust by being watched failing on the case it exists to catch - fed the pre-fix input, the wrong value, the deleted file. A check that passes on everything is indistinguishable from one that passes on nothing, and both look green. So a diff that adds a check without saying it was seen to fail is a finding, and a diff that adds one which cannot fail is a worse one.
 
@@ -22,7 +22,7 @@ These come before any smell, because they are about whether the diff should exis
 
 All of them, from chapter 3 of Fowler's *Refactoring*, 2nd edition. The right-hand column is his own, copied from the *Smells* table on the book's inside back cover. His page citations are deliberately dropped: nothing that reads this file can open the book, and a page number pins the file to one edition's pagination while looking authoritative after it stops being true. The names locate each entry in any edition.
 
-**That column is a test you apply, never text you write.** Ask whether one of the named refactorings would actually resolve the structure in front of you. If none would, you have matched a description and not found the smell, which is the difference between a real finding and a pattern that merely looks similar. Then write none of it: naming the defect is your job, and saying how to fix it is forbidden, per the never-suggest-a-fix rule under *What you never do* in `../SKILL.md`. The cells hold catalogue names rather than instructions so there is nothing there shaped like advice.
+**That column is a test you apply, never text you write.** Ask whether one of the named refactorings would actually resolve the structure in front of you. If none would, you have matched a description and not found the smell, which is the difference between a real finding and a pattern that merely looks similar. Then write none of it: naming the defect is your job, and saying how to fix it is forbidden, per the never-suggest-a-fix rule under *What you never do* in `SKILL.md`. The cells hold catalogue names rather than instructions so there is nothing there shaped like advice.
 
 | Smell                                             | What it is                                                                                                                                                                                                             | Common refactorings                                                                                                                                                                                                                                           |
 |---------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -53,7 +53,7 @@ All of them, from chapter 3 of Fowler's *Refactoring*, 2nd edition. The right-ha
 
 ## Source and maintenance
 
-Two things here are adapted from the `code-review` skill in mattpocock/skills, at skills/engineering/code-review/SKILL.md, which is MIT licensed: the idea of pairing each smell under *The smells* with the refactorings that resolve it, and the "skip anything tooling enforces" discipline. **The rules under *The rules about the change itself* are not among them** - those restate the repository owner's own code-change standards, which is why they are re-synced against that file rather than against upstream, and why a divergence between the two is a defect in this copy:
+This baseline adapts from the `code-review` skill in mattpocock/skills, at skills/engineering/code-review/SKILL.md, which is MIT licensed, the idea of pairing each smell under *The smells* with the refactorings that resolve it, and the "skip anything tooling enforces" discipline. **The rules under *The rules about the change itself* are not among them** - those restate the plugin author's own code-change standards, kept in step by hand with that author's instructions file rather than with upstream, so a divergence between the section and those standards is a defect in this copy:
 
 > MIT License
 >

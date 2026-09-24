@@ -12,7 +12,7 @@ The owner says it, in the session: "resolve all and push", or types `rnp`. Also 
 
 **"You can merge" is not one of these, and routes to `workflows/merge.md` instead.** After the split it would authorise a push and then not merge, which is worse than a refusal: the owner said the word and watched something else happen. That workflow's Step 1 already refuses on unpushed commits and names `rnp` as the remedy, so the sentence lands on a gate that tells them the word they actually need.
 
-**Their word is the authorisation and nothing else is.** Not a reaction, not a reply in a thread, not a mentor saying the work looks done, and not this workflow's own reading of how settled the threads look. If no such word has been given, there is nothing to do here: say what is still waiting and stop.
+**Their word alone is the authorisation.** Not a reaction, not a reply in a thread, not a mentor saying the work looks done, and not this workflow's own reading of how settled the threads look. If no such word has been given, there is nothing to do here: say what is still waiting and stop.
 
 ## Step 1 - Stop the watch
 
@@ -22,12 +22,12 @@ If a watch is running on this PR, stop it with `TaskStop` before anything else, 
 
 The same GraphQL query `workflows/discuss.md` Step 1 uses, which already carries everything needed: each thread's `id` for the mutation, `isResolved`, its `path` and `line` for the report, and per comment the `author { login }`, the `body` and the `reactions` with their own `user { login }`.
 
-Sort every unresolved thread into one of two piles, per the protocol's account of what a batch covers:
+Sort every unresolved thread into its pile, per the protocol's account of what a batch covers:
 
 - **Covered**: no outstanding owner signal.
-- **Not covered**: waiting on the owner from step 3, or carrying a signal of theirs that has not been answered - a reply not yet replied to, or a question not yet explained. An **answered** question is no longer outstanding and the thread is covered, which is what stops one question from parking a thread forever.
+- **Not covered**: waiting on the owner from step 3, or carrying a signal of theirs that has not been answered - a reply not yet replied to, or a question not yet explained. An **answered** question is not outstanding and the thread is covered, which is what stops one question from parking a thread forever.
 
-**Recognising the owner takes both conditions**, per *Recognising the owner takes both conditions* in `references/review-protocol.md`: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. For a reaction there is no body, so the login is the whole test.
+**Recognising the owner takes every condition *Recognising the owner* states**, per that heading in `references/review-protocol.md`: the author's login **is** the repository owner's, and the body does **not** open with the AI disclaimer. For a reaction there is no body, so the login is the whole test.
 
 **A thread that is not covered does not stop this workflow.** Name it in the report, leave it unresolved, and resolve the rest. What it does stop is `workflows/merge.md`, which refuses at the door on any unresolved thread, and that is where the owner learns the round is not finished.
 
@@ -39,9 +39,9 @@ One Conversation comment, posted first, so that no thread is ever resolved befor
 gh pr comment <pr-number> --body-file <scratch-file>
 ```
 
-Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by *Post caps* in the same file, which counts neither the marker line below nor the owner's quoted words - *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
+Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by *Post caps* in the same file, which counts neither the marker line nor the owner's quoted words - *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
 
-```
+```text
 RESOLVE AUTHORISED: RF1, RF3, RF4
 ```
 
@@ -79,7 +79,9 @@ git push <remote> <branch>
 
 **The after-head needs no read at all.** It is local `HEAD`, which is exactly what this push sent; asking the remote for it buys the same lag back.
 
-**This push sits outside the reviewer's push gate whenever no pass is out, which by step 7 is every ordinary round.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, step 5's scoped spawns included; the owner gives the word for this step after those have returned and posted, so the window is shut before there is anything to authorise. **Where a scoped pass somehow is still out, the gate holds and this step waits for it.** The condition is written out rather than left as a standing exemption because either reading alone breaks something: an unconditional exemption pushes out from under a reviewer that is still reading, and a refusal applied uniformly parks the round's only push behind a gate that cannot open.
+**This push sits outside the reviewer's push gate whenever no pass is out, which by step 7 is every ordinary round.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, step 5's scoped spawns included; the owner gives the word for this step after those have returned and posted, so the window is shut before there is anything to authorise.
+
+**Where a scoped pass somehow is still out, the gate holds and this step waits for it.** The condition is written out rather than left as a standing exemption because either reading alone breaks something: an unconditional exemption pushes out from under a reviewer that is still reading, and a refusal applied uniformly parks the round's only push behind a gate that cannot open.
 
 Resolve `<remote>` by the recipe in `SKILL.md`'s remote-name convention. The checks are read at Step 8, after Steps 6 and 7 have posted whatever the push released and what it carried, so one read covers the whole of what this workflow put on the branch.
 
@@ -87,7 +89,7 @@ Resolve `<remote>` by the recipe in `SKILL.md`'s remote-name convention. The che
 
 ## Step 6 - Release the held findings
 
-A round that held a finding reserved its `RF{n}` and gave it no thread, because the line it points at was on this machine only. The push above has just made those lines part of the pull request's diff, so the threads can open now:
+A round that held a finding reserved its `RF{n}` and gave it no thread, because the line it points at was on this machine only. The round's only push has just made those lines part of the pull request's diff, so the threads can open now:
 
 ```bash
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
@@ -109,8 +111,13 @@ Then the replies each released thread owes, which is why the id read comes after
 gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F body=@<body-file>
 ```
 
+### Running it
+
 - **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote, or whose anchor head this clone does not have, is reported and skipped rather than posted at a guess.
 - **The reads come after the push**, never before it, because the whole reason the anchors resolve now is that the push landed. Running this step ahead of Step 5 answers `422` on every held finding.
+
+### What each id gets
+
 - **An id that already carries a thread is skipped rather than refused.** Nothing rewrites a posted Review, so an earlier round's ledger is still on the pull request at the next `rnp`; the script reports what it skipped.
 - **A failure here loses nothing and refuses nothing.** The push has already happened and the ledger is still in the record Review, so the findings are exactly where they were - report the failure and name this step's commands as the retry, rather than treating it as a failed `rnp`.
 - **The replies are the round's words, not new ones.** They were written during the round and recorded in its follow-up Review; this step copies them, so nothing here composes a plan or a verdict. An entry with no reply recorded opens its thread carrying the finding alone, which `release` reports.
@@ -126,7 +133,9 @@ One Conversation comment naming every hunk the push carried, so what the round's
 git log -p --format='%n::commit %h %s%n%b%n::body-end' <before-head>..HEAD
 ```
 
-`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - the `implement` skill's `fix` workflow requires a fix commit to name each id it closes, and its `Closes` list is that claim - and emit one row per hunk in that commit's diff. **An id the body merely mentions is not one of them:** a commit explaining what it corrects about an earlier fix names that fix's id in prose, and crediting it would put a hunk under a finding that never asked for it. The same trap `scripts/post-review.py` avoids by counting `::RF{n}::` rather than any `RF{n}` it can see. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is the one thing this comment exists to do.
+`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - the `implement` skill's `fix` workflow requires a fix commit to name each id it closes, and its `Closes` list is that claim - and emit one row per hunk in that commit's diff.
+
+**An id the body merely mentions is not one of them:** a commit explaining what it corrects about an earlier fix names that fix's id in prose, and crediting it would put a hunk under a finding that never asked for it. The same trap `scripts/post-review.py` avoids by counting `::RF{n}::` rather than any `RF{n}` it can see. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is what this comment exists to do.
 
 **The row is the hunk's `path:start-end` as a link into that commit's own diff on the pull request, then the `RF{n}` its commit named, or `-` where it named none:**
 
@@ -145,10 +154,15 @@ python3 -c 'import hashlib,sys; print(hashlib.sha256(sys.argv[1].encode()).hexdi
 
 It hashes the path and not the content, so it survives every commit on the branch and breaks only on a rename.
 
+### The link
+
 - **A diff view rather than a file view, which is what makes the fragment land at all.** A `blob` link to a file GitHub renders - Markdown here, and `.ipynb`, `.csv` and `.svg` alike - opens the preview, where a `#L61-L68` fragment matches nothing and drops the reader at the top of the page with no error to tell them so. Appending `?plain=1` rescues that one case; a diff view needs no flag, and it shows the change inside its own hunk rather than the file's later state.
 - **Each link points at the commit that made the hunk, never at the pull request's own diff.** `/pull/<pr-number>/files` diffs the base against the head, so its line numbers are the head's and every later commit shifts them - silently, because the stale anchor still resolves, just onto the wrong lines. On a stacked pull request they all move again at once when its parent merges and GitHub retargets it. A per-commit URL counts lines in that commit's diff, where nothing landing afterwards can reach them.
 - **Which side the range takes:** the `+` side of the hunk header, written `R{start}-R{end}`, for every hunk that adds a line; the `-` side, written `L{start}-L{end}`, for one that only removes. A commit deleting a file outright is that second case and needs no exception of its own, because a commit's diff still shows the file it removed where a `blob` at that commit cannot.
 - **What the sha costs:** a later `gh stack sync` rewrites every commit on the branch, and these links go stale with them. That is correct for a record of one push, read at that push, and is not a defect to fix by pointing at a branch.
+
+### The rows
+
 - **Attribution is commit-level, and that is the point.** A rename made while fixing `RF3` carries `RF3`, so the index shows what that fix actually cost rather than only the lines the finding named.
 - **The `-` rows are the half with no other home**: a commit whose body names no id. An owner-raised change is always one, because `references/review-protocol.md` makes ids mandatory for agent posts only, and so is the relocation `docs:` commit *Body caps* in `workflows/open.md` sends an over-cap entry to.
 
@@ -164,17 +178,17 @@ Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow
 
 ## Step 8 - Read the checks
 
-**A red check here reopens nothing**, per the protocol: each finding was closed on its own evidence, and a CI failure contradicts none of it. It is the two-environments finding, so report both sides and diagnose the difference - and it stops the merge until it is answered, which a new commit does rather than a reopened thread.
+**A red check here reopens nothing**, per the protocol: each finding was closed on its own evidence, and a CI failure contradicts none of it. It is the two-environments finding, so report each side and diagnose the difference - and it stops the merge until it is answered, which a new commit does rather than a reopened thread.
 
 ## Step 9 - Confirm
 
 Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved, nothing was held, the delta index either posted or was correctly skipped, and the checks are green; `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered, a held finding was released and now waits on the owner, a release failed, the delta index failed to post, or a check is red. **A span carrying no commits skips the index and stays `✅`**, per Step 7: a skip it was told to make is not a failure.
 
-Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and are now waiting to be read, the commits that went up, how many rows the delta index carried and how many of them answered no finding, and the check result.
+Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and wait to be read, the commits that went up, how many rows the delta index carried and how many of them answered no finding, and the check result.
 
 **Then say that this workflow is over and merging is a word of its own**, since the owner's `rnp` did not ask for one and nothing here is about to run it. The command, flush left:
 
-```
+```text
 /gh-solo:pr-flow merge <pr-number>
 ```
 
@@ -182,14 +196,22 @@ Then the record: how many threads were resolved and which ids, which were left a
 
 ## Rules
 
+### Before the resolve
+
 - **Only the owner's word in the session starts this** - `rnp`, or the sentence. Never a reaction, never a mentor, never this workflow's own reading of the threads.
 - **The authorisation comment goes up before the first resolve**, always, because the resolve is what it is evidence for.
 - **Never resolve a thread the batch does not cover.** Name it and leave it; `workflows/merge.md` is what refuses on it.
 - **Never name an id in the authorisation that this batch does not resolve**, and never resolve one it does not name.
 - **The marker line is a literal.** `workflows/merge.md` greps it.
+
+### The push
+
 - **Read each mutation's answer.** A resolve posts nothing, so an unchecked failure is invisible.
 - **This is the round's only push**, and the checks are read before it is reported done.
 - **This workflow ends at the push. It never merges**, and never chains into `workflows/merge.md`. Step 9 prints the command; the owner types it.
+
+### After the push
+
 - **The delta index is posted after the push and indexes only what that push carried.** Its span is the before-head Step 5 kept and local `HEAD`, per commit, and it opens no thread and issues no id.
 - **The release comes after the push and never before it.** Its anchors resolve only because the push landed, and a failure there is a retry rather than a refusal - the ledger is still on the pull request.
 - **Never resolve a released thread.** The authorisation named the ids it covered and a released id was not one of them, so it waits on the owner exactly as a fresh finding does.
