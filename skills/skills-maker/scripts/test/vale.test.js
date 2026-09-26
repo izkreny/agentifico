@@ -23,7 +23,7 @@ before(() => {
   ini = path.join(tmp, ".vale.ini");
   fs.writeFileSync(
     ini,
-    `StylesPath = ${styles}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = Agentifico\n${tokenIgnores}\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n\n[**/skill-*.md]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = YES\nAgentifico.SkillLength = YES\n\n[*.{js,py}]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n`,
+    `StylesPath = ${styles}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = Agentifico\n${tokenIgnores}\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n\n[**/skill-*.md]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = YES\nAgentifico.SkillLength = YES\n\n[*.{js,py}]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n\n[*.py]\nView = Python\n`,
   );
 });
 after(() => fs.rmSync(tmp, { recursive: true, force: true }));
@@ -279,6 +279,16 @@ describe("CommentSentences, a comment holding a second sentence", () => {
   });
   it("fires on a docstring", () => {
     expectHit(alerts("docstring-two.py", `def f():\n    """${TWO}"""\n    return 1\n`), "CommentSentences", 2);
+  });
+  // No shebang, because Vale reads no module docstring under one and the fixture could then never fail.
+  it("leaves the module docstring alone and reads every other docstring and comment", () => {
+    const found = alerts(
+      "docstring-module.py",
+      `"""${TWO} ${words(46)}\n\nUsage: python3 docstring-module.py <target>.\n"""\n\n# ${TWO}\n\n\nclass C:\n    """${TWO}"""\n\n\ndef f():\n    """${TWO}"""\n    return 1\n`,
+    );
+    for (const rule of ["CommentSentences", "CommentLength"])
+      assert.ok(!only(found, rule).some((f) => f.line === 1), `wanted no ${rule} on the module docstring, got ${JSON.stringify(only(found, rule))}`);
+    for (const line of [6, 10, 14]) expectHit(found, "CommentSentences", line);
   });
   it("reads a run of line comments as one comment", () => {
     expectHit(alerts("comment-run.js", "// The first sentence says why.\n// The second narrates the line.\nconst a = 1;\n"), "CommentSentences", 1);

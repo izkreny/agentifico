@@ -6,10 +6,12 @@
 # no full stop counts nothing and needs no exception, which is as well since
 # an occurrence rule takes none. The lookbehind keeps an abbreviation a
 # comment here writes from counting as an end.
+# A module docstring is the module's interface under PEP 257, so the scope
+# leaves out the one the Python View names module (#182).
 extends: occurrence
 message: "A comment inside code is one sentence saying why: this one carries %d sentence ends."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
 level: error
-scope: comment
+scope: comment & ~module
 max: 1
 token: '(?<!\be\.g|\bi\.e|\betc|\bvs)[.!?](?=\s|$)'

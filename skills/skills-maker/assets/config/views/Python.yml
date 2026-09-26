@@ -1,0 +1,16 @@
+# Vale's own Python queries at v3.21.0, from internal/lint/code/py.go, with the module docstring's query named so a rule can leave it out: a module docstring is the module's interface under PEP 257, not a comment (#182).
+engine: tree-sitter
+scopes:
+  - expr: (comment)+ @comment
+  - expr: |
+      ((function_definition
+        body: (block . (expression_statement (string) @docstring)))
+       (#offset! @docstring 0 3 0 -3))
+  - expr: |
+      ((class_definition
+        body: (block . (expression_statement (string) @docstring)))
+       (#offset! @docstring 0 3 0 -3))
+  - name: module
+    expr: |
+      ((module . (expression_statement (string) @docstring))
+       (#offset! @docstring 0 3 0 -3))

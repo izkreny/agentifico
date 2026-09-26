@@ -144,7 +144,7 @@ A sentence that re-explains a rule already stated, or restates the same point in
 
 ### A comment inside code exists only where the solution is unconventional, and is one sentence saying why
 
-A line a reader of the language expects needs no comment, and what the code does, how it does it and what it once did are the code's and the history's to say; why a line took an unusual shape is what the code cannot say, so a comment is that reason and nothing else. A tool directive such as a `biome-ignore` line is an instruction to a tool rather than a comment, and stays as the tool needs it.
+A line a reader of the language expects needs no comment, and what the code does, how it does it and what it once did are the code's and the history's to say; why a line took an unusual shape is what the code cannot say, so a comment is that reason and nothing else. A tool directive such as a `biome-ignore` line is an instruction to a tool rather than a comment, and stays as the tool needs it. A Python module's docstring is exempt too, since it is the module's interface and PEP 257 asks it to carry a summary line and how the module is invoked.
 
 ### Give every rule its reason, in a sentence
 
