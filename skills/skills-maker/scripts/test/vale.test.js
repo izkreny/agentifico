@@ -286,7 +286,8 @@ describe("CommentSentences, a comment holding a second sentence", () => {
       "docstring-module.py",
       `"""${TWO} ${words(46)}\n\nUsage: python3 docstring-module.py <target>.\n"""\n\n# ${TWO}\n\n\nclass C:\n    """${TWO}"""\n\n\ndef f():\n    """${TWO}"""\n    return 1\n`,
     );
-    for (const rule of ["CommentSentences", "CommentLength"]) assert.ok(!only(found, rule).some((f) => f.line === 1), `wanted no ${rule} on the module docstring, got ${JSON.stringify(only(found, rule))}`);
+    for (const rule of ["CommentSentences", "CommentLength"])
+      assert.ok(!only(found, rule).some((f) => f.line === 1), `wanted no ${rule} on the module docstring, got ${JSON.stringify(only(found, rule))}`);
     for (const line of [6, 10, 14]) expectHit(found, "CommentSentences", line);
   });
   it("reads a run of line comments as one comment", () => {
