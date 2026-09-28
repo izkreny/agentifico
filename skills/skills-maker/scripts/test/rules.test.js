@@ -382,6 +382,8 @@ describe("skill-portable-paths", () => {
     ["t-tilde-quoted", 'A span `cat "~/.agents/x.md"` here.', "~/.agents/x.md"],
     ["t-tilde-flag", "A span `--dir=~/.agents/x` here.", "~/.agents/x"],
     ["good-tilde-in-word", "A span `a~/b.md` here.", null],
+    ["good-tilde-after-slash", "A span `foo/~/bar.md` here.", null],
+    ["good-tilde-in-url", "A span `https://h/~/x.md` here.", null],
     ["t-home-dir-fenced", "```bash\nls <home-dir>/.agents/skills/foo\n```", "<home-dir>/.agents/skills/foo"],
     ["good-relative", "A span `workflows/new.md` and a [link](references/managing.md).", null],
     ["good-skill-dir", "A span `<skill-dir>/scripts/check.js` here.", null],
