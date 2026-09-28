@@ -8,7 +8,7 @@ The mechanical audit. Run it after writing or editing any skill, and before revi
 
 ## Setup, once per install
 
-The check runs on Node 22 or later with what `package.json` declares, installed once into the skill's own directory. `<skill-dir>` is where this skill is installed, per `SKILL.md`, which defines it once for every command here:
+The check runs on Node 22 or later with what `package.json` declares, installed once into the skill's own directory. `<skill-dir>` is where this skill is installed, one of the placeholders `workflows/new.md` defines under *Paths must survive any working directory and any machine*:
 
 ```bash
 npm --prefix <skill-dir> ci
@@ -18,7 +18,7 @@ The prose rules run through Vale, 3.21 or later, on `PATH`. Its [installation pa
 
 ## The check
 
-The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<root>/skills/` - and it defaults to the current directory. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
+The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/` - and it defaults to the current directory. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
 
 ```bash
 node <skill-dir>/scripts/check.js path/to/the-skill
@@ -64,7 +64,7 @@ It reads every key rather than the description alone, because a space and a hash
 
 **Which spans count as paths**, so a reader can tell a finding from a span the rule was never going to read: one ending in a known file extension, or one ending in a slash, which names a directory. A span carrying a glob, a placeholder, a URL scheme, a space or a `..` is not a path, nor is one opening with `-`, `#`, `@` or a slash. That is what keeps a branch name, a slash command and an `owner/repo` slug out of the findings, and it is why an absolute path is invisible here and belongs to `skill-portable-paths` instead.
 
-**A path the target cannot resolve, and is not meant to, goes in single quotes.** That covers a file nobody has written and a file outside the tree being checked, and it works because the rules read backticked spans only, so a quoted one is invisible to them. '.agents/gh-solo.md' states the narrower version for a plan naming a file its branch will create.
+**A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root**, such as `<repo-root>/.agents/gh-solo.md`. The span keeps its backticks, and the rule skips it because it carries `<`. The set of placeholders, and why a path inside the skill stays bare, is in `workflows/new.md` under *Paths must survive any working directory and any machine*.
 
 **Write a path that leaves the skill's own tree as `~/`-relative.** It is portable, it names a file no checkout can resolve, and neither path rule reports one.
 

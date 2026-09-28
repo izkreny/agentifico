@@ -104,6 +104,14 @@ Write it to a file and pass the path - `--body-file <file>`, `-F body=@<file>`. 
 
 Inside the skill, relative to the skill's own directory and say so; for user locations, `~/`-relative. A path absolute to the author's home directory breaks on every other machine.
 
+**A path under any other root opens with the placeholder that names that root, and keeps its backticks.** The placeholders are these:
+
+- `<skill-dir>`: the directory the skill is installed to, for a fenced command whose reader stands in their own working directory.
+- `<plugin-dir>`: the root of the plugin that ships the skill.
+- `<repo-root>`: the top of the repository the skill serves.
+
+A path inside the skill stays bare, because a bare path is the one the check can verify. The path rules skip a span carrying `<` or `>`, so a placeholder never reads as a broken path, and the reader still sees which tree the file lives in.
+
 ### No hard wrapping
 
 One line per paragraph, per list item, per blockquote. Fenced code, tables and frontmatter keep their line structure exactly.
