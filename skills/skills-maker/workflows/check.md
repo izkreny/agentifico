@@ -58,7 +58,7 @@ It reads every key rather than the description alone, because a space and a hash
 
 ## The path rules
 
-**`skill-portable-paths`** reads the token tree and reports a path absolute to one machine: a code span, a line inside a fenced block, or a link destination opening '/home/', '/Users/' or a drive letter. Prose that mentions a home directory in words is not a path, which is why the rule never reads a raw line. A `~/` path passes, and a URL is not a drive letter: `https://` carries a letter, a colon and a slash too, so the drive-letter branch refuses one preceded by a letter.
+**`skill-portable-paths`** reads the token tree and reports a path absolute to one machine: a code span, a line inside a fenced block, or a link destination opening '/home/', '/Users/' or a drive letter. Prose that mentions a home directory in words is not a path, which is why the rule never reads a raw line. It also reports a `~/` code span in prose and a `<home-dir>` inside a fenced block, each being the other's form. A URL is not a drive letter: `https://` carries a letter, a colon and a slash too, so the drive-letter branch refuses one preceded by a letter.
 
 **`skill-referenced-paths`** reports a code span in prose that names a file and resolves against none of the owning skill, the file's own directory and the target root. Fenced content is never read, because a fence carries a command to run rather than a reference into this tree. The span predicate and the resolution bases come from 'plugins/gh-solo/skills/pr-flow/scripts/docs-check.py', cited in `scripts/rules/paths.js` so both stay in step by reference; what does not carry over is that script's `--ignore`, so a span naming a file this tree does not hold is reported rather than silenced.
 
@@ -66,7 +66,7 @@ It reads every key rather than the description alone, because a space and a hash
 
 **A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root**: `<repo-root>/.agents/gh-solo.md` for a file the served repository holds, `<skill-dir>/workflows/example.md` for an example file the skill does not hold. The set of placeholders, and why a path to a file the skill holds stays bare, is in `workflows/new.md` under *Paths must survive any working directory and any machine*.
 
-**Write a path in the user's own locations as `~/`-relative.** It is portable, it names a file no checkout can resolve, and neither path rule reports one.
+**Write a path in the user's own locations as `<home-dir>/` in prose and `~/` inside a fenced command.** Either is portable and names a file no checkout can resolve, and a reader pasting a command gets a shell that expands `~` and no placeholder.
 
 ## The name rule
 

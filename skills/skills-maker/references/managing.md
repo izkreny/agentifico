@@ -12,7 +12,7 @@ skills remove <name> -g
 
 - `-s` selects skills by name and must be repeated per name; a comma-separated list matches nothing. Without `-s` the whole repository lands.
 - `-g` targets global (user) scope, `-y` skips confirmation prompts. Both are what non-interactive agent use needs.
-- Installs are tracked in a lock file at `~/.local/state/skills/.skill-lock.json`, one `skillFolderHash` per skill, outside any repository.
+- Installs are tracked in a lock file at `<home-dir>/.local/state/skills/.skill-lock.json`, one `skillFolderHash` per skill, outside any repository.
 - On an interactive first run the CLI offers to install its own `find-skills` discovery skill; that is the CLI's offer, not something the repository being installed asked for. Declining once records the dismissal in the lock.
 
 ## Security

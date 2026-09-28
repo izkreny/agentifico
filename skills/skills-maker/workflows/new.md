@@ -102,15 +102,16 @@ Write it to a file and pass the path - `--body-file <file>`, `-F body=@<file>`. 
 
 ### Paths must survive any working directory and any machine
 
-Inside the skill, relative to the skill's own directory and say so; for user locations, `~/`-relative. A path absolute to the author's home directory breaks on every other machine.
+Inside the skill, relative to the skill's own directory and say so; for user locations, `<home-dir>/` in prose and `~/` inside a fenced command, since a shell expands `~` and no placeholder. A path absolute to the author's home directory breaks on every other machine.
 
 **A path the skill cannot write bare opens with the placeholder that names its root, and keeps its backticks.** The placeholders are these:
 
 - `<skill-dir>`: the directory the skill is installed to, for a fenced command whose reader stands in their own working directory, and for an example file the skill does not hold.
 - `<plugin-dir>`: the root of the plugin that ships the skill.
 - `<repo-root>`: the top of the repository the skill serves.
+- `<home-dir>`: the user's home directory, in prose only.
 
-A path to a file the skill holds stays bare, because a bare path is the one the check can verify. Any other path takes a placeholder rather than single quotes, because the placeholder tells the reader which tree the file lives in and a quoted path tells them nothing. Which spans the path rules read is in `workflows/check.md`.
+A path to a file the skill holds stays bare, because a bare path is the one the check can verify. Any other path in prose takes a placeholder rather than single quotes, because the placeholder tells the reader which tree the file lives in and a quoted path tells them nothing. Which spans the path rules read is in `workflows/check.md`.
 
 ### No hard wrapping
 

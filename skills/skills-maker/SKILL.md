@@ -21,7 +21,7 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 
 ## Where skills live
 
-Keep one canonical copy in an agent-neutral location such as `~/.agents/skills/<name>/`, and symlink each agent's skills directory to it as needed: one file then serves every agent, and no copy drifts. Each agent reads its own directory; Claude Code, for example, reads `~/.claude/skills/<name>/SKILL.md`. When a workflow below says "the skills directory", resolve it for the agent in use.
+Keep one canonical copy in an agent-neutral location such as `<home-dir>/.agents/skills/<name>/`, and symlink each agent's skills directory to it as needed: one file then serves every agent, and no copy drifts. Each agent reads its own directory; Claude Code, for example, reads `<home-dir>/.claude/skills/<name>/SKILL.md`. When a workflow below says "the skills directory", resolve it for the agent in use.
 
 ## The facts every workflow here depends on
 
