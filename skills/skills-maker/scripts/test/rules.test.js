@@ -373,7 +373,12 @@ describe("skill-portable-paths", () => {
     ["t-link", "A [note](/Users/someone/notes.md) here.", "/Users/someone/notes.md"],
     ["t-drive", "A span `C:\\Users\\someone\\notes.md` here.", "C:\\Users\\someone\\notes.md"],
     ["good-prose", "The skill reads /home/someone/notes.md in prose, where nobody copies it out.", null],
-    ["good-tilde", "A span `~/.agents/skills/foo/SKILL.md` here.", null],
+    ["good-home-dir", "A span `<home-dir>/.agents/skills/foo/SKILL.md` here.", null],
+    ["good-tilde-form", "Write a user location as `~/` inside a command.", null],
+    ["good-tilde-fenced", "```bash\nls ~/.agents/skills/foo\n```", null],
+    // A command pasted into a shell expands `~` and not a placeholder, and prose names a root without claiming a shell.
+    ["t-tilde-prose", "A span `~/.agents/skills/foo/SKILL.md` here.", "~/.agents/skills/foo/SKILL.md"],
+    ["t-home-dir-fenced", "```bash\nls <home-dir>/.agents/skills/foo\n```", "<home-dir>/.agents/skills/foo"],
     ["good-relative", "A span `workflows/new.md` and a [link](references/managing.md).", null],
     ["good-skill-dir", "A span `<skill-dir>/scripts/check.js` here.", null],
     // The `s:/` of `https://` is a letter, a colon and a slash, which the drive-letter branch would match.
@@ -383,7 +388,7 @@ describe("skill-portable-paths", () => {
     // An absolute path is this rule's, so `paths.js` refuses a drive-lettered span for skill-referenced-paths.
     ["t-drive-span", "A span `D:/work/notes.md` here.", "D:/work/notes.md"],
     // Single quotes hide an example path because the rule reads backticked spans and link destinations only.
-    ["good-quoted-example", "Never write '/home/someone/notes.md'; write the `~/` form.", null],
+    ["good-quoted-example", "Never write '/home/someone/notes.md'; write the `<home-dir>/` form.", null],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {

@@ -31,8 +31,10 @@ const PATHY_SUFFIXES = [
   ".html",
 ];
 
-// A `~/` span is portable and names a file no checkout can resolve, so skill-portable-paths passes it and skill-referenced-paths skips it.
+// A `~/` span names a file no checkout can resolve, so skill-referenced-paths skips it; skill-portable-paths reports it in prose, where `<home-dir>/` belongs.
 export const isHomeRelative = (span) => span.startsWith("~/");
+
+export const HOME_DIR_PLACEHOLDER = /<home-dir>[^\s`"'()[\]]*/g;
 
 // The lookbehind guards the whole alternation because a URL reaches both branches: `https://` carries a letter, a colon and a slash, and a URL path can carry /home/.
 export const ABSOLUTE_TO_ONE_MACHINE = /(?<![A-Za-z0-9._~-])(?:\/home\/|\/Users\/|[A-Za-z]:[\\/])[^\s`"'()[\]]*/g;
