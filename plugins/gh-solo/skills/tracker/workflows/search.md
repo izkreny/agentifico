@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(gh:*)` for `gh issue list`.
 
-Find issues. `gh issue list` takes structured filters as flags and free text through `--search`, and the two combine.
+Find issues. `gh issue list` takes structured filters as flags and free text through `--search`, and they combine.
 
 ## Step 1 - Translate the request
 
@@ -36,7 +36,7 @@ Prefer `--json` with `--jq` over the default table when the result feeds anythin
 
 ## Step 3 - Output
 
-```
+```text
 ## Results
 Query: [the command that ran]
 Found: N
@@ -45,7 +45,7 @@ Found: N
 |-----|-------|-------|--------|
 ```
 
-State the command you ran, not a paraphrase of it. It is the only way the owner can tell an empty result from a wrong filter, and those look identical otherwise.
+State the command you ran, not a paraphrase of it. It is how the owner tells an empty result from a wrong filter, and those look identical otherwise.
 
 If the count equals the limit exactly, say the result is probably truncated and re-run with a higher limit rather than reporting it as a total.
 

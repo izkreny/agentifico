@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-# Bench for watch.py. Run it after any edit to that file.
-#
-# It exists for one behaviour above all: the disclaimer filter. Without it the watch
-# re-emits the round's own posts as fresh comments and the flow answers itself forever,
-# and that is a defect no reader would spot in a poll loop's output. Every case below was
-# watched failing on a deliberately broken filter before its pass was trusted.
+# Every case was watched failing on a deliberately broken disclaimer filter first, because without that filter the flow answers itself forever and no reader would spot it in a poll loop's output.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -33,8 +28,7 @@ check("a quote that is not the prefix is not", w.mine("> not a robot"), False)
 check("an emoji later in the line is not", w.mine("I think \U0001F916 wrote this"), False)
 check("empty body is not", w.mine(""), False)
 check("a missing body is not", w.mine(None), False)
-# A post that merely contains the prefix further in must not be filtered: the gates test
-# startswith, and a looser test here would silently drop the owner quoting an agent.
+# The gates test startswith, so a looser test here would silently drop the owner quoting an agent.
 check("the prefix quoted mid-body is not ours", w.mine("as you said:\n> \U0001F916 Written by AI"), False)
 
 print("\nbody flattening, so one comment is one line:")

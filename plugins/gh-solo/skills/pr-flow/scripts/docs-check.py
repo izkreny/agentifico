@@ -1,31 +1,10 @@
 #!/usr/bin/env python3
-"""Check Markdown files for failures that stay silent until someone follows a link.
+"""Check Markdown files for backticked paths that do not resolve and code fences left open.
 
-1. Every backticked path resolves to a file or directory that exists.
-2. Every fenced code block is closed.
+A backticked span counts as a path only when it ends in a known extension or a slash, and it resolves against the nearest skill root, the mentioning file's directory, then --root. Absolute paths are not checked.
 
-Both checks are generic: neither knows anything about a particular repository.
-Repo-specific documentation checks belong in that repository, not here.
-
-Usage:
-    docs-check.py [PATH ...]
-    docs-check.py --root DIR --ignore 'docs/plans/*' [PATH ...]
-
-A backticked span is treated as a path only when it has a known file extension or a
-trailing slash. That deliberately excludes branch names (`feat/GHI-50_login-form`),
-slash commands (`/gh-solo:pr-flow`) and repo slugs (`github/gh-stack`), none of which
-are paths on this filesystem. The leading-slash exclusion that keeps slash commands
-quiet also drops absolute paths, so a `/home/...` span is never checked: a known
-blind spot, accepted rather than fixed because slash commands are the commoner span.
-
-Each candidate is resolved against, in order: the nearest ancestor directory holding a
-SKILL.md (so a skill's own `references/foo.md` works from any file inside it), the
-directory of the mentioning file, and --root. Resolving any one way passes.
-
-Use --ignore for paths that legitimately cannot resolve here: example filenames, and
-paths belonging to a target repository rather than this tree.
-The set that keeps this skill tree itself clean:
-  --ignore '.agents/*' --ignore '.claude/*' --ignore 'AGENTS.md' --ignore 'CLAUDE.md' --ignore 'docs/plans*' --ignore '*GHI-50*'
+Example, over a tree that names files it does not hold:
+    docs-check.py docs --ignore '.claude/*'
 
 Exit status: 0 clean, 1 problems found, 2 usage error.
 """
@@ -54,22 +33,18 @@ SKIP_DIRS = {".git", "node_modules", ".venv", "__pycache__", ".next", "dist", "b
 
 
 def looks_like_path(span: str) -> bool:
-    """True only for spans that must name something on disk."""
     if any(bad in span for bad in NOT_A_PATH):
         return False
+    # The leading slash keeps slash commands out and also skips every absolute path, a blind spot accepted because slash commands are the commoner span.
     if span.startswith(("-", "#", "@", "/")):
         return False
-    # A trailing slash is an explicit directory reference.
     if span.endswith("/"):
         return True
-    # Otherwise require a real file extension. This is what excludes branch names,
-    # slash commands and `owner/repo` slugs, all of which contain a slash but name
-    # nothing on this filesystem.
+    # A real extension is required, because branch names, slash commands and `owner/repo` slugs all contain a slash and name nothing on disk.
     return span.endswith(PATHY_SUFFIXES)
 
 
 def skill_root(path: Path) -> Path | None:
-    """Nearest ancestor holding a SKILL.md, which is what a skill's paths are relative to."""
     for parent in path.resolve().parents:
         if (parent / "SKILL.md").is_file():
             return parent
@@ -77,7 +52,6 @@ def skill_root(path: Path) -> Path | None:
 
 
 def strip_fenced_blocks(lines: list[str]) -> tuple[list[tuple[int, str]], str | None]:
-    """Prose lines with 1-based numbers, plus an error if a fence was left open."""
     prose: list[tuple[int, str]] = []
     open_marker: str | None = None
     open_line = 0
@@ -87,9 +61,7 @@ def strip_fenced_blocks(lines: list[str]) -> tuple[list[tuple[int, str]], str | 
         if match:
             marker = match.group(1)
             if open_marker is None:
-                # Keep the opener's full length. Truncating it to three would let a
-                # ``` example nested inside a ```` block close that block early, and
-                # the example's contents would then be scanned as prose.
+                # The opener's full length is kept, because a ``` example nested inside a ```` block would otherwise close it early.
                 open_marker, open_line = marker, number
             elif len(marker) >= len(open_marker) and marker[0] == open_marker[0]:
                 open_marker = None
@@ -144,7 +116,8 @@ def collect(targets: list[Path]) -> list[Path]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Verify backticked paths resolve and code fences close.",
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("paths", nargs="*", help="files or directories (default: .)")
     parser.add_argument("--root", default=".", help="final fallback for resolving paths")

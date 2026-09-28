@@ -27,17 +27,21 @@ There is no step after that, because this whole workflow is a fork, not a stage:
 
 A plan change the exchange settles is Step 4 as usual: an order in the thread gets the change committed, unpushed, with the naming reply. Those plan commits wait like any others; their release is the owner starting implementation, which pushes them before any code lands.
 
-A settled question also moves in the body. When the owner's closing decision settles an entry in `## Open questions`, move it to `## Settled` with the decision, question included, per the template in `workflows/open.md` - a body edit made read-modify-write per the body-edit convention in `SKILL.md`, not a commit, so it disturbs nothing the owner is reading. **Where the move takes `## Settled` past the cap** *Body caps* in `workflows/open.md` sets, that section owns the whole route and this round follows it rather than a copy of it. What is this round's own is the relocation `docs:` commit, made here and held like the others it makes; when the body edit that commit owes lands is stated there. Step 1's plan-record settle in the `implement` skill catches any entry still unmoved before implementation starts.
+A settled question also moves in the body. When the owner's closing decision settles an entry in `## Open questions`, move it to `## Settled` with the decision, question included, per the template in `workflows/open.md` - a body edit made read-modify-write per the body-edit convention in `SKILL.md`, not a commit, so it disturbs nothing the owner is reading.
+
+**Where the move takes `## Settled` past the cap** *Body caps* in `workflows/open.md` sets, that section owns the whole route and this round follows it rather than a copy of it. What is this round's own is the relocation `docs:` commit, made here and held like the others it makes; when the body edit that commit owes lands is stated there. Step 1's plan-record settle in the `implement` skill catches any entry still unmoved before implementation starts.
 
 A decision settled **in the terminal** instead of a thread is recorded the moment it settles - into the plan where it can be public, under a `## Settled` heading, the same name the PR body template gives the section that collects answered questions, so the record wears one heading across every plan and PR instead of a fresh invention each time; or into a private artifact the plan points at (the owner's knowledge base, a local note) where it cannot - never left in the chat transcript.
 
 When the owner says the plan is settled, name the ways forward and let them type one: `go <pr-number>` for the full chain to the review handoff, or `/gh-solo:implement <pr-number>` for implementation alone.
 
-**The owner's words reach a PR on more surfaces than the threads, and a round reads them all.** Inline threads on the diff are the primary surface: they anchor to lines, they thread, and everything above assumes them. But a submitted review carries its own summary body (the `#pullrequestreview-…` anchor), written in the same gesture as its inline comments, and the Conversation tab takes free-standing *issue* comments on an endpoint of its own - and neither is a `reviewThread`, so a round that reads only threads walks past them. That happened on a real PR: two review bodies, one carrying an instruction, sat unread until the owner asked why. Step 1 therefore reads every surface each round, and the watch emits review bodies and Conversation comments too. Inline stays the habit worth telling the owner, because line-anchored comments are the only ones that thread and resolve - but nothing they write on the other surfaces is allowed to go unread.
+**The owner's words reach a PR on more surfaces than the threads, and a round reads them all.** Inline threads on the diff are the primary surface: they anchor to lines, they thread, and everything above assumes them. But a submitted review carries its own summary body (the `#pullrequestreview-…` anchor), written in the same gesture as its inline comments, and the Conversation tab takes free-standing *issue* comments on an endpoint of its own - and neither is a `reviewThread`, so a round that reads only threads walks past an instruction written on either.
+
+Step 1 reads every surface each round, and the watch emits review bodies and Conversation comments too. Inline stays the habit worth telling the owner, because line-anchored comments are the only ones that thread and resolve - but nothing they write on the other surfaces is allowed to go unread.
 
 ## Watching for replies
 
-**The poll loop is `workflows/watch.md`**, armed by the literal `watch` command and by the `auto` and `go` chains at the round's step 6. This round does not arm it and does not stop it: a watch already running stays running through everything below, which is what lets the owner comment at their own pace.
+**The poll loop is `workflows/watch.md`**, armed by the literal `watch` command and by the `auto` and `go` chains at the round's step 6. This round does not arm it and does not stop it: a watch already running stays running through the whole round, which is what lets the owner comment at their own pace.
 
 ## Step 1 - Read every thread, whole
 
@@ -52,7 +56,9 @@ query($owner: String!, $repo: String!) {
           reactions(first:20) { nodes { content createdAt user { login } } } } } } } } } }'
 ```
 
-**A truthy `hasNextPage` on either connection means this read is a slice, and a slice is refused rather than acted on** - the same rule as `--paginate` on a REST list, and for a sharper reason. GraphQL returns the *oldest* twenty comments in a thread, while every classification here reads the owner's *last* one, so a long thread hands back the whole conversation except the part that decides what to do with it. A finding's thread carries the finding, the fix plan, the fix result and the re-review verdict before the owner has said anything, and a second round doubles that, so twenty is reachable rather than theoretical. Stop with `⛔ REFUSED - the thread read is truncated` and name which connection overflowed; the gates in `workflows/resolve.md` and `workflows/merge.md` read this same query, and there a missed last comment resolves an unanswered question or refuses a correctly authorised merge with no way to tell why. The `reactions` connection is the one that is safe at `first:20`: a finding thread does not collect twenty reactions.
+**A truthy `hasNextPage` on either connection means this read is a slice, and a slice is refused rather than acted on** - the same rule as `--paginate` on a REST list, and for a sharper reason. GraphQL returns the *oldest* twenty comments in a thread, while every classification here reads the owner's *last* one, so a long thread hands back the whole conversation except the part that decides what to do with it. A finding's thread carries the finding, the fix plan, the fix result and the re-review verdict before the owner has said anything, and a second round doubles that, so twenty is reachable rather than theoretical.
+
+Stop with `⛔ REFUSED - the thread read is truncated` and name which connection overflowed; the gates in `workflows/resolve.md` and `workflows/merge.md` read this same query, and there a missed last comment resolves an unanswered question or refuses a correctly authorised merge with no way to tell why. The `reactions` connection is the one that is safe at `first:20`: a finding thread does not collect twenty reactions.
 
 **Reactions travel in this same query, so they cost no extra request.** The owner answers a finding thread with a reaction as often as with a sentence - the vocabulary is in `references/review-protocol.md`, which owns it - so a round that read only bodies would walk past half of what they said, and they would watch an agent ignore them.
 
@@ -60,9 +66,11 @@ query($owner: String!, $repo: String!) {
 
 **`owner` and `repo` travel as `-F` fields, never inside the query string.** `gh` substitutes the `{owner}`/`{repo}` placeholders only in the endpoint and in `-F` values; inside a `-f` string they go to GitHub as literal braces and the read fails with "could not resolve to a Repository". The reply mutation in Step 2 is the reverse case: `threadId` and `body` are literal strings, so they take `-f`, which never type-converts.
 
+### Reading the threads
+
 **Read each thread as a unit, in order.** A reply's meaning comes from what it answers, and the same sentence means different things at the top of a thread and at the bottom of one.
 
-**Classify by the owner's last signal in the thread, which may be a reaction rather than a comment.** A reaction is judged by who left it, never by the comment it sits on: every agent post is made with the owner's credentials and carries their login, so no test on a comment's author tells agent from human, and a mentor's reaction is not an authorisation. Which comment carries it decides what it refers to, since a finding thread holds the finding, the fix plan and the fix result. What each reaction means is `references/review-protocol.md`'s to say, and it is not restated here; what this workflow owes each one is below.
+**Classify by the owner's last signal in the thread, which may be a reaction rather than a comment.** A reaction is judged by who left it, never by the comment it sits on: every agent post is made with the owner's credentials and carries their login, so no test on a comment's author tells agent from human, and a mentor's reaction is not an authorisation. Which comment carries it decides what it refers to, since a finding thread holds the finding, the fix plan and the fix result. What each reaction means is `references/review-protocol.md`'s to say, and it is not restated here; what this workflow owes each one is stated per signal in this step.
 
 | The owner's last signal                              | What to do                                                                                                       |
 |------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
@@ -95,7 +103,7 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --jq '.[] | s
 gh api --paginate "repos/{owner}/{repo}/issues/<pr-number>/comments" --jq '.[] | {author: .user.login, created_at, body}'
 ```
 
-Drop every body that opens with the AI disclaimer - those are this workflow's own posts, the same filter the watch applies. What remains is the owner's or the mentor's, and each is classified by the table above exactly as a thread comment would be. The differences from threads: there is no resolution state, so "already handled" is read from the record - a body whose ask is answered by a later agent Conversation comment naming it is done; one with no such answer is live, however old it is. And there is no thread to reply into, so an owed answer goes as a Conversation comment (Step 2). An acknowledgement-only body ("Round two", "LGTM so far") gets what an acknowledgement gets: nothing.
+Drop every body that opens with the AI disclaimer - those are this workflow's own posts, the same filter the watch applies. What remains is the owner's or the mentor's, and each is classified by the same table a thread comment is. The differences from threads: there is no resolution state, so "already handled" is read from the record - a body whose ask is answered by a later agent Conversation comment naming it is done; one with no such answer is live, however old it is. And there is no thread to reply into, so an owed answer goes as a Conversation comment (Step 2). An acknowledgement-only body ("Round two", "LGTM so far") gets what an acknowledgement gets: nothing.
 
 ## Step 2 - Answer in the thread
 
@@ -106,7 +114,7 @@ mutation($threadId:ID!, $body:String!) {
     comment { url } } }' -f threadId='<thread-id>' -f body='...'
 ```
 
-The `id` from Step 1 is the `threadId`. Both inputs are required.
+The `id` from Step 1 is the `threadId`. Neither input is optional.
 
 **A reply that fails with `user_id can only have one pending review per pull request` is blocked by the owner, not broken.** GitHub allows one `PENDING` review per account per PR, and a review the owner started in the UI and has not submitted holds that slot. Observed on the REST replies endpoint the fix workflow of `implement` uses; whether this mutation is affected too is untested, so treat the 422 by its message rather than by which call raised it. When it lands:
 
@@ -116,9 +124,11 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --jq '.[] | s
 
 Report to the owner: the review id, that their unsubmitted review is holding the slot, and that submitting or discarding it unblocks the round. Then stop - do not retry, and never post the reply anywhere else to get it out.
 
-**Never read that review's comments.** `pulls/<pr-number>/reviews/<id>/comments` returns the bodies of an unsubmitted review to its own author, and that is wording the owner has not published and may still delete. The block is the review's existence, which `state` already told you; its contents cannot help, and an agent that has read them can no longer tell a draft it saw from an order it was given.
+**Never read that review's comments.** `pulls/<pr-number>/reviews/<id>/comments` returns the bodies of an unsubmitted review to its own author, and that is wording the owner has not published and may still delete. The block is the review's existence, which `state` already told you; its contents cannot help, and an agent that has read them cannot afterwards tell a draft it saw from an order it was given.
 
-**Re-read the code before answering.** The finding came from a pass over a diff, and the owner is asking about the code as it stands now, which may have moved since. An answer that describes a version that no longer exists is worse than no answer.
+**Re-read the code before answering.** The finding came from a pass over a diff, and the owner is asking about the code as it stands now, which may have moved since. An answer that describes a version that has gone is worse than no answer.
+
+### The reply itself
 
 **Answer the question that was asked.** Not the adjacent one, not the general principle. If the owner asks whether a null check is reachable, the answer names the caller that reaches it or concedes that none does.
 
@@ -146,19 +156,26 @@ About the fix and its reply:
 
 - **How the fixes are grouped and committed is Step 3 of the `implement` skill's `fix` workflow**, which owns it; this round's own part is the order it gives and the scope of that order. Any `## Verification` gate a fix invalidated is re-run and re-ticked, and those are the repository's own commands, which this skill's narrowed `Bash` cannot run, so **invoke the `gh-solo:implement` skill at its `fix <pr-number>` entrance** and follow it here: entering it by name is what puts the work under that skill's tool grant.
 - **The reply names the commit subject and the `RF{n}`, and says plainly that it is committed locally and not yet pushed.** Never a sha - the owner does not use them, and on a stacked branch a later `gh stack sync` rewrites them. Disclaimer first, as on every reply.
-- **The fix stays scoped to the order.** A defect noticed while fixing goes to the next review pass, per the rule below, not into the commit.
+- **The fix stays scoped to the order.** A defect noticed while fixing goes to the next review pass, never into the commit.
 
 ## Step 5 - Confirm
 
-One line per thread touched: the file and line, what the owner asked, and one clause on what was answered or fixed. Then the same for review bodies and Conversation comments: each one answered or acted on this round, and that the rest were read and needed nothing. Then the count of threads left alone, and why - settled, unanswered, or resolved. Then any `## Open questions` entries moved to `## Settled`, since `ready` and `merge` audit that section later and the report is what ties their finding to the round that acted. Then the state the round ended in, explicitly: **how many fix commits sit unpushed, waiting for the owner to authorise the push at step 7**, and whether a watch is armed on this PR - a fresh session must be able to tell "fixed and waiting for the word" from "nothing to do".
+One line per thread touched: the file and line, what the owner asked, and one clause on what was answered or fixed. Then the same for review bodies and Conversation comments: each one answered or acted on this round, and that the rest were read and needed nothing. Then the count of threads left alone, and why - settled, unanswered, or resolved. Then any `## Open questions` entries moved to `## Settled`, since `ready` and `merge` audit that section later and the report is what ties their finding to the round that acted.
+
+Then the state the round ended in, explicitly: **how many fix commits sit unpushed, waiting for the owner to authorise the push at step 7**, and whether a watch is armed on this PR - a fresh session must be able to tell "fixed and waiting for the word" from "nothing to do".
 
 ---
 
 ## Rules
 
+### Where the answer goes
+
 - **Answer on GitHub, never in the terminal.** In the thread when there is one; as a Conversation comment for a review body or Conversation comment, which have none. A terminal answer is lost the moment the session ends, and the owner asked on GitHub because that is where they wanted the record.
 - **Never push during a round.** An order authorises the fix and the commit only; the push waits for the owner authorising it in the session at the protocol's step 7, per `references/review-protocol.md`. A push mid-read moves the ground under the reviewer.
 - **A question is not a decision.** *Resolution rests on recorded authority* in `references/review-protocol.md` counts a reply of the owner's as authority to resolve, and `workflows/resolve.md` Step 2 sorts the threads on it. What that rule does *not* settle is whether the batch at step 7 covers the thread, which turns on the answered-versus-outstanding distinction the same file draws under its step 7. Misreading a question as a verdict leaves it unanswered forever.
+
+### What a round never does
+
 - **Never open a new finding here.** A defect noticed while answering goes to the next `review` pass, not into an unrelated thread where nobody is looking for it.
 - **An order in a thread never satisfies a terminal gate.** The thread records the order; the terminal is where its gate runs. "Create a ticket" goes through the breakdown-and-confirm gate of `tracker`, whose revise-and-ask loop cannot fit one-reply-per-thread-per-pass; "push it" and "merge it" wait on the owner authorising them in the session, at the protocol's step 7. The reply names the command to type, and nothing is executed from the thread.
 - **Never resolve here, and never close the discussion on the owner's behalf.** Resolving is `workflows/resolve.md`'s act at the protocol's step 7, on authority the owner gave in words; a round of conversation is not that authority.

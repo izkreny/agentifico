@@ -4,7 +4,7 @@ Move an issue's state: close it, reopen it, record that it is blocked, or start 
 
 Deliberately absent rather than emulated: **there is no time logging**, and **no story-point gate on any transition**. Each serves an audience this repository does not have. If the owner asks to log hours, say plainly that GitHub has no worklog and ask whether they want a comment on the issue instead.
 
-**No state change ever closes a milestone**, and closing an issue never moves one. Milestones are scope boundaries, not transitions; the standards' *Milestones, and why not Projects* section owns the judgement, and the *Milestone* heading below has the operations.
+**No state change ever closes a milestone**, and closing an issue never moves one. Milestones are scope boundaries, not transitions; the standards' *Milestones, and why not Projects* section owns the judgement, and the *Milestone* heading in Step 3 has the operations.
 
 ## Step 1 - Resolve the issue number
 
@@ -20,7 +20,7 @@ gh issue view <issue-number> --json state,stateReason,labels,blockedBy,closedByP
 
 Do not skip this. Closing a closed issue and reopening an open one both succeed silently, and reporting "done" for a no-op is worse than an error.
 
-## Step 3 - Do the one thing asked
+## Step 3 - Do what was asked
 
 **A state change reached by an auto-trigger rather than a typed verb states the command and waits.** `SKILL.md`'s trigger table fires this workflow on ordinary phrasing - "mark it in progress", "set it aside", "this is blocked" - so an aside can otherwise add a dependency and a label to a real issue, with Step 4 reporting it afterwards. Print the exact `gh` command and the issue it names, and run nothing until the owner says so. A typed verb needs no such gate: it is already their instruction. `workflows/create.md` has had a confirm-before-create gate all along, and this is the same gate on the same grounds.
 
@@ -55,7 +55,7 @@ gh issue close <issue-number> --reason "not planned"
 gh issue close <issue-number> --duplicate-of <surviving-issue-number>
 ```
 
-**Ask which reason, and never assume `completed`.** `--reason` accepts `completed`, `not planned` and `duplicate` and rejects anything else; `--duplicate-of` is its own flag, and the better duplicate close. The reasons are not interchangeable: `not planned` is what keeps a closed tracker readable later, because it is the only thing separating what shipped from what was abandoned. For a duplicate, `--duplicate-of` records the surviving issue natively - no `--reason` needed and no follow-up comment; add `-c` only for what a link cannot say.
+**Ask which reason, and never assume `completed`.** `--reason` accepts `completed`, `not planned` and `duplicate` and rejects anything else; `--duplicate-of` is its own flag, and the better duplicate close. The reasons are not interchangeable: `not planned` is what keeps a closed tracker readable later, because it is what separates what shipped from what was abandoned. For a duplicate, `--duplicate-of` records the surviving issue natively - no `--reason` needed and no follow-up comment; add `-c` only for what a link cannot say.
 
 Before closing manually, check `closedByPullRequestsReferences` and any open PR that mentions the issue. If a PR is about to close it, say so and stop: adding `Closes #{issue-number}` to that PR body is better than closing by hand, because it records the link permanently and closes the issue exactly when the code lands, not before.
 
@@ -65,7 +65,7 @@ Before closing manually, check `closedByPullRequestsReferences` and any open PR 
 gh issue reopen <issue-number>
 ```
 
-Reopening clears the close reason. If the issue is being reopened because it was closed wrongly, say what the previous reason was in the confirmation, since it is now gone.
+Reopening clears the close reason. If the issue is being reopened because it was closed wrongly, say what the previous reason was in the confirmation, since the reopen erased it.
 
 **Check the assignee after reopening.** A closed issue keeps whoever was assigned when it closed, and `gh issue reopen` has no flag to clear it, so the issue comes back already claiming to be in progress. Ask whether work is resuming now. If it is not, clear it:
 
@@ -80,7 +80,7 @@ gh issue edit <issue-number> --add-blocked-by <blocker-issue-number>
 gh issue edit <issue-number> --add-label blocked
 ```
 
-Prefer the **relation** when the blocker is another issue in the repository, because it is typed, visible from both sides and readable with `--json blockedBy`. Use the **label** only when the blocker is outside the tracker: waiting on a third-party API, a design, an account, an upstream release. Say which one you used and why.
+Prefer the **relation** when the blocker is another issue in the repository, because it is typed, visible from each side and readable with `--json blockedBy`. Use the **label** only when the blocker is outside the tracker: waiting on a third-party API, a design, an account, an upstream release. Say which one you used and why.
 
 When the block clears, remove both:
 

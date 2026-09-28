@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
-# Regression bench for ask-before-trunk-push.py. Run it after any edit to that file.
-#
-# It exists because a guard that has only ever been seen to pass is indistinguishable from
-# one that passes on everything. Every case below has been watched to fire, or to stay
-# quiet, on the situation it names.
+# Every case has been watched to fire, or to stay quiet, on the situation it names, because a guard only ever seen to pass is indistinguishable from one that passes on everything.
 set -euo pipefail
 
 HOOK="$(cd "$(dirname "$0")" && pwd)/ask-before-trunk-push.py"
@@ -19,10 +15,7 @@ git -C "$REPO" add .
 git -C "$REPO" commit -qm init
 git -C "$REPO" checkout -qb feat/GHI-50_login-form
 
-# The awkward repository: the trunk is named neither main, master nor trunk, the one
-# remote is not called origin, and a feature branch's name ends in a trunk name. Each
-# is a case a guard written around `origin/HEAD` and a last-path-segment match gets
-# wrong, and each was watched getting it wrong before this fixture existed.
+# A trunk named neither main, master nor trunk, a remote not called origin and a branch ending in a trunk name are each what a guard written around `origin/HEAD` and a last-segment match gets wrong.
 git -C "$ODD" init -q -b develop .
 git -C "$ODD" config user.email bench@example.invalid
 git -C "$ODD" config user.name bench
@@ -48,8 +41,7 @@ def decision(cmd, branch, repo=None):
 
 FEAT = "feat/GHI-50_login-form"
 PUSH = "git push origin main"          # the plain form, composed into the shapes below
-# Shapes an agent composes routinely. Every one was watched staying silent while the
-# command was cut with a regex before quoting was resolved, which is why they are here.
+# A regex cut made before quoting is resolved stays silent on every one of these, which is why the guard tokenises instead.
 EVASIONS = [
     (f"({PUSH})", FEAT),
     (f"{PUSH}&", FEAT),
@@ -70,32 +62,23 @@ EVASIONS = [
     (f"xargs -I{{}} {PUSH}", FEAT),
     (f"if true; then {PUSH}; fi", FEAT),
     (f"for r in a; do {PUSH}; done", FEAT),
-    # Newline separates two commands exactly as `&&` does. `shlex` eats it as whitespace
-    # unless it is taken out of `lex.whitespace`, and until it was, every multi-line
-    # command collapsed into one segment and the guard went silent on all of them - the
-    # single commonest shape an agent composes.
+    # Newline separates two commands as `&&` does, and shlex eats it as whitespace unless it is taken out of `lex.whitespace`.
     (f"git status\n{PUSH}", FEAT),
     (f"git add -A\ngit commit -m x\n{PUSH}", FEAT),
     (f"{PUSH}\n", FEAT),
     (f"bash -ceu '{PUSH}'", FEAT),     # `c` need not end the cluster; bash still runs it
     (f"env bash -c '{PUSH}'", FEAT),   # a wrapper in front of the shell
-    # A backslash before a newline is a line continuation, which joins the two lines
-    # rather than separating them. posix-mode shlex resolves the escape into a literal
-    # newline glued to the next word, so the token was `\ngit` and the scan skipped it.
-    # .agents/gh-solo.md writes its own docs-check command in exactly this style.
+    # posix-mode shlex resolves the escape into a literal newline glued to the next word, so the token was `\ngit` and the scan skipped it.
     (f"git status && \\\n{PUSH}", FEAT),
     (f"git push \\\n  origin main", FEAT),
     (f"git add -A \\\n  . && {PUSH}", FEAT),
-    # An *escaped* backslash is data and the newline after it still separates. Reading
-    # the second backslash as a continuation swallowed the separator and went silent -
-    # a regression the continuation fix introduced and the re-review caught.
+    # An escaped backslash is data and the newline after it still separates, so the second backslash is never a continuation.
     (f"echo a\\\\\n{PUSH}", FEAT),
     (f"cat <<'EOF' > f\n{PUSH}\nEOF\n{PUSH}", FEAT),   # after the delimiter, commands again
     (f"cat <<-EOF\n{PUSH}\nEOF\n{PUSH}", FEAT),
     (f"printf 'x\\\\'\n{PUSH}", FEAT),
 ]
-# The mirror image: the phrase is present, but as data. A regex cut on `;` fires on
-# every one of these, and a guard that cries wolf on a grep is one people click through.
+# A regex cut on `;` fires on every one of these, and a guard that cries wolf on a grep is one people click through.
 QUOTED_MENTIONS = [
     (f"grep -r '{PUSH}' .", FEAT),
     (f"echo 'a; {PUSH}'", FEAT),
@@ -129,21 +112,17 @@ MUST_STAY_SILENT = [
     ("git log --oneline main", "main"),
     ("git commit -m 'fix: thing'", "main"),
     ("git push origin HEAD", FEAT),          # HEAD is not the trunk from a feature branch
-    # A newline inside quotes is data, not a separator. Taking `\n` out of shlex's
-    # whitespace must not cost the quoting that keeps a grep or an echo quiet.
+    # Taking `\n` out of shlex's whitespace must not cost the quoting that keeps a grep or an echo quiet.
     (f"echo 'a\n{PUSH}'", FEAT),
     (f"grep -r 'a\n{PUSH}' .", FEAT),
     # A bare word that happens to name a shell must not stop the `git` scan running.
     ("git push origin sh", FEAT),
     ("git push origin eval", FEAT),
-    # A heredoc body is data: a shell never runs it, and a commit message or a written
-    # file legitimately contains the very line this hook exists to catch. It only became
-    # reachable when newlines became separators, so it arrived with that fix.
+    # A heredoc body is data, and a commit message legitimately contains the very line this hook exists to catch.
     (f"git commit -F - <<'EOF'\ntext\n{PUSH}\nEOF", FEAT),
     (f"cat <<'EOF'\n{PUSH}", FEAT),          # unterminated: body runs to the end
     (f"echo 'a \\\n{PUSH}'", FEAT),        # a continuation inside quotes is data
 ]
-# Same two lists, run against the awkward repository above.
 ODD_MUST_ASK = [
     ("git push upstream develop", "feature/main"),          # trunk found via a non-origin remote
     ("git push upstream HEAD:develop", "feature/main"),
@@ -155,9 +134,7 @@ ODD_MUST_STAY_SILENT = [
     ("git push -u upstream feature/main", "feature/main"),
 ]
 
-# `-C` is read, so a push aimed at another repository is judged against that
-# repository's trunk rather than the session's. Both directions are asserted, because
-# the earlier fixtures pass on the hardcoded names alone and prove nothing about `-C`.
+# Both directions are asserted, because the earlier fixtures pass on the hardcoded names alone and prove nothing about `-C`.
 CROSS_C_MUST_ASK = [
     (f"git -C {odd} push upstream develop", FEAT),
 ]
