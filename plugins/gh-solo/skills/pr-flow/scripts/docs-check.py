@@ -3,8 +3,8 @@
 
 A backticked span counts as a path only when it ends in a known extension or a slash, and it resolves against the nearest skill root, the mentioning file's directory, then --root. Absolute paths are not checked.
 
-Example, with the set that keeps this plugin's own tree clean:
-    docs-check.py plugins/gh-solo --ignore '.agents/*' --ignore '.claude/*' --ignore 'AGENTS.md' --ignore 'CLAUDE.md' --ignore 'docs/plans*' --ignore '*GHI-50*'
+Example, over a tree that names files it does not hold:
+    docs-check.py docs --ignore '.claude/*'
 
 Exit status: 0 clean, 1 problems found, 2 usage error.
 """
