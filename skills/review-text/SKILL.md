@@ -42,14 +42,14 @@ Only `fix` and `all` edit the text, because an edit the user did not ask for is 
 - Say `no issues found` when there are none, because an invented finding costs the user a check and teaches them to distrust the rest.
 - Preserve the author's tone, an informal tone included, unless the user asks for another, because the text is theirs and the review serves it.
 - Treat a deliberate rule-break that carries the author's voice, such as a fragment for emphasis, as their choice rather than an error, because smoothing it out erases the voice the rule-break was there for.
-- Make the smallest edit that fixes each issue and change nothing else in the file, because every extra change is one more line the user has to check.
+- Make the smallest edit that fixes each issue and change nothing else in the text, because every extra change is one more line the user has to check.
 - Leave code, identifiers and quoted literals alone unless the user asks, because a changed identifier breaks whatever refers to it.
 - Keep the formatting and markdown structure unless the user asks for another or the structure itself is the problem, because readers and tools may depend on it.
 
 ## Response Pattern
 
 - For a report, say whether anything was found, then list the findings `error` first, `warning` next and `suggestion` last, and by consequence within each level, so the one that matters most is read first. Give each the quoted original, a short explanation and the suggested wording. Add a cleaned-up snippet only where the list alone is hard to apply, because otherwise it repeats the list.
-- For an edit, make the edits, then show a numbered table of them with the columns `#`, `Original`, `Revised` and `Why`, so the user can check each change without diffing the file and undo one by its number ("revert 3").
+- For an edit, make the edits, then show a numbered table of them with the columns `#`, `Original`, `Revised` and `Why`, so the user can check each change without diffing the file and undo one by its number ("revert 3"). For inline text, return the corrected text in full before the table, because there is no file for the user to open.
 
 ## Style Heuristics
 
