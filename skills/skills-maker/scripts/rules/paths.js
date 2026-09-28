@@ -37,7 +37,7 @@ export const isHomeRelative = (span) => span.startsWith("~/");
 export const HOME_DIR_PLACEHOLDER = /<home-dir>[^\s`"'()[\]]*/g;
 
 // At least one character must follow the slash, because a bare `~/` names the form rather than a location, which is how the standard itself has to talk about it.
-export const TILDE_PATH = /(?<![\w.~/:-])(~\/[^\s`"'()[\]]+)/g;
+export const TILDE_PATH = /(?<![\w.~/-])(~\/[^\s`"'()[\]]+)/g;
 
 // The lookbehind guards the whole alternation because a URL reaches both branches: `https://` carries a letter, a colon and a slash, and a URL path can carry /home/.
 export const ABSOLUTE_TO_ONE_MACHINE = /(?<![A-Za-z0-9._~-])(?:\/home\/|\/Users\/|[A-Za-z]:[\\/])[^\s`"'()[\]]*/g;
