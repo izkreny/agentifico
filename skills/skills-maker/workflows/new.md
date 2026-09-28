@@ -104,7 +104,7 @@ Write it to a file and pass the path - `--body-file <file>`, `-F body=@<file>`. 
 
 Inside the skill, relative to the skill's own directory and say so; for user locations, `~/`-relative. A path absolute to the author's home directory breaks on every other machine.
 
-**A path under any other root opens with the placeholder that names that root, and keeps its backticks.** The placeholders are these:
+**A path the skill cannot write bare opens with the placeholder that names its root, and keeps its backticks.** The placeholders are these:
 
 - `<skill-dir>`: the directory the skill is installed to, for a fenced command whose reader stands in their own working directory.
 - `<plugin-dir>`: the root of the plugin that ships the skill.
