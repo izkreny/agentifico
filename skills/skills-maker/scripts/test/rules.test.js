@@ -379,6 +379,9 @@ describe("skill-portable-paths", () => {
     // A command pasted into a shell expands `~` and not a placeholder, and prose names a root without claiming a shell.
     ["t-tilde-prose", "A span `~/.agents/skills/foo/SKILL.md` here.", "~/.agents/skills/foo/SKILL.md"],
     ["t-tilde-inline", "A span `cat ~/.agents/skills/foo/SKILL.md` here.", "~/.agents/skills/foo/SKILL.md"],
+    ["t-tilde-quoted", 'A span `cat "~/.agents/x.md"` here.', "~/.agents/x.md"],
+    ["t-tilde-flag", "A span `--dir=~/.agents/x` here.", "~/.agents/x"],
+    ["good-tilde-in-word", "A span `a~/b.md` here.", null],
     ["t-home-dir-fenced", "```bash\nls <home-dir>/.agents/skills/foo\n```", "<home-dir>/.agents/skills/foo"],
     ["good-relative", "A span `workflows/new.md` and a [link](references/managing.md).", null],
     ["good-skill-dir", "A span `<skill-dir>/scripts/check.js` here.", null],
