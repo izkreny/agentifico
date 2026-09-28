@@ -4,19 +4,19 @@ Branch names, commit subjects, pull request titles and plan filenames. They live
 
 ## Quick reference
 
-| Item          | Format                                                                                                    | Example                                           |
-|---------------|-----------------------------------------------------------------------------------------------------------|---------------------------------------------------|
-| Epic          | Feature-area name, label `epic`                                                                           | `authentication`                                  |
-| Issue         | `action`, plus a layer label                                                                              | `add user lookup endpoint` + `backend`            |
-| Spike         | `spike - question`, labels `spike` + layer                                                                | `spike - evaluate OpenAPI codegen` + `backend`    |
-| Bug           | `what is wrong`, labels `bug` + layer                                                                     | `profile card crashes on empty name` + `frontend` |
-| Draft         | Any other kind, plus the `draft` label; body may be a stub                                                | `add receipt export` + `backend` + `draft`        |
-| Branch        | `{type}/GHI-{issue-number}_{slug}`                                                                        | `feat/GHI-50_login-form`                          |
-| Commit header | `{type}: {description} (#{issue-number})`                                                                 | `fix: reject a blank email (#50)`                 |
-| Plan file     | `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`                                                                 | '2026-08-16_GHI-50_login-form.md'                 |
-| PR title      | `{type}({scope}): {issue title}` - the scope is the issue's layer label, omitted when it repeats the type | `feat(backend): add user lookup endpoint`         |
-| PR body       | Must contain `Closes #{issue-number}`                                                                     | `Closes #50`                                      |
-| Assignee      | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation             | `--add-assignee @me`                              |
+| Item          | Format                                                                                                    | Example                                                  |
+|---------------|-----------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
+| Epic          | Feature-area name, label `epic`                                                                           | `authentication`                                         |
+| Issue         | `action`, plus a layer label                                                                              | `add user lookup endpoint` + `backend`                   |
+| Spike         | `spike - question`, labels `spike` + layer                                                                | `spike - evaluate OpenAPI codegen` + `backend`           |
+| Bug           | `what is wrong`, labels `bug` + layer                                                                     | `profile card crashes on empty name` + `frontend`        |
+| Draft         | Any other kind, plus the `draft` label; body may be a stub                                                | `add receipt export` + `backend` + `draft`               |
+| Branch        | `{type}/GHI-{issue-number}_{slug}`                                                                        | `feat/GHI-50_login-form`                                 |
+| Commit header | `{type}: {description} (#{issue-number})`                                                                 | `fix: reject a blank email (#50)`                        |
+| Plan file     | `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`                                                                 | `<repo-root>/docs/plans/2026-08-16_GHI-50_login-form.md` |
+| PR title      | `{type}({scope}): {issue title}` - the scope is the issue's layer label, omitted when it repeats the type | `feat(backend): add user lookup endpoint`                |
+| PR body       | Must contain `Closes #{issue-number}`                                                                     | `Closes #50`                                             |
+| Assignee      | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation             | `--add-assignee @me`                                     |
 
 ### Branch and commit type
 
@@ -30,7 +30,7 @@ Branch names, commit subjects, pull request titles and plan filenames. They live
 | `docs`     | Prose                                  |
 | `chore`    | Tooling, dependencies, config          |
 
-That set is the one this skill assumes; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set in '.agents/gh-solo.md' if it differs.
+That set is the one this skill assumes; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set in `<repo-root>/.agents/gh-solo.md` if it differs.
 
 **Type describes the change, labels describe the deliverable.** They are separate axes and neither derives from the other: a `docs` branch usually sits on a `docs`-labelled issue and a `fix` branch on a `bug` issue, but a `refactor` branch can serve a `feat`-shaped issue and a `chore` can close a `bug`. Never infer the label from the branch, or the branch from the label. **The word `docs` lives on each axis and asks a different question on each**: as a type it says the change is prose, as a label it says the deliverable is prose. They usually coincide, which is exactly why the scope rule omits the scope when it would repeat the type.
 

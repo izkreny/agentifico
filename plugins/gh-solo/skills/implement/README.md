@@ -56,7 +56,7 @@ The one legitimate plan edit is the opposite case. A decision you settled in a p
 
 Nothing leaves the machine: the threads stay anchored to the exact diff you are still reading, and the commits wait for you to type `rnp`, or say "resolve all and push", per the review protocol in `pr-flow`. It never resolves a thread itself either - that happens once, on the authority of those words.
 
-**The repository says how it is built and tested; the skill never does.** How code is written here comes from the repo's own agent instructions, the check commands from its '.agents/gh-solo.md', and a repo silent on either gets that said in the handoff rather than improvised around. The floor underneath every repo: a behavior change carries a test, and a plan that names no gates stops the work with a question.
+**The repository says how it is built and tested; the skill never does.** How code is written here comes from the repo's own agent instructions, the check commands from its `<repo-root>/.agents/gh-solo.md`, and a repo silent on either gets that said in the handoff rather than improvised around. The floor underneath every repo: a behavior change carries a test, and a plan that names no gates stops the work with a question.
 
 ## Where it runs
 
@@ -74,4 +74,4 @@ Independence still matters, and it moved to where it buys something: the `review
 | `workflows/implement.md` | plan to commits: load, reconcile, implement, verify, push, hand off                           |
 | `workflows/fix.md`       | review findings to fix commits - replied in-thread, gates re-run, held unpushed for your word |
 
-Anything specific to one repository - its check commands, its testing philosophy - belongs in that repository's own agent instructions and '.agents/gh-solo.md', never in this skill.
+Anything specific to one repository - its check commands, its testing philosophy - belongs in that repository's own agent instructions and `<repo-root>/.agents/gh-solo.md`, never in this skill.

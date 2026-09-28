@@ -32,7 +32,7 @@ The workflows share these; each is stated once here.
 
 ### What the repository owns
 
-- **The repository says how it is built and tested; this skill never does.** The carriers: the repo's own agent instructions ('AGENTS.md' or 'CLAUDE.md') for how code is written and tested here, and '.agents/gh-solo.md' (or '.claude/gh-solo.md') for its check commands. Read both explicitly at the start rather than assuming the harness loaded either; `workflows/implement.md` Step 1 has the read, and a harness that does load one costs nothing by being read twice. Where either is absent or silent on testing, that is a **named finding for the handoff**, never a licence to improvise - the never-invent-check-commands rule in the `pr-flow` skill holds here too.
+- **The repository says how it is built and tested; this skill never does.** The carriers: the repo's own agent instructions (`<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`) for how code is written and tested here, and `<repo-root>/.agents/gh-solo.md` (or `<repo-root>/.claude/gh-solo.md`) for its check commands. Read both explicitly at the start rather than assuming the harness loaded either; `workflows/implement.md` Step 1 has the read, and a harness that does load one costs nothing by being read twice. Where either is absent or silent on testing, that is a **named finding for the handoff**, never a licence to improvise - the never-invent-check-commands rule in the `pr-flow` skill holds here too.
 - **The floor under every repository:** a behavior change carries a test, the repo's stated gates are the gates that run, and a branch whose PR body names no gates in `## Verification` is refused rather than implemented, because shipping unverified code is the alternative.
 
 ### What a commit and a post carry
