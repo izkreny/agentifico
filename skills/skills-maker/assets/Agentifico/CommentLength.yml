@@ -7,10 +7,12 @@
 # median of 23 words and a maximum of 44, so 45 sits one word above the
 # longest and names nothing in the package. A tool directive with its reason
 # beside it sits far under it.
+# A module docstring is the module's interface under PEP 257, so the scope
+# leaves out the one the Python View names module (#182).
 extends: metric
 message: "A comment inside code is one sentence saying why: this one runs to %s words, so read it for a second claim."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-maker/workflows/new.md
 level: warning
-scope: comment
+scope: comment & ~module
 formula: words
 condition: "> 45"
