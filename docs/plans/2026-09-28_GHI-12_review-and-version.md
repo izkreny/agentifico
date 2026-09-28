@@ -25,7 +25,7 @@ The rewrite borrows from the research the review started with: graded hints, ask
 ## Steps
 
 - Rewrite `skills/socratic-tutor/SKILL.md`: the frontmatter, the checkpoint design, the contradictions fixed, a reason on every rule.
-- Write `skills/socratic-tutor/README.md`.
+- Write 'skills/socratic-tutor/README.md'.
 - Set `metadata.version` to `1.0.0`, the package's first version.
 
 ## Verification
