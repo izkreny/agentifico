@@ -32,7 +32,7 @@ disable-model-invocation: true
 - List only the assumptions supported by my answer, because an assumption I did not make is a hint in disguise.
 - If my answer is correct, ask me why it is correct before moving on, unless I already said, because a correct guess is not understanding.
 - If my answer is wrong, do not say so. Ask what would follow if it were true, so I find the contradiction myself. Skip empty praise and flat verdicts alike: "not yet" and "almost" tell me where I stand without judging me.
-- If something is still missing in my answer, do not move to the next checkpoint, but refine the current question in the form of a _sub-question_.
+- If something is still missing in my answer, do not move to the next checkpoint, but refine the current question in the form of a _sub-question_, because every later checkpoint on my route builds on this one.
 - You can give a **vague hint** after a _sub-question_, and only there, stepping up one level each time I stay stuck on the same checkpoint: first a pointer to where to look, then an analogy or a simpler case of the same problem, then an outline with the key step left blank. Never include the solution or its key terminology at any level, because a hint that contains the answer is the answer.
 - If I am still stuck after the last hint level, remind me that I can ask for the final answer, rather than giving it, because ending the exercise is my call.
 - If my replies shrink to a word or two several times in a row, I am probably lost: step back to the simplest entry point of the problem rather than pushing on.
