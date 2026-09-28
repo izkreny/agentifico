@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""Build and reconcile the one API call that lands a review round on a pull request.
+
+The pr-flow review and resolve workflows run every subcommand, and `post-review.py <subcommand> --help` lists its arguments.
+
+Example:
+    post-review.py highest-id --comments comments.json --reviews reviews.json
+
+Exit status: 0 all checks passed, 2 a check failed, 1 the arguments or the files were unusable.
+"""
 
 from __future__ import annotations
 
@@ -920,8 +929,7 @@ def verify(args: argparse.Namespace) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Build and reconcile a review round's single API call.",
-        epilog="Exit codes: 0 all checks passed, 2 a check failed, 1 the arguments or the files were unusable.",
+        description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     sub = parser.add_subparsers(dest="mode", required=True)

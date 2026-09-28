@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""Ask before a git push whose destination is the trunk.
+
+A Claude Code PreToolUse hook on Bash, registered in hooks.json: it reads the tool call as JSON on stdin and prints an `ask` decision when the command pushes to a trunk branch, and prints nothing otherwise or on any error.
+
+Test:
+    bash hooks/test-ask-before-trunk-push.sh
+"""
 # It asks rather than denies, and fails open on anything it cannot read, because a plugin hook fires on every Bash call in every repository, many of which are legitimately trunk-only.
 import json, os, re, shlex, subprocess, sys
 

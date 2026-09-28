@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Python rather than a shell block, because the skill's grant has no bare `Bash` and every command here is its own subprocess under the one `python3` call."""
+"""Poll a pull request and print each new human comment, review body and reaction, once.
+
+It polls through `gh` every 30 seconds until killed, skips every post that opens with the AI disclaimer, and writes only to stdout.
+
+Usage:
+    watch.py <pr-number>
+"""
 import json
 import subprocess
 import sys
