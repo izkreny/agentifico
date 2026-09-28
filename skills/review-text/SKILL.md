@@ -1,6 +1,7 @@
 ---
 name: review-text
-description: 'Review prose for spelling, grammar, punctuation, style, clarity, tone, and readability. Use for proofreading selected text, markdown, documentation, prompts, AGENTS.md, README files, code comments, and UI copy. Can either report issues only or apply minimal edits when asked.'
+description: |
+  Review prose for spelling, grammar, punctuation, style, clarity, tone and readability, reporting the issues or applying minimal edits when asked. Use for proofreading selected text, markdown, documentation, prompts, AGENTS.md, README files, code comments, UI copy, emails and commit messages. Invoked explicitly only, by the user typing `/review-text`: an agent never loads it on its own. Not for reviewing code logic or a pull request, translating, or rewriting text in a new voice.
 argument-hint: '[text | file] [issues | style | fix | all]'
 user-invocable: true
 disable-model-invocation: true
@@ -10,53 +11,49 @@ disable-model-invocation: true
 
 ## When to Use
 
-- Check `selected text` or a `whole file` for spelling, grammar, punctuation, style, or clarity.
-- Review markdown, documentation, prompts, AGENTS.md files, comments, UI copy, emails, or commit messages.
+- Proofread selected text or a whole file for spelling, grammar, punctuation, style or clarity.
+- Review markdown, documentation, prompts, AGENTS.md files, code comments, UI copy, emails or commit messages.
 - Tighten phrasing without changing meaning.
-- Apply minimal wording fixes after the user asks to update the text.
+
+## Arguments
+
+The first argument is the text to review, or the path of a file holding it. Without one, review the active selection or the active file where the harness exposes them, and otherwise ask, because a review of a guessed target wastes the whole pass.
+
+The second argument picks the action:
+
+| Argument | What it does |
+| --- | --- |
+| `issues` | Reports spelling, grammar and punctuation errors. |
+| `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
+| `fix` | Applies the corrections `issues` would report, and lists the `style` suggestions without applying them. |
+| `all` | Reports what `issues` and `style` find, then applies both. |
+| none | Reports what `issues` and `style` find, and edits nothing. |
+
+Only `fix` and `all` edit the text, because an edit the user did not ask for is one they have to find and undo.
 
 ## Instructions
 
-- Identify the request scope:
-  - `selected text`
-  - `whole file`
-- Identify the request actions:
-  - `spelling and grammar issues`: report only objective language issues.
-  - `style and clarity feedback`: report wording, structure, ambiguity, tone, and readability issues.
-  - `apply fixes`: update the text directly with the smallest effective edits.
-  - `all`: do all of the above actions
-- Read the exact current text before making claims. Prefer the active selection or active file when available.
-- Separate objective corrections from optional style suggestions.
-- Preserve the author's intent, technical meaning, terminology, tone, and formatting.
-- Be explicit about confidence.
-  - Say `no issues found` when none are present.
-  - Mark subjective wording suggestions as optional.
-- When rewriting text:
-  - Prefer the smallest edit that fixes the issue.
-  - Do not rewrite code, identifiers, or quoted literals unless explicitly requested.
-  - Keep markdown structure unchanged unless the structure itself is part of the problem.
-- When editing workspace files, change only the relevant text and avoid unrelated rewrites.
+- Read the exact current text before making any claim about it, because a claim about text you have not read is a guess.
+- Keep objective corrections apart from style suggestions, and mark every style suggestion optional, because the user accepts the first and weighs the second.
+- Say `no issues found` when there are none, because an invented finding costs the user a check and teaches them to distrust the rest.
+- Preserve the author's tone and formatting, an informal tone included, unless the user asks for another, because the text is theirs and the review serves it.
+- Make the smallest edit that fixes each issue and change nothing else in the file, because every extra change is one more line the user has to check.
+- Leave code, identifiers and quoted literals alone unless the user asks, because a changed identifier breaks whatever refers to it.
+- Keep the markdown structure unless the structure is the problem, because readers and tools may depend on it.
 
 ## Response Pattern
 
-- For review-only requests:
-  - State whether any issues were found.
-  - List issues with short explanations and suggested wording.
-  - Include a cleaned-up snippet only when it adds value.
-- For apply requests:
-  - Make the minimal edits directly.
-  - Summarize what changed.
-  - Mention any remaining optional style improvements separately.
+- For a report, say whether anything was found, then list each finding with a short explanation and the suggested wording. Add a cleaned-up snippet only where the list alone is hard to apply, because otherwise it repeats the list.
+- For an edit, make the edits, then summarise what changed, so the user can check them without diffing the file.
 
 ## Style Heuristics
 
-- Prefer direct instructions over biography in agent and configuration files.
-- Prefer operational verbs such as `apply`, `use`, `follow`, `load`, and `check` in instruction files.
-- Remove filler phrases, duplicated words, and unnecessary commas.
-- Keep parallel lists grammatically parallel.
+- In agent and configuration files, prefer direct instructions over biography, because an agent acts on an instruction and can do nothing with a backstory.
+- In instruction files, prefer operational verbs such as `apply`, `use`, `follow`, `load` and `check`, because each names an action the reader can take.
+- Remove filler phrases, duplicated words and unnecessary commas, because each costs the reader attention and carries nothing.
+- Keep parallel list items grammatically parallel, because a list that changes shape midway reads as two lists.
 
 ## Boundaries
 
-- Do not change meaning without asking.
-- Do not silently replace domain terminology that may be deliberate.
-- Preserve informal tone unless the user asks for a different tone.
+- Ask before any change that would alter the meaning, because only the author knows which meaning was intended.
+- Never replace domain terminology silently, because a term that looks wrong to a general reader is often right for the intended one.
