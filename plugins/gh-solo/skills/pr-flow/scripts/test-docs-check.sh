@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Usage: test-docs-check.sh [path-to-docs-check.py]
-# Every case was watched failing first, against mutants that ignore the tags, honour them in every file, or skip every span. The two cases where the file exists pass without the tags by design, so they were watched failing against the copy before --plans existed.
+# Every case was watched failing on a mutant of docs-check.py, because a case that passes on every script cannot tell a working one from a broken one.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
