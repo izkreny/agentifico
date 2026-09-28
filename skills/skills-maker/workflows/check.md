@@ -66,7 +66,7 @@ It reads every key rather than the description alone, because a space and a hash
 
 **A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root**: `<repo-root>/.agents/gh-solo.md` for a file the served repository holds, `<skill-dir>/workflows/example.md` for an example file the skill does not hold. The set of placeholders, and why a path to a file the skill holds stays bare, is in `workflows/new.md` under *Paths must survive any working directory and any machine*.
 
-**Write a path that leaves the skill's own tree as `~/`-relative.** It is portable, it names a file no checkout can resolve, and neither path rule reports one.
+**Write a path in the user's own locations as `~/`-relative.** It is portable, it names a file no checkout can resolve, and neither path rule reports one.
 
 ## The name rule
 
