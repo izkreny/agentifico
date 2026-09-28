@@ -106,7 +106,7 @@ Inside the skill, relative to the skill's own directory and say so; for user loc
 
 **A path the skill cannot write bare opens with the placeholder that names its root, and keeps its backticks.** The placeholders are these:
 
-- `<skill-dir>`: the directory the skill is installed to, for a fenced command whose reader stands in their own working directory.
+- `<skill-dir>`: the directory the skill is installed to, for a fenced command whose reader stands in their own working directory, and for an example file the skill does not hold.
 - `<plugin-dir>`: the root of the plugin that ships the skill.
 - `<repo-root>`: the top of the repository the skill serves.
 
