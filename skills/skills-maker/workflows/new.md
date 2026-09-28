@@ -110,7 +110,7 @@ Inside the skill, relative to the skill's own directory and say so; for user loc
 - `<plugin-dir>`: the root of the plugin that ships the skill.
 - `<repo-root>`: the top of the repository the skill serves.
 
-A path inside the skill stays bare, because a bare path is the one the check can verify. The path rules skip a span carrying `<` or `>`, so a placeholder never reads as a broken path, and the reader still sees which tree the file lives in.
+A path to a file the skill holds stays bare, because a bare path is the one the check can verify. Which spans the path rules read is in `workflows/check.md`.
 
 ### No hard wrapping
 
