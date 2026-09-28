@@ -19,9 +19,9 @@ metadata:
 
 ## Arguments
 
-The first argument is the text to review, or the path of a file holding it. Without one, review the active selection or the active file where the harness exposes them, and otherwise ask, because a review of a guessed target wastes the whole pass.
+When the last word of the arguments is `issues`, `style`, `fix` or `all`, it is the action and everything before it is the target; to review text that ends in one of those words, quote the text. The target is the text to review, or the path of a file holding it. With no target, review the active selection or the active file where the harness exposes them, and otherwise ask, because a review of a guessed target wastes the whole pass.
 
-The second argument picks the action:
+The action is one of:
 
 | Argument | What it does |
 | --- | --- |
