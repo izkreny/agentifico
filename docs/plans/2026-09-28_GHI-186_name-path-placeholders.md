@@ -56,3 +56,7 @@ These gates cannot tell whether the new wording in `skills/skills-maker/workflow
 ## Open questions
 
 None.
+
+## Settled
+
+**Do user locations take a placeholder too?** Yes, settled by the owner in the session on RF6 and folded into this branch: `<home-dir>` in prose only, and a tilde path inside a fenced command, where a shell expands it. `skill-portable-paths` enforces the split.
