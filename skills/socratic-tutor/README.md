@@ -11,7 +11,7 @@ An agent asked a question answers it, and an answer read is rarely an answer und
 ## Install
 
 ```bash
-skills add izkreny/agentifico -g -y -s socratic-tutor
+npx skills add izkreny/agentifico -g -y -s socratic-tutor
 ```
 
 That is the [skills CLI](https://skills.sh).
