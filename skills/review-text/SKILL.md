@@ -40,11 +40,11 @@ Only `fix` and `all` edit the text, because an edit the user did not ask for is 
 - Give every finding one level, because the level tells the user how much weight it carries: `error` for text that is wrong in any register, such as a misspelling or a broken agreement; `warning` for text that is very likely wrong but has a deliberate reading; `suggestion` for a preference, which is always optional. A choice you would not make is a `suggestion` at most, because different is not wrong.
 - Report a weak pattern, such as one passive sentence, only where it recurs or clearly costs the reader, because a finding on every instance buries the ones that matter.
 - Say `no issues found` when there are none, because an invented finding costs the user a check and teaches them to distrust the rest.
-- Preserve the author's tone and formatting, an informal tone included, unless the user asks for another, because the text is theirs and the review serves it.
+- Preserve the author's tone, an informal tone included, unless the user asks for another, because the text is theirs and the review serves it.
 - Treat a deliberate rule-break that carries the author's voice, such as a fragment for emphasis, as their choice rather than an error, because smoothing it out erases the voice the rule-break was there for.
 - Make the smallest edit that fixes each issue and change nothing else in the file, because every extra change is one more line the user has to check.
 - Leave code, identifiers and quoted literals alone unless the user asks, because a changed identifier breaks whatever refers to it.
-- Keep the markdown structure unless the structure is the problem, because readers and tools may depend on it.
+- Keep the formatting and markdown structure unless the user asks for another or the structure itself is the problem, because readers and tools may depend on it.
 
 ## Response Pattern
 
