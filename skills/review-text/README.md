@@ -18,7 +18,7 @@ That is the [skills CLI](https://skills.sh).
 
 ## Invocation
 
-Type `/review-text`, optionally followed by the text or a file path, then optionally an action. With no target it reviews your editor selection or active file where the harness exposes them, and otherwise asks for one. The skill never fires on its own: its frontmatter sets `disable-model-invocation: true`, and its description says so for agents that ignore that field.
+Type `/review-text`, optionally followed by the text or a file path, then optionally an action. A last word of `issues`, `style`, `fix` or `all` is always taken as the action, so quote text that ends in one of those words. With no target it reviews your editor selection or active file where the harness exposes them, and otherwise asks for one. The skill never fires on its own: its frontmatter sets `disable-model-invocation: true`, and its description says so for agents that ignore that field.
 
 | Action | What it does |
 | --- | --- |
