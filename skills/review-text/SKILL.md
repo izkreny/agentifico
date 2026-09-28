@@ -5,6 +5,8 @@ description: |
 argument-hint: '[text | file] [issues | style | fix | all]'
 user-invocable: true
 disable-model-invocation: true
+metadata:
+  version: "1.0.0"
 ---
 
 # Review text
