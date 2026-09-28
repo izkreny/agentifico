@@ -1,5 +1,5 @@
 // The token tree is read rather than the raw lines because prose that mentions a home directory in words is not a path.
-import { ABSOLUTE_TO_ONE_MACHINE, HOME_DIR_PLACEHOLDER, isHomeRelative } from "./paths.js";
+import { ABSOLUTE_TO_ONE_MACHINE, HOME_DIR_PLACEHOLDER, TILDE_PATH } from "./paths.js";
 
 const CARRIES_A_PATH = new Set(["codeTextData", "codeFlowValue", "resourceDestinationString"]);
 
@@ -23,9 +23,10 @@ export default {
       for (const match of text.matchAll(ABSOLUTE_TO_ONE_MACHINE)) {
         report(`${match[0]} is absolute to one machine: write it relative to the skill, as <home-dir>/ in prose, or as ~/ in a command`);
       }
-      // A bare `~/` names the form rather than a location, which is how the standard itself has to talk about it.
-      if (token.type === "codeTextData" && isHomeRelative(text) && text !== "~/") {
-        report(`${text} is a ~/ path in prose: write it as <home-dir>/`);
+      if (token.type === "codeTextData") {
+        for (const match of text.matchAll(TILDE_PATH)) {
+          report(`${match[1]} is a ~/ path in prose: write it as <home-dir>/`);
+        }
       }
       if (token.type === "codeFlowValue") {
         for (const match of text.matchAll(HOME_DIR_PLACEHOLDER)) {
