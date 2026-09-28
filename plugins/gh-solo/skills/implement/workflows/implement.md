@@ -83,7 +83,7 @@ Open with the verdict line:
 
 Then the record: what landed (commits), the box states on PR and issue, CI state, and any gate you could not run, by name, with why. This entire handoff is your final report: on the `auto` and `go` chains the orchestrator relays it, and on either entrance nothing may live only in the transcript.
 
-**Post that record as a PR comment before printing it, carrying the same content** (`gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first, the latter reading: via `implement` implement, the implementation record). The session's copy dies with the session; the PR is where this flow keeps state, and the comment is the implementation's own account for whoever reads the PR later - a resuming session, `ready`'s audit, the owner in a week.
+**Post that record as a PR comment before printing it, carrying the same content** (`gh pr comment <pr-number> --body-file <body-file>`, disclaimer and `via` line first, the latter reading: via `implement` implement, the implementation record). The session's copy dies with the session; the PR is where this flow keeps state, and the comment is the implementation's own account for whoever reads the PR later - a resuming session, `ready`'s audit, the owner in a week.
 
 **Same content is a requirement rather than a convenience**: the `auto` chain relays this comment verbatim in place of the printed handoff, so a comment that says less than the print leaves the chain relaying a different account from the one this workflow produced. The comment carries a `via` line and so falls under *Post caps* in the `pr-flow` skill's `SKILL.md`; the print carries none and is not itself capped, but the same-content requirement binds them together, so in practice the cap sets each.
 

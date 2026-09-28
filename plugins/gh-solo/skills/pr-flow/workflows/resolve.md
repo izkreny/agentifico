@@ -36,7 +36,7 @@ Sort every unresolved thread into its pile, per the protocol's account of what a
 One Conversation comment, posted first, so that no thread is ever resolved before the evidence for resolving it exists.
 
 ```bash
-gh pr comment <pr-number> --body-file <scratch-file>
+gh pr comment <pr-number> --body-file <body-file>
 ```
 
 Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by *Post caps* in the same file, which counts neither the marker line nor the owner's quoted words - *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:

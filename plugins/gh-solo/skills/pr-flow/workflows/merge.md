@@ -189,7 +189,7 @@ The protection object goes in a harness-scratchpad file, passed with `--input` -
 ```
 
 ```bash
-gh api -X PUT repos/{owner}/{repo}/branches/main/protection --input <scratch-file>
+gh api -X PUT repos/{owner}/{repo}/branches/main/protection --input <payload-file>
 ```
 
 The load-bearing values in that shape, each with a trap:

@@ -276,7 +276,7 @@ python3 <skill-dir>/scripts/post-review.py verify --payload <payload-file> --com
 
 #### 7. Post the reviewer's report as a Conversation comment
 
-Post it with `gh pr comment <pr-number> --body-file <scratch>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it unchanged, and is relayed verbatim, which *Never counted* under *Post caps* in `SKILL.md` excludes - what that cap bounds here is whatever you write around it, and its companion rule forbids re-listing findings that are already threads.
+Post it with `gh pr comment <pr-number> --body-file <body-file>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it unchanged, and is relayed verbatim, which *Never counted* under *Post caps* in `SKILL.md` excludes - what that cap bounds here is whatever you write around it, and its companion rule forbids re-listing findings that are already threads.
 
 ### Step 3 - Plan the fix, in the thread
 
