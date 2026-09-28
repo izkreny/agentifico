@@ -35,3 +35,4 @@ The check proves the frontmatter parses, the invocation field is matched by the 
 ## Settled
 
 - What does the skill do when no action is given? It reports only. The owner typed `auto 11` after the review recommended this, which this plan takes as agreement.
+- Do the ideas from other proofreading skills and style guides land on this branch? Yes, all of them, on the owner's word after the review round, with the sources linked from the README.
