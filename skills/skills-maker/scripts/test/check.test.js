@@ -62,7 +62,7 @@ before(() => {
   fs.writeFileSync(path.join(inner, "workflows", "deep", "only-root.md"), "Reaches the target root alone: `top.md`.\n");
   fs.appendFileSync(
     path.join(inner, "SKILL.md"),
-    "\nA span `workflows/new.md` resolves and `workflows/gone.md` does not.\n\nNot paths: `feat/GHI-50_login-form`, `github/gh-stack`, `/usr/bin/env`, `~/.agents/skills/x/SKILL.md`, `docs/*.md`, `E:/work/notes.md`.\n\nThe example-path case, quoted so the rule never sees it: 'workflows/deliberately-absent.md'.\n\n```bash\ncat workflows/also-gone.md\n```\n",
+    "\nA span `workflows/new.md` resolves and `workflows/gone.md` does not.\n\nNot paths: `feat/GHI-50_login-form`, `github/gh-stack`, `/usr/bin/env`, `~/.agents/skills/x/SKILL.md`, `docs/*.md`, `E:/work/notes.md`.\n\nThe example-path case, quoted so the rule never sees it: 'workflows/deliberately-absent.md'.\n\nA path the served repository holds, named by its root: `<repo-root>/.agents/gh-solo.md`.\n\n```bash\ncat workflows/also-gone.md\n```\n",
   );
 
   mk(path.join(tmp, "no-readme"), block("no-readme"), null);
@@ -375,6 +375,10 @@ describe("skill-referenced-paths", () => {
   it("a path quoted as a deliberate example is invisible to the rule", () => {
     const r = run(path.join(tmp, "refs"));
     assert.doesNotMatch(r.out, /deliberately-absent/);
+  });
+  it("a backticked path opening with a root placeholder is not reported", () => {
+    const r = run(path.join(tmp, "refs"));
+    assert.doesNotMatch(r.out, /<repo-root>\/\.agents\/gh-solo\.md.*does not resolve/);
   });
   it("a branch name, a repo slug, an absolute path, a ~/ path and a glob are not paths", () => {
     const r = run(path.join(tmp, "refs"));

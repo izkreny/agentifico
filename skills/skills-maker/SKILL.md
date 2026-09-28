@@ -7,7 +7,7 @@ disable-model-invocation: true
 compatibility: |
   Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.21 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
 metadata:
-  version: "3.12.0"
+  version: "3.13.0"
 allowed-tools: Bash(gh:*) Bash(node:*) Bash(npm:*) Bash(skills:*) Read Write Edit Grep Glob
 ---
 
@@ -17,11 +17,11 @@ The user invoked this skill with the argument: **`$ARGUMENTS`**
 
 This is a **routing skill**. Read `$ARGUMENTS` and the conversation context, pick exactly one workflow, read that workflow file, and follow its instructions inline.
 
-All paths below are **relative to this skill's own directory**. Resolve them against wherever this skill is installed rather than assuming a location. A fenced command is different, because whoever pastes it stands in their own working directory rather than in the skill: there the skill's own files are named through `<skill-dir>`, which stands for the directory this skill is installed to, and every workflow here uses that one placeholder rather than a bare `scripts/...` that runs only from inside the skill.
+All paths below are **relative to this skill's own directory**. Resolve them against wherever this skill is installed rather than assuming a location. A fenced command is different, because whoever pastes it stands in their own working directory rather than in the skill: there the skill's own files are named through `<skill-dir>`, the placeholder `workflows/new.md` defines for the directory this skill is installed to, and every workflow here uses that one placeholder rather than a bare `scripts/...` that runs only from inside the skill.
 
 ## Where skills live
 
-Keep one canonical copy in an agent-neutral location such as `~/.agents/skills/<name>/`, and symlink each agent's skills directory to it as needed: one file then serves every agent, and no copy drifts. Each agent reads its own directory; Claude Code, for example, reads `~/.claude/skills/<name>/SKILL.md`. When a workflow below says "the skills directory", resolve it for the agent in use.
+Keep one canonical copy in an agent-neutral location such as `<home-dir>/.agents/skills/<name>/`, and symlink each agent's skills directory to it as needed: one file then serves every agent, and no copy drifts. Each agent reads its own directory; Claude Code, for example, reads `<home-dir>/.claude/skills/<name>/SKILL.md`. When a workflow below says "the skills directory", resolve it for the agent in use.
 
 ## The facts every workflow here depends on
 
