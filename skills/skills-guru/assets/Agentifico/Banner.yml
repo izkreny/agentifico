@@ -23,3 +23,60 @@ ignorecase: true
 nonword: true
 raw:
   - '(?<=\A(?:---\n[\s\S]*?\n---\n)?\s*(?:>[^\n]*\n)*\s*(?:#[^\n]*\n\s*)?[^\n]*?)\b(?:verified (?:against|with|on)|tested (?:with|against|on)|checked against|built against|works with v?\d|as of (?:\w+ )?\d{4}|(?:written|updated|last updated|reviewed|current) (?:on|in|as of) (?:\w+ )?\d{4}|on \d{4}-\d{2}-\d{2}|as of the (?:commit|tag|release)|the latest release on)\b(?![^\n]*rather than)[^\n]*'
+tests:
+  - name: fires on a banner after the frontmatter and a tools blockquote
+    input: |
+      ---
+      name: x
+      description: Use when.
+      ---
+
+      > **Tools used:** none
+
+      Verified against Vale 3.20.0 on 2026-09-07.
+
+      A later paragraph.
+    want: |
+      8:1:Agentifico.Banner:Put a version next to the claim it qualifies: 'Verified against Vale 3.20.0 on 2026-09-07.' opens the file as a banner that nothing will update.
+  - name: fires on a banner under an opening heading with no frontmatter
+    input: |
+      # Reference
+
+      Tested with v3 and currently correct.
+
+      More.
+    want: |
+      3:1:Agentifico.Banner:Put a version next to the claim it qualifies: 'Tested with v3 and currently correct.' opens the file as a banner that nothing will update.
+  - name: fires on a dated observation opening the file
+    input: |
+      # Notes
+
+      On 2026-09-06 a status read reported four reviewed pull requests, as of the commit this was filed against.
+    want: |
+      3:1:Agentifico.Banner:Put a version next to the claim it qualifies: 'On 2026-09-06 a status read reported four reviewed pull requests, as of the commit this was filed against.' opens the file as a banner that nothing will update.
+  - name: leaves the verification idiom alone
+    input: |
+      # Notes
+
+      Verified against the plugin documentation rather than recalled.
+    want: ""
+  - name: leaves an opening currently to History
+    input: |
+      # Notes
+
+      It currently reads the config.
+    want: ""
+  - name: leaves the frontmatter, a version beside its claim and a later dated claim alone
+    input: |
+      ---
+      name: x
+      description: Use when.
+      compatibility: Requires Vale 3.20 or later, verified against 3.20.0.
+      ---
+
+      > **Tools used:** none
+
+      A clean opening paragraph.
+
+      The field is read (Claude Code 2.1.252), and as of 2026 the docs say so; this was tested with a real parser.
+    want: ""

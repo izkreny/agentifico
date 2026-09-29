@@ -72,3 +72,56 @@ tokens:
   # An ordinal pair walking the document's own list: "The first is a check",
   # "The second is" #2; "the third row is the finding" #7.
   - '^the (?:first|second|third) (?:is|was)\b'
+tests:
+  - name: fires on each recorded shape, once per line
+    input: |
+      # Title
+
+      Per the escape above, the row below is what the table means.
+      The target is the same as above.
+      It is stated in *Labels* above.
+      That is the one place a cap is stated, and nowhere else.
+      Nothing else states what follows, and every other site points here.
+      Read the next bullet and the last paragraph of this section.
+      This repository's one plugin is the newest section's subject.
+      The above holds; a skill list leaves exactly those unaccounted for.
+      This is the one that works.
+      The first is a check a tool could answer.
+      The keys are stated here in full.
+      The substitution names the only plan still being written.
+      The rule governs this step's read and nothing later.
+      This skill checks the raw line instead, so the trap is visible to it alone.
+    want: |
+      3:5:Agentifico.Position:Write sentences that survive change: 'the escape above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      3:23:Agentifico.Position:Write sentences that survive change: 'the row below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      4:15:Agentifico.Position:Write sentences that survive change: 'the same as above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      5:26:Agentifico.Position:Write sentences that survive change: 'above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      6:9:Agentifico.Position:Write sentences that survive change: 'the one place' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      6:44:Agentifico.Position:Write sentences that survive change: 'nowhere else' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      7:1:Agentifico.Position:Write sentences that survive change: 'Nothing else states' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      7:39:Agentifico.Position:Write sentences that survive change: 'every other site' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      8:6:Agentifico.Position:Write sentences that survive change: 'the next bullet' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      8:26:Agentifico.Position:Write sentences that survive change: 'the last paragraph' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      9:1:Agentifico.Position:Write sentences that survive change: 'This repository's one plugin' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      9:33:Agentifico.Position:Write sentences that survive change: 'the newest section' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      10:1:Agentifico.Position:Write sentences that survive change: 'The above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      10:38:Agentifico.Position:Write sentences that survive change: 'exactly those' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      11:1:Agentifico.Position:Write sentences that survive change: 'This is the one that' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      12:1:Agentifico.Position:Write sentences that survive change: 'The first is' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      13:14:Agentifico.Position:Write sentences that survive change: 'stated here in full' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      14:24:Agentifico.Position:Write sentences that survive change: 'the only plan' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      15:35:Agentifico.Position:Write sentences that survive change: 'and nothing later' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      16:64:Agentifico.Position:Write sentences that survive change: 'to it alone' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+  - name: leaves the sanctioned forms alone
+    input: |
+      # Title
+
+      Each part below earns its place:
+      One copy owns the fact and every other copy says so.
+      "Never do X. Doing X is bad." The second sentence should say what breaks.
+      Resume at the first unticked step, in the current directory, with the latest release.
+      A footer that floats above the page is CSS, and the first of these that is set wins.
+      The sections named under *Never counted* are excluded; `the table above` is code.
+      Keep the shared layer in one place.
+      The check leaves it alone, and a plan that names nothing later than its own branch is fine.
+    want: ""
