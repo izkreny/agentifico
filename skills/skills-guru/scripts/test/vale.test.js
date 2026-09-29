@@ -8,23 +8,21 @@ import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
 
-const styles = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "assets");
+const pkg = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const styles = path.join(pkg, "assets");
 const styleDir = path.join(styles, "Agentifico");
 let tmp;
 let ini;
 const fired = new Set();
 
-// Quoted text is ignored as .vale.ini ignores it, since the rule files quote their own bad examples.
-const tokenIgnores = 'TokenIgnores = ("[^"\\n]+"), (“[^”\\n]+”)';
+// The shipped .vale.ini is read rather than copied, so an edit to it is what these fixtures test.
+const shipped = fs.readFileSync(path.join(pkg, ".vale.ini"), "utf8");
+const tokenIgnores = shipped.match(/^TokenIgnores = .*$/m)[0];
 
-// A section glob is matched against the whole path, so it opens with **/ to reach a basename.
 before(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), "skills-guru-vale-"));
   ini = path.join(tmp, ".vale.ini");
-  fs.writeFileSync(
-    ini,
-    `StylesPath = ${styles}\nMinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = Agentifico\n${tokenIgnores}\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n\n[**/skill-*.md]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = YES\nAgentifico.SkillLength = YES\n\n[*.{js,py}]\nBasedOnStyles = Agentifico\nAgentifico.SkillSplit = NO\nAgentifico.SkillLength = NO\n\n[*.py]\nView = Python\n`,
-  );
+  fs.writeFileSync(ini, shipped.replace(/^StylesPath = .*$/m, `StylesPath = ${styles}`));
 });
 after(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
@@ -38,6 +36,7 @@ function vale(config, file) {
 
 function alerts(name, content) {
   const file = path.join(tmp, name);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, content);
   const found = vale(ini, file);
   for (const a of found) fired.add(a.Check);
@@ -74,18 +73,18 @@ describe("ParagraphLength, the one-claim helper", () => {
 
 describe("SkillSplit and SkillLength, the file caps", () => {
   it("past 2,000 words the split rule fires and the cap does not", () => {
-    const found = alerts("skill-split.md", `---\nname: x\ndescription: Use when.\n---\n\n${body(2001)}\n`);
+    const found = alerts("skill-split/SKILL.md", `---\nname: x\ndescription: Use when.\n---\n\n${body(2001)}\n`);
     expectHit(found, "SkillSplit", 1);
     expectClean(found, "SkillLength");
   });
   it("past 3,500 words both fire, as warnings", () => {
-    const found = alerts("skill-cap.md", `---\nname: x\ndescription: Use when.\n---\n\n${body(3501)}\n`);
+    const found = alerts("skill-cap/SKILL.md", `---\nname: x\ndescription: Use when.\n---\n\n${body(3501)}\n`);
     expectHit(found, "SkillSplit", 1);
     expectHit(found, "SkillLength", 1);
     assert.equal(only(found, "SkillLength")[0].severity, "warning");
   });
   it("under 2,000 words neither fires", () => {
-    const found = alerts("skill-small.md", `---\nname: x\ndescription: Use when.\n---\n\n${body(1999)}\n`);
+    const found = alerts("skill-small/SKILL.md", `---\nname: x\ndescription: Use when.\n---\n\n${body(1999)}\n`);
     expectClean(found, "SkillSplit");
     expectClean(found, "SkillLength");
   });
