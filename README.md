@@ -16,6 +16,10 @@ AI agent skills, instructions and gotchas. Each package here is published one of
 
 Each package's own README has its requirements and the full picture.
 
+## Install
+
+Each package's own README has its installation instructions.
+
 ## Working on this repository
 
 `AGENTS.md` holds the layout and how a package is versioned and released. `.agents/gh-solo.md` holds the check commands and the issue and pull request conventions.
