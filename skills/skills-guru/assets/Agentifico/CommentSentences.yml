@@ -40,6 +40,7 @@ tests:
           return 1
     want: |
       2:35:Agentifico.CommentSentences:A comment inside code is one sentence saying why: this one carries 2 sentence ends.
+  # No shebang, because Vale reads no module docstring under one and the case could then never fail.
   - name: leaves the module docstring alone and reads every other docstring and comment
     format: py
     view: Python

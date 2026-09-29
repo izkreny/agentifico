@@ -31,6 +31,7 @@ tests:
       x = 1
     want: |
       1:3:Agentifico.CommentLength:A comment inside code is one sentence saying why: this one runs to 46.00 words, so read it for a second claim.
+  # No shebang, because Vale reads no module docstring under one and the case could then never fail.
   - name: leaves the module docstring alone
     format: py
     view: Python
