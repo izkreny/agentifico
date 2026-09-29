@@ -2,7 +2,7 @@
 
 # agentifico
 
-AI agent skills, instructions and gotchas. Everything here is published two ways: as plugins in a Claude Code plugin marketplace, and as skills that install on their own into any agent that reads the [Agent Skills](https://agentskills.io) format.
+AI agent skills, instructions and gotchas. Each package here is published one of two ways: as a plugin in a Claude Code plugin marketplace, or as a skill that installs on its own into any agent that reads the [Agent Skills](https://agentskills.io) format.
 
 ## What is here
 
