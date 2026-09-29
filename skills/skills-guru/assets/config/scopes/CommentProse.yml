@@ -1,0 +1,6 @@
+# The comments and docstrings the comment rules read. A module docstring is
+# the module's interface under PEP 257, so the scope leaves out the one the
+# Python View names module (#182). A named scope needs Vale 3.23: an older
+# Vale loads a rule naming it and matches nothing, which is why check.js
+# refuses one.
+CommentProse: comment & ~module

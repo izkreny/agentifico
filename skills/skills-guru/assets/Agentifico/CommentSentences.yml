@@ -1,17 +1,16 @@
 # The mechanical half of "A comment inside code exists only where the solution
 # is unconventional, and is one sentence saying why" in workflows/new.md: a
 # comment holding a second sentence end is a finding, and whether the one
-# sentence is a reason stays with the reviewer. The token counts an end, so a
-# tool directive (biome-ignore, eslint-disable, noqa, type: ignore) carrying
-# no full stop counts nothing and needs no exception, which is as well since
-# an occurrence rule takes none. The lookbehind keeps an abbreviation a
-# comment here writes from counting as an end.
-# A module docstring is the module's interface under PEP 257, so the scope
-# leaves out the one the Python View names module (#182).
+# sentence is a reason stays with the reviewer. Vale does not read a comment
+# addressed to a tool (biome-ignore, eslint-disable, noqa, type: ignore) at
+# all, so a directive needs no exception, which is as well since an
+# occurrence rule takes none. The lookbehind keeps an abbreviation a comment
+# here writes from counting as an end.
+# The scope is named in config/scopes/CommentProse.yml, with its reason.
 extends: occurrence
 message: "A comment inside code is one sentence saying why: this one carries %d sentence ends."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-guru/workflows/new.md
 level: error
-scope: comment & ~module
+scope: CommentProse
 max: 1
 token: '(?<!\be\.g|\bi\.e|\betc|\bvs)[.!?](?=\s|$)'
