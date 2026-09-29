@@ -37,6 +37,8 @@ It compares `origin/main...HEAD` by default and takes a range or a single commit
 
 Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
 
+### The skills-guru check
+
 **The skills-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/skills-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are `plugins/gh-solo`, `skills/review-text`, `skills/skills-guru` and `skills/socratic-tutor`, and `<package-dir>` is each of them the branch owes the run:
 
 ```bash
@@ -57,6 +59,8 @@ npm --prefix skills/skills-guru run lint
 ```
 
 **A package that declares a `lint` script in its own manifest owes that run beside its suite.** The rule is the manifest rather than the command, so a package that later ships a linter is already covered and owes this file no edit. What `skills/skills-guru/package.json` declares today is `biome check scripts/`, which neither its suite nor its own check invokes, so a branch that skips it leaves that package's JavaScript unlinted and nothing else catches it.
+
+### The benches
 
 **The version check's bench**, after any edit to `scripts/version-check.py`:
 
@@ -81,6 +85,8 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-watch.sh
 ```bash
 bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
 ```
+
+### The manifests and the READMEs
 
 **What a plugin's two manifests share, and which fields must be kept in step.** A plugin's entry in `.claude-plugin/marketplace.json` and its own `plugins/<name>/.claude-plugin/plugin.json` overlap by schema rather than by convention: an entry may carry any field of the plugin manifest, plus the entry-only `source`, `category`, `tags`, `strict`, `relevance`, `headers` and `headersHelper`. So the answer is finite and worth writing out rather than remembering.
 
