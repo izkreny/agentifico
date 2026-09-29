@@ -343,7 +343,13 @@ describe("carriesInstallForm", () => {
   const headings = spans(headingPart);
   const commands = spans(commandPart);
   it("reads a heading list and a command list from workflows/new.md", () => assert.ok(headings.length > 0 && commands.length > 0));
-  for (const h of headings) it(`heading ${h}`, () => assert.ok(carriesInstallForm(`# A skill\n\n## ${h}\n\ntext\n`)));
+  // Each heading is asked for at more than one level and capitalised, because new.md accepts any heading that opens with the word.
+  const capitalised = (s) => s[0].toUpperCase() + s.slice(1);
+  for (const h of headings) {
+    for (const level of ["#", "##", "###"]) {
+      it(`heading ${level} ${capitalised(h)}`, () => assert.ok(carriesInstallForm(`# A skill\n\n${level} ${capitalised(h)}\n\ntext\n`)));
+    }
+  }
   for (const c of commands) it(`command ${c}`, () => assert.ok(carriesInstallForm(`# A skill\n\n\`\`\`bash\n${c} x\n\`\`\`\n`)));
   it("a heading opening with the word counts, without standing bare", () => assert.ok(carriesInstallForm("# A skill\n\n## Installing\n\ntext\n")));
   it("a heading quoted inside a fence is not a heading", () => assert.equal(carriesInstallForm("# A skill\n\n```markdown\n## Install\n```\n"), false));
