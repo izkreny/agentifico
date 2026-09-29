@@ -2,7 +2,7 @@
 name: review-text
 description: |
   Review prose for spelling, grammar, punctuation, style, clarity, tone and readability, reporting the issues or applying minimal edits when asked. Use for proofreading, or tightening the phrasing of, selected text, markdown, documentation, prompts, AGENTS.md, README files, code comments, UI copy, emails and commit messages. Invoked explicitly only, by the user typing `/review-text`: an agent never loads it on its own. Not for reviewing code logic or a pull request, translating, or rewriting text in a new voice.
-argument-hint: '[text | file] [issues | style | fix | all]'
+argument-hint: '[text | file] [issues | style] [fix]'
 user-invocable: true
 disable-model-invocation: true
 metadata:
@@ -19,19 +19,18 @@ metadata:
 
 ## Arguments
 
-When the last word of the arguments is `issues`, `style`, `fix` or `all`, it is the action and everything before it is the target; to review text that ends in one of those words, quote the text. The target is the text to review, or the path of a file holding it. With no target, review the active selection or the active file where the harness exposes them, and otherwise ask, because a review of a guessed target wastes the whole pass.
+The arguments are a target, then an optional scope, then an optional action. A last word of `fix` is the action, a last remaining word of `issues` or `style` is the scope, and everything before them is the target; to review text that ends in one of those words, quote the text. The target is the text to review, or the path of a file holding it. With no target, review the active selection or the active file where the harness exposes them, and otherwise ask, because a review of a guessed target wastes the whole pass.
 
-The action is one of:
+`issues` and `style` set the scope, and `fix` is the one action; without it the skill reports, which is the default:
 
 | Argument | What it does |
 | --- | --- |
 | `issues` | Reports spelling, grammar and punctuation errors. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
-| `fix` | Applies the corrections `issues` would report, and lists the `style` suggestions without applying them. |
-| `all` | Reports what `issues` and `style` find, then applies both. |
-| none | Reports what `issues` and `style` find, and edits nothing. |
+| `fix` | Applies the corrections for the stated scope: `issues`, `style`, or both when no scope is stated. |
+| none | Reports what `issues` and `style` find, and fixes nothing. |
 
-Only `fix` and `all` edit the text, because an edit the user did not ask for is one they have to find and undo.
+Only `fix` edits the text, because an edit the user did not ask for is one they have to find and undo.
 
 ## Instructions
 

@@ -18,15 +18,14 @@ That is the [skills CLI](https://skills.sh).
 
 ## Invocation
 
-Type `/review-text`, optionally followed by the text or a file path, then optionally an action. A last word of `issues`, `style`, `fix` or `all` is always taken as the action, so quote text that ends in one of those words. With no target it reviews your editor selection or active file where the harness exposes them, and otherwise asks for one. The skill never fires on its own: its frontmatter sets `disable-model-invocation: true`, and its description says so for agents that ignore that field.
+Type `/review-text`, optionally followed by the text or a file path, then optionally a scope, `issues` or `style`, then optionally `fix`. Without `fix` it only reports, and without a scope it covers both. A last word of `issues`, `style` or `fix` is always read as an argument, so quote text that ends in one of those words. With no target it reviews your editor selection or active file where the harness exposes them, and otherwise asks for one. The skill never fires on its own: its frontmatter sets `disable-model-invocation: true`, and its description says so for agents that ignore that field.
 
-| Action | What it does |
+| Argument | What it does |
 | --- | --- |
 | `issues` | Reports spelling, grammar and punctuation errors. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
-| `fix` | Applies the corrections `issues` would report, and lists the `style` suggestions without applying them. |
-| `all` | Reports what `issues` and `style` find, then applies both. |
-| none | Reports what `issues` and `style` find, and edits nothing. |
+| `fix` | Applies the corrections for the stated scope: `issues`, `style`, or both when no scope is stated. |
+| none | Reports what `issues` and `style` find, and fixes nothing. |
 
 ## Inspiration
 
