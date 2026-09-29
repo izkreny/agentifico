@@ -262,7 +262,7 @@ describe("Banner, a version or date banner in the opening lines", () => {
 });
 
 const TWO = "The first sentence says why. The second narrates the line.";
-// The directive per tool is written as its tool expects it, since the exception is that none of them ends a sentence.
+// The directive per tool is written as its tool expects it, since Vale drops a comment addressed to a tool rather than reading it.
 const DIRECTIVES = {
   js: "// biome-ignore lint/suspicious/noExplicitAny: the shape comes from the API and is not ours to type\nconst a = 1;\n/* eslint-disable no-console */\nconsole.log(a);\n",
   py: "x = 1  # noqa\ny = 2  # type: ignore\n",
