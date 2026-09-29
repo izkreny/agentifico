@@ -19,7 +19,7 @@ On GitHub:
 gh repo view <owner/repo> --json visibility
 ```
 
-On another forge, use its own CLI or API; and when no tool is at hand, open the repository page in a logged-out browser, since what it shows there, it shows everyone. The `gh` CLI is this skill's export-only dependency, declared in the frontmatter `compatibility` field.
+On another forge, use its own CLI or API; and when no tool is at hand, open the repository page in a logged-out browser, since what it shows there, it shows everyone. The `gh` CLI is declared in the frontmatter `compatibility` field, with its other use.
 
 A public repository permanently publishes everything in the skill. Strip anything that helps someone target or impersonate the origin machine: absolute paths under the author's home directory, inventories of installed tooling and their sources, permission and guardrail configuration.
 

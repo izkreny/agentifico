@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills.
+> **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills, `Bash(gh:*)` and `Bash(git:*)` to read findings and fix commits when a phrase list grows.
 
 The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 

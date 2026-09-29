@@ -4,13 +4,13 @@ description: |
   Write, review, check, maintain and export agent skills. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file or a package of skills. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill, only for the files that make one. Never invoked by an agent to install, pin or update a skill: the owner types `/skills-guru manage` for that.
 argument-hint: "[new <name> | review <path> | check | export <path> | manage]"
 compatibility: |
-  Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.21 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
+  Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.21 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list in the check.
 metadata:
   version: "4.1.0"
 allowed-tools: Bash(gh:*) Bash(node:*) Bash(npm:*) Bash(skills:*) Read Write Edit Grep Glob
 ---
 
-> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export and, with `git`, for reading findings and fix commits when a phrase list grows.
 
 This skill was invoked with the argument: **`$ARGUMENTS`**
 
