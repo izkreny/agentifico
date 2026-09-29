@@ -25,7 +25,13 @@ claude plugin marketplace add izkreny/agentifico
 claude plugin install gh-solo@agentifico
 ```
 
-A skill goes through the [skills CLI](https://skills.sh), with the skill's name after `-s`:
+A skill goes through the [skills CLI](https://skills.sh), which is the `skills` package on npm and has to be installed first:
+
+```bash
+npm install -g skills
+```
+
+Then add a skill by its name after `-s`:
 
 ```bash
 skills add izkreny/agentifico -g -y -s review-text
