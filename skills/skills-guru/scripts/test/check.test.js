@@ -335,19 +335,16 @@ describe("skill-readme", () => {
 });
 
 describe("carriesInstallForm", () => {
-  // Each form is asked for on its own, so a form dropped from the regex is a named failure rather than one case fewer.
-  const headings = ["## Install", "## Installation", "### Setup", "# Getting started"];
-  const commands = [
-    "skills add owner/repo",
-    "npm install -g thing",
-    "npm ci",
-    "mise use -g npm:skills",
-    "claude plugin install x@y",
-    "git clone https://example.test/r",
-    "ln -s ../skill ~/.agents/skills/x",
-  ];
-  for (const h of headings) it(`heading ${h}`, () => assert.ok(carriesInstallForm(`# A skill\n\n${h}\n\ntext\n`)));
-  for (const c of commands) it(`command ${c.split(" ")[0]} ${c.split(" ")[1]}`, () => assert.ok(carriesInstallForm(`# A skill\n\n\`\`\`bash\n${c}\n\`\`\`\n`)));
+  // The forms are read from workflows/new.md, which owns the list, so a form added there alone fails here by name.
+  const newMd = fs.readFileSync(path.resolve(path.dirname(check), "..", "workflows", "new.md"), "utf8");
+  const listed = newMd.split("\n").find((l) => l.startsWith("Give the section a heading opening with"));
+  const [headingPart, commandPart] = listed.split("or put the command in a fenced block");
+  const spans = (s) => [...s.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
+  const headings = spans(headingPart);
+  const commands = spans(commandPart);
+  it("reads a heading list and a command list from workflows/new.md", () => assert.ok(headings.length > 0 && commands.length > 0));
+  for (const h of headings) it(`heading ${h}`, () => assert.ok(carriesInstallForm(`# A skill\n\n## ${h}\n\ntext\n`)));
+  for (const c of commands) it(`command ${c}`, () => assert.ok(carriesInstallForm(`# A skill\n\n\`\`\`bash\n${c} x\n\`\`\`\n`)));
   it("a heading opening with the word counts, without standing bare", () => assert.ok(carriesInstallForm("# A skill\n\n## Installing\n\ntext\n")));
   it("a heading quoted inside a fence is not a heading", () => assert.equal(carriesInstallForm("# A skill\n\n```markdown\n## Install\n```\n"), false));
   it("an install command in prose is not a fenced block", () => assert.equal(carriesInstallForm("# A skill\n\nnpm install -g thing, one day.\n"), false));
