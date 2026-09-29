@@ -37,15 +37,30 @@ It compares `origin/main...HEAD` by default and takes a range or a single commit
 
 Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
 
-**The skills-guru package's checks**, after any edit under `skills/skills-guru/`: its suite, its own check run over itself, and its lint. Each needs a one-time `npm --prefix skills/skills-guru ci`, and the suite and the check each need Vale 3.20 or later on `PATH`, since the check runs the package's prose rules through it and the suite runs those same rules against their fixtures:
+### The skills-guru check
+
+**The skills-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/skills-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are `plugins/gh-solo`, `skills/review-text`, `skills/skills-guru` and `skills/socratic-tutor`, and `<package-dir>` is each of them the branch owes the run on:
+
+```bash
+node skills/skills-guru/scripts/check.js <package-dir>
+```
+
+It needs the `npm ci` and the Vale that *The skills-guru package's checks* name. **A package joins this list the day the check exits zero on it.** A package still carrying findings stays off, so no branch has to clear another package's backlog to pass its own gate. Its sweep, or an issue of its own, is what puts it here.
+
+**Here a run over a package root is a gate, not a survey.** `skills/skills-guru/workflows/check.md` calls a run over a directory of skills a survey, because it may reach a skill someone else maintains. Every skill under a package here is this repository's own, so a non-zero exit is this repository's work.
+
+**Unlike `/skills-guru review`, this check is a `## Verification` entry.** It is a set of rules with an exit code, where the review is a whole-skill judgement, per *The skill review is its own issue, not a branch's gate*.
+
+**The skills-guru package's checks**, after any edit under `skills/skills-guru/`: its suite and its lint, beside the skills-guru check it owes as a listed package. Each needs a one-time `npm --prefix skills/skills-guru ci`, and the suite and the check each need Vale 3.21 or later on `PATH`, since the check runs the package's prose rules through it and the suite runs those same rules against their fixtures:
 
 ```bash
 npm --prefix skills/skills-guru test
-node skills/skills-guru/scripts/check.js skills/skills-guru
 npm --prefix skills/skills-guru run lint
 ```
 
 **A package that declares a `lint` script in its own manifest owes that run beside its suite.** The rule is the manifest rather than the command, so a package that later ships a linter is already covered and owes this file no edit. What `skills/skills-guru/package.json` declares today is `biome check scripts/`, which neither its suite nor its own check invokes, so a branch that skips it leaves that package's JavaScript unlinted and nothing else catches it.
+
+### The benches
 
 **The version check's bench**, after any edit to `scripts/version-check.py`:
 
@@ -70,6 +85,8 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-watch.sh
 ```bash
 bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
 ```
+
+### The manifests and the READMEs
 
 **What a plugin's two manifests share, and which fields must be kept in step.** A plugin's entry in `.claude-plugin/marketplace.json` and its own `plugins/<name>/.claude-plugin/plugin.json` overlap by schema rather than by convention: an entry may carry any field of the plugin manifest, plus the entry-only `source`, `category`, `tags`, `strict`, `relevance`, `headers` and `headersHelper`. So the answer is finite and worth writing out rather than remembering.
 
