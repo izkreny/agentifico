@@ -35,8 +35,8 @@ The docs check runs without `--ignore`, which is the issue's own criterion. On t
 
 ## Open questions
 
-- **When does the label rename happen, and which issue owns it?** The issue says not to rename `skills-maker` before this branch lands, and the merge gate refuses on an unticked criterion. So this branch cannot close that criterion. Recommendation: move the rename into epic #188's `## Done when`, run right after `gh stack merge`, and drop it from #190's criteria.
+None.
 
 ## Settled
 
-None yet.
+- **When does the label rename happen, and which issue owns it?** Epic #188 owns it, in its `## Done when`, run right after `gh stack merge`. #190's criteria no longer carry it.
