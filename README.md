@@ -16,31 +16,6 @@ AI agent skills, instructions and gotchas. Each package here is published one of
 
 Each package's own README has its requirements and the full picture.
 
-## Install
-
-The plugin goes through the marketplace:
-
-```bash
-claude plugin marketplace add izkreny/agentifico
-claude plugin install gh-solo@agentifico
-```
-
-A skill goes through the [skills CLI](https://skills.sh), which is the `skills` package on npm and has to be installed first:
-
-```bash
-npm install -g skills
-```
-
-Then add a skill by its name after `-s`:
-
-```bash
-skills add izkreny/agentifico -g -y -s review-text
-```
-
-## Versions
-
-The version a package ships is the one in its own files: `plugins/<name>/.claude-plugin/plugin.json` for a plugin, the frontmatter of `skills/<name>/SKILL.md` for a skill. `AGENTS.md` says how that version relates to the package's release tags.
-
 ## Working on this repository
 
 `AGENTS.md` holds the layout and how a package is versioned and released. `.agents/gh-solo.md` holds the check commands and the issue and pull request conventions.
