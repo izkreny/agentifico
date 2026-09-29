@@ -49,4 +49,4 @@ The gates cannot tell whether a moved case still means what the old fixture mean
 
 ## Settled
 
-None yet.
+- **Does this branch wait for `plugins/gh-solo` to pass the skills-guru check?** No, the owner settled. Its three errors predate this branch and #212 owns them, so the check gates this branch on `skills/review-text`, `skills/skills-guru` and `skills/socratic-tutor`.
