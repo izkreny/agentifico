@@ -63,7 +63,7 @@ Based on `$ARGUMENTS`, do exactly one of the following:
 - If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
 - If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
 - If it starts with `export` → read `workflows/export.md` and follow it.
-- If it starts with `manage` → read `references/managing.md`, but only when the owner typed the command. Any other way in stops here, an agent's own invocation and a request about installing, pinning or updating a skill phrased as a sentence alike, and says that the owner types `/skills-guru manage` for that: that file installs software whose instructions then run with the agent's permissions.
+- If it starts with `manage`, or the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`, but only when the owner typed `/skills-guru manage`. Any other way in stops here, an agent's own invocation and a request phrased as a sentence alike, and says that the owner types `/skills-guru manage` for that: that file installs software whose instructions then run with the agent's permissions.
 - If it matches no verb in this list → say so and name the verbs, rather than guessing which was meant. A mistyped verb and a verb this skill does not have look identical from here, and both are answered by printing the list.
 
 ## Supporting files
