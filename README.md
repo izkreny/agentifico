@@ -33,7 +33,7 @@ skills add izkreny/agentifico -g -y -s review-text
 
 ## Versions
 
-Each package is released on its own tag, `<name>_<version>`, and the [tags](https://github.com/izkreny/agentifico/tags) list them all. `AGENTS.md` says what a tag guarantees.
+The version a package ships is the one in its own files: `plugins/<name>/.claude-plugin/plugin.json` for a plugin, the `SKILL.md` frontmatter for a skill. `AGENTS.md` says how that version relates to the package's release tags.
 
 ## Working on this repository
 
