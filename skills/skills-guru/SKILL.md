@@ -1,19 +1,28 @@
 ---
 name: skills-guru
 description: |
-  Write, review, maintain and export agent skills. Covers the frontmatter contract, the traps that fail silently, the routing-skill layout, installing and updating skills, and publishing a local skill for others. Explicit invocation only: type `/skills-guru`.
+  Write, review, check, maintain and export agent skills. Use when writing a new skill or a SKILL.md file, reviewing or checking an existing skill or a package of them, exporting a local skill for others, or installing, pinning or updating someone else's skill. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill, only for the files that make one. Always runs in a subagent, never inline in the calling session.
 argument-hint: "[new <name> | review <path> | check | export <path> | manage]"
-disable-model-invocation: true
 compatibility: |
   Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.21 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
 metadata:
-  version: "4.0.0"
+  version: "4.1.0"
+context: fork
+background: false
 allowed-tools: Bash(gh:*) Bash(node:*) Bash(npm:*) Bash(skills:*) Read Write Edit Grep Glob
 ---
 
 > **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
 
-The user invoked this skill with the argument: **`$ARGUMENTS`**
+This skill was invoked with the argument: **`$ARGUMENTS`**
+
+## Who runs this skill
+
+**This skill always runs in a subagent, never inline in a session doing other work.** Its workflows read whole skills and print long check output, which would otherwise fill the calling session's context. Claude Code forks it itself, through `context: fork` in the frontmatter, and `background: false` makes the caller wait for the report, which needs Claude Code 2.1.218 or later.
+
+**If you loaded this skill in the middle of other work, stop here.** Spawn a subagent, hand it this skill's directory and the argument, and wait for its report.
+
+**If this skill is the task you were handed, you are that subagent.** Carry on with the routing, and do not spawn another.
 
 This is a **routing skill**. Read `$ARGUMENTS` and the conversation context, pick exactly one workflow, read that workflow file, and follow its instructions inline.
 
@@ -56,7 +65,7 @@ Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" ra
 
 ## Routing
 
-**Where `$ARGUMENTS` arrives unexpanded**, read the argument from the conversation instead: the owner typed it, and it is the last thing they said before this skill loaded. `workflows/new.md` owns the account of why a router owes that fallback.
+**Where `$ARGUMENTS` arrives unexpanded**, read the argument from the task you were handed instead: the argument the invoking agent passed along, or the last thing the owner said before this skill loaded. `workflows/new.md` owns the account of why a router owes that fallback.
 
 Based on `$ARGUMENTS`, do exactly one of the following:
 
