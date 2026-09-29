@@ -53,3 +53,8 @@ The version check sees `skills/skills-guru/` (new) as a new package and compares
 ## Open questions
 
 None.
+
+## Settled
+
+- **RF1: may the docs check run with `--ignore`?** No, since `.agents/gh-solo.md` says the command takes none. This branch also points `AGENTS.md` and `.agents/gh-solo.md` at `skills/skills-guru/` and `/skills-guru`, and the gate runs without the ignore. The label's table cell and the audit query stay with #190, which renames the label.
+- **RF2: who fixes the link in `skills/review-text/README.md`?** #190, together with the `README.md` row that #203 adds.
