@@ -301,6 +301,11 @@ describe("CommentSentences, a comment holding a second sentence", () => {
     );
     expectClean(guards, "CommentSentences");
   });
+  // Full stops in the directive, so the fixture fails on a Vale that reads it.
+  it("leaves a directive alone however many sentences its reason runs to", () => {
+    expectClean(alerts("directive-reason.py", `x = 1\n# noqa: E501. ${TWO}\ny = 2\n`), "CommentSentences");
+    expectClean(alerts("directive-reason.js", `const a = 1;\n// eslint-disable-next-line no-console. ${TWO}\nconsole.log(a);\n`), "CommentSentences");
+  });
 });
 
 describe("CommentLength, the comment cap", () => {
