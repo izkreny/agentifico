@@ -39,6 +39,7 @@ Every command that runs Vale runs under `mise exec --`, because this session's `
 - `mise exec -- node skills/skills-guru/scripts/check.js skills/skills-guru`
 - `npm --prefix skills/skills-guru run lint`
 - `mise exec vale@3.21.0 -- node skills/skills-guru/scripts/check.js skills/skills-guru` exits 1 and says the prose rules did not run.
+- `node skills/skills-guru/scripts/check.js <package-dir>` exits zero under `mise exec --` for `plugins/gh-solo`, `skills/review-text`, `skills/skills-guru` and `skills/socratic-tutor`, the packages #210 lists.
 - `git grep -n 'Vale 3\.2[012]' -- ':!docs/plans' ':!skills/skills-guru/scripts/test'` prints nothing and exits 1.
 
 The gates cannot tell whether a skill someone else wrote relies on a Vale 3.21 behaviour that 3.23 changed. That is the sweep's.
@@ -51,3 +52,4 @@ None.
 
 - **Do the test fixtures count as naming Vale 3.20?** No. `skills/skills-guru/scripts/test/rules.test.js` and `skills/skills-guru/scripts/test/vale.test.js` hold "Vale 3.20" as input text for the rules, not as a requirement. So the grep gate excludes that directory, and the issue's criterion is read as "no file states an older Vale as a requirement".
 - **Does the Vale 3.23 upgrade belong in this issue?** Yes, the owner folded it in. It moves skills-guru to 5.0.0, so the issue's criteria and label change with it, and rule-level `tests:` stays out.
+- **Does `.agents/gh-solo.md` name the Vale version?** No, the owner settled: it points at `skills/skills-guru/workflows/check.md`, which owns the version, so a bump never has to edit it.
