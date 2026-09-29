@@ -42,9 +42,11 @@ Under roughly 2,000 words, one `SKILL.md` is right and splitting it is overhead.
 
 Past that, split: `SKILL.md` keeps the frontmatter, the shared model and a routing table; each operation gets `workflows/<verb>.md`; long reference material gets `references/<topic>.md`. The router reads exactly one workflow and follows it inline, which keeps loaded context proportional to the task rather than to the skill.
 
+The cap is roughly 3,500 words: the spec states it as 5,000 loaded tokens, tokens run about three quarters of a word in English prose, and its companion 500-line figure assumes conventionally wrapped text. A `SKILL.md` still past it after the split carries too much shared layer, and *Keep the shared layer in `SKILL.md`, stated once* says where that detail goes.
+
 ### Keep the shared layer in `SKILL.md`, stated once
 
-Whatever every workflow depends on belongs there, because a fact copied into three workflow files will drift in at least one of them. When that shared layer itself grows enough to bloat `SKILL.md`, which costs context on every invocation, move the detail into one `references/` file and keep in `SKILL.md` the one-line version plus the pointer, with each workflow that needs the detail told to read it first. The cap is roughly 3,500 words: the spec states it as 5,000 loaded tokens, tokens run about three quarters of a word in English prose, and its companion 500-line figure assumes conventionally wrapped text.
+Whatever every workflow depends on belongs there, because a fact copied into three workflow files will drift in at least one of them. When that shared layer itself grows enough to bloat `SKILL.md`, which costs context on every invocation, move the detail into one `references/` file and keep in `SKILL.md` the one-line version plus the pointer, with each workflow that needs the detail told to read it first.
 
 ### State in `SKILL.md` that paths are relative to the skill's own directory
 
