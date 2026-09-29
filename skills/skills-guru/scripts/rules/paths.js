@@ -1,4 +1,4 @@
-// The span predicate and the resolution bases are taken from plugins/gh-solo/skills/pr-flow/scripts/docs-check.py, which is read rather than this file when it and this file disagree.
+// The span predicate and the resolution bases were derived from <repo-root>/plugins/gh-solo/skills/pr-flow/scripts/docs-check.py and are kept in step where they agree, with each deliberate departure marked where it occurs.
 import fs from "node:fs";
 import path from "node:path";
 
