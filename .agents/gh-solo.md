@@ -51,7 +51,7 @@ It needs the `npm ci` and the Vale that *The skills-guru package's checks* name.
 
 **Unlike `/skills-guru review`, this check is a `## Verification` entry.** It is a set of rules with an exit code, where the review is a whole-skill judgement, per *The skill review is its own issue, not a branch's gate*.
 
-**The skills-guru package's checks**, after any edit under `skills/skills-guru/`: its suite and its lint, beside the skills-guru check it owes as a listed package. Each needs a one-time `npm --prefix skills/skills-guru ci`, and the suite and the check each need the Vale that `skills/skills-guru/workflows/check.md` names, on `PATH`, since the check runs the package's prose rules through it and the suite runs those same rules against their fixtures:
+**The skills-guru package's checks**, after any edit under `skills/skills-guru/`: its suite and its lint, beside the skills-guru check it owes as a listed package. Each needs a one-time `npm --prefix skills/skills-guru ci`, and the suite and the check each need the Vale that `skills/skills-guru/scripts/check.js` requires, on `PATH`, since the check runs the package's prose rules through it and the suite runs those same rules against their fixtures:
 
 ```bash
 npm --prefix skills/skills-guru test

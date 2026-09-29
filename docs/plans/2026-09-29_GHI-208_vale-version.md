@@ -52,4 +52,4 @@ None.
 
 - **Do the test fixtures count as naming Vale 3.20?** No. `skills/skills-guru/scripts/test/rules.test.js` and `skills/skills-guru/scripts/test/vale.test.js` hold "Vale 3.20" as input text for the rules, not as a requirement. So the grep gate excludes that directory, and the issue's criterion is read as "no file states an older Vale as a requirement".
 - **Does the Vale 3.23 upgrade belong in this issue?** Yes, the owner folded it in. It moves skills-guru to 5.0.0, so the issue's criteria and label change with it, and rule-level `tests:` stays out.
-- **Does `.agents/gh-solo.md` name the Vale version?** No, the owner settled: it points at `skills/skills-guru/workflows/check.md`, which owns the version, so a bump never has to edit it.
+- **Where is the Vale version stated?** Once, in `MIN_VALE` in `skills/skills-guru/scripts/check.js`, which enforces it, the owner settled. `skills/skills-guru/SKILL.md`, `skills/skills-guru/workflows/check.md` and `.agents/gh-solo.md` point at it, so a bump edits one line.

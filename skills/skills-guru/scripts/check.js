@@ -80,11 +80,16 @@ const proseNotRun = (why) => {
   process.exit(1);
 };
 
+// SKILL.md and workflows/check.md name the Vale this package needs by pointing here, and each refusal prints it.
+const MIN_VALE = [3, 23];
+const minVale = MIN_VALE.join(".");
+
 // An older Vale loads a rule naming a scope from config/scopes and matches nothing, so a run on one would pass with the comment rules off.
 const valeVersion = /(\d+)\.(\d+)\.\d+/.exec(spawnSync("vale", ["--version"], { encoding: "utf8" }).stdout ?? "");
-if (valeVersion && (Number(valeVersion[1]) < 3 || (Number(valeVersion[1]) === 3 && Number(valeVersion[2]) < 23)))
+const [major, minor] = valeVersion ? [Number(valeVersion[1]), Number(valeVersion[2])] : [];
+if (valeVersion && (major < MIN_VALE[0] || (major === MIN_VALE[0] && minor < MIN_VALE[1])))
   proseNotRun(
-    `vale ${valeVersion[0]} is older than 3.23: the prose rules did not run. Install Vale 3.23 or later, per workflows/check.md, and run the check again.`,
+    `vale ${valeVersion[0]} is older than ${minVale}: the prose rules did not run. Install Vale ${minVale} or later, per workflows/check.md, and run the check again.`,
   );
 
 // --no-global drops the user's own configuration and default styles directory, where a style of the same name would shadow this one.
@@ -94,7 +99,7 @@ const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output
 if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error)
   proseNotRun(
     vale.error?.code === "ENOENT"
-      ? "vale is not on PATH: the prose rules did not run. Install Vale 3.23 or later, per workflows/check.md, and run the check again."
+      ? `vale is not on PATH: the prose rules did not run. Install Vale ${minVale} or later, per workflows/check.md, and run the check again.`
       : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`,
   );
 // Vale's exit code is not read because it is non-zero only for an error-level alert and the JSON carries every alert.
