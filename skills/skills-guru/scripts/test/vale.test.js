@@ -262,7 +262,7 @@ describe("Banner, a version or date banner in the opening lines", () => {
 });
 
 const TWO = "The first sentence says why. The second narrates the line.";
-// The directive per tool is written as its tool expects it, since the exception is that none of them ends a sentence.
+// The directive per tool is written as its tool expects it, since Vale drops a comment addressed to a tool rather than reading it.
 const DIRECTIVES = {
   js: "// biome-ignore lint/suspicious/noExplicitAny: the shape comes from the API and is not ours to type\nconst a = 1;\n/* eslint-disable no-console */\nconsole.log(a);\n",
   py: "x = 1  # noqa\ny = 2  # type: ignore\n",
@@ -300,6 +300,11 @@ describe("CommentSentences, a comment holding a second sentence", () => {
       `// One sentence, e.g. this one, naming workflows/new.md, tags etc. and Vale 3.21.0 vs. the version the rules were written against, i.e. the pinned one.\nconst s = "${TWO}";\n`,
     );
     expectClean(guards, "CommentSentences");
+  });
+  // Full stops in the directive, so the fixture fails on a Vale that reads it.
+  it("leaves a directive alone however many sentences its reason runs to", () => {
+    expectClean(alerts("directive-reason.py", `x = 1\n# noqa: E501. ${TWO}\ny = 2\n`), "CommentSentences");
+    expectClean(alerts("directive-reason.js", `const a = 1;\n// eslint-disable-next-line no-console. ${TWO}\nconsole.log(a);\n`), "CommentSentences");
   });
 });
 

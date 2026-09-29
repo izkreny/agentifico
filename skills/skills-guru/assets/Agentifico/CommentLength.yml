@@ -5,14 +5,13 @@
 # formula, a run of line comments counting as one. The cap is calibrated
 # against this package by that count on 2026-09-15: its 118 comments ran to a
 # median of 23 words and a maximum of 44, so 45 sits one word above the
-# longest and names nothing in the package. A tool directive with its reason
-# beside it sits far under it.
-# A module docstring is the module's interface under PEP 257, so the scope
-# leaves out the one the Python View names module (#182).
+# longest and names nothing in the package. Vale does not read a tool
+# directive at all, so its reason never counts toward the cap.
+# The scope is named in config/scopes/CommentProse.yml, with its reason.
 extends: metric
 message: "A comment inside code is one sentence saying why: this one runs to %s words, so read it for a second claim."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-guru/workflows/new.md
 level: warning
-scope: comment & ~module
+scope: CommentProse
 formula: words
 condition: "> 45"

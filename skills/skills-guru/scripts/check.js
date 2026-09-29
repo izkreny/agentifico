@@ -72,21 +72,36 @@ report("skill rules", contractFindings);
 report("prose shape", proseShapeFindings);
 report("general lint", generalFindings);
 
-// --no-global drops the user's own configuration and default styles directory, where a style of the same name would shadow this one.
-const valeFiles = [...files, ...codeFiles];
-const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...valeFiles], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
-// A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
-if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
-  const why =
-    vale.error?.code === "ENOENT"
-      ? "vale is not on PATH: the prose rules did not run. Install Vale 3.21 or later, per workflows/check.md, and run the check again."
-      : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`;
+const proseNotRun = (why) => {
   report(PROSE_RULES, [], "not run");
   // The markdown files alone, since a code file's only reader is the process that did not start.
   console.log(`${files.length} files checked, ${issues} issues, prose rules not run`);
   console.log(why);
   process.exit(1);
-}
+};
+
+// SKILL.md and workflows/check.md name the Vale this package needs by pointing here, and each refusal prints it.
+const MIN_VALE = [3, 23];
+const minVale = MIN_VALE.join(".");
+
+// An older Vale loads a rule naming a scope from config/scopes and matches nothing, so a run on one would pass with the comment rules off.
+const valeVersion = /(\d+)\.(\d+)\.\d+/.exec(spawnSync("vale", ["--version"], { encoding: "utf8" }).stdout ?? "");
+const [major, minor] = valeVersion ? [Number(valeVersion[1]), Number(valeVersion[2])] : [];
+if (valeVersion && (major < MIN_VALE[0] || (major === MIN_VALE[0] && minor < MIN_VALE[1])))
+  proseNotRun(
+    `vale ${valeVersion[0]} is older than ${minVale}: the prose rules did not run. Install Vale ${minVale} or later, per workflows/check.md, and run the check again.`,
+  );
+
+// --no-global drops the user's own configuration and default styles directory, where a style of the same name would shadow this one.
+const valeFiles = [...files, ...codeFiles];
+const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...valeFiles], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+// A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
+if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error)
+  proseNotRun(
+    vale.error?.code === "ENOENT"
+      ? `vale is not on PATH: the prose rules did not run. Install Vale ${minVale} or later, per workflows/check.md, and run the check again.`
+      : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`,
+  );
 // Vale's exit code is not read because it is non-zero only for an error-level alert and the JSON carries every alert.
 const alerts = vale.stdout.trim() ? JSON.parse(vale.stdout) : {};
 
