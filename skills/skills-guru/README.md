@@ -2,7 +2,7 @@
 
 # skills-guru
 
-A skill for writing, reviewing, maintaining and exporting agent skills. You type `/skills-guru <argument>`, or an agent invokes it when told to, or when it reviews or checks a change to a skill.
+A skill for writing, reviewing, maintaining and exporting agent skills. You type `/skills-guru <argument>`, or an agent invokes it when told to, or when it reviews or checks a change to a skill. Installing and updating skills stays yours: only your typed `/skills-guru manage` reaches that route.
 
 It targets the [Agent Skills](https://agentskills.io) format, the open standard originally developed by Anthropic and since adopted across the agent ecosystem. The [specification](https://agentskills.io/specification) is the authority on the format, and the standard ships a [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference validator; the traps this skill exists to catch live below the spec's radar, since a truncated description is still valid YAML.
 
@@ -27,9 +27,9 @@ A skill that never fires looks identical to a skill that was never written. Ever
 | `review <path>` | Review an existing skill, or a whole package, for the defects that actually occur |
 | `check`, or no argument | Mechanical audit of one skill, or a survey across a directory of them |
 | `export <path>` | Publish a local skill to a shared repository |
-| `manage` | Install, update, pin or remove a skill someone else wrote |
+| `manage` | Install, update, pin or remove a skill someone else wrote, only when you type it |
 
-Requests about installing, updating or removing someone else's skill reach the same place phrased as a sentence, which the router sends to `references/managing.md` as it sends the verb.
+A request to install, update or remove someone else's skill phrased as a sentence does not reach `references/managing.md`. The router stops and names the command, because that file installs software whose instructions then run with an agent's permissions.
 
 ```mermaid
 flowchart TD
@@ -38,7 +38,7 @@ flowchart TD
     R -->|review| V["workflows/review.md<br/>find the defects that actually occur"]
     R -->|"check, or no argument"| C["workflows/check.md<br/>mechanical audit of one skill,<br/>or a survey across many"]
     R -->|export| E["workflows/export.md<br/>publish a local skill to a shared repository"]
-    R -->|"manage, or install, update, remove"| M["references/managing.md<br/>the skills CLI, its lock, one manager per skill"]
+    R -->|"manage, typed by you"| M["references/managing.md<br/>the skills CLI, its lock, one manager per skill"]
     N -->|verifies with| C
     V -->|runs first| C
     E -->|verifies with| C
