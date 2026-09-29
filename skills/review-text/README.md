@@ -30,7 +30,7 @@ Type `/review-text`, optionally followed by the text or a file path, then option
 ## Inspiration
 
 - [Vale's severity levels, as Elastic's docs define them](https://www.elastic.co/docs/contribute-docs/vale-linter): `error`, `warning` and `suggestion`.
-- [skills-maker's review workflow](../skills-maker/workflows/review.md): ranking findings by consequence, and different is not wrong.
+- [skills-guru's review workflow](../skills-guru/workflows/review.md): ranking findings by consequence, and different is not wrong.
 - [EveryInc/compound-writing, `cw-line-edit`](https://github.com/EveryInc/compound-writing/blob/main/skills/cw-line-edit/SKILL.md): numbered changes you revert by number, and claims kept at their scope, certainty and citation.
 - [agkozak/llm-prompts](https://github.com/agkozak/llm-prompts): the original, revised and why table, and naming the formal word swaps to avoid.
 - [blader/humanizer](https://github.com/blader/humanizer/blob/main/SKILL.md): adding no fact the source does not give, and reporting a weak pattern only when it recurs.

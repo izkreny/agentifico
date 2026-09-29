@@ -6,7 +6,7 @@ argument-hint: '[text | file] [issues | style] [fix]'
 user-invocable: true
 disable-model-invocation: true
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # Review text
