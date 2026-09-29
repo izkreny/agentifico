@@ -185,7 +185,7 @@ npm --prefix <skill-dir> run lint
 
 ## What a sweep still looks for by hand
 
-These are the faces of the authoring rules in `workflows/new.md`, which owns each rule and its reason, that no rule in this file decides, so a sweep reads for them:
+No rule in this file decides these, so a sweep reads for them, and where an item is an authoring rule, `workflows/new.md` owns it and its reason:
 
 - **`argument-hint` against the routing table.** Every advertised verb routes somewhere, and every route is advertised.
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
