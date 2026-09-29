@@ -67,7 +67,7 @@ git push origin <name>_<version>
 
 ## Skill files follow the skills-guru rules
 
-**Every file under `plugins/` and `skills/` is held to the `skills-guru` skill at `skills/skills-guru/`, and so are `AGENTS.md` and `.agents/gh-solo.md`.** A plugin's manifests, agents, hooks and README are read by agents just as its skills are, and the two instruction files govern all of them. The skill is a package of this repository, so it is readable from any branch and can be cited by path rather than copied here, where a copy would drift from the file it came from.
+**Every file under `plugins/` and `skills/` is held to the `skills-guru` skill at `skills/skills-guru/`, and so are `AGENTS.md` and `.agents/gh-solo.md`.** A plugin's manifests, agents, hooks and README are read by agents just as its skills are, and `AGENTS.md` and `.agents/gh-solo.md` govern all of them. The skill is a package of this repository, so it is readable from any branch and can be cited by path rather than copied here, where a copy would drift from the file it came from.
 
 **`docs/plans/` is outside the standard.** A plan is a record of intent and keeps its history by design, so the rule against a file's own history cannot bind it.
 
