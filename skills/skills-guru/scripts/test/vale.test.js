@@ -67,13 +67,16 @@ describe("SkillSplit and SkillLength, enabled for a SKILL.md alone", () => {
   });
 });
 
+function valeTest(...args) {
+  const r = spawnSync("vale", ["--no-global", "--config", config, "test", ...args], { encoding: "utf8" });
+  assert.equal(r.error, undefined, `vale did not run: ${r.error}`);
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+}
+
 describe("the rules' own cases", () => {
-  it("vale test passes, and every rule fires in one of its cases", () => {
-    const cases = path.join(here, "vale.test.yml");
-    const r = spawnSync("vale", ["--no-global", "--config", config, "test", "--coverage", styleDir, cases], { encoding: "utf8" });
-    assert.equal(r.error, undefined, `vale did not run: ${r.error}`);
-    assert.equal(r.status, 0, r.stdout + r.stderr);
-  });
+  // The style alone, because a project case firing a rule would otherwise cover a rule whose own cases never fire.
+  it("every rule's cases pass, and every rule fires in one of its own", () => valeTest("--coverage", styleDir));
+  it("the cases that need the shipped configuration pass", () => valeTest(path.join(here, "vale.test.yml")));
 });
 
 const TRIP_CASE = "fires on each recorded shape, once per line";
