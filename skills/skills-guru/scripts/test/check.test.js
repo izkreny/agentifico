@@ -36,9 +36,12 @@ before(() => {
   const refuses = path.join(tmp, "refuses-bin");
   fs.mkdirSync(refuses);
   fs.writeFileSync(path.join(refuses, "vale"), '#!/bin/sh\necho "E100 [core] cannot parse config: bad line" >&2\nexit 2\n', { mode: 0o755 });
-  const old = path.join(tmp, "old-bin");
-  fs.mkdirSync(old);
-  fs.writeFileSync(path.join(old, "vale"), '#!/bin/sh\necho "vale version 3.21.0"\n', { mode: 0o755 });
+  // One stub per minor under 3.23, so an off-by-one threshold fails on 3.22.0.
+  for (const version of ["3.21.0", "3.22.0"]) {
+    const bin = path.join(tmp, `old-bin-${version}`);
+    fs.mkdirSync(bin);
+    fs.writeFileSync(path.join(bin, "vale"), `#!/bin/sh\necho "vale version ${version}"\n`, { mode: 0o755 });
+  }
   fs.mkdirSync(path.join(tmp, "notes"));
   fs.writeFileSync(path.join(tmp, "notes", "notes.txt"), "- **lead.** first\n\n  the reason\n\n  a second paragraph\n");
 
@@ -174,10 +177,12 @@ describe("check.js", () => {
     assert.match(r.out, /cannot parse config/);
   });
   it("a vale older than 3.23 fails the run, and says so", () => {
-    const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "old-bin") });
-    assert.equal(r.code, 1);
-    assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
-    assert.match(r.out, /vale 3\.21\.0 is older than 3\.23/);
+    for (const version of ["3.21.0", "3.22.0"]) {
+      const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, `old-bin-${version}`) });
+      assert.equal(r.code, 1, version);
+      assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
+      assert.match(r.out, new RegExp(`vale ${version.replaceAll(".", "\\.")} is older than 3\\.23`));
+    }
   });
   it("a target with nothing under it fails rather than passing silently", () => {
     const r = run(path.join(tmp, "empty"));
