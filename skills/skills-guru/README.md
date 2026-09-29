@@ -40,11 +40,11 @@ flowchart TD
     R -->|export| E["workflows/export.md<br/>publish a local skill to a shared repository"]
     R -->|"manage, typed by you"| M["references/managing.md<br/>the skills CLI, its lock, one manager per skill"]
     N -->|verifies with| C
-    V -->|runs first| C
+    V -->|runs before judging| C
     E -->|verifies with| C
 ```
 
-The mechanical check is the shared foundation: authoring ends with it, review starts with it, and an export does not finish without it.
+The mechanical check is the shared foundation: authoring ends with it, review runs it before judging anything, and an export does not finish without it.
 
 ## Which model to run it with
 
