@@ -1,0 +1,79 @@
+---
+name: skills-guru
+description: |
+  Write, review, maintain and export agent skills. Covers the frontmatter contract, the traps that fail silently, the routing-skill layout, installing and updating skills, and publishing a local skill for others. Explicit invocation only: type `/skills-guru`.
+argument-hint: "[new <name> | review <path> | check | export <path> | manage]"
+disable-model-invocation: true
+compatibility: |
+  Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.21 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
+metadata:
+  version: "4.0.0"
+allowed-tools: Bash(gh:*) Bash(node:*) Bash(npm:*) Bash(skills:*) Read Write Edit Grep Glob
+---
+
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
+
+The user invoked this skill with the argument: **`$ARGUMENTS`**
+
+This is a **routing skill**. Read `$ARGUMENTS` and the conversation context, pick exactly one workflow, read that workflow file, and follow its instructions inline.
+
+All paths below are **relative to this skill's own directory**. Resolve them against wherever this skill is installed rather than assuming a location. A fenced command is different, because whoever pastes it stands in their own working directory rather than in the skill: there the skill's own files are named through `<skill-dir>`, the placeholder `workflows/new.md` defines for the directory this skill is installed to, and every workflow here uses that one placeholder rather than a bare `scripts/...` that runs only from inside the skill.
+
+## Where skills live
+
+Keep one canonical copy in an agent-neutral location such as `<home-dir>/.agents/skills/<name>/`, and symlink each agent's skills directory to it as needed: one file then serves every agent, and no copy drifts. Each agent reads its own directory; Claude Code, for example, reads `<home-dir>/.claude/skills/<name>/SKILL.md`. When a workflow below says "the skills directory", resolve it for the agent in use.
+
+## The facts every workflow here depends on
+
+### The description is the whole trigger surface
+
+**Only the frontmatter is read before a skill loads.** As far as discovery is concerned the body does not exist, so every phrase that should cause the skill to fire has to appear in `description:`. A trigger documented only in the body will never fire, because nothing reads the body until something has already decided to load it.
+
+The corollary matters when refactoring: moving a rule out of a global instructions file and into a skill only works if whatever made an agent reach for it survives in the description. Otherwise the rule is unreachable rather than relocated.
+
+### YAML eats the description at `#`
+
+**In an unquoted YAML scalar, a space followed by `#` starts a comment.** Everything after it is discarded with no parse error, no warning, and a skill that still loads and still works. The only symptom is triggers that never fire.
+
+```yaml
+description: Use when asked to review PR #N, or check what needs review.
+```
+
+Everything from the space before `#N` onward is gone. Backticks do not protect against it: a description containing `` `#123` `` survives only because the character before the `#` is a backtick rather than a space, which is luck, not correctness.
+
+**Write the description as a block scalar.** It has no comment, anchor, tag or escape processing, so a trap that needs a plain or quoted value cannot reach it:
+
+```yaml
+description: |
+    Use when asked to review PR #N, or check what needs review.
+```
+
+Quoting also survives a space followed by `#`, but every quote style carries its own trap: inside `"..."` a backslash or an unescaped inner `"` is a parse error, inside `'...'` an apostrophe must be doubled, and curly “smart” quotes are not quotes at all, so a description that merely looks quoted still truncates. The family goes further, all verified against a real parser: a leading `&` or `!` silently eats the first word, a duplicate `description:` key silently discards the first value, a bare `yes` becomes a boolean in some parsers, and a stray `:` or a leading `*`, `[`, `{`, `%` or `@` is a parse error. A parse error is not loud in practice: the harness swallows it and the skill simply vanishes from the listing. `workflows/check.md` tests for all of these.
+
+Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" rather than "PR #N", so the text stays safe under any later edit that changes the form.
+
+---
+
+## Routing
+
+**Where `$ARGUMENTS` arrives unexpanded**, read the argument from the conversation instead: the owner typed it, and it is the last thing they said before this skill loaded. `workflows/new.md` owns the account of why a router owes that fallback.
+
+Based on `$ARGUMENTS`, do exactly one of the following:
+
+- If it starts with `new` → read `workflows/new.md` and follow it.
+- If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
+- If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
+- If it starts with `export` → read `workflows/export.md` and follow it.
+- If it starts with `manage`, or the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`.
+- If it matches no verb in this list → say so and name the verbs, rather than guessing which was meant. A mistyped verb and a verb this skill does not have look identical from here, and both are answered by printing the list.
+
+## Supporting files
+
+| File | What it holds |
+| --- | --- |
+| `workflows/new.md` | authoring a skill from scratch: frontmatter, layout, content rules |
+| `workflows/review.md` | reviewing an existing skill against the defects that actually occur |
+| `workflows/check.md` | the mechanical audit: a gate over one skill, a survey over a directory of them |
+| `workflows/export.md` | publishing a local skill to a shared repository |
+| `references/managing.md` | installing and updating skills, and why not to hand-edit an installed one |
+| `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, and the helpers they share beside them; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |
