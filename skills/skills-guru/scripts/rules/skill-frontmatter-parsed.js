@@ -19,7 +19,7 @@ export function defects(fm) {
   else if (typeof d === "string" && authored(d).length > 1024) bad.push(`description is ${authored(d).length} characters, over the spec's 1024`);
   const c = mapping.compatibility;
   if (typeof c === "string" && authored(c).length > 500) bad.push(`compatibility is ${authored(c).length} characters, over the spec's 500`);
-  // Truncation at ` #` drops the tail of whatever key it lands in, and this package's own `compatibility` is that exact shape.
+  // Truncation at ` #` drops the tail of whatever key it lands in, not only the description's.
   const seen = new Set();
   for (let i = 0; i < fm.length; i++) {
     const m = TOP_LEVEL.exec(fm[i]);

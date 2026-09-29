@@ -1,4 +1,4 @@
-// The span predicate and the resolution bases are taken from plugins/gh-solo/skills/pr-flow/scripts/docs-check.py, which is read rather than this file when it and this file disagree.
+// The span predicate and the resolution bases were derived from <repo-root>/plugins/gh-solo/skills/pr-flow/scripts/docs-check.py and are kept in step where they agree, with each deliberate departure marked where it occurs.
 import fs from "node:fs";
 import path from "node:path";
 
@@ -46,13 +46,13 @@ export const ABSOLUTE_TO_ONE_MACHINE = /(?<![A-Za-z0-9._~-])(?:\/home\/|\/Users\
 export function looksLikePath(span) {
   if (NOT_A_PATH.some((bad) => span.includes(bad))) return false;
   if (/^[-#@/]/.test(span)) return false;
-  // A drive letter is an absolute path wearing another shape, which is skill-portable-paths' to report.
+  // Unlike docs-check.py, a drive letter is rejected, since it is an absolute path wearing another shape and skill-portable-paths' to report.
   if (/^[A-Za-z]:[\\/]/.test(span)) return false;
   if (span.endsWith("/")) return true;
   return PATHY_SUFFIXES.some((suffix) => span.endsWith(suffix));
 }
 
-// The walk stops at the target so a run over one skill never resolves a span against a tree outside it, and containment is tested on path segments because a string test puts /a/bc inside /a/b.
+// Unlike docs-check.py, the walk stops at the target so a run over one skill never resolves a span against a tree outside it, and containment is tested on path segments because a string test puts /a/bc inside /a/b.
 export function owningSkill(file, root) {
   const stop = path.resolve(root);
   const prefix = stop.endsWith(path.sep) ? stop : stop + path.sep;

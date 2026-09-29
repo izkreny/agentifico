@@ -4,13 +4,13 @@ description: |
   Write, review, check, maintain and export agent skills. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file or a package of skills. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill, only for the files that make one. Never invoked by an agent to install, pin or update a skill: the owner types `/skills-guru manage` for that.
 argument-hint: "[new <name> | review <path> | check | export <path> | manage]"
 compatibility: |
-  Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.21 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
+  Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.21 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list in the check.
 metadata:
-  version: "4.1.0"
+  version: "4.1.1"
 allowed-tools: Bash(gh:*) Bash(node:*) Bash(npm:*) Bash(skills:*) Read Write Edit Grep Glob
 ---
 
-> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export.
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export and, with `git`, for reading findings and fix commits when a phrase list grows.
 
 This skill was invoked with the argument: **`$ARGUMENTS`**
 
@@ -57,13 +57,13 @@ Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" ra
 
 **Where `$ARGUMENTS` arrives unexpanded**, read the argument from the conversation instead: whoever invoked the skill, the owner or an agent, named it last before this skill loaded. `workflows/new.md` owns the account of why a router owes that fallback.
 
-Based on `$ARGUMENTS`, do exactly one of the following:
+Based on `$ARGUMENTS`, do exactly one of the following. Test the `manage` bullet before the others, so an install request is caught before an empty argument reaches `check` and before any verb its sentence opens with:
 
+- If it starts with `manage`, or the request that invoked this skill is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`, but only when the owner typed `/skills-guru manage`. Any other way in stops here, an agent's own invocation and a request phrased as a sentence alike, and says that the owner types `/skills-guru manage` for that: that file installs software whose instructions then run with the agent's permissions.
 - If it starts with `new` → read `workflows/new.md` and follow it.
 - If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
 - If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
 - If it starts with `export` → read `workflows/export.md` and follow it.
-- If it starts with `manage`, or the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`, but only when the owner asked, by typing the command or in their own words. When an agent invoked this skill on its own, stop and say that installing and updating skills is the owner's to start: that file installs software whose instructions then run with the agent's permissions.
 - If it matches no verb in this list → say so and name the verbs, rather than guessing which was meant. A mistyped verb and a verb this skill does not have look identical from here, and both are answered by printing the list.
 
 ## Supporting files

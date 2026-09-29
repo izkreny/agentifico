@@ -26,7 +26,7 @@ Read every file in the skill's directory, whatever the layout: `SKILL.md`, what 
 
 ## Step 2 - Run the mechanical check
 
-Follow `workflows/check.md` first. It catches the silent failures cheaply, and there is no point reviewing prose in a skill whose triggers are being discarded.
+Follow `workflows/check.md` once the read is done and before judging anything. It catches the silent failures cheaply, and there is no point reviewing prose in a skill whose triggers are being discarded.
 
 ## Step 3 - The defects that actually occur
 
