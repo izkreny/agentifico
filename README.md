@@ -39,7 +39,7 @@ skills add izkreny/agentifico -g -y -s review-text
 
 ## Versions
 
-The version a package ships is the one in its own files: `plugins/<name>/.claude-plugin/plugin.json` for a plugin, the `SKILL.md` frontmatter for a skill. `AGENTS.md` says how that version relates to the package's release tags.
+The version a package ships is the one in its own files: `plugins/<name>/.claude-plugin/plugin.json` for a plugin, the frontmatter of `skills/<name>/SKILL.md` for a skill. `AGENTS.md` says how that version relates to the package's release tags.
 
 ## Working on this repository
 
