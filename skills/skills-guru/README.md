@@ -2,7 +2,7 @@
 
 # skills-guru
 
-A skill for writing, reviewing, maintaining and exporting agent skills. Explicit invocation only: it never fires on its own; you type `/skills-guru <argument>` yourself.
+A skill for writing, reviewing, maintaining and exporting agent skills. You type `/skills-guru <argument>`, or an agent invokes it on its own when the work calls for it. Either way it runs in a subagent, so its long output stays out of the session that called it.
 
 It targets the [Agent Skills](https://agentskills.io) format, the open standard originally developed by Anthropic and since adopted across the agent ecosystem. The [specification](https://agentskills.io/specification) is the authority on the format, and the standard ships a [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference validator; the traps this skill exists to catch live below the spec's radar, since a truncated description is still valid YAML.
 
