@@ -6,7 +6,7 @@ Issue [#200](https://github.com/izkreny/agentifico/issues/200). Not part of an e
 
 ## Approach
 
-Delete 'skills/daisyui-designer/' whole, then remove the two places `.agents/gh-solo.md` names the package: its row in the label table and its term in the mandatory-axis audit query. The owner approved that repository-level edit on this branch.
+Delete the whole package directory, `skills/daisyui-designer/` (delete), then remove the two places `.agents/gh-solo.md` names the package: its row in the label table and its term in the mandatory-axis audit query. The owner approved that repository-level edit on this branch.
 
 The package was never tagged and carries no version, so nothing is bumped. `scripts/version-check.py` treats a package whose whole directory is gone as a retirement and passes it.
 
@@ -14,12 +14,12 @@ Two mentions stay, because they are dated records rather than instructions: plan
 
 ## Steps
 
-- Delete 'skills/daisyui-designer/'.
+- Delete the whole of `skills/daisyui-designer/` (delete).
 - Remove the `daisyui-designer` row and the `-label:daisyui-designer` query term from `.agents/gh-solo.md`.
 
 ## Verification
 
-- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md $(git diff --name-only origin/main...HEAD -- docs/plans) --ignore '.claude/*' --ignore '*GHI-50*'`
+- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md $(git diff --name-only origin/main...HEAD -- docs/plans) --plans docs/plans`
 - `python3 scripts/version-check.py`
 - `git grep -n daisyui-designer -- ':!docs/plans' ':!skills/skills-maker/assets/Agentifico/ParagraphLength.yml'` prints nothing and exits 1
 
