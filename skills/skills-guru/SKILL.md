@@ -1,7 +1,7 @@
 ---
 name: skills-guru
 description: |
-  Write, review, check, maintain and export agent skills. Use when writing a new skill or a SKILL.md file, reviewing or checking an existing skill or a package of them, exporting a local skill for others, or installing, pinning or updating someone else's skill. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill, only for the files that make one.
+  Write, review, check, maintain and export agent skills. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file or a package of skills. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill, only for the files that make one. Never invoked by an agent to install, pin or update a skill: the owner types `/skills-guru manage` for that.
 argument-hint: "[new <name> | review <path> | check | export <path> | manage]"
 compatibility: |
   Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale 3.21 or later on PATH, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export.
@@ -63,7 +63,7 @@ Based on `$ARGUMENTS`, do exactly one of the following:
 - If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
 - If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
 - If it starts with `export` → read `workflows/export.md` and follow it.
-- If it starts with `manage`, or the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`.
+- If it starts with `manage`, or the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`, but only when the owner asked, by typing the command or in their own words. When an agent invoked this skill on its own, stop and say that installing and updating skills is the owner's to start: that file installs software whose instructions then run with the agent's permissions.
 - If it matches no verb in this list → say so and name the verbs, rather than guessing which was meant. A mistyped verb and a verb this skill does not have look identical from here, and both are answered by printing the list.
 
 ## Supporting files
