@@ -3,8 +3,13 @@
 
 A backticked span counts as a path only when it ends in a known extension or a slash, and it resolves against the nearest skill root, the mentioning file's directory, then --root. Absolute paths are not checked.
 
+A plan names files its branch has yet to create or will delete, so in a file under --plans a span followed by exactly " (new)" or " (delete)" is skipped. No other file honours the tags, so a doc naming a removed file still fails.
+
 Example, over a tree that names files it does not hold:
     docs-check.py docs --ignore '.claude/*'
+
+Example, over docs and the branch's own plan:
+    docs-check.py docs docs/plans/2026-08-16_GHI-50_login-form.md --plans docs/plans
 
 Exit status: 0 clean, 1 problems found, 2 usage error.
 """
@@ -17,7 +22,7 @@ import re
 import sys
 from pathlib import Path
 
-PATH_SPAN = re.compile(r"`([^`\n]+)`")
+PATH_SPAN = re.compile(r"`([^`\n]+)`( \((?:new|delete)\))?")
 FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
 
 # Substrings meaning "command, glob or template", never a literal path.
@@ -74,7 +79,7 @@ def strip_fenced_blocks(lines: list[str]) -> tuple[list[tuple[int, str]], str | 
     return prose, None
 
 
-def check_file(path: Path, root: Path, ignores: list[str]) -> list[str]:
+def check_file(path: Path, root: Path, ignores: list[str], plans: Path | None) -> list[str]:
     try:
         lines = path.read_text(encoding="utf-8").splitlines()
     except (OSError, UnicodeDecodeError) as exc:
@@ -86,10 +91,13 @@ def check_file(path: Path, root: Path, ignores: list[str]) -> list[str]:
         problems.append(f"{path}: {fence_error}")
 
     bases = [b for b in (skill_root(path), path.parent, root) if b is not None]
+    in_plans = plans is not None and path.resolve().is_relative_to(plans)
 
     for number, line in prose:
-        for span in PATH_SPAN.findall(line):
+        for span, tag in PATH_SPAN.findall(line):
             if not looks_like_path(span):
+                continue
+            if tag and in_plans:
                 continue
             if any(fnmatch.fnmatch(span, pattern) for pattern in ignores):
                 continue
@@ -128,11 +136,21 @@ def main() -> int:
         metavar="GLOB",
         help="path span to skip; repeatable (e.g. --ignore '.claude/*')",
     )
+    parser.add_argument(
+        "--plans",
+        metavar="DIR",
+        help="directory of plans, whose (new) and (delete) spans are skipped",
+    )
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
     if not root.is_dir():
         print(f"docs-check: --root {root} is not a directory", file=sys.stderr)
+        return 2
+
+    plans = Path(args.plans).resolve() if args.plans else None
+    if plans is not None and not plans.is_dir():
+        print(f"docs-check: --plans {plans} is not a directory", file=sys.stderr)
         return 2
 
     files = collect([Path(p) for p in (args.paths or ["."])])
@@ -142,7 +160,7 @@ def main() -> int:
 
     problems: list[str] = []
     for path in files:
-        problems.extend(check_file(path, root, args.ignore))
+        problems.extend(check_file(path, root, args.ignore, plans))
 
     for problem in problems:
         print(problem)

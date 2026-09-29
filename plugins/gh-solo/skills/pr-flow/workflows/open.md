@@ -52,6 +52,8 @@ On a *stacked* branch none of this applies: the trunk sitting ahead of a `--base
 
 Everything else is the planner's call. Planning mode already knows how to write a plan, and those names exist only because this workflow and the implementation todo list have to find those lists without guessing — not because the rest matters less. Any future required section gets named here explicitly, or it is not required.
 
+**A backticked path the branch will create or delete carries a tag**: one space after the closing backtick, then `(new)` or `(delete)`, lowercase, as in `` `lib/login.py` (new) ``. Every mention of such a file carries it, not only the one that says what happens, because an untagged mention fails the docs check whenever the file is absent. A file the branch only changes takes no tag. The docs check never reads a `(new)` path, so a wrong one is the review round's to catch.
+
 **The steps are plain bullets in the plan, never checkboxes.** That list is the plan's *intent*, frozen at plan time and reviewed as a diff — it is what the draft PR exists for the owner to argue with. The same list appears in the PR body as `- [ ]`, where it carries *progress*. Two jobs, not two copies of one fact: a checkbox inside a committed file can only be ticked by another commit, and the intent should not change every time a box does.
 
 If the PR's list later diverges from the plan's, that is information rather than drift — scope moved, and the diff between intent and outcome is worth being able to see.
@@ -78,7 +80,7 @@ The commit header follows *Branch and commit type* in `../tracker/references/for
 
 **Run the repository's documentation checks before pushing.** A plan file is a documentation change, and a repo that validates its docs usually does so in CI without a local hook, so nothing catches a broken path or an unclosed fence until the PR is already red. `scripts/docs-check.py` in this skill checks that every backticked path resolves and every code fence closes; pass `--ignore <glob>` (repeatable) for backticked paths that belong to another tree than the one being checked, and the repository may have more checks of its own.
 
-**The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings.
+**The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings. A file the plan creates or deletes needs no ignore: pass `--plans` naming the plans directory, and the tagged spans in a plan are skipped.
 
 **A served repository's ignore set belongs in its `<repo-root>/.agents/gh-solo.md`**, and stays as narrow as the output allows, because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
 
