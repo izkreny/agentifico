@@ -18,7 +18,7 @@ This skill was invoked with the argument: **`$ARGUMENTS`**
 
 ## Who runs this skill
 
-**This skill always runs in a subagent, never inline in a session doing other work.** Its workflows read whole skills and print long check output, which would otherwise fill the calling session's context. Claude Code forks it itself, through `context: fork` in the frontmatter, and `background: false` makes the caller wait for the report, which needs Claude Code 2.1.218 or later.
+**This skill always runs in a subagent, never inline in a session doing other work.** Its workflows read whole skills and print long check output, which would otherwise fill the calling session's context. Claude Code forks it itself, through the `context` and `background` keys in its frontmatter, which the `context` row in `workflows/new.md` explains.
 
 **If you loaded this skill in the middle of other work, stop here.** Spawn a subagent, hand it this skill's directory and the argument, and wait for its report.
 
