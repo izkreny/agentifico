@@ -54,7 +54,7 @@ It reads every key rather than the description alone, because a space and a hash
 
 ## The README rule
 
-**`skill-readme`** is anchored to `SKILL.md` rather than to the README, because a README that does not exist is never a file markdownlint visits. It reports a missing `README.md` beside a `SKILL.md`, and one that carries no install form. Which forms count is `workflows/new.md`'s to state, under *How it is installed*. The rule mirrors that list in its two patterns, so a form added there is added to the rule in the same change, and the suite reads the list and fails on any form the rule does not accept.
+**`skill-readme`** is anchored to `SKILL.md` rather than to the README, because a README that does not exist is never a file markdownlint visits. It reports a missing `README.md` beside a `SKILL.md`, and one that carries no install form. Which forms count is `workflows/new.md`'s to state, under *How it is installed*. The rule mirrors that list in its patterns, so a form added there is added to the rule in the same change, and the suite reads the list and fails on any form the rule does not accept.
 
 ## The path rules
 

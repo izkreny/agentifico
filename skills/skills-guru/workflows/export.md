@@ -37,7 +37,9 @@ The rule and its reason are in `workflows/new.md` ("Code blocks are Bash"), and 
 
 ## Step 5 - Verify the exported copy
 
-Run `workflows/check.md` against the exported directory. Its command verifies that the description is intact and free of the frontmatter traps, that the name matches the directory, that every referenced file exists and that no machine-absolute paths are left. Then read the copy for two items that file lists under *What a sweep still looks for by hand*, since no rule decides them: every advertised verb routes, and every code block is Bash. If the skill carries `metadata.version`, bump it in this same pass whenever the content changed; a version that does not move with the content is the banner lie in frontmatter form. Then grep the copy for the author's username and home directory as a final sweep; zero hits is the exit criterion. Excepted, since each is public the moment the repository is: the destination repository's own name, in a URL such as a rule's `link:` or in the install command in `README.md`, and the author's byline there.
+Run `workflows/check.md` against the exported directory. Its command verifies that the description is intact and free of the frontmatter traps, that the name matches the directory, that every referenced file exists and that no machine-absolute paths are left. Then read the copy for the items that file lists under *What a sweep still looks for by hand* that bear on an export, since no rule decides them: every advertised verb routes, and every code block is Bash.
+
+If the skill carries `metadata.version`, bump it in this same pass whenever the content changed; a version that does not move with the content is the banner lie in frontmatter form. Then grep the copy for the author's username and home directory as a final sweep; zero hits is the exit criterion. Excepted, since each is public the moment the repository is: the destination repository's own name, in a URL such as a rule's `link:` or in the install command in `README.md`, and the author's byline there.
 
 ## Step 6 - Hand over, then close the loop
 
