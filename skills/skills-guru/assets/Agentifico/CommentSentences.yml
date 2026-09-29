@@ -74,17 +74,17 @@ tests:
   - name: leaves a tool directive alone in JavaScript
     format: js
     input: |
-      // biome-ignore lint/suspicious/noExplicitAny: the shape comes from the API and is not ours to type
+      // biome-ignore lint/suspicious/noExplicitAny: The shape comes from the API. It is not ours to type.
       const a = 1;
-      /* eslint-disable no-console */
+      /* eslint-disable no-console. The log is the output. It stays. */
       console.log(a);
     want: ""
   - name: leaves a tool directive alone in Python
     format: py
     view: Python
     input: |
-      x = 1  # noqa
-      y = 2  # type: ignore
+      x = 1  # noqa: E501. The line is long. It is a URL.
+      y = 2  # type: ignore[attr-defined]. The stub is wrong. It is upstream.
     want: ""
   - name: leaves an abbreviation, a path and a string literal alone
     format: js
