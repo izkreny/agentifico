@@ -59,7 +59,7 @@ Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" ra
 
 Based on `$ARGUMENTS`, do exactly one of the following. Test the `manage` bullet before the others, so an install request is caught before an empty argument reaches `check` and before any verb its sentence opens with:
 
-- If it starts with `manage`, or the request is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`, but only when the owner typed `/skills-guru manage`. Any other way in stops here, an agent's own invocation and a request phrased as a sentence alike, and says that the owner types `/skills-guru manage` for that: that file installs software whose instructions then run with the agent's permissions.
+- If it starts with `manage`, or the request that invoked this skill is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`, but only when the owner typed `/skills-guru manage`. Any other way in stops here, an agent's own invocation and a request phrased as a sentence alike, and says that the owner types `/skills-guru manage` for that: that file installs software whose instructions then run with the agent's permissions.
 - If it starts with `new` → read `workflows/new.md` and follow it.
 - If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
 - If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
