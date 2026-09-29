@@ -39,7 +39,7 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 
 ### The skills-guru check
 
-**The skills-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/skills-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are `plugins/gh-solo`, `skills/review-text`, `skills/skills-guru` and `skills/socratic-tutor`, and `<package-dir>` is each of them the branch owes the run:
+**The skills-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/skills-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are `plugins/gh-solo`, `skills/review-text`, `skills/skills-guru` and `skills/socratic-tutor`, and `<package-dir>` is each of them the branch owes the run on:
 
 ```bash
 node skills/skills-guru/scripts/check.js <package-dir>
