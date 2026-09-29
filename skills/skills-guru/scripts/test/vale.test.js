@@ -1,4 +1,4 @@
-// Each fixture is written to a temporary directory because Vale lints files rather than strings, and nothing there is ever a real SKILL.md on disk.
+// Each fixture is written to a temporary directory because Vale lints files rather than strings, and that directory sits outside any tree an agent discovers skills in.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";

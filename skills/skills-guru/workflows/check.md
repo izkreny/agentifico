@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills, `Bash(gh:*)` and `Bash(git:*)` to read findings and fix commits when a phrase list grows.
+> **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills, `Bash(gh:*)` and `git` to read findings and fix commits when a phrase list grows.
 
 The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
@@ -167,7 +167,7 @@ git log --patch --since=<date> origin/main -- '*.md'
 
 ## The suite
 
-After editing a rule or the check itself, run the suite. Each markdownlint rule's fixtures are strings passed through markdownlint's own string input, and each Vale rule's are files in a temporary directory the suite creates and removes, so no fixture is ever written as a real `SKILL.md`, which some agents would discover recursively as a broken skill.
+After editing a rule or the check itself, run the suite. Each markdownlint rule's fixtures are strings passed through markdownlint's own string input, and each Vale rule's are files in a temporary directory the suite creates and removes, so a fixture written as a `SKILL.md` sits outside any tree an agent discovers, where some agents would read it recursively as a broken skill.
 
 Every Vale rule has a fixture that trips it and a guards fixture of the forms it must leave alone, and the suite fails on any rule no fixture reaches, since a Vale rule that matches nothing fails silently. The argument shapes the wrapper test names run against the check in a temporary directory that the suite creates and removes:
 

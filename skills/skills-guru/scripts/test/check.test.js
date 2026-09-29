@@ -337,8 +337,8 @@ describe("skill-readme", () => {
 describe("carriesInstallForm", () => {
   // The forms are read from workflows/new.md, which owns the list, so a form added there alone fails here by name.
   const newMd = fs.readFileSync(path.resolve(path.dirname(check), "..", "workflows", "new.md"), "utf8");
-  const listed = newMd.split("\n").find((l) => l.startsWith("Give the section a heading opening with"));
-  const [headingPart, commandPart] = listed.split("or put the command in a fenced block");
+  const listed = newMd.split("\n").find((l) => l.startsWith("Give the section a heading opening with")) ?? "";
+  const [headingPart = "", commandPart = ""] = listed.split("or put the command in a fenced block");
   const spans = (s) => [...s.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
   const headings = spans(headingPart);
   const commands = spans(commandPart);
