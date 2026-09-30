@@ -20,7 +20,7 @@ This plan and nothing else. The spike's deliverable is a comment on the issue, a
 
 **One run per package**, so the table can say which rule fired where: `plugins/gh-solo`, `skills/rails-style`, `skills/review-text`, `skills/skills-guru` and `skills/socratic-tutor`. The `prompt-engine` and `claude-memory` categories are off, per the issue, and no run takes `--fix`.
 
-**The overlap reading covers every rule the check owns**, not only the three the issue names: each file under `skills/skills-guru/scripts/rules/` and the markdownlint set in `skills/skills-guru/scripts/lint-config.js`.
+**The overlap reading covers every rule the check owns**, not only the three the issue names: each file under `skills/skills-guru/scripts/rules/`, the markdownlint set in `skills/skills-guru/scripts/lint-config.js`, and the Vale rules under `skills/skills-guru/assets/Agentifico/`.
 
 **The configuration question is answered by trying it, in both directions.** Outward: each form that would keep the configuration outside the target, a command-line option, an environment variable, a working directory outside the tree. Inward: whether a '.agnix.toml' or an inline disable comment inside the target still switches a rule off when the configuration comes from outside, since that is what *The check* in `skills/skills-guru/workflows/check.md` forbids.
 
