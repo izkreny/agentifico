@@ -36,6 +36,6 @@ The rest carry over unchanged: `index` runs from 1 upward in the order the capab
 - **`severity` is read out of each finding's own account of what goes wrong**, with `severity_source` set to `derived` and `severity_basis` stating the rule you applied. The script refuses a derived round with no basis, and refuses a basis on a round whose reviewer assigned its own levels. Where a finding's text supports no judgement, its severity is `unrated`.
 - **Never claim a level came from the capability.** Its own prompt asks its agent for a severity that its reporting tool has no field for, so a ranking looks like it exists and does not. A level you derived and published as the reviewer's is the one dishonesty this whole path is arranged to prevent.
 
-Everything after this is the ordinary path: the same script, the same call, the same ids.
+The findings file then takes the ordinary path from Step 2 of `workflows/review.md`: the same script, the same call, the same ids.
 
 **There is no scoped re-review on this path.** A capability invoked with a PR number has no rescope shape, so Step 5 of `workflows/review.md` is skipped, and the round report says that it was skipped, that the fixes were therefore verified by nobody but their author, and that the next full pass is where they get judged.
