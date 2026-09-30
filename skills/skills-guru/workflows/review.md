@@ -40,7 +40,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **A placeholder standing in for a payload.** `-f body='...'` is one line, so *A payload that breaks a line, or carries a backtick or a `#`, travels in a file* in `workflows/new.md` passes it, while the prose around it describes a multi-paragraph body with a blockquote. Read what the skill says the placeholder stands for, and test that.
 
-**A missing boundary.** If the skill never says what it is not for, it will fire on adjacent work. That is the cheapest sentence in the file.
+**A missing boundary.** The symptom is a skill firing on adjacent work, and the fix is the boundary sentence Step 2 of `workflows/new.md` asks the description to carry.
 
 **A triggering doubt reading cannot settle.** Whether a description actually fires on its phrases is behaviour, not text. When that is the question, stop reading and measure with whatever eval tooling the agent in use provides, and read the scored report instead of guessing from the wording. On Claude Code specifically: `claude plugin eval <skill>` is built into its CLI and adds a no-plugin baseline arm, and Anthropic's official skill-creator plugin, when installed, carries a heavier eval loop with graders.
 
@@ -52,9 +52,9 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **A rule stated in two files of one skill.** A workflow restates what `SKILL.md` or a sibling workflow already says, often as a bolded rule in each, and the copies drift as any pair does. Grep the skill for a rule's distinctive phrase and see which files state it. *One fact, one place* in `workflows/new.md` owns the rule: one file keeps the statement, `SKILL.md` where every workflow depends on it, and every other copy becomes a pointer at it by heading.
 
-**Version banners.** A "verified against X" line at the top of a file ages into a false claim. Either attach the version to the specific behavioural claim it qualifies, or drop it.
+**Version banners.** *Put a version next to the claim it qualifies, never as a banner at the top* in `workflows/new.md` owns the rule, and `Banner` under `assets/` reports the phrasings it knows. Reading catches a "verified against X" line worded in a shape no token matches.
 
-**A count of adjacent content, or a position claim.** "The two facts below" is true until the third lands, and whoever adds it edits the list, never the sentence, because the sentence is invisible at the moment of the edit. Same class: "the only copy", "the newest section", "the paragraph above", each silently falsified by an edit made anywhere in the document. Caps stay ("five sentences at most" constrains the future); counts go (the list is the authority on its own length).
+**A count of adjacent content, or a position claim.** *Write sentences that survive change* in `workflows/new.md` owns the rule and its cap-or-count test, and `Counts` and `Position` under `assets/` report the phrasings they know. Reading catches the rest, such as "the two facts below", "the only copy" or "the newest section" worded in a shape no token matches.
 
 ### Text that does no work
 
