@@ -20,8 +20,9 @@ tokens:
   # ae1cd1a.
   - '(?:it|we|that|this|which|they|and) used to'
   # "the old check refused first" PR 66; "the older test was wrong" is the
-  # rule's own example.
-  - 'the (?:old|older|earlier|original|former|previous) (?:[a-z]+ )?(?:rule|check|test|loop|version|form|wording|name|block|shape|behaviou?r|design|section|file|command|paragraph|sentence)'
+  # rule's own example; "The older one-condition version is wrong" fff3385,
+  # PR 1, lets the word between be hyphenated.
+  - 'the (?:old|older|earlier|original|former|previous) (?:[a-z-]+ )?(?:rule|check|test|loop|version|form|wording|name|block|shape|behaviou?r|design|section|file|command|paragraph|sentence)'
   # "rather than the shell block it replaced" PR 87; "before #101 replaced
   # them" PR 116; "restored" PR 66.
   - 'it replace[sd]'
@@ -29,9 +30,10 @@ tokens:
   - 'replaced by'
   - 'restored'
   # "The reads below now happen before" PR 66; "the discovery rule is now
-  # something the rest of this file depends on" PR 100.
+  # something the rest of this file depends on" PR 100; "Nothing in a title
+  # now reveals" ae1cd1a, PR 31.
   - '(?:is|are|was|were|has|have|does|do) now\b'
-  - 'now (?:happens|runs|reads|does|says|names|carries|lives)'
+  - 'now (?:happens?|runs|reads|does|says|names|carries|lives|reveals)'
   # "behaves exactly as it does today" PR 103.
   - 'today'
   # "Found live on a skill" and "where the trap was first seen" 35e4733;
@@ -42,13 +44,27 @@ tokens:
   - 'in the past'
   - 'at the time'
   # "#101 is where that constraint is being lifted; until it lands" PR 105;
-  # "before #101 replaced them" PR 116; "Worth doing, not yet done" ae1cd1a.
+  # "before #101 replaced them" PR 116; "Worth doing, not yet done" ae1cd1a;
+  # "which is not yet built" 187f851, PR 58.
   - '(?:has|have|had) been (?:moved|removed|renamed|replaced|dropped|deleted|lifted)'
   - '(?:was|were) (?:moved|removed|renamed|dropped|deleted) (?:to|from|in|out)'
   - 'before #\d+'
   - 'until (?:it|that|#\d+) lands'
   - 'is being (?:lifted|removed|replaced|rewritten)'
-  - 'not yet done'
+  - 'not yet (?:done|built)'
+  # The incident a rule came from, told as a story: "the incident that
+  # produced the review-protocol reference happened" and "went wrong on the
+  # incident PR", 2dd399f, PR 1; "That happened on a real PR" PR 181.
+  - '(?:happened|went wrong) (?:on|in|with) (?:the|a) (?:[a-z]+ )?(?:pr|pull request|incident)'
+  - 'the incident (?:pr|that)'
+  # "with every then-existing rule obeyed" 2dd399f, PR 1.
+  - 'then-existing'
+  # "The choice was made on 2026-09-06" 4d47cb3, PR 116. In a file's opening
+  # paragraph Banner reads the date too.
+  - '(?:made|decided|chosen|taken) on \d{4}-\d{2}-\d{2}'
+  # "was enough only while the owner was the sole human posting" fff3385,
+  # PR 1: a rule's validity bounded by a past the reader cannot see.
+  - '(?:was|were) enough only while'
   # "This reverses an earlier rule" fb26bb7, and the rule's own example.
   - 'this reverses'
   - 'reverses an earlier'
@@ -56,9 +72,13 @@ tokens:
   # request title's own scope rule is unchanged" .agents/gh-solo.md, "still
   # stand" #44, "survives untouched" #52, "stands as it was written" #24,
   # "hits it exactly as before" #52; fifteen "unchanged" and six "untouched"
-  # across the tracker; "That reasoning still holds" fb26bb7.
+  # across the tracker; "That reasoning still holds" fb26bb7; "keeps working
+  # untouched" 187f851, PR 58, and "carry over untouched" e91f8ff, PR 6.
+  # "unchanged" is left out after these two, since "the rest carry over
+  # unchanged" describes a field mapping in plugins/gh-solo.
   - '(?:is|are|remains?|stays?|left|rule|contract) (?:unchanged|untouched)'
   - 'survives untouched'
+  - '(?:working|over) untouched'
   - 'still (?:holds|stands?|true|says|claims|reads as|carries|armed|binding)'
   - 'stands as it was written'
   - 'as before'
@@ -117,6 +137,15 @@ tests:
       The gate still stands, the claim is still true, and the file still says so.
       It still claims the name and still reads as a rule.
       The flag still carries it, the watch still armed, the rule still binding.
+      The reads now happen before a moved head is caught.
+      The axis rules carry over untouched, one per issue.
+      Routing it needs a route, which is not yet built.
+      That happened on a real PR, where two review bodies sat unread.
+      The incident PR produced the protocol.
+      It went outdated with every then-existing rule obeyed.
+      The choice was made on 2026-09-06 against stated criteria.
+      The older one-condition version is wrong.
+      Testing the disclaimer was enough only while the owner posted by hand.
     want: |
       3:1:Agentifico.History:Never write the file's own history: 'This reverses' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       4:21:Agentifico.History:Never write the file's own history: 'any more' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
@@ -166,6 +195,15 @@ tests:
       25:10:Agentifico.History:Never write the file's own history: 'still carries' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       25:38:Agentifico.History:Never write the file's own history: 'still armed' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       25:60:Agentifico.History:Never write the file's own history: 'still binding' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      26:11:Agentifico.History:Never write the file's own history: 'now happen' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      27:22:Agentifico.History:Never write the file's own history: 'over untouched' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      28:36:Agentifico.History:Never write the file's own history: 'not yet built' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      29:6:Agentifico.History:Never write the file's own history: 'happened on a real PR' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      30:1:Agentifico.History:Never write the file's own history: 'The incident PR' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      31:29:Agentifico.History:Never write the file's own history: 'then-existing' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      32:16:Agentifico.History:Never write the file's own history: 'made on 2026-09-06' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      33:1:Agentifico.History:Never write the file's own history: 'The older one-condition version' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      34:24:Agentifico.History:Never write the file's own history: 'was enough only while' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
   - name: leaves imperatives and state alone
     input: |
       # Title
@@ -178,4 +216,7 @@ tests:
       The log records what the flag was set to, which is what the check reads, and #130 is the issue to read.
       The flag names the target, which is what the config says. A test was added for it.
       So which is what the config does? A test was added for it, which is what the plan said! A line was cut.
+      Nothing in a title reveals a missing layer label, so audit for it.
+      The rest carry over unchanged: the index runs from 1 upward.
+      The protocol exists because fixes were pushed mid-read and threads went outdated.
     want: ""
