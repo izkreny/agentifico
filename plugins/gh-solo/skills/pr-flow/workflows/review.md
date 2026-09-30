@@ -95,7 +95,7 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 
 ### Step 1 - Review
 
-**Read the pass budget before anything is spawned**, per *The pass cap* in `references/review-protocol.md`, which owns the number and the stop's wording:
+**Read the pass budget before anything is spawned**, per *The pass cap* in `references/pass-cap.md`, which owns the number and the stop's wording:
 
 ```bash
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
@@ -108,7 +108,7 @@ python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 
 **At or past the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries.
 
-**Then print the one exit, in the owner's terms**, the way the refusal under *While it reads, a push is refused* prints its own: **`authorise`** is the word they type at that standing refusal to charge a further pass and have this step spawn after all, per *The pass cap* in `references/review-protocol.md`, which owns the word and what it costs.
+**Then print the one exit, in the owner's terms**, the way the refusal under *While it reads, a push is refused* prints its own: **`authorise`** is the word they type at that standing refusal to charge a further pass and have this step spawn after all, per *The pass cap* in `references/pass-cap.md`, which owns the word and what it costs.
 
 **Go to *Which reviewer runs is a per-repo fact* and continue from there** - never back to the budget, which would read the same count and refuse the pass that was just bought, and never forward to the head read, which would skip the block that resolves the appointed agent and its model and hand the owner a pass they paid for run by the wrong reviewer. Say what it buys before they choose - one further reading of the whole branch, charged like every other, with the next stop one pass later.
 
@@ -147,7 +147,7 @@ Spawn it with the PR number and the pin, and nothing else, beside the model para
 
 #### While it reads, a push is refused
 
-**From the spawn until Step 2 has posted, a push asked for in the session is refused**, per *The push gate, while a reviewer is reading* in `references/review-protocol.md`, which owns the rule and the reason. It binds the scoped spawns in Step 5 the same way, and it binds however the push was phrased: `git push`, `gh stack sync`, "just push it".
+**From the spawn until Step 2 has posted, a push asked for in the session is refused**, per *The push gate, while a reviewer is reading* in `references/pass-cap.md`, which owns the rule and the reason. It binds the scoped spawns in Step 5 the same way, and it binds however the push was phrased: `git push`, `gh stack sync`, "just push it".
 
 ```text
 ⛔ REFUSED - a reviewer is reading this pull request at {sha}; wait for the round report, or type discard to charge the pass and free the push
@@ -190,7 +190,7 @@ Everything after this is the ordinary path: the same script, the same call, the 
 
 It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit** - post the discard record, then re-read the budget and refuse rather than re-spawn when that pass would be beyond it, which at a cap of one it always is. So say plainly that a further reading of the branch is the owner's to buy with `authorise`, print the refusal that names it, and stop.
 
-**A pass whose findings never reach the pull request posts a record, whether anything is re-spawned or not.** That is the whole condition: the charge follows the pass being spent, per *The pass cap* in `references/review-protocol.md`, and a path that ends the round has spent the pass exactly as a path that tries again has. **Where a re-spawn does follow, the record goes up first** - a session that dies in between has then already charged the pass it lost.
+**A pass whose findings never reach the pull request posts a record, whether anything is re-spawned or not.** That is the whole condition: the charge follows the pass being spent, per *The pass cap* in `references/pass-cap.md`, and a path that ends the round has spent the pass exactly as a path that tries again has. **Where a re-spawn does follow, the record goes up first** - a session that dies in between has then already charged the pass it lost.
 
 ```bash
 python3 <skill-dir>/scripts/post-review.py discard --disclaimer-file <disclaimer-file> \
@@ -371,7 +371,7 @@ Open with the verdict line: `✅ ALL PASS` when the reviewer found nothing and t
 
 Then the round report: which reviewer ran, the model the round asked the spawn for, which is the model that ran unless `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` is set, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, which the re-review held for the push rather than threaded, what it would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
 
-Then what the round spent from the budget: which pass this was, how many the pull request has left under *The pass cap* in `references/review-protocol.md`, and any pass that was discarded and why. A report naming findings and not the passes they cost is the gap the cap's own second occurrence is a record of: two passes ran, nothing counted them, and only a human in the room stopped a third.
+Then what the round spent from the budget: which pass this was, how many the pull request has left under *The pass cap* in `references/pass-cap.md`, and any pass that was discarded and why. A report naming findings and not the passes they cost is the gap the cap's own second occurrence is a record of: two passes ran, nothing counted them, and only a human in the room stopped a third.
 
 Then what the pass cost: its token count, its tool-call count and its wall clock, **as the spawn reported them**. The reviewer cannot measure its own token use, so these are the orchestrator's to read off what the spawn returned and never the reviewer's to supply. Where the spawn reports a figure, print it; where it does not, print that it was not reported rather than an estimate - a number nobody measured is worse here than a gap, because comparing rounds is what these figures exist for.
 
