@@ -5,7 +5,7 @@
 # the file is read for what to cut before it is split, and whether to cut,
 # split or leave it is the owner's call. Enabled in .vale.ini for every
 # markdown file but a SKILL.md, which SkillSplit and SkillLength measure, and
-# a README.md, which a person reads and no agent loads.
+# a README.md, which no route loads when the skill runs.
 extends: metric
 message: "Let size decide whether to split: this file carries %s words of prose, past the cap on a file other than SKILL.md. Consider cutting what restates or defends before splitting it; whether to cut, split or leave it is the owner's call."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-guru/workflows/new.md
