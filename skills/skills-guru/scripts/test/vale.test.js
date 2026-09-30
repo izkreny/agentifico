@@ -67,6 +67,21 @@ describe("SkillSplit and SkillLength, enabled for a SKILL.md alone", () => {
   });
 });
 
+describe("FileLength, enabled for every markdown file but a SKILL.md and a README.md", () => {
+  it("a workflow file past the cap is measured", () => {
+    expectHit(alerts("file-cap/workflows/long.md", `# Workflow\n\n${body(2801)}\n`), "FileLength", 1);
+  });
+  it("a SKILL.md is not measured by it", () => {
+    expectClean(alerts("file-cap/SKILL.md", `---\nname: x\ndescription: Use when.\n---\n\n${body(2801)}\n`), "FileLength");
+  });
+  it("a README.md is not measured by any file-length rule", () => {
+    const found = alerts("file-cap/README.md", `# Readme\n\n${body(3600)}\n`);
+    expectClean(found, "FileLength");
+    expectClean(found, "SkillSplit");
+    expectClean(found, "SkillLength");
+  });
+});
+
 function valeTest(...args) {
   const r = spawnSync("vale", ["--no-global", "--config", config, "test", ...args], { encoding: "utf8" });
   assert.equal(r.error, undefined, `vale did not run: ${r.error}`);
