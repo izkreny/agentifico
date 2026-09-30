@@ -111,6 +111,8 @@ gh stack merge <pr-number> --yes --squash
 
 **Merging a stack lands several PRs and closes several issues.** So the gates multiply too: Steps 1 and 2 run once per PR in the merge's scope *before* the command - the merge is atomic, and one unreviewed PR in the middle must stop the whole thing, not ride in on its siblings' record. Step 4 then runs once per branch and Step 5 once per issue afterwards.
 
+**One PR per invocation.** Merging a stack is one operation even though it lands several PRs; merging two unrelated PRs is two.
+
 ## Step 4 - Delete the local branch, in the worktree that holds it
 
 Where `delete_branch_on_merge` is set, the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. That setting is per-repository and not a default, so confirm it from the values this workflow already read rather than assuming, and delete the remote branch too where it is unset. What remains is the local branch, and deleting it is a write against a worktree the session is not sitting in.
@@ -198,11 +200,3 @@ The load-bearing values in that shape, each with a trap:
 - **`dismiss_stale_reviews` stays `false`, and nothing here depends on the value.** The setting dismisses *approving* reviews when a new commit is pushed - per GitHub's REST docs, approvals only - and this flow never needs an approval: the count is 0, and a round record is a COMMENT Review, which dismissal never touches and which stays in the `reviews` array regardless. It is pinned to `false` only so the protection object is fully stated and least surprising, not because `true` would break a gate.
 - **`required_status_checks` can only be *introduced* by this `PUT`.** While it is `null`, `PATCH repos/{owner}/{repo}/branches/main/protection/required_status_checks` answers `404 Required status checks not enabled` instead of creating it, so the whole protection object has to be re-sent.
 - **The `contexts` entries are check-run names, not workflow filenames.** They default to the workflow's job ids, not to anything written in the YAML, so read them off a real PR with `gh pr checks <pr-number>` rather than off the workflow file.
-
-## Rules
-
-- **Never merge a PR without a round record Review**, recognised by its `via` line per Step 1 and never by the disclaimer, which every agent post carries including the convention check that runs before a round. Array length proves nothing either - inline discussion inflates `reviews` with empty-bodied containers. The gate is the point of the workflow.
-- **Never merge over an unresolved thread, or a thread resolved with none of the evidence forms.** *Resolution rests on recorded authority* in `references/review-protocol.md`; this door is where it is enforceable.
-- **Never `git merge` or `git push` to `main` to land a branch.** The hard rule in `SKILL.md` holds here too; merging is `gh`'s job.
-- **Never omit the merge method** — `--squash` on `gh pr merge`, `--squash` on `gh stack merge`. Both fall back to something other than policy when it is left off.
-- One PR per invocation. Merging a stack is one operation even though it lands several PRs; merging two unrelated PRs is two.

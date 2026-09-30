@@ -2,19 +2,13 @@
 
 Run a review round on a pull request: check what the tracker needs, spawn the reviewer, post what it found, plan and land the fixes, have the fixes checked, and stop at the owner.
 
-**The round's rules are `references/review-protocol.md`, and where this file disagrees with it, this file is wrong.** That file owns the cast, the finding key, what each step means and why, the owner's vocabulary and the conclusions the gates enforce. What this file owns is the mechanics: the commands, the script, the spawn, and the id arithmetic. Nothing about the round's rules is restated here, because a second copy drifts.
+**The round's rules are `references/review-protocol.md`, and where this file disagrees with it, this file is wrong.** That file owns what each step means and why; this file owns the mechanics: the commands, the script, the spawn and the id arithmetic.
 
-**This workflow never reads the diff, and never reviews.** The analysis belongs to the reviewer subagent, which is a separate agent with its own context precisely so that the session which wrote the code is not the session that judges it. The emptiness test is `changedFiles`, never `gh pr diff`. What happens here is everything around the analysis: the tracker checks nothing else enforces, the spawn, the posting, the fixes, and the stop.
+**This workflow never reads the diff, and never reviews.** The analysis belongs to the reviewer subagent, which is a separate agent with its own context precisely so that the session which wrote the code is not the session that judges it. The emptiness test is `changedFiles`, never `gh pr diff`.
 
 ## How this runs
 
-1. **`open`** - plan committed alone, draft PR, stop. Another workflow.
-2. *implementation* - the `implement` skill.
-3. **`ready`** - the gates audited, draft lifted. Another workflow.
-4. **Before the round** - scope, the confirmation gate, the convention checks.
-5. **The protocol's steps 1 to 5** - review, post, plan, fix, re-review. Unattended, one block.
-6. **Stop.** The protocol's step 6 is the owner's, and nothing here can do it, hurry it or simulate it.
-7. **The protocol's steps 7 and 8** - the resolve and push on the owner's word, then `workflows/merge.md`.
+`workflows/open.md`, the `implement` skill and `workflows/ready.md` come before this file. The protocol's step 6 is the owner's, and nothing here can do it, hurry it or simulate it; steps 7 and 8 are `workflows/resolve.md` and `workflows/merge.md`, on the owner's word.
 
 **Before the round, and the protocol's steps 1 to 5, are this file - and they are one turn**, not two: nothing between the spawn and the round report waits for a human, which is what makes the caps in the protocol's steps 3 and 5 load-bearing.
 
@@ -30,12 +24,12 @@ Otherwise list what is open and unreviewed:
 gh pr list --limit 100 --json number,title,headRefName,reviewDecision,isDraft,reviews,changedFiles
 ```
 
-`--limit` is explicit because the default is 30 and silently truncates - the same trap the `tracker` search workflow names, and the same one `--paginate` answers on every REST list read in this workflow.
+`--limit` is explicit because the default is 30 and silently truncates.
 
 Skip these kinds of PR, and decide every skip *here*, before the confirmation, so the scope the owner confirms is the scope the loop acts on:
 
-- **`isDraft` is `true`** - unfinished. Draft is the *normal* state here rather than an exception, per the standing convention in `SKILL.md`, so every branch looks like this until `workflows/ready.md` ends it.
-- **A round already ran** - its `reviews` array holds a record Review, recognisable by the `via` line reading `round record` or `re-review record`. That is why `reviews` is in the `--json` list. **Not by the disclaimer line**, which every agent post opens with, the convention-check Review of the preliminaries included: a round that stopped after the preliminaries would then look complete forever, and the PR would be skipped by every later run with no round on it. **Do not test `reviewDecision` for "already reviewed".** It reports whether the repository's review *requirement* is satisfied, not whether anyone looked: with no branch protection demanding a review it stays empty forever, and `gh` returns `""` rather than `null`, so a `!= null` test skips every unreviewed PR - the exact inverse of what it reads like. It stays in the `--json` list because it is worth *displaying*, not for filtering.
+- **`isDraft` is `true`** - unfinished, per the standing convention in `SKILL.md`, until `workflows/ready.md` ends it.
+- **A round already ran** - its `reviews` array holds a record Review, recognisable by the `via` line reading `round record` or `re-review record`. **Not by the disclaimer line**, which every agent post opens with, the convention-check Review included: a round that stopped after the preliminaries would then look complete forever. **Do not test `reviewDecision` for "already reviewed".** It reports whether the repository's review *requirement* is satisfied, not whether anyone looked, and with no branch protection demanding a review it stays `""` forever, so a `!= null` test skips every unreviewed PR. It stays in the `--json` list for display.
 - **`changedFiles` is `0`** - an empty PR has nothing to review. Skip it and record it as "skipped - empty PR".
 
 List exactly what survived, then **wait for confirmation**. Name the scope in the question, because "all" is only meaningful next to the list it refers to:
@@ -50,9 +44,9 @@ This spawns the reviewer, posts its findings, lands the fixes locally, and stops
 Nothing is pushed.
 ```
 
-**Say what is actually about to happen.** A round posts threads and a Review publicly and writes commits to the branch, and the prompt has to name both, or the owner is approving something smaller than what runs. Naming the push-hold in the prompt is not reassurance, it is the one fact that makes the rest acceptable to approve unattended.
+**Say what is actually about to happen.** A round posts threads and a Review publicly and writes commits to the branch, and the prompt has to name both, or the owner is approving something smaller than what runs.
 
-Stop cleanly on no. **The gate only exists on the no-number path**: when the owner named a PR they have already chosen the scope, and asking them to confirm their own argument is noise.
+Stop cleanly on no. **The gate only exists on the no-number path**: when the owner named a PR they have already chosen the scope.
 
 ### The preliminaries, per PR
 
@@ -62,7 +56,7 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
    gh pr view <pr-number> --json title,body,headRefName,assignees,isDraft,changedFiles,commits
    ```
 
-   If `changedFiles` is `0` there is nothing to review: skip, and record it as "skipped - empty PR". On a list run the scope step already dropped these, so this catches only a PR the owner named directly. This is the emptiness test, and it is why nothing here needs `gh pr diff`.
+   If `changedFiles` is `0`, skip and record it as *Scope* does; on a list run that step already dropped these.
 2. **Recover the issue.** Derive the number from the branch name by the parse stated once in `SKILL.md`'s branch-format bullet: `feat/GHI-50_login-form` yields `50`. What the branch yields is the `{issue-number}`, never the `<pr-number>`. Read it with `gh issue view <issue-number> --json title,body,labels,parent,blockedBy`. A branch predating the convention may carry a legacy key whose number is **not** an issue number in this tracker: resolve those by title search, `gh issue list --state all --search "<legacy-prefix>-<legacy-number>"`, rather than by assuming. **The reviewer recovers the issue itself and does not get yours** - this copy is for the round report and for the convention checks.
 3. **Read what is already posted on the PR**, its comments and its Reviews, before posting anything of your own:
 
@@ -70,7 +64,7 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
    gh pr view <pr-number> --json comments,reviews --jq '(.comments + .reviews)[] | [.author.login, .body] | @tsv'
    ```
 
-   Who wrote a thing decides what to do with it, and the login cannot tell you: every agent post is made with the owner's credentials and carries the owner's login. The disclaimer says an agent wrote it and the `via` line says which one.
+   The login cannot tell you who wrote a thing, per *Recognising the owner* in `references/review-protocol.md`; the disclaimer says an agent wrote it and the `via` line says which one.
 
 | What is already there                                                           | What it means                                                                                                       |
 |---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
@@ -79,118 +73,67 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 | A comment in the owner's own voice, no disclaimer                               | A note they wrote themselves. Never restate it as a finding                                                         |
 | A mentor or other reviewer                                                      | Advice the owner may have weighed and declined. Never re-raise it, and name it in the round report as unanswered    |
 
-   **The reviewer gets none of this.** It is spawned with a number and a pin and fetches its own context, and handing it an earlier round's findings is what would make its read dependent on the last one. What this read is for is your own posting: not repeating a convention finding, and having something to say about a mentor in the report.
-4. **Check the conventions**, per *Convention checks* at the end of this file, and post the failures as one Review:
+   **The reviewer gets none of this.** Handing it an earlier round's findings would make its read dependent on the last one.
+4. **Check the conventions**, per *Convention checks* in this file, and post the failures as one Review:
 
    ```bash
    gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -f body='...'
    ```
 
-   `COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked. **Not the `pulls/<pr-number>/comments` endpoint**, which anchors to a file and line: every convention finding is a fact about the PR as a whole and has nowhere in the code to anchor to. Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` review, convention check; its length is set by *Post caps* in the same file, and the failure list is a record row rather than prose, so a long list of failures is not a breach.
+   `COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked. **Not the `pulls/<pr-number>/comments` endpoint**, which anchors to a file and line, where a convention finding has nowhere to anchor. Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` review, convention check; the failure list is a record row under *Post caps* in the same file.
 
-   **These are not review findings and get no `RF{n}` id.** They are tracker integrity, they are the orchestrator's own observation rather than the reviewer's, and giving them ids would put them in the same sequence the fix plans and re-review verdicts answer.
+   **These are not review findings and get no `RF{n}` id**: giving them ids would put them in the sequence the fix plans and re-review verdicts answer.
 5. **Refuse early on a thread the merge gate will refuse on.** The convention table's last row is the cheap, early check for *Resolution rests on recorded authority*; a violation stops this workflow here rather than after a round's worth of work.
 
 ## The protocol's steps 1 to 5
 
 ### Step 1 - Review
 
-**Read the pass budget before anything is spawned**, per *The pass cap* in `references/review-protocol.md`, which owns the number and the stop's wording:
+**Read the pass budget before anything is spawned**, per *The pass cap* in `references/pass-cap.md`, which owns the number and the stop's wording:
 
 ```bash
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
 python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 ```
 
-**Step 2 reads that same listing again for `highest-id`, and the reads stay separate.** Reusing this file there would save a request and make the id arithmetic depend on a listing fetched before the reviewer ran, which by then may be behind the pull request - a discard record, or a re-spawn's own read. One paginated read is the cheaper mistake.
+**Step 2 reads that same listing again for `highest-id`, and the reads stay separate.** Reusing it there would make the id arithmetic depend on a stale listing.
 
 #### At the cap
 
 **At or past the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries.
 
-**Then print the one exit, in the owner's terms**, the way the refusal under *While it reads, a push is refused* prints its own: **`authorise`** is the word they type at that standing refusal to charge a further pass and have this step spawn after all, per *The pass cap* in `references/review-protocol.md`, which owns the word and what it costs.
+**Then print the one exit, `authorise`, in the owner's terms**, per *The pass cap* in `references/pass-cap.md`, which owns the word and what it costs.
 
-**Go to *Which reviewer runs is a per-repo fact* and continue from there** - never back to the budget, which would read the same count and refuse the pass that was just bought, and never forward to the head read, which would skip the block that resolves the appointed agent and its model and hand the owner a pass they paid for run by the wrong reviewer. Say what it buys before they choose - one further reading of the whole branch, charged like every other, with the next stop one pass later.
+**Go to the reviewer resolution in this step, *Which reviewer runs, and which model, is a per-repo fact*, and continue from there** - never back to the budget, which would read the same count and refuse the pass just bought, and never forward to the head read, which would skip resolving the appointed reviewer.
 
-**Nothing else buys it**: a sentence that sounds like assent is not the word, and the refusal stands until the word is typed.
-
-**Then what the pull request is left holding, read rather than recalled.** The open findings are the unresolved nodes of the GraphQL `reviewThreads` read the convention checks already make before this step, for *Every resolved thread has recorded owner authority*; take each thread's `body` in the same query and an uncertified verdict is legible in the thread that carries it. **Never fill this from an earlier round's report**, which is prose written before every resolve and every `rnp` since, nor from a re-review record, which counts verdicts without naming which finding each belongs to - handing the owner a stale account of what is open is what this refusal exists to avoid.
+**Then what the pull request is left holding, read rather than recalled.** The open findings are the unresolved nodes of the GraphQL `reviewThreads` read the convention checks already make before this step, for *Every resolved thread has recorded owner authority*; take each thread's `body` in the same query and an uncertified verdict is legible in the thread that carries it. **Never fill this from an earlier round's report**, written before every resolve since, nor from a re-review record, which counts verdicts without naming their findings.
 
 Never spawn first and check after: the spawn is the thing being counted, so a check made afterwards has already spent what it was protecting.
 
-**A count of `0` on a pull request that visibly had rounds is the marker's own age**, which the script says on stderr rather than leaving you to infer: rounds posted before the marker existed carry none. Say so in the round report rather than treating the number as wrong, and rather than adding a second matcher for the old records - a fallback matcher on the record's prose is exactly what the marker exists instead of.
+**A count of `0` on a pull request that visibly had rounds is the marker's own age**, which the script says on stderr rather than leaving you to infer: rounds posted before the marker existed carry none. Say so in the round report rather than treating the number as wrong or adding a matcher for the old records.
 
-#### Which reviewer runs is a per-repo fact
+**Which reviewer runs, and which model, is a per-repo fact.** The default is the `reviewer` agent this plugin ships, spawned with no model parameter so its own frontmatter decides. Where `<repo-root>/.agents/gh-solo.md`, or `<repo-root>/.claude/gh-solo.md` where that is what the repository uses, carries a `Reviewer agent:`, `Reviewer model:` or `Reviewer command:` line, `references/reviewer-appointment.md` owns what it changes: read it before the spawn, and refuse as it says rather than falling back to the default.
 
-The default is the `reviewer` agent this plugin ships. Where `<repo-root>/.agents/gh-solo.md`, or `<repo-root>/.claude/gh-solo.md` where that is what the repository uses, carries a `Reviewer agent:` line naming an agent type, per the per-repo config convention in `SKILL.md`, spawn that one instead.
-
-- **The appointed agent inherits the whole contract, not only the spawn.** It gets the PR number and the pin, and nothing else, and it must return the absolute path of a findings file in the format the `reviewer` skill's *The findings file* defines, plus its report text. Everything downstream reads that file and nothing else, so an agent that answers in prose cannot be posted.
-- **Refuse if the appointed agent is not registered.** `⛔ REFUSED - {name} is not a registered agent`. Never fall back to the bundled one: the owner would believe they are reading the findings of the agent they appointed and would be reading ours, which is the exact confusion an appointment exists to prevent, and it would silently invalidate any comparison between reviewers.
-- **Read `Reviewer model:` and pass it on the spawn.** Where the repository's config file carries that line, it names the model this round asks the spawn for; absent it, the spawn asks for nothing and the agent's own frontmatter decides. **Validate the value against the names the spawn parameter accepts, and against the effort the agent's frontmatter pins** - the spawn parameter is the authority on the set of names and the model is the authority on which effort levels it offers, so read both there rather than matching a list written here, which would date the moment model ids move. A named model that does not offer the pinned level is a pair the harness will not honour, and spawning it produces a review whose depth silently differs from the one declared. **Either failure refuses the round**, in the same wording an unregistered agent gets: `⛔ REFUSED - {value} is not a model the spawn accepts`, or `⛔ REFUSED - {value} does not offer the effort the reviewer pins`. Never fall back to the session's model, for the same reason an unregistered agent never silently gives way to the bundled one: the owner would believe they are comparing rounds run on the model they named.
-- **The model is a spawn parameter, not context.** It travels beside the PR number rather than in the prompt, so it takes nothing away from the reviewer fetching its own context.
-- **Name which reviewer ran in the round report, and the model the round asked for**, always, including when both are the default. A round's findings mean something different depending on what produced them, and a report that leaves either out cannot be compared with another round's. **The request is the outcome**: a model asked for at spawn time outranks `CLAUDE_CODE_SUBAGENT_MODEL`, which the documentation makes a default rather than an override unless `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` is set, so the report names the model asked for as the model that ran, that variable aside.
-
-**Read the head before the spawn and hand it over as the scope**, because every anchor the reviewer produces belongs to the version it read, and knowing that version rather than trusting a claim about it means naming it yourself:
+**Read the head before the spawn and hand it over as the scope**, because every anchor the reviewer produces belongs to the version it read:
 
 ```bash
 git fetch <remote> <branch> --quiet
 git rev-parse FETCH_HEAD
 ```
 
-**Not `gh pr view --json headRefOid`.** That read was seen answering with a pre-push sha seconds after a push while `git` on the remote ref already had the new one, so it can hand you a head the branch has already left - and a stale value here pins the reviewer to a version nobody is reviewing. Two `git` commands rather than `git ls-remote`, because `git rev-parse FETCH_HEAD` prints the value alone where `ls-remote` prints a line whose first field has to be picked out - a preference for the shape that needs no extraction, not a rule against the other.
+**Not `gh pr view --json headRefOid`**, which was seen answering with a pre-push sha seconds after a push, so it can hand you a head the branch has already left. Two `git` commands rather than `git ls-remote`, because `git rev-parse FETCH_HEAD` prints the value alone.
 
-Keep the value. It is the pin: Step 2 passes it to the script, which compares it both against what the reviewer reports reading and against the head the ref holds by then. It lives in this session only, which is honest rather than a gap: before the round, and the protocol's steps 1 to 5, are one turn, so a session that dies between the spawn and the post has lost the round regardless.
+Keep the value. It is the pin: Step 2 passes it to the script, which compares it both against what the reviewer reports reading and against the head the ref holds by then.
 
 Spawn it with the PR number and the pin, and nothing else, beside the model parameter where `Reviewer model:` set one.
 
-**The pin is admissible in the prompt where an account of the diff is not**, and the distinction is already this plugin's: `../../agents/reviewer.md` sanctions the `rescope` prompt carrying a commit range because "each is an address rather than an account". A sha is an address by the same test - it says where to look and claims nothing about what is there - so it takes nothing away from the reviewer fetching its own context, which is what "nothing else" exists to protect.
+**The pin is admissible in the prompt where an account of the diff is not**: a sha is an address rather than an account, which is the test `../../agents/reviewer.md` applies to the `rescope` prompt's commit range, so it takes nothing away from the reviewer fetching its own context.
 
-#### While it reads, a push is refused
+**Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. It fetches its own context, and evidence chosen by the author of the code is not independent evidence.
 
-**From the spawn until Step 2 has posted, a push asked for in the session is refused**, per *The push gate, while a reviewer is reading* in `references/review-protocol.md`, which owns the rule and the reason. It binds the scoped spawns in Step 5 the same way, and it binds however the push was phrased: `git push`, `gh stack sync`, "just push it".
+It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit**: post the discard record, re-read the budget, and refuse rather than re-spawn when that pass would be beyond it, naming `authorise` as what buys it.
 
-```text
-⛔ REFUSED - a reviewer is reading this pull request at {sha}; wait for the round report, or type discard to charge the pass and free the push
-```
-
-**Print the exits under it in the owner's terms**, because the verdict line is what they read first and the pass is theirs to spend:
-
-- **Waiting** costs nothing and loses nothing. The reviewer finishes, the findings land, and the push they wanted is the one step 7 makes anyway.
-- **`discard`** posts the discard record for this pass, which charges it under *The pass cap*, and then the push is free. Say what it costs before they choose: at a cap of one, discarding is this pull request's reading of the branch, and a further pass is then theirs to buy with `authorise` rather than the round's to take.
-
-**Never warn and push.** The record is what makes the count true, and a pass killed without one reads afterwards as a pass that never ran.
-
-#### Where the appointed reviewer is a command
-
-The repository's config file may instead carry a `Reviewer command:` line, for a capability that is invoked rather than spawned. Run it as written, substituting the PR number for `{pr}` and the pin for `{sha}`.
-
-**The line must carry `{sha}`, and a line without one refuses the round:** `⛔ REFUSED - the Reviewer command: line carries no {sha}, so the pass cannot be pinned`. An unpinned capability reads whatever the branch holds when it runs, so a push in that window costs a whole reviewer pass at the post.
-
-**Nothing on this path is unpinned, and nothing on it is corroborated either.** The pin reaches the capability in its own arguments, so the version it was told to read is the version the round compares - but the findings file you write by hand carries no `head` all the same, because a capability invoked this way cannot report what it read and a value you supplied is not a report. **Say in the round report that the pin was not corroborated**, so a round on this path cannot be read afterwards as one where the reviewer confirmed what it read; the record Review says the same, since `record_body` reads the absence of `head` rather than being told.
-
-**No bench can catch a line that lost its `{sha}`**, since `scripts/post-review.py` never sees the repository's config file. The substitution and the refusal are stated together here, at the point the line is read, and that is all the enforcement there is.
-
-**`Reviewer model:` does not apply to this form.** A capability is invoked rather than spawned, so there is no spawn parameter for the key to travel on, and honouring it would mean inventing a mechanism the capability does not have. Where a repository carries the model line beside the command line, say in the round report that the model key was not applied and why, so it cannot become a silent no-op that the owner reads as a model they chose.
-
-**Never with a flag that makes it post its own findings.** On the bundled `/code-review` that flag is `--comment`, and the whole point of this form is that its findings come back to you and go up through the posting script like every other round's. A capability that posts for itself lands threads with no `RF{n}` id, no disclaimer and no `via` line, which `workflows/merge.md` then reads as the owner's own comments vouching for their own resolution. One writer, one convention: that is what this form preserves.
-
-Build the findings file yourself from what it returned. **Every field *The findings file* in the `reviewer` skill defines is required**, and `scripts/post-review.py` refuses the whole round on a missing one, so the entries in this list are the ones this path has to decide rather than the whole list.
-
-The rest carry over unchanged: `index` runs from 1 upward in the order the capability restated its findings, with no gaps, because the script refuses a non-contiguous sequence; `finding` and `failure_scenario` come from the capability's own text, and where it gave no scenario, say so in that field rather than inventing one; `needs_owner` is `false`, because a capability that cannot report the flag has not claimed a person is needed, and setting it would be the same fiction the severity rules in this list forbid. The file's own `pass` is `review` and its `axes_run` is `["unrated"]`, which `scripts/test-post-review.sh` already benches as this case. **`head` is absent**, per *Where the appointed reviewer is a command*.
-
-- **`path` and `line`** from its restated findings. The bundled capability is instructed to restate them in its final reply as `file:line  summary` lines, precisely so they survive a session that does not render tool output.
-- **`side` is `RIGHT`.** Prose does not say whether a line was added or deleted, and `RIGHT` is right for either an added or a changed line. A wrong anchor makes the atomic call fail, which refuses the round rather than landing it crooked, so that is the failure to accept rather than guess around.
-- **`axis` is `unrated`.** Its findings are not classified on the axes and must not be sorted onto them by you.
-- **`severity` is read out of each finding's own account of what goes wrong**, with `severity_source` set to `derived` and `severity_basis` stating the rule you applied. The script refuses a derived round with no basis, and refuses a basis on a round whose reviewer assigned its own levels. Where a finding's text supports no judgement, its severity is `unrated`.
-- **Never claim a level came from the capability.** Its own prompt asks its agent for a severity that its reporting tool has no field for, so a ranking looks like it exists and does not. A level you derived and published as the reviewer's is the one dishonesty this whole path is arranged to prevent.
-
-Everything after this is the ordinary path: the same script, the same call, the same ids.
-
-**Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. The pin is not an exception to this, because it is not in this class at all: every item here is a claim about what the diff contains, and a sha is a claim about nothing. It fetches its own context, and evidence chosen by the author of the code is not independent evidence. Handing it your reading of the diff is how to spend a subagent and get your own opinion back.
-
-It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: re-spawning is cheaper than guessing at a path, and a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit** - post the discard record, then re-read the budget and refuse rather than re-spawn when that pass would be beyond it, which at a cap of one it always is. So say plainly that a further reading of the branch is the owner's to buy with `authorise`, print the refusal that names it, and stop.
-
-**A pass whose findings never reach the pull request posts a record, whether anything is re-spawned or not.** That is the whole condition: the charge follows the pass being spent, per *The pass cap* in `references/review-protocol.md`, and a path that ends the round has spent the pass exactly as a path that tries again has. **Where a re-spawn does follow, the record goes up first** - a session that dies in between has then already charged the pass it lost.
+**A pass whose findings never reach the pull request posts a record, whether anything is re-spawned or not.** The charge follows the pass being spent, per *The pass cap* in `references/pass-cap.md`, whether the round ends or tries again. **Where a re-spawn does follow, the record goes up first** - a session that dies in between has then already charged the pass it lost.
 
 ```bash
 python3 <skill-dir>/scripts/post-review.py discard --disclaimer-file <disclaimer-file> \
@@ -198,9 +141,19 @@ python3 <skill-dir>/scripts/post-review.py discard --disclaimer-file <disclaimer
 gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
 ```
 
-**It is what charges the pass**: nothing else the pass produced survives, so a discard without this leaves the count reading as though the pass never ran, and the cap binds only the passes that were cheap enough to succeed. It carries no `comments` array, so it cannot fail on an anchor - which matters here, since the commonest reason to be posting it is an anchor that would not resolve.
+**It is what charges the pass**: a discard without it leaves the count reading as though the pass never ran. It carries no `comments` array, so it cannot fail on an anchor.
 
-**Every stop that throws a pass away owes this record**, and each of them says so where it stops: the missing findings-file path in this step, the head disagreement and the malformed findings file in Step 2, and the unanchorable finding in Step 2's item 5, which ends the round rather than re-spawning and is still a whole branch read for nothing.
+**Every stop that throws a pass away owes this record**, and each of them says so where it stops: the missing findings-file path in this step, the head disagreement and the malformed findings file in Step 2, and the unanchorable finding in Step 2's item 5.
+
+#### While it reads, a push is refused
+
+**From the spawn until Step 2 has posted, a push asked for in the session is refused**, per *The push gate, while a reviewer is reading* in `references/pass-cap.md`, which owns the rule and the reason. It binds the scoped spawns in Step 5 the same way, and it binds however the push was phrased: `git push`, `gh stack sync`, "just push it".
+
+```text
+⛔ REFUSED - a reviewer is reading this pull request at {sha}; wait for the round report, or type discard to charge the pass and free the push
+```
+
+**Print the exits under it in the owner's terms**, per *The exits* in `references/pass-cap.md`: waiting costs nothing, and `discard` posts the discard record for this pass, charges it, and frees the push - at a cap of one, a further pass is then the owner's to buy with `authorise`.
 
 ### Step 2 - Post
 
@@ -215,11 +168,9 @@ git fetch <remote> <branch> --quiet
 git rev-parse FETCH_HEAD
 ```
 
-**You do not compare it here.** It travels to `build` as `--head-now` beside the pin as `--pinned-head`, and the script makes each comparison and owns each refusal - the reviewer's reported head against the pin, meaning the pass judged something other than what it was told to, and the pin against this value, meaning the branch moved and GitHub would resolve these anchors against content the pass never read.
+**You do not compare it here.** It travels to `build` as `--head-now` beside the pin as `--pinned-head`, and the script makes each comparison and owns each refusal: the reviewer's reported head against the pin, and the pin against this value.
 
-Either way the post is never attempted: it fails atomically, so one stale anchor destroys the whole round rather than the affected finding, and a re-spawn against the new head is what would resume - **but only on the owner's word**, since the discard record you post first puts the pull request at the cap. That is the loop that ran away on the evidence behind the cap, so it is where the refusal is worth the most.
-
-**One home for the comparison, deliberately, and it costs two requests.** The rest of this step's reads run before a moved head is caught, so a round that is going to be refused spends them anyway. That is the price of the refusal being benched rather than composed at the keyboard, and a cheap pre-check added here would be a second place for one rule to live and drift.
+Either way the post is never attempted, and a re-spawn against the new head resumes **only on the owner's word**, since the discard record you post first puts the pull request at the cap.
 
 #### 2. Find the highest `RF{n}` already on the PR
 
@@ -231,9 +182,9 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-fi
 python3 <skill-dir>/scripts/post-review.py highest-id --comments <listing-file> --reviews <reviews-file>
 ```
 
-**An id can live on either surface, so each is read and neither argument is optional.** A finding whose line only the unpushed fixes carry is held rather than dropped, per Step 5, and its id is reserved in the record Review's body until the push releases it - a surface the comments endpoint does not reach. A read of the threads alone would answer as though that id had never been issued and hand it to a different finding, which is why the script requires `--reviews` instead of defaulting to skipping it.
+**An id can live on either surface, so each is read and neither argument is optional.** A held finding's id, per Step 5, is reserved in the record Review's body until the push releases it, which the comments endpoint does not reach, so a read of the threads alone would hand that id to a different finding.
 
-**The number comes from the script rather than from a `--jq` filter on the `gh` call**, for the reason the unattended-command bullet in `SKILL.md` states about an aggregate over a paginated result. Getting it wrong here reissues an id that already exists, which breaks *Ids* in `references/review-protocol.md` permanently. `highest-id` prints `0` when no round has posted yet. The listing is the same read step 6 makes, and **`--slurp` must not be added to it** - the script refuses that shape rather than finding no ids in it and answering `0`, which is indistinguishable from a first round.
+**The number comes from the script rather than from a `--jq` filter on the `gh` call**, for the reason the unattended-command bullet in `SKILL.md` states about an aggregate over a paginated result. `highest-id` prints `0` when no round has posted yet, and **`--slurp` must not be added to the listing**: the script refuses that shape.
 
 #### 3. Write the disclaimer line to a file
 
@@ -248,9 +199,9 @@ python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> \
   --out <payload-file>
 ```
 
-**Both head arguments are required here**, exactly as `--unpushed-diff` and `--anchored-at` are required on the re-review's own block in Step 5, and the script refuses a full pass missing either. This block and that required set are read together whenever either moves: `scripts/test-post-review.sh` builds its own argument list rather than reading this file, so nothing else can catch a block that has drifted from the script it invokes.
+**Both head arguments are required here**, exactly as `--unpushed-diff` and `--anchored-at` are required on the re-review's own block in Step 5, and the script refuses a full pass missing either. This block and Step 5's are read together whenever either moves, since `scripts/test-post-review.sh` builds its own argument list rather than reading this file.
 
-It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. **A refusal here is not something to work around by posting by hand.** It means the findings file is malformed, and the answer is to say what is wrong and stop. **A re-spawn here would be a pass too**, so post the discard record, re-read the budget, and name `authorise` as what buys a further pass - at a cap of one there is no second reading the round can take on its own.
+It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. The record Review it builds is posted even at zero findings: it is the evidence `workflows/merge.md` gates on. **A refusal here is not something to work around by posting by hand**: say what is wrong and stop. **A re-spawn here would be a pass too**, so post the discard record, re-read the budget, and name `authorise` as what buys a further pass.
 
 #### 5. Post it
 
@@ -258,9 +209,9 @@ It assigns the ids, applies every header, and refuses the whole round on any inv
 gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
 ```
 
-The JSON must travel in a **file**: `-f` cannot express an array, and `echo '{...}' | gh api --input -` sends the same bytes but does not prefix-match this skill's granted `Bash(gh:*)` pattern, so it prompts where the file form runs clean. Keep the payload file outside the working tree - the harness scratchpad - so a copy of it cannot get committed.
+The JSON travels in a **file**, per the unattended-command bullet in `SKILL.md`, kept outside the working tree so a copy of it cannot get committed.
 
-**A `422` reading `Line could not be resolved` means an anchor that will not resolve, and item 1 has already excluded a moved head.** One cause remains: on the appointed-command path `side` is guessed as `RIGHT`, per *Where the appointed reviewer is a command*, and a wrong guess fails the call; a re-spawn repeats the same guess and fails identically. A line only the unpushed fix commits carry cannot reach this call at all - `build` holds every finding in a file those commits touch, per Step 5 - so a `422` here is never that. Name the finding that could not be anchored and stop - **posting the discard record before you do**, since this pass read the whole branch and none of it reached the pull request.
+**A `422` reading `Line could not be resolved` is an anchor that will not resolve**, which after item 1 leaves one cause: on the appointed-command path `side` is guessed as `RIGHT`, per *Where the appointed reviewer is a command* in `references/reviewer-appointment.md`, and a wrong guess fails the call. Name the finding that could not be anchored and stop - **posting the discard record before you do**.
 
 #### 6. Reconcile what landed
 
@@ -270,13 +221,13 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-fi
 python3 <skill-dir>/scripts/post-review.py verify --payload <payload-file> --comments <listing-file> --reviews <reviews-file>
 ```
 
-**`--reviews` is required here for the reason it is required in item 2**: a held finding is in no `comments` array, so reconciling the payload's threads alone cannot see it, and an id reserved nowhere is one the next round reissues.
+**`--reviews` is required here for the reason it is required in item 2**: a held finding is in no `comments` array.
 
-**`--paginate` is not optional.** The endpoint pages at 30 and a plan discussion's threads alone can pass that, so an unpaginated read returns a slice that looks exactly like a failed post. A verify failure is reported, never re-posted over: the threads may already be there.
+**`--paginate` is not optional**: the endpoint pages at 30, and an unpaginated read returns a slice that looks like a failed post. A verify failure is reported, never re-posted over.
 
 #### 7. Post the reviewer's report as a Conversation comment
 
-Post it with `gh pr comment <pr-number> --body-file <body-file>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it unchanged, and is relayed verbatim, which *Never counted* under *Post caps* in `SKILL.md` excludes - what that cap bounds here is whatever you write around it, and its companion rule forbids re-listing findings that are already threads.
+Post it with `gh pr comment <pr-number> --body-file <body-file>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it verbatim, which *Never counted* under *Post caps* in `SKILL.md` excludes; the cap bounds what you write around it, and never re-list findings that are already threads.
 
 ### Step 3 - Plan the fix, in the thread
 
@@ -286,27 +237,27 @@ One reply per finding, on the finding's own comment id from the reconciliation r
 gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F body=@<body-file>
 ```
 
-Disclaimer and `via` line first: via `pr-flow` review, fix plan, within the length *Post caps* in `SKILL.md` sets - and per its companion rule the plan is the change and the files it touches, never why the finding is right, which the finding itself already said. Code in a **plain fence**, never a `suggestion` fence, for the reason the protocol gives; `scripts/post-review.py` enforces that on the findings themselves and cannot see these replies, so here it is yours to hold.
+Disclaimer and `via` line first: via `pr-flow` review, fix plan, within the length *Post caps* in `SKILL.md` sets; the plan is the change and the files it touches, never why the finding is right. Code in a **plain fence**, never a `suggestion` fence, for the reason the protocol gives; the script cannot see these replies, so here it is yours to hold.
 
 Which findings get no plan and wait for the owner instead, and what their reply says, is the protocol's. A finding the reviewer marked `needs_owner` in the findings file is one kind; the other you can only see yourself, while planning.
 
 ### Step 4 - Fix, commit, report
 
-**Invoke the `gh-solo:implement` skill at its `fix <pr-number>` entrance** and follow it here, in this session. Entering it by name rather than reading its workflow file directly is what puts the fixes under that skill's own tool grant: step 4 re-runs any `## Verification` gate the fixes could have invalidated, those gates are the repository's own commands, and this file's narrowed `Bash` cannot run them. Reading that skill's fix workflow inline instead leaves the agent prompted mid-way through a block that must run without a human, or - worse and likelier - skipping the re-run, which leaves a box ticked from before the fix.
+**Invoke the `gh-solo:implement` skill at its `fix <pr-number>` entrance** and follow it here, in this session. Entering it by name puts the fixes under that skill's own tool grant: re-running any `## Verification` gate the fixes invalidated needs the repository's own commands, which this file's narrowed `Bash` cannot run.
 
-**Still not a subagent.** That skill's own rule holds: you implemented this branch, so you know why each line is shaped as it is and will not undo something deliberate. Entering the skill is about the tool grant, not about handing the work away.
+**Still not a subagent**, per that skill's own rule: entering it is about the tool grant, not about handing the work away.
 
 **Nothing is pushed.** The protocol's step 7 is the round's only push and says why.
 
 ### Step 5 - Re-review, scoped
 
-Spawn the reviewer again - **the appointed one, re-read from `Reviewer agent:` exactly as Step 1 reads it, refusing in Step 1's wording if it is not registered.** Falling back to the bundled agent here would mean the first pass ran the owner's reviewer and the second ran ours, which is the substitution Step 1 exists to refuse, and it would be invisible because nothing in the round names the second pass's reviewer.
+Spawn the reviewer again - **the appointed one, resolved exactly as Step 1 resolves it per `references/reviewer-appointment.md`, and refused in the same wording.**
 
-Where the repository appointed a `Reviewer command:` instead, **there is no scoped re-review**: a capability invoked with a PR number has no rescope shape, so skip this step and say in the round report that it was skipped, that the fixes were therefore verified by nobody but their author, and that the next full pass is where they get judged.
+Where the repository appointed a `Reviewer command:` instead, **there is no scoped re-review**: skip this step and report it as `references/reviewer-appointment.md` says.
 
-Pass `rescope <pr-number>` and exactly three things in the prompt: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit claims which id. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt rather than in it, exactly as in Step 1 - a round whose two passes ran on different models is a round the report describes with one model and cannot be compared with another.
+Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit claims which id. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
 
-**The commits are unpushed, so it reads them with `git` locally** - it cannot see them through `gh pr diff`, and handing it a diff you generated would put your reading of the fixes between it and the code.
+**The commits are unpushed, so it reads them with `git` locally**; never hand it a diff you generated.
 
 Then post what it returns:
 
@@ -316,13 +267,11 @@ The same endpoint as step 3, via `pr-flow` review, re-review verdict, under the 
 
 #### Re-read the head before building this payload
 
-Read it exactly as Step 2's first item does, and compare it against the pin the full pass used - which this session is holding, and which the pushed head still equals unless somebody else pushed, since this round's own fix commits are deliberately unpushed. Steps 3 and 4 can run long, and this call is atomic too: one unresolvable anchor takes the whole re-review record down with it. A difference is refused here by you rather than by the script, since this entrance passes `--anchored-at` instead of the pin pair - its findings are counted against the local commits - so the wording is yours to emit:
+Read it exactly as Step 2's first item does and compare it against the pin the full pass used. A difference is refused here by you rather than by the script, since this entrance passes `--anchored-at` instead of the pin pair, so the wording is yours to emit:
 
 ```text
 ⛔ REFUSED - the pin {pin} is no longer the head {now}, so somebody pushed during the round
 ```
-
-It names a push rather than a reading-window move, which is the distinction the round's refusals exist to keep: this round's own fix commits are unpushed, so nothing it did can have moved the head.
 
 #### Its own record Review
 
@@ -334,36 +283,32 @@ git diff @{u}..HEAD -U0 > <unpushed-diff-file>
 python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head> --out <payload-file>
 ```
 
-**`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against. The diff is the round's to produce because the round is the thing holding the fix commits: the reviewer read the fix range and knows nothing about the pushed head. The diff travels as a file, written to the harness scratchpad like every other payload file; the head travels as a value.
+**`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against.
 
-**`--anchored-at` is the *local* head, and never the pin Step 1 handed the reviewer.** This pass reads the fix commits with `git` while they are unpushed, so every line number it returns counts lines in the file as it stands at local `HEAD`, after those commits. Passing the pushed head instead puts the fix commits themselves inside the shift `release` computes, which moves a held line a second time or drops it as rewritten - the same defect the shift exists to remove, arriving by the argument meant to prevent it. Read it before the spawn, since a commit made afterwards would make it a head the reviewer never saw.
+**`--anchored-at` is the *local* head, and never the pin Step 1 handed the reviewer.** Every line number this pass returns counts lines at local `HEAD`, after the fix commits. Passing the pushed head instead puts the fix commits inside the shift `release` computes, which moves a held line a second time or drops it as rewritten. Read it before the spawn, since a commit made afterwards would make it a head the reviewer never saw.
 
 #### A new defect that `build` holds gets its `RF{n}` and no thread, this round
 
 Every finding in a file the unpushed commits touch is held: the id is assigned from the same sequence, the finding leaves the `comments` array so no unresolvable anchor is ever sent, and the record Review carries it whole in a fenced ledger. **Leave it in the findings file** - holding is the script's decision from the diff, never yours from the findings.
 
-**Held per file rather than per hunk, deliberately.** A rescope finding's `line` counts lines in the file at local `HEAD`, while GitHub resolves against the pushed head, so an unpushed commit inserting lines above a finding shifts it even when the finding sits outside every hunk. Holding the file is the superset with no such gap.
+**The line is brought forward at release, never replayed.** A held finding's `line` counts lines as they stood at `--anchored-at`, and the round goes on committing after the hold, so `release` shifts the number through `git diff <that head>..HEAD` before it anchors anything. A line the fixes rewrote is reported and skipped rather than posted at a guess.
 
-**The line is brought forward at release, never replayed.** A held finding's `line` counts lines as they stood at `--anchored-at`, and the round goes on committing after the hold - the protocol's step 5 gives a new defect a fix and one further attempt - so `release` shifts the number through `git diff <that head>..HEAD` before it anchors anything. A line the fixes rewrote cannot be brought forward at all, and that one is reported and skipped rather than posted at a guess.
-
-**A held finding's fix plan, fix result and verdict go into a follow-up Review, one entry each.** None of them exists when the record Review that holds the finding is posted, and this flow never rewrites a posted Review, so they cannot go in beside it. At the end of the round, write them as a JSON array of `{rf, kind, text}` - `kind` being `plan`, `result` or `verdict` - and post the Review the script builds from it:
+**A held finding's fix plan, fix result and verdict go into a follow-up Review, one entry each.** None of them exists when the record Review is posted, and this flow never rewrites a posted Review. At the end of the round, write them as a JSON array of `{rf, kind, text}` - `kind` being `plan`, `result` or `verdict` - and post the Review the script builds from it:
 
 ```bash
 python3 <skill-dir>/scripts/post-review.py followup --entries <entries-file> --disclaimer-file <disclaimer-file> --out <followup-file>
 gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <followup-file>
 ```
 
-**They stay separate rather than folded into the finding's own text**, so the thread `release` opens collects the reply-per-step shape a threaded finding collects: `release` reads this ledger and emits each entry as its own reply for `workflows/resolve.md` to post. A held finding with no follow-up recorded is not an error - its thread simply opens carrying the finding alone, and `release` says which.
+**They stay separate rather than folded into the finding's own text**: `release` reads this ledger and emits each entry as its own reply for `workflows/resolve.md` to post. A held finding with no follow-up opens its thread carrying the finding alone, and `release` says which.
 
-**`rnp` is the route, not the owner and not a later pass.** The protocol's step 7 pushes the fixes, which makes those lines part of the pull request's diff, and then `release` reads the ledger back and posts each held finding as a thread under the id it already holds - `workflows/resolve.md` owns that call. **The round report says which findings were threaded and which are held**, so a reader cannot take the second for an absence of findings.
+**`rnp` is the route, not the owner and not a later pass**: the protocol's step 7 pushes the fixes, and then `release` posts each held finding as a thread under the id it holds, per `workflows/resolve.md`. **The round report says which findings were threaded and which are held**, so a reader cannot take the second for an absence of findings.
 
 #### Re-read the highest `RF{n}` before building this payload
 
 Never reuse step 2's number, which was read before step 2 posted and has gone stale by the size of the round. Read each surface, exactly as step 2 does: a held id is in the record Review's body only.
 
-The caps on the loops are the protocol's, and with the pass cap they are what ends this block short of the owner.
-
-**The retries and the new-defect fixes get one scoped spawn between them, and it is the round's third and last.** Land every retry and every fix first, then spawn once with the whole range: per thread the spawn count would follow how many findings the pass raised, which is the figure the protocol's ceiling exists to fix. Say in the round report which findings that one pass answered about.
+The caps on the loops are *The caps* in `references/review-protocol.md`: land every retry and every new-defect fix first, then spawn once with the whole range, and say in the round report which findings that pass answered about.
 
 ## Stop at the owner
 
@@ -371,9 +316,9 @@ Open with the verdict line: `✅ ALL PASS` when the reviewer found nothing and t
 
 Then the round report: which reviewer ran, the model the round asked the spawn for, which is the model that ran unless `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` is set, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, which the re-review held for the push rather than threaded, what it would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
 
-Then what the round spent from the budget: which pass this was, how many the pull request has left under *The pass cap* in `references/review-protocol.md`, and any pass that was discarded and why. A report naming findings and not the passes they cost is the gap the cap's own second occurrence is a record of: two passes ran, nothing counted them, and only a human in the room stopped a third.
+Then what the round spent from the budget: which pass this was, how many the pull request has left under *The pass cap* in `references/pass-cap.md`, and any pass that was discarded and why.
 
-Then what the pass cost: its token count, its tool-call count and its wall clock, **as the spawn reported them**. The reviewer cannot measure its own token use, so these are the orchestrator's to read off what the spawn returned and never the reviewer's to supply. Where the spawn reports a figure, print it; where it does not, print that it was not reported rather than an estimate - a number nobody measured is worse here than a gap, because comparing rounds is what these figures exist for.
+Then what the pass cost: its token count, its tool-call count and its wall clock, **as the spawn reported them**. These are the orchestrator's to read off what the spawn returned, never the reviewer's to supply. Where the spawn reports a figure, print it; where it does not, print that it was not reported rather than an estimate.
 
 Then the owner's next move, which is the whole of what they have to do:
 
@@ -385,7 +330,7 @@ To get each reply answered as you post it instead, before you start run:
 /gh-solo:pr-flow watch <pr-number>
 ```
 
-Print it with the actual PR number substituted. Say it every time: it costs five lines and it is what stands between a thoughtful reply on GitHub and nobody ever reading it. Naming `watch` here is a mention, not an arming - per `workflows/watch.md`, only the owner typing that command starts a poll. The full vocabulary is the protocol's; what gets printed is the part they need at this moment.
+Print it with the actual PR number substituted, every time. Naming `watch` here is a mention, not an arming: per `workflows/watch.md`, only the owner typing that command starts a poll.
 
 ---
 
@@ -409,27 +354,3 @@ The reference table for the preliminaries, kept out of the flow because it is lo
 | **Every resolved thread has recorded owner authority** | An owner reply in the thread, an owner reaction on it, or an authorisation comment naming its `RF{n}` id. One GraphQL read, the same query `workflows/discuss.md` Step 1 uses, and it carries each thread's `isResolved` and each comment's `body` - which is also what Step 1's cap refusal names the open findings from, so one read serves each need. A violation is a hard error per *Resolution rests on recorded authority* in `references/review-protocol.md`, and this is the earliest, cheapest place to catch what `workflows/merge.md` will refuse on at the door  |
 
 `Closes #{issue-number}` and the assignee are the ones that matter most, because nothing else enforces either and a PR missing one quietly breaks the tracker: the issue stays open after the code lands, or the in-progress view stops being true.
-
----
-
-## Rules
-
-### The reviewer
-
-- **Never read the diff and never review.** The emptiness test is `changedFiles`, the analysis is the reviewer subagent's, and the judgement is the owner's.
-- **The reviewer is spawned with a PR number and the pin, and nothing else**, or on the re-review with a commit range, the findings and the id-to-commit map. Never with your reading of the diff: each of those is an address, and an address is what this rule admits.
-- **Never spawn a reviewer without reading the budget first.** The spawn is what the cap counts, so a check made after it has already spent what it was protecting - and a lost pass posts its discard record before anything else, never after. At a cap of one that record is also what puts the pull request at the cap, so what follows it is a stop rather than a re-spawn, and only `authorise` moves it.
-- **Never post a round at a head the reviewer did not read.** Step 1 pins the head and hands it over, Step 2 passes the pin and the head-now to the script, and the script refuses on either disagreement rather than attempting the post: the call is atomic, so one stale anchor costs the whole round.
-
-### The post
-
-- **Never post a finding by hand.** `scripts/post-review.py` builds every payload, and a refusal from it is a stop rather than an obstacle.
-- **Never post threads one at a time.** One call carries every thread and the record Review, so either the whole round is on the PR or none of it is.
-- **Never read a REST list without `--paginate`**, which makes a successful round look failed and a failed one look partial.
-
-### The round
-
-- **Never push.** Steps 1 to 5 write commits and leave them local; the protocol's step 7 is the round's only push.
-- **Never filter on `reviewDecision`.** Whether a round already ran comes from what is posted on the PR, told apart by the `via` line rather than by the disclaimer, which every agent post carries.
-- **One record Review per analysis, and it is an index.** Never restate a finding in it, never one Review per finding, and post it even at zero findings - it is the evidence `workflows/merge.md` gates on.
-- **Never end without printing the owner's next move.**

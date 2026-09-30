@@ -79,7 +79,7 @@ git push <remote> <branch>
 
 **The after-head needs no read at all.** It is local `HEAD`, which is exactly what this push sent; asking the remote for it buys the same lag back.
 
-**This push sits outside the reviewer's push gate whenever no pass is out, which by step 7 is every ordinary round.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, step 5's scoped spawns included; the owner gives the word for this step after those have returned and posted, so the window is shut before there is anything to authorise.
+**This push sits outside the reviewer's push gate whenever no pass is out, which by step 7 is every ordinary round.** *The push gate, while a reviewer is reading* in `references/pass-cap.md` covers the gap between a spawn and its post, step 5's scoped spawns included; the owner gives the word for this step after those have returned and posted, so the window is shut before there is anything to authorise.
 
 **Where a scoped pass somehow is still out, the gate holds and this step waits for it.** The condition is written out rather than left as a standing exemption because either reading alone breaks something: an unconditional exemption pushes out from under a reviewer that is still reading, and a refusal applied uniformly parks the round's only push behind a gate that cannot open.
 
@@ -193,25 +193,3 @@ Then the record: how many threads were resolved and which ids, which were left a
 ```
 
 **This file is where that wording is decided.** The split is not an ergonomic: one word that both released the push and landed the branch would read the checks at Step 8 *after* the merge, and the protocol's step 7 says a red check there stops the merge until it is diagnosed - which it cannot do to a merge the same word already made.
-
-## Rules
-
-### Before the resolve
-
-- **Only the owner's word in the session starts this** - `rnp`, or the sentence. Never a reaction, never a mentor, never this workflow's own reading of the threads.
-- **The authorisation comment goes up before the first resolve**, always, because the resolve is what it is evidence for.
-- **Never resolve a thread the batch does not cover.** Name it and leave it; `workflows/merge.md` is what refuses on it.
-- **Never name an id in the authorisation that this batch does not resolve**, and never resolve one it does not name.
-- **The marker line is a literal.** `workflows/merge.md` greps it.
-
-### The push
-
-- **Read each mutation's answer.** A resolve posts nothing, so an unchecked failure is invisible.
-- **This is the round's only push**, and the checks are read before it is reported done.
-- **This workflow ends at the push. It never merges**, and never chains into `workflows/merge.md`. Step 9 prints the command; the owner types it.
-
-### After the push
-
-- **The delta index is posted after the push and indexes only what that push carried.** Its span is the before-head Step 5 kept and local `HEAD`, per commit, and it opens no thread and issues no id.
-- **The release comes after the push and never before it.** Its anchors resolve only because the push landed, and a failure there is a retry rather than a refusal - the ledger is still on the pull request.
-- **Never resolve a released thread.** The authorisation named the ids it covered and a released id was not one of them, so it waits on the owner exactly as a fresh finding does.

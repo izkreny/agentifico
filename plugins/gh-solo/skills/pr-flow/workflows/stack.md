@@ -81,6 +81,8 @@ The analogy stops short, and each gap is a limit *That rule has limits, and each
 
 ## Step 2 - Do what was asked
 
+**One stack operation per invocation.** If the owner asks for two, run them in sequence and confirm each.
+
 ### View
 
 ```bash
@@ -152,13 +154,15 @@ gh stack sync
 
 **`sync` is refused while a review round holds unpushed fix commits on any branch in the stack.** The round's fix commits sit local for the owner's word, and `references/review-protocol.md` makes step 7 the round's only push; a `sync` in the middle of that pushes them early and re-anchors every thread under a part-finished read, which is the exact failure the push-hold exists to prevent. `rnp` is what releases them. Say which branch holds them, and offer `gh stack rebase` where the intent was only to move onto the trunk.
 
-**The reviewer's read refuses `sync` as well, and that window is the earlier one.** *The push gate, while a reviewer is reading* in `references/review-protocol.md` covers the gap between a spawn and its post, where no fix commit exists yet - so the unpushed-fixes refusal cannot fire there, and a `sync` walks straight through it and costs the pass. What releases this one is not `rnp`: it is the round posting, or the owner typing `discard` at the standing refusal, per *While it reads, a push is refused* in `workflows/review.md`.
+**The reviewer's read refuses `sync` as well, and that window is the earlier one.** *The push gate, while a reviewer is reading* in `references/pass-cap.md` covers the gap between a spawn and its post, where no fix commit exists yet - so the unpushed-fixes refusal cannot fire there, and a `sync` walks straight through it and costs the pass. What releases this one is not `rnp`: it is the round posting, or the owner typing `discard` at the standing refusal, per *While it reads, a push is refused* in `workflows/review.md`.
 
 **`gh stack push` and the drift playbook are refused on the same terms, because the verb is not what does the damage.** That command force-pushes per branch, as *When CI goes silent: the stack has drifted* states, so a rebase-then-push run to get around a refused `sync` moves the head under the reviewer exactly as `sync` would. A refusal keyed to one verb would leave its own documented alternative as the way through it.
 
 **Each refusal here is checked per stack rather than per branch**, because the commands they name force-push every branch in the stack rather than only the one you are standing on: a round reading a *lower* branch's pull request is moved under by a command run from an upper one, and a check that looked only at the current branch would miss exactly that case.
 
 Where the fetch is not wanted either, the playbook under *When CI goes silent: the stack has drifted* runs `gh stack rebase` and `gh stack push` as separate steps, which is the same work with the push under the owner's eye - and under the same refusals as `sync` all the same, since its final step pushes.
+
+**If a command fails partway through a cascade, stop and report which branches moved and which did not.** Do not retry blindly: a half-rebased stack is worse than an unrebased one, and the usual cause is *The worktree trap*.
 
 ### Merge
 
@@ -209,12 +213,3 @@ The fix, entirely through `gh stack` and never a raw `git rebase`:
 ## Step 3 - Confirm
 
 One line: what moved, from what to what, and the PR URLs affected. If nothing changed because the stack was already in the requested shape, say that rather than reporting success.
-
----
-
-## Rules
-
-- **Never `git rebase` a stacked branch against `main` by hand.** It rewrites the history the stack tooling manages, and the stack loses track of itself. Every restack goes through `gh stack`.
-- **Never commit or push directly to `main`.** This holds even when the change is trivial and even when a stack is not involved.
-- One stack operation per invocation. If the owner asks for two, run them in sequence and confirm each.
-- If a command fails partway through a cascade, stop and report which branches moved and which did not. Do not retry blindly: a half-rebased stack is worse than an unrebased one, and the usual cause is *The worktree trap*.

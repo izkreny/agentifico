@@ -45,7 +45,7 @@ git status
 
 Take the plan's steps in order unless a dependency forces otherwise - and when it does, say so in the Step 7 report. Mirror the steps into the session todo list (`TodoWrite`) before starting: it is the working view of progress, while the PR body's checkboxes stay the durable record.
 
-- **Commits group by coherent change, not by plan step.** Where the repository squash-merges, which the `pr-flow` skill's merge workflow establishes per repository rather than assuming, these commits never reach `main`; their readers are the owner's review diff and a mid-branch `git bisect`, and they are sized for those two: each commit builds and makes sense alone, and its header describes one thing. A big step may take several commits, several small steps may share one, and both extremes serve nobody - a commit per keystroke, or one monolith carrying the whole branch. Headers and bodies per the contract in `SKILL.md`; the repo's own conventions govern the code itself, and the floor in `SKILL.md` governs where the repo is silent.
+- **Commits group by coherent change, not by plan step.** Where the repository squash-merges, which the `pr-flow` skill's merge workflow establishes per repository rather than assuming, these commits never reach `main`; their readers are the owner's review diff and a mid-branch `git bisect`, and they are sized for those readers: each commit builds and makes sense alone, and its header describes one thing. A big step may take several commits, several small steps may share one, and both extremes serve nobody - a commit per keystroke, or one monolith carrying the whole branch. Headers and bodies per the contract in `SKILL.md`; the repo's own conventions govern the code itself, and the floor in `SKILL.md` governs where the repo is silent.
 - **After a step's work lands, tick its box** in the PR body's `## Steps` - read, modify, write, per the contract. The box is per step however the commits are grouped: ticked when its work is committed locally, pushed or not. Ticking as you go is not bookkeeping polish: it is what makes the branch resumable and what `ready` later audits.
 - **Tick any issue acceptance criterion that verifiably landed** with the step, the same way, on the issue body. "Verifiably" is literal - the criterion's own condition observed true, not inferred from the step being done.
 
@@ -96,10 +96,3 @@ End with the owner's next move, alone on its line, flush left:
 ```text
 /gh-solo:pr-flow ready review <pr-number>
 ```
-
-## Rules
-
-- **Never mark the PR ready.** The handoff names the next command; running it is the owner's act.
-- **Never edit the plan file to record divergence.** Divergence is a PR comment; the plan is the record of intent. The one legitimate plan edit is Step 1's `docs:` commit applying a decision the owner settled in a plan-discussion thread, which is the opposite act: the intent itself changed, and the file is being brought up to it.
-- **Tick at the moment work lands, never in a batch at the end.** A batch-ticked body cannot be resumed from and cannot be audited.
-- **On any gap between the record and the branch, report before continuing.** A lying record found now costs a sentence; found at `ready` it costs the audit its meaning.

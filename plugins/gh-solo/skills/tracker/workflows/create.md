@@ -77,6 +77,8 @@ Then ask: **"Does this look right? Anything to change before I create them?"**
 
 A draft skips the split test - there are no criteria to run it on - and its body may be a stub, but it still needs a real title and a layer label, per *Drafts* in `references/tracker-fields.md`. Offer the form only when the owner says they want something on the backlog without the time or information to finish it; never downgrade a row to draft yourself to avoid writing criteria you could write.
 
+**If something is unclear, ask.** An issue written from a guess costs more to discover wrong than to clarify now.
+
 ## Step 6 - Create, in dependency order
 
 Once confirmed, create bottom-up so that every `--parent` and `--blocked-by` target already exists:
@@ -132,14 +134,3 @@ This section is entered directly by `finish`, so it carries Steps 2 to 4 with it
 4. **If it passes as one issue**: update the body, then `gh issue edit <issue-number> --remove-label draft`. **If it fails**: the draft becomes an epic with children - present that split through the same Step 5 confirm gate, create the children on confirmation, and relabel the original (`--add-label epic`, `--remove-label draft`, layer label off per the epic exemption).
 
 Removing the label is what makes the issue visible to "next task" in `workflows/search.md` again, so it is the last step, after the body is true.
-
-## Rules
-
-- **Never create without showing the plan first.** This is the one gate worth keeping from the team process, and it exists for a different reason here: solo, nobody else will catch a mis-scoped issue before it becomes a branch.
-- **Run the split test on every row before presenting the plan.** *How big is one issue* in `references/issue-shape.md` has it: one branch and one pull request, no more than about a week, criteria that do not fall into independent groups, no "and" in the title. A row that fails becomes an epic with children in the same table. This is the check that stops oversized issues, and this plan gate is where it happens — nothing downstream will catch it, because no workflow measures an issue after it exists. Draft rows are exempt: their test is deferred to the moment the draft is finished, which is the plan gate for the description they did not yet have.
-- **Every issue except an epic gets exactly one layer label, set at creation.** Titles carry no prefix, so the label is the only record of the layer, and an issue created without one is invisible to every layer filter in `workflows/search.md`.
-- Titles are the deliverable and nothing else: no `[BE]`, no bracketed tag, no duplicated size or epic name.
-- Acceptance criteria are checkboxes, so GitHub counts them.
-- **Never `--assignee @me` at creation.** Assignment means work has started, not ownership, and a backlog created pre-assigned makes `assignee:@me is:open` useless on the day it matters. Assignment happens when work starts; see `workflows/state.md`.
-- **No issue is created from a file the tree might have rewritten.** Step 1's freshness check is the guard, and it is not skippable for a "small" breakdown: the incident behind it wrote a whole breakdown from a roadmap one commit stale, and every item the missed commit had added, amended or removed had to be found and re-filed in a second pass.
-- If something is unclear, ask. An issue written from a guess costs more to discover wrong than to clarify now.

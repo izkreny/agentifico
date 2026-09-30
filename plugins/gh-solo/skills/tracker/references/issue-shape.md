@@ -6,7 +6,7 @@ How work is divided into issues, and how each one is titled and bodied. The othe
 
 The levels of containment, each item nested inside the item before it:
 
-1. **Repository** - the tracker itself; everything below lives inside it.
+1. **Repository** - the tracker itself; the other levels live inside it.
 2. **Epic** - a normal issue, labelled `epic`, holding sub-issues.
 3. **Issue** - the unit of work; one branch, one PR.
 4. **Task-list checkboxes** - `- [ ]` items in an issue's body, for steps too small to track.

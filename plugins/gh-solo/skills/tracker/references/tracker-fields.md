@@ -127,7 +127,7 @@ For anything weaker than a hard dependency, write prose. There is no "relates to
 
 A milestone groups issues that ship together and answers "is this done yet". It carries a title, a description, a `due_on` date and a live open/closed count, so it can model a release, a launch, a scope boundary, or an iteration if the owner wants one. Use them freely; this is the organising tool a solo backlog actually benefits from.
 
-**Close on scope, never on the calendar.** That is the whole rule, and everything below follows from it. A milestone closed when its contents ship stays honest: the count means what it says, and the due date was a forecast. A milestone closed because the date arrived reports done for work that is not, and from then on the tracker lies about completion.
+**Close on scope, never on the calendar.** That is the whole rule, and the rest of this section follows from it. A milestone closed when its contents ship stays honest: the count means what it says, and the due date was a forecast. A milestone closed because the date arrived reports done for work that is not, and from then on the tracker lies about completion.
 
 **So when the date arrives and the scope has not landed, move the date.** One call, and the milestone stays true:
 

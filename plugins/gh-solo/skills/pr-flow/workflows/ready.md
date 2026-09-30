@@ -4,7 +4,7 @@ Move a draft PR into the review loop, once the plan is implemented.
 
 This is the far end of `workflows/open.md`, not a continuation of it. That workflow opens the PR as a draft at the *start* of the work and stops; this one runs after the implementation - the `implement` skill's work - has landed on the branch, usually days and several sessions later.
 
-**The audit: every gate in `## Verification` accounted for, CI agreeing with that record, the rest of the body telling the truth, and then the flag - the first of these being most of it.** **This is the workflow that can say no** — its whole value is refusing to flip a draft whose gates did not all run, so nothing here is a formality to be got through.
+**The audit: every gate in `## Verification` accounted for, CI agreeing with that record, the rest of the body telling the truth, and then the flag - the gate audit being most of it.** **This is the workflow that can say no** — its whole value is refusing to flip a draft whose gates did not all run, so nothing here is a formality to be got through.
 
 ## Step 1 - Audit the gates. Do not run them
 
@@ -59,18 +59,12 @@ gh pr ready <pr-number>
 
 **This is the one line that admits the PR to review.** Until it runs, `workflows/review.md` skips the PR as a draft, which is right while work is in progress and wrong the moment it is not. A PR left in draft after the work lands never gets reviewed at all.
 
+**If the branch is stacked, marking one PR ready says nothing about its siblings.** Check the stack with `workflows/stack.md` before assuming the whole thing is reviewable.
+
 ## Step 5 - Confirm
 
 Open with the verdict line per the standing convention in `SKILL.md`. `✅ ALL PASS` when Step 3 found nothing; `⚠️ PASSED WITH FINDINGS - {the bookkeeping misses}` when it did, naming each - an unticked `## Steps` box whose work is plainly done, or a `## Open questions` entry never moved to `## Settled`. Step 3 defines both as things to report rather than blockers, so the draft still lifts; printing green over them hides the one line the owner reads first. A refusal never reaches this step: the refusals in Steps 1-3 print `⛔ REFUSED - {reason}` as their first line instead. Then one line: the PR number and URL, that it is out of draft, and that every `## Verification` box was already ticked with CI green on the same head — which is the fact that authorised the flip.
 
 **If the invocation was the `ready review` chain**, per the routing in `SKILL.md`, do not stop here: continue into `workflows/review.md` on this PR, as if the owner had named it. The chain exists only to remove the wait between `ready` and `review`; a refusal above never reaches this point, so the chain never carries a failed audit forward.
 
----
-
-## Rules
-
-- **Never run a project command here, and never tick a box.** This workflow reads the record and either accepts it or refuses. An agent that both produces and audits the evidence is not auditing anything.
-- **Never mark ready with an empty `## Verification` box, and never over a red CI check.** An unticked `## Steps` box whose work is plainly done is a bookkeeping miss to report, per Step 3; the gates and the checks are the hard stops. The draft state is what buys the room to fix a red build privately; spending it on an unproven branch wastes the one advantage the draft had.
-- **On any gap in the gates or the checks, stop and ask.** Each cause needs its own response and the owner picks; guessing which one applies is how a failed gate becomes a ticked box. Step 3's bookkeeping misses are the deliberate exception: they are reported in the verdict line and the draft still lifts.
-- **Do not review it yourself in the same breath** - unless the invocation was the `ready review` chain, which is exactly that request made explicitly. Otherwise marking ready and reviewing are separate requests; `workflows/review.md` has its own confirmation gate for a reason.
-- If the branch is stacked, marking one PR ready says nothing about its siblings. Check the stack with `workflows/stack.md` before assuming the whole thing is reviewable.
+Otherwise stop here: marking ready and reviewing are separate requests, and `workflows/review.md` has its own confirmation gate.
