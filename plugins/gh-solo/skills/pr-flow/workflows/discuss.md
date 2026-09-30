@@ -105,7 +105,7 @@ gh api --paginate "repos/{owner}/{repo}/issues/<pr-number>/comments" --jq '.[] |
 
 Drop every body that opens with the AI disclaimer - those are this workflow's own posts, the same filter the watch applies. What remains is the owner's or the mentor's, and each is classified by the same table a thread comment is. The differences from threads: there is no resolution state, so "already handled" is read from the record - a body whose ask is answered by a later agent Conversation comment naming it is done; one with no such answer is live, however old it is. And there is no thread to reply into, so an owed answer goes as a Conversation comment (Step 2). An acknowledgement-only body ("Round two", "LGTM so far") gets what an acknowledgement gets: nothing.
 
-**If no thread has an owner reply awaiting an answer, say so and stop.** There is nothing to do and nothing to post.
+**If no surface holds an owner request awaiting an answer - no thread reply, no review body, no Conversation comment - say so and stop.** There is nothing to do and nothing to post.
 
 ## Step 2 - Answer in the thread
 
