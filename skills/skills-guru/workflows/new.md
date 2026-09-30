@@ -70,7 +70,7 @@ The exact command, copyable. Required even for a skill that never leaves the mac
 
 Give the section a heading opening with `install`, `installation`, `setup` or `getting started`, or put the command in a fenced block: `skills add`, `npm install`, `npm ci`, `mise use`, `claude plugin install`, `git clone` or `ln -s`. Reaching for a form this list does not name means adding it here first.
 
-The `skill-readme` rule takes the same form in the same change, per `references/maintaining.md`.
+Adding a form here also adds it to `scripts/rules/skill-readme.js` in the same change.
 
 #### How it is invoked
 
