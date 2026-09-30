@@ -50,3 +50,4 @@ The gates cannot tell whether a moved case still means what the old fixture mean
 ## Settled
 
 - **Does this branch wait for `plugins/gh-solo` to pass the skills-guru check?** No, the owner settled. Its three errors predate this branch and #212 owns them, so the check gates this branch on `skills/review-text`, `skills/skills-guru` and `skills/socratic-tutor`.
+- **Should the suite still check each rule's severity, for example that `Counts` is an error?** No, the owner settled. `vale test` output carries no severity, and the rule's `level:` line states it.
