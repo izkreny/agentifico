@@ -14,3 +14,105 @@ level: error
 scope: CommentProse
 max: 1
 token: '(?<!\be\.g|\bi\.e|\betc|\bvs)[.!?](?=\s|$)'
+tests:
+  - name: fires on a line comment in JavaScript, with the count
+    format: js
+    input: |
+      // The first sentence says why. The second narrates the line.
+      const a = 1;
+    want: |
+      1:31:Agentifico.CommentSentences:A comment inside code is one sentence saying why: this one carries 2 sentence ends.
+  - name: fires on a line comment in Python
+    format: py
+    view: Python
+    input: |
+      x = 1
+      # The first sentence says why. The second narrates the line.
+      y = 2
+    want: |
+      2:30:Agentifico.CommentSentences:A comment inside code is one sentence saying why: this one carries 2 sentence ends.
+  - name: fires on a docstring
+    format: py
+    view: Python
+    input: |
+      def f():
+          """The first sentence says why. The second narrates the line."""
+          return 1
+    want: |
+      2:35:Agentifico.CommentSentences:A comment inside code is one sentence saying why: this one carries 2 sentence ends.
+  # No shebang, because Vale reads no module docstring under one and the case could then never fail.
+  - name: leaves the module docstring alone and reads every other docstring and comment
+    format: py
+    view: Python
+    input: |
+      """The first sentence says why. The second narrates the line. w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31 w32 w33 w34 w35 w36 w37 w38 w39 w40 w41 w42 w43 w44 w45
+
+      Usage: python3 docstring-module.py <target>.
+      """
+
+      # The first sentence says why. The second narrates the line.
+
+
+      class C:
+          """The first sentence says why. The second narrates the line."""
+
+
+      def f():
+          """The first sentence says why. The second narrates the line."""
+          return 1
+    want: |
+      6:30:Agentifico.CommentSentences:A comment inside code is one sentence saying why: this one carries 2 sentence ends.
+      10:35:Agentifico.CommentSentences:A comment inside code is one sentence saying why: this one carries 2 sentence ends.
+      14:35:Agentifico.CommentSentences:A comment inside code is one sentence saying why: this one carries 2 sentence ends.
+  - name: reads a run of line comments as one comment
+    format: js
+    input: |
+      // The first sentence says why.
+      // The second narrates the line.
+      const a = 1;
+    want: |
+      1:31:Agentifico.CommentSentences:A comment inside code is one sentence saying why: this one carries 2 sentence ends.
+  - name: leaves a tool directive alone in JavaScript
+    format: js
+    input: |
+      // biome-ignore lint/suspicious/noExplicitAny: The shape comes from the API. It is not ours to type.
+      const a = 1;
+      /* eslint-disable no-console. The log is the output. It stays. */
+      console.log(a);
+    want: ""
+  - name: leaves a tool directive alone in Python
+    format: py
+    view: Python
+    input: |
+      x = 1  # noqa: E501. The line is long. It is a URL.
+      y = 2  # type: ignore[attr-defined]. The stub is wrong. It is upstream.
+    want: ""
+  - name: leaves an abbreviation, a path and a string literal alone
+    format: js
+    input: |
+      // One sentence, e.g. this one, naming workflows/new.md, tags etc. and Vale 3.21.0 vs. the version the rules were written against, i.e. the pinned one.
+      const s = "The first sentence says why. The second narrates the line.";
+    want: ""
+  - name: leaves a Python directive alone however many sentences its reason runs to
+    format: py
+    view: Python
+    input: |
+      x = 1
+      # noqa: E501. The first sentence says why. The second narrates the line.
+      y = 2
+    want: ""
+  - name: leaves a JavaScript directive alone however many sentences its reason runs to
+    format: js
+    input: |
+      const a = 1;
+      // eslint-disable-next-line no-console. The first sentence says why. The second narrates the line.
+      console.log(a);
+    want: ""
+  - name: leaves markdown alone, its HTML comment included
+    input: |
+      # Title
+
+      <!-- The first sentence says why. The second narrates the line. w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31 w32 w33 w34 w35 w36 w37 w38 w39 w40 w41 w42 w43 w44 w45 -->
+
+      The first sentence says why. The second narrates the line. w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 w30 w31 w32 w33 w34 w35 w36 w37 w38 w39 w40 w41 w42 w43 w44 w45
+    want: ""

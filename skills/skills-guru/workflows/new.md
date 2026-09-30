@@ -84,7 +84,7 @@ A command's actual output beats a description of it.
 
 Watch a new check, fixture, grep or assertion fail on the case it exists to catch before its pass is trusted, because a check that passes on everything and a check that passes on nothing look identical from the outside.
 
-In this package the mechanical half is `describe("coverage")` in `scripts/test/vale.test.js`, and it reaches the Vale rules alone, `workflows/check.md` owning what the suite does with a rule no fixture reaches. Even there it proves a fixture exists rather than that the fixture was ever red, so whether a failure was watched is a judgement no exit code supplies.
+In this package the mechanical half is `vale test --coverage` and the per-token loop in `scripts/test/vale.test.js`, and both reach the Vale rules alone, `workflows/check.md` owning what the suite does with a rule no case reaches. Even there they prove a case exists rather than that the case was ever red, so whether a failure was watched is a judgement no exit code supplies.
 
 ### Put a version next to the claim it qualifies, never as a banner at the top
 

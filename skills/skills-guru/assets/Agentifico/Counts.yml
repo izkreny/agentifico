@@ -44,3 +44,43 @@ tokens:
   # "Both, like every validator that parses frontmatter" 783e1a9, counting
   # the two neighbours the paragraph before it enumerated.
   - '^both(?=,)'
+tests:
+  - name: fires on each recorded shape, once per line
+    input: |
+      # Title
+
+      It covers all three forms of appointment.
+      Reads the two caps above and the three most memorable ones.
+      The standards are the three below.
+      Two lines matter: the subject and the body.
+      It runs in three parts: read, judge, post.
+      Both checks are per stack rather than per branch.
+      Take whichever of the two applies.
+      Two of them change what an agent does, and both sources are named.
+      Three cures.
+      Its suite and its check, both needing a one-time install, run locally.
+      Both, like every validator with a real parser, accept the truncation.
+    want: |
+      3:11:Agentifico.Counts:Write sentences that survive change: 'all three' counts adjacent content, and the list is the authority on its own length.
+      4:7:Agentifico.Counts:Write sentences that survive change: 'the two caps' counts adjacent content, and the list is the authority on its own length.
+      4:30:Agentifico.Counts:Write sentences that survive change: 'the three most' counts adjacent content, and the list is the authority on its own length.
+      5:19:Agentifico.Counts:Write sentences that survive change: 'the three below' counts adjacent content, and the list is the authority on its own length.
+      6:1:Agentifico.Counts:Write sentences that survive change: 'Two lines matter' counts adjacent content, and the list is the authority on its own length.
+      7:4:Agentifico.Counts:Write sentences that survive change: 'runs in three parts' counts adjacent content, and the list is the authority on its own length.
+      8:1:Agentifico.Counts:Write sentences that survive change: 'Both checks' counts adjacent content, and the list is the authority on its own length.
+      9:6:Agentifico.Counts:Write sentences that survive change: 'whichever of the two' counts adjacent content, and the list is the authority on its own length.
+      10:1:Agentifico.Counts:Write sentences that survive change: 'Two of them' counts adjacent content, and the list is the authority on its own length.
+      10:44:Agentifico.Counts:Write sentences that survive change: 'both sources' counts adjacent content, and the list is the authority on its own length.
+      11:1:Agentifico.Counts:Write sentences that survive change: 'Three cures' counts adjacent content, and the list is the authority on its own length.
+      12:26:Agentifico.Counts:Write sentences that survive change: 'both needing' counts adjacent content, and the list is the authority on its own length.
+      13:1:Agentifico.Counts:Write sentences that survive change: 'Both' counts adjacent content, and the list is the authority on its own length.
+  - name: leaves caps, a bare both and code alone
+    input: |
+      # Title
+
+      Five sentences or bullets at most, and three times at most in a round.
+      An issue carries at most one value from each axis; under roughly 2,000 words one file is right.
+      Read both, then report both in the handoff, in both directions.
+      A cap of `the two files` inside a code span is code.
+      Both are read, and each command needs Vale.
+    want: ""

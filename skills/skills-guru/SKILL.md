@@ -6,7 +6,7 @@ argument-hint: "[new <name> | review <path> | check | export <path> | manage]"
 compatibility: |
   Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list in the check.
 metadata:
-  version: "5.0.0"
+  version: "5.0.1"
 allowed-tools: Bash(gh:*) Bash(node:*) Bash(npm:*) Bash(skills:*) Read Write Edit Grep Glob
 ---
 

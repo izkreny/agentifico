@@ -90,3 +90,78 @@ tokens:
   # promising its own future to an issue, which dates it as "until #101
   # lands" does.
   - 'is #\d+''s to (?:document|state|add|decide|settle|fix|write|say)'
+tests:
+  - name: fires on each recorded shape, once per line
+    input: |
+      # Title
+
+      This reverses an earlier rule that capped the watch.
+      It does not stop it any more, and no longer reads the config.
+      Where it previously mandated plain text, the read now happens later.
+      The old check refused first; the block it replaced spent nothing.
+      The discovery rule is now something the rest depends on, restored from the loop.
+      It behaves exactly as it does today, which was never the reason.
+      The constraint is being lifted; until it lands, the paths named before #101 stay.
+      Worth doing, not yet done, since that reasoning still holds.
+      The scope rule is unchanged and the contract survives untouched, as before.
+      This supersedes the fix; it currently forbids a parser, a risk the gate has retired.
+      The first draft of this issue said so; an earlier shape of it was dropped.
+      It used to ignore the hook, and the loop was replaced by a glob.
+      The trap was first seen on a live skill, in the past, at the time of the push.
+      The rule has been moved to check.md and the script was dropped from the package.
+      The analysis stands as it was written rather than left standing.
+      The criterion first said the field stays; the rebuild dropped that rule.
+      Reading them back asks for a permanent ignore span, which is what the `scripts/*` span was.
+      How a list grows afterwards is #130's to document.
+    want: |
+      3:1:Agentifico.History:Never write the file's own history: 'This reverses' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      4:21:Agentifico.History:Never write the file's own history: 'any more' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      4:35:Agentifico.History:Never write the file's own history: 'no longer' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      5:10:Agentifico.History:Never write the file's own history: 'previously' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      5:51:Agentifico.History:Never write the file's own history: 'now happens' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      6:1:Agentifico.History:Never write the file's own history: 'The old check' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      6:40:Agentifico.History:Never write the file's own history: 'it replaced' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      7:20:Agentifico.History:Never write the file's own history: 'is now' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      7:58:Agentifico.History:Never write the file's own history: 'restored' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      8:31:Agentifico.History:Never write the file's own history: 'today' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      8:44:Agentifico.History:Never write the file's own history: 'was never the reason' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      9:16:Agentifico.History:Never write the file's own history: 'is being lifted' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      9:33:Agentifico.History:Never write the file's own history: 'until it lands' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      9:65:Agentifico.History:Never write the file's own history: 'before #101' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      10:14:Agentifico.History:Never write the file's own history: 'not yet done' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      10:49:Agentifico.History:Never write the file's own history: 'still holds' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      11:16:Agentifico.History:Never write the file's own history: 'is unchanged' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      11:46:Agentifico.History:Never write the file's own history: 'survives untouched' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      11:66:Agentifico.History:Never write the file's own history: 'as before' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      12:6:Agentifico.History:Never write the file's own history: 'supersedes' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      12:29:Agentifico.History:Never write the file's own history: 'currently' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      12:73:Agentifico.History:Never write the file's own history: 'has retired' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      13:1:Agentifico.History:Never write the file's own history: 'The first draft of' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      13:40:Agentifico.History:Never write the file's own history: 'an earlier shape of' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      13:63:Agentifico.History:Never write the file's own history: 'was dropped' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      14:1:Agentifico.History:Never write the file's own history: 'It used to' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      14:42:Agentifico.History:Never write the file's own history: 'was replaced' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      15:14:Agentifico.History:Never write the file's own history: 'first seen' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      15:42:Agentifico.History:Never write the file's own history: 'in the past' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      15:55:Agentifico.History:Never write the file's own history: 'at the time' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      16:10:Agentifico.History:Never write the file's own history: 'has been moved' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      16:52:Agentifico.History:Never write the file's own history: 'was dropped from' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      17:14:Agentifico.History:Never write the file's own history: 'stands as it was written' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      17:51:Agentifico.History:Never write the file's own history: 'left standing' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      18:15:Agentifico.History:Never write the file's own history: 'first said' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      18:55:Agentifico.History:Never write the file's own history: 'dropped that' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      19:53:Agentifico.History:Never write the file's own history: 'which is what the ********* span was' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      20:29:Agentifico.History:Never write the file's own history: 'is #130's to document' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+  - name: leaves imperatives and state alone
+    input: |
+      # Title
+
+      Run it now, note it now as a finding, and stop.
+      A branch not yet pushed is the ordinary resume; the file already exists.
+      A claim about a rule that is gone reads as a rule about the present.
+      The flag is used to name the target, now that the walk is a glob.
+      A premise that has stopped being true is a defect; the check runs still, and the current branch is read.
+      The log records what the flag was set to, which is what the check reads, and #130 is the issue to read.
+      The flag names the target, which is what the config says. A test was added for it.
+      So which is what the config does? A test was added for it, which is what the plan said! A line was cut.
+    want: ""
