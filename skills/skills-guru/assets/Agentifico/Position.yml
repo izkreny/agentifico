@@ -27,8 +27,10 @@ tokens:
   # A pointer by position: "the escape above" PR 46, "the row below" PR 58,
   # "the paragraph above" PR 58, "the table above" and "label taxonomy below"
   # ae1cd1a, "the name loop below" PR 100; twenty removals of "above" and
-  # sixteen of "below" across the history. "that" is left out of the
-  # determiners because "that floats above" is a CSS reference, not a pointer.
+  # sixteen of "below" across the history; "the above" live in
+  # skills/review-text, matched with no word between. "that" is left out of
+  # the determiners because "that floats above" is a CSS reference, not a
+  # pointer.
   - '(?:the|this|these|those|any|every|each) (?:[\w''-]+ ){0,3}(?:above|below)'
   # "the same as above" e3f094d and 6581c8c; "rules out above" 9ed0bb8;
   # "named above" live in plugins/gh-solo.
@@ -36,10 +38,9 @@ tokens:
   # "governs this step's read and nothing later" 54c301c: a pointer at the
   # steps after this one, falsified when the paragraph moved to a later step.
   - 'and nothing (?:later|earlier)'
-  # A bare "above." or "below," closing a clause, and "the above": "per *Who
-  # this is for* above." 187f851, "the above" live in skills/review-text.
+  # A bare "above." or "below," closing a clause: "per *Who this is for*
+  # above." 187f851.
   - '(?:above|below)(?=[,.;:)]|$)'
-  - 'the above\b'
   # A uniqueness claim: "the only one in this table" PR 37, "the one place a
   # body section's cap is stated" PR 46, "the one statement of what follows"
   # PR 82, "the one exception" PR 87, "the only read in this workflow" PR 73.
@@ -91,6 +92,7 @@ tests:
       The substitution names the only plan still being written.
       The rule governs this step's read and nothing later.
       This skill checks the raw line instead, so the trap is visible to it alone.
+      It works as noted below and holds.
     want: |
       3:5:Agentifico.Position:Write sentences that survive change: 'the escape above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       3:23:Agentifico.Position:Write sentences that survive change: 'the row below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
@@ -112,6 +114,7 @@ tests:
       14:24:Agentifico.Position:Write sentences that survive change: 'the only plan' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       15:35:Agentifico.Position:Write sentences that survive change: 'and nothing later' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       16:64:Agentifico.Position:Write sentences that survive change: 'to it alone' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      17:10:Agentifico.Position:Write sentences that survive change: 'as noted below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
   - name: leaves the sanctioned forms alone
     input: |
       # Title

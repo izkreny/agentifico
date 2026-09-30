@@ -60,6 +60,7 @@ tests:
       Three cures.
       Its suite and its check, both needing a one-time install, run locally.
       Both, like every validator with a real parser, accept the truncation.
+      Read three above before editing.
     want: |
       3:11:Agentifico.Counts:Write sentences that survive change: 'all three' counts adjacent content, and the list is the authority on its own length.
       4:7:Agentifico.Counts:Write sentences that survive change: 'the two caps' counts adjacent content, and the list is the authority on its own length.
@@ -74,6 +75,7 @@ tests:
       11:1:Agentifico.Counts:Write sentences that survive change: 'Three cures' counts adjacent content, and the list is the authority on its own length.
       12:26:Agentifico.Counts:Write sentences that survive change: 'both needing' counts adjacent content, and the list is the authority on its own length.
       13:1:Agentifico.Counts:Write sentences that survive change: 'Both' counts adjacent content, and the list is the authority on its own length.
+      14:6:Agentifico.Counts:Write sentences that survive change: 'three above' counts adjacent content, and the list is the authority on its own length.
   - name: leaves caps, a bare both and code alone
     input: |
       # Title

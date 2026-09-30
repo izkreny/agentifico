@@ -35,11 +35,10 @@ tokens:
   # "behaves exactly as it does today" PR 103.
   - 'today'
   # "Found live on a skill" and "where the trap was first seen" 35e4733;
-  # "was never the reason" 187f851 at two sites; "That reasoning still
-  # holds" fb26bb7; "at the time" live in skills/rails-style.
+  # "was never the reason" 187f851 at two sites; "at the time" live in
+  # skills/rails-style.
   - 'first (?:tried|seen|saw)'
   - 'was never the reason'
-  - 'still holds'
   - 'in the past'
   - 'at the time'
   # "#101 is where that constraint is being lifted; until it lands" PR 105;
@@ -57,7 +56,7 @@ tokens:
   # request title's own scope rule is unchanged" .agents/gh-solo.md, "still
   # stand" #44, "survives untouched" #52, "stands as it was written" #24,
   # "hits it exactly as before" #52; fifteen "unchanged" and six "untouched"
-  # across the tracker.
+  # across the tracker; "That reasoning still holds" fb26bb7.
   - '(?:is|are|remains?|stays?|left|rule|contract) (?:unchanged|untouched)'
   - 'survives untouched'
   - 'still (?:holds|stands?|true|says|claims|reads as|carries|armed|binding)'
@@ -113,6 +112,11 @@ tests:
       The criterion first said the field stays; the rebuild dropped that rule.
       Reading them back asks for a permanent ignore span, which is what the `scripts/*` span was.
       How a list grows afterwards is #130's to document.
+      A loop, replaced by a glob, spent nothing.
+      It reads a flag, which reverses an earlier rule.
+      The gate still stands, the claim is still true, and the file still says so.
+      It still claims the name and still reads as a rule.
+      The flag still carries it, the watch still armed, the rule still binding.
     want: |
       3:1:Agentifico.History:Never write the file's own history: 'This reverses' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       4:21:Agentifico.History:Never write the file's own history: 'any more' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
@@ -152,6 +156,16 @@ tests:
       18:55:Agentifico.History:Never write the file's own history: 'dropped that' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       19:53:Agentifico.History:Never write the file's own history: 'which is what the ********* span was' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       20:29:Agentifico.History:Never write the file's own history: 'is #130's to document' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      21:9:Agentifico.History:Never write the file's own history: 'replaced by' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      22:24:Agentifico.History:Never write the file's own history: 'reverses an earlier' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      23:10:Agentifico.History:Never write the file's own history: 'still stands' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      23:37:Agentifico.History:Never write the file's own history: 'still true' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      23:62:Agentifico.History:Never write the file's own history: 'still says' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      24:4:Agentifico.History:Never write the file's own history: 'still claims' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      24:30:Agentifico.History:Never write the file's own history: 'still reads as' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      25:10:Agentifico.History:Never write the file's own history: 'still carries' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      25:38:Agentifico.History:Never write the file's own history: 'still armed' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      25:60:Agentifico.History:Never write the file's own history: 'still binding' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
   - name: leaves imperatives and state alone
     input: |
       # Title
