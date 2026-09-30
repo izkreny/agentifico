@@ -4,7 +4,7 @@ The mechanical audit. Run it after writing or editing any skill, and in a review
 
 **Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `prose rules` for Vale's alerts.
 
-**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown files alone, since a code file's only reader is the process that did not start.
+**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown files alone, since a code file's only reader is the process that did not start.
 
 ## Setup, once per install
 
@@ -58,15 +58,13 @@ It reads every key rather than the description alone, because a space and a hash
 
 ## The path rules
 
-**`skill-portable-paths`** reads the token tree and reports a path absolute to one machine: a code span, a line inside a fenced block, or a link destination opening '/home/', '/Users/' or a drive letter. Prose that mentions a home directory in words is not a path, which is why the rule never reads a raw line. It also reports a `~/` code span in prose and a `<home-dir>` inside a fenced block, each being the other's form. A URL is not a drive letter: `https://` carries a letter, a colon and a slash too, so the drive-letter branch refuses one preceded by a letter.
+**`skill-portable-paths`** reads the token tree and reports a path absolute to one machine: a code span, a line inside a fenced block, or a link destination carrying '/home/', '/Users/' or a drive letter. Prose that mentions a home directory in words is not a path, which is why the rule never reads a raw line. It also reports a `~/` code span in prose and a `<home-dir>` inside a fenced block, each being the other's form. A URL is not a drive letter: `https://` carries a letter, a colon and a slash too, so the drive-letter branch refuses one preceded by a letter.
 
 **`skill-referenced-paths`** reports a code span in prose that names a file and resolves against none of the owning skill, the file's own directory and the target root. Fenced content is never read, because a fence carries a command to run rather than a reference into this tree. The rule takes no `--ignore`, so a span naming a file this tree does not hold is reported rather than silenced.
 
 **Which spans count as paths**, so a reader can tell a finding from a span the rule was never going to read: one ending in a known file extension, or one ending in a slash, which names a directory. A span carrying a glob, a placeholder, a URL scheme, a space or a `..` is not a path, nor is one opening with `-`, `#`, `@` or a slash. That is what keeps a branch name, a slash command and an `owner/repo` slug out of the findings, and it is why an absolute path is invisible here and belongs to `skill-portable-paths` instead.
 
-**A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root**: `<repo-root>/.agents/gh-solo.md` for a file the served repository holds, `<skill-dir>/workflows/example.md` for an example file the skill does not hold. The set of placeholders, and why a path to a file the skill holds stays bare, is in `workflows/new.md` under *Paths must survive any working directory and any machine*.
-
-**Write a path in the user's own locations as `<home-dir>/` in prose and `~/` inside a fenced command.** Either is portable and names a file no checkout can resolve, and a reader pasting a command gets a shell that expands `~` and no placeholder.
+**A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root**: `<repo-root>/.agents/gh-solo.md` for a file the served repository holds, `<skill-dir>/workflows/example.md` for an example file the skill does not hold. The set of placeholders, why a path to a file the skill holds stays bare, and how a path in the user's own locations is written, are in `workflows/new.md` under *Paths must survive any working directory and any machine*.
 
 ## The name rule
 
@@ -110,7 +108,7 @@ The match is case-sensitive because Vale's is, so an uppercase directive, which 
 
 ## The prose rules
 
-Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
+Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history. Text inside double quotes is not read, for the reason `.vale.ini` gives beside `TokenIgnores`, which is also why a defect written inside quotes escapes the check.
 
 | Rule | For | What it reports | Level | What stays out of its reach |
 | --- | --- | --- | --- | --- |
