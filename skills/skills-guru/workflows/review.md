@@ -50,6 +50,8 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **Duplication with a global instructions file.** Anything stated in both the user's global instructions file (AGENTS.md, CLAUDE.md or equivalent) and a skill will drift. Decide which owns it, and if the skill wins, confirm the trigger survives in the description.
 
+**A rule stated in two files of one skill.** A workflow restates what `SKILL.md` or a sibling workflow already says, often as a bolded rule in each, and the copies drift as any pair does. Grep the skill for a rule's distinctive phrase and see which files state it. *One fact, one place* in `workflows/new.md` owns the rule: one file keeps the statement, `SKILL.md` where every workflow depends on it, and every other copy becomes a pointer at it by heading.
+
 **Version banners.** A "verified against X" line at the top of a file ages into a false claim. Either attach the version to the specific behavioural claim it qualifies, or drop it.
 
 **A count of adjacent content, or a position claim.** "The two facts below" is true until the third lands, and whoever adds it edits the list, never the sentence, because the sentence is invisible at the moment of the edit. Same class: "the only copy", "the newest section", "the paragraph above", each silently falsified by an edit made anywhere in the document. Caps stay ("five sentences at most" constrains the future); counts go (the list is the authority on its own length).
@@ -61,6 +63,14 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 **A comment inside code that narrates the code, or tells its history.** *A comment inside code exists only where the solution is unconventional, and is one sentence saying why* in `workflows/new.md` owns the rule, and `CommentSentences` and `CommentLength` under `assets/` are its mechanical half, counting a comment's sentence ends and its words; what reading decides is whether the line the comment sits on is unconventional enough to earn one, and whether the sentence gives a reason rather than a description, since a regex reads neither.
 
 **Rationale that restates the rule.** "Never do X. Doing X is bad." The second sentence should say what breaks, or go. Over-writing clusters where the author was least sure, so a section that reads as an essay is also the section to check for a defect underneath it.
+
+**A closing recap.** A file ends on a section headed Rules, Summary or Recap that restates the steps before it; `ClosingRecap` under `assets/` warns on the heading, and *Cut every paragraph to its one new claim* in `workflows/new.md` owns the rule. Before deleting the section, check each bullet for a rule the rest of the skill does not state, and move such a rule into the step it belongs to. Whether a closing list of hard prohibitions helps an agent hold them is behaviour, so that doubt goes to an eval, per *A triggering doubt reading cannot settle*.
+
+**A defence of the design after the instruction.** The instruction is followed by sentences arguing that the design is right: why the mechanism takes the shape it does, what an alternative would cost, that a trade was made on purpose. Together they usually stay under the figure `ParagraphLength` counts to, so no rule sees them. *Give every rule its reason, in a sentence* in `workflows/new.md` says which reason earns the sentence; keep that one and cut the defence.
+
+### Text loaded on runs that do not need it
+
+**One-time reference inside a workflow.** A section read once per repository or once per install, such as setup, a settings table or a playbook for a rare failure, sits in a file loaded on every run. The sign is a section no step of an ordinary run sends the agent to. Move it to a `references/` file and leave one line saying when to read it, per *Material a workflow does not need on every run goes to a reference file* in `workflows/new.md`.
 
 ## Step 4 - Report
 

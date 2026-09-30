@@ -50,6 +50,10 @@ A file an agent loads besides `SKILL.md` has that cap too, and `FileLength` in `
 
 Whatever every workflow depends on belongs there, because a fact copied into three workflow files will drift in at least one of them. When that shared layer itself grows enough to bloat `SKILL.md`, which costs context on every invocation, move the detail into one `references/` file and keep in `SKILL.md` the one-line version plus the pointer, with each workflow that needs the detail told to read it first.
 
+### Material a workflow does not need on every run goes to a reference file
+
+A workflow is loaded whole on every run that reaches it, so setup read once per repository, or a playbook for a rare failure, is context spent on every run that needs none of it. Move it to `references/<topic>.md` and leave the workflow one line saying when to read it. This holds whatever the size of the `SKILL.md`: *Let size decide whether to split* is about how much one file carries, and this is about what a run reads.
+
 ### State in `SKILL.md` that paths are relative to the skill's own directory
 
 A skill gets invoked from many working directories, and nothing else tells the agent which one the paths are anchored to.
@@ -151,6 +155,8 @@ Never state a count of adjacent content and never claim uniqueness, recency or p
 
 A sentence that re-explains a rule already stated, or restates the same point in different words, is over-writing: it costs context on every load and buries the claim that was doing the work. When a paragraph reads as a short essay, name what is new in it and delete the rest.
 
+A closing section that recaps the steps before it is the same over-writing at the size of a section, and `ClosingRecap` in `workflows/check.md` warns on its heading.
+
 ### Never write the file's own history
 
 "This reverses an earlier rule", "the older test was wrong", "it does not stop it any more": the reader cannot locate the past being described, and in a file read as instructions a claim about a rule that is gone reads as a rule about the present. If the history was justifying a live rule, state the durable reason instead, so "we used to cap the watch at an hour" becomes "a timeout short enough to stop a forgotten watch cannot span a review round". If it is the skill's premise, keep the concrete failure as the bad example it always was. Otherwise delete it.
@@ -162,6 +168,8 @@ A line a reader of the language expects needs no comment, and what the code does
 ### Give every rule its reason, in a sentence
 
 A rule an agent understands survives a situation the rule did not anticipate; a reason longer than a sentence is the essay this step already forbids.
+
+The reason that earns the sentence is what an agent needs to apply the rule where the rule did not anticipate the case: what breaks, or what the rule protects. A defence of the design is not one: why the mechanism is the right one, or what an alternative would cost, changes nothing an agent does, and its place is the commit message.
 
 ## Step 5 - Verify before finishing
 

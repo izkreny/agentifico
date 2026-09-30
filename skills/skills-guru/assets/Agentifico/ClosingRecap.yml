@@ -1,0 +1,104 @@
+# The mechanical half of "Cut every paragraph to its one new claim" in
+# workflows/new.md, at the size of a section: a file that ends on a section
+# headed Rules, Summary or Recap usually repeats the steps before it. The
+# heading is read on the raw source, since only the raw scope knows which
+# section is a file's last, and it needs a "##" section before it, since a
+# file whose one section is its rules has nothing to recap. The shape is the
+# one #220 recorded in the workflow files of plugins/gh-solo, each closing on
+# "## Rules"; Summary and Recap are the other names the same section takes.
+# A warning, because the heading only prompts the read, and the note on a
+# closing recap in workflows/review.md owns what the read does with the
+# section. A "##" line inside a fenced block is read as a heading, since the
+# raw scope does not parse fences.
+extends: existence
+message: "Cut every paragraph to its one new claim: '%s' closes the file, and a closing section headed so usually repeats the steps before it. Before cutting anything, read it as the note on a closing recap says, in workflows/review.md of the skills-guru skill."
+link: https://github.com/izkreny/agentifico/blob/main/skills/skills-guru/workflows/new.md
+level: warning
+scope: raw
+nonword: true
+raw:
+  - '(?m)(?<=^## [^\n]*\n[\s\S]*)^## (?:Rules|Summary|Recap)[ \t]*$(?![\s\S]*^## )'
+tests:
+  - name: fires on a Rules section closing the file
+    input: |
+      # Workflow
+
+      ## Step 1 - Do it
+
+      Do it.
+
+      ---
+
+      ## Rules
+
+      - **Do it.** Always.
+    want: |
+      9:1:Agentifico.ClosingRecap:Cut every paragraph to its one new claim: '## Rules' closes the file, and a closing section headed so usually repeats the steps before it. Before cutting anything, read it as the note on a closing recap says, in workflows/review.md of the skills-guru skill.
+  - name: fires on a Summary section closing the file, past its own subsection
+    input: |
+      # Workflow
+
+      ## Step 1 - Do it
+
+      Do it.
+
+      ## Summary
+
+      Do it.
+
+      ### In short
+
+      Do it.
+    want: |
+      7:1:Agentifico.ClosingRecap:Cut every paragraph to its one new claim: '## Summary' closes the file, and a closing section headed so usually repeats the steps before it. Before cutting anything, read it as the note on a closing recap says, in workflows/review.md of the skills-guru skill.
+  - name: fires on a Recap section closing the file
+    input: |
+      # Workflow
+
+      ## Step 1 - Do it
+
+      Do it.
+
+      ## Recap
+
+      Do it.
+    want: |
+      7:1:Agentifico.ClosingRecap:Cut every paragraph to its one new claim: '## Recap' closes the file, and a closing section headed so usually repeats the steps before it. Before cutting anything, read it as the note on a closing recap says, in workflows/review.md of the skills-guru skill.
+  - name: leaves a Rules section that another section follows alone
+    input: |
+      # Workflow
+
+      ## Step 1 - Do it
+
+      Do it.
+
+      ## Rules
+
+      - **Do it.** Always.
+
+      ## Step 2 - Confirm
+
+      Say so.
+    want: ""
+  - name: leaves a longer heading and a deeper one alone
+    input: |
+      # Workflow
+
+      ## Step 1 - Do it
+
+      Do it.
+
+      ## Rules of the road
+
+      ### Rules
+
+      Keep right.
+    want: ""
+  - name: leaves a file whose only section is its rules alone
+    input: |
+      # Reference
+
+      ## Rules
+
+      - **Do it.** Always.
+    want: ""
