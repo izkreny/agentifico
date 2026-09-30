@@ -8,7 +8,7 @@ Run a review round on a pull request: check what the tracker needs, spawn the re
 
 ## How this runs
 
-`workflows/open.md`, the `implement` skill and `workflows/ready.md` come before this file. *Before the round* and the protocol's steps 1 to 5 are this file. The protocol's step 6 is the owner's, and nothing here can do it, hurry it or simulate it; steps 7 and 8 are `workflows/resolve.md` and `workflows/merge.md`, on the owner's word.
+`workflows/open.md`, the `implement` skill and `workflows/ready.md` come before this file. The protocol's step 6 is the owner's, and nothing here can do it, hurry it or simulate it; steps 7 and 8 are `workflows/resolve.md` and `workflows/merge.md`, on the owner's word.
 
 **Before the round, and the protocol's steps 1 to 5, are this file - and they are one turn**, not two: nothing between the spawn and the round report waits for a human, which is what makes the caps in the protocol's steps 3 and 5 load-bearing.
 
