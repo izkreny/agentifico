@@ -12,32 +12,62 @@ level: error
 ignorecase: true
 tokens:
   # "all three forms" PR 27; "met all three" PR 116; "one of the three
-  # prefixes" PR 87; "whichever of the two applies" PR 92; "two of the
-  # general rules" PR 116; "either of two" and "one of those two" live in
-  # plugins/gh-solo at the first run.
+  # prefixes" PR 87; "whichever of the two applies" PR 92; "either of two"
+  # and "one of those two" live in plugins/gh-solo at the first run.
   - '(?:all|both of|each of|either of|neither of|one of|any of|which of|whichever of|two of|three of) (?:the |these |those |its |them )?(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|twenty)'
   # "Two of them change what an agent does" #30; "Say which of the two it is"
   # .agents/gh-solo.md.
   - '(?:two|three|four|five) of them'
   # "the two caps above" PR 68; "the two traps" PR 116; "the three most
   # memorable ones" 187f851; "the two axes" and "the two hazards" ae1cd1a,
-  # 600884c; "the three," ae1cd1a; "those two lists" live in plugins/gh-solo.
-  - '(?:the|these|those|its) (?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+'
+  # 600884c; "those two lists" live in plugins/gh-solo; "the three `Reviewer`
+  # lines" e39e277, PR 31, where a code span masked to asterisks sits
+  # between the number and the noun.
+  - '(?:the|these|those|its) (?:two|three|four|five|six|seven|eight|nine|ten) (?:\*+ )?[a-z]+'
+  # The number closing a clause: "none of the three," ae1cd1a; "the larger
+  # of the two," e39e277, PR 31. "four" and up are left out, since "toward
+  # the five," names the cap a post is held to in plugins/gh-solo.
+  - '(?:the|these|those) (?:two|three)(?=[,.;:])'
   # "the three below" at three sites and "three above" 25ca57b.
   - '(?:two|three|four|five|six|seven|eight|nine|ten) (?:[a-z]+ )?(?:below|above)'
   # An enumeration announced by its number: "Three cures." 7b06a2e; "Two
-  # lines matter:" ae1cd1a; "Two causes remain." f3af74d; "It runs in three
-  # parts:" PR 46; "Two things sit outside it" PR 37. The closing shapes sit
-  # in a lookahead, because Vale appends a word boundary to every token and
-  # a boundary after the punctuation itself would never be satisfied.
-  - '^(?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+(?: [a-z]+)?(?=[:.]| remain| matter| sit| are| were)'
+  # lines matter:" ae1cd1a; "It runs in three parts:" PR 46; "Two things sit
+  # outside it" PR 37. The closing shapes sit in a lookahead, because Vale
+  # appends a word boundary to every token and a boundary after the
+  # punctuation itself would never be satisfied. The second word is never
+  # "that", "which" or "who", so "Two findings that are one defect" in
+  # plugins/gh-solo, a statement rather than an announcement, is left alone.
+  - '^(?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+(?: (?!that|which|who)[a-z]+)?(?=[:.]| remain| matter| sit| are| were)'
+  # The same announcement opening a sentence mid-line, which the anchored
+  # token never reaches: "Two causes remain." f3af74d, PR 64; "Two
+  # exceptions:" ae1cd1a, PR 31; "Two shapes are left alone:" PR 179.
+  - '(?<=[.!?] )(?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+(?: (?!that|which|who)[a-z]+)?(?=[:.]| remain| matter| sit| are| were)'
   - 'runs in (?:two|three|four|five|six) [a-z]+'
+  # "Two things happen here." 187f851, PR 58; "Two things worth knowing" and
+  # "Two things in that flow are untested" ae1cd1a, PR 31; "exactly three
+  # further things" a9f4f60, PR 58.
+  - '(?:two|three|four|five|six|seven|eight|nine|ten) (?:[a-z]+ )?things'
+  # "Only two headings are fixed" 187f851, PR 58.
+  - 'only (?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+'
+  # "The standards are three files" 25ca57b, PR 87; "are two rules, and both
+  # run" 9827051, PR 128; "are two names for the one" 187f851, PR 58. The
+  # nouns are the record's, since "are two posts" and "are two issues" state
+  # a rule in plugins/gh-solo rather than count a list.
+  - '(?:are|is) (?:two|three|four|five|six|seven|eight|nine|ten) (?:files|rules|names)\b'
+  # "zero hits is the exit criterion, with one exception:" PR 179 RF1,
+  # 1563ceb: the count went false when the list grew past one.
+  - 'with one exception'
+  # "whose failure modes are silent twice over;" ea116fe, PR 163, counting
+  # the two reasons after it.
+  - 'twice over'
   # "Both checks are per stack" PR 86; "under both refusals above" PR 86;
   # "Both workflows end" and "required on both verdicts" ae1cd1a; nineteen
   # removals of "both" across eight commits. The nouns are the ones the
   # record and the first run over plugins/gh-solo carry, since a bare "both"
   # also counts things no edit can add to, "both directions" among them.
-  - 'both (?:the |these |those )?(?:checks|workflows|verdicts|refusals|passes|rules|files|sections|steps|entries|bullets|items|paragraphs|lists|tables|halves|forms|cases|reads|loops|surfaces|conditions|sides|skills|threads|variables|results|lines|jobs|inputs|questions|addresses|counts|copies|names|fields|keys|manifests|commands|sources|reasons|tests|places|axes)\b'
+  # "binds both entrances" PR 181 and "carries both figures" 1715a44, PR 165,
+  # add "entrances" and "figures".
+  - 'both (?:the |these |those )?(?:checks|workflows|verdicts|refusals|passes|rules|files|sections|steps|entries|bullets|items|paragraphs|lists|tables|halves|forms|cases|reads|loops|surfaces|conditions|sides|skills|threads|variables|results|lines|jobs|inputs|questions|addresses|counts|copies|names|fields|keys|manifests|commands|sources|reasons|tests|places|axes|entrances|figures)\b'
   # "both needing a one-time npm ci and Vale" PR 155 RF1, 312f745: the count
   # went false the moment a third command, the lint, landed beside the two.
   - 'both needing'
@@ -60,6 +90,16 @@ tests:
       Three cures.
       Its suite and its check, both needing a one-time install, run locally.
       Both, like every validator with a real parser, accept the truncation.
+      Read three above before editing.
+      Two things happen here, at the protocol's step six.
+      Only two headings are fixed, because other things have to find them.
+      The standards are three files, split because no workflow needs all of them.
+      Zero hits is the exit criterion, with one exception: the author's byline.
+      The check carries both figures in its entry.
+      The split is deliberate twice over: the model is cheaper and the context is clean.
+      It refuses on a resolved thread carrying none of the three, naming its line.
+      It holds for a moved head. Two causes remain, and the report names them.
+      It routes the three `Reviewer` lines to the review skill.
     want: |
       3:11:Agentifico.Counts:Write sentences that survive change: 'all three' counts adjacent content, and the list is the authority on its own length.
       4:7:Agentifico.Counts:Write sentences that survive change: 'the two caps' counts adjacent content, and the list is the authority on its own length.
@@ -74,6 +114,16 @@ tests:
       11:1:Agentifico.Counts:Write sentences that survive change: 'Three cures' counts adjacent content, and the list is the authority on its own length.
       12:26:Agentifico.Counts:Write sentences that survive change: 'both needing' counts adjacent content, and the list is the authority on its own length.
       13:1:Agentifico.Counts:Write sentences that survive change: 'Both' counts adjacent content, and the list is the authority on its own length.
+      14:6:Agentifico.Counts:Write sentences that survive change: 'three above' counts adjacent content, and the list is the authority on its own length.
+      15:1:Agentifico.Counts:Write sentences that survive change: 'Two things' counts adjacent content, and the list is the authority on its own length.
+      16:1:Agentifico.Counts:Write sentences that survive change: 'Only two headings' counts adjacent content, and the list is the authority on its own length.
+      17:15:Agentifico.Counts:Write sentences that survive change: 'are three files' counts adjacent content, and the list is the authority on its own length.
+      18:34:Agentifico.Counts:Write sentences that survive change: 'with one exception' counts adjacent content, and the list is the authority on its own length.
+      19:19:Agentifico.Counts:Write sentences that survive change: 'both figures' counts adjacent content, and the list is the authority on its own length.
+      20:25:Agentifico.Counts:Write sentences that survive change: 'twice over' counts adjacent content, and the list is the authority on its own length.
+      21:50:Agentifico.Counts:Write sentences that survive change: 'the three' counts adjacent content, and the list is the authority on its own length.
+      22:28:Agentifico.Counts:Write sentences that survive change: 'Two causes' counts adjacent content, and the list is the authority on its own length.
+      23:11:Agentifico.Counts:Write sentences that survive change: 'the three ******** lines' counts adjacent content, and the list is the authority on its own length.
   - name: leaves caps, a bare both and code alone
     input: |
       # Title
@@ -83,4 +133,10 @@ tests:
       Read both, then report both in the handoff, in both directions.
       A cap of `the two files` inside a code span is code.
       Both are read, and each command needs Vale.
+      Two findings that are one defect seen twice belong in one commit.
+      It never amends. Two findings that are one defect belong in one commit.
+      It sits inside a capped post without counting toward the five, and the rest is excluded.
+      Steps 3 and 4 are two posts and are never merged into one.
+      A file carries at most one exception to the cap.
+      The check states each ceiling in its entry, and the rule binds each entrance.
     want: ""

@@ -95,6 +95,18 @@ describe("ClosingRecap, enabled for every markdown file but a README.md", () => 
   });
 });
 
+describe("what the shipped configuration reaches", () => {
+  // A rule's own case sets its view itself, so only a file read under the shipped configuration shows the code section and the Python View in effect.
+  it("a Python comment is read by the comment rules, and a module docstring is not", () => {
+    const found = alerts("reach/script.py", '"""One. Two."""\n\n# One. Two.\nx = 1\n');
+    expectHit(found, "CommentSentences", 3);
+    assert.ok(!only(found, "CommentSentences").some((f) => f.line === 1), `wanted no CommentSentences on the module docstring, got ${JSON.stringify(found)}`);
+  });
+  it("a README is read by the phrase rules", () => {
+    expectHit(alerts("reach/README.md", "# Readme\n\nIt covers all three forms.\n"), "Counts", 3);
+  });
+});
+
 function valeTest(...args) {
   const r = spawnSync("vale", ["--no-global", "--config", config, "test", ...args], { encoding: "utf8" });
   assert.equal(r.error, undefined, `vale did not run: ${r.error}`);

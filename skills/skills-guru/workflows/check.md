@@ -1,10 +1,10 @@
-> **Tools used:** `Bash(node:*)` for the check, `Bash(npm:*)` for the one-time install of what it needs, `Glob` to enumerate skills.
+> **Tools used:** `Bash(node:*)` for the check, `npm` for the one-time install of what it needs, which prompts, `Glob` to enumerate skills.
 
 The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
 **Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `prose rules` for Vale's alerts.
 
-**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown files alone, since a code file's only reader is the process that did not start.
+**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, printed a version the check could not read, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown files alone, since a code file's only reader is the process that did not start.
 
 ## Setup, once per install
 
@@ -38,7 +38,7 @@ markdownlint's own rules run at their defaults and catch what no local rule stat
 
 ## The description rules
 
-These are the ones that matter, because their failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap they test is one a real YAML parser exhibits.
+These are the ones that matter, because each of their failure modes is silent: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap they test is one a real YAML parser exhibits.
 
 **`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description carries none of the traps here. A block scalar is immune to the quote and truncation traps, which need a plain or quoted value to bite; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
 
@@ -58,15 +58,13 @@ It reads every key rather than the description alone, because a space and a hash
 
 ## The path rules
 
-**`skill-portable-paths`** reads the token tree and reports a path absolute to one machine: a code span, a line inside a fenced block, or a link destination opening '/home/', '/Users/' or a drive letter. Prose that mentions a home directory in words is not a path, which is why the rule never reads a raw line. It also reports a `~/` code span in prose and a `<home-dir>` inside a fenced block, each being the other's form. A URL is not a drive letter: `https://` carries a letter, a colon and a slash too, so the drive-letter branch refuses one preceded by a letter.
+**`skill-portable-paths`** reads the token tree and reports a path absolute to one machine: a code span, a line inside a fenced block, or a link destination carrying '/home/', '/Users/' or a drive letter. Prose that mentions a home directory in words is not a path, which is why the rule never reads a raw line. It also reports a `~/` code span in prose and a `<home-dir>` inside a fenced block, each being the other's form. A URL is not a drive letter: `https://` carries a letter, a colon and a slash too, so the drive-letter branch refuses one preceded by a letter.
 
 **`skill-referenced-paths`** reports a code span in prose that names a file and resolves against none of the owning skill, the file's own directory and the target root. Fenced content is never read, because a fence carries a command to run rather than a reference into this tree. The rule takes no `--ignore`, so a span naming a file this tree does not hold is reported rather than silenced.
 
 **Which spans count as paths**, so a reader can tell a finding from a span the rule was never going to read: one ending in a known file extension, or one ending in a slash, which names a directory. A span carrying a glob, a placeholder, a URL scheme, a space or a `..` is not a path, nor is one opening with `-`, `#`, `@` or a slash. That is what keeps a branch name, a slash command and an `owner/repo` slug out of the findings, and it is why an absolute path is invisible here and belongs to `skill-portable-paths` instead.
 
-**A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root**: `<repo-root>/.agents/gh-solo.md` for a file the served repository holds, `<skill-dir>/workflows/example.md` for an example file the skill does not hold. The set of placeholders, and why a path to a file the skill holds stays bare, is in `workflows/new.md` under *Paths must survive any working directory and any machine*.
-
-**Write a path in the user's own locations as `<home-dir>/` in prose and `~/` inside a fenced command.** Either is portable and names a file no checkout can resolve, and a reader pasting a command gets a shell that expands `~` and no placeholder.
+**A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root**: `<repo-root>/.agents/gh-solo.md` for a file the served repository holds, `<skill-dir>/workflows/example.md` for an example file the skill does not hold. The set of placeholders, why a path to a file the skill holds stays bare, and how a path in the user's own locations is written, are in `workflows/new.md` under *Paths must survive any working directory and any machine*.
 
 ## The name rule
 
@@ -110,7 +108,7 @@ The match is case-sensitive because Vale's is, so an uppercase directive, which 
 
 ## The prose rules
 
-Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
+Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history. Text inside double quotes is not read, for the reason `.vale.ini` gives beside `TokenIgnores`, which is also why a defect written inside quotes escapes the check.
 
 | Rule | For | What it reports | Level | What stays out of its reach |
 | --- | --- | --- | --- | --- |
@@ -122,7 +120,7 @@ Vale runs the `Agentifico` style under `assets/`, which is one rule file per mec
 | `ClosingRecap` | *Cut every paragraph to its one new claim*, at the size of a section | a closing `##` section headed Rules, Summary or Recap, where another `##` section comes before it, in any markdown file but a `README.md` | warning | Whether a bullet repeats a step or states a rule the rest of the skill does not is the reading the warning prompts. A `##` line inside a fenced block is read as a heading, since the rule reads the raw source. |
 | `CommentSentences` | *A comment inside code exists only where the solution is unconventional, and is one sentence saying why* | a comment or a docstring holding more than one sentence end, a Python module's docstring exempt per PEP 257 | error | A second sentence with no terminal punctuation counts one end and escapes. Vale does not read a comment addressed to a tool, such as `biome-ignore`, `eslint-disable`, `noqa` or `type: ignore`, so any number of sentences written on a directive line escape; in a run of line comments only the directive line is dropped, and the explanatory lines in it are still read. |
 | `CommentLength` | *A comment inside code exists only where the solution is unconventional, and is one sentence saying why*, its counting half | a comment or a docstring over 45 words, a figure measured against this package, a Python module's docstring exempt per PEP 257 | warning | As with `ParagraphLength`, the message says the comment is long enough to read for a second claim, and whether the sentence is a reason is the reading the rule prompts. |
-| `SkillSplit`, `SkillLength` | *Let size decide whether to split* | a `SKILL.md` past roughly 2,000 words of prose, where operations move to workflow files, and past roughly 3,500, the cap the spec's token budget allows | warning | Both figures are roughly, counted on Vale's prose metric rather than `wc -w`, which also counts code. |
+| `SkillSplit`, `SkillLength` | *Let size decide whether to split* | a `SKILL.md` past roughly 2,000 words of prose, where operations move to workflow files, and past roughly 3,500, the cap the spec's token budget allows | warning | Each figure is roughly, counted on Vale's prose metric rather than `wc -w`, which also counts code. |
 | `FileLength` | *Let size decide whether to split* | a markdown file other than a `SKILL.md` or a `README.md` past 3,500 words of prose, the cap a `SKILL.md` has | warning | The message suggests cutting before splitting, and whether to cut, split or leave the file is the owner's call. |
 
 **What escapes the code reach, and where each goes.** A comment in a `*.sh` or `*.ini` file is the reviewer's, since Vale has no comment scope for either and reads each whole, code lines included. `TokenIgnores` does not reach a code comment, so a phrase quoted inside one is read, and a rule it misfires on takes the exception. `*.yml` stays out because the style's own rule files quote the phrases they catch, and a rule cannot be judged by the phrases it defines. A `vale off` written as a code comment silences nothing, so the code reach has no twin of the hole `skill-vale-directive` covers.

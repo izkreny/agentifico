@@ -42,6 +42,9 @@ before(() => {
     fs.mkdirSync(bin);
     fs.writeFileSync(path.join(bin, "vale"), `#!/bin/sh\necho "vale version ${version}"\n`, { mode: 0o755 });
   }
+  const unversioned = path.join(tmp, "unversioned-bin");
+  fs.mkdirSync(unversioned);
+  fs.writeFileSync(path.join(unversioned, "vale"), '#!/bin/sh\necho "vale version master"\n', { mode: 0o755 });
   fs.mkdirSync(path.join(tmp, "notes"));
   fs.writeFileSync(path.join(tmp, "notes", "notes.txt"), "- **lead.** first\n\n  the reason\n\n  a second paragraph\n");
 
@@ -183,6 +186,12 @@ describe("check.js", () => {
       assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
       assert.match(r.out, new RegExp(`vale ${version.replaceAll(".", "\\.")} is older than 3\\.23`));
     }
+  });
+  it("a vale whose version cannot be read fails the run, and says so", () => {
+    const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "unversioned-bin") });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
+    assert.match(r.out, /could not read Vale's version from "vale version master"/);
   });
   it("a target with nothing under it fails rather than passing silently", () => {
     const r = run(path.join(tmp, "empty"));

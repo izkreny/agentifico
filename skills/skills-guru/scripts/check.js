@@ -85,7 +85,13 @@ const MIN_VALE = [3, 23];
 const minVale = MIN_VALE.join(".");
 
 // An older Vale loads a rule naming a scope from config/scopes and matches nothing, so a run on one would pass with the comment rules off.
-const valeVersion = /(\d+)\.(\d+)\.\d+/.exec(spawnSync("vale", ["--version"], { encoding: "utf8" }).stdout ?? "");
+const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
+const valeVersion = /(\d+)\.(\d+)\.\d+/.exec(versionRun.stdout ?? "");
+// An unreadable version is refused like an old one, while a Vale that failed to start is left to the lint run, which names its failure.
+if (!valeVersion && versionRun.status === 0)
+  proseNotRun(
+    `could not read Vale's version from "${versionRun.stdout.trim()}": the prose rules did not run. Install Vale ${minVale} or later, per workflows/check.md, and run the check again.`,
+  );
 const [major, minor] = valeVersion ? [Number(valeVersion[1]), Number(valeVersion[2])] : [];
 if (valeVersion && (major < MIN_VALE[0] || (major === MIN_VALE[0] && minor < MIN_VALE[1])))
   proseNotRun(
