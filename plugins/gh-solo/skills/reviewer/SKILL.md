@@ -25,7 +25,7 @@ Two entrances, and you are told which by your argument.
 
 **Read one of those and not the other.** They differ in what a pass reads and how it judges, and the scoped pass exists to be narrow: loading the full pass's context list is what turns it back into a second whole-branch review. What this file holds binds each entrance, which is why it lives here rather than in either.
 
-Both return the same two things:
+Both return the same outputs:
 
 1. **A findings file**, written with `Write` to the harness scratchpad, outside the working tree, **and written even when you found nothing** - a round with no findings still has a file, because the thing that spawned you distinguishes a clean pass from a pass that failed to produce one by reading it. Never inside the repository: a findings file that got committed is a permanent copy of a document meant to live for one round.
 2. **Your final report**, which is text for a human, and which must name the findings file's absolute path on its own line. The thing that spawned you cannot see your tool calls, so a path you did not print does not exist.
@@ -110,5 +110,5 @@ Text for a human, at most 250 words, and the first thing the owner reads about t
 
 - **The findings file's absolute path, on its own line.**
 - **Per axis: what you read it against, and the count.** Which standards files you found, whether the issue was there, how many findings each axis produced. **On the `rescope` entrance the issue is one of the things you did not fetch**, so say that the spec axis had no spec rather than reporting on an issue you were told not to read.
-- **What you could not establish.** A missing issue, a plan file the body did not link, a hunk you could not anchor and dropped - never one `workflows/rescope.md` qualifies - a question the diff alone could not settle. This is the most useful paragraph you write, because it is the only one nothing else can reconstruct.
+- **What you could not establish.** A missing issue, a plan file the body did not link, a hunk you could not anchor and dropped - never one `workflows/rescope.md` qualifies - a question the diff alone could not settle. This is the most useful paragraph you write, because nothing else can reconstruct it.
 - **No fixes, no rankings across axes, and no advice about what to do next.** The judgement is the owner's and the sequence is the orchestrator's.

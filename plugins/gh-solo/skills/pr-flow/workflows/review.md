@@ -304,7 +304,7 @@ Spawn the reviewer again - **the appointed one, re-read from `Reviewer agent:` e
 
 Where the repository appointed a `Reviewer command:` instead, **there is no scoped re-review**: a capability invoked with a PR number has no rescope shape, so skip this step and say in the round report that it was skipped, that the fixes were therefore verified by nobody but their author, and that the next full pass is where they get judged.
 
-Pass `rescope <pr-number>` and exactly three things in the prompt: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit claims which id. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt rather than in it, exactly as in Step 1 - a round whose two passes ran on different models is a round the report describes with one model and cannot be compared with another.
+Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit claims which id. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt rather than in it, exactly as in Step 1 - a round whose two passes ran on different models is a round the report describes with one model and cannot be compared with another.
 
 **The commits are unpushed, so it reads them with `git` locally** - it cannot see them through `gh pr diff`, and handing it a diff you generated would put your reading of the fixes between it and the code.
 

@@ -35,7 +35,7 @@ A decision settled **in the terminal** instead of a thread is recorded the momen
 
 When the owner says the plan is settled, name the ways forward and let them type one: `go <pr-number>` for the full chain to the review handoff, or `/gh-solo:implement <pr-number>` for implementation alone.
 
-**The owner's words reach a PR on more surfaces than the threads, and a round reads them all.** Inline threads on the diff are the primary surface: they anchor to lines, they thread, and everything above assumes them. But a submitted review carries its own summary body (the `#pullrequestreview-…` anchor), written in the same gesture as its inline comments, and the Conversation tab takes free-standing *issue* comments on an endpoint of its own - and neither is a `reviewThread`, so a round that reads only threads walks past an instruction written on either.
+**The owner's words reach a PR on more surfaces than the threads, and a round reads them all.** Inline threads on the diff are the primary surface: they anchor to lines, they thread, and the steps of this workflow assume them. But a submitted review carries its own summary body (the `#pullrequestreview-…` anchor), written in the same gesture as its inline comments, and the Conversation tab takes free-standing *issue* comments on an endpoint of its own - and neither is a `reviewThread`, so a round that reads only threads walks past an instruction written on either.
 
 Step 1 reads every surface each round, and the watch emits review bodies and Conversation comments too. Inline stays the habit worth telling the owner, because line-anchored comments are the only ones that thread and resolve - but nothing they write on the other surfaces is allowed to go unread.
 

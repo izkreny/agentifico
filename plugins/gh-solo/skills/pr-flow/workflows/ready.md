@@ -4,7 +4,7 @@ Move a draft PR into the review loop, once the plan is implemented.
 
 This is the far end of `workflows/open.md`, not a continuation of it. That workflow opens the PR as a draft at the *start* of the work and stops; this one runs after the implementation - the `implement` skill's work - has landed on the branch, usually days and several sessions later.
 
-**The audit: every gate in `## Verification` accounted for, CI agreeing with that record, the rest of the body telling the truth, and then the flag - the first of these being most of it.** **This is the workflow that can say no** — its whole value is refusing to flip a draft whose gates did not all run, so nothing here is a formality to be got through.
+**The audit: every gate in `## Verification` accounted for, CI agreeing with that record, the rest of the body telling the truth, and then the flag - the gate audit being most of it.** **This is the workflow that can say no** — its whole value is refusing to flip a draft whose gates did not all run, so nothing here is a formality to be got through.
 
 ## Step 1 - Audit the gates. Do not run them
 

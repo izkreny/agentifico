@@ -39,7 +39,7 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 
 `open` stops at the draft PR on purpose: the plan is reviewed as a diff before any code is written. Plan approval never authorises the first implementation commit.
 
-**Two accelerators.** `auto` and `go` run that same life with the waits removed and nothing else: every audit still runs, and any refusal stops the chain where it stands. `auto 50` goes from the issue all the way to step 6 without your plan stop - the trade is that a planning call you would have argued with comes back later as a review finding, so use it for work you trust. `go 60` is for after you have read the plan.
+**The accelerators.** `auto` and `go` run that same life with the waits removed and nothing else: every audit still runs, and any refusal stops the chain where it stands. `auto 50` goes from the issue all the way to step 6 without your plan stop - the trade is that a planning call you would have argued with comes back later as a review finding, so use it for work you trust. `go 60` is for after you have read the plan.
 
 Both end at the same place, because it is the only step in the span that is yours: the findings judged. They arm the watch when they get there, so you can react as you read rather than coming back to say you did. Nothing is pushed. Both are literal commands only: no sentence starts a chain, however clearly it implies one.
 
@@ -49,7 +49,7 @@ The diff is read by a reviewer with its own fresh context, spawned by `review` -
 
 Every round is recorded as one Review on the PR, even when the reviewer found nothing. That is what makes "has this been reviewed" answerable later, and it is the gate `merge` checks.
 
-By the time it stops for you, each finding's thread already carries three things: the finding, the plan for fixing it, and what actually changed with any departure from that plan named. The fixes are **committed locally and not pushed**, so the threads stay anchored to the exact diff in front of you.
+By the time it stops for you, each finding's thread already carries the finding, the plan for fixing it, and what actually changed with any departure from that plan named. The fixes are **committed locally and not pushed**, so the threads stay anchored to the exact diff in front of you.
 
 **Answering a thread takes a reaction or a word.** 👍 or ❤️ accepts a finding. 👀 or 😕, or writing "explain", gets one plain-language explanation in the thread. A written reply opens a discussion. Anything else is no signal, and no signal is fine - the batch at the end covers it. **A refusal has to be written**, though: there is no reaction that means "no".
 

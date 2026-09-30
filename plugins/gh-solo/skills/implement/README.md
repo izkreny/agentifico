@@ -38,7 +38,7 @@ The rounded steps are yours, same rule as everywhere in this flow: the skill wil
 
 ## Why it works this way
 
-**All state lives on the PR and the branch, none in the session.** The ticked boxes are the progress record, the commits are the evidence, and the skill starts every run by reconciling the two. That is what makes implementation resumable: a session that dies mid-branch loses nothing, and the next one picks up at the first unticked step whose work is not in the commits. Even the handoff itself lands as a PR comment, so the work's own account of what it did outlives the session that did it.
+**All state lives on the PR and the branch, none in the session.** The ticked boxes are the progress record, the commits are the evidence, and the skill starts every run by reconciling boxes against commits. That is what makes implementation resumable: a session that dies mid-branch loses nothing, and the next one picks up at the first unticked step whose work is not in the commits. Even the handoff itself lands as a PR comment, so the work's own account of what it did outlives the session that did it.
 
 It is also why boxes are ticked at the moment work lands, never in a batch at the end: a batch-ticked body cannot be resumed from, and cannot be audited.
 
