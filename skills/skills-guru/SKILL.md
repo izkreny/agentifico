@@ -1,8 +1,8 @@
 ---
 name: skills-guru
 description: |
-  Write, review, check, maintain and export agent skills. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file or a package of skills. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill, only for the files that make one. Never invoked by an agent to install, pin or update a skill: the owner types `/skills-guru manage` for that.
-argument-hint: "[new <name> | review <path> | check | export <path> | manage]"
+  Write, review, check, maintain and export agent skills. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file or a package of skills. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill, only for the files that make one. Never invoked by an agent to install, update or remove a skill: the owner types `/skills-guru manage` for that.
+argument-hint: "[new <name> | review <path> | check [<path>] | export <path> | manage]"
 compatibility: |
   Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list.
 metadata:
@@ -59,7 +59,7 @@ Then avoid a space followed by `#` in the prose anyway. Write "a numbered PR" ra
 
 Based on `$ARGUMENTS`, do exactly one of the following. Test the `manage` bullet before the others, so an install request is caught before an empty argument reaches `check` and before any verb its sentence opens with:
 
-- If it starts with `manage`, or the request that invoked this skill is about installing, pinning or updating a skill someone else wrote → read `references/managing.md`, but only when the owner typed `/skills-guru manage`. Any other way in stops here, an agent's own invocation and a request phrased as a sentence alike, and says that the owner types `/skills-guru manage` for that: that file installs software whose instructions then run with the agent's permissions.
+- If it starts with `manage`, or the request that invoked this skill is about installing, updating or removing a skill someone else wrote → read `references/managing.md`, but only when the owner typed `/skills-guru manage`. Any other way in stops here, an agent's own invocation and a request phrased as a sentence alike, and says that the owner types `/skills-guru manage` for that: that file installs software whose instructions then run with the agent's permissions.
 - If it starts with `new` → read `workflows/new.md` and follow it.
 - If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
 - If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
