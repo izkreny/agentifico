@@ -42,7 +42,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **A missing boundary.** The symptom is a skill firing on adjacent work, and the fix is the boundary sentence Step 2 of `workflows/new.md` asks the description to carry.
 
-**A triggering doubt reading cannot settle.** Whether a description actually fires on its phrases is behaviour, not text. When that is the question, stop reading and measure with whatever eval tooling the agent in use provides, and read the scored report instead of guessing from the wording. On Claude Code specifically: `claude plugin eval <skill>` is built into its CLI and adds a no-plugin baseline arm, and Anthropic's official skill-creator plugin, when installed, carries a heavier eval loop with graders.
+**A triggering doubt reading cannot settle.** Whether a description actually fires on its phrases is behaviour, not text. When that is the question, stop reading and measure with whatever eval tooling the agent in use provides, and read the scored report instead of guessing from the wording. On Claude Code specifically: `claude plugin eval <plugin>` is built into its CLI and adds a no-plugin baseline arm, and it takes a plugin by path or by name, so a standalone skill is measured from inside a plugin that ships it, and Anthropic's official skill-creator plugin, when installed, carries a heavier eval loop with graders.
 
 ### Claims that go false
 

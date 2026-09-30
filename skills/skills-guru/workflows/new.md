@@ -74,9 +74,9 @@ The failure it prevents, stated concretely. A README that cannot name one usuall
 
 The exact command, copyable. Required even for a skill that never leaves the machine it was written on, where it is the canonical path and the symlink rather than a manager command: a reader who cannot install it cannot use it.
 
-Give the section a heading opening with `install`, `installation`, `setup` or `getting started`, or put the command in a fenced block: `skills add`, `npm install`, `npm ci`, `mise use`, `claude plugin install`, `git clone` or `ln -s`. Reaching for a form this list does not name means adding it here first.
+Give the section a heading opening with `install`, `installation`, `setup` or `getting started`, or put the command in a fenced block: `skills add`, `npm install`, `npm ci`, `mise use`, `claude plugin install`, `git clone` or `ln -s`.
 
-Adding a form here also adds it to `scripts/rules/skill-readme.js` in the same change.
+A form this list does not name goes under such a heading, which passes whatever the command is. Report the missing form to this skill's maintainers rather than adding it to an installed copy, which `references/managing.md` forbids editing.
 
 #### How it is invoked
 
