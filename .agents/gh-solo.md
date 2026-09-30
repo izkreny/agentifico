@@ -162,7 +162,7 @@ Reviewer model: opus
 This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
 ```
 
-**Before a sweep issue closes, the Vale phrase lists are re-mined**, per *How a phrase list grows* in `skills/skills-guru/references/maintaining.md`. It reads everything merged since that package's last `<name>_<version>` tag, or the whole trunk history where the package has none. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want. A step per pull request would be a gate nothing checks, and the sweep already reads the package whole.
+**Before a sweep issue closes, the Vale phrase lists are re-mined**, per *How a phrase list grows* in `skills/skills-guru/references/maintaining.md`. It reads everything merged since that package's last `<name>_<version>` tag, or the whole trunk history where the package has none. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
 
 **New tokens land on the sweep's own branch only when the package is `skills-guru`.** The lists live under `skills/skills-guru/assets/`, so any other sweep that landed them would move a second package's version inside its own release, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`. That sweep opens a `skills-guru` issue for its tokens instead.
 
