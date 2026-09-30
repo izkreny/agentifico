@@ -10,7 +10,7 @@ metadata:
 allowed-tools: Bash(gh:*) Bash(node:*) Read Write Edit Grep Glob
 ---
 
-> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `npm` for the one-time install of what they need and `skills` for install and updates, both left out of `allowed-tools` so that each command prompts, `Bash(gh:*)` for repository visibility during export and, with `git`, for reading findings and fix commits when a phrase list grows.
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/`, which runs Vale with the prose rules in `assets/`, `npm` for the one-time install of what the check needs and for its suite and lint, and `skills` for install and updates, both left out of `allowed-tools` so that each command prompts, `Bash(gh:*)` for repository visibility during export and, with `git`, for reading findings and fix commits when a phrase list grows.
 
 This skill was invoked with the argument: **`$ARGUMENTS`**
 
