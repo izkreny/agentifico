@@ -7,10 +7,10 @@ compatibility: |
   Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list.
 metadata:
   version: "5.2.0"
-allowed-tools: Bash(gh:*) Bash(node:*) Bash(npm:*) Bash(skills:*) Read Write Edit Grep Glob
+allowed-tools: Bash(gh:*) Bash(node:*) Read Write Edit Grep Glob
 ---
 
-> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `Bash(npm:*)` for the one-time install of what they need, `Bash(skills:*)` for install and updates, `Bash(gh:*)` for repository visibility during export and, with `git`, for reading findings and fix commits when a phrase list grows.
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/` and its suite, which runs Vale with the prose rules in `assets/`, `npm` for the one-time install of what they need and `skills` for install and updates, both left out of `allowed-tools` so that each command prompts, `Bash(gh:*)` for repository visibility during export and, with `git`, for reading findings and fix commits when a phrase list grows.
 
 This skill was invoked with the argument: **`$ARGUMENTS`**
 
