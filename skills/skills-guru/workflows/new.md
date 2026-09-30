@@ -70,6 +70,8 @@ The exact command, copyable. Required even for a skill that never leaves the mac
 
 Give the section a heading opening with `install`, `installation`, `setup` or `getting started`, or put the command in a fenced block: `skills add`, `npm install`, `npm ci`, `mise use`, `claude plugin install`, `git clone` or `ln -s`. Reaching for a form this list does not name means adding it here first.
 
+Adding a form here also adds it to `scripts/rules/skill-readme.js` in the same change.
+
 #### How it is invoked
 
 Whether it fires on its own or has to be typed, and for a routing skill every argument it accepts. A small table works, and a diagram of the argument-to-workflow map says the routing faster than prose.
@@ -83,8 +85,6 @@ A command's actual output beats a description of it.
 ### A check that has never been seen to fail is not evidence
 
 Watch a new check, fixture, grep or assertion fail on the case it exists to catch before its pass is trusted, because a check that passes on everything and a check that passes on nothing look identical from the outside.
-
-In this package the mechanical half is `vale test --coverage` and the per-token loop in `scripts/test/vale.test.js`, and both reach the Vale rules alone, `workflows/check.md` owning what the suite does with a rule no case reaches. Even there they prove a case exists rather than that the case was ever red, so whether a failure was watched is a judgement no exit code supplies.
 
 ### Put a version next to the claim it qualifies, never as a banner at the top
 

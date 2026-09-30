@@ -4,9 +4,9 @@ description: |
   Write, review, check, maintain and export agent skills. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file or a package of skills. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill, only for the files that make one. Never invoked by an agent to install, pin or update a skill: the owner types `/skills-guru manage` for that.
 argument-hint: "[new <name> | review <path> | check | export <path> | manage]"
 compatibility: |
-  Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list in the check.
+  Requires Node 22 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list.
 metadata:
-  version: "5.0.1"
+  version: "5.0.2"
 allowed-tools: Bash(gh:*) Bash(node:*) Bash(npm:*) Bash(skills:*) Read Write Edit Grep Glob
 ---
 
@@ -75,4 +75,5 @@ Based on `$ARGUMENTS`, do exactly one of the following. Test the `manage` bullet
 | `workflows/check.md` | the mechanical audit: a gate over one skill, a survey over a directory of them |
 | `workflows/export.md` | publishing a local skill to a shared repository |
 | `references/managing.md` | installing and updating skills, and why not to hand-edit an installed one |
+| `references/maintaining.md` | registering a rule, why the rules take their shape, growing a phrase list, and the suite; read it before editing `assets/` or `scripts/`, and on no route |
 | `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, and the helpers they share beside them; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |

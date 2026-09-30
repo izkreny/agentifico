@@ -1,8 +1,8 @@
-> **Tools used:** `Bash(node:*)` for the check and its suite, `Bash(npm:*)` for the one-time install of what they need, `Glob` to enumerate skills, `Bash(gh:*)` and `git` to read findings and fix commits when a phrase list grows.
+> **Tools used:** `Bash(node:*)` for the check, `Bash(npm:*)` for the one-time install of what it needs, `Glob` to enumerate skills.
 
 The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
-**Findings group by heading**, which is what a rule you add has to be filed against: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `prose rules` for Vale's alerts. Register a new rule in `scripts/lint-config.js`, in the array for the heading it belongs under; Vale needs no registration.
+**Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `prose rules` for Vale's alerts.
 
 **Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown files alone, since a code file's only reader is the process that did not start.
 
@@ -38,7 +38,7 @@ markdownlint's own rules run at their defaults and catch what no local rule stat
 
 ## The description rules
 
-These are the ones that matter, because their failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap they test is one a real YAML parser exhibits, and the suite re-runs that evidence on demand under *A check that has never been seen to fail is not evidence* in `workflows/new.md`.
+These are the ones that matter, because their failure modes are silent twice over: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. Every trap they test is one a real YAML parser exhibits.
 
 **`skill-description`** is the raw-line sweep: it reads the frontmatter as strings and never parses it. No finding means the description carries none of the traps here. A block scalar is immune to the quote and truncation traps, which need a plain or quoted value to bite; a finding names its defect. `SKILL.md` owns the membership of the trap classes it tests, under "YAML eats the description at `#`". Neither class is loud: the silent one corrupts the triggers while the skill keeps working, and the parse-error one is swallowed by the harness, so the skill never appears in the listing.
 
@@ -54,13 +54,13 @@ It reads every key rather than the description alone, because a space and a hash
 
 ## The README rule
 
-**`skill-readme`** is anchored to `SKILL.md` rather than to the README, because a README that does not exist is never a file markdownlint visits. It reports a missing `README.md` beside a `SKILL.md`, and one that carries no install form. Which forms count is `workflows/new.md`'s to state, under *How it is installed*. The rule mirrors that list in its patterns, so a form added there is added to the rule in the same change, and the suite reads the list and fails on any form the rule does not accept.
+**`skill-readme`** is anchored to `SKILL.md` rather than to the README, because a README that does not exist is never a file markdownlint visits. It reports a missing `README.md` beside a `SKILL.md`, and one that carries no install form. Which forms count is `workflows/new.md`'s to state, under *How it is installed*.
 
 ## The path rules
 
 **`skill-portable-paths`** reads the token tree and reports a path absolute to one machine: a code span, a line inside a fenced block, or a link destination opening '/home/', '/Users/' or a drive letter. Prose that mentions a home directory in words is not a path, which is why the rule never reads a raw line. It also reports a `~/` code span in prose and a `<home-dir>` inside a fenced block, each being the other's form. A URL is not a drive letter: `https://` carries a letter, a colon and a slash too, so the drive-letter branch refuses one preceded by a letter.
 
-**`skill-referenced-paths`** reports a code span in prose that names a file and resolves against none of the owning skill, the file's own directory and the target root. Fenced content is never read, because a fence carries a command to run rather than a reference into this tree. The span predicate and the resolution bases were derived from `<repo-root>/plugins/gh-solo/skills/pr-flow/scripts/docs-check.py`, and `scripts/rules/paths.js` marks each place it departs from that script on purpose; what does not carry over is that script's `--ignore`, so a span naming a file this tree does not hold is reported rather than silenced.
+**`skill-referenced-paths`** reports a code span in prose that names a file and resolves against none of the owning skill, the file's own directory and the target root. Fenced content is never read, because a fence carries a command to run rather than a reference into this tree. The rule takes no `--ignore`, so a span naming a file this tree does not hold is reported rather than silenced.
 
 **Which spans count as paths**, so a reader can tell a finding from a span the rule was never going to read: one ending in a known file extension, or one ending in a slash, which names a directory. A span carrying a glob, a placeholder, a URL scheme, a space or a `..` is not a path, nor is one opening with `-`, `#`, `@` or a slash. That is what keeps a branch name, a slash command and an `owner/repo` slug out of the findings, and it is why an absolute path is invisible here and belongs to `skill-portable-paths` instead.
 
@@ -72,7 +72,7 @@ It reads every key rather than the description alone, because a space and a hash
 
 **`skill-name`**: every skill's frontmatter `name` must match its own directory, and must be what the specification allows a name to be - at most 64 characters of lowercase alphanumerics joined by single hyphens, so no leading, trailing or doubled hyphen.
 
-The directory match cannot decide the charset on its own, because a directory may carry anything the filesystem allows, so a name matching its own directory exactly can still be one the standard's validator rejects. It is a rule rather than a loop written out here because shell written as prose carries quoting, word-splitting and glob hazards that nothing runs and nothing tests: a pipe swallows an exit code, an empty capture runs the body once on nothing, an unquoted expansion splits a name on its spaces and matches its brackets against the working directory. A rule gets the suite, where each of those is a fixture.
+The directory match cannot decide the charset on its own, because a directory may carry anything the filesystem allows, so a name matching its own directory exactly can still be one the standard's validator rejects.
 
 ## The invocation rule
 
@@ -110,9 +110,7 @@ The match is case-sensitive because Vale's is, so an uppercase directive, which 
 
 ## The prose rules
 
-**`assets/` is where the Agent Skills specification puts them**, as the data files it names lookup tables and schemas alongside. They are machine-read definitions rather than prose a reader loads or code the check runs, so `references/` and `scripts/` are both the wrong home. `StylesPath` points at that directory itself rather than one inside it, because Vale requires the path to hold the style's own subdirectory.
-
-Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history, each named in the rule file by the finding or commit that removed it, so a token with no source is not there. A token added later carries its own source the same way, which is what keeps the list evidence rather than taste. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
+Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history. Text inside double quotes is not read, per `.vale.ini`, because the rule files quote their own bad examples, which is also why a defect written inside quotes escapes the check.
 
 | Rule | For | What it reports | Level | What stays out of its reach |
 | --- | --- | --- | --- | --- |
@@ -127,62 +125,6 @@ Vale runs the `Agentifico` style under `assets/`, which is one rule file per mec
 
 **What escapes the code reach, and where each goes.** A comment in a `*.sh` or `*.ini` file is the reviewer's, since Vale has no comment scope for either and reads each whole, code lines included. `TokenIgnores` does not reach a code comment, so a phrase quoted inside one is read, and a rule it misfires on takes the exception. `*.yml` stays out because the style's own rule files quote the phrases they catch, and a rule cannot be judged by the phrases it defines. A `vale off` written as a code comment silences nothing, so the code reach has no twin of the hole `skill-vale-directive` covers.
 
-**No rule caps a section, by decision rather than by omission.** Vale can measure one, with a `metric` scoped to `doc(section:has(> h2))`, and a published style for instruction files caps such a section at 300 words. The selector nests, so an h2 section is measured with every h3 section inside it, and on this package the sections it would name are the ones already split into subsections, which is the shape a section takes when it is given headings rather than cut. A rule file here is the mechanical half of a rule `workflows/new.md` states, and that file states no section cap, so a sweep reads for a section grown past its claim under *Rationale that restates the rule* in `workflows/review.md` Step 3.
-
-## How a phrase list grows
-
-A phrase rule's tokens are evidence, per *The prose rules*, and the records they were mined from keep growing with every merged pull request. Growing a list is a query over those records and a judgement on each phrase they return, run from the repository that owns the rules.
-
-### The sources
-
-**A finding is a review comment carrying `::RF{n}::`**, which is how a `pr-flow` review round posts one, and a finding on prose is one whose `path` names a markdown file. Read the pull requests merged since the last run, then the review comments on each. `gh pr list` cuts its output at `--limit` without saying so, so the count it returns is read against that figure, and the figure is raised when the count reaches it:
-
-```bash
-gh pr list --state merged --limit 200 --search "merged:>=<date>" --json number --jq '.[].number'
-gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate --jq '.[] | select(.path | endswith(".md")) | select(.body | test("::RF[0-9]+::")) | "\(.path):\(.line)\n\(.body)\n"'
-```
-
-**A fix commit's diff carries the phrase removed and the phrase written in its place**, which is a token and its guards line at once. Read every prose commit from a tag or a date onward; the fix commits are the ones whose body cites a finding, and the range between two runs is short enough to read whole:
-
-```bash
-git log --patch <tag>..origin/main -- '*.md'
-git log --patch --since=<date> origin/main -- '*.md'
-```
-
-### Which rule a phrase belongs to
-
-**A phrase belongs to the rule whose `workflows/new.md` heading catches it**, and each rule's `message` opens on that heading. A count of adjacent content, where adding one more item makes the sentence false, is `Counts`. A claim an edit anywhere in the document can falsify is `Position`. A sentence anchored to a moment rather than a reason is `History`. A version or date claim in a file's opening region is `Banner`; the length rules hold no phrases.
-
-**A phrase that belongs to none is reported, with its source, and gets no rule.** A rule whose message names no heading enforces nothing this skill states, and a rule enters `workflows/new.md` before it enters `assets/`.
-
-### How a token lands
-
-**A token lands in the rule file under `assets/Agentifico/`, under a comment naming the finding or commit it came from**, in the form the file uses. A token with no source is not there, per *The prose rules*.
-
-**It gets a line of its own in that rule's trip case, one only it trips, and that line's alert joins the case's `want`.** The trip case is the `tests:` case in the rule file named `fires on each recorded shape, once per line`. The suite's per-token coverage proves a token fires somewhere on that case's input, and where several tokens share a line, a token can pass on a neighbour's line. A line only it trips is what fails the trip case when the token is removed, and that removal is how the line is watched failing before it is trusted, per *A check that has never been seen to fail is not evidence* in `workflows/new.md`.
-
-**Where the phrase has a legitimate use, that use goes in the rule's guards case beside the trip case**, as a line the rule must leave alone. A case in a rule file loads that rule alone, without `TokenIgnores`, so a line that is legitimate only because it is quoted goes in `scripts/test/vale.test.yml` instead. A guards line is what stops a later edit to the token from widening it past the record. A finding the owner refused in its thread is the same evidence read the other way: the phrase it named goes into the rule's `exceptions` where a token already matches it, or into the guards case where none does, with the thread as its reason.
-
-**Then the check runs over this skill, and every place the token fires is fixed or excepted.** A true finding is fixed in the prose. A phrase that is right where it stands goes into the rule's `exceptions` with the reason beside it, never into a directive, per *The directive rule*.
-
-## The suite
-
-After editing a rule or the check itself, run the suite. Each markdownlint rule's fixtures are strings passed through markdownlint's own string input, and each Vale rule's are `tests:` cases in the rule file, which `vale test` lints as strings. A fixture that needs a file name is written to a temporary directory the suite creates and removes, so a fixture written as a `SKILL.md` sits outside any tree an agent discovers, where some agents would read it recursively as a broken skill.
-
-Every Vale rule has a case that trips it and a case of the forms it must leave alone. The suite runs `vale test --coverage`, which fails on any rule no case reaches, since a Vale rule that matches nothing fails silently. The argument shapes the wrapper test names run against the check in a temporary directory that the suite creates and removes:
-
-```bash
-npm --prefix <skill-dir> test
-```
-
-Every assertion in it is held to *A check that has never been seen to fail is not evidence* in `workflows/new.md`, which owns that rule and its reason.
-
-The suite reads the scripts as code and never as style, so a rule edit owes the lint beside it, which neither the suite nor the check invokes:
-
-```bash
-npm --prefix <skill-dir> run lint
-```
-
 ## What a sweep still looks for by hand
 
 No rule in this file decides these, so a sweep reads for them, and where an item is an authoring rule, `workflows/new.md` owns it and its reason:
@@ -190,6 +132,7 @@ No rule in this file decides these, so a sweep reads for them, and where an item
 - **`argument-hint` against the routing table.** Every advertised verb routes somewhere, and every route is advertised.
 - **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
 - **The opening line of every file.** `MD041` is off because the files here open with different things and no one rule fits them all: a skill file and a workflow here with the tools blockquote, a convention of this package that `workflows/new.md` does not require, a `README.md` with whatever it is written to open with, a heading or a byline, and a file under `references/` with a heading. Which of those a given file owes is what a sweep reads for, and a repository's own convention for that opening is the authority on its own files: `workflows/export.md` states why, which is that the skill may practise its author's conventions and must not require them.
+- **A section grown past its claim.** No rule caps a section, so a sweep reads for one under *Rationale that restates the rule* in `workflows/review.md` Step 3.
 - **The judgement half of every prose rule.** A regex catches the wording of a defect and never its substance, so a clean prose run says only that the recorded phrasings are absent.
 
 ## Reporting
