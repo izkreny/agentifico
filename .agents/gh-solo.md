@@ -162,6 +162,12 @@ Reviewer model: opus
 This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
 ```
 
+**Before a sweep issue closes, the Vale phrase lists are re-mined**, per *How a phrase list grows* in `skills/skills-guru/references/maintaining.md`. It reads everything merged since that package's last `<name>_<version>` tag, or the whole trunk history where the package has none. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want. A step per pull request would be a gate nothing checks, and the sweep already reads the package whole.
+
+**New tokens land on the sweep's own branch only when the package is `skills-guru`.** The lists live under `skills/skills-guru/assets/`, so any other sweep that landed them would change a second package, which *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md` forbids. That sweep opens a `skills-guru` issue for its tokens instead.
+
+**The sweep issue carries the step as an acceptance criterion, and records on itself which findings and commits were read.** The criterion is what `merge` audits, so the issue cannot close with the step skipped. The record lets a later sweep over the same range skip what this one already judged.
+
 **Every finding the reading stands behind is fixed on the sweep's own branch, and nothing waits for a later release.** This is the rule for every sweep, an epic's last child included, so no epic states an answer of its own to it. The tag asserts the package was read whole, so a defect found and left standing makes that assertion false. Whether a finding is a defect at all is settled by `skills/skills-guru/workflows/review.md` Step 5, which has the resumed reviewer confirm or refute one set aside as phantom. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
 
 **The run is inline, and the reviewer that produced the findings is kept resumable with its id**, which is what `skills/skills-guru/workflows/review.md` Step 5 asks for when it later judges the fix commit.
