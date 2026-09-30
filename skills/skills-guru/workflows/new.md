@@ -44,6 +44,8 @@ Past that, split: `SKILL.md` keeps the frontmatter, the shared model and a routi
 
 The cap is roughly 3,500 words: the spec states it as 5,000 loaded tokens, tokens run about three quarters of a word in English prose, and its companion 500-line figure assumes conventionally wrapped text. A `SKILL.md` still past it after the split carries too much shared layer, and *Keep the shared layer in `SKILL.md`, stated once* says where that detail goes.
 
+A file an agent loads besides `SKILL.md` has a cap of its own, 2,800 words, and `FileLength` in `workflows/check.md` warns past it. The router loads a workflow or a reference whole, so its size is context spent on every run that reaches it, and a file past the cap usually holds more than one operation's worth. Split it the way a `SKILL.md` splits. The figure is measured against skills-guru's own files and sits just over the longest of them. A `README.md` is outside the cap, because a person reads it and no agent loads it.
+
 ### Keep the shared layer in `SKILL.md`, stated once
 
 Whatever every workflow depends on belongs there, because a fact copied into three workflow files will drift in at least one of them. When that shared layer itself grows enough to bloat `SKILL.md`, which costs context on every invocation, move the detail into one `references/` file and keep in `SKILL.md` the one-line version plus the pointer, with each workflow that needs the detail told to read it first.
