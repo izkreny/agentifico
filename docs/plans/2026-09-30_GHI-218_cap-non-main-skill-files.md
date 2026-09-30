@@ -40,3 +40,7 @@ The check exits non-zero on errors only, so the new warnings it raises on `plugi
 
 None.
 
+
+## Settled
+
+- **Should the cap on a file other than SKILL.md be lower than the cap on a SKILL.md?** No, the owner settled: one figure, 3,500 words, for both. A SKILL.md is loaded on every invocation and a routed file only on its route, so the routed file does not get the tighter cap. This replaces the issue's method of measuring the figure against this package, and the 2,800 this plan derived from it.
