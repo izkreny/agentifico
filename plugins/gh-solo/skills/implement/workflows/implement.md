@@ -96,10 +96,3 @@ End with the owner's next move, alone on its line, flush left:
 ```text
 /gh-solo:pr-flow ready review <pr-number>
 ```
-
-## Rules
-
-- **Never mark the PR ready.** The handoff names the next command; running it is the owner's act.
-- **Never edit the plan file to record divergence.** Divergence is a PR comment; the plan is the record of intent. The one legitimate plan edit is Step 1's `docs:` commit applying a decision the owner settled in a plan-discussion thread, which is the opposite act: the intent itself changed, and the file is being brought up to it.
-- **Tick at the moment work lands, never in a batch at the end.** A batch-ticked body cannot be resumed from and cannot be audited.
-- **On any gap between the record and the branch, report before continuing.** A lying record found now costs a sentence; found at `ready` it costs the audit its meaning.

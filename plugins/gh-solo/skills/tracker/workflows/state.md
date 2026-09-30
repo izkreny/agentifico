@@ -22,6 +22,8 @@ Do not skip this. Closing a closed issue and reopening an open one both succeed 
 
 ## Step 3 - Do what was asked
 
+**One state change per invocation.** If the owner asks for two, do them in sequence and confirm each.
+
 **A state change reached by an auto-trigger rather than a typed verb states the command and waits.** `SKILL.md`'s trigger table fires this workflow on ordinary phrasing - "mark it in progress", "set it aside", "this is blocked" - so an aside can otherwise add a dependency and a label to a real issue, with Step 4 reporting it afterwards. Print the exact `gh` command and the issue it names, and run nothing until the owner says so. A typed verb needs no such gate: it is already their instruction. `workflows/create.md` has had a confirm-before-create gate all along, and this is the same gate on the same grounds.
 
 ### Start work
@@ -58,6 +60,8 @@ gh issue close <issue-number> --duplicate-of <surviving-issue-number>
 **Ask which reason, and never assume `completed`.** `--reason` accepts `completed`, `not planned` and `duplicate` and rejects anything else; `--duplicate-of` is its own flag, and the better duplicate close. The reasons are not interchangeable: `not planned` is what keeps a closed tracker readable later, because it is what separates what shipped from what was abandoned. For a duplicate, `--duplicate-of` records the surviving issue natively - no `--reason` needed and no follow-up comment; add `-c` only for what a link cannot say.
 
 Before closing manually, check `closedByPullRequestsReferences` and any open PR that mentions the issue. If a PR is about to close it, say so and stop: adding `Closes #{issue-number}` to that PR body is better than closing by hand, because it records the link permanently and closes the issue exactly when the code lands, not before.
+
+**Never close an issue with unticked acceptance criteria without saying so first, and never tick them yourself to make the close look tidy.** Stale boxes are the owner's call, so a close over them is a decision rather than an oversight.
 
 ### Reopen
 
@@ -104,11 +108,3 @@ The judgement lives in *Milestones, and why not Projects* in `references/tracker
 ## Step 4 - Confirm
 
 One line: what changed, from what to what, and the URL. If nothing changed because the issue was already in the requested state, say that instead of reporting success.
-
----
-
-## Rules
-
-- **One state change per invocation.** If the owner asks for two, do them in sequence and confirm each, rather than batching into a single unclear result.
-- Never close an issue whose acceptance criteria have unticked boxes without saying so first. The boxes may simply be stale, and that is the owner's call, but it should be a decision rather than an oversight.
-- Never tick the criteria yourself to make a close look tidy.

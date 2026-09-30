@@ -105,6 +105,8 @@ gh api --paginate "repos/{owner}/{repo}/issues/<pr-number>/comments" --jq '.[] |
 
 Drop every body that opens with the AI disclaimer - those are this workflow's own posts, the same filter the watch applies. What remains is the owner's or the mentor's, and each is classified by the same table a thread comment is. The differences from threads: there is no resolution state, so "already handled" is read from the record - a body whose ask is answered by a later agent Conversation comment naming it is done; one with no such answer is live, however old it is. And there is no thread to reply into, so an owed answer goes as a Conversation comment (Step 2). An acknowledgement-only body ("Round two", "LGTM so far") gets what an acknowledgement gets: nothing.
 
+**If no thread has an owner reply awaiting an answer, say so and stop.** There is nothing to do and nothing to post.
+
 ## Step 2 - Answer in the thread
 
 ```bash
@@ -140,6 +142,8 @@ Report to the owner: the review id, that their unsubmitted review is holding the
 
 **A review body or Conversation comment is answered with one Conversation comment.** There is no thread to reply into, so post with `gh pr comment <pr-number> --body-file <file>` - disclaimer and `via` line first, then a link to the review or comment being answered, then the answer, within the length *Post caps* in `SKILL.md` sets. One comment may answer several bodies from the same round, naming each; the body file lives in the harness scratchpad like every other scratch file, never in the working tree.
 
+Never open a new finding here: a defect noticed while answering goes to the next `review` pass, not into an unrelated thread where nobody is looking for it.
+
 ## Step 3 - Never resolve a thread
 
 **A resolve rests on authority the owner recorded, and a discuss round holds none.** Resolving is the orchestrator's act, not the owner's - `workflows/resolve.md` runs the mutation - but per *Resolution rests on recorded authority* in `references/review-protocol.md` the authority for it is never inferred, and a thread that reached agreement is not the owner's word that the round is done. That word comes in the session, at the protocol's step 7, which is where the resolve happens. Leave every thread open here, however finished the exchange feels.
@@ -163,20 +167,3 @@ About the fix and its reply:
 One line per thread touched: the file and line, what the owner asked, and one clause on what was answered or fixed. Then the same for review bodies and Conversation comments: each one answered or acted on this round, and that the rest were read and needed nothing. Then the count of threads left alone, and why - settled, unanswered, or resolved. Then any `## Open questions` entries moved to `## Settled`, since `ready` and `merge` audit that section later and the report is what ties their finding to the round that acted.
 
 Then the state the round ended in, explicitly: **how many fix commits sit unpushed, waiting for the owner to authorise the push at step 7**, and whether a watch is armed on this PR - a fresh session must be able to tell "fixed and waiting for the word" from "nothing to do".
-
----
-
-## Rules
-
-### Where the answer goes
-
-- **Answer on GitHub, never in the terminal.** In the thread when there is one; as a Conversation comment for a review body or Conversation comment, which have none. A terminal answer is lost the moment the session ends, and the owner asked on GitHub because that is where they wanted the record.
-- **Never push during a round.** An order authorises the fix and the commit only; the push waits for the owner authorising it in the session at the protocol's step 7, per `references/review-protocol.md`. A push mid-read moves the ground under the reviewer.
-- **A question is not a decision.** *Resolution rests on recorded authority* in `references/review-protocol.md` counts a reply of the owner's as authority to resolve, and `workflows/resolve.md` Step 2 sorts the threads on it. What that rule does *not* settle is whether the batch at step 7 covers the thread, which turns on the answered-versus-outstanding distinction the same file draws under its step 7. Misreading a question as a verdict leaves it unanswered forever.
-
-### What a round never does
-
-- **Never open a new finding here.** A defect noticed while answering goes to the next `review` pass, not into an unrelated thread where nobody is looking for it.
-- **An order in a thread never satisfies a terminal gate.** The thread records the order; the terminal is where its gate runs. "Create a ticket" goes through the breakdown-and-confirm gate of `tracker`, whose revise-and-ask loop cannot fit one-reply-per-thread-per-pass; "push it" and "merge it" wait on the owner authorising them in the session, at the protocol's step 7. The reply names the command to type, and nothing is executed from the thread.
-- **Never resolve here, and never close the discussion on the owner's behalf.** Resolving is `workflows/resolve.md`'s act at the protocol's step 7, on authority the owner gave in words; a round of conversation is not that authority.
-- If no thread has an owner reply awaiting an answer, say so and stop. There is nothing to do and nothing to post.

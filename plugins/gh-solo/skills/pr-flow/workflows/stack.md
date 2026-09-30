@@ -81,6 +81,8 @@ The analogy stops short, and each gap is a limit *That rule has limits, and each
 
 ## Step 2 - Do what was asked
 
+**One stack operation per invocation.** If the owner asks for two, run them in sequence and confirm each.
+
 ### View
 
 ```bash
@@ -160,6 +162,8 @@ gh stack sync
 
 Where the fetch is not wanted either, the playbook under *When CI goes silent: the stack has drifted* runs `gh stack rebase` and `gh stack push` as separate steps, which is the same work with the push under the owner's eye - and under the same refusals as `sync` all the same, since its final step pushes.
 
+**If a command fails partway through a cascade, stop and report which branches moved and which did not.** Do not retry blindly: a half-rebased stack is worse than an unrebased one, and the usual cause is *The worktree trap*.
+
 ### Merge
 
 **Merging belongs to `workflows/merge.md`, including for a stack.** It holds the reviewed-or-not gate and the squash policy, and a merge routed here instead would skip both. Read that file rather than reaching for the command.
@@ -209,12 +213,3 @@ The fix, entirely through `gh stack` and never a raw `git rebase`:
 ## Step 3 - Confirm
 
 One line: what moved, from what to what, and the PR URLs affected. If nothing changed because the stack was already in the requested shape, say that rather than reporting success.
-
----
-
-## Rules
-
-- **Never `git rebase` a stacked branch against `main` by hand.** It rewrites the history the stack tooling manages, and the stack loses track of itself. Every restack goes through `gh stack`.
-- **Never commit or push directly to `main`.** This holds even when the change is trivial and even when a stack is not involved.
-- One stack operation per invocation. If the owner asks for two, run them in sequence and confirm each.
-- If a command fails partway through a cascade, stop and report which branches moved and which did not. Do not retry blindly: a half-rebased stack is worse than an unrebased one, and the usual cause is *The worktree trap*.

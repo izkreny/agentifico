@@ -201,14 +201,3 @@ The plan is the thing being reviewed, and it is cheaper to argue with as a diff 
 **Say where that discussion happens, because only one tab threads.** The owner comments inline on the plan's lines in the PR's **Files changed** tab - that is the surface that threads and resolves. Review bodies and Conversation comments are read too, per `workflows/discuss.md`, but they cannot be resolved and their answers land as flat Conversation comments, so inline stays the recommendation rather than the requirement. Replies come through `workflows/discuss.md`, in the threads; mention that `watch <pr-number>` exists for answers as they post, and per that file only the owner typing the command arms it.
 
 This workflow ends here. When the discussion settles, the owner has two ways into implementation: `/gh-solo:implement <pr-number>`, which stops at the implementation handoff, or `go <pr-number>` in `workflows/auto.md`, which continues through `ready` and the review round in the same pass. `workflows/ready.md` picks the branch up at the other end, once the work has landed, and marks the PR ready for review.
-
----
-
-## Rules
-
-- **Stop after the draft PR.** This is the gate, and it is the whole reason the PR opens early. Implementation begins after the plan discussion, not after the plan lands. The `workflows/auto.md` chain is the one authorised continuation, and only the literal `auto` command starts it.
-- **Draft at creation.** The other half of the pair — ready when finished — is `workflows/ready.md`. A PR opened ready gets reviewed empty; a PR left in draft after the work lands never gets reviewed at all.
-- **The plan commit is alone and first.** Every other commit on the branch should be as few as make sense — a plan's step list is a list of steps, not a list of commits, and six planned steps are free to land as one commit.
-- **`Closes #{issue-number}` in the PR body, and `--assignee @me` on the command**, every time. GitHub sets neither, and they arrive by different routes — there is no `--closes` flag, so a body written without that line cannot be fixed by adding an argument.
-- **Checkboxes live in the PR body only.** The plan file lists the same steps as plain bullets, because it records intent rather than progress. The issue holds acceptance criteria, the plan holds the approach and the intended sequence, the PR holds the state.
-- Never open a PR from `main`, and never commit to `main` to make one possible.
