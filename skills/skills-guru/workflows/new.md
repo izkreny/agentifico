@@ -155,6 +155,8 @@ A sentence that re-explains a rule already stated, or restates the same point in
 
 "This reverses an earlier rule", "the older test was wrong", "it does not stop it any more": the reader cannot locate the past being described, and in a file read as instructions a claim about a rule that is gone reads as a rule about the present. If the history was justifying a live rule, state the durable reason instead, so "we used to cap the watch at an hour" becomes "a timeout short enough to stop a forgotten watch cannot span a review round". If it is the skill's premise, keep the concrete failure as the bad example it always was. Otherwise delete it.
 
+A closing section that recaps the steps before it is the same over-writing at the size of a section, and `ClosingRecap` in `workflows/check.md` warns on its heading.
+
 ### A comment inside code exists only where the solution is unconventional, and is one sentence saying why
 
 A line a reader of the language expects needs no comment, and what the code does, how it does it and what it once did are the code's and the history's to say; why a line took an unusual shape is what the code cannot say, so a comment is that reason and nothing else. A tool directive such as a `biome-ignore` line is an instruction to a tool rather than a comment, and stays as the tool needs it. A Python module's docstring is exempt too, since it is the module's interface and PEP 257 asks it for a summary line, then the usage for a script or the exports for a library module.

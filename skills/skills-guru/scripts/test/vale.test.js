@@ -82,6 +82,19 @@ describe("FileLength, enabled for every markdown file but a SKILL.md and a READM
   });
 });
 
+describe("ClosingRecap, enabled for every markdown file but a README.md", () => {
+  const recap = "# Title\n\n## Step 1\n\nDo it.\n\n## Rules\n\n- Do it.\n";
+  it("a workflow file ending on a Rules section is warned", () => {
+    expectHit(alerts("recap/workflows/closing.md", recap), "ClosingRecap", 7);
+  });
+  it("a README.md ending on one is not", () => {
+    expectClean(alerts("recap/README.md", recap), "ClosingRecap");
+  });
+  it("a Python file whose last section comment reads as one is not", () => {
+    expectClean(alerts("recap/script.py", "## Setup\nx = 1\n\n## Rules\ny = 2\n"), "ClosingRecap");
+  });
+});
+
 function valeTest(...args) {
   const r = spawnSync("vale", ["--no-global", "--config", config, "test", ...args], { encoding: "utf8" });
   assert.equal(r.error, undefined, `vale did not run: ${r.error}`);
