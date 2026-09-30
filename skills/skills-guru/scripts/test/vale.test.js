@@ -69,10 +69,10 @@ describe("SkillSplit and SkillLength, enabled for a SKILL.md alone", () => {
 
 describe("FileLength, enabled for every markdown file but a SKILL.md and a README.md", () => {
   it("a workflow file past the cap is measured", () => {
-    expectHit(alerts("file-cap/workflows/long.md", `# Workflow\n\n${body(2801)}\n`), "FileLength", 1);
+    expectHit(alerts("file-cap/workflows/long.md", `# Workflow\n\n${body(3501)}\n`), "FileLength", 1);
   });
   it("a SKILL.md is not measured by it", () => {
-    expectClean(alerts("file-cap/SKILL.md", `---\nname: x\ndescription: Use when.\n---\n\n${body(2801)}\n`), "FileLength");
+    expectClean(alerts("file-cap/SKILL.md", `---\nname: x\ndescription: Use when.\n---\n\n${body(3501)}\n`), "FileLength");
   });
   it("a README.md is not measured by any file-length rule", () => {
     const found = alerts("file-cap/README.md", `# Readme\n\n${body(3600)}\n`);
