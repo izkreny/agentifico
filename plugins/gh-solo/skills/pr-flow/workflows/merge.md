@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup, `EnterWorktree` and `ExitWorktree` for moving the session between the trunk worktree and the branch's in Step 4.
+> **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup, `ExitWorktree` for leaving the branch's worktree in Step 4.
 
 Land a reviewed PR on `main` and clean up after it. This is the last step of a branch's life: `workflows/open.md` opened it, `workflows/ready.md` admitted it to review, `workflows/review.md` prepared and recorded the review, and this ends it.
 
@@ -124,9 +124,11 @@ git fetch <remote>
 
 Who holds `main` in `git worktree list` picks the case.
 
+**Each case names the worktree it runs from, and the session reaches it with `ExitWorktree` alone.** Where the session entered another worktree by `path`, `ExitWorktree` with `action: "keep"` returns it to the launch directory and removes nothing; the owner's global instructions authorise that, or the harness prompts. Then confirm in `git worktree list` that the session stands in the worktree its case names. **Where it does not, stop**, and print that case's whole block for the owner to run there.
+
 ### Another worktree holds `main`
 
-The usual case: a permanent trunk worktree beside one per branch. **Run this case from the trunk worktree**, because `git worktree remove` refuses the directory the session stands in. Where the session entered the branch's worktree by `path`, leave with the `ExitWorktree` tool and `action: "keep"`, which returns to the launch directory and removes nothing; the owner's global instructions authorise that, or the harness prompts. Then confirm in `git worktree list` that the session landed in the worktree holding `main`. A session launched inside the branch's worktree cannot leave, since `EnterWorktree` cannot reach a trunk outside `<repo-root>/.claude/worktrees/`: stop, and print the `git worktree remove` and `git branch -D` lines for the owner.
+The usual case: a permanent trunk worktree beside one per branch. **Run it from the trunk worktree**, since `git worktree remove` refuses the directory the session stands in.
 
 ```bash
 git worktree remove <branch-worktree-path>
@@ -142,7 +144,7 @@ git merge --ff-only <remote>/main
 
 ### Nobody holds `main`
 
-The branch was worked in the trunk worktree itself, or the repository is a plain checkout, so no worktree is removed. Run from that worktree, entered by `path` with `EnterWorktree` if needed:
+The branch was worked in the trunk worktree itself, or the repository is a plain checkout, so no worktree is removed. Run it from that worktree:
 
 ```bash
 git switch main
