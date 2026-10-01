@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup.
+> **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup, `EnterWorktree` and `ExitWorktree` for moving the session between the trunk worktree and the branch's in Step 4.
 
 Land a reviewed PR on `main` and clean up after it. This is the last step of a branch's life: `workflows/open.md` opened it, `workflows/ready.md` admitted it to review, `workflows/review.md` prepared and recorded the review, and this ends it.
 
@@ -113,32 +113,50 @@ gh stack merge <pr-number> --yes --squash
 
 **One PR per invocation.** Merging a stack is one operation even though it lands several PRs; merging two unrelated PRs is two.
 
-## Step 4 - Delete the local branch, in the worktree that holds it
+## Step 4 - Remove the worktree, delete the local branch, move the trunk
 
-Where `delete_branch_on_merge` is set, the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. That setting is per-repository and not a default, so confirm it from the values this workflow already read rather than assuming, and delete the remote branch too where it is unset. What remains is the local branch, and deleting it is a write against a worktree the session is not sitting in.
-
-Enter that worktree with the `EnterWorktree` tool, passing its `path`: a `git -C` sequence run from wherever the session happens to sit would delete the wrong tree's refs. Where the owner's global instructions authorise entering a worktree without asking, that rule covers this; where they do not, let the harness prompt and wait for it. Then:
+Where `delete_branch_on_merge` is set, the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. That setting is per-repository and not a default, so confirm it from the values this workflow already read rather than assuming, and delete the remote branch too where it is unset. What remains is local: the branch, its worktree where it has one, and a trunk behind the squash commit.
 
 ```bash
 git worktree list
 git fetch <remote>
 ```
 
-**Move off the branch by whichever step leaves this tree in the state its layout wants**, which `git worktree list` decides by saying who holds the trunk:
+Who holds `main` in `git worktree list` picks the case.
 
-- **Another worktree holds `main`** - the usual case, a permanent trunk worktree beside one per line of work: `git switch --detach <remote>/main`. Attached is not on offer, since two worktrees cannot hold one branch, and `git switch main` fails with `fatal: 'main' is already used by worktree at ...`.
-- **Nobody holds `main`** - the branch was worked in the trunk worktree itself, or the repository is a single plain checkout: `git switch main` followed by `git merge --ff-only <remote>/main`. Attached and fast-forwarded onto the squash commit is the state that tree is meant to sit in; detaching it here would strand the trunk on a detached HEAD, which the first case tolerates only because it has no alternative.
+### Another worktree holds `main`
+
+The usual case: a permanent trunk worktree beside one per branch. **Run this case from the trunk worktree**, because `git worktree remove` refuses the directory the session stands in. Where the session entered the branch's worktree by `path`, leave with the `ExitWorktree` tool and `action: "keep"`, which returns to the launch directory and removes nothing; the owner's global instructions authorise that, or the harness prompts. Then confirm in `git worktree list` that the session landed in the worktree holding `main`. A session launched inside the branch's worktree cannot leave, since `EnterWorktree` cannot reach a trunk outside `<repo-root>/.claude/worktrees/`: stop, and print the `git worktree remove` and `git branch -D` lines for the owner.
 
 ```bash
+git worktree remove <branch-worktree-path>
+git branch -D <branch>
+git remote prune <remote>
+git merge --ff-only <remote>/main
+```
+
+- **Removing the worktree first frees the branch**, so a refused removal stops the step with nothing half done. Skip it for a branch with no worktree, as most in a stack.
+- **A refused removal is reported, never forced.** It exits 128 with `fatal: '<path>' contains modified or untracked files, use --force to delete it`, and those files were never committed. Report the path and its `git status --short`; ignored files never block it.
+- **`-D`, not `-d`.** A squash-merge lands the work on `main` as a different commit, so the branch is unmerged in git's ancestry and `-d` refuses it.
+- **`--ff-only` refuses rather than guesses.** It refuses on a trunk commit the remote lacks and on local changes the update would overwrite, while changes it does not touch ride along. Report the commit it declined to move to, and never reset.
+
+### Nobody holds `main`
+
+The branch was worked in the trunk worktree itself, or the repository is a plain checkout, so no worktree is removed. Run from that worktree, entered by `path` with `EnterWorktree` if needed:
+
+```bash
+git switch main
+git merge --ff-only <remote>/main
 git branch -D <branch>
 git remote prune <remote>
 ```
 
-- **Moving off the branch comes first.** `git branch -D` refuses a branch checked out anywhere - `error: cannot delete branch '<branch>' used by worktree at ...` - so moving off it first is what frees it.
-- **`-D`, not `-d`.** A squash-merge lands the work on `main` as a different commit, so the branch is unmerged in git's ancestry and `-d` refuses it.
-- **Confirm the remote side where the setting was never checked for this repository.** `gh api repos/{owner}/{repo}/branches/<branch>` returning 404 is the check, `git push <remote> --delete <branch>` the fix. `<remote>` per the remote-name convention in `SKILL.md`.
+`git branch -D` refuses a branch checked out anywhere, so the switch comes first.
 
-**Nothing in this step can undo the merge, and no failure here is a reason to re-run it.** By the time it runs, the squash, the remote branch deletion and the issue close have all happened. On any error, verify with `gh pr view <pr-number> --json state,mergedAt,mergeCommit`, report which half of the cleanup is still owed, and leave `gh pr merge` alone.
+### Whoever holds `main`
+
+- **Confirm the remote side where the setting was never checked for this repository.** `gh api repos/{owner}/{repo}/branches/<branch>` returning 404 is the check, `git push <remote> --delete <branch>` the fix. `<remote>` per the remote-name convention in `SKILL.md`.
+- **Nothing in this step can undo the merge, and no failure here is a reason to re-run it.** By the time it runs, the squash, the remote branch deletion and the issue close have all happened. On any error, verify with `gh pr view <pr-number> --json state,mergedAt,mergeCommit`, report which part of the cleanup is still owed, and leave `gh pr merge` alone.
 
 ## Step 5 - Confirm the issue closed
 
@@ -152,7 +170,7 @@ For an issue with a parent epic, check whether the epic's remaining sub-issues a
 
 ## Step 6 - Confirm
 
-Open with the verdict line per the standing convention in `SKILL.md` - `✅ ALL PASS` on a landed merge; a stop anywhere upstream already printed `⛔ REFUSED - {reason}` as its first line. Then one line: the PR number, the squash commit's subject as it landed, the branch deleted with remote and local named separately - they go by different mechanisms now, the setting and Step 4 - and the issue number with its new state.
+Open with the verdict line per the standing convention in `SKILL.md` - `✅ ALL PASS` on a landed merge; a stop anywhere upstream already printed `⛔ REFUSED - {reason}` as its first line. Then one line: the PR number, the squash commit's subject as it landed, the branch deleted with remote and local named separately - they go by different mechanisms, the setting and Step 4 - the worktree removed, the commit the trunk sits on, any cleanup Step 4 left owed, and the issue number with its new state.
 
 ---
 
