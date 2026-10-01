@@ -25,6 +25,14 @@ python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .ag
 
 **Read the exit code, not the output.** A run piped through `tail` reports the pipe's status, so a chained command runs anyway; this has caused a broken path to be committed here twice. Use `set -o pipefail`, or read `${PIPESTATUS[0]}`, or do not pipe it.
 
+**The open branch's own plan, by its structure**, from the repository root:
+
+```bash
+python3 plugins/gh-solo/skills/pr-flow/scripts/plan-check.py $(git diff --name-only origin/main...HEAD -- docs/plans)
+```
+
+The substitution is the docs check's, unquoted for the same reason. A branch carrying no plan hands the script no file, and it exits 2 rather than passing, since every branch here has one. It needs the same Vale as the skills-guru check.
+
 **Every package a branch touches has moved its own version**, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`, which owns the rule:
 
 ```bash
@@ -66,6 +74,12 @@ npm --prefix skills/skills-guru run lint
 
 ```bash
 bash scripts/test-version-check.sh
+```
+
+**The plan check's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/plan-check.py`, `plugins/gh-solo/.vale.ini` or a rule under `plugins/gh-solo/assets/`:
+
+```bash
+bash plugins/gh-solo/skills/pr-flow/scripts/test-plan-check.sh
 ```
 
 **The posting script's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/post-review.py`:
