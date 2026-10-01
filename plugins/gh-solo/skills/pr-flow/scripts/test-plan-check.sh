@@ -79,6 +79,18 @@ got=0
 python3 "$SCRIPT" "$TREE/docs/../docs/plans/$NAME" > /dev/null 2>&1 || got=$?
 if [[ "$got" == 1 ]]; then echo "  ok   a/../b"; else echo "  FAIL a/../b: exit $got, want 1"; fails=$((fails + 1)); fi
 
+echo "the served repository's own Vale config is never read:"
+printf 'StylesPath = nowhere\n[*.md]\nBasedOnStyles = Nope\n' > "$TREE/.vale.ini"
+for want in 0 1; do
+    rm -f "$PLANS"/*
+    [[ "$want" == 0 ]] && content="$GOOD" || content="${GOOD/'- Write the form.'/'- [ ] Write the form.'}"
+    printf '%s\n' "$content" > "$PLANS/$NAME"
+    got=0
+    (cd "$TREE" && python3 "$SCRIPT" "docs/plans/$NAME") > /dev/null 2>&1 || got=$?
+    if [[ "$got" == "$want" ]]; then echo "  ok   beside a local .vale.ini, exit $want"; else echo "  FAIL beside a local .vale.ini: exit $got, want $want"; fails=$((fails + 1)); fi
+done
+rm "$TREE/.vale.ini"
+
 echo "no usable Vale is never a clean result:"
 check "vale absent" 2 "$NAME" "$GOOD" "$TREE/novale"
 check "vale older than the minimum" 2 "$NAME" "$GOOD" "$TREE/oldvale"
