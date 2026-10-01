@@ -1,0 +1,8 @@
+# The raw scope, because Vale's markdown parse turns a task-list marker into an element the text scope never sees. A blockquote's > markers may come first, since GitHub renders a checkbox there too.
+extends: existence
+message: "A plan carries no checkboxes: write '%s' as a plain bullet, per Step 2 of workflows/open.md in the pr-flow skill."
+level: error
+scope: raw
+nonword: true
+tokens:
+  - '(?m)^[ \t]*(?:>[ \t]*)*(?:[-*+]|\d+[.)])[ \t]+\[[ xX]\]'
