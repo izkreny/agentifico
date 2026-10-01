@@ -91,6 +91,7 @@ echo "a checkbox fails in any section:"
 check "in ## Steps" 1 "$NAME" "${GOOD/'- Write the form.'/'- [ ] Write the form.'}"
 check "in ## Verification" 1 "$NAME" "${GOOD/'- `npm test`'/'- [x] `npm test`'}"
 check "in another section" 1 "$NAME" "${GOOD/'None.'/'* [ ] None.'}"
+check "inside a blockquote" 1 "$NAME" "${GOOD/'- Write the form.'/'> - [ ] Write the form.'}"
 
 echo "a filename off the pattern fails:"
 check "no issue key" 1 "2026-08-16_login-form.md" "$GOOD"
