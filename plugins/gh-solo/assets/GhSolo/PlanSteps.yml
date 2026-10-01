@@ -1,0 +1,7 @@
+# The raw scope, because occurrence counts per scope block, and on heading.h2 every other heading would fail it.
+extends: occurrence
+message: "A plan needs a '## Steps' section, per Step 2 of workflows/open.md in the pr-flow skill."
+level: error
+scope: raw
+min: 1
+token: '(?m)^## Steps[ \t]*$'

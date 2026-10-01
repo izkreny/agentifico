@@ -1,0 +1,29 @@
+# A script rather than a regex, because a "#" comment inside a fenced block would read as the next heading.
+extends: script
+message: "A plan's '## Verification' section needs at least one list item before the next heading, per Step 2 of workflows/open.md in the pr-flow skill."
+level: error
+scope: raw
+script: |
+  text := import("text")
+  matches := []
+  heading := "## Verification"
+  pos := 0
+  start := -1
+  found := false
+  fence := ""
+  for line in text.split(scope, "\n") {
+    stripped := text.trim_left(line, " \t")
+    if fence != "" {
+      if text.has_prefix(stripped, fence) { fence = "" }
+    } else if text.has_prefix(stripped, "```") || text.has_prefix(stripped, "~~~") {
+      fence = text.substr(stripped, 0, 3)
+    } else if text.re_match(`^#{1,6}[ \t]`, line) {
+      if start >= 0 && !found { matches = append(matches, {begin: start, end: start + len(heading)}) }
+      start = text.re_match(`^## Verification[ \t]*$`, line) ? pos : -1
+      found = false
+    } else if start >= 0 && text.re_match(`^[ \t]*(?:[-*+]|\d+[.)])[ \t]+\S`, line) {
+      found = true
+    }
+    pos += len(line) + 1
+  }
+  if start >= 0 && !found { matches = append(matches, {begin: start, end: start + len(heading)}) }
