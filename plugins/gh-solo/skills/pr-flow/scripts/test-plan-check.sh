@@ -69,6 +69,23 @@ check "no ## Verification" 1 "$NAME" "${GOOD/'## Verification'/'## Checks'}"
 
 echo "a ## Verification with no list item fails:"
 check "only a fenced block and prose" 1 "$NAME" "${GOOD/'- `npm test`'/'Run it.'}"
+NESTED='# Login form
+
+## Steps
+
+- Write the form.
+
+## Verification
+
+````markdown
+```bash
+# a comment that is not a heading
+```
+````
+
+- `npm test`'
+check "a list item after a nested fence" 0 "$NAME" "$NESTED"
+check "a nested fence and no list item" 1 "$NAME" "${NESTED/'- `npm test`'/'Run it.'}"
 
 echo "a checkbox fails in any section:"
 check "in ## Steps" 1 "$NAME" "${GOOD/'- Write the form.'/'- [ ] Write the form.'}"

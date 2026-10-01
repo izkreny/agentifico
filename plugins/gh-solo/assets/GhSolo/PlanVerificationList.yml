@@ -13,10 +13,11 @@ script: |
   fence := ""
   for line in text.split(scope, "\n") {
     stripped := text.trim_left(line, " \t")
+    marker := text.re_find("^(`{3,}|~{3,})", stripped)
     if fence != "" {
-      if text.has_prefix(stripped, fence) { fence = "" }
-    } else if text.has_prefix(stripped, "```") || text.has_prefix(stripped, "~~~") {
-      fence = text.substr(stripped, 0, 3)
+      if marker != undefined && text.has_prefix(marker[0][1].text, fence) && text.trim_space(text.substr(stripped, len(marker[0][1].text))) == "" { fence = "" }
+    } else if marker != undefined {
+      fence = marker[0][1].text
     } else if text.re_match(`^#{1,6}[ \t]`, line) {
       if start >= 0 && !found { matches = append(matches, {begin: start, end: start + len(heading)}) }
       start = text.re_match(`^## Verification[ \t]*$`, line) ? pos : -1
