@@ -39,7 +39,7 @@ On a *stacked* branch none of this applies: the trunk sitting ahead of a `--base
 
 ## Step 2 - Write the implementation plan
 
-**Filename:** `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`, the date being the day the plan is written and never changed afterwards. The `{slug}` matches the branch's. Example: `<repo-root>/docs/plans/2026-08-16_GHI-50_login-form.md`.
+**Filename:** `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`, the date being the day the plan is written and never changed afterwards. The `{slug}` matches the branch's and is lowercase kebab-case. Example: `<repo-root>/docs/plans/2026-08-16_GHI-50_login-form.md`.
 
 **Location:** `<repo-root>/docs/plans/` unless the repository already keeps them elsewhere, in which case follow what is there. Check before writing; a second plan directory is worse than an unfamiliar one.
 
@@ -66,7 +66,7 @@ If the plan is only restating the issue in different words, the issue was specif
 
 **Alone is the rule, not a preference.** Everywhere else the guidance is to use the fewest commits that make sense; the plan is the one standing exception, because the draft PR has to exist before any code does, and it can only do that if the plan is the first thing on the branch.
 
-**Run the plan check on the plan file before committing it.** It fails a plan off Step 2's filename pattern, lacking `## Steps` or `## Verification`, with no list item under `## Verification`, or carrying a checkbox anywhere. A failure here costs an edit, not an amend of the branch's first commit. A missing or old Vale exits 2 with what to install, never clean. Its entry opens the template's `## Verification` in Step 4, so `workflows/ready.md` and `workflows/merge.md` audit it like any other gate.
+**Run the plan check before committing the plan.** It fails a plan off Step 2's filename pattern, lacking `## Steps` or `## Verification`, with no list item under `## Verification`, or carrying a checkbox anywhere. A failure here costs an edit, not an amend of the branch's first commit. A missing or old Vale exits 2 with what to install, never clean. Its entry opens the template's `## Verification` in Step 4, so `workflows/ready.md` and `workflows/merge.md` audit it.
 
 ```bash
 python3 <skill-dir>/scripts/plan-check.py <the plan file>
