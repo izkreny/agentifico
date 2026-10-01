@@ -16,6 +16,14 @@ ln -s "$(command -v python3)" "$TREE/oldvale/python3"
 # WHY: the stub answers a lint run with a clean report, so a script that skipped the version check would pass the plan rather than fail on garbage.
 printf '#!/bin/sh\nif [ "$1" = --version ]; then echo "vale version 3.22.0"; else echo "{}"; fi\n' > "$TREE/oldvale/vale"
 chmod +x "$TREE/oldvale/vale"
+# WHY: a Vale that passes the version check and dies on the lint run without a report, once with exit 1 and once killed, must not read as a clean run.
+for how in 'exit 1' 'kill -9 $$'; do
+    dir="$TREE/deadvale-${how%% *}"
+    mkdir -p "$dir"
+    ln -s "$(command -v python3)" "$dir/python3"
+    printf '#!/bin/sh\nif [ "$1" = --version ]; then echo "vale version 3.23.0"; else echo "vale died" >&2; %s; fi\n' "$how" > "$dir/vale"
+    chmod +x "$dir/vale"
+done
 
 NAME="2026-08-16_GHI-50_login-form.md"
 GOOD='# Login form
@@ -94,6 +102,8 @@ rm "$TREE/.vale.ini"
 echo "no usable Vale is never a clean result:"
 check "vale absent" 2 "$NAME" "$GOOD" "$TREE/novale"
 check "vale older than the minimum" 2 "$NAME" "$GOOD" "$TREE/oldvale"
+check "vale dies on the lint run, exit 1" 2 "$NAME" "${GOOD/'## Verification'/'## Checks'}" "$TREE/deadvale-exit"
+check "vale killed on the lint run" 2 "$NAME" "${GOOD/'## Verification'/'## Checks'}" "$TREE/deadvale-kill"
 
 echo "no plan named is a usage error:"
 got=0

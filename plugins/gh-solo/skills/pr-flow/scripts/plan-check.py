@@ -77,13 +77,16 @@ def main() -> int:
         capture_output=True,
         text=True,
     )
-    # WHY: Vale's exit code is not read for findings, because the JSON carries every alert; exit 2 is a run that never got that far.
-    if vale.returncode == 2:
-        print(f"plan-check: vale could not run: {(vale.stderr or vale.stdout).strip()}", file=sys.stderr)
+    # WHY: Vale's exit code is not read for findings, because the JSON carries every alert, so only 0 and 1 are runs that finished.
+    if vale.returncode not in (0, 1):
+        print(f"plan-check: vale could not run (exit {vale.returncode}): {(vale.stderr or vale.stdout).strip()}", file=sys.stderr)
         return 2
+    # WHY: a clean run prints {}, so a run that printed no JSON object did not finish, and reading it as no alerts would pass every rule.
     try:
-        report = json.loads(vale.stdout) if vale.stdout.strip() else {}
+        report = json.loads(vale.stdout)
     except json.JSONDecodeError:
+        report = None
+    if not isinstance(report, dict):
         print(f"plan-check: vale printed no report: {(vale.stderr or vale.stdout).strip()}", file=sys.stderr)
         return 2
     # WHY: Vale cleans the path it was given before using it as a key, so a key matched as written misses "a/../b" and reports that plan clean.
