@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(git:*)` for the branch and the commit, `Bash(gh:*)` for `gh pr create`, `Read` / `Write` for the plan file.
+> **Tools used:** `Bash(git:*)` for the branch and the commit, `Bash(gh:*)` for `gh pr create`, `Bash(python3:*)` for `scripts/plan-check.py`, `Read` / `Write` for the plan file.
 
 Open the pull request for a branch that has just been cut. The sequence is branch, plan file, commit, draft PR, **stop**. It runs once at the start of the work, not at the end.
 
@@ -48,13 +48,13 @@ On a *stacked* branch none of this applies: the trunk sitting ahead of a `--base
 **`## Steps` and `## Verification` are required and must carry those exact names**, because other things read them:
 
 - **`## Steps`** — the ordered work, as plain bullets. Other things read it, which is why the name is fixed rather than left to the planner: the PR body, where it becomes checkboxes, and the session's own todo list during implementation. Each box is ticked by whoever lands its step, at the moment it lands, per the standing convention in `SKILL.md`; the draft state only means the counter has no reader until `workflows/ready.md` audits it. Note that this file's own `## Step N` headings are the workflow's steps, not the plan's; only the backticked `## Steps` means the plan section.
-- **`## Verification`** — how you will know it worked. Which gate, which command, and what that gate *cannot* see. This is the section most likely to be skipped and most likely to be wanted later. **Only an entry with an exit code belongs in the list**: a `npm test` is a gate an agent can run and tick, while "restart the machine and read the row back" is a procedure the owner has to judge, and a judgement of theirs is never a checkbox. Write the gates as the section's list and the judgement as prose beneath it. Every box in this section has to close before the branch merges, so a box only the owner could close would block its own branch, and the cheap way out of that is to tick it untruthfully.
+- **`## Verification`** — how you will know it worked. Which gate, which command, and what that gate *cannot* see. This is the section most likely to be skipped and most likely to be wanted later. **Only an entry with an exit code belongs in the list**: a `npm test` is a gate an agent can run and tick, while "restart the machine and read the row back" is a procedure the owner has to judge, and a judgement of theirs is never a checkbox. Write the gates as the section's list and the judgement as prose beneath it. Each entry becomes a box in the PR body that has to close before the branch merges, so an entry only the owner could close would block its own branch, and the cheap way out of that is to tick it untruthfully.
 
 Everything else is the planner's call. Planning mode already knows how to write a plan, and those names exist only because this workflow and the implementation todo list have to find those lists without guessing — not because the rest matters less. Any future required section gets named here explicitly, or it is not required.
 
 **A backticked path the branch will create or delete carries a tag**: one space after the closing backtick, then `(new)` or `(delete)`, lowercase, as in `` `lib/login.py` (new) ``. Every mention of such a file carries it, not only the one that says what happens, because an untagged mention fails the docs check whenever the file is absent. A file the branch only changes takes no tag. The docs check never reads a `(new)` path, so a wrong one is the review round's to catch.
 
-**The steps are plain bullets in the plan, never checkboxes.** That list is the plan's *intent*, frozen at plan time and reviewed as a diff — it is what the draft PR exists for the owner to argue with. The same list appears in the PR body as `- [ ]`, where it carries *progress*. Two jobs, not two copies of one fact: a checkbox inside a committed file can only be ticked by another commit, and the intent should not change every time a box does.
+**Every required section is written as plain bullets in the plan, never checkboxes.** Each such list is the plan's *intent*, frozen at plan time and reviewed as a diff — it is what the draft PR exists for the owner to argue with. The same list appears in the PR body as `- [ ]`, where it carries *progress*. Two jobs, not two copies of one fact: a checkbox inside a committed file can only be ticked by another commit, and the intent should not change every time a box does.
 
 If the PR's list later diverges from the plan's, that is information rather than drift — scope moved, and the diff between intent and outcome is worth being able to see.
 
@@ -65,6 +65,12 @@ If the plan is only restating the issue in different words, the issue was specif
 ## Step 3 - Commit it, alone, as the branch's first commit
 
 **Alone is the rule, not a preference.** Everywhere else the guidance is to use the fewest commits that make sense; the plan is the one standing exception, because the draft PR has to exist before any code does, and it can only do that if the plan is the first thing on the branch.
+
+**Run the plan check on the plan file before committing it.** It fails a plan off Step 2's filename pattern, lacking `## Steps` or `## Verification`, with no list item under `## Verification`, or carrying a checkbox anywhere. A failure here costs an edit, not an amend of the branch's first commit. A missing or old Vale exits 2 with what to install, never clean. Its entry opens the template's `## Verification` in Step 4, so `workflows/ready.md` and `workflows/merge.md` audit it like any other gate.
+
+```bash
+python3 <skill-dir>/scripts/plan-check.py <the plan file>
+```
 
 **Verify the branch in the same breath as the commit.** The branch you checked out earlier in the session is a snapshot, not a guarantee — HEAD can move during a planning session, and a commit meant for a feature branch can land on `main` straight through the hard rule:
 
@@ -120,6 +126,7 @@ Closes #{issue-number}
 
 ## Verification
 
+- [ ] `python3 <skill-dir>/scripts/plan-check.py <the plan file>`
 - [ ] The command that proves it works
 - [ ] The other one
 
