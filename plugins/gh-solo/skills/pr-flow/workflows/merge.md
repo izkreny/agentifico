@@ -138,10 +138,10 @@ git merge --ff-only <remote>/main
 ```
 
 - **Removing the worktree first frees the branch**, so a refused removal stops the step with nothing half done. Skip it for a branch with no worktree, as most in a stack.
-- **A stack's worktree is shared by its branches**, per `workflows/stack.md`, so it is removed only once every branch in it has merged. Until then, `git -C <branch-worktree-path> switch --detach <remote>/main` replaces the removal.
+- **A stack's worktree is shared by its branches**, per `workflows/stack.md`, so it is removed only once every branch in it has merged. Until then, `git -C <branch-worktree-path> switch <an unmerged branch of the stack>` replaces the removal, keeping the worktree findable by branch.
 - **A refused removal is reported, never forced.** It exits 128 with `fatal: '<path>' contains modified or untracked files, use --force to delete it`, and those files were never committed. Report the path and its `git status --short`; ignored files never block it.
 - **`-D`, not `-d`.** A squash-merge lands the work on `main` as a different commit, so the branch is unmerged in git's ancestry and `-d` refuses it.
-- **`--ff-only` refuses rather than guesses.** It refuses on a trunk commit the remote lacks and on local changes the update would overwrite, while changes it does not touch ride along. Report the commit it declined to move to, and never reset.
+- **`--ff-only` refuses rather than guesses.** It refuses on a trunk commit the remote lacks or local changes it would overwrite; changes it does not touch ride along. Report the commit it declined to move to, and never reset.
 
 ### Nobody holds `main`
 
