@@ -115,7 +115,7 @@ gh stack merge <pr-number> --yes --squash
 
 ## Step 4 - Remove the worktree, delete the local branch, move the trunk
 
-Where `delete_branch_on_merge` is set, the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. That setting is per-repository and not a default, so confirm it from the values this workflow already read rather than assuming, and delete the remote branch too where it is unset. What remains is local: the branch, its worktree where it has one, and a trunk behind the squash commit.
+Where `delete_branch_on_merge` is set, the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. That setting is per-repository and not a default, so confirm it from the values this workflow already read rather than assuming, and delete the remote branch too where it is unset.
 
 ```bash
 git worktree list
@@ -138,6 +138,7 @@ git merge --ff-only <remote>/main
 ```
 
 - **Removing the worktree first frees the branch**, so a refused removal stops the step with nothing half done. Skip it for a branch with no worktree, as most in a stack.
+- **A stack's worktree is shared by its branches**, per `workflows/stack.md`, so it is removed only once every branch in it has merged. Until then, `git -C <branch-worktree-path> switch --detach <remote>/main` replaces the removal.
 - **A refused removal is reported, never forced.** It exits 128 with `fatal: '<path>' contains modified or untracked files, use --force to delete it`, and those files were never committed. Report the path and its `git status --short`; ignored files never block it.
 - **`-D`, not `-d`.** A squash-merge lands the work on `main` as a different commit, so the branch is unmerged in git's ancestry and `-d` refuses it.
 - **`--ff-only` refuses rather than guesses.** It refuses on a trunk commit the remote lacks and on local changes the update would overwrite, while changes it does not touch ride along. Report the commit it declined to move to, and never reset.
