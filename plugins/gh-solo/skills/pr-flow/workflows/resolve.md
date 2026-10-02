@@ -97,7 +97,7 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-f
 python3 <skill-dir>/scripts/post-review.py release --reviews <reviews-file> --comments <listing-file> --disclaimer-file <disclaimer-file> --out <release-file> --replies-out <replies-file>
 ```
 
-**Exit 0 having written no payload means there was nothing held**, which is the ordinary answer on most rounds; say so in the report and skip the rest of this step. Where it wrote one, post it and reconcile it:
+**Exit 0 having written no payload means there was nothing held**, which is the ordinary answer on most rounds; say so in the report and skip the rest of this step. **Exit 2 names, on stderr, each held finding it could not thread**, or the ledger problem that stopped it building anything. A payload written beside an exit 2 holds every other entry, so post it all the same, and carry each named id to Step 9. Where it wrote one, post it and reconcile it:
 
 ```bash
 gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <release-file>
@@ -113,7 +113,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F
 
 ### Running it
 
-- **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote, or whose anchor head this clone does not have, is reported and skipped rather than posted at a guess.
+- **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote is anchored on the line that replaced it, and its thread says where it was held. An entry whose line the fixes deleted outright, or whose anchor head this clone does not have, has no line to anchor to, so the script names it and exits 2 rather than posting at a guess.
 - **The reads come after the push**, never before it, because the whole reason the anchors resolve now is that the push landed. Running this step ahead of Step 5 answers `422` on every held finding.
 
 ### What each id gets
@@ -121,6 +121,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F
 - **An id that already carries a thread is skipped rather than refused.** Nothing rewrites a posted Review, so an earlier round's ledger is still on the pull request at the next `rnp`; the script reports what it skipped.
 - **A failure here loses nothing and refuses nothing.** The push has already happened and the ledger is still in the record Review, so the findings are exactly where they were - report the failure and name this step's commands as the retry, rather than treating it as a failed `rnp`.
 - **The replies are the round's words, not new ones.** They were written during the round and recorded in its follow-up Review; this step copies them, so nothing here composes a plan or a verdict. An entry with no reply recorded opens its thread carrying the finding alone, which `release` reports.
+- **An id `release` could not thread blocks the merge until it has one.** `workflows/merge.md` refuses on any reserved id with no thread, so the report names each one, and the owner decides where its thread goes.
 - **A released thread lands unresolved, and that is correct.** The authorisation in Step 3 named the ids it covered, and these were not among them: the owner has not read them yet. `workflows/merge.md` refuses on an unresolved thread, so the report has to say how many are waiting, or the owner reads a green `rnp` and then meets a red merge with nothing explaining it.
 
 ## Step 7 - Post the delta index
@@ -182,9 +183,9 @@ Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow
 
 ## Step 9 - Confirm
 
-Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved, nothing was held, the delta index either posted or was correctly skipped, and the checks are green; `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered, a held finding was released and now waits on the owner, a release failed, the delta index failed to post, or a check is red. **A span carrying no commits skips the index and stays `✅`**, per Step 7: a skip it was told to make is not a failure.
+Open with the verdict line: `✅ ALL PASS` when every unresolved thread was covered and resolved, nothing was held, the delta index either posted or was correctly skipped, and the checks are green; `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left uncovered, a held finding was released and now waits on the owner, a held finding could not be threaded, a release failed, the delta index failed to post, or a check is red. **A span carrying no commits skips the index and stays `✅`**, per Step 7: a skip it was told to make is not a failure.
 
-Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and wait to be read, the commits that went up, how many rows the delta index carried and how many of them answered no finding, and the check result.
+Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and wait to be read, which could not be threaded and why, the commits that went up, how many rows the delta index carried and how many of them answered no finding, and the check result.
 
 **Then say that this workflow is over and merging is a word of its own**, since the owner's `rnp` did not ask for one and nothing here is about to run it. The command, flush left:
 

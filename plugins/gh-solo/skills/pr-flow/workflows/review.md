@@ -291,7 +291,7 @@ python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --di
 
 Every finding in a file the unpushed commits touch is held: the id is assigned from the same sequence, the finding leaves the `comments` array so no unresolvable anchor is ever sent, and the record Review carries it whole in a fenced ledger. **Leave it in the findings file** - holding is the script's decision from the diff, never yours from the findings.
 
-**The line is brought forward at release, never replayed.** A held finding's `line` counts lines as they stood at `--anchored-at`, and the round goes on committing after the hold, so `release` shifts the number through `git diff <that head>..HEAD` before it anchors anything. A line the fixes rewrote is reported and skipped rather than posted at a guess.
+**The line is brought forward at release, never replayed.** A held finding's `line` counts lines as they stood at `--anchored-at`, and the round goes on committing after the hold, so `release` shifts the number through `git diff <that head>..HEAD` before it anchors anything. A line the fixes rewrote is anchored on the line that replaced it. One they deleted outright is named for the owner rather than posted at a guess, per Step 6 of `workflows/resolve.md`.
 
 **A held finding's fix plan, fix result and verdict go into a follow-up Review, one entry each.** None of them exists when the record Review is posted, and this flow never rewrites a posted Review. At the end of the round, write them as a JSON array of `{rf, kind, text}` - `kind` being `plan`, `result` or `verdict` - and post the Review the script builds from it:
 

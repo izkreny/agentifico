@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup, `ExitWorktree` for leaving the branch's worktree in Step 4.
+> **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup, `Bash(python3:*)` for `scripts/post-review.py unthreaded` in Step 1, `ExitWorktree` for leaving the branch's worktree in Step 4.
 
 Land a reviewed PR on `main` and clean up after it. This is the last step of a branch's life: `workflows/open.md` opened it, `workflows/ready.md` admitted it to review, `workflows/review.md` prepared and recorded the review, and this ends it.
 
@@ -45,6 +45,16 @@ The owner's own review is a separate record, submitted under their name through 
 The disclaimer test alone is not enough - a mentor's comment opens with no disclaimer either, so on its own it would let a third party's 👍 authorise a merge. For a reaction there is no body to test, so the login is the whole test.
 
 Nothing can stop a thread being resolved in the browser with no evidence at all; this door is where that mistake can be caught, so name the thread's `file:line` in the refusal.
+
+**Refuse while a reserved `RF{n}` has no thread.** A held finding lives in a review body until `release` threads it, and the thread gate reads threads alone, so it passes a finding that never got one:
+
+```bash
+gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
+gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
+python3 <skill-dir>/scripts/post-review.py unthreaded --reviews <reviews-file> --comments <listing-file>
+```
+
+Exit 2 is the refusal, `⛔ REFUSED - RF{n} is reserved and has no thread`, naming every id it printed. Step 6 of `workflows/resolve.md` is the retry. Where `release` named an id as one it cannot thread, the owner decides where that thread goes.
 
 **Other fields in that query are gates too, each cheaper to check than to recover from:**
 
