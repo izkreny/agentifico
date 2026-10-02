@@ -10,7 +10,7 @@ You are handed a number rather than a summary, deliberately: evidence chosen by 
 
 A full review reads all of them. The scoped re-review reads almost none of them, and `workflows/rescope.md` owns that list rather than this one stating both.
 
-**Resolve `<remote>` before the fetches rather than assuming `origin`**, which is only `git clone`'s default: `git remote` printing one name means that name, and with several, use the one the base ref tracks (`git config branch.<base-ref>.remote`). This is copied here on purpose, as the branch parse is, because you are forbidden from reading the skill that owns the convention - and a repository whose one remote is named otherwise fails both fetches of the diff and leaves you reporting a diff you could not read.
+**Resolve `<remote>` before the fetches rather than assuming `origin`**, which is only `git clone`'s default: `git remote` printing one name means that name, and with several, use the one the base ref tracks (`git config branch.<base-ref>.remote`, where `<base-ref>` is the pull request's `baseRefName` from `gh pr view <pr-number> --json baseRefName`). This is copied here on purpose, as the branch parse is, because you are forbidden from reading the skill that owns the convention - and a repository whose one remote is named otherwise fails both fetches of the diff and leaves you reporting a diff you could not read.
 
 1. **The pull request.** `gh pr view <pr-number> --json title,body,headRefName,baseRefName`. The body carries `## Plan overview` and `## Verification`, and the `Closes #{issue-number}` line; `baseRefName` is what the diff is taken against.
 2. **The diff, at the sha you were handed.**
