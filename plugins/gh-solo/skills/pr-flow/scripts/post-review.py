@@ -250,7 +250,7 @@ def diff_lines(base: str, path: str, root: str) -> set[int] | None:
 
 
 def threaded_ids(bodies: list[str]) -> set[int]:
-    """Only a line-opening id counts, because every convention here names ids in prose and reading any `RF{n}` would drop the held finding it names."""
+    """Takes thread roots only, because a reply naming a held id at the start of a line would otherwise stand in for the thread that id never got."""
     found: set[int] = set()
     for body in bodies:
         first = rf_id(body)
@@ -709,7 +709,7 @@ def passes(args: argparse.Namespace) -> int:
     return 0
 
 
-def comment_bodies(path: Path) -> list[str]:
+def comment_listing(path: Path) -> list[dict]:
     """The listing is the flat array `gh api --paginate` writes without `--slurp`, since `--slurp` nests one array per page."""
     posted = load_json(path, "comments listing")
     wrong_shape = (
@@ -722,7 +722,16 @@ def comment_bodies(path: Path) -> list[str]:
     # A non-object element is the `--slurp` shape, and filtering it out would answer 0 like a pull request with no round.
     if any(not isinstance(c, dict) for c in posted):
         sys.exit(wrong_shape)
-    return [c["body"] for c in posted if isinstance(c.get("body"), str)]
+    return posted
+
+
+def comment_bodies(path: Path) -> list[str]:
+    return [c["body"] for c in comment_listing(path) if isinstance(c.get("body"), str)]
+
+
+def root_bodies(path: Path) -> list[str]:
+    return [c["body"] for c in comment_listing(path)
+            if isinstance(c.get("body"), str) and c.get("in_reply_to_id") is None]
 
 
 def review_bodies(path: Path) -> list[str]:
@@ -746,7 +755,7 @@ def release(args: argparse.Namespace) -> int:
     bodies = review_bodies(Path(args.reviews))
     entries = held_entries(bodies)
     follow_ups = followup_entries(bodies)
-    threaded = threaded_ids(comment_bodies(Path(args.comments)))
+    threaded = threaded_ids(root_bodies(Path(args.comments)))
 
     problems: list[str] = []
     if not disclaimer.startswith(DISCLAIMER_PREFIX):
@@ -925,7 +934,7 @@ def report_unthreadable(unthreadable: list[str]) -> int:
 def unthreaded(args: argparse.Namespace) -> int:
     held = {e["rf"] for e in held_entries(review_bodies(Path(args.reviews)))
             if isinstance(e.get("rf"), int)}
-    missing = sorted(held - threaded_ids(comment_bodies(Path(args.comments))))
+    missing = sorted(held - threaded_ids(root_bodies(Path(args.comments))))
     if missing:
         print(
             "post-review: reserved with no thread: " + ", ".join(f"RF{n}" for n in missing),

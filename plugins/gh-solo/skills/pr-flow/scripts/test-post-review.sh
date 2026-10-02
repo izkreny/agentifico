@@ -574,7 +574,8 @@ for name, reviews in [("no reviews at all", []),
                       ("reviews with no ledger", [{"body": "> \U0001f916 h\n\nRound one."}]),
                       ("every held id already threaded",
                        [ledger_review(held_entry(7))])]:
-    comments = ([{"body": "RF7 x"}] if name == "every held id already threaded" else [])
+    comments = ([{"body": "::RF7:: \U0001f534 high - x"}]
+                if name == "every held id already threaded" else [])
     proc, out, replies = run_release(reviews, comments, cwd=str(SHARED_REPO),
                             name="rn-" + "".join(c if c.isalnum() else "-" for c in name))
     ok = proc.returncode == 0 and not out.exists() and "nothing to release" in proc.stdout
@@ -593,6 +594,19 @@ if ok:
     ok = len(payload["comments"]) == 1 and "RF9" in payload["comments"][0]["body"]
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a prose cross-reference does not count as a thread")
+
+# A reply naming the held id at the start of a line read as its thread, so the finding was skipped and merge passed it unthreaded.
+proc, out, replies = run_release(
+    [ledger_review(held_entry(9))],
+    [{"id": 2, "in_reply_to_id": 1,
+      "body": "> \U0001f916 h\n\nRF9 is the same problem as this one"}],
+    name="release-reply", cwd=str(SHARED_REPO))
+ok = proc.returncode == 0 and out.exists() and "already threaded" not in proc.stdout
+if ok:
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    ok = len(payload["comments"]) == 1 and "RF9" in payload["comments"][0]["body"]
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a reply opening a line with the id is not its thread")
 
 # Replaying the stored line anchored the thread to whatever now sat there, and where the shift moved it out of the diff every later release failed the same way.
 repo, at = git_fixture("shift", BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
@@ -731,6 +745,8 @@ for name, reviews, comments, want in [
      [{"body": "> \U0001f916 h\n\nfix: tighten the guard - closes RF7"}], 2),
     ("every reserved id threaded", [ledger_review(held_entry(7))],
      [{"body": "> \U0001f916 h\n\n::RF7:: \U0001f534 high - x"}], 0),
+    ("a reply opening a line with the id", [ledger_review(held_entry(7))],
+     [{"id": 2, "in_reply_to_id": 1, "body": "RF7 is the same problem as this one"}], 2),
     ("nothing reserved", [{"body": "> \U0001f916 h\n\nRound one."}], [], 0),
 ]:
     proc = run_unthreaded(reviews, comments,
