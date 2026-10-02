@@ -1015,8 +1015,16 @@ def verify(args: argparse.Namespace) -> int:
     return 0
 
 
+class Parser(argparse.ArgumentParser):
+    """Exit 1 on a usage error, because 2 is the refusal code two gates read as a finding with no ids behind it."""
+
+    def error(self, message: str) -> None:
+        self.print_usage(sys.stderr)
+        sys.exit(f"{self.prog}: error: {message}")
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(
+    parser = Parser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )

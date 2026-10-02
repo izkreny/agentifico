@@ -421,7 +421,7 @@ for name, data, diff, at in cases:
 print("\nmust refuse on the pinned head (exit 2):")
 # A merged message would leave the owner unable to tell a reviewer that read something else from a pull request that moved after the pin.
 
-# Each case names a string only its own check emits, because argparse also exits 2 on an unknown flag and an exit code alone reported ok while proving nothing.
+# Each case names a string only its own check emits, because an exit code alone reported ok while proving nothing about which check fired.
 cases = [
     ("the reviewer read something other than the pin",
      mutate(REVIEW, head="beef123"), PIN, PIN, "was told to read"),
@@ -967,10 +967,22 @@ if out.exists():
 
 print("\ndiscard must refuse (exit 2):")
 proc, out = run_discard(disclaimer=bad_disclaimer, name="dc-bad")
-# argparse also exits 2 on an unknown subcommand, so the stderr text is what proves the refusal fired.
+# The stderr text is what proves this refusal, rather than another check's, fired.
 ok = proc.returncode == 2 and not out.exists() and "disclaimer" in proc.stderr
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a disclaimer without the emoji prefix  (exit {proc.returncode})")
+
+print("\nan unusable invocation is exit 1, never a refusal (exit 1):")
+# argparse exits 2 on its own, which merge and resolve read as a gate's refusal with no ids behind it.
+proc = subprocess.run(["python3", script, "unthreaded", "--comments", str(work / "none.json")],
+                      capture_output=True, text=True)
+ok = proc.returncode == 1 and "--reviews" in proc.stderr
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a missing --reviews  (exit {proc.returncode})")
+proc = subprocess.run(["python3", script, "nosuch"], capture_output=True, text=True)
+ok = proc.returncode == 1
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} an unknown subcommand  (exit {proc.returncode})")
 
 print("\nthe marker belongs to the full pass alone (exit 0):")
 # Marking a re-review as a pass would charge a round three passes for one reading of the branch.
