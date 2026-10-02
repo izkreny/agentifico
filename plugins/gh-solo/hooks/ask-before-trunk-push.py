@@ -14,7 +14,7 @@ TRUNK_NAMES = {"main", "master", "trunk"}
 FLAGS_WITH_VALUE = {"-C", "--git-dir", "--work-tree", "--exec", "--receive-pack",
                     "--repo", "-o", "--push-option"}
 # Global options before the subcommand that take a value, kept apart because `-c key=val` is a push flag nowhere and its value would otherwise read as the subcommand.
-GLOBAL_FLAGS_WITH_VALUE = FLAGS_WITH_VALUE | {"-c", "--config-env", "--namespace"}
+GLOBAL_FLAGS_WITH_VALUE = FLAGS_WITH_VALUE | {"-c", "--config-env", "--namespace", "--attr-source"}
 PUSHES_EVERYTHING = {"--all", "--mirror"}
 DELETES = {"--delete", "-d"}
 # Separators are matched as tokens rather than by a regex over the raw string, because a regex split runs before quoting is understood and would cut a quoted `;` inside an argument.
