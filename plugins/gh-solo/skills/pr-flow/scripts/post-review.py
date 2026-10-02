@@ -819,20 +819,26 @@ def release(args: argparse.Namespace) -> int:
             )
             continue
         moved, rewritten = shifted
+        # Every anchor is tested, not only a rewritten one: one anchor outside the diff refuses the whole atomic post, taking every other held finding's thread with it.
+        shown = diff_lines(args.base, entry["path"], root)
+        if shown is None:
+            unthreadable.append(
+                f"RF{entry['rf']} - git could not diff {args.base}...HEAD for {entry['path']}"
+            )
+            continue
+        if moved not in shown:
+            if rewritten:
+                where = (f"the fixes rewrote {entry['path']}:{entry['line']}, and "
+                         f"its replacement at :{moved}")
+            elif moved != entry["line"]:
+                where = f"the fixes moved {entry['path']}:{entry['line']} to :{moved}, which"
+            else:
+                where = f"{entry['path']}:{entry['line']}"
+            unthreadable.append(
+                f"RF{entry['rf']} - {where} is outside the diff against {args.base}"
+            )
+            continue
         if rewritten:
-            # One anchor outside the diff refuses the whole atomic post, taking every other held finding's thread with it.
-            shown = diff_lines(args.base, entry["path"], root)
-            if shown is None:
-                unthreadable.append(
-                    f"RF{entry['rf']} - git could not diff {args.base}...HEAD for {entry['path']}"
-                )
-                continue
-            if moved not in shown:
-                unthreadable.append(
-                    f"RF{entry['rf']} - the fixes rewrote {entry['path']}:{entry['line']}, and "
-                    f"its replacement at :{moved} is outside the diff against {args.base}"
-                )
-                continue
             notes[entry["rf"]] = (
                 f"Held at `{entry['path']}:{entry['line']}` as of {entry['at']}. The fixes "
                 "rewrote that line, so this thread sits on what replaced it."
