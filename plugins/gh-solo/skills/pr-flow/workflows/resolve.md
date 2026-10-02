@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for the thread read, the authorisation comment, the resolve mutation and the checks read, `Bash(git:*)` for the push, `Write` for the comment body file, `TaskStop` to end a running watch.
+> **Tools used:** `Bash(gh:*)` for the thread read, the authorisation comment, the resolve mutation and the checks read, `Bash(git:*)` for the push, the fetches and the delta index's log, `Bash(python3:*)` for `scripts/post-review.py` in Step 6, `Write` for the comment body file, `TaskStop` to end a running watch.
 
 End a review round on the owner's word: record the authorisation, resolve the threads it covers, push the fixes that have been waiting, release any finding that was held for that push, index what the push carried, and read the checks. **It ends there.** Merging is a separate word, which its confirm step prints.
 

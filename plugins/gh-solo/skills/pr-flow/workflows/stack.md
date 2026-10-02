@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for the extension and PR queries, `Bash(git:*)` for branch and worktree state.
+> **Tools used:** `Bash(gh:*)` for the extension and PR queries, `Bash(git:*)` for branch and worktree state, `EnterWorktree` to move the session into a sibling stack branch's worktree.
 
 Inspect or move a stack. The `gh-stack` skill is the command reference; this file is the judgement around it.
 

@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` to fetch PR and issue context and to post comments, threads and Reviews, `Agent` to spawn the `reviewer` subagent, `Skill` to enter the `implement` skill for the fixes, `Bash(python3:*)` for `scripts/post-review.py`, `Write` for the payload and body files, `Read` / `Grep` / `Glob` for repository context.
+> **Tools used:** `Bash(gh:*)` to fetch PR and issue context and to post comments, threads and Reviews, `Agent` to spawn the `reviewer` subagent, `Skill` to enter the `implement` skill for the fixes, `Bash(python3:*)` for `scripts/post-review.py`, `Bash(git:*)` for the head reads and the fetch, `Write` for the payload and body files, `Read` / `Grep` / `Glob` for repository context.
 
 Run a review round on a pull request: check what the tracker needs, spawn the reviewer, post what it found, plan and land the fixes, have the fixes checked, and stop at the owner.
 
