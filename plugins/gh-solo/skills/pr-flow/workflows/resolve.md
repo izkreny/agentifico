@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for the thread read, the authorisation comment, the resolve mutation and the checks read, `Bash(git:*)` for the push, `Write` for the comment body file, `TaskStop` to end a running watch.
+> **Tools used:** `Bash(gh:*)` for the thread read, the authorisation comment, the resolve mutation and the checks read, `Bash(git:*)` for the push, the fetches and the delta index's log, `Bash(python3:*)` for `scripts/post-review.py` in Step 6, `Write` for the comment body file, `TaskStop` to end a running watch.
 
 End a review round on the owner's word: record the authorisation, resolve the threads it covers, push the fixes that have been waiting, release any finding that was held for that push, index what the push carried, and read the checks. **It ends there.** Merging is a separate word, which its confirm step prints.
 
@@ -39,7 +39,7 @@ One Conversation comment, posted first, so that no thread is ever resolved befor
 gh pr comment <pr-number> --body-file <body-file>
 ```
 
-Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by *Post caps* in the same file, which counts neither the marker line nor the owner's quoted words - *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
+Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by the cap `references/post-caps.md` owns, which counts neither the marker line nor the owner's quoted words - its *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
 
 ```text
 RESOLVE AUTHORISED: RF1, RF3, RF4
@@ -94,6 +94,7 @@ A round that held a finding reserved its `RF{n}` and gave it no thread, because 
 ```bash
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
+git fetch <remote> <base-branch> --quiet
 python3 <skill-dir>/scripts/post-review.py release --reviews <reviews-file> --comments <listing-file> --disclaimer-file <disclaimer-file> --base <remote>/<base-branch> --out <release-file> --replies-out <replies-file>
 ```
 
@@ -113,7 +114,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F
 
 ### Running it
 
-- **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote is anchored on the line that replaced it, and its thread says where it was held. That needs the replacement to be a line the pull request's own diff shows, context included, since GitHub refuses an anchor outside it, so `--base` names the pull request's base: `<base-branch>` is `gh pr view <pr-number> --json baseRefName`, and a replacement matching the base's own text, more than three lines from any change the branch keeps, is outside that diff and leaves its finding unthreadable. An entry whose line the fixes deleted outright, or whose anchor head this clone does not have, has no line to anchor to, so the script names it and exits 2 rather than posting at a guess.
+- **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote is anchored on the line that replaced it, and its thread says where it was held. Every anchor, rewritten, moved or untouched alike, has to be a line the pull request's own diff shows, context included, since GitHub refuses an anchor outside it and the refusal sinks the whole post, so `--base` names the pull request's base: `<base-branch>` is `gh pr view <pr-number> --json baseRefName`, and the fetch before the script is what makes that ref current, because a stale one puts the merge-base behind GitHub's and passes an anchor GitHub refuses. A line matching the base's own text, more than three lines from any change the branch keeps, is outside that diff and leaves its finding unthreadable, which the script names rather than posting. An entry whose line the fixes deleted outright, or whose anchor head this clone does not have, has no line to anchor to, so the script names it and exits 2 rather than posting at a guess.
 - **The reads come after the push**, never before it, because the whole reason the anchors resolve now is that the push landed. Running this step ahead of Step 5 answers `422` on every held finding.
 
 ### What each id gets
@@ -134,7 +135,7 @@ One Conversation comment naming every hunk the push carried, so what the round's
 git log -p --format='%n::commit %h %s%n%b%n::body-end' <before-head>..HEAD
 ```
 
-`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - the `implement` skill's `fix` workflow requires a fix commit to name each id it closes, and its `Closes` list is that claim - and emit one row per hunk in that commit's diff.
+`<before-head>` is the value Step 5 kept. Per commit, take the `RF{n}` ids its body **claims to close** - Step 3 of the `implement` skill's `../implement/workflows/fix.md` requires a fix commit to name each id it closes on a `Closes:` line, and that line is the claim - and emit one row per hunk in that commit's diff.
 
 **An id the body merely mentions is not one of them:** a commit explaining what it corrects about an earlier fix names that fix's id in prose, and crediting it would put a hunk under a finding that never asked for it. The same trap `scripts/post-review.py` avoids by counting `::RF{n}::` rather than any `RF{n}` it can see. A single `git diff` over the whole span would merge two commits touching one region into a hunk no row could attribute, which is what this comment exists to do.
 
@@ -169,7 +170,7 @@ It hashes the path and not the content, so it survives every commit on the branc
 
 Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the delta index.
 
-**The rows are a record row, so the cap does not bound how many there are.** *Never counted* under *Post caps* in `SKILL.md` excludes "a record row - one line per item, where the length is set by how many items there are rather than by how much was written", which is exactly this. The prose around the table is capped as ever; the table is deliberately uncapped and this comment says so, so nobody shortens it to fit.
+**The rows are a record row, so the cap does not bound how many there are.** *Never counted* in `references/post-caps.md` excludes "a record row - one line per item, where the length is set by how many items there are rather than by how much was written", which is exactly this. The prose around the table is capped as ever; the table is deliberately uncapped and this comment says so, so nobody shortens it to fit.
 
 **It opens no thread, resolves nothing, and assigns no id of any kind.** A Conversation comment rather than inline comments, because an inline comment opens a thread and `workflows/merge.md` refuses on any unresolved one - and a thread created after Step 3 could never be named by an authorisation that was written before it existed. A second id namespace beside `RF{n}` would be read by that thread audit and by the pass count as though it were one, so each would silently count something it was never meant to.
 

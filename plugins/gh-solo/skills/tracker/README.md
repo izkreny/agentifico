@@ -43,7 +43,10 @@ flowchart TD
         J --> K["<b>reviewer</b> agent reads the diff,<br/>findings post as numbered threads"]
         K --> L["fix commits answering them,<br/>committed locally"]
         L --> K2(["<b>you</b> judge the findings"])
-        K2 --> M["squashed to the trunk"]
+        K2 --> K3(["<b>you</b> type <b>rnp</b>,<br/>or say: resolve all and push"])
+        K3 --> L2["the fixes are pushed"]
+        L2 --> K4(["<b>you</b> type <b>merge</b>"])
+        K4 --> M["squashed to the trunk"]
     end
 
     M --> N["the issue closes itself"]

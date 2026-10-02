@@ -67,6 +67,29 @@ echo "a missing required heading fails:"
 check "no ## Steps" 1 "$NAME" "${GOOD/'## Steps'/'## Work'}"
 check "no ## Verification" 1 "$NAME" "${GOOD/'## Verification'/'## Checks'}"
 
+echo "a heading quoted inside a fence is not the section:"
+FENCED_HEADING='# Login form
+
+## Steps
+
+- Write the form.
+
+## Checks
+
+```markdown
+## Verification
+
+- `npm test`
+```
+
+- `npm test`'
+check "a fenced ## Verification" 1 "$NAME" "$FENCED_HEADING"
+check "a fenced ## Steps" 1 "$NAME" "${GOOD/'## Steps'/'## Work
+
+```markdown
+## Steps
+```'}"
+
 echo "a ## Verification with no list item fails:"
 check "only a fenced block and prose" 1 "$NAME" "${GOOD/'- `npm test`'/'Run it.'}"
 NESTED='# Login form
@@ -92,6 +115,15 @@ check "in ## Steps" 1 "$NAME" "${GOOD/'- Write the form.'/'- [ ] Write the form.
 check "in ## Verification" 1 "$NAME" "${GOOD/'- `npm test`'/'- [x] `npm test`'}"
 check "in another section" 1 "$NAME" "${GOOD/'None.'/'* [ ] None.'}"
 check "inside a blockquote" 1 "$NAME" "${GOOD/'- Write the form.'/'> - [ ] Write the form.'}"
+
+echo "a checkbox inside a fence is not a checkbox:"
+check "quoted in a fence" 0 "$NAME" "${GOOD/'npm test
+```'/'npm test
+- [ ] Step 1
+```'}"
+check "quoted in a tilde fence" 0 "$NAME" "${GOOD/'None.'/'~~~
+> - [x] None.
+~~~'}"
 
 echo "a filename off the pattern fails:"
 check "no issue key" 1 "2026-08-16_login-form.md" "$GOOD"

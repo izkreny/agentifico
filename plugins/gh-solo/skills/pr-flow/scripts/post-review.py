@@ -233,8 +233,8 @@ def range_diff(at: str, path: str, root: str) -> str | None:
     return None if proc.returncode != 0 else proc.stdout
 
 
-def diff_lines(base: str, path: str, root: str) -> set[int] | None:
-    """The new-side lines the pull request's diff shows at GitHub's own three lines of context, the only lines GitHub lets a thread anchor to."""
+def diff_lines(base: str, path: str, root: str, side: str = "RIGHT") -> set[int] | None:
+    """The lines on one side that the pull request's diff shows at GitHub's own three lines of context, the only lines GitHub lets a thread anchor to."""
     proc = subprocess.run(
         ["git", "diff", f"{base}...HEAD", "--unified=3", "--", path],
         capture_output=True, text=True, cwd=root,
@@ -242,7 +242,9 @@ def diff_lines(base: str, path: str, root: str) -> set[int] | None:
     if proc.returncode != 0:
         return None
     lines: set[int] = set()
-    for match in re.finditer(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", proc.stdout, re.M):
+    hunk = (r"^@@ -(\d+)(?:,(\d+))? \+\d+(?:,\d+)? @@" if side == "LEFT"
+            else r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+    for match in re.finditer(hunk, proc.stdout, re.M):
         start = int(match.group(1))
         length = 1 if match.group(2) is None else int(match.group(2))
         lines.update(range(start, start + length))
@@ -250,7 +252,7 @@ def diff_lines(base: str, path: str, root: str) -> set[int] | None:
 
 
 def threaded_ids(bodies: list[str]) -> set[int]:
-    """Only a line-opening id counts, because every convention here names ids in prose and reading any `RF{n}` would drop the held finding it names."""
+    """Takes thread roots only, because a reply naming a held id at the start of a line would otherwise stand in for the thread that id never got."""
     found: set[int] = set()
     for body in bodies:
         first = rf_id(body)
@@ -709,7 +711,7 @@ def passes(args: argparse.Namespace) -> int:
     return 0
 
 
-def comment_bodies(path: Path) -> list[str]:
+def comment_listing(path: Path) -> list[dict]:
     """The listing is the flat array `gh api --paginate` writes without `--slurp`, since `--slurp` nests one array per page."""
     posted = load_json(path, "comments listing")
     wrong_shape = (
@@ -722,7 +724,16 @@ def comment_bodies(path: Path) -> list[str]:
     # A non-object element is the `--slurp` shape, and filtering it out would answer 0 like a pull request with no round.
     if any(not isinstance(c, dict) for c in posted):
         sys.exit(wrong_shape)
-    return [c["body"] for c in posted if isinstance(c.get("body"), str)]
+    return posted
+
+
+def comment_bodies(path: Path) -> list[str]:
+    return [c["body"] for c in comment_listing(path) if isinstance(c.get("body"), str)]
+
+
+def root_bodies(path: Path) -> list[str]:
+    return [c["body"] for c in comment_listing(path)
+            if isinstance(c.get("body"), str) and c.get("in_reply_to_id") is None]
 
 
 def review_bodies(path: Path) -> list[str]:
@@ -746,7 +757,7 @@ def release(args: argparse.Namespace) -> int:
     bodies = review_bodies(Path(args.reviews))
     entries = held_entries(bodies)
     follow_ups = followup_entries(bodies)
-    threaded = threaded_ids(comment_bodies(Path(args.comments)))
+    threaded = threaded_ids(root_bodies(Path(args.comments)))
 
     problems: list[str] = []
     if not disclaimer.startswith(DISCLAIMER_PREFIX):
@@ -796,34 +807,44 @@ def release(args: argparse.Namespace) -> int:
     notes: dict[int, str] = {}
     unthreadable: list[str] = []
     for entry in unique:
-        diff = range_diff(entry["at"], entry["path"], root)
-        if diff is None:
+        if entry["side"] == "LEFT":
+            # A LEFT anchor counts base lines, which no commit on the branch can move or rewrite.
+            moved, rewritten = entry["line"], False
+        else:
+            diff = range_diff(entry["at"], entry["path"], root)
+            if diff is None:
+                unthreadable.append(
+                    f"RF{entry['rf']} - git could not diff {entry['at']}..HEAD for {entry['path']}"
+                )
+                continue
+            shifted = shift_line(diff, entry["line"])
+            if shifted is None:
+                unthreadable.append(
+                    f"RF{entry['rf']} - the fixes deleted {entry['path']}:{entry['line']} "
+                    "and wrote nothing in its place"
+                )
+                continue
+            moved, rewritten = shifted
+        # Every anchor is tested, not only a rewritten one: one anchor outside the diff refuses the whole atomic post, taking every other held finding's thread with it.
+        shown = diff_lines(args.base, entry["path"], root, entry["side"])
+        if shown is None:
             unthreadable.append(
-                f"RF{entry['rf']} - git could not diff {entry['at']}..HEAD for {entry['path']}"
+                f"RF{entry['rf']} - git could not diff {args.base}...HEAD for {entry['path']}"
             )
             continue
-        shifted = shift_line(diff, entry["line"])
-        if shifted is None:
+        if moved not in shown:
+            if rewritten:
+                where = (f"the fixes rewrote {entry['path']}:{entry['line']}, and "
+                         f"its replacement at :{moved}")
+            elif moved != entry["line"]:
+                where = f"the fixes moved {entry['path']}:{entry['line']} to :{moved}, which"
+            else:
+                where = f"{entry['path']}:{entry['line']}"
             unthreadable.append(
-                f"RF{entry['rf']} - the fixes deleted {entry['path']}:{entry['line']} "
-                "and wrote nothing in its place"
+                f"RF{entry['rf']} - {where} is outside the diff against {args.base}"
             )
             continue
-        moved, rewritten = shifted
         if rewritten:
-            # One anchor outside the diff refuses the whole atomic post, taking every other held finding's thread with it.
-            shown = diff_lines(args.base, entry["path"], root)
-            if shown is None:
-                unthreadable.append(
-                    f"RF{entry['rf']} - git could not diff {args.base}...HEAD for {entry['path']}"
-                )
-                continue
-            if moved not in shown:
-                unthreadable.append(
-                    f"RF{entry['rf']} - the fixes rewrote {entry['path']}:{entry['line']}, and "
-                    f"its replacement at :{moved} is outside the diff against {args.base}"
-                )
-                continue
             notes[entry["rf"]] = (
                 f"Held at `{entry['path']}:{entry['line']}` as of {entry['at']}. The fixes "
                 "rewrote that line, so this thread sits on what replaced it."
@@ -925,7 +946,7 @@ def report_unthreadable(unthreadable: list[str]) -> int:
 def unthreaded(args: argparse.Namespace) -> int:
     held = {e["rf"] for e in held_entries(review_bodies(Path(args.reviews)))
             if isinstance(e.get("rf"), int)}
-    missing = sorted(held - threaded_ids(comment_bodies(Path(args.comments))))
+    missing = sorted(held - threaded_ids(root_bodies(Path(args.comments))))
     if missing:
         print(
             "post-review: reserved with no thread: " + ", ".join(f"RF{n}" for n in missing),
@@ -1000,8 +1021,16 @@ def verify(args: argparse.Namespace) -> int:
     return 0
 
 
+class Parser(argparse.ArgumentParser):
+    """Exit 1 on a usage error, because 2 is the refusal code two gates read as a finding with no ids behind it."""
+
+    def error(self, message: str) -> None:
+        self.print_usage(sys.stderr)
+        sys.exit(f"{self.prog}: error: {message}")
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(
+    parser = Parser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -1061,8 +1090,8 @@ def main() -> int:
     r.add_argument(
         "--base",
         required=True,
-        help="the pull request's base as <remote>/<branch>; a rewritten line is anchored "
-             "only where the diff against it shows its replacement",
+        help="the pull request's base as <remote>/<branch>; every held finding is anchored "
+             "only where the diff against it shows the line, since GitHub refuses any other",
     )
     r.add_argument("--out", required=True, help="where to write the payload JSON")
     r.add_argument(

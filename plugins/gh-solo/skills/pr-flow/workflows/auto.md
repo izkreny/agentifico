@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(git:*)` for Step 1's branch check and Step 3's sync commits and pushes, `Bash(gh:*)` for Step 2's preflight and Step 3's thread and checks reads, `Write` / `Edit` for the plan amendment and the body's scratch copy, `Skill` to enter the `implement` skill at Step 3. Everything else belongs to the workflows this file chains, which run unchanged under their own tool lists.
+> **Tools used:** `Bash(git:*)` for Step 1's branch check, `Bash(gh:*)` for Step 2's PR read, `Skill` to enter the `implement` skill at Step 3, whose own grant runs the plan settle, the commits and the pushes. Everything else belongs to the workflows this file chains, which run unchanged under their own tool lists.
 
 The entrances here run the lifecycle's workflows back to back, removing the waits between them - never the checks inside them. `auto` starts at the issue; `go` starts after the owner has read the plan. Each ends at the same stop: the review protocol's step 6, the owner judging the findings, because that is the only step in the whole span that belongs to them alone.
 

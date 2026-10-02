@@ -1,8 +1,23 @@
-# The raw scope, because Vale's markdown parse turns a task-list marker into an element the text scope never sees. A blockquote's > markers may come first, since GitHub renders a checkbox there too.
-extends: existence
+# A script rather than a regex, because a checkbox quoted inside a fenced block renders as text on GitHub and must pass, while the raw scope is still needed since Vale's markdown parse turns a task-list marker into an element the text scope never sees. A blockquote's > markers may come first, since GitHub renders a checkbox there too.
+extends: script
 message: "A plan carries no checkboxes: write '%s' as a plain bullet, per Step 2 of workflows/open.md in the pr-flow skill."
 level: error
 scope: raw
-nonword: true
-tokens:
-  - '(?m)^[ \t]*(?:>[ \t]*)*(?:[-*+]|\d+[.)])[ \t]+\[[ xX]\]'
+script: |
+  text := import("text")
+  matches := []
+  pos := 0
+  fence := ""
+  for line in text.split(scope, "\n") {
+    stripped := text.trim_left(line, " \t")
+    marker := text.re_find("^(`{3,}|~{3,})", stripped)
+    if fence != "" {
+      if marker != undefined && text.has_prefix(marker[0][1].text, fence) && text.trim_space(text.substr(stripped, len(marker[0][1].text))) == "" { fence = "" }
+    } else if marker != undefined {
+      fence = marker[0][1].text
+    } else {
+      box := text.re_find(`^[ \t]*(?:>[ \t]*)*(?:[-*+]|\d+[.)])[ \t]+\[[ xX]\]`, line)
+      if box != undefined { matches = append(matches, {begin: pos + box[0][0].begin, end: pos + box[0][0].end}) }
+    }
+    pos += len(line) + 1
+  }

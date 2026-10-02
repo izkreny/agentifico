@@ -51,7 +51,7 @@ Every post this plugin makes lands under **your** GitHub login, because it uses 
 That line is not decoration. The mechanisms that test it:
 
 - the watch filter in `pr-flow`'s watch script, which without it would re-emit the plugin's own replies as fresh comments and answer itself forever
-- the merge gate, which treats a Review whose body opens with it as the proof that the review pass actually ran
+- the merge gate, which looks under it for the `via` line naming a round record before it believes a review pass ran, since every agent post opens with the disclaimer and the convention check posts one on a diff nobody read
 - the thread gate, which reads a comment *without* it as yours, and refuses to merge a thread you never replied in
 - the review workflow, recognising its own records from a previous pass
 
@@ -87,4 +87,4 @@ It asks rather than refuses, deliberately: a plugin's hook runs on every shell c
 
 ## What it will not do
 
-It will not mark a draft ready, merge, push to the trunk, edit a plan file after approval, resolve a review thread, or tick a checkbox on your behalf. Those are the decisions the flow exists to protect, and each of them is a judgement no record of the work can stand in for.
+It will not mark a draft ready, merge, push to the trunk, rewrite a plan file after approval, resolve a review thread, or tick a checkbox on your behalf. A plan edit it does make after approval is a new commit carrying a decision you settled in a plan thread, never a rewrite of what you approved. Those are the decisions the flow exists to protect, and each of them is a judgement no record of the work can stand in for.

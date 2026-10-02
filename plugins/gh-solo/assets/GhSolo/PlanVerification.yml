@@ -1,7 +1,22 @@
-# The raw scope, because occurrence counts per scope block, and on heading.h2 every other heading would fail it.
-extends: occurrence
+# A script rather than an occurrence count, because a fenced block quoting the heading would satisfy a raw-scope count with no real section behind it.
+extends: script
 message: "A plan needs a '## Verification' section, per Step 2 of workflows/open.md in the pr-flow skill."
 level: error
 scope: raw
-min: 1
-token: '(?m)^## Verification[ \t]*$'
+script: |
+  text := import("text")
+  matches := []
+  found := false
+  fence := ""
+  for line in text.split(scope, "\n") {
+    stripped := text.trim_left(line, " \t")
+    marker := text.re_find("^(`{3,}|~{3,})", stripped)
+    if fence != "" {
+      if marker != undefined && text.has_prefix(marker[0][1].text, fence) && text.trim_space(text.substr(stripped, len(marker[0][1].text))) == "" { fence = "" }
+    } else if marker != undefined {
+      fence = marker[0][1].text
+    } else if text.re_match(`^## Verification[ \t]*$`, line) {
+      found = true
+    }
+  }
+  if !found { matches = append(matches, {begin: 0, end: 1}) }

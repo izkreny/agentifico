@@ -38,6 +38,22 @@ check("it truncates", w.one_line("x" * 200), "x" * 140)
 check("empty survives", w.one_line(""), "")
 check("None survives", w.one_line(None), "")
 
+print("\nthe boundary second is admitted, and the key dedupes the repeat:")
+# `since` is stamped before the requests, so a record posted later in that same second carries its timestamp and would be skipped for good by a strict comparison.
+SINCE = "2026-10-02T10:00:00Z"
+real_gh_json = w.gh_json
+w.gh_json = lambda *a, **k: [{"id": 5, "submitted_at": SINCE, "body": "fine by me",
+                              "state": "COMMENTED", "user": {"login": "o"}}]
+got = w.review_bodies(1, SINCE)
+check("a review stamped at since emits", [k for k, _ in got], ["5@" + SINCE])
+w.gh_json = lambda *a, **k: {"data": {"repository": {"pullRequest": {"reviewThreads": {"nodes": [
+    {"path": "a.py", "line": 3, "comments": {"nodes": [{"databaseId": 9, "reactions": {"nodes": [
+        {"content": "THUMBS_UP", "createdAt": SINCE, "user": {"login": "o"}}]}}]}}]}}}}}
+got = w.reactions(1, SINCE)
+check("a reaction stamped at since emits", [k for k, _ in got], ["9/THUMBS_UP/o@" + SINCE])
+check("and its key is the same next cycle", [k for k, _ in w.reactions(1, SINCE)], [k for k, _ in got])
+w.gh_json = real_gh_json
+
 print("\nfailure is skipped rather than fatal:")
 # A transient API error must not end a watch the owner is relying on mid-review.
 w.subprocess.run = lambda *a, **k: (_ for _ in ()).throw(OSError("no gh"))

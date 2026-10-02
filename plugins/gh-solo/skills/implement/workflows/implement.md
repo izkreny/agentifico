@@ -87,7 +87,7 @@ Then the record: what landed (commits), the box states on PR and issue, CI state
 
 **Same content is a requirement rather than a convenience**: the `auto` chain relays this comment verbatim in place of the printed handoff, so a comment that says less than the print leaves the chain relaying a different account from the one this workflow produced. The comment carries a `via` line and so falls under *Post caps* in the `pr-flow` skill's `SKILL.md`; the print carries none and is not itself capped, but the same-content requirement binds them together, so in practice the cap sets each.
 
-What the cap leaves untouched is the record itself: the commits, the box states and any unrunnable gate are a record row, which *Never counted* excludes, so their length follows how many there are. Keep both the record rather than a second copy of the PR, with a pointer at the divergence comments and never a restatement of them.
+What the cap leaves untouched is the record itself: the commits, the box states and any unrunnable gate are a record row, which *Never counted* in the `pr-flow` skill's `../pr-flow/references/post-caps.md` excludes, so their length follows how many there are. Keep both the record rather than a second copy of the PR, with a pointer at the divergence comments and never a restatement of them.
 
 It lands in the Conversation tab, which is right: it expects no answer, and it opens with the disclaimer, so a later `discuss` round's read excludes it rather than treating it as the owner speaking.
 
