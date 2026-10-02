@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup, `Bash(python3:*)` for `scripts/post-review.py unthreaded` in Step 1, `ExitWorktree` for leaving the branch's worktree in Step 4.
 
-Land a reviewed PR on `main` and clean up after it. This is the last step of a branch's life: `workflows/open.md` opened it, `workflows/ready.md` admitted it to review, `workflows/review.md` prepared and recorded the review, and this ends it. The repository settings and branch protection it assumes are per-repository and checked once, in `references/repo-settings.md`, never on every merge.
+Land a reviewed PR on `main` and clean up after it. This is the last step of a branch's life: `workflows/open.md` opened it, `workflows/ready.md` admitted it to review, `workflows/review.md` prepared and recorded the review, and this ends it. The repository settings and branch protection it assumes are per-repository, in `references/repo-settings.md`: read it when a repository first takes this flow, and again when a merge lands with a squash subject or body other than the PR's, or leaves the remote branch standing, since each is the symptom of a setting it names.
 
 ## Step 1 - Confirm it was actually reviewed
 
