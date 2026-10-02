@@ -168,7 +168,7 @@ git remote prune <remote>
 
 ### Whoever holds `main`
 
-- **Confirm the remote side where the setting was never checked for this repository.** `gh api repos/{owner}/{repo}/branches/<branch>` returning 404 is the check, `git push <remote> --delete <branch>` the fix. `<remote>` per the remote-name convention in `SKILL.md`.
+- **Confirm the remote side on every merge**, since no run records whether the setting was ever checked: `gh api repos/{owner}/{repo}/branches/<branch>` returning 404 is the check, `git push <remote> --delete <branch>` the fix. `<remote>` per the remote-name convention in `SKILL.md`.
 - **Nothing in this step can undo the merge, and no failure here is a reason to re-run it.** By the time it runs, the squash and the issue close have happened, and the remote branch is gone wherever the setting deletes it. On any error, verify with `gh pr view <pr-number> --json state,mergedAt,mergeCommit`, report which part of the cleanup is still owed, and leave `gh pr merge` alone.
 
 ## Step 5 - Confirm the issue closed
