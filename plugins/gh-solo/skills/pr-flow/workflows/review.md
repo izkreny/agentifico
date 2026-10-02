@@ -77,7 +77,7 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 4. **Check the conventions**, per *Convention checks* in this file, and post the failures as one Review:
 
    ```bash
-   gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -f body='...'
+   gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -F body=@<body-file>
    ```
 
    `COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked. **Not the `pulls/<pr-number>/comments` endpoint**, which anchors to a file and line, where a convention finding has nowhere to anchor. Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` review, convention check; the failure list is a record row, which *Never counted* in `references/post-caps.md` excludes.

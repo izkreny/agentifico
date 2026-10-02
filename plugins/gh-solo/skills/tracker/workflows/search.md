@@ -66,7 +66,7 @@ gh search issues --assignee=@me --state=open --json number,title,labels,reposito
 ```bash
 gh issue list --state open --limit 100 \
   --search "no:assignee -label:epic -label:blocked -label:draft" \
-  --json number,title,labels,milestone,parent,blockedBy
+  --json number,title,labels,milestone,parent,blockedBy,blocking
 ```
 
 `no:assignee` excludes work already started, since that is what `@me` records per *Quick reference* in `references/formats.md` - `-label:epic` drops containers, because an epic is finished by its children rather than worked directly, `-label:blocked` drops externally blocked work, and `-label:draft` drops unfinished descriptions, because a draft is finished, not started, per *Drafts* in the standards. **None of them catches issue-to-issue dependencies.** Filter `blockedBy` yourself: drop any candidate with a blocker that is still open. Skipping this is how a task gets handed over that cannot actually be started.

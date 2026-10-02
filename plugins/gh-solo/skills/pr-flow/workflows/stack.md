@@ -110,10 +110,10 @@ gh stack checkout <stack-number|pr-number|pr-url>   # unless already tracked her
 gh stack add <branch>
 ```
 
-Only when the parent is in no stack at all does the plain path apply, and that opens a base-only stack which `gh stack link` can promote later:
+Only when the parent is in no stack at all does the plain path apply, and that opens a base-only stack which `gh stack link` can promote later. The command is Step 4 of `workflows/open.md` with `--base <parent>` added and nothing taken away, since a child opened without `--draft` is born ready and `workflows/review.md` lists it for a round while it holds only a plan:
 
 ```bash
-gh pr create --base <parent> --assignee @me
+gh pr create --draft --base <parent> --assignee @me --title "{type}({scope}): {issue title}" --body-file <file>
 ```
 
 Either way the PR body needs `Closes #{issue-number}` for the issue the branch belongs to.

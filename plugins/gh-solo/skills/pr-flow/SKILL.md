@@ -29,7 +29,7 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 - Branch format `{type}/GHI-{issue-number}_{slug}`, one issue per branch. **Defined under *Quick reference* in `../tracker/references/formats.md`**, which owns it because the format encodes an issue key, alongside the commit header and the PR title; the `{type}` vocabulary itself is one section further on, under *Branch and commit type*. Nothing here chooses a type; this skill only ever parses the number out of a branch that already exists, and the parse is stated here for this skill: drop everything up to and including the first `/`, take everything before the first `_`, strip the `GHI-` prefix - `feat/GHI-50_login-form` gives `50`. Follow the repository's existing names where they differ.
 - **A branch's PR is opened as a draft at the start of the work, not the end**, carrying the plan file. `workflows/open.md` has the sequence; `gh pr ready` is what later admits it to the review loop.
 - **HARD RULE: never commit or push directly to `main`.** `gh stack merge` lands PRs; pushing `main` yourself stays forbidden even when it would be faster.
-- New dependent work is cut from the parent branch's tip, then `gh stack add` when tracked, or `gh pr create --base <parent>` when not.
+- New dependent work is cut from the parent branch's tip, then `gh stack add` when tracked, or the Step 4 command of `workflows/open.md` with `--base <parent>` added when not.
 
 ### The remote, and the checks after a push
 

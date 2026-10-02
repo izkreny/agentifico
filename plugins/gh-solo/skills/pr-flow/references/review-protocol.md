@@ -68,7 +68,7 @@ One reply per finding saying what change would close it, with code in a plain fe
 
 ### 4. Fix, commit, report
 
-The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes, and **nothing is pushed** - step 7 is the round's only push, and says why. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
+The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes on a `Closes:` line in its body, and **nothing is pushed** - step 7 is the round's only push, and says why. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
 
 - **Steps 3 and 4 are two posts and are never merged into one**, even though nothing reads them in between. The gap between the plan and the result is where a departure from the plan is visible; combined, it has nowhere to show.
 - **The fix workflow's carve-out applies to every fix in this block**: a fix the owner might independently reject gets its own commit. There it is the exception; here it is the rule, because nothing in this block has been judged yet.
