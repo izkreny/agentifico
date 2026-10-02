@@ -25,7 +25,7 @@ INSTALL = f"Install Vale {MIN_VALE[0]}.{MIN_VALE[1]} or later, per Requirements 
 
 FILENAME = re.compile(r"^(\d{4}-\d{2}-\d{2})_GHI-[1-9]\d*_[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
 
-# WHY: Vale reports a missing occurrence on line 1, which points at nothing, so these alerts print without a line.
+# WHY: the heading rules report a missing section at offset 0, which is line 1 and points at nothing, so these alerts print without a line.
 WHOLE_FILE_RULES = {"GhSolo.PlanSteps", "GhSolo.PlanVerification"}
 
 
