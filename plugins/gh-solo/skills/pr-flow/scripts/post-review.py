@@ -233,8 +233,8 @@ def range_diff(at: str, path: str, root: str) -> str | None:
     return None if proc.returncode != 0 else proc.stdout
 
 
-def diff_lines(base: str, path: str, root: str) -> set[int] | None:
-    """The new-side lines the pull request's diff shows at GitHub's own three lines of context, the only lines GitHub lets a thread anchor to."""
+def diff_lines(base: str, path: str, root: str, side: str = "RIGHT") -> set[int] | None:
+    """The lines on one side that the pull request's diff shows at GitHub's own three lines of context, the only lines GitHub lets a thread anchor to."""
     proc = subprocess.run(
         ["git", "diff", f"{base}...HEAD", "--unified=3", "--", path],
         capture_output=True, text=True, cwd=root,
@@ -242,7 +242,9 @@ def diff_lines(base: str, path: str, root: str) -> set[int] | None:
     if proc.returncode != 0:
         return None
     lines: set[int] = set()
-    for match in re.finditer(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", proc.stdout, re.M):
+    hunk = (r"^@@ -(\d+)(?:,(\d+))? \+\d+(?:,\d+)? @@" if side == "LEFT"
+            else r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+    for match in re.finditer(hunk, proc.stdout, re.M):
         start = int(match.group(1))
         length = 1 if match.group(2) is None else int(match.group(2))
         lines.update(range(start, start + length))
@@ -805,22 +807,26 @@ def release(args: argparse.Namespace) -> int:
     notes: dict[int, str] = {}
     unthreadable: list[str] = []
     for entry in unique:
-        diff = range_diff(entry["at"], entry["path"], root)
-        if diff is None:
-            unthreadable.append(
-                f"RF{entry['rf']} - git could not diff {entry['at']}..HEAD for {entry['path']}"
-            )
-            continue
-        shifted = shift_line(diff, entry["line"])
-        if shifted is None:
-            unthreadable.append(
-                f"RF{entry['rf']} - the fixes deleted {entry['path']}:{entry['line']} "
-                "and wrote nothing in its place"
-            )
-            continue
-        moved, rewritten = shifted
+        if entry["side"] == "LEFT":
+            # A LEFT anchor counts base lines, which no commit on the branch can move or rewrite.
+            moved, rewritten = entry["line"], False
+        else:
+            diff = range_diff(entry["at"], entry["path"], root)
+            if diff is None:
+                unthreadable.append(
+                    f"RF{entry['rf']} - git could not diff {entry['at']}..HEAD for {entry['path']}"
+                )
+                continue
+            shifted = shift_line(diff, entry["line"])
+            if shifted is None:
+                unthreadable.append(
+                    f"RF{entry['rf']} - the fixes deleted {entry['path']}:{entry['line']} "
+                    "and wrote nothing in its place"
+                )
+                continue
+            moved, rewritten = shifted
         # Every anchor is tested, not only a rewritten one: one anchor outside the diff refuses the whole atomic post, taking every other held finding's thread with it.
-        shown = diff_lines(args.base, entry["path"], root)
+        shown = diff_lines(args.base, entry["path"], root, entry["side"])
         if shown is None:
             unthreadable.append(
                 f"RF{entry['rf']} - git could not diff {args.base}...HEAD for {entry['path']}"

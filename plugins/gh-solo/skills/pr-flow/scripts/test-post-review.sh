@@ -719,6 +719,22 @@ ok = proc.returncode == 2 and not out.exists() and "RF9" in proc.stderr and "out
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} an untouched line outside the diff  (exit {proc.returncode})")
 
+# A LEFT anchor counts base lines, which no fix can move, and GitHub shows it only where the diff deletes or surrounds it.
+repo7, at7 = git_fixture("left", BASE, BASE[:19] + BASE[40:], BASE[:19] + BASE[40:] + ["appended"])
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at7, line=30, side="LEFT"))], [],
+                        name="release-left", cwd=str(repo7))
+ok = proc.returncode == 0 and out.exists()
+if ok:
+    comment = json.loads(out.read_text(encoding="utf-8"))["comments"][0]
+    ok = comment["line"] == 30 and comment["side"] == "LEFT"
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a LEFT line inside a deleted block threads at its base number  (exit {proc.returncode})")
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at7, line=10, side="LEFT"))], [],
+                        name="release-left-outside", cwd=str(repo7))
+ok = proc.returncode == 2 and not out.exists() and "RF9" in proc.stderr and "outside the diff" in proc.stderr
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a LEFT line the diff does not show  (exit {proc.returncode})")
+
 # A replacement that restores the base's own text is outside the pull request's diff, where GitHub refuses the anchor and sinks the whole atomic post.
 restored_branch = BASE[:41] + ["branch text"] + BASE[42:]
 repo3, at3 = git_fixture("restore", BASE, restored_branch, BASE)
