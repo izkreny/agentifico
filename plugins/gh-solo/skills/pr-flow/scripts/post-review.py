@@ -195,12 +195,13 @@ def unpushed_paths(text: str, problems: list[str]) -> set[str]:
     return paths
 
 
-def shift_line(diff_text: str, line: int) -> int | None:
-    """`None` where the fixes rewrote the line itself, because nothing can say where such a finding belongs."""
+def shift_line(diff_text: str, line: int) -> tuple[int, bool] | None:
+    """The line now, and whether the fixes rewrote it; `None` where they deleted it and wrote nothing in its place."""
     offset = 0
     for match in re.finditer(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@", diff_text, re.M):
         old_start = int(match.group(1))
         old_len = 1 if match.group(2) is None else int(match.group(2))
+        new_start = int(match.group(3))
         new_len = 1 if match.group(4) is None else int(match.group(4))
         # `-a,0` is a pure insertion *after* old line a, so it never covers a line itself.
         if old_len == 0:
@@ -209,8 +210,11 @@ def shift_line(diff_text: str, line: int) -> int | None:
         elif old_start + old_len <= line:
             offset += new_len - old_len
         elif old_start <= line:
-            return None
-    return line + offset
+            if new_len == 0:
+                return None
+            # The replacement is where the fix that answered the finding now sits, and clamping keeps a line from a shrunk block inside it.
+            return new_start + min(line - old_start, new_len - 1), True
+    return line + offset, False
 
 
 def repo_root() -> str | None:
@@ -773,32 +777,45 @@ def release(args: argparse.Namespace) -> int:
         )
 
     anchored: list[dict] = []
+    notes: dict[int, str] = {}
+    unthreadable: list[str] = []
     for entry in unique:
         diff = range_diff(entry["at"], entry["path"], root)
         if diff is None:
-            print(
-                f"post-review: RF{entry['rf']} skipped - git could not diff {entry['at']}"
-                f"..HEAD for {entry['path']}"
+            unthreadable.append(
+                f"RF{entry['rf']} - git could not diff {entry['at']}..HEAD for {entry['path']}"
             )
             continue
-        moved = shift_line(diff, entry["line"])
-        if moved is None:
-            print(
-                f"post-review: RF{entry['rf']} skipped - the fixes rewrote "
-                f"{entry['path']}:{entry['line']}, so its line cannot be brought forward"
+        shifted = shift_line(diff, entry["line"])
+        if shifted is None:
+            unthreadable.append(
+                f"RF{entry['rf']} - the fixes deleted {entry['path']}:{entry['line']} "
+                "and wrote nothing in its place"
             )
             continue
-        if moved != entry["line"]:
+        moved, rewritten = shifted
+        if rewritten:
+            notes[entry["rf"]] = (
+                f"Held at `{entry['path']}:{entry['line']}` as of {entry['at']}. The fixes "
+                "rewrote that line, so this thread sits on what replaced it."
+            )
+            print(
+                f"post-review: RF{entry['rf']} rewritten {entry['path']}:{entry['line']}"
+                f" -> :{moved}, its replacement"
+            )
+        elif moved != entry["line"]:
             print(
                 f"post-review: RF{entry['rf']} moved {entry['path']}:{entry['line']}"
                 f" -> :{moved}"
             )
         anchored.append({**entry, "line": moved})
 
-    if not anchored:
+    if not anchored and not unthreadable:
         print("post-review: nothing to release")
         return 0
     unique = anchored
+    if not anchored:
+        return report_unthreadable(unthreadable)
 
     rows = [
         f"- ::RF{e['rf']}:: {SEVERITIES[e['severity']]} {e['severity']} {e['path']}:{e['line']}"
@@ -816,7 +833,8 @@ def release(args: argparse.Namespace) -> int:
                 "path": e["path"],
                 "line": e["line"],
                 "side": e["side"],
-                "body": finding_body(e, e["rf"], disclaimer, "released finding"),
+                "body": finding_body(e, e["rf"], disclaimer, "released finding")
+                + (f"\n\n{notes[e['rf']]}" if e["rf"] in notes else ""),
             }
             for e in unique
         ],
@@ -860,6 +878,32 @@ def release(args: argparse.Namespace) -> int:
             + ", ".join(f"RF{n}" for n in missing)
             + " - their threads open carrying the finding alone"
         )
+    return report_unthreadable(unthreadable) if unthreadable else 0
+
+
+def report_unthreadable(unthreadable: list[str]) -> int:
+    """Exit 2 rather than a skip line, because a reserved id with no thread is one the merge gate refuses on."""
+    print(
+        f"post-review: {len(unthreadable)} held finding(s) cannot be threaded, and merge "
+        "refuses until each has a thread:",
+        file=sys.stderr,
+    )
+    for line in unthreadable:
+        print(f"  {line}", file=sys.stderr)
+    return 2
+
+
+def unthreaded(args: argparse.Namespace) -> int:
+    held = {e["rf"] for e in held_entries(review_bodies(Path(args.reviews)))
+            if isinstance(e.get("rf"), int)}
+    missing = sorted(held - threaded_ids(comment_bodies(Path(args.comments))))
+    if missing:
+        print(
+            "post-review: reserved with no thread: " + ", ".join(f"RF{n}" for n in missing),
+            file=sys.stderr,
+        )
+        return 2
+    print(f"post-review: every reserved id has a thread ({len(held)} held)")
     return 0
 
 
@@ -1042,6 +1086,19 @@ def main() -> int:
              "and every discarded one leaves its marker here and nowhere else",
     )
 
+    u = sub.add_parser("unthreaded", help="every held RF id that has no thread yet")
+    u.add_argument(
+        "--reviews",
+        required=True,
+        help="the pull request's reviews, read with `gh api --paginate`; a held id is "
+             "reserved in a review body and nowhere else",
+    )
+    u.add_argument(
+        "--comments",
+        required=True,
+        help="the pull request's inline comments, read with `gh api --paginate`",
+    )
+
     h = sub.add_parser("highest-id", help="the highest RF id already on the pull request")
     h.add_argument(
         "--comments",
@@ -1059,7 +1116,7 @@ def main() -> int:
     args = parser.parse_args()
     return {
         "build": build, "release": release, "followup": followup,
-        "verify": verify, "highest-id": highest_id,
+        "verify": verify, "highest-id": highest_id, "unthreaded": unthreaded,
         "discard": discard, "passes": passes,
     }[args.mode](args)
 
