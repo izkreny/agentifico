@@ -233,6 +233,22 @@ def range_diff(at: str, path: str, root: str) -> str | None:
     return None if proc.returncode != 0 else proc.stdout
 
 
+def added_lines(base: str, path: str, root: str) -> set[int] | None:
+    """The `+` lines of the pull request's own diff, the only lines GitHub lets a rewritten finding's thread anchor to."""
+    proc = subprocess.run(
+        ["git", "diff", f"{base}...HEAD", "--unified=0", "--", path],
+        capture_output=True, text=True, cwd=root,
+    )
+    if proc.returncode != 0:
+        return None
+    lines: set[int] = set()
+    for match in re.finditer(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", proc.stdout, re.M):
+        start = int(match.group(1))
+        length = 1 if match.group(2) is None else int(match.group(2))
+        lines.update(range(start, start + length))
+    return lines
+
+
 def threaded_ids(bodies: list[str]) -> set[int]:
     """Only a line-opening id counts, because every convention here names ids in prose and reading any `RF{n}` would drop the held finding it names."""
     found: set[int] = set()
@@ -795,6 +811,19 @@ def release(args: argparse.Namespace) -> int:
             continue
         moved, rewritten = shifted
         if rewritten:
+            # One anchor outside the diff refuses the whole atomic post, taking every other held finding's thread with it.
+            added = added_lines(args.base, entry["path"], root)
+            if added is None:
+                unthreadable.append(
+                    f"RF{entry['rf']} - git could not diff {args.base}...HEAD for {entry['path']}"
+                )
+                continue
+            if moved not in added:
+                unthreadable.append(
+                    f"RF{entry['rf']} - the fixes rewrote {entry['path']}:{entry['line']}, and "
+                    f"its replacement at :{moved} is outside the diff against {args.base}"
+                )
+                continue
             notes[entry["rf"]] = (
                 f"Held at `{entry['path']}:{entry['line']}` as of {entry['at']}. The fixes "
                 "rewrote that line, so this thread sits on what replaced it."
@@ -1028,6 +1057,12 @@ def main() -> int:
         "--disclaimer-file",
         required=True,
         help="file holding the AI disclaimer line; must open with '> 🤖'",
+    )
+    r.add_argument(
+        "--base",
+        required=True,
+        help="the pull request's base as <remote>/<branch>; a rewritten line is anchored "
+             "only where its replacement is a changed line of the diff against it",
     )
     r.add_argument("--out", required=True, help="where to write the payload JSON")
     r.add_argument(

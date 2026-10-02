@@ -167,7 +167,7 @@ def followup_review(*entries):
     return {"body": "> \U0001f916 h\n\nHeld follow-up.\n\n```json\n" + block + "\n```"}
 
 
-def run_release(reviews, comments, disclaimer=None, name="case", cwd=None):
+def run_release(reviews, comments, disclaimer=None, name="case", cwd=None, base="HEAD~1"):
     r = work / f"{name}.reviews.json"
     c = work / f"{name}.comments.json"
     out = work / f"{name}.release.json"
@@ -178,7 +178,7 @@ def run_release(reviews, comments, disclaimer=None, name="case", cwd=None):
         ["python3", script, "release",
          "--reviews", str(r), "--comments", str(c),
          "--disclaimer-file", str(disclaimer or good_disclaimer),
-         "--out", str(out), "--replies-out", str(replies)],
+         "--out", str(out), "--replies-out", str(replies), "--base", base],
         capture_output=True, text=True, cwd=cwd)
     return proc, out, replies
 
@@ -219,12 +219,13 @@ def pass_review(*, marker=True):
     return {"body": body}
 
 
-def git_fixture(name, first_lines, second_lines):
-    """A throwaway repository whose two commits move the lines of one file.
+def git_fixture(name, first_lines, second_lines, third_lines=None):
+    """A throwaway repository whose commits move the lines of one file.
 
     `release` brings a held finding's line forward with `git diff <at>..HEAD`, so the only
-    honest bench for it is a real range. Returns the directory and the first commit's sha,
-    which is the `at` a ledger entry would carry.
+    honest bench for it is a real range. Returns the directory and the sha of the commit
+    before the last, which is the `at` a ledger entry would carry; the first commit stands
+    for the pull request's base.
     """
     repo = work / f"repo-{name}"
     (repo / "app" / "models").mkdir(parents=True)
@@ -244,6 +245,11 @@ def git_fixture(name, first_lines, second_lines):
                         capture_output=True, text=True).stdout.strip()
     target.write_text("\n".join(second_lines) + "\n", encoding="utf-8")
     git("add", "-A"); git("commit", "-q", "-m", "second")
+    if third_lines is not None:
+        at = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, env=env,
+                            capture_output=True, text=True).stdout.strip()
+        target.write_text("\n".join(third_lines) + "\n", encoding="utf-8")
+        git("add", "-A"); git("commit", "-q", "-m", "third")
     return repo, at
 
 
@@ -681,6 +687,16 @@ proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))],
 ok = proc.returncode == 2 and not out.exists() and "RF9" in proc.stderr
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a deleted line with no replacement  (exit {proc.returncode})")
+
+# A replacement that restores the base's own text is outside the pull request's diff, where GitHub refuses the anchor and sinks the whole atomic post.
+restored_branch = BASE[:41] + ["branch text"] + BASE[42:]
+repo3, at3 = git_fixture("restore", BASE, restored_branch, BASE)
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at3, line=42))], [],
+                        name="release-restored", cwd=str(repo3), base="HEAD~2")
+ok = proc.returncode == 2 and not out.exists() and "RF9" in proc.stderr
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a rewrite back to the base's text is outside the diff"
+      f"  (exit {proc.returncode})")
 
 # One unthreadable entry must not cost the others their threads.
 proc, out, replies = run_release(

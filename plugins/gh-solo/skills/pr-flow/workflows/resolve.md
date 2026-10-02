@@ -94,7 +94,7 @@ A round that held a finding reserved its `RF{n}` and gave it no thread, because 
 ```bash
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/reviews" > <reviews-file>
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
-python3 <skill-dir>/scripts/post-review.py release --reviews <reviews-file> --comments <listing-file> --disclaimer-file <disclaimer-file> --out <release-file> --replies-out <replies-file>
+python3 <skill-dir>/scripts/post-review.py release --reviews <reviews-file> --comments <listing-file> --disclaimer-file <disclaimer-file> --base <remote>/<base-branch> --out <release-file> --replies-out <replies-file>
 ```
 
 **Exit 0 having written no payload means there was nothing held**, which is the ordinary answer on most rounds; say so in the report and skip the rest of this step. **Exit 2 names, on stderr, each held finding it could not thread**, or the ledger problem that stopped it building anything. A payload written beside an exit 2 holds every other entry, so post it all the same, and carry each named id to Step 9. Where it wrote one, post it and reconcile it:
@@ -113,7 +113,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F
 
 ### Running it
 
-- **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote is anchored on the line that replaced it, and its thread says where it was held. An entry whose line the fixes deleted outright, or whose anchor head this clone does not have, has no line to anchor to, so the script names it and exits 2 rather than posting at a guess.
+- **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote is anchored on the line that replaced it, and its thread says where it was held. That needs the replacement to be a changed line of the pull request's own diff, since GitHub refuses an anchor outside it, so `--base` names the pull request's base: `<base-branch>` is `gh pr view <pr-number> --json baseRefName`, and a fix whose replacement matches the base's own text leaves its finding unthreadable. An entry whose line the fixes deleted outright, or whose anchor head this clone does not have, has no line to anchor to, so the script names it and exits 2 rather than posting at a guess.
 - **The reads come after the push**, never before it, because the whole reason the anchors resolve now is that the push landed. Running this step ahead of Step 5 answers `422` on every held finding.
 
 ### What each id gets
