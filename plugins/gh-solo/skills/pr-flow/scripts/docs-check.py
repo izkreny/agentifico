@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check Markdown files for backticked paths that do not resolve and code fences left open.
 
-A backticked span counts as a path only when it ends in a known extension or a slash, and it resolves against the nearest skill root, the mentioning file's directory, then --root. Absolute paths are not checked.
+A backticked span counts as a path only when it ends in a known extension or a slash, and it resolves against the nearest skill root, the mentioning file's directory, then --root, a span climbing through `..` included. Absolute paths are not checked.
 
 A plan names files its branch has yet to create or will delete, so in a file under --plans a span followed by exactly " (new)" or " (delete)" is skipped. No other file honours the tags, so a doc naming a removed file still fails.
 
@@ -26,7 +26,7 @@ PATH_SPAN = re.compile(r"`([^`\n]+)`( \((?:new|delete)\))?")
 FENCE = re.compile(r"^\s*(`{3,}|~{3,})")
 
 # Substrings meaning "command, glob or template", never a literal path.
-NOT_A_PATH = ("$", "*", "{", "}", "<", ">", "|", "://", " ", "..")
+NOT_A_PATH = ("$", "*", "{", "}", "<", ">", "|", "://", " ")
 
 PATHY_SUFFIXES = (
     ".md", ".py", ".sh", ".fish", ".bash", ".json", ".toml", ".yaml", ".yml",

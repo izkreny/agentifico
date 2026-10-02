@@ -11,12 +11,13 @@ trap 'rm -rf "$TREE"' EXIT
 mkdir -p "$TREE/docs/plans"
 fails=0
 
-# check <name> <file under the tree> <its content> <wanted exit code>
+# check <name> <file under the tree> <its content> <wanted exit code> [extra arguments]
 check() {
     local name="$1" file="$2" content="$3" want="$4" got=0
-    rm -f "$TREE/docs/plans/plan.md" "$TREE/README.md"
+    shift 4
+    rm -f "$TREE/docs/plans/plan.md" "$TREE/README.md" "$TREE/skills/one/README.md"
     printf '%s\n' "$content" > "$TREE/$file"
-    python3 "$SCRIPT" "$TREE/$file" --plans "$TREE/docs/plans" --root "$TREE" > /dev/null 2>&1 || got=$?
+    python3 "$SCRIPT" "$TREE/$file" --plans "$TREE/docs/plans" --root "$TREE" "$@" > /dev/null 2>&1 || got=$?
     if [[ "$got" == "$want" ]]; then
         echo "  ok   $name"
     else
@@ -51,6 +52,30 @@ check "in a README" README.md 'See `missing.py`.' 1
 # WHY: the tag is exact so that a near miss reads as an untagged span rather than as intent.
 check "a capitalised tag is no tag" docs/plans/plan.md 'Write `missing.py` (New).' 1
 check "(modify) is no tag" docs/plans/plan.md 'Edit `missing.py` (modify).' 1
+
+echo "a fence is read for what it is:"
+check "an unclosed fence fails" README.md '```bash
+echo hi' 1
+check "a nested fence closes on its own marker" README.md '````markdown
+```bash
+echo `missing.py`
+```
+````
+See `docs/`.' 0
+check "a span inside a fence is not checked" README.md '```
+`missing.py`
+```' 0
+
+echo "--ignore skips a span by glob:"
+check "the ignored span" README.md 'See `.claude/gh-solo.md`.' 0 --ignore '.claude/*'
+check "a span the glob misses" README.md 'See `.claude/gh-solo.md` and `missing.py`.' 1 --ignore '.claude/*'
+
+echo "a span climbing out of its skill resolves like any other:"
+mkdir -p "$TREE/skills/one" "$TREE/skills/two/references"
+touch "$TREE/skills/one/SKILL.md" "$TREE/skills/two/references/formats.md"
+check "a sibling skill's file" skills/one/README.md 'See `../two/references/formats.md`.' 0
+check "a sibling skill's missing file" skills/one/README.md 'See `../two/references/missing.md`.' 1
+rm -rf "$TREE/skills"
 
 echo
 echo "$fails failure(s)"
