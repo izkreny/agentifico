@@ -54,7 +54,7 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-f
 python3 <skill-dir>/scripts/post-review.py unthreaded --reviews <reviews-file> --comments <listing-file>
 ```
 
-Exit 2 is the refusal, `⛔ REFUSED - RF{n} is reserved and has no thread`, naming every id it printed. Step 6 of `workflows/resolve.md` is the retry. Where `release` named an id as one it cannot thread, the owner decides where that thread goes, and its body opens a line with `::RF{n}:: `, which is what the check counts.
+Exit 2 is the refusal, `⛔ REFUSED - RF{n} is reserved and has no thread`, naming every id it printed. Step 6 of `workflows/resolve.md` is the retry. Where `release` named an id as one it cannot thread, the owner decides where that thread goes, and its body opens a line with `::RF{n}::` and a space, which is what the check counts.
 
 **Other fields in that query are gates too, each cheaper to check than to recover from:**
 
