@@ -698,6 +698,19 @@ fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a rewrite back to the base's text is outside the diff"
       f"  (exit {proc.returncode})")
 
+# A restored line beside a change the branch keeps is a context line of the diff, which GitHub shows and lets a thread anchor to.
+kept_branch = BASE[:39] + ["kept change"] + BASE[40:41] + ["branch text"] + BASE[42:]
+kept_fix = BASE[:39] + ["kept change"] + BASE[40:]
+repo4, at4 = git_fixture("restore-kept", BASE, kept_branch, kept_fix)
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at4, line=42))], [],
+                        name="release-restored-kept", cwd=str(repo4), base="HEAD~2")
+ok = proc.returncode == 0 and out.exists()
+if ok:
+    ok = json.loads(out.read_text(encoding="utf-8"))["comments"][0]["line"] == 42
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a rewrite back to the base's text beside a kept change"
+      f" is threaded on the context line  (exit {proc.returncode})")
+
 # One unthreadable entry must not cost the others their threads.
 proc, out, replies = run_release(
     [ledger_review(held_entry(8, at=at, line=10), held_entry(9, at=at, line=42))], [],

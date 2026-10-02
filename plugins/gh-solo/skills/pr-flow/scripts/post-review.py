@@ -233,10 +233,10 @@ def range_diff(at: str, path: str, root: str) -> str | None:
     return None if proc.returncode != 0 else proc.stdout
 
 
-def added_lines(base: str, path: str, root: str) -> set[int] | None:
-    """The `+` lines of the pull request's own diff, the only lines GitHub lets a rewritten finding's thread anchor to."""
+def diff_lines(base: str, path: str, root: str) -> set[int] | None:
+    """The new-side lines the pull request's diff shows at GitHub's own three lines of context, the only lines GitHub lets a thread anchor to."""
     proc = subprocess.run(
-        ["git", "diff", f"{base}...HEAD", "--unified=0", "--", path],
+        ["git", "diff", f"{base}...HEAD", "--unified=3", "--", path],
         capture_output=True, text=True, cwd=root,
     )
     if proc.returncode != 0:
@@ -812,13 +812,13 @@ def release(args: argparse.Namespace) -> int:
         moved, rewritten = shifted
         if rewritten:
             # One anchor outside the diff refuses the whole atomic post, taking every other held finding's thread with it.
-            added = added_lines(args.base, entry["path"], root)
-            if added is None:
+            shown = diff_lines(args.base, entry["path"], root)
+            if shown is None:
                 unthreadable.append(
                     f"RF{entry['rf']} - git could not diff {args.base}...HEAD for {entry['path']}"
                 )
                 continue
-            if moved not in added:
+            if moved not in shown:
                 unthreadable.append(
                     f"RF{entry['rf']} - the fixes rewrote {entry['path']}:{entry['line']}, and "
                     f"its replacement at :{moved} is outside the diff against {args.base}"
@@ -1062,7 +1062,7 @@ def main() -> int:
         "--base",
         required=True,
         help="the pull request's base as <remote>/<branch>; a rewritten line is anchored "
-             "only where its replacement is a changed line of the diff against it",
+             "only where the diff against it shows its replacement",
     )
     r.add_argument("--out", required=True, help="where to write the payload JSON")
     r.add_argument(
