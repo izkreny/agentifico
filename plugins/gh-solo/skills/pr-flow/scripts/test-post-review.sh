@@ -637,14 +637,19 @@ print("\nrelease must thread a rewritten line on what replaced it (exit 0):")
 # Skipping it left the finding in a ledger the merge gate never reads, which is the ordinary path for a held finding the round fixes.
 rewritten = ["new a", "new b", "new c"] + BASE[:41] + ["rewritten one", "rewritten two"] + BASE[42:]
 repo, at = git_fixture("rewrite", BASE, rewritten)
-proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
-                        name="release-rewritten", cwd=str(repo))
-ok = proc.returncode == 0 and out.exists() and "RF9" in proc.stdout
+proc, out, replies = run_release(
+    [ledger_review(held_entry(9, at=at, line=42)),
+     followup_review(*({"rf": 9, "kind": k, "text": k} for k in ("plan", "result", "verdict")))],
+    [], name="release-rewritten", cwd=str(repo))
+ok = proc.returncode == 0 and out.exists() and replies.exists() and "RF9" in proc.stdout
 if ok:
     comment = json.loads(out.read_text(encoding="utf-8"))["comments"][0]
+    plan = json.loads(replies.read_text(encoding="utf-8"))
     ok = (comment["line"] == 45 and comment["body"].startswith("> \U0001f916")
           and "::RF9:: " in comment["body"] and "rewrote" in comment["body"]
-          and f"{FINDING['path']}:42" in comment["body"])
+          and f"{FINDING['path']}:42" in comment["body"]
+          # Its plan, result and verdict follow it onto the replacement line.
+          and len(plan) == 1 and plan[0]["rf"] == 9 and len(plan[0]["bodies"]) == 3)
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} the fixes rewrote the line, so the thread opens on its replacement")
 
