@@ -181,7 +181,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 #### What counts
 
-**What does not count is *Never counted* under *Post caps* in `SKILL.md`**, which reaches a body section unchanged. What that list cannot say from where it sits is which of this body's sections it lands on: the `## Steps` and `## Verification` checkbox lists are its record row, their length set by how many steps and gates a branch has rather than by how much was written, so both are uncapped and neither is in the capped list.
+**What does not count is *Never counted* in `references/post-caps.md`**, which reaches a body section unchanged. What that list cannot say from where it sits is which of this body's sections it lands on: the `## Steps` and `## Verification` checkbox lists are its record row, their length set by how many steps and gates a branch has rather than by how much was written, so both are uncapped and neither is in the capped list.
 
 **A `## Settled` entry is not a record row, and it counts.** One line per item is what that exclusion covers; a settled entry is a question and a decision written at whatever length its writer chose. It is the same line drawn under `## Verification`, where the boxes are excluded and the paragraph beneath them is not - and reading the exclusion the other way would leave the one section that grows for the whole branch bounded by nothing.
 

@@ -39,7 +39,7 @@ One Conversation comment, posted first, so that no thread is ever resolved befor
 gh pr comment <pr-number> --body-file <body-file>
 ```
 
-Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by *Post caps* in the same file, which counts neither the marker line nor the owner's quoted words - *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
+Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the authorisation. Its length is set by the cap `references/post-caps.md` owns, which counts neither the marker line nor the owner's quoted words - its *Never counted* excludes both by name, so the cap bounds only what you add around them. Then, on its own line, **the marker line, exactly this literal**:
 
 ```text
 RESOLVE AUTHORISED: RF1, RF3, RF4
@@ -170,7 +170,7 @@ It hashes the path and not the content, so it survives every commit on the branc
 
 Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the delta index.
 
-**The rows are a record row, so the cap does not bound how many there are.** *Never counted* under *Post caps* in `SKILL.md` excludes "a record row - one line per item, where the length is set by how many items there are rather than by how much was written", which is exactly this. The prose around the table is capped as ever; the table is deliberately uncapped and this comment says so, so nobody shortens it to fit.
+**The rows are a record row, so the cap does not bound how many there are.** *Never counted* in `references/post-caps.md` excludes "a record row - one line per item, where the length is set by how many items there are rather than by how much was written", which is exactly this. The prose around the table is capped as ever; the table is deliberately uncapped and this comment says so, so nobody shortens it to fit.
 
 **It opens no thread, resolves nothing, and assigns no id of any kind.** A Conversation comment rather than inline comments, because an inline comment opens a thread and `workflows/merge.md` refuses on any unresolved one - and a thread created after Step 3 could never be named by an authorisation that was written before it existed. A second id namespace beside `RF{n}` would be read by that thread audit and by the pass count as though it were one, so each would silently count something it was never meant to.
 
