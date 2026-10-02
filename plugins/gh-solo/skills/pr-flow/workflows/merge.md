@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup, `Bash(python3:*)` for `scripts/post-review.py unthreaded` in Step 1, `ExitWorktree` for leaving the branch's worktree in Step 4.
 
-Land a reviewed PR on `main` and clean up after it. This is the last step of a branch's life: `workflows/open.md` opened it, `workflows/ready.md` admitted it to review, `workflows/review.md` prepared and recorded the review, and this ends it.
+Land a reviewed PR on `main` and clean up after it. This is the last step of a branch's life: `workflows/open.md` opened it, `workflows/ready.md` admitted it to review, `workflows/review.md` prepared and recorded the review, and this ends it. The repository settings and branch protection it assumes are per-repository and checked once, in `references/repo-settings.md`, never on every merge.
 
 ## Step 1 - Confirm it was actually reviewed
 
@@ -26,7 +26,7 @@ gh pr view <pr-number> --json reviews --jq '.reviews[] | .body'
 
 **Recognise the record by its `via` line, reading `round record` or `re-review record`, never by the disclaimer alone.** Every agent post opens with the disclaimer, the convention-check Review that `workflows/review.md` posts before a round included, so the disclaimer test passes on a PR whose conventions were checked and whose diff was never read. That is the exact state this gate exists to catch. No record means no round ran: say so and stop rather than merging.
 
-**Do not gate on `reviewDecision`.** It reports whether a branch-protection review *requirement* is satisfied, and a solo repository has no such requirement, so it stays empty however many reviews were posted. Reading it as "not reviewed" would block every merge. That holds even under the branch protection *Branch protection on `main`* recommends: `required_approving_review_count: 0` means there is no decision to report, so `reviewDecision` is still `""` - verified live on a protected repository, so do not re-litigate it when protection is on.
+**Do not gate on `reviewDecision`.** It reports whether a branch-protection review *requirement* is satisfied, and a solo repository has no such requirement, so it stays empty however many reviews were posted. Reading it as "not reviewed" would block every merge. That holds even under the branch protection *Branch protection on `main`* in `references/repo-settings.md` recommends: `required_approving_review_count: 0` means there is no decision to report, so `reviewDecision` is still `""` - verified live on a protected repository, so do not re-litigate it when protection is on.
 
 The owner's own review is a separate record, submitted under their name through the PR's Files changed tab: a Review with a non-empty body, whose author's login **is** the owner's and whose body does **not** open with the disclaimer - the conditions *Recognising the owner* in `references/review-protocol.md` states, because a mentor's Review body carries no disclaimer either and would otherwise read as the owner's. That test is still not airtight: the owner cannot approve their own PR, so their review is a `COMMENTED` object too, and one submitted with an empty summary body looks exactly like a reply container. If no review reads as the owner's, the code has been annotated but not necessarily read: ask before merging rather than assuming.
 
@@ -125,7 +125,7 @@ gh stack merge <pr-number> --yes --squash
 
 ## Step 4 - Remove the worktree, delete the local branch, move the trunk
 
-Where `delete_branch_on_merge` is set, the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. That setting is per-repository and not a default, so confirm it from the values this workflow already read rather than assuming, and delete the remote branch too where it is unset.
+Where `delete_branch_on_merge` is set, the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. That setting is per-repository and not a default, and nothing this workflow reads carries it, so *Whoever holds `main`* below asks the remote for the branch rather than assuming, and deletes it where it remains.
 
 ```bash
 git worktree list
@@ -169,7 +169,7 @@ git remote prune <remote>
 ### Whoever holds `main`
 
 - **Confirm the remote side where the setting was never checked for this repository.** `gh api repos/{owner}/{repo}/branches/<branch>` returning 404 is the check, `git push <remote> --delete <branch>` the fix. `<remote>` per the remote-name convention in `SKILL.md`.
-- **Nothing in this step can undo the merge, and no failure here is a reason to re-run it.** By the time it runs, the squash, the remote branch deletion and the issue close have all happened. On any error, verify with `gh pr view <pr-number> --json state,mergedAt,mergeCommit`, report which part of the cleanup is still owed, and leave `gh pr merge` alone.
+- **Nothing in this step can undo the merge, and no failure here is a reason to re-run it.** By the time it runs, the squash and the issue close have happened, and the remote branch is gone wherever the setting deletes it. On any error, verify with `gh pr view <pr-number> --json state,mergedAt,mergeCommit`, report which part of the cleanup is still owed, and leave `gh pr merge` alone.
 
 ## Step 5 - Confirm the issue closed
 
@@ -184,50 +184,3 @@ For an issue with a parent epic, check whether the epic's remaining sub-issues a
 ## Step 6 - Confirm
 
 Open with the verdict line per the standing convention in `SKILL.md` - `✅ ALL PASS` on a landed merge; a stop anywhere upstream already printed `⛔ REFUSED - {reason}` as its first line. Then one line: the PR number, the squash commit's subject as it landed, the branch deleted with remote and local named separately - they go by different mechanisms, the setting and Step 4 - the worktree removed, the commit the trunk sits on, any cleanup Step 4 left owed, and the issue number with its new state.
-
----
-
-## Repository settings this assumes
-
-These are per-repository and none is the default. Check them once per repository rather than every merge:
-
-```bash
-gh api repos/{owner}/{repo} --jq '{allow_squash_merge, allow_merge_commit, allow_rebase_merge, delete_branch_on_merge, squash_merge_commit_title, squash_merge_commit_message}'
-```
-
-- **`delete_branch_on_merge: true`** — otherwise every merged branch stays on the remote forever, and this setting is what deletes it: Step 3 passes no `--delete-branch`, for the reasons given there. It also covers a PR merged from the GitHub UI, which no flag of this workflow ever could. Where it is off, Step 4's remote check is what catches the leftover branch.
-- **`squash_merge_commit_title: PR_TITLE`** is what makes the PR title become the commit subject, and it is the **only** value that may accompany `PR_BODY` - GitHub validates the pair and rejects every other combination with a `422` (`invalid_squash_commit_setting_combo`, whose `field` misleadingly reads `merge_commit_allowed`), so they must be sent together. `PR_TITLE` is also the safer value on its own merits: the alternative, `COMMIT_OR_PR_TITLE`, takes the branch commit's subject on a single-commit PR and discards the PR title - observed live on a pre-flow repository, where a `main` commit carries the branch commit's wording while the PR was titled differently. This flow's plan-commit-first rule makes a single-commit PR impossible anyway, but `PR_TITLE` lands the scoped subject even if that invariant is somehow broken.
-- **`squash_merge_commit_message: PR_BODY`**, because the GitHub default, `COMMIT_MESSAGES`, concatenates every branch commit message into the squash body - the plan commit and each fix commit included, which is exactly the transcript squashing exists to drop. `PR_BODY` puts the PR body there instead, and its first line is the AI disclaimer, which the commit-message convention wants in the body anyway. The body lands as GitHub composes it: unwrapped markdown, checkbox lists and all. That is the documented exception to the 72-column commit-body wrap - git's own convention, and the owner's where their instructions restate it - which governs bodies written by hand; never rewrap or trim the PR body to satisfy it.
-
-Set both in one call, never one at a time:
-
-```bash
-gh api -X PATCH repos/{owner}/{repo} -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=PR_BODY
-```
-
-**`allow_merge_commit` or `allow_rebase_merge` reading true is worth raising with the owner.** While either is enabled, the GitHub UI offers a merge-strategy dropdown, and one absent-minded click puts a merge commit on `main` that no local rule can prevent. Leaving squash as the only enabled method makes the policy structural instead of remembered:
-
-```bash
-gh api -X PATCH repos/{owner}/{repo} -F allow_merge_commit=false -F allow_rebase_merge=false
-```
-
-### Branch protection on `main`
-
-Part of the standard solo-repo setup, applied once per repository. It is what makes the never-push-to-`main` rule structural and a red CI check a wall rather than a warning. Check first with `gh api repos/{owner}/{repo}/branches/main/protection`; a `404 Branch not protected` means it was never set.
-
-The protection object goes in a harness-scratchpad file, passed with `--input` - the file form matches the granted `Bash(gh:*)` pattern where an echo pipe would prompt:
-
-```json
-{"required_status_checks":{"strict":false,"contexts":["<check-run-name>","<another>"]},"enforce_admins":true,"required_pull_request_reviews":{"required_approving_review_count":0,"dismiss_stale_reviews":false,"require_code_owner_reviews":false},"restrictions":null}
-```
-
-```bash
-gh api -X PUT repos/{owner}/{repo}/branches/main/protection --input <payload-file>
-```
-
-The load-bearing values in that shape, each with a trap:
-
-- **`required_approving_review_count` must be `0`.** GitHub forbids approving your own PR, so any higher value deadlocks every PR on a solo repository permanently. Zero keeps the protection while demanding no approval - which is also why `reviewDecision` stays `""` under it, per Step 1.
-- **`dismiss_stale_reviews` stays `false`, and nothing here depends on the value.** The setting dismisses *approving* reviews when a new commit is pushed - per GitHub's REST docs, approvals only - and this flow never needs an approval: the count is 0, and a round record is a COMMENT Review, which dismissal never touches and which stays in the `reviews` array regardless. It is pinned to `false` only so the protection object is fully stated and least surprising, not because `true` would break a gate.
-- **`required_status_checks` can only be *introduced* by this `PUT`.** While it is `null`, `PATCH repos/{owner}/{repo}/branches/main/protection/required_status_checks` answers `404 Required status checks not enabled` instead of creating it, so the whole protection object has to be re-sent.
-- **The `contexts` entries are check-run names, not workflow filenames.** They default to the workflow's job ids, not to anything written in the YAML, so read them off a real PR with `gh pr checks <pr-number>` rather than off the workflow file.

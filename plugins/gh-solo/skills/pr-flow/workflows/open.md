@@ -177,7 +177,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 **The unit is the section, never the entry.** A section that collects entries is counted whole, every entry in it summed into one total, which is the only reading under which a section that grows for the length of the branch can breach at all: per entry, a `## Settled` holding a dozen short entries passes forever. `workflows/discuss.md` states the trigger the same way.
 
-**The cap is here because this body becomes a commit message.** Where the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `workflows/merge.md`, the whole body lands in `git log` on `main` and nothing edits a commit message afterwards. The overview is written once and reviewed at plan time; the rest accumulate for the length of the branch, so uncapped the commit message's length tracks how much discussion the branch had rather than what the branch did.
+**The cap is here because this body becomes a commit message.** Where the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `references/repo-settings.md`, the whole body lands in `git log` on `main` and nothing edits a commit message afterwards. The overview is written once and reviewed at plan time; the rest accumulate for the length of the branch, so uncapped the commit message's length tracks how much discussion the branch had rather than what the branch did.
 
 #### What counts
 
