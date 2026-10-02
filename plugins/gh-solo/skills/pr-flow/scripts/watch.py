@@ -61,7 +61,8 @@ def review_bodies(pr, since):
     for r in gh_json("api", "--paginate",
                      f"repos/{{owner}}/{{repo}}/pulls/{pr}/reviews") or []:
         submitted = r.get("submitted_at") or ""
-        if submitted <= since or not r.get("body") or mine(r.get("body")):
+        # Equal is admitted, since `since` was stamped before the request and a record posted later in that second carries the same stamp; `seen` drops the repeat.
+        if submitted < since or not r.get("body") or mine(r.get("body")):
             continue
         out.append((f"{r['id']}@{submitted}",
                     f"{r['user']['login']}  review({r.get('state')})  {one_line(r.get('body'))}"))
@@ -103,7 +104,7 @@ def reactions(pr, since):
     for t in threads:
         for c in t.get("comments", {}).get("nodes", []):
             for rx in c.get("reactions", {}).get("nodes", []):
-                if (rx.get("createdAt") or "") <= since:
+                if (rx.get("createdAt") or "") < since:
                     continue
                 who = (rx.get("user") or {}).get("login")
                 key = f"{c['databaseId']}/{rx['content']}/{who}@{rx['createdAt']}"
