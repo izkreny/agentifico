@@ -1084,8 +1084,8 @@ def main() -> int:
     r.add_argument(
         "--base",
         required=True,
-        help="the pull request's base as <remote>/<branch>; a rewritten line is anchored "
-             "only where the diff against it shows its replacement",
+        help="the pull request's base as <remote>/<branch>; every held finding is anchored "
+             "only where the diff against it shows the line, since GitHub refuses any other",
     )
     r.add_argument("--out", required=True, help="where to write the payload JSON")
     r.add_argument(
