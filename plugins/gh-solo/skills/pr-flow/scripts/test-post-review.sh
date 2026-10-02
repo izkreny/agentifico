@@ -640,7 +640,7 @@ print(f"  {'ok  ' if ok else 'FAIL'} a malformed ledger outside a repository is 
       f"  (exit {proc.returncode})")
 
 print("\nrelease must thread a rewritten line on what replaced it (exit 0):")
-# Skipping it left the finding in a ledger the merge gate never reads, which is the ordinary path for a held finding the round fixes.
+# The thread goes on the replacement because a held finding the round fixes usually has that very line rewritten.
 rewritten = ["new a", "new b", "new c"] + BASE[:41] + ["rewritten one", "rewritten two"] + BASE[42:]
 repo, at = git_fixture("rewrite", BASE, rewritten)
 proc, out, replies = run_release(
@@ -711,7 +711,7 @@ print(f"  {'ok  ' if ok else 'FAIL'} the threadable entry is still written besid
       f"  (exit {proc.returncode})")
 
 print("\nunthreaded must find a reserved id with no thread:")
-# The merge gate read threads alone, so an id reserved in a ledger and never threaded passed it.
+# The thread gate reads threads alone, so this read is what catches an id reserved in a ledger and never threaded.
 for name, reviews, comments, want in [
     ("a reserved id with no thread", [ledger_review(held_entry(7))], [], 2),
     ("a reserved id named only in prose", [ledger_review(held_entry(7))],
