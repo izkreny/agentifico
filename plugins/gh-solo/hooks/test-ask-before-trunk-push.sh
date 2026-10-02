@@ -96,6 +96,8 @@ MUST_ASK = [
     ("git push origin master", FEAT),
     ("cd /somewhere && git push origin main", FEAT),
     ("git -C . push origin main", FEAT),
+    ("git -c core.sshCommand=ssh push origin main", FEAT),   # -c takes a value, and that value is not the subcommand
+    ("git --namespace=x -c push.default=current push", "main"),
     ("git push", "main"),
     ("git push origin HEAD", "main"),        # HEAD resolves the way a bare push does
     ("git push origin refs/heads/HEAD", "main"),
