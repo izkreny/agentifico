@@ -167,7 +167,7 @@ def followup_review(*entries):
     return {"body": "> \U0001f916 h\n\nHeld follow-up.\n\n```json\n" + block + "\n```"}
 
 
-def run_release(reviews, comments, disclaimer=None, name="case", cwd=None):
+def run_release(reviews, comments, disclaimer=None, name="case", cwd=None, base="HEAD~1"):
     r = work / f"{name}.reviews.json"
     c = work / f"{name}.comments.json"
     out = work / f"{name}.release.json"
@@ -178,9 +178,19 @@ def run_release(reviews, comments, disclaimer=None, name="case", cwd=None):
         ["python3", script, "release",
          "--reviews", str(r), "--comments", str(c),
          "--disclaimer-file", str(disclaimer or good_disclaimer),
-         "--out", str(out), "--replies-out", str(replies)],
+         "--out", str(out), "--replies-out", str(replies), "--base", base],
         capture_output=True, text=True, cwd=cwd)
     return proc, out, replies
+
+
+def run_unthreaded(reviews, comments, name="case"):
+    r = work / f"{name}.reviews.json"
+    c = work / f"{name}.comments.json"
+    r.write_text(json.dumps(reviews), encoding="utf-8")
+    c.write_text(json.dumps(comments), encoding="utf-8")
+    return subprocess.run(
+        ["python3", script, "unthreaded", "--reviews", str(r), "--comments", str(c)],
+        capture_output=True, text=True)
 
 
 def run_passes(reviews, name="case"):
@@ -209,12 +219,13 @@ def pass_review(*, marker=True):
     return {"body": body}
 
 
-def git_fixture(name, first_lines, second_lines):
-    """A throwaway repository whose two commits move the lines of one file.
+def git_fixture(name, first_lines, second_lines, third_lines=None):
+    """A throwaway repository whose commits move the lines of one file.
 
     `release` brings a held finding's line forward with `git diff <at>..HEAD`, so the only
-    honest bench for it is a real range. Returns the directory and the first commit's sha,
-    which is the `at` a ledger entry would carry.
+    honest bench for it is a real range. Returns the directory and the sha of the commit
+    before the last, which is the `at` a ledger entry would carry; the first commit stands
+    for the pull request's base.
     """
     repo = work / f"repo-{name}"
     (repo / "app" / "models").mkdir(parents=True)
@@ -234,6 +245,11 @@ def git_fixture(name, first_lines, second_lines):
                         capture_output=True, text=True).stdout.strip()
     target.write_text("\n".join(second_lines) + "\n", encoding="utf-8")
     git("add", "-A"); git("commit", "-q", "-m", "second")
+    if third_lines is not None:
+        at = subprocess.run(["git", "rev-parse", "HEAD"], cwd=repo, env=env,
+                            capture_output=True, text=True).stdout.strip()
+        target.write_text("\n".join(third_lines) + "\n", encoding="utf-8")
+        git("add", "-A"); git("commit", "-q", "-m", "third")
     return repo, at
 
 
@@ -623,24 +639,105 @@ fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a malformed ledger outside a repository is still exit 2"
       f"  (exit {proc.returncode})")
 
-print("\nrelease must skip rather than guess (exit 0, nothing written):")
-# The fixes rewrote the very line the finding points at, so a named gap beats a thread on the wrong statement.
-rewritten = list(BASE); rewritten[41] = "rewritten entirely"
+print("\nrelease must thread a rewritten line on what replaced it (exit 0):")
+# The thread goes on the replacement because a held finding the round fixes usually has that very line rewritten.
+rewritten = ["new a", "new b", "new c"] + BASE[:41] + ["rewritten one", "rewritten two"] + BASE[42:]
 repo, at = git_fixture("rewrite", BASE, rewritten)
-proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
-                        name="release-rewritten", cwd=str(repo))
-ok = (proc.returncode == 0 and not out.exists()
-      and "cannot be brought forward" in proc.stdout and "RF9" in proc.stdout)
+proc, out, replies = run_release(
+    [ledger_review(held_entry(9, at=at, line=42)),
+     followup_review(*({"rf": 9, "kind": k, "text": k} for k in ("plan", "result", "verdict")))],
+    [], name="release-rewritten", cwd=str(repo))
+ok = proc.returncode == 0 and out.exists() and replies.exists() and "RF9" in proc.stdout
+if ok:
+    comment = json.loads(out.read_text(encoding="utf-8"))["comments"][0]
+    plan = json.loads(replies.read_text(encoding="utf-8"))
+    ok = (comment["line"] == 45 and comment["body"].startswith("> \U0001f916")
+          and "::RF9:: " in comment["body"] and "rewrote" in comment["body"]
+          and f"{FINDING['path']}:42" in comment["body"]
+          # Its plan, result and verdict follow it onto the replacement line.
+          and len(plan) == 1 and plan[0]["rf"] == 9 and len(plan[0]["bodies"]) == 3)
 fails += not ok
-print(f"  {'ok  ' if ok else 'FAIL'} the fixes rewrote the line the finding points at")
+print(f"  {'ok  ' if ok else 'FAIL'} the fixes rewrote the line, so the thread opens on its replacement")
 
+# A held line deep inside a block the fixes shrank lands on the block's last line, never past it.
+shrunk = BASE[:39] + ["block one", "block two"] + BASE[44:]
+repo, at = git_fixture("shrink", BASE, shrunk)
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=43))], [],
+                        name="release-shrunk", cwd=str(repo))
+ok = proc.returncode == 0 and out.exists()
+if ok:
+    ok = json.loads(out.read_text(encoding="utf-8"))["comments"][0]["line"] == 41
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a line inside a shrunk block lands on the block's last line")
+
+print("\nrelease must name what it cannot thread (exit 2):")
 # An `at` the repository does not hold is reported rather than read as no change, which would replay the stale number silently.
 repo, _ = git_fixture("unknown", BASE, BASE + ["appended"])
 proc, out, replies = run_release([ledger_review(held_entry(9, at="deadbee", line=42))], [],
                         name="release-unknown-at", cwd=str(repo))
-ok = proc.returncode == 0 and not out.exists() and "could not diff" in proc.stdout
+ok = proc.returncode == 2 and not out.exists() and "RF9" in proc.stderr
 fails += not ok
-print(f"  {'ok  ' if ok else 'FAIL'} an anchor head git does not have")
+print(f"  {'ok  ' if ok else 'FAIL'} an anchor head git does not have  (exit {proc.returncode})")
+
+# The fixes deleted the line and wrote nothing in its place, so no line of the pull request answers for it.
+deleted = BASE[:41] + BASE[42:]
+repo, at = git_fixture("delete", BASE, deleted)
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
+                        name="release-deleted", cwd=str(repo))
+ok = proc.returncode == 2 and not out.exists() and "RF9" in proc.stderr
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a deleted line with no replacement  (exit {proc.returncode})")
+
+# A replacement that restores the base's own text is outside the pull request's diff, where GitHub refuses the anchor and sinks the whole atomic post.
+restored_branch = BASE[:41] + ["branch text"] + BASE[42:]
+repo3, at3 = git_fixture("restore", BASE, restored_branch, BASE)
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at3, line=42))], [],
+                        name="release-restored", cwd=str(repo3), base="HEAD~2")
+ok = proc.returncode == 2 and not out.exists() and "RF9" in proc.stderr
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a rewrite back to the base's text is outside the diff"
+      f"  (exit {proc.returncode})")
+
+# A restored line beside a change the branch keeps is a context line of the diff, which GitHub shows and lets a thread anchor to.
+kept_branch = BASE[:39] + ["kept change"] + BASE[40:41] + ["branch text"] + BASE[42:]
+kept_fix = BASE[:39] + ["kept change"] + BASE[40:]
+repo4, at4 = git_fixture("restore-kept", BASE, kept_branch, kept_fix)
+proc, out, replies = run_release([ledger_review(held_entry(9, at=at4, line=42))], [],
+                        name="release-restored-kept", cwd=str(repo4), base="HEAD~2")
+ok = proc.returncode == 0 and out.exists()
+if ok:
+    ok = json.loads(out.read_text(encoding="utf-8"))["comments"][0]["line"] == 42
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a rewrite back to the base's text beside a kept change"
+      f" is threaded on the context line  (exit {proc.returncode})")
+
+# One unthreadable entry must not cost the others their threads.
+proc, out, replies = run_release(
+    [ledger_review(held_entry(8, at=at, line=10), held_entry(9, at=at, line=42))], [],
+    name="release-mixed", cwd=str(repo))
+ok = proc.returncode == 2 and out.exists() and "RF9" in proc.stderr
+if ok:
+    comments = json.loads(out.read_text(encoding="utf-8"))["comments"]
+    ok = len(comments) == 1 and "::RF8:: " in comments[0]["body"]
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} the threadable entry is still written beside the one that is not"
+      f"  (exit {proc.returncode})")
+
+print("\nunthreaded must find a reserved id with no thread:")
+# The thread gate reads threads alone, so this read is what catches an id reserved in a ledger and never threaded.
+for name, reviews, comments, want in [
+    ("a reserved id with no thread", [ledger_review(held_entry(7))], [], 2),
+    ("a reserved id named only in prose", [ledger_review(held_entry(7))],
+     [{"body": "> \U0001f916 h\n\nfix: tighten the guard - closes RF7"}], 2),
+    ("every reserved id threaded", [ledger_review(held_entry(7))],
+     [{"body": "> \U0001f916 h\n\n::RF7:: \U0001f534 high - x"}], 0),
+    ("nothing reserved", [{"body": "> \U0001f916 h\n\nRound one."}], [], 0),
+]:
+    proc = run_unthreaded(reviews, comments,
+                          name="ut-" + "".join(c if c.isalnum() else "-" for c in name))
+    ok = proc.returncode == want and ((want == 2) == ("RF7" in proc.stderr))
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode}, want {want})")
 
 # The plan, the result and the verdict stay separate so a released thread collects the same reply-per-step shape a threaded finding does.
 FU = [{"rf": 9, "kind": "verdict", "text": "Closed: the guard now fires."},
