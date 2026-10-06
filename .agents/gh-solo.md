@@ -76,6 +76,12 @@ npm --prefix skills/skills-guru run lint
 bash scripts/test-version-check.sh
 ```
 
+**The docs check's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/docs-check.py`:
+
+```bash
+bash plugins/gh-solo/skills/pr-flow/scripts/test-docs-check.sh
+```
+
 **The plan check's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/plan-check.py`, `plugins/gh-solo/.vale.ini` or a rule under `plugins/gh-solo/assets/`:
 
 ```bash
