@@ -88,7 +88,7 @@ tokens:
   # "line" are left out: "the first unticked step" is a procedure, not a
   # position in the document. "The last span belongs to the plans that named
   # the scripts" PR 116 RF8 adds "span". "which the first case tolerates"
-  # e5df8b3, PR 127, adds "case" with no word before it, since "the last edge
+  # e5df8b3, PR 234, adds "case" with no word before it, since "the last edge
   # case" is a procedure rather than a position.
   - 'the (?:first|second|third|fourth|last|next|previous|final) (?:(?:[a-z]+ ){0,2}(?:bullet|paragraph|row|section|sentence|entry|column|span|thing this)|case)'
   # "is the second of them" PR 181. "that" and "which" after it are left out:

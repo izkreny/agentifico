@@ -18,7 +18,7 @@ tokens:
   # "Two of them change what an agent does" #30; "Say which of the two it is"
   # .agents/gh-solo.md.
   - '(?:two|three|four|five) of them'
-  # "report which half of the cleanup is still owed" e5df8b3, PR 127: "half"
+  # "report which half of the cleanup is still owed" e5df8b3, PR 234: "half"
   # counts the two parts of the cleanup the step named.
   - 'which half of'
   # "the two caps above" PR 68; "the two traps" PR 116; "the three most
