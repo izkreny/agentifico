@@ -42,14 +42,12 @@ tokens:
   # "the by-hand list further down" PR 167 RF6, left pointing at a bullet
   # the same diff deleted. "the `{type}` vocabulary itself is one section
   # further on" #236 SW20, b149279, adds "on".
-  # Narrows parts: the record holds no sentence, column, span or item further
-  # down.
-  - '(?:list|section|table|paragraph|bullet|entry|row|block) further (?:down|on)'
+  # Widened to parts, PR 263.
+  - '(?:bullet|paragraph|row|section|table|list|entry|sentence|block|column|span|item) further (?:down|on)'
   # "per the companion rule beside that bullet" 22ff7c6, PR 37.
   # Narrows determiners: the record holds only "that", "this" and "the" before
-  # a part. Narrows parts: the record holds no block, column, span or item
-  # beside one.
-  - 'beside (?:that|this|the) (?:bullet|paragraph|row|section|table|list|entry|sentence)'
+  # a part. Widened to parts, PR 263.
+  - 'beside (?:that|this|the) (?:bullet|paragraph|row|section|table|list|entry|sentence|block|column|span|item)'
   # "the same as above" e3f094d and 6581c8c; "rules out above" 9ed0bb8;
   # "named above" live in plugins/gh-solo.
   - '(?:as|per|see|stated|described|named|listed|mentioned|noted|shown|explained|defined|quoted|said|same as|out) (?:[a-z]+ )?(?:above|below)'
