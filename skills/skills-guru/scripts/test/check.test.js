@@ -140,6 +140,7 @@ before(() => {
   for (const [dir, yaml] of [
     ["yaml-broken", "a: 1\nb: value: other\n"],
     ["yaml-duplicate", "a: 1\na: 2\n"],
+    ["yaml-directive", "%YAML 1.2\n"],
     ["yaml-wrapped", "# A comment wrapped at\n# a column.\nkey: value\n"],
     // The block scalar holds a wrapped "comment" that is text, so a check reading raw lines would fail a clean file.
     [
@@ -324,6 +325,11 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "yaml-broken"));
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^yaml files: 1$/m);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-parse /m);
+  });
+  it("a stream of directives with no document fails as a file that does not parse", () => {
+    const r = run(path.join(tmp, "yaml-directive"));
+    assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^ {2}rule\.yml:2 yaml-parse /m);
   });
   it("a duplicate key fails, naming the file and the line", () => {
