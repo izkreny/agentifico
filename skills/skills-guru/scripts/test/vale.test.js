@@ -181,6 +181,9 @@ describe("word classes", () => {
     const { swap } = YAML.parse(fs.readFileSync(path.join(styleDir, "Digits.yml"), "utf8"));
     // A key opens on lookbehinds and closes on lookaheads, so its digit is the number standing between a closing and an opening parenthesis.
     const swapped = Object.entries(swap).map(([key, word]) => [Number(key.match(/\)(\d+)\(/)[1]), word]);
-    assert.deepEqual(swapped, numbers.map((word, i) => [i + 2, word]));
+    assert.deepEqual(
+      swapped,
+      numbers.map((word, i) => [i + 2, word]),
+    );
   });
 });
