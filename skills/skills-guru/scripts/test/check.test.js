@@ -150,6 +150,8 @@ before(() => {
     mk(path.join(tmp, dir), block(dir));
     fs.writeFileSync(path.join(tmp, dir, "rule.yml"), yaml);
   }
+  // A stream of several documents is well-formed YAML, so it parses rather than failing as one document with a second appended.
+  fs.writeFileSync(path.join(tmp, "yaml-separate", "stream.yaml"), "a: 1\n---\nb: 2\n");
 
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
@@ -338,7 +340,7 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "yaml-separate"));
     assert.equal(r.code, 0, r.out);
     assert.match(r.out, /^yaml files: none$/m);
-    assert.equal(r.linted, 3);
+    assert.equal(r.linted, 4);
   });
   it("a package root names every skill under it, by its own path", () => {
     const r = run(path.join(tmp, "pkg"));

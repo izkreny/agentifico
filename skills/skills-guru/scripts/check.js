@@ -95,7 +95,7 @@ const yamlFindings = [];
 for (const file of yamlFiles) {
   const rel = path.relative(target, file);
   const source = fs.readFileSync(file, "utf8");
-  for (const e of YAML.parseDocument(source).errors) {
+  for (const e of YAML.parseAllDocuments(source).flatMap((doc) => doc.errors)) {
     const rule = e.code === "DUPLICATE_KEY" ? "yaml-duplicate-key" : "yaml-parse";
     yamlFindings.push(`${rel}:${e.linePos?.[0]?.line ?? 1} ${rule} ${e.message.split("\n")[0]}`);
   }
