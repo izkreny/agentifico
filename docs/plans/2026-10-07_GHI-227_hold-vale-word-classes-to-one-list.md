@@ -18,13 +18,13 @@ Issue [#227](https://github.com/izkreny/agentifico/issues/227), the second child
 
 ## The classes
 
-Each list is the union of what the classifying groups hold today, so the list alone forces no widening. The number list is the exception, because the issue fixes it at two through twenty.
+Each list is the union of what the classifying groups hold today, so the list alone forces no widening. The number and ordinal lists are the exceptions: the issue fixes the first at two through twenty, and the owner extended the second to tenth on the pull request.
 
 | Class | Canonical list |
 |---|---|
 | `numbers` | two through twenty, every word |
 | `determiners` | the, this, that, these, those, its, a, any, every, each, no |
-| `ordinals` | first, second, third, fourth, last, next, previous, final |
+| `ordinals` | first through tenth, every word, then last, next, previous, final |
 | `parts` | bullet, paragraph, row, section, table, list, entry, sentence, block, column, span, item |
 | `changes` | moved, removed, renamed, replaced, dropped, deleted, lifted, rewritten |
 | `auxiliaries` | is, are, was, were, been, has, have, had, does, do |
@@ -40,7 +40,7 @@ Nothing widens at implementation. Every candidate waits for the owner's answer o
 | Counts | `(?:all\|both of\|...)` | numbers | Yes. It stops at fifteen plus twenty, and sixteen to nineteen are the gap the list closes. |
 | Counts | `(?:two\|...\|five) of them` | numbers | Yes. "Six of them" counts as plainly as "five of them". |
 | Counts | `(?:the\|these\|those\|its) (?:two\|...\|ten)` | numbers | Yes. "The eleven files" is the same count. |
-| Counts | `(?:the\|these\|those) (?:two\|three)(?=...)` | numbers | No. "Toward the five," names a cap in `plugins/gh-solo`. |
+| Counts | `(?:the\|these\|those) (?:two\|three)(?=...)` | numbers | Yes, with "toward" kept out before it, since "toward the five," names a cap in `plugins/gh-solo`. |
 | Counts | `... (?:below\|above)` | numbers | Yes. |
 | Counts | both announcement tokens | numbers | Yes. "Eleven causes remain." is the same announcement. |
 | Counts | `runs in (?:two\|...\|six)` | numbers | Yes. |
@@ -52,7 +52,8 @@ Nothing widens at implementation. Every candidate waits for the owner's answer o
 | History | `(?:has\|have\|had) been (?:moved\|...)` | changes | Yes, adding "rewritten". |
 | History | `is being (?:lifted\|...)` | changes | Yes. "Is being moved" anchors to a moment as "is being lifted" does. |
 | History | `(?:was\|were) (?:moved\|...) (?:to\|from\|in\|out)` | changes | No. "Replaced" has its own token, and "lifted to" is not a history claim. |
-| any | every determiner, ordinal and auxiliary group | — | No. Each changes what the shape means, as "any two findings" states a rule rather than counting a list. |
+| Position | every ordinal group | ordinals | Yes. |
+| any | every determiner and auxiliary group | — | No. Each changes what the shape means, as "any two findings" states a rule rather than counting a list. |
 
 ## Decisions
 
