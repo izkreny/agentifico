@@ -147,3 +147,30 @@ describe("per-token coverage", () => {
     assert.deepEqual(unreached, [], `no trip line trips:\n${unreached.join("\n")}`);
   });
 });
+
+describe("word classes", () => {
+  // A group holding a word from no class is left alone, so a pronoun beside the determiners does not force a token apart.
+  it("every group of one class's words is that class's list, or its source comment says why it narrows", () => {
+    const classes = YAML.parse(fs.readFileSync(path.join(styles, "word-classes.yml"), "utf8"));
+    const classOf = (alts) => Object.keys(classes).find((c) => alts.every((a) => classes[c].includes(a)));
+    const drifted = [];
+    for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
+      const rule = file.replace(/\.yml$/, "");
+      const tokens = YAML.parseDocument(fs.readFileSync(path.join(styleDir, file), "utf8")).get("tokens", true);
+      if (!tokens) continue;
+      // Several tokens share one comment, so a token without its own reads the nearest one before it; the first token's comment is parsed onto the sequence.
+      let comment = (tokens.commentBefore ?? "").replace(/\s+/g, " ");
+      for (const item of tokens.items) {
+        if (item.commentBefore) comment = item.commentBefore.replace(/\s+/g, " ");
+        for (const [, group] of item.value.matchAll(/\(\?:([^()]*)\)/g)) {
+          const alts = group.split("|").map((a) => a.trim());
+          if (alts.some((a) => !/^[a-z]+$/.test(a))) continue;
+          const cls = classOf(alts);
+          if (!cls || alts.length === classes[cls].length) continue;
+          if (!new RegExp(`Narrows ${cls}: \\S`).test(comment)) drifted.push(`${rule}: ${item.value} narrows ${cls}`);
+        }
+      }
+    }
+    assert.deepEqual(drifted, [], `a group narrows its class with no "Narrows <class>: <reason>" in its comment:\n${drifted.join("\n")}`);
+  });
+});
