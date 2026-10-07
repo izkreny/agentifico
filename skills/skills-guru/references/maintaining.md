@@ -61,7 +61,7 @@ git log --patch origin/main..<branch> -- '*.md'
 
 ### Which rule a phrase belongs to
 
-**A phrase belongs to the rule whose `workflows/new.md` heading catches it**, and each rule's `message` opens on that heading. A count of adjacent content, where adding one more item makes the sentence false, is `Counts`. A claim an edit anywhere in the document can falsify is `Position`. A sentence anchored to a moment rather than a reason is `History`. A version or date claim in a file's opening region is `Banner`; the length rules hold no phrases.
+**A phrase belongs to the rule whose `workflows/new.md` heading catches it**, and each rule's `message` opens on that heading. A count of adjacent content, where adding one more item makes the sentence false, is `Counts`. A claim an edit anywhere in the document can falsify is `Position`. A sentence anchored to a moment rather than a reason is `History`. A count written as a digit is `Digits`, whose message names the word that brings it into `Counts`' reach. A version or date claim in a file's opening region is `Banner`; the length rules hold no phrases.
 
 **A phrase that belongs to none is reported, with its source, and gets no rule.** A rule whose message names no heading enforces nothing this skill states, and a rule enters `workflows/new.md` before it enters `assets/`.
 
