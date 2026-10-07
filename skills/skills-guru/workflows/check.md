@@ -2,7 +2,7 @@
 
 The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
-**Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `prose rules` for Vale's alerts.
+**Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `yaml files` for *The YAML rules*, `prose rules` for Vale's alerts.
 
 **Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, printed a version the check could not read, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown and YAML files alone, since a code file's only reader is the process that did not start.
 
@@ -110,7 +110,7 @@ The match is case-sensitive because Vale's is, so an uppercase directive, which 
 
 ## The YAML rules
 
-The check parses each YAML file and fails, naming the file and the line, on a file that does not parse, a duplicate key, and a comment line that continues a sentence from the line before. The last is *No hard wrapping* in `workflows/new.md`, applied to a comment. A line that ends in `.`, `!` or `?` ends its sentence, and a colon does not, so separate one-line comments in a row pass and a comment wrapped after a colon fails. An empty `#` line separates two paragraphs. Comments are read off the parser's tree, so a `#` inside a block scalar is text rather than a comment. The findings print under `yaml files`, before the prose rules run.
+The check parses each YAML file and fails, naming the file and the line, on a file that does not parse, a duplicate key, and a comment line that continues a sentence from the line before. The last is *No hard wrapping* in `workflows/new.md`, applied to a comment. A line that ends in `.`, `!` or `?` ends its sentence, and a colon does not, so separate one-line comments in a row pass and a comment wrapped after a colon fails. An empty `#` line separates two paragraphs. Comments are read off the parser's tree, so a `#` inside a block scalar is text rather than a comment.
 
 ## The prose rules
 
