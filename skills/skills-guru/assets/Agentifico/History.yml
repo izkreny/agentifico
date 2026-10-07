@@ -1,129 +1,83 @@
-# "Never write the file's own history" in workflows/new.md: a reader cannot
-# locate the past being described, and in a file read as instructions a claim
-# about a rule that no longer exists reads as a rule about the present. Each
-# token is the wording of a history claim a review removed here, named by the
-# pull request or commit. What survives is the durable reason, so the tokens
-# are the words that anchor a sentence to a moment rather than to a reason.
+# "Never write the file's own history" in workflows/new.md: a reader cannot locate the past being described, and in a file read as instructions a claim about a rule that no longer exists reads as a rule about the present. Each token is the wording of a history claim a review removed here, named by the pull request or commit. What survives is the durable reason, so the tokens are the words that anchor a sentence to a moment rather than to a reason.
 extends: existence
 message: "Never write the file's own history: '%s' anchors the sentence to a past a reader cannot locate; state the durable reason instead."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-guru/workflows/new.md
 level: error
 ignorecase: true
 tokens:
-  # "it does not stop it any more" fb26bb7; "no longer" is the rule's own
-  # example and the shape two commit bodies and PR 105 carried.
+  # "it does not stop it any more" fb26bb7; "no longer" is the rule's own example and the shape two commit bodies and PR 105 carried.
   - 'no longer'
   - 'any ?more'
   # "where pr-flow previously mandated" 187f851.
   - 'previously'
-  # "we used to cap the watch" is the rule's own example; "it used to ignore"
-  # ae1cd1a.
+  # "we used to cap the watch" is the rule's own example; "it used to ignore" ae1cd1a.
   - '(?:it|we|that|this|which|they|and) used to'
-  # "the old check refused first" PR 66; "the older test was wrong" is the
-  # rule's own example; "The older one-condition version is wrong" fff3385,
-  # PR 1, lets the word between be hyphenated.
+  # "the old check refused first" PR 66; "the older test was wrong" is the rule's own example; "The older one-condition version is wrong" fff3385, PR 1, lets the word between be hyphenated.
   - 'the (?:old|older|earlier|original|former|previous) (?:[a-z-]+ )?(?:rule|check|test|loop|version|form|wording|name|block|shape|behaviou?r|design|section|file|command|paragraph|sentence)'
-  # "rather than the shell block it replaced" PR 87; "before #101 replaced
-  # them" PR 116; "restored" PR 66.
+  # "rather than the shell block it replaced" PR 87; "before #101 replaced them" PR 116; "restored" PR 66.
   - 'it replace[sd]'
   # Narrows auxiliaries: a past passive takes "was", "were" or "been".
   - '(?:was|were|been) replaced'
   - 'replaced by'
   - 'restored'
-  # "The reads below now happen before" PR 66; "the discovery rule is now
-  # something the rest of this file depends on" PR 100; "Nothing in a title
-  # now reveals" ae1cd1a, PR 31.
-  # Narrows auxiliaries: "been now" is not a clause, and the record holds no
-  # "had now".
+  # "The reads below now happen before" PR 66; "the discovery rule is now something the rest of this file depends on" PR 100; "Nothing in a title now reveals" ae1cd1a, PR 31.
+  # Narrows auxiliaries: "been now" is not a clause, and the record holds no "had now".
   - '(?:is|are|was|were|has|have|does|do) now\b'
   - 'now (?:happens?|runs|reads|does|says|names|carries|lives|reveals)'
   # "behaves exactly as it does today" PR 103.
   - 'today'
-  # "Found live on a skill" and "where the trap was first seen" 35e4733;
-  # "was never the reason" 187f851 at two sites; "at the time" live in
-  # skills/rails-style.
+  # "Found live on a skill" and "where the trap was first seen" 35e4733; "was never the reason" 187f851 at two sites; "at the time" live in skills/rails-style.
   - 'first (?:tried|seen|saw)'
   - 'was never the reason'
   - 'in the past'
   - 'at the time'
-  # "#101 is where that constraint is being lifted; until it lands" PR 105;
-  # "before #101 replaced them" PR 116; "Worth doing, not yet done" ae1cd1a;
-  # "which is not yet built" 187f851, PR 58.
-  # Narrows auxiliaries: a perfect takes "has", "have" or "had". Widened to
-  # changes, PR 263.
+  # "#101 is where that constraint is being lifted; until it lands" PR 105; "before #101 replaced them" PR 116; "Worth doing, not yet done" ae1cd1a; "which is not yet built" 187f851, PR 58.
+  # Narrows auxiliaries: a perfect takes "has", "have" or "had". Widened to changes, PR 263.
   - '(?:has|have|had) been (?:moved|removed|renamed|replaced|dropped|deleted|lifted|rewritten)'
-  # Narrows auxiliaries: a past passive takes "was" or "were". Narrows
-  # changes: "replaced" has a token of its own, and "lifted to" is not a
-  # history claim.
+  # Narrows auxiliaries: a past passive takes "was" or "were". Narrows changes: "replaced" has a token of its own, and "lifted to" is not a history claim.
   - '(?:was|were) (?:moved|removed|renamed|dropped|deleted) (?:to|from|in|out)'
   - 'before #\d+'
   - 'until (?:it|that|#\d+) lands'
   - 'is being (?:moved|removed|renamed|replaced|dropped|deleted|lifted|rewritten)'
   - 'not yet (?:done|built)'
-  # The incident a rule came from, told as a story: "the incident that
-  # produced the review-protocol reference happened" and "went wrong on the
-  # incident PR", 2dd399f, PR 1; "That happened on a real PR" PR 181.
-  # Narrows determiners: the record holds only "the" and "a" before the
-  # incident.
+  # The incident a rule came from, told as a story: "the incident that produced the review-protocol reference happened" and "went wrong on the incident PR", 2dd399f, PR 1; "That happened on a real PR" PR 181.
+  # Narrows determiners: the record holds only "the" and "a" before the incident.
   - '(?:happened|went wrong) (?:on|in|with) (?:the|a) (?:[a-z]+ )?(?:pr|pull request|incident)'
   - 'the incident (?:pr|that)'
   # "with every then-existing rule obeyed" 2dd399f, PR 1.
   - 'then-existing'
-  # "The choice was made on 2026-09-06" 4d47cb3, PR 116. In a file's opening
-  # paragraph Banner reads the date too.
+  # "The choice was made on 2026-09-06" 4d47cb3, PR 116. In a file's opening paragraph Banner reads the date too.
   - '(?:made|decided|chosen|taken) on \d{4}-\d{2}-\d{2}'
-  # "was enough only while the owner was the sole human posting" fff3385,
-  # PR 1: a rule's validity bounded by a past the reader cannot see.
+  # "was enough only while the owner was the sole human posting" fff3385, PR 1: a rule's validity bounded by a past the reader cannot see.
   # Narrows auxiliaries: a bounded past takes "was" or "were".
   - '(?:was|were) enough only while'
   # "This reverses an earlier rule" fb26bb7, and the rule's own example.
   - 'this reverses'
   - 'reverses an earlier'
-  # A non-change asserted against a past the reader cannot see: "The pull
-  # request title's own scope rule is unchanged" .agents/gh-solo.md, "still
-  # stand" #44, "survives untouched" #52, "stands as it was written" #24,
-  # "hits it exactly as before" #52; fifteen "unchanged" and six "untouched"
-  # across the tracker; "That reasoning still holds" fb26bb7; "keeps working
-  # untouched" 187f851, PR 58, and "carry over untouched" e91f8ff, PR 6.
-  # "unchanged" is left out after these two, since "the rest carry over
-  # unchanged" describes a field mapping in plugins/gh-solo.
+  # A non-change asserted against a past the reader cannot see: "The pull request title's own scope rule is unchanged" .agents/gh-solo.md, "still stand" #44, "survives untouched" #52, "stands as it was written" #24, "hits it exactly as before" #52; fifteen "unchanged" and six "untouched" across the tracker; "That reasoning still holds" fb26bb7; "keeps working untouched" 187f851, PR 58, and "carry over untouched" e91f8ff, PR 6. "unchanged" is left out after these two, since "the rest carry over unchanged" describes a field mapping in plugins/gh-solo.
   - '(?:is|are|remains?|stays?|left|rule|contract) (?:unchanged|untouched)'
   - 'survives untouched'
   - '(?:working|over) untouched'
   - 'still (?:holds|stands?|true|says|claims|reads as|carries|armed|binding)'
   - 'stands as it was written'
   - 'as before'
-  # "This supersedes the wording-only fix" #22; "a risk the gate has retired"
-  # #80; "rewritten rather than left standing" #101; "it currently forbids
-  # bundling a parser, which this issue reverses" #101; seventeen "currently"
-  # across the tracker, each dating the sentence it sits in.
+  # "This supersedes the wording-only fix" #22; "a risk the gate has retired" #80; "rewritten rather than left standing" #101; "it currently forbids bundling a parser, which this issue reverses" #101; seventeen "currently" across the tracker, each dating the sentence it sits in.
   - 'supersede[sd]?'
   - 'has retired'
   - 'left standing'
   - 'currently'
-  # The document narrating its own drafting: "The first draft of this issue"
-  # #7, "An earlier shape of this issue" #17, "the reasoning first written
-  # here was wrong" #55, "dropped that rule" #3.
-  # Narrows determiners: the record holds only "the" and "its" before a first
-  # draft.
+  # The document narrating its own drafting: "The first draft of this issue" #7, "An earlier shape of this issue" #17, "the reasoning first written here was wrong" #55, "dropped that rule" #3.
+  # Narrows determiners: the record holds only "the" and "its" before a first draft.
   - '(?:the|its) first (?:draft|version|reading|form) of'
   - 'an earlier (?:shape|version|form|draft) of'
   - 'first (?:said|written|wrote)'
   # Narrows auxiliaries: a past passive takes "was", "were" or "been".
   - '(?:was|were|been) dropped'
   - 'dropped that'
-  # "which is what the scripts/* span was" PR 155 RF3: a sentence naming what
-  # a thing the file no longer carries used to be. An inline code span is
-  # masked to asterisks by the time the token reads it, so the gap admits any
-  # non-space run; a full stop, a question mark and an exclamation mark are
-  # kept out of it so the match cannot cross into the next sentence, PR 174
-  # RF1 and RF5.
-  # Narrows determiners: "these" and "those" take a plural that "was" cannot
-  # follow, and the record holds no "a", "any", "every", "each" or "no".
+  # "which is what the scripts/* span was" PR 155 RF3: a sentence naming what a thing the file no longer carries used to be. An inline code span is masked to asterisks by the time the token reads it, so the gap admits any non-space run; a full stop, a question mark and an exclamation mark are kept out of it so the match cannot cross into the next sentence, PR 174 RF1 and RF5.
+  # Narrows determiners: "these" and "those" take a plural that "was" cannot follow, and the record holds no "a", "any", "every", "each" or "no".
   - 'which is what (?:the|that|this|its) (?:[^\s.?!]+ ){0,3}?(?:span|rule|check|test|command|flag|line|list|set|section|block|loop) was'
-  # "how a list grows afterwards is #130's to document" 54c301c: the file
-  # promising its own future to an issue, which dates it as "until #101
-  # lands" does.
+  # "how a list grows afterwards is #130's to document" 54c301c: the file promising its own future to an issue, which dates it as "until #101 lands" does.
   - 'is #\d+''s to (?:document|state|add|decide|settle|fix|write|say)'
 tests:
   - name: fires on each recorded shape, once per line

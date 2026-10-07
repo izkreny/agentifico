@@ -1,12 +1,4 @@
-# The counting half of the same rule as CommentSentences: a helper that points
-# a reviewer at a comment long enough to be read for a second claim, not a
-# verdict that it carries one, which is why it is a warning as ParagraphLength
-# is. A scoped metric measures each comment on its own with Vale's words
-# formula, a run of line comments counting as one. The cap is calibrated
-# against this package by that count on 2026-09-15: its 118 comments ran to a
-# median of 23 words and a maximum of 44, so 45 sits one word above the
-# longest and names nothing in the package. Vale does not read a tool
-# directive at all, so its reason never counts toward the cap.
+# The counting half of the same rule as CommentSentences: a helper that points a reviewer at a comment long enough to be read for a second claim, not a verdict that it carries one, which is why it is a warning as ParagraphLength is. A scoped metric measures each comment on its own with Vale's words formula, a run of line comments counting as one. The cap is calibrated against this package by that count on 2026-09-15: its 118 comments ran to a median of 23 words and a maximum of 44, so 45 sits one word above the longest and names nothing in the package. Vale does not read a tool directive at all, so its reason never counts toward the cap.
 # The scope is named in config/scopes/CommentProse.yml, with its reason.
 extends: metric
 message: "A comment inside code is one sentence saying why: this one runs to %s words, so read it for a second claim."
