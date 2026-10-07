@@ -110,7 +110,7 @@ The match is case-sensitive because Vale's is, so an uppercase directive, which 
 
 ## The YAML rules
 
-The check parses each YAML file and fails, naming the file and the line, on a file that does not parse, a duplicate key, and a comment line that continues a sentence from the line before. The last is *No hard wrapping* in `workflows/new.md`, applied to a comment. A line that ends in `.`, `!` or `?` ends its sentence, and a colon does not, so separate one-line comments in a row pass and a comment wrapped after a colon fails. Comments are read off the parser's tree, so a `#` inside a block scalar is text rather than a comment. The findings print under `yaml files`, before the prose rules run.
+The check parses each YAML file and fails, naming the file and the line, on a file that does not parse, a duplicate key, and a comment line that continues a sentence from the line before. The last is *No hard wrapping* in `workflows/new.md`, applied to a comment. A line that ends in `.`, `!` or `?` ends its sentence, and a colon does not, so separate one-line comments in a row pass and a comment wrapped after a colon fails. An empty `#` line separates two paragraphs. Comments are read off the parser's tree, so a `#` inside a block scalar is text rather than a comment. The findings print under `yaml files`, before the prose rules run.
 
 ## The prose rules
 

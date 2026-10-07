@@ -100,7 +100,8 @@ for (const file of yamlFiles) {
     yamlFindings.push(`${rel}:${e.linePos?.[0]?.line ?? 1} ${rule} ${e.message.split("\n")[0]}`);
   }
   const sourceLines = source.split("\n");
-  const whole = commentsOf(source).filter((c) => !sourceLines[c.line - 1].slice(0, c.col - 1).trim());
+  // An empty "#" line separates two paragraphs, so it neither continues a sentence nor is continued by one.
+  const whole = commentsOf(source).filter((c) => !sourceLines[c.line - 1].slice(0, c.col - 1).trim() && c.text.slice(1).trim());
   for (const [i, c] of whole.entries()) {
     const before = whole[i - 1];
     // A colon is no sentence end, since a wrapped comment breaks after one mid-sentence as often as after a word.
