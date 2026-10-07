@@ -77,11 +77,11 @@ tokens:
   # "every other site points there rather than carrying its own copy" and
   # "the sites that mention a merge follows point here rather than carrying
   # their own copy of the command", PR 82 RF3 and RF4 on second attempts.
-  # Narrows determiners: the record holds only "this" and "the" before a
-  # possessive.
   - '(?:site|sites|copy|copies|file|files|workflow|workflows) (?:[a-z]+ ){0,6}?points? (?:here|there) rather than'
   - 'exactly those'
   - 'stated here in full'
+  # Narrows determiners: the record holds only "this" and "the" before a
+  # possessive.
   - '(?:this|the) (?:repository|plugin|skill|package)''s one [a-z]+'
   # A recency claim: "the newest section" is workflows/review.md's own
   # example; "the current" and "the latest" are left out because "the current

@@ -158,10 +158,9 @@ describe("word classes", () => {
       const rule = file.replace(/\.yml$/, "");
       const tokens = YAML.parseDocument(fs.readFileSync(path.join(styleDir, file), "utf8")).get("tokens", true);
       if (!tokens) continue;
-      // Several tokens share one comment, so a token without its own reads the nearest one before it; the first token's comment is parsed onto the sequence.
-      let comment = (tokens.commentBefore ?? "").replace(/\s+/g, " ");
-      for (const item of tokens.items) {
-        if (item.commentBefore) comment = item.commentBefore.replace(/\s+/g, " ");
+      for (const [i, item] of tokens.items.entries()) {
+        // The first token's comment is parsed onto the sequence rather than the item.
+        const comment = ((i === 0 ? tokens.commentBefore : item.commentBefore) ?? "").replace(/\s+/g, " ");
         for (const [, group] of item.value.matchAll(/\(\?:([^()]*)\)/g)) {
           const alts = group.split("|").map((a) => a.trim());
           if (alts.some((a) => !/^[a-z]+$/.test(a))) continue;
