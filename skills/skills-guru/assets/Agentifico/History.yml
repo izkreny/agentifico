@@ -50,13 +50,14 @@ tokens:
   # "before #101 replaced them" PR 116; "Worth doing, not yet done" ae1cd1a;
   # "which is not yet built" 187f851, PR 58.
   # Narrows auxiliaries: a perfect takes "has", "have" or "had", and a past
-  # passive "was" or "were". Narrows changes: the record holds no "been
-  # rewritten" and no "is being moved", and "replaced" has a token of its own.
-  - '(?:has|have|had) been (?:moved|removed|renamed|replaced|dropped|deleted|lifted)'
+  # passive "was" or "were". Widened to changes, PR 263, but for the passive
+  # with a preposition. Narrows changes: "replaced" has a token of its own,
+  # and "lifted to" is not a history claim.
+  - '(?:has|have|had) been (?:moved|removed|renamed|replaced|dropped|deleted|lifted|rewritten)'
   - '(?:was|were) (?:moved|removed|renamed|dropped|deleted) (?:to|from|in|out)'
   - 'before #\d+'
   - 'until (?:it|that|#\d+) lands'
-  - 'is being (?:lifted|removed|replaced|rewritten)'
+  - 'is being (?:moved|removed|renamed|replaced|dropped|deleted|lifted|rewritten)'
   - 'not yet (?:done|built)'
   # The incident a rule came from, told as a story: "the incident that
   # produced the review-protocol reference happened" and "went wrong on the
