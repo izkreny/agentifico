@@ -112,6 +112,8 @@ The match is case-sensitive because Vale's is, so an uppercase directive, which 
 
 The check parses each YAML file and fails, naming the file and the line, on a file that does not parse, a duplicate key, and a comment line that continues a sentence from the line before. The last is *No hard wrapping* in `workflows/new.md`, applied to a comment. A line that ends in `.`, `!` or `?` ends its sentence, and a colon does not, so separate one-line comments in a row pass and a comment wrapped after a colon fails. An empty `#` line separates two paragraphs. Comments are read off the parser's tree, so a `#` inside a block scalar is text rather than a comment.
 
+Commented-out YAML is reported as a wrap too. A prose line such as `Note: the rule reads` parses as a key just as `tokens:` does, so no test tells one from the other: delete the block, since git keeps it.
+
 ## The prose rules
 
 Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history. Text inside double quotes is not read, for the reason `.vale.ini` gives beside `TokenIgnores`, which is also why a defect written inside quotes escapes the check.
