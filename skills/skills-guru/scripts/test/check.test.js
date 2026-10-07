@@ -142,7 +142,10 @@ before(() => {
     ["yaml-duplicate", "a: 1\na: 2\n"],
     ["yaml-wrapped", "# A comment wrapped at\n# a column.\nkey: value\n"],
     // The block scalar holds a wrapped "comment" that is text, so a check reading raw lines would fail a clean file.
-    ["yaml-separate", "# One note.\n# Another note.\nkey: |\n  # a heading inside a block scalar\n  # and its text\n"],
+    [
+      "yaml-separate",
+      "# One note.\n# Another note.\n# A paragraph's close, before an empty line.\n#\n# The next paragraph.\nkey: |\n  # a heading inside a block scalar\n  # and its text\n",
+    ],
   ]) {
     mk(path.join(tmp, dir), block(dir));
     fs.writeFileSync(path.join(tmp, dir, "rule.yml"), yaml);
