@@ -25,8 +25,8 @@ tokens:
   - 'the (?:old|older|earlier|original|former|previous) (?:[a-z-]+ )?(?:rule|check|test|loop|version|form|wording|name|block|shape|behaviou?r|design|section|file|command|paragraph|sentence)'
   # "rather than the shell block it replaced" PR 87; "before #101 replaced
   # them" PR 116; "restored" PR 66.
-  # Narrows auxiliaries: a past passive takes "was", "were" or "been".
   - 'it replace[sd]'
+  # Narrows auxiliaries: a past passive takes "was", "were" or "been".
   - '(?:was|were|been) replaced'
   - 'replaced by'
   - 'restored'
@@ -49,11 +49,12 @@ tokens:
   # "#101 is where that constraint is being lifted; until it lands" PR 105;
   # "before #101 replaced them" PR 116; "Worth doing, not yet done" ae1cd1a;
   # "which is not yet built" 187f851, PR 58.
-  # Narrows auxiliaries: a perfect takes "has", "have" or "had", and a past
-  # passive "was" or "were". Widened to changes, PR 263, but for the passive
-  # with a preposition. Narrows changes: "replaced" has a token of its own,
-  # and "lifted to" is not a history claim.
+  # Narrows auxiliaries: a perfect takes "has", "have" or "had". Widened to
+  # changes, PR 263.
   - '(?:has|have|had) been (?:moved|removed|renamed|replaced|dropped|deleted|lifted|rewritten)'
+  # Narrows auxiliaries: a past passive takes "was" or "were". Narrows
+  # changes: "replaced" has a token of its own, and "lifted to" is not a
+  # history claim.
   - '(?:was|were) (?:moved|removed|renamed|dropped|deleted) (?:to|from|in|out)'
   - 'before #\d+'
   - 'until (?:it|that|#\d+) lands'
@@ -104,10 +105,11 @@ tokens:
   # #7, "An earlier shape of this issue" #17, "the reasoning first written
   # here was wrong" #55, "dropped that rule" #3.
   # Narrows determiners: the record holds only "the" and "its" before a first
-  # draft. Narrows auxiliaries: a past passive takes "was", "were" or "been".
+  # draft.
   - '(?:the|its) first (?:draft|version|reading|form) of'
   - 'an earlier (?:shape|version|form|draft) of'
   - 'first (?:said|written|wrote)'
+  # Narrows auxiliaries: a past passive takes "was", "were" or "been".
   - '(?:was|were|been) dropped'
   - 'dropped that'
   # "which is what the scripts/* span was" PR 155 RF3: a sentence naming what
