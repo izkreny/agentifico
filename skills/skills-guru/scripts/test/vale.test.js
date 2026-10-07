@@ -166,7 +166,7 @@ describe("word classes", () => {
           const alts = group.split("|").map((a) => a.trim());
           if (alts.some((a) => !/^[a-z]+$/.test(a))) continue;
           const cls = classOf(alts);
-          if (!cls || alts.length === classes[cls].length) continue;
+          if (!cls || classes[cls].every((w) => alts.includes(w))) continue;
           if (!new RegExp(`Narrows ${cls}: \\S`).test(comment)) drifted.push(`${rule}: ${item.value} narrows ${cls}`);
         }
       }
