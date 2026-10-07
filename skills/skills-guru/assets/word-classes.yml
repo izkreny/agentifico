@@ -1,0 +1,11 @@
+# The canonical list of each word class the phrase rules under Agentifico/
+# spell out in their tokens. Vale has no variables, so every token repeats its
+# class inline, and the suite holds each copy to the list here, per "How a
+# token lands" in references/maintaining.md. Vale reads only the style
+# directories under assets/, so this file is never loaded as a rule.
+numbers: [two, three, four, five, six, seven, eight, nine, ten, eleven, twelve, thirteen, fourteen, fifteen, sixteen, seventeen, eighteen, nineteen, twenty]
+determiners: [the, this, that, these, those, its, a, any, every, each, "no"]
+ordinals: [first, second, third, fourth, last, next, previous, final]
+parts: [bullet, paragraph, row, section, table, list, entry, sentence, block, column, span, item]
+changes: [moved, removed, renamed, replaced, dropped, deleted, lifted, rewritten]
+auxiliaries: [is, are, was, were, been, has, have, had, does, do]
