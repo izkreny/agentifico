@@ -1,29 +1,29 @@
 # "Write a count from two to twenty in words" in workflows/new.md: a count written as a digit slips past every Counts token, so the digit is reported and the message names the word from the numbers list in assets/word-classes.yml, which the suite holds this swap to. The keys are shapes rather than mined phrasings, and their source is issue #228.
-# Each key reports a lone digit followed by a lowercase word, the count shape "3 files". A digit touching a letter, a digit or one of . - / : # is an id, a version, a date or a time, and a comma before a digit makes it a figure such as 2,000. A digit after step, section, line, chapter, row, item, layer, exit, issue, version or Python names that thing, as does a digit continuing such a name through a comma, "and", "or" or "to"; issue #228 names the first of those words, and a survey of the listed packages found the rest. A digit followed by "is" or "was" is a number named as a subject, since a count from two up never takes a singular verb, and a digit paired through "to", "and" or "or" with a number above twenty stays a digit, since spelling one end out writes "ten to 30"; plugins/gh-solo carries both shapes.
+# Each key reports a lone digit followed by a lowercase word, the count shape "3 files". A digit touching a letter, a digit or one of . - / : # is an id, a version, a date or a time, and a comma before a digit makes it a figure such as 2,000. A digit after step, section, line, chapter, row, item, layer, exit, issue, version or Python names that thing, as does a digit continuing such a name through a comma, "and", "or" or "to"; issue #228 names the first of those words, and a survey of the listed packages found the rest. A literal value, such as an exit code, is written in a code span, which Vale masks.
 extends: substitution
 message: "Write a count from two to twenty in words: write '%s' rather than '%s'."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-guru/workflows/new.md
 level: error
 swap:
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)2(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': two
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)3(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': three
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)4(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': four
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)5(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': five
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)6(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': six
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)7(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': seven
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)8(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': eight
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)9(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': nine
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)10(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': ten
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)11(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': eleven
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)12(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': twelve
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)13(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': thirteen
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)14(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': fourteen
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)15(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': fifteen
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)16(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': sixteen
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)17(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': seventeen
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)18(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': eighteen
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)19(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': nineteen
-  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)20(?![\w.:/-]|,\d| (?:is|was)\b| (?:to|and|or) (?:2[1-9]|[3-9]\d|\d{3,}))(?= [a-z])': twenty
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)2(?![\w.:/-]|,\d)(?= [a-z])': two
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)3(?![\w.:/-]|,\d)(?= [a-z])': three
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)4(?![\w.:/-]|,\d)(?= [a-z])': four
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)5(?![\w.:/-]|,\d)(?= [a-z])': five
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)6(?![\w.:/-]|,\d)(?= [a-z])': six
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)7(?![\w.:/-]|,\d)(?= [a-z])': seven
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)8(?![\w.:/-]|,\d)(?= [a-z])': eight
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)9(?![\w.:/-]|,\d)(?= [a-z])': nine
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)10(?![\w.:/-]|,\d)(?= [a-z])': ten
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)11(?![\w.:/-]|,\d)(?= [a-z])': eleven
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)12(?![\w.:/-]|,\d)(?= [a-z])': twelve
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)13(?![\w.:/-]|,\d)(?= [a-z])': thirteen
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)14(?![\w.:/-]|,\d)(?= [a-z])': fourteen
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)15(?![\w.:/-]|,\d)(?= [a-z])': fifteen
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)16(?![\w.:/-]|,\d)(?= [a-z])': sixteen
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)17(?![\w.:/-]|,\d)(?= [a-z])': seventeen
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)18(?![\w.:/-]|,\d)(?= [a-z])': eighteen
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)19(?![\w.:/-]|,\d)(?= [a-z])': nineteen
+  '(?<![\w.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)20(?![\w.:/-]|,\d)(?= [a-z])': twenty
 tests:
   - name: fires on each recorded shape, once per line
     input: |
@@ -85,6 +85,4 @@ tests:
       It reads 3 files inside a fence.
       ```
 
-      It exits 1 because 2 is the refusal code, and 4 was read as a finding.
-      The prefix costs 10 to 30 columns, and 5 or 40 is the spread.
     want: ""
