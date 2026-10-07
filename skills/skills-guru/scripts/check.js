@@ -95,7 +95,10 @@ const yamlFindings = [];
 for (const file of yamlFiles) {
   const rel = path.relative(target, file);
   const source = fs.readFileSync(file, "utf8");
-  for (const e of YAML.parseAllDocuments(source).flatMap((doc) => doc.errors)) {
+  const docs = YAML.parseAllDocuments(source);
+  // A stream holding no document comes back empty and raises nothing, so a file of directives alone is parsed again as one document, which reports what is missing.
+  const errors = docs.length ? docs.flatMap((doc) => doc.errors) : YAML.parseDocument(source).errors;
+  for (const e of errors) {
     const rule = e.code === "DUPLICATE_KEY" ? "yaml-duplicate-key" : "yaml-parse";
     yamlFindings.push(`${rel}:${e.linePos?.[0]?.line ?? 1} ${rule} ${e.message.split("\n")[0]}`);
   }
