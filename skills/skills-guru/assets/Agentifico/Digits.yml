@@ -80,6 +80,11 @@ tests:
       It exits 2 rather than passing, and exit 3 means a refusal.
       Issue 14 needs Python 3 and version 2 first.
       A cap of `3 files` inside a code span is code.
+
+      ```text
+      It reads 3 files inside a fence.
+      ```
+
       It exits 1 because 2 is the refusal code, and 4 was read as a finding.
       The prefix costs 10 to 30 columns, and 5 or 40 is the spread.
     want: ""
