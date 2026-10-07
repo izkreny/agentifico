@@ -97,19 +97,17 @@ tokens:
   # position in the document. "The last span belongs to the plans that named
   # the scripts" PR 116 RF8 adds "span". "which the first case tolerates"
   # e5df8b3, PR 234, adds "case" with no word before it, since "the last edge
-  # case" is a procedure rather than a position.
-  - 'the (?:first|second|third|fourth|last|next|previous|final) (?:(?:[a-z]+ ){0,2}(?:bullet|paragraph|row|section|sentence|entry|column|span|thing this)|case)'
+  # case" is a procedure rather than a position. Widened to ordinals, PR 263.
+  - 'the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) (?:(?:[a-z]+ ){0,2}(?:bullet|paragraph|row|section|sentence|entry|column|span|thing this)|case)'
   # "is the second of them" PR 181. "that" and "which" after it are left out:
   # "the first of these that is set wins" is a precedence rule.
-  # Narrows ordinals: "next", "previous" and "final" never take "of them", and
-  # the record holds no "fourth of them".
-  - 'the (?:first|second|third|last) of (?:them|these|those)(?! that\b| which\b)'
+  # Widened to ordinals, PR 263.
+  - 'the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) of (?:them|these|those)(?! that\b| which\b)'
   # An ordinal pair walking the document's own list: "The first is a check",
   # "The second is" #2; "the third row is the finding" #7.
-  # Narrows ordinals: "the last is" and "the next is" close a procedure as
-  # often as a list. Narrows auxiliaries: the record holds only "is" and
-  # "was".
-  - '^the (?:first|second|third) (?:is|was)\b'
+  # Widened to ordinals, PR 263. Narrows auxiliaries: the record holds only
+  # "is" and "was".
+  - '^the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) (?:is|was)\b'
   # "beneath it" as a pointer at a heading, #236 SW6 and 694a588, belongs
   # here and has no token: every general form trips "the floor beneath it".
 tests:
