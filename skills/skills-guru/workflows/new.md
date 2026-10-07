@@ -151,6 +151,10 @@ A bolded lead is there to stand out from the paragraphs around it, and a run of 
 
 Never state a count of adjacent content and never claim uniqueness, recency or position ("the four rules below", "the only copy", "the section above"): whoever adds the fifth rule edits the list, never the sentence, and in a skill the false sentence is not read past but obeyed. The test: if adding one more item makes the sentence false, it was a count and it goes; if it makes the item wrong, it is a cap and it stays. When membership is the rule, name the members.
 
+### Write a count from two to twenty in words
+
+A count written as a digit, as in "3 files", slips past every rule that reads a count, because those rules match number words; spelled out, the count can be judged. A digit that names something rather than counting it stays a digit: a step, a line, a version, a date, an id.
+
 ### Cut every paragraph to its one new claim
 
 A sentence that re-explains a rule already stated, or restates the same point in different words, is over-writing: it costs context on every load and buries the claim that was doing the work. When a paragraph reads as a short essay, name what is new in it and delete the rest.
