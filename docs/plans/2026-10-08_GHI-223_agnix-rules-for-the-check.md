@@ -32,7 +32,7 @@ This plan and nothing else. The deliverable is a comment on #223 and the follow-
 
 - Read the categories the issue names from the catalogue at `v0.56.6`, one row per rule.
 - Mark each rule sourced to a vendor's code or to community practice as skipped, and each rule #180 settled as owned or skipped, checking each owned rule against the check.
-- Re-read the cited page of every remaining candidate and give it a verdict, naming the destination file of each rule that ports.
+- Re-read the cited page of every remaining candidate and give it a verdict, naming the destination file of each rule that ports and the page that was re-read.
 - Decide whether a reader for the manifest, hooks and agent files is worth building.
 - Write the verdict comment for #223, stage it for the owner, and post it on their word.
 - Open one follow-up issue per group of rules that ports together, or record on #223 that nothing does, on the owner's word.
@@ -53,4 +53,18 @@ None.
 
 ## Settled
 
-None yet.
+Decisions the owner made in the terminal while this spike ran, recorded here per `plugins/gh-solo/skills/pr-flow/workflows/discuss.md`. The verdict on #223 is the outcome they shaped.
+
+**Is a rule skipped because no file in this repository uses the field it judges?** No. A first draft skipped such rules as "unused", and the owner overruled it: a mistake someone else has already documented is a lesson learned, so guarding against it is not speculation. Every such row was judged again on its source and its page.
+
+**Does a rule that copies a vendor's list of valid values port?** No. Model names, tool names, hook events and effort levels grow with Claude Code releases, and a stale copy in the check would flag correct files. A list of values that only narrows a warning, such as the events that ignore a matcher, can port, since a stale copy only misses a warning.
+
+**What answers the reader question?** `claude plugin validate --strict`, which reports most manifest and hooks rules and moves with Claude Code. Its rows port as prose in #281, which tells a sweep to run it. The six documented mistakes it passes are worth a JSON reader, in #279. An agent file needs no new reader, since the check already reads every markdown file.
+
+**Is the answer checked before it is posted?** Yes. At the owner's request a second agent re-derived every row from the catalogue, the pages and the validator, and its corrections are in the verdict.
+
+**How does the verdict read?** Every reason is a full sentence that reads without the legend. A ported row names the issue that builds it and the page re-read, and every rule id links to its page in agnix's documentation.
+
+**Where do the follow-ups go?** Inside epic #226, as #278 to #281, stacked after #231 and before the rename in #256, so the sweep #229 stays on top.
+
+**What happens to the agnix defects found on the way?** They go upstream, as the maintainer asked on #180: agent-sh/agnix#1639 to agent-sh/agnix#1644, each reproduced on agnix 0.56.6.
