@@ -8,7 +8,7 @@
   },
   "scripts": {
     "check": "node scripts/check.js",
-    "test": "node --test 'scripts/test/*.test.js'",
+    "test": "vitest run scripts/test/",
     "lint": "biome check scripts/"
   },
   "dependencies": {
@@ -17,6 +17,7 @@
     "yaml": "2.9.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.12"
+    "@biomejs/biome": "2.5.12",
+    "vitest": "5.0.3"
   }
 }
