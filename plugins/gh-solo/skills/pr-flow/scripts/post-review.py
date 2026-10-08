@@ -795,7 +795,7 @@ def release(args: argparse.Namespace) -> int:
     if already:
         print("post-review: already threaded, skipped: " + ", ".join(f"RF{n}" for n in already))
 
-    # Brought forward rather than replayed because the round kept committing after the hold, and checked here rather than on entry so a malformed ledger still exits 2 outside a repository.
+    # Brought forward rather than replayed because the round kept committing after the hold, and checked here rather than on entry so a malformed ledger still exits `2` outside a repository.
     root = repo_root()
     if root is None:
         sys.exit(
@@ -932,7 +932,7 @@ def release(args: argparse.Namespace) -> int:
 
 
 def report_unthreadable(unthreadable: list[str]) -> int:
-    """Exit 2 rather than a skip line, because a reserved id with no thread is one the merge gate refuses on."""
+    """Exit `2` rather than a skip line, because a reserved id with no thread is one the merge gate refuses on."""
     print(
         f"post-review: {len(unthreadable)} held finding(s) cannot be threaded, and merge "
         "refuses until each has a thread:",
