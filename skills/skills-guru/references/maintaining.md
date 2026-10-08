@@ -73,6 +73,10 @@ git log --patch origin/main..<branch> -- '*.md'
 
 **Where the phrase has a legitimate use, that use goes in the rule's guards case beside the trip case**, as a line the rule must leave alone. A case in a rule file loads that rule alone, without `TokenIgnores`, so a line that is legitimate only because it is quoted goes in `scripts/test/vale.test.yml` instead. A guards line is what stops a later edit to the token from widening it past the record. A finding the owner refused in its thread is the same evidence read the other way: the phrase it named goes into the rule's `exceptions` where a token already matches it, or into the guards case where none does, with the thread as its reason.
 
+**A word class a token spells out is held to that class's one list, in `assets/word-classes.yml`.** Vale has no variables, so each token repeats its class inline. The suite reads every `(?:...)` group made only of one class's words, and fails when the group is not that class's whole list. A narrower group passes only when the token's source comment carries `Narrows <class>: <reason>`. The source comment is the comment directly before the token, and a token sharing a comment with the token before it carries a marker of its own. A group holding any word from no class is held to no list.
+
+A token widens past its recorded phrasing only where the widening is quite obvious, and only with the owner's approval. A token is evidence, per *Where the prose rules live*, so a wider list is a claim no review made. The approval is recorded in a thread on the pull request that widens the token. The token's comment then cites that pull request in place of its `Narrows` line.
+
 **Then the check runs over this skill, and every place the token fires is fixed or excepted.** A true finding is fixed in the prose. A phrase that is right where it stands goes into the rule's `exceptions` with the reason beside it, never into a directive, per *The directive rule* in `workflows/check.md`.
 
 ## The suite

@@ -28,11 +28,12 @@ tokens:
   # "the paragraph above" PR 58, "the table above" and "label taxonomy below"
   # ae1cd1a, "the name loop below" PR 100; twenty removals of "above" and
   # sixteen of "below" across the history; "the above" live in
-  # skills/review-text, matched with no word between. "that" is left out of
-  # the determiners because "that floats above" is a CSS reference, not a
-  # pointer. "no rule above decides them" 9827051, PR 128, adds "no"; "the
-  # `rescope` list below" PR 181 lets a word be a code span, which is masked
-  # to asterisks by the time the token reads it.
+  # skills/review-text, matched with no word between. "no rule above decides
+  # them" 9827051, PR 128, adds "no"; "the `rescope` list below" PR 181 lets
+  # a word be a code span, which is masked to asterisks by the time the token
+  # reads it. Narrows determiners: "that" is left out because "that floats
+  # above" is a CSS reference, not a pointer, and the record holds no "its"
+  # or "a" before one.
   - '(?:the|this|these|those|any|every|each|no) (?:[\w''*-]+ ){0,3}(?:above|below)'
   # "everything above" and "everything below" PR 181; "Everything below
   # this section" f1cf1f9, PR 31; "Everything after this is the ordinary
@@ -41,9 +42,12 @@ tokens:
   # "the by-hand list further down" PR 167 RF6, left pointing at a bullet
   # the same diff deleted. "the `{type}` vocabulary itself is one section
   # further on" #236 SW20, b149279, adds "on".
-  - '(?:list|section|table|paragraph|bullet|entry|row|block) further (?:down|on)'
+  # Widened to parts, PR 263.
+  - '(?:bullet|paragraph|row|section|table|list|entry|sentence|block|column|span|item) further (?:down|on)'
   # "per the companion rule beside that bullet" 22ff7c6, PR 37.
-  - 'beside (?:that|this|the) (?:bullet|paragraph|row|section|table|list|entry|sentence)'
+  # Narrows determiners: the record holds only "that", "this" and "the" before
+  # a part. Widened to parts, PR 263.
+  - 'beside (?:that|this|the) (?:bullet|paragraph|row|section|table|list|entry|sentence|block|column|span|item)'
   # "the same as above" e3f094d and 6581c8c; "rules out above" 9ed0bb8;
   # "named above" live in plugins/gh-solo.
   - '(?:as|per|see|stated|described|named|listed|mentioned|noted|shown|explained|defined|quoted|said|same as|out) (?:[a-z]+ )?(?:above|below)'
@@ -76,6 +80,8 @@ tokens:
   - '(?:site|sites|copy|copies|file|files|workflow|workflows) (?:[a-z]+ ){0,6}?points? (?:here|there) rather than'
   - 'exactly those'
   - 'stated here in full'
+  # Narrows determiners: the record holds only "this" and "the" before a
+  # possessive.
   - '(?:this|the) (?:repository|plugin|skill|package)''s one [a-z]+'
   # A recency claim: "the newest section" is workflows/review.md's own
   # example; "the current" and "the latest" are left out because "the current
@@ -89,14 +95,17 @@ tokens:
   # position in the document. "The last span belongs to the plans that named
   # the scripts" PR 116 RF8 adds "span". "which the first case tolerates"
   # e5df8b3, PR 234, adds "case" with no word before it, since "the last edge
-  # case" is a procedure rather than a position.
-  - 'the (?:first|second|third|fourth|last|next|previous|final) (?:(?:[a-z]+ ){0,2}(?:bullet|paragraph|row|section|sentence|entry|column|span|thing this)|case)'
+  # case" is a procedure rather than a position. Widened to ordinals, PR 263.
+  - 'the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) (?:(?:[a-z]+ ){0,2}(?:bullet|paragraph|row|section|sentence|entry|column|span|thing this)|case)'
   # "is the second of them" PR 181. "that" and "which" after it are left out:
   # "the first of these that is set wins" is a precedence rule.
-  - 'the (?:first|second|third|last) of (?:them|these|those)(?! that\b| which\b)'
+  # Widened to ordinals, PR 263.
+  - 'the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) of (?:them|these|those)(?! that\b| which\b)'
   # An ordinal pair walking the document's own list: "The first is a check",
   # "The second is" #2; "the third row is the finding" #7.
-  - '^the (?:first|second|third) (?:is|was)\b'
+  # Widened to ordinals, PR 263. Narrows auxiliaries: the record holds only
+  # "is" and "was".
+  - '^the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) (?:is|was)\b'
   # "beneath it" as a pointer at a heading, #236 SW6 and 694a588, belongs
   # here and has no token: every general form trips "the floor beneath it".
 tests:

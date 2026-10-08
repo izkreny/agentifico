@@ -14,10 +14,12 @@ tokens:
   # "all three forms" PR 27; "met all three" PR 116; "one of the three
   # prefixes" PR 87; "whichever of the two applies" PR 92; "either of two"
   # and "one of those two" live in plugins/gh-solo at the first run.
-  - '(?:all|both of|each of|either of|neither of|one of|any of|which of|whichever of|two of|three of) (?:the |these |those |its |them )?(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|twenty)'
+  # Widened to numbers, PR 263.
+  - '(?:all|both of|each of|either of|neither of|one of|any of|which of|whichever of|two of|three of) (?:the |these |those |its |them )?(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)'
   # "Two of them change what an agent does" #30; "Say which of the two it is"
   # .agents/gh-solo.md.
-  - '(?:two|three|four|five) of them'
+  # Widened to numbers, PR 263.
+  - '(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty) of them'
   # "report which half of the cleanup is still owed" e5df8b3, PR 234: "half"
   # counts the two parts of the cleanup the step named.
   - 'which half of'
@@ -26,13 +28,19 @@ tokens:
   # 600884c; "those two lists" live in plugins/gh-solo; "the three `Reviewer`
   # lines" e39e277, PR 31, where a code span masked to asterisks sits
   # between the number and the noun.
-  - '(?:the|these|those|its) (?:two|three|four|five|six|seven|eight|nine|ten) (?:\*+ )?[a-z]+'
+  # Widened to numbers, PR 263. Narrows determiners: "this", "that" and "a"
+  # never precede a plural count, and "any", "every", "each" or "no" before a
+  # number states a rule, as "any two findings" does.
+  - '(?:the|these|those|its) (?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty) (?:\*+ )?[a-z]+'
   # The number closing a clause: "none of the three," ae1cd1a; "the larger
-  # of the two," e39e277, PR 31. "four" and up are left out, since "toward
-  # the five," names the cap a post is held to in plugins/gh-solo.
-  - '(?:the|these|those) (?:two|three)(?=[,.;:])'
+  # of the two," e39e277, PR 31. Widened to numbers, PR 263, with "toward"
+  # kept out before it, since "toward the five," names the cap a post is held
+  # to in plugins/gh-solo. Narrows determiners: the record holds no "its" closing a
+  # clause, and the others take no plural count or state a rule.
+  - '(?<!toward )(?:the|these|those) (?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)(?=[,.;:])'
   # "the three below" at three sites and "three above" 25ca57b.
-  - '(?:two|three|four|five|six|seven|eight|nine|ten) (?:[a-z]+ )?(?:below|above)'
+  # Widened to numbers, PR 263.
+  - '(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty) (?:[a-z]+ )?(?:below|above)'
   # An enumeration announced by its number: "Three cures." 7b06a2e; "Two
   # lines matter:" ae1cd1a; "It runs in three parts:" PR 46; "Two things sit
   # outside it" PR 37. The closing shapes sit in a lookahead, because Vale
@@ -40,23 +48,29 @@ tokens:
   # punctuation itself would never be satisfied. The second word is never
   # "that", "which" or "who", so "Two findings that are one defect" in
   # plugins/gh-solo, a statement rather than an announcement, is left alone.
-  - '^(?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+(?: (?!that|which|who)[a-z]+)?(?=[:.]| remain| matter| sit| are| were)'
+  # Widened to numbers, PR 263.
+  - '^(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty) [a-z]+(?: (?!that|which|who)[a-z]+)?(?=[:.]| remain| matter| sit| are| were)'
   # The same announcement opening a sentence mid-line, which the anchored
   # token never reaches: "Two causes remain." f3af74d, PR 64; "Two
   # exceptions:" ae1cd1a, PR 31; "Two shapes are left alone:" PR 179.
-  - '(?<=[.!?] )(?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+(?: (?!that|which|who)[a-z]+)?(?=[:.]| remain| matter| sit| are| were)'
-  - 'runs in (?:two|three|four|five|six) [a-z]+'
+  # Widened to numbers, PR 263.
+  - '(?<=[.!?] )(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty) [a-z]+(?: (?!that|which|who)[a-z]+)?(?=[:.]| remain| matter| sit| are| were)'
+  - 'runs in (?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty) [a-z]+'
   # "Two things happen here." 187f851, PR 58; "Two things worth knowing" and
   # "Two things in that flow are untested" ae1cd1a, PR 31; "exactly three
   # further things" a9f4f60, PR 58.
-  - '(?:two|three|four|five|six|seven|eight|nine|ten) (?:[a-z]+ )?things'
+  # Widened to numbers, PR 263.
+  - '(?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty) (?:[a-z]+ )?things'
   # "Only two headings are fixed" 187f851, PR 58.
-  - 'only (?:two|three|four|five|six|seven|eight|nine|ten) [a-z]+'
+  # Widened to numbers, PR 263.
+  - 'only (?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty) [a-z]+'
   # "The standards are three files" 25ca57b, PR 87; "are two rules, and both
   # run" 9827051, PR 128; "are two names for the one" 187f851, PR 58. The
   # nouns are the record's, since "are two posts" and "are two issues" state
   # a rule in plugins/gh-solo rather than count a list.
-  - '(?:are|is) (?:two|three|four|five|six|seven|eight|nine|ten) (?:files|rules|names)\b'
+  # Widened to numbers, PR 263. Narrows auxiliaries: the record holds only
+  # "are" and "is".
+  - '(?:are|is) (?:two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty) (?:files|rules|names)\b'
   # "zero hits is the exit criterion, with one exception:" PR 179 RF1,
   # 1563ceb: the count went false when the list grew past one.
   - 'with one exception'
@@ -70,6 +84,8 @@ tokens:
   # also counts things no edit can add to, "both directions" among them.
   # "binds both entrances" PR 181 and "carries both figures" 1715a44, PR 165,
   # add "entrances" and "figures".
+  # Narrows determiners: "its" is absent from the record, and the others never
+  # follow "both".
   - 'both (?:the |these |those )?(?:checks|workflows|verdicts|refusals|passes|rules|files|sections|steps|entries|bullets|items|paragraphs|lists|tables|halves|forms|cases|reads|loops|surfaces|conditions|sides|skills|threads|variables|results|lines|jobs|inputs|questions|addresses|counts|copies|names|fields|keys|manifests|commands|sources|reasons|tests|places|axes|entrances|figures)\b'
   # "both needing a one-time npm ci and Vale" PR 155 RF1, 312f745: the count
   # went false the moment a third command, the lint, landed beside the two.
