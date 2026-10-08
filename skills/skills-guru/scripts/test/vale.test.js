@@ -134,7 +134,6 @@ describe("per-token coverage", () => {
     for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
       const rule = file.replace(/\.yml$/, "");
       const { tests, ...source } = YAML.parse(fs.readFileSync(path.join(styleDir, file), "utf8"));
-      // A substitution rule's swap entries are its tokens, each run alone the same way.
       const entries = Array.isArray(source.tokens)
         ? source.tokens.map((token) => [token, { tokens: [token] }])
         : Object.entries(source.swap ?? {}).map(([key, word]) => [key, { swap: { [key]: word } }]);
