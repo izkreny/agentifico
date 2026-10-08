@@ -2,9 +2,9 @@
 
 The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
-**Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `prose rules` for Vale's alerts.
+**Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `yaml files` for *The YAML rules*, `prose rules` for Vale's alerts.
 
-**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, printed a version the check could not read, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown files alone, since a code file's only reader is the process that did not start.
+**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, printed a version the check could not read, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown and YAML files alone, since a code file's only reader is the process that did not start.
 
 ## Setup, once per install
 
@@ -29,6 +29,8 @@ node <skill-dir>/scripts/check.js path/to/the-skill
 Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep. A target holding markdown but no skill is a legitimate one and is read.
 
 Every `*.js` and `*.py` file under the target is read too, under the same exclusions, by the prose rules alone: Vale reads a code file as its comments and docstrings and skips the code and its string literals, so a comment is held to the rules a paragraph is, and markdownlint never sees the file. When Vale ran, a code file counts in the closing line's file count as a markdown one does, so a code file that raised nothing is visible there rather than silently skipped.
+
+Every `*.yml` and `*.yaml` file under the target is read too, under the same exclusions, by the check itself and by neither linter, per *The YAML rules*. A YAML file counts in the closing line's file count whether or not Vale ran.
 
 How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
@@ -106,6 +108,12 @@ The directory match cannot decide the charset on its own, because a directory ma
 
 The match is case-sensitive because Vale's is, so an uppercase directive, which silences nothing, is left alone. So is one written inside a code span or a fenced block, which reaches no HTML token, and that is what lets this file write `<!-- vale off -->` at all. Where a phrase genuinely needs an exception, it belongs in the `exceptions` key of the rule it misfires on, under `assets/`, with its reason beside it, and the rule's message says so.
 
+## The YAML rules
+
+The check parses each YAML file and fails, naming the file and the line, on a file that does not parse, a duplicate key, and a comment line that continues a sentence from the line before. The last is *No hard wrapping* in `workflows/new.md`, applied to a comment. A line that ends in `.`, `!` or `?` ends its sentence, and a colon does not, so separate one-line comments in a row pass and a comment wrapped after a colon fails. An empty `#` line separates two paragraphs. Comments are read off the parser's tree, so a `#` inside a block scalar is text rather than a comment.
+
+Commented-out YAML is reported as a wrap too, and deleting the block is the fix.
+
 ## The prose rules
 
 Vale runs the `Agentifico` style under `assets/`, which is one rule file per mechanical half of a rule `workflows/new.md` states, with each message opening on the heading it enforces. A rule's tokens are the phrasings a review caught in this repository's own history. Text inside double quotes is not read, for the reason `.vale.ini` gives beside `TokenIgnores`, which is also why a defect written inside quotes escapes the check.
@@ -123,7 +131,7 @@ Vale runs the `Agentifico` style under `assets/`, which is one rule file per mec
 | `SkillSplit`, `SkillLength` | *Let size decide whether to split* | a `SKILL.md` past roughly 2,000 words of prose, where operations move to workflow files, and past roughly 3,500, the cap the spec's token budget allows | warning | Each figure is roughly, counted on Vale's prose metric rather than `wc -w`, which also counts code. |
 | `FileLength` | *Let size decide whether to split* | a markdown file other than a `SKILL.md` or a `README.md` past 3,500 words of prose, the cap a `SKILL.md` has | warning | The message suggests cutting before splitting, and whether to cut, split or leave the file is the owner's call. |
 
-**What escapes the code reach, and where each goes.** A comment in a `*.sh` or `*.ini` file is the reviewer's, since Vale has no comment scope for either and reads each whole, code lines included. `TokenIgnores` does not reach a code comment, so a phrase quoted inside one is read, and a rule it misfires on takes the exception. `*.yml` stays out because the style's own rule files quote the phrases they catch, and a rule cannot be judged by the phrases it defines. A `vale off` written as a code comment silences nothing, so the code reach has no twin of the hole `skill-vale-directive` covers.
+**What escapes the code reach, and where each goes.** A comment in a `*.sh` or `*.ini` file is the reviewer's, since Vale has no comment scope for either and reads each whole, code lines included. `TokenIgnores` does not reach a code comment, so a phrase quoted inside one is read, and a rule it misfires on takes the exception. `*.yml` stays out of the prose rules, though the check parses it, because the style's own rule files quote the phrases they catch, and a rule cannot be judged by the phrases it defines. A `vale off` written as a code comment silences nothing, so the code reach has no twin of the hole `skill-vale-directive` covers.
 
 ## What a sweep still looks for by hand
 

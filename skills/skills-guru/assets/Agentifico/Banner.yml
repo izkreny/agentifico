@@ -1,19 +1,5 @@
-# "Put a version next to the claim it qualifies, never as a banner at the
-# top" in workflows/new.md: a banner ages into a lie because nothing updates
-# it. The opening region is the first paragraph after the frontmatter, past a
-# tools blockquote and a heading where a file opens with one, read on the raw
-# source since only the raw scope knows where a file begins. No review in
-# this repository's history caught a banner, so the tokens are borrowed: the
-# TimeSensitive rule of jdkato/Prompts and the Timeless rule of the Google
-# style calibrate "as of" and a dated claim, cut here to what a banner
-# says, plus the shapes the tracker writes: a dated observation, "on
-# 2026-09-06", eleven times across the issues, and "as of the commit this
-# issue was filed against" #97. "currently" is History's alone, which
-# reads it at any position, so an opening one raises one alert, not two.
-# A version beside a claim further down, "(Claude Code 2.1.252)" in
-# workflows/new.md, is the form the rule asks for and is out of reach, and
-# "verified against the docs rather than assumed" is the verification
-# idiom, excluded by its tail.
+# "Put a version next to the claim it qualifies, never as a banner at the top" in workflows/new.md: a banner ages into a lie because nothing updates it. The opening region is the first paragraph after the frontmatter, past a tools blockquote and a heading where a file opens with one, read on the raw source since only the raw scope knows where a file begins. No review in this repository's history caught a banner, so the tokens are borrowed: the TimeSensitive rule of jdkato/Prompts and the Timeless rule of the Google style calibrate "as of" and a dated claim, cut here to what a banner says, plus the shapes the tracker writes: a dated observation, "on 2026-09-06", eleven times across the issues, and "as of the commit this issue was filed against" #97. "currently" is History's alone, which reads it at any position, so an opening one raises one alert, not two.
+# A version beside a claim further down, "(Claude Code 2.1.252)" in workflows/new.md, is the form the rule asks for and is out of reach, and "verified against the docs rather than assumed" is the verification idiom, excluded by its tail.
 extends: existence
 message: "Put a version next to the claim it qualifies: '%s' opens the file as a banner that nothing will update."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-guru/workflows/new.md

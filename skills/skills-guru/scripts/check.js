@@ -1,8 +1,10 @@
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { globby } from "globby";
 import { lint } from "markdownlint/promise";
+import YAML from "yaml";
 import { config, contractRuleNames, proseShapeRuleNames, rules } from "./lint-config.js";
 import { isSkillFile } from "./rules/frontmatter.js";
 
@@ -12,10 +14,12 @@ const valeConfig = path.join(here, "..", ".vale.ini");
 const target = path.resolve(process.argv[2] ?? ".");
 
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
-const found = await globby(["**/*.md", "**/*.js", "**/*.py", "!**/node_modules/**"], { cwd: target, absolute: true });
+const found = await globby(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml", "!**/node_modules/**"], { cwd: target, absolute: true });
 const files = found.filter((file) => file.endsWith(".md")).sort();
 // A code file reaches Vale alone, which reads it as its comments and docstrings, and never markdownlint.
-const codeFiles = found.filter((file) => !file.endsWith(".md")).sort();
+const codeFiles = found.filter((file) => /\.(js|py)$/.test(file)).sort();
+// A YAML file is read by this script alone, since Vale leaves it out for the reason workflows/check.md gives.
+const yamlFiles = found.filter((file) => /\.ya?ml$/.test(file)).sort();
 
 if (!files.length) {
   console.log(`no markdown file found under ${target}: nothing was checked`);
@@ -72,10 +76,49 @@ report("skill rules", contractFindings);
 report("prose shape", proseShapeFindings);
 report("general lint", generalFindings);
 
+// A comment is read off the parser's tree, because a "#" inside a block scalar is text and a raw-line scan would read it as a comment.
+const commentsOf = (source) => {
+  const lines = new YAML.LineCounter();
+  const found = [];
+  const walk = (node) => {
+    if (Array.isArray(node)) node.forEach(walk);
+    else if (node && typeof node === "object") {
+      if (node.type === "comment") found.push({ ...lines.linePos(node.offset), text: node.source });
+      else Object.values(node).forEach(walk);
+    }
+  };
+  for (const token of new YAML.Parser(lines.addNewLine).parse(source)) walk(token);
+  return found.sort((a, b) => a.line - b.line);
+};
+
+const yamlFindings = [];
+for (const file of yamlFiles) {
+  const rel = path.relative(target, file);
+  const source = fs.readFileSync(file, "utf8");
+  const docs = YAML.parseAllDocuments(source);
+  // A stream holding no document comes back empty and raises nothing, so a file of directives alone is parsed again as one document, which reports what is missing.
+  const errors = docs.length ? docs.flatMap((doc) => doc.errors) : YAML.parseDocument(source).errors;
+  for (const e of errors) {
+    const rule = e.code === "DUPLICATE_KEY" ? "yaml-duplicate-key" : "yaml-parse";
+    yamlFindings.push(`${rel}:${e.linePos?.[0]?.line ?? 1} ${rule} ${e.message.split("\n")[0]}`);
+  }
+  const sourceLines = source.split("\n");
+  // An empty "#" line separates two paragraphs, so it neither continues a sentence nor is continued by one.
+  const whole = commentsOf(source).filter((c) => !sourceLines[c.line - 1].slice(0, c.col - 1).trim() && c.text.slice(1).trim());
+  for (const [i, c] of whole.entries()) {
+    const before = whole[i - 1];
+    // A colon is no sentence end, since a wrapped comment breaks after one mid-sentence as often as after a word.
+    if (before?.line === c.line - 1 && !/[.!?]["')\]`*_]*$/.test(before.text.trimEnd()))
+      yamlFindings.push(`${rel}:${c.line} yaml-comment-wrap continues the sentence on the line before: write each paragraph of a comment on one line`);
+  }
+}
+issues += yamlFindings.length;
+report("yaml files", yamlFindings);
+
 const proseNotRun = (why) => {
   report(PROSE_RULES, [], "not run");
-  // The markdown files alone, since a code file's only reader is the process that did not start.
-  console.log(`${files.length} files checked, ${issues} issues, prose rules not run`);
+  // The markdown and YAML files alone, since a code file's only reader is the process that did not start.
+  console.log(`${files.length + yamlFiles.length} files checked, ${issues} issues, prose rules not run`);
   console.log(why);
   process.exit(1);
 };
@@ -126,5 +169,5 @@ for (const file of valeFiles) {
   }
 }
 report(PROSE_RULES, proseFindings, proseFindings.length ? `${proseIssues} issues, ${warnings} warnings` : "none");
-console.log(`${valeFiles.length} files checked, ${issues} issues, ${warnings} warnings`);
+console.log(`${valeFiles.length + yamlFiles.length} files checked, ${issues} issues, ${warnings} warnings`);
 process.exit(issues ? 1 : 0);
