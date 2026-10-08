@@ -5,6 +5,12 @@
 
     The rule quotes "the four rules below" as its own bad example.
   want: ""
+- name: Digits leaves a quoted example alone
+  input: |
+    # Title
+
+    The rule quotes "3 files" as its own bad example.
+  want: ""
 - name: History leaves a quoted example alone
   input: |
     # Title
