@@ -4,8 +4,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, beforeAll, describe, it } from "vitest";
 import { fileURLToPath } from "node:url";
+import { afterAll, beforeAll, describe, it } from "vitest";
 import { enclosingSkill } from "../rules/skill-layout.js";
 import { carriesInstallForm } from "../rules/skill-readme.js";
 
