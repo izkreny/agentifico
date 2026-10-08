@@ -4,8 +4,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { afterAll, beforeAll, describe, it } from "vitest";
 import YAML from "yaml";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -19,12 +19,12 @@ let ini;
 // The shipped .vale.ini is read rather than copied, so an edit to it is what these fixtures test.
 const shipped = fs.readFileSync(config, "utf8");
 
-before(() => {
+beforeAll(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), "skills-guru-vale-"));
   ini = path.join(tmp, ".vale.ini");
   fs.writeFileSync(ini, shipped.replace(/^StylesPath = .*$/m, `StylesPath = ${styles}`));
 });
-after(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
 // Vale's exit code is not read because it is non-zero only for an error, and a fixture that trips a warning is a pass here too.
 function vale(config, file) {

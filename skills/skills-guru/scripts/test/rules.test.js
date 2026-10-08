@@ -1,7 +1,7 @@
 // Fixtures go through markdownlint's string input, keyed by the path the rule sees, so nothing is ever written to disk.
 import assert from "node:assert/strict";
-import { describe, it } from "node:test";
 import { lint } from "markdownlint/promise";
+import { describe, it } from "vitest";
 import { description as descriptionValue } from "../rules/frontmatter.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
 import boldedRuns from "../rules/skill-bolded-runs.js";
