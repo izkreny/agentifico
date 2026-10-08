@@ -153,7 +153,7 @@ Never state a count of adjacent content and never claim uniqueness, recency or p
 
 ### Write a count from two to twenty in words
 
-A count written as a digit, as in "3 files", slips past every rule that reads a count, because those rules match number words; spelled out, the count can be judged. A digit that names something rather than counting it stays a digit: a step, a line, a version, a date, an id. A literal standing alone, such as the refusal code `2`, goes in a code span, while a digit the word before it names, as in "exit 2", stays plain.
+A count written as a digit, as in "3 files", slips past every rule that reads a count, because those rules match number words; spelled out, the count can be judged. A digit that names something rather than counting it stays a digit: a step, a line, a version, a date, an id. A literal, such as an exit code, goes in a code span.
 
 ### Cut every paragraph to its one new claim
 

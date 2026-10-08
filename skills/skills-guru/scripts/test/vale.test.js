@@ -102,6 +102,11 @@ describe("what the shipped configuration reaches", () => {
     expectHit(found, "CommentSentences", 3);
     assert.ok(!only(found, "CommentSentences").some((f) => f.line === 1), `wanted no CommentSentences on the module docstring, got ${JSON.stringify(found)}`);
   });
+  it("a backticked digit in a code comment is a literal, and a bare one warns", () => {
+    const found = alerts("reach/exit.py", "# It exits `2` on a refusal.\nx = 1\n# It exits 3 on a timeout.\ny = 2\n");
+    expectHit(found, "Digits", 3);
+    assert.ok(!only(found, "Digits").some((f) => f.line === 1), `wanted no Digits on the backticked digit, got ${JSON.stringify(found)}`);
+  });
   it("a README is read by the phrase rules", () => {
     expectHit(alerts("reach/README.md", "# Readme\n\nIt covers all three forms.\n"), "Counts", 3);
   });

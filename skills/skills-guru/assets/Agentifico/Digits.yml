@@ -1,29 +1,29 @@
 # "Write a count from two to twenty in words" in workflows/new.md: a count written as a digit slips past every Counts token, so the digit is reported and the message names the word from the numbers list in assets/word-classes.yml, which the suite holds this swap to. The keys are shapes rather than mined phrasings, and their source is issue #228.
-# Each key warns on a lone digit, and the reading decides whether it is a count, since no pattern tells a count from a name every time. Vale bounds each key with word boundaries, so a digit inside an id such as RF2 never matches, and one touching . - / : # or a comma is a version, a date, a time, an issue or a figure. A digit after step, section, line, chapter, row, item, layer, exit, issue, version or Python names that thing, as does a digit continuing such a name through a comma, "and", "or" or "to"; without them every step number would warn. A literal standing alone, such as a bare exit code, goes in a code span, which Vale masks.
+# Each key warns on a lone digit, and the reading decides whether it is a count, since no pattern tells a count from a name every time. Vale bounds each key with word boundaries, so a digit inside an id such as RF2 never matches, and one touching . - / : # ` or a comma is a version, a date, a time, an issue, a figure or a literal; a full stop ends that guard unless a digit follows it, so a digit closing a sentence still warns. A digit opening a block before ". " numbers a heading or a list item. A digit after step, section, line, chapter, row, item, layer, issue, version, question or Python names that thing, as does a digit continuing such a name through a comma, "and", "or" or "to"; without them every step number would warn. A literal, such as an exit code, goes in a code span, which Vale masks in prose and this guard covers in a code comment.
 extends: substitution
 message: "Write a count from two to twenty in words: write '%s' rather than '%s'."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-guru/workflows/new.md
 level: warning
 swap:
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)2(?![.:/-]|,\d)': two
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)3(?![.:/-]|,\d)': three
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)4(?![.:/-]|,\d)': four
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)5(?![.:/-]|,\d)': five
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)6(?![.:/-]|,\d)': six
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)7(?![.:/-]|,\d)': seven
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)8(?![.:/-]|,\d)': eight
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)9(?![.:/-]|,\d)': nine
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)10(?![.:/-]|,\d)': ten
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)11(?![.:/-]|,\d)': eleven
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)12(?![.:/-]|,\d)': twelve
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)13(?![.:/-]|,\d)': thirteen
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)14(?![.:/-]|,\d)': fourteen
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)15(?![.:/-]|,\d)': fifteen
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)16(?![.:/-]|,\d)': sixteen
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)17(?![.:/-]|,\d)': seventeen
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)18(?![.:/-]|,\d)': eighteen
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)19(?![.:/-]|,\d)': nineteen
-  '(?<![.#/:,-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|exits?|issues?|versions?|python)) (?:\d+(?:,| and| or| to) )*)20(?![.:/-]|,\d)': twenty
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)2(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': two
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)3(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': three
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)4(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': four
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)5(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': five
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)6(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': six
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)7(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': seven
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)8(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': eight
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)9(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': nine
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)10(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': ten
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)11(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': eleven
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)12(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': twelve
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)13(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': thirteen
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)14(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': fourteen
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)15(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': fifteen
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)16(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': sixteen
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)17(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': seventeen
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)18(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': eighteen
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)19(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': nineteen
+  '(?<![.#/:,`-])(?<!(?i:\b(?:steps?|sections?|lines?|chapters?|rows?|items?|layers?|issues?|versions?|questions?|python)) (?:\d+(?:,| and| or| to) )*)20(?!\.\d|[:/`-]|,\d|(?<=^\d+)\. )': twenty
 tests:
   - name: fires on each recorded shape, once per line
     input: |
@@ -72,11 +72,13 @@ tests:
     input: |
       # Title
 
-      It closes #12 notes, a/3 files, 10:4 files, 1.5 builds, 1,3 files and 2026-10-6 files.
+      ## 2. Post the findings
+
+      It closes #12 notes, a/3 files, 10:4 files, 2.5 builds, 1,3 files and 2026-10-6 files.
       Step 3 runs after step 4 ends, and line 12 holds, section 3 reads and chapter 2 follows.
-      Row 5 wins, item 7 waits, layer 6 reports, exit 2 means a refusal and issue 14 needs it.
+      Row 5 wins, item 7 waits, layer 6 reports, question 2 asks and issue 14 needs it.
       Version 2 ships, Python 3 handles it, and Steps 5 and 6 posts.
-      Layers 1 and 2 reports, rows 4 to 6 holds and exits 2, 3 or 4 rejects.
+      Layers 1 and 2 reports, rows 4 to 6 holds and steps 2, 3 or 4 rejects.
       It closes RF2 notes at version 5.6.0 builds on 2026-10-07, under roughly 2,000 words, and 21 files are out of scope.
       A cap of `3 files` inside a code span is code.
 
@@ -93,9 +95,12 @@ tests:
       Usage: Read 4 files first.
       It reads 2 or 3 files.
       Phase 2 adds the parser.
+      It exits 2 on a refusal, and it fails with 3.
     want: |
       3:18:Agentifico.Digits:Write a count from two to twenty in words: write 'three' rather than '3'.
       4:13:Agentifico.Digits:Write a count from two to twenty in words: write 'four' rather than '4'.
       5:10:Agentifico.Digits:Write a count from two to twenty in words: write 'two' rather than '2'.
       5:15:Agentifico.Digits:Write a count from two to twenty in words: write 'three' rather than '3'.
       6:7:Agentifico.Digits:Write a count from two to twenty in words: write 'two' rather than '2'.
+      7:10:Agentifico.Digits:Write a count from two to twenty in words: write 'two' rather than '2'.
+      7:44:Agentifico.Digits:Write a count from two to twenty in words: write 'three' rather than '3'.
