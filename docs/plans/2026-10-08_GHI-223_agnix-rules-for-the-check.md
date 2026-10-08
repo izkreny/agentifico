@@ -18,7 +18,7 @@ This plan and nothing else. The deliverable is a comment on #223 and the follow-
 
 ## How a rule gets its verdict
 
-**The source type is read first.** A rule whose evidence is community practice rather than the specification or a vendor page is not a candidate, and its row says so without a re-read.
+**The source type is read first.** In the categories the issue names, the catalogue types each rule's evidence as `spec`, `vendor_docs`, `vendor_code` or `community`. Only `spec` and `vendor_docs` make a rule a candidate. A rule whose evidence is a vendor's code or community practice is not one, and its row says so without a re-read, since the issue admits the specification and vendor documents alone.
 
 **#180's comment settles some rows already.** The rules it names as stated by the check are marked already owned, after a check that each named rule still holds them. The rules it found misfiring are skipped with that finding as the reason.
 
@@ -31,7 +31,7 @@ This plan and nothing else. The deliverable is a comment on #223 and the follow-
 ## Steps
 
 - Read the categories the issue names from the catalogue at `v0.56.6`, one row per rule.
-- Mark each community-sourced rule as skipped, and each rule #180 settled as owned or skipped, checking each owned rule against the check.
+- Mark each rule sourced to a vendor's code or to community practice as skipped, and each rule #180 settled as owned or skipped, checking each owned rule against the check.
 - Re-read the cited page of every remaining candidate and give it a verdict, naming the destination file of each rule that ports.
 - Decide whether a reader for the manifest, hooks and agent files is worth building.
 - Write the verdict comment for #223, stage it for the owner, and post it on their word.
