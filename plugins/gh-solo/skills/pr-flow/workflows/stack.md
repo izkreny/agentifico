@@ -11,7 +11,7 @@ gh extension list                        # look for github/gh-stack
 gh extension install github/gh-stack     # if absent
 ```
 
-**The repository must have stacked pull requests enabled**, per the `gh-stack` manual: without it `gh stack submit` exits 9, non-interactively and with no fallback. Step 0 asks whether a stack is wanted; this is whether one is possible.
+**The repository must have stacked pull requests enabled**, per the `gh-stack` manual: without it `gh stack submit` exits `9`, non-interactively and with no fallback. Step 0 asks whether a stack is wanted; this is whether one is possible.
 
 **The `gh-stack` skill owns the CLI.** It is installed at user scope, from `github/gh-stack`, and it is the manual: every command, the JSON output shapes and the exit codes. Upstream splits it, so `SKILL.md` is the summary and the detail lives in its `references/` directory; follow the pointer rather than concluding the manual is silent. Consult it for command mechanics rather than guessing flags.
 
@@ -203,7 +203,7 @@ The fix, entirely through `gh stack` and never a raw `git rebase`:
 
 1. `git worktree list` — confirm no other worktree holds any branch in the stack, per *The worktree trap*. Detach if one does.
 2. `gh stack checkout <stack-number>` — adopts the GitHub stack locally if it is not already tracked.
-3. `gh stack rebase` — cascades trunk to bottom to top, stopping at the first conflict with exit code 3.
+3. `gh stack rebase` — cascades trunk to bottom to top, stopping at the first conflict with exit code `3`.
 4. On conflict, read the file for diff3 markers. The `|||||||` section is the pre-edit common ancestor, which is what lets you see what each side actually changed: **merge each side's substantive edits rather than picking one.** Then `git add <file>` and `gh stack rebase --continue`. Expect the same conflict one branch up, because that branch's own edit to the line has not yet been reconciled with the branch under it.
 5. Once it reports all branches rebased, `gh stack push`.
 6. Confirm `mergeable` flips to `MERGEABLE` and CI actually runs on the new head (`gh pr checks <pr-number>`). Check the siblings too — a cascade rebase touched all of them.
