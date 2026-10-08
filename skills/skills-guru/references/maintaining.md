@@ -34,6 +34,8 @@ It is a rule rather than a loop written out in `workflows/check.md` because shel
 
 A phrase rule's tokens are evidence, per *Where the prose rules live*, and the records they were mined from keep growing with every merged pull request. Growing a list is a query over those records and a judgement on each phrase they return, run from the repository that owns the rules.
 
+**A package's sweep re-mines the lists as its last act**, after its review round's fixes are pushed and just before merge. It reads everything merged since that package's last `<name>_<version>` tag, or the whole trunk history where the package has none.
+
 ### The sources
 
 **A finding is a review comment carrying `::RF{n}::`**, which is how a `pr-flow` review round posts one, and a finding on prose is one whose `path` names a markdown file. Read the pull requests merged since the last run, then the review comments on each. `gh pr list` cuts its output at `--limit` without saying so, so the count it returns is read against that figure, and the figure is raised when the count reaches it:
@@ -48,6 +50,13 @@ gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate --jq '.[] | se
 ```bash
 git log --patch <tag>..origin/main -- '*.md'
 git log --patch --since=<date> origin/main -- '*.md'
+```
+
+**The sweep's own records are read beside the merged range**: its own issue's findings, its own pull request's review threads and its branch's fix commits. No merged range ever holds them. The sweep's pull request is unmerged while the sweep runs, and the tag on its squash commit starts the next range after it. The review-comment query reads the open pull request as it reads a merged one. The issue's findings carry the sweep's own ids rather than `::RF{n}::`, so they are read from the issue, and the branch's commits are their own range:
+
+```bash
+gh issue view <issue-number> --json body,comments
+git log --patch origin/main..<branch> -- '*.md'
 ```
 
 ### Which rule a phrase belongs to
