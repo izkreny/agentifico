@@ -4,8 +4,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, beforeAll, describe, it } from "vitest";
 import { fileURLToPath } from "node:url";
+import { afterAll, beforeAll, describe, it } from "vitest";
 import YAML from "yaml";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
