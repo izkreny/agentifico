@@ -57,7 +57,7 @@ Rules:
 
 - Imperative verb: `add`, `build`, `fix`, `refactor`, `remove`.
 - Name the deliverable, not the activity. "add user lookup endpoint", never "work on backend".
-- Under ~40 characters. The title becomes the squash commit's subject on `main`, as `{type}({scope}): {issue title} (#{pr-number})`, and git's own guidance makes 50 columns the subject target with 72 the ceiling - the DISCUSSION section of `git commit --help`, and git's `Documentation/SubmittingPatches`, which calls 50 the soft limit. The prefix and suffix cost 10 to 30 columns depending on the type, the scope and the PR number's width, so ~40 is what keeps even the worst-case subject under the ceiling, and a short prefix pair lands it near the target - the ceiling, not the target, is the hard line here.
+- Under ~40 characters. The title becomes the squash commit's subject on `main`, as `{type}({scope}): {issue title} (#{pr-number})`, and git's own guidance makes 50 columns the subject target with 72 the ceiling - the DISCUSSION section of `git commit --help`, and git's `Documentation/SubmittingPatches`, which calls 50 the soft limit. The prefix and suffix cost ten to thirty columns depending on the type, the scope and the PR number's width, so ~40 is what keeps even the worst-case subject under the ceiling, and a short prefix pair lands it near the target - the ceiling, not the target, is the hard line here.
 - All letters are lowercase.
 - Do not encode the layer, the kind or the epic in the title. Every one of those is a label or a relation, and duplicating it means two places to update and one of them will go stale.
 

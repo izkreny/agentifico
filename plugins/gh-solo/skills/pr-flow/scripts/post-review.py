@@ -1022,7 +1022,7 @@ def verify(args: argparse.Namespace) -> int:
 
 
 class Parser(argparse.ArgumentParser):
-    """Exit 1 on a usage error, because 2 is the refusal code two gates read as a finding with no ids behind it."""
+    """Exit 1 on a usage error, because `2` is the refusal code two gates read as a finding with no ids behind it."""
 
     def error(self, message: str) -> None:
         self.print_usage(sys.stderr)
