@@ -4,7 +4,7 @@
   "description": "The mechanical checks of the skills-guru skill: markdownlint with this package's own rules, Vale with its prose rules, and their bench",
   "type": "module",
   "engines": {
-    "node": ">=22"
+    "node": ">=26"
   },
   "scripts": {
     "check": "node scripts/check.js",
