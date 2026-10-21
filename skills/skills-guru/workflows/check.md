@@ -31,7 +31,7 @@ node <skill-dir>/scripts/check.js AGENTS.md .agents/gh-solo.md
 
 Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported.
 
-A target that adds nothing fails the run, naming that target: a path that does not exist, a folder with no markdown under it, or a file no reader takes. Its silence is indistinguishable from a clean sweep, and beside other targets it would hide. A folder holding markdown but no skill is a legitimate target and is read.
+A target the check cannot read fails the run, naming that target: a path that does not exist, a folder with no markdown under it, or a file no reader takes. Its silence is indistinguishable from a clean sweep, and beside other targets it would hide. A folder holding markdown but no skill is a legitimate target and is read.
 
 Every `*.js` and `*.py` file under the target is read too, under the same exclusions, by the prose rules alone: Vale reads a code file as its comments and docstrings and skips the code and its string literals, so a comment is held to the rules a paragraph is, and markdownlint never sees the file. When Vale ran, a code file counts in the closing line's file count as a markdown one does, so a code file that raised nothing is visible there rather than silently skipped.
 
