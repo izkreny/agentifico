@@ -136,6 +136,24 @@ before(() => {
     "// The first sentence says why. The second narrates the line.\nconst a = 1;\n",
   );
 
+  // One failure per fixture, so a finding that fires on the wrong file is a named failure rather than a match on its neighbour's.
+  for (const [dir, yaml] of [
+    ["yaml-broken", "a: 1\nb: value: other\n"],
+    ["yaml-duplicate", "a: 1\na: 2\n"],
+    ["yaml-directive", "%YAML 1.2\n"],
+    ["yaml-wrapped", "# A comment wrapped at\n# a column.\nkey: value\n"],
+    // The block scalar holds a wrapped "comment" that is text, so a check reading raw lines would fail a clean file.
+    [
+      "yaml-separate",
+      "# One note.\n# Another note.\n# A paragraph's close, before an empty line.\n#\n# The next paragraph.\nkey: |\n  # a heading inside a block scalar\n  # and its text\n",
+    ],
+  ]) {
+    mk(path.join(tmp, dir), block(dir));
+    fs.writeFileSync(path.join(tmp, dir, "rule.yml"), yaml);
+  }
+  // A stream of several documents is well-formed YAML, so it parses rather than failing as one document with a second appended.
+  fs.writeFileSync(path.join(tmp, "yaml-separate", "stream.yaml"), "a: 1\n---\nb: 2\n");
+
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
   fs.writeFileSync(path.join(tmp, "dotted", ".hidden", "w.md"), "- **lead.** first\n\n  the reason\n\n  a second paragraph\n");
@@ -271,8 +289,9 @@ describe("check.js", () => {
     const contract = r.out.indexOf("skill rules:");
     const shape = r.out.indexOf("prose shape:");
     const general = r.out.indexOf("general lint:");
+    const yaml = r.out.indexOf("yaml files:");
     const prose = r.out.indexOf("prose rules:");
-    assert.ok(contract > -1 && contract < shape && shape < general && general < prose, r.out);
+    assert.ok(contract > -1 && contract < shape && shape < general && general < yaml && yaml < prose, r.out);
     assert.ok(r.out.indexOf("skill-description") < shape, r.out);
     assert.ok(r.out.indexOf("skill-continuations") > shape && r.out.indexOf("skill-continuations") < general, r.out);
   });
@@ -282,6 +301,7 @@ describe("check.js", () => {
     assert.match(r.out, /^skill rules: none$/m);
     assert.match(r.out, /^prose shape: none$/m);
     assert.match(r.out, /^general lint: none$/m);
+    assert.match(r.out, /^yaml files: none$/m);
     assert.match(r.out, /^prose rules: none$/m);
   });
   it("without vale the prose heading says so rather than going missing", () => {
@@ -300,6 +320,33 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}scripts\/run\.js:1 Agentifico\.CommentSentences \(error\)/m);
     assert.doesNotMatch(r.out, /node_modules/);
     assert.equal(r.linted, 3);
+  });
+  it("a YAML file that does not parse fails, naming the file and the line", () => {
+    const r = run(path.join(tmp, "yaml-broken"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^yaml files: 1$/m);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-parse /m);
+  });
+  it("a stream of directives with no document fails as a file that does not parse", () => {
+    const r = run(path.join(tmp, "yaml-directive"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-parse /m);
+  });
+  it("a duplicate key fails, naming the file and the line", () => {
+    const r = run(path.join(tmp, "yaml-duplicate"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key /m);
+  });
+  it("a comment line continuing a sentence fails, naming the line that continues it", () => {
+    const r = run(path.join(tmp, "yaml-wrapped"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap /m);
+  });
+  it("separate one-line comments in a row pass, and a block scalar's text is not a comment", () => {
+    const r = run(path.join(tmp, "yaml-separate"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^yaml files: none$/m);
+    assert.equal(r.linted, 4);
   });
   it("a package root names every skill under it, by its own path", () => {
     const r = run(path.join(tmp, "pkg"));
