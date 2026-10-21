@@ -8,7 +8,7 @@ The mechanical audit. Run it after writing or editing any skill, and in a review
 
 ## Setup, once per install
 
-The check runs on Node 26 or later with what `package.json` declares, installed once into the skill's own directory. `<skill-dir>` is where this skill is installed, one of the placeholders `workflows/new.md` defines under *Paths must survive any working directory and any machine*:
+The check runs on Node 26.1 or later with what `package.json` declares, installed once into the skill's own directory. `<skill-dir>` is where this skill is installed, one of the placeholders `workflows/new.md` defines under *Paths must survive any working directory and any machine*:
 
 ```bash
 npm --prefix <skill-dir> ci
