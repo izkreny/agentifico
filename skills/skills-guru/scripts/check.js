@@ -1,8 +1,8 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import { glob } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { globby } from "globby";
 import { lint } from "markdownlint/promise";
 import YAML from "yaml";
 import { config, contractRuleNames, proseShapeRuleNames, rules } from "./lint-config.js";
@@ -14,7 +14,11 @@ const valeConfig = path.join(here, "..", ".vale.ini");
 const target = path.resolve(process.argv[2] ?? ".");
 
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
-const found = await globby(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml", "!**/node_modules/**"], { cwd: target, absolute: true });
+const found = (
+  await Array.fromAsync(
+    glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
+  )
+).map((file) => path.join(target, file));
 const files = found.filter((file) => file.endsWith(".md")).sort();
 // A code file reaches Vale alone, which reads it as its comments and docstrings, and never markdownlint.
 const codeFiles = found.filter((file) => /\.(js|py)$/.test(file)).sort();

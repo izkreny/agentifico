@@ -12,7 +12,6 @@
     "lint": "biome check scripts/"
   },
   "dependencies": {
-    "globby": "16.2.2",
     "markdownlint": "0.41.1",
     "yaml": "2.9.0"
   },
