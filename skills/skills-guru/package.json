@@ -13,10 +13,10 @@
   },
   "dependencies": {
     "markdownlint": "0.41.1",
-    "yaml": "2.9.0"
+    "yaml": "2.9.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.12",
+    "@biomejs/biome": "2.5.15",
     "vitest": "5.0.5"
   }
 }
