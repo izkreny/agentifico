@@ -154,9 +154,13 @@ beforeAll(() => {
   // A stream of several documents is well-formed YAML, so it parses rather than failing as one document with a second appended.
   fs.writeFileSync(path.join(tmp, "yaml-separate", "stream.yaml"), "a: 1\n---\nb: 2\n");
 
-  // Frontmatter that every skill-only rule would report on a SKILL.md, so a single one firing on another file is a named failure.
-  fs.mkdirSync(path.join(tmp, "not-a-skill"));
-  fs.writeFileSync(path.join(tmp, "not-a-skill", "agents.md"), "---\nname: Wrong Name\ndescription: review PR #N and more\n---\n\n# Agents\n\nbody\n");
+  // Every skill-only rule reports this file's frontmatter and place inside a skill when it is named SKILL.md, so one firing on another name is a named failure.
+  mk(path.join(tmp, "not-a-skill"), block("not-a-skill"));
+  fs.mkdirSync(path.join(tmp, "not-a-skill", "nested"));
+  fs.writeFileSync(
+    path.join(tmp, "not-a-skill", "nested", "agents.md"),
+    "---\nname: Wrong Name\ndescription: review PR #N and more\ndisable-model-invocation: yes\n---\n\n# Agents\n\nbody\n",
+  );
 
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
@@ -396,7 +400,8 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}w\.md:\d+ skill-continuations/m);
   });
   it("a file not named SKILL.md gets no skill-only rule", () => {
-    const r = run(path.join(tmp, "not-a-skill", "agents.md"));
+    // Run from tmp, so the skill around the file is inside the root the layout search stops at.
+    const r = run(path.join("not-a-skill", "nested", "agents.md"), process.env, tmp);
     assert.equal(r.linted, 1, r.out);
     assert.match(r.out, /^skill rules: none$/m);
   });
