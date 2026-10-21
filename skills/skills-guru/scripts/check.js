@@ -42,12 +42,7 @@ for (const target of targets) {
 
 // Paths print from the folder every target shares, so no printed path repeats the part common to all of them.
 const base = folders.reduce((shared, folder) => {
-  while (shared !== folder && !folder.startsWith(shared.endsWith(path.sep) ? shared : shared + path.sep)) {
-    // Two Windows drives share no folder, and dirname of a drive root returns that root.
-    const up = path.dirname(shared);
-    if (up === shared) break;
-    shared = up;
-  }
+  while (shared !== folder && !folder.startsWith(shared.endsWith(path.sep) ? shared : shared + path.sep)) shared = path.dirname(shared);
   return shared;
 });
 
