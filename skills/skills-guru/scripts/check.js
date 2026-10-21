@@ -40,7 +40,7 @@ for (const target of targets) {
   folders.push(stat.isDirectory() ? target : path.dirname(target));
 }
 
-// Paths print from the folder every target shares, so one folder target prints exactly what it always has.
+// Paths print from the folder every target shares, so no printed path repeats the part common to all of them.
 const base = folders.reduce((shared, folder) => {
   while (shared !== folder && !folder.startsWith(shared.endsWith(path.sep) ? shared : shared + path.sep)) shared = path.dirname(shared);
   return shared;
