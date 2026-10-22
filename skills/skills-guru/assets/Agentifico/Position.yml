@@ -35,11 +35,13 @@ tokens:
   # to asterisks by the time the token reads it.
   - '(?:the|this|these|those|any|every|each|no) (?:[\w''*-]+ ){0,3}(?:above|below)'
   # "everything above" and "everything below" PR 181; "Everything below
-  # this section" f1cf1f9, PR 31.
-  - 'everything (?:above|below)'
+  # this section" f1cf1f9, PR 31; "Everything after this is the ordinary
+  # path" #230 RF2, c6c81e8.
+  - 'everything (?:above|below|after this)'
   # "the by-hand list further down" PR 167 RF6, left pointing at a bullet
-  # the same diff deleted.
-  - '(?:list|section|table|paragraph|bullet|entry|row|block) further down'
+  # the same diff deleted. "the `{type}` vocabulary itself is one section
+  # further on" #236 SW20, b149279, adds "on".
+  - '(?:list|section|table|paragraph|bullet|entry|row|block) further (?:down|on)'
   # "per the companion rule beside that bullet" 22ff7c6, PR 37.
   - 'beside (?:that|this|the) (?:bullet|paragraph|row|section|table|list|entry|sentence)'
   # "the same as above" e3f094d and 6581c8c; "rules out above" 9ed0bb8;
@@ -85,14 +87,18 @@ tokens:
   # section" PR 68, "the first thing this workflow does" ae1cd1a. "step" and
   # "line" are left out: "the first unticked step" is a procedure, not a
   # position in the document. "The last span belongs to the plans that named
-  # the scripts" PR 116 RF8 adds "span".
-  - 'the (?:first|second|third|fourth|last|next|previous|final) (?:[a-z]+ ){0,2}(?:bullet|paragraph|row|section|sentence|entry|column|span|thing this)'
+  # the scripts" PR 116 RF8 adds "span". "which the first case tolerates"
+  # e5df8b3, PR 234, adds "case" with no word before it, since "the last edge
+  # case" is a procedure rather than a position.
+  - 'the (?:first|second|third|fourth|last|next|previous|final) (?:(?:[a-z]+ ){0,2}(?:bullet|paragraph|row|section|sentence|entry|column|span|thing this)|case)'
   # "is the second of them" PR 181. "that" and "which" after it are left out:
   # "the first of these that is set wins" is a precedence rule.
   - 'the (?:first|second|third|last) of (?:them|these|those)(?! that\b| which\b)'
   # An ordinal pair walking the document's own list: "The first is a check",
   # "The second is" #2; "the third row is the finding" #7.
   - '^the (?:first|second|third) (?:is|was)\b'
+  # "beneath it" as a pointer at a heading, #236 SW6 and 694a588, belongs
+  # here and has no token: every general form trips "the floor beneath it".
 tests:
   - name: fires on each recorded shape, once per line
     input: |
@@ -123,6 +129,9 @@ tests:
       A reader who took the new refusal to reach it would wait.
       The last span belongs to the plans.
       Pausing is covered by hand, and the state workflow is the second of them.
+      Everything after this is the ordinary path.
+      The type vocabulary is one section further on.
+      A detached trunk is what the first case tolerates.
     want: |
       3:5:Agentifico.Position:Write sentences that survive change: 'the escape above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       3:23:Agentifico.Position:Write sentences that survive change: 'the row below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
@@ -155,6 +164,9 @@ tests:
       25:19:Agentifico.Position:Write sentences that survive change: 'the new refusal' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       26:1:Agentifico.Position:Write sentences that survive change: 'The last span' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       27:55:Agentifico.Position:Write sentences that survive change: 'the second of them' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      28:1:Agentifico.Position:Write sentences that survive change: 'Everything after this' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      29:28:Agentifico.Position:Write sentences that survive change: 'section further on' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      30:26:Agentifico.Position:Write sentences that survive change: 'the first case' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
   - name: leaves the sanctioned forms alone
     input: |
       # Title
@@ -170,4 +182,7 @@ tests:
       A package root whose skills sit further down, and a version beside the claim it qualifies further down, are fine.
       The formats live with the tracker, and pr-flow and implement point here rather than restating them.
       The owner was away for the whole chain.
+      Everything after it is discarded with no parse error.
+      The vocabulary is under *Branch and commit type* in the same file, and the word buys a further one.
+      Write the last edge case as a test of its own.
     want: ""
