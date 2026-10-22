@@ -68,6 +68,12 @@ npm --prefix skills/agents-guru run lint
 
 **A package that declares a `lint` script in its own manifest owes that run beside its suite.** The rule is the manifest rather than the command, so a package that later ships a linter is already covered and owes this file no edit. What `skills/agents-guru/package.json` declares today is `biome check scripts/`, which neither its suite nor its own check invokes, so a branch that skips it leaves that package's JavaScript unlinted and nothing else catches it.
 
+**The skills-guru package's mutation run is a step of that package's sweep, never a branch's `## Verification` entry.** It sets no break threshold, so no score fails it and its exit code proves only that it finished. What it yields is the score and the surviving mutants, each of which the sweep triages. It needs the same `npm ci` and Vale as the suite. Its incremental file is ignored rather than committed, so a run reruns every mutant on a tree that holds none:
+
+```bash
+npm --prefix skills/skills-guru run mutate
+```
+
 ### The benches
 
 **The version check's bench**, after any edit to `scripts/version-check.py`:
