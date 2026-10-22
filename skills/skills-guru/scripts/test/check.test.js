@@ -10,6 +10,7 @@ import { enclosingSkill } from "../rules/skill-layout.js";
 import { carriesInstallForm } from "../rules/skill-readme.js";
 
 const check = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "check.js");
+const strykerChild = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "stryker-child.js");
 let tmp;
 
 // Every fixture carries a README unless `readme` is null, so a skill-readme finding never lands in a test about another rule.
@@ -21,8 +22,28 @@ function mk(dir, fm, readme = README) {
 }
 const block = (name, text = "Fine.") => `name: ${name}\ndescription: |\n  ${text}`;
 
+// WHY: Stryker's Vitest runner activates a mutant and collects coverage in this process only, and the spawned check reaches most of what it mutates.
+function underStryker(args, env) {
+  const ns = globalThis.__stryker__;
+  if (ns?.activeMutant !== undefined) return { args, env: { ...env, __STRYKER_ACTIVE_MUTANT__: ns.activeMutant } };
+  if (ns?.currentTestId === undefined) return { args, env };
+  const dump = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "stryker-child-")), "coverage.json");
+  const absorb = () => {
+    if (fs.existsSync(dump)) {
+      ns.mutantCoverage ??= { static: {}, perTest: {} };
+      ns.mutantCoverage.perTest[ns.currentTestId] ??= {};
+      const into = ns.mutantCoverage.perTest[ns.currentTestId];
+      for (const [id, hits] of Object.entries(JSON.parse(fs.readFileSync(dump, "utf8")).static)) into[id] = (into[id] ?? 0) + hits;
+    }
+    fs.rmSync(path.dirname(dump), { recursive: true });
+  };
+  return { args: ["--import", strykerChild, ...args], env: { ...env, STRYKER_CHILD_COVERAGE: dump }, absorb };
+}
+
 function run(targets, env = process.env, cwd = undefined) {
-  const r = spawnSync(process.execPath, [check, ...[targets].flat()], { encoding: "utf8", env, cwd });
+  const spawn = underStryker([check, ...[targets].flat()], env);
+  const r = spawnSync(process.execPath, spawn.args, { encoding: "utf8", env: spawn.env, cwd });
+  spawn.absorb?.();
   const linted = /^(\d+) files checked/m.exec(r.stdout);
   return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
 }
@@ -371,8 +392,8 @@ describe("check.js", () => {
     assert.match(r.out, /1 files checked, 1 issues, 0 warnings/);
   });
   it("a relative target resolves against the working directory", () => {
-    const r = spawnSync(process.execPath, [check, "good"], { cwd: tmp, encoding: "utf8" });
-    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const r = run("good", process.env, tmp);
+    assert.equal(r.code, 0, r.out);
   });
   it("several folder targets are each checked, every path printed from the folder they share", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "bad")]);
@@ -435,9 +456,9 @@ describe("check.js", () => {
     assert.match(outside.out, /only-root\.md:\d+ skill-referenced-paths .*top\.md/);
   });
   it("the default target is the working directory", () => {
-    const r = spawnSync(process.execPath, [check], { cwd: path.join(tmp, "bad"), encoding: "utf8" });
-    assert.equal(r.status, 1);
-    assert.match(r.stdout, /TRUNCATED/);
+    const r = run([], process.env, path.join(tmp, "bad"));
+    assert.equal(r.code, 1);
+    assert.match(r.out, /TRUNCATED/);
   });
 });
 
