@@ -102,6 +102,11 @@ describe("what the shipped configuration reaches", () => {
     expectHit(found, "CommentSentences", 3);
     assert.ok(!only(found, "CommentSentences").some((f) => f.line === 1), `wanted no CommentSentences on the module docstring, got ${JSON.stringify(found)}`);
   });
+  it("a backticked digit in a code comment is a literal, and a bare one warns", () => {
+    const found = alerts("reach/exit.py", "# It exits `2` on a refusal.\nx = 1\n# It exits 3 on a timeout.\ny = 2\n");
+    expectHit(found, "Digits", 3);
+    assert.ok(!only(found, "Digits").some((f) => f.line === 1), `wanted no Digits on the backticked digit, got ${JSON.stringify(found)}`);
+  });
   it("a README is read by the phrase rules", () => {
     expectHit(alerts("reach/README.md", "# Readme\n\nIt covers all three forms.\n"), "Counts", 3);
   });
@@ -134,13 +139,16 @@ describe("per-token coverage", () => {
     for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
       const rule = file.replace(/\.yml$/, "");
       const { tests, ...source } = YAML.parse(fs.readFileSync(path.join(styleDir, file), "utf8"));
-      if (!Array.isArray(source.tokens)) continue;
+      const entries = Array.isArray(source.tokens)
+        ? source.tokens.map((token) => [token, { tokens: [token] }])
+        : Object.entries(source.swap ?? {}).map(([key, word]) => [key, { swap: { [key]: word } }]);
+      if (entries.length === 0) continue;
       const trip = tests?.find((c) => c.name === TRIP_CASE);
       assert.ok(trip, `${rule} has tokens and no "${TRIP_CASE}" case`);
       const fixture = path.join(tokDir, `${rule.toLowerCase()}.md`);
       fs.writeFileSync(fixture, trip.input);
-      for (const token of source.tokens) {
-        fs.writeFileSync(path.join(tokDir, "T", `${rule}.yml`), YAML.stringify({ ...source, tokens: [token] }));
+      for (const [token, alone] of entries) {
+        fs.writeFileSync(path.join(tokDir, "T", `${rule}.yml`), YAML.stringify({ ...source, ...alone }));
         if (vale(tokIni, fixture).length === 0) unreached.push(`${rule}: ${token}`);
       }
     }
@@ -171,5 +179,15 @@ describe("word classes", () => {
       }
     }
     assert.deepEqual(drifted, [], `a group narrows its class with no "Narrows <class>: <reason>" in its comment:\n${drifted.join("\n")}`);
+  });
+  it("Digits swaps each digit from two to twenty for its word in the numbers list", () => {
+    const { numbers } = YAML.parse(fs.readFileSync(path.join(styles, "word-classes.yml"), "utf8"));
+    const { swap } = YAML.parse(fs.readFileSync(path.join(styleDir, "Digits.yml"), "utf8"));
+    // A key opens on lookbehinds and closes on lookaheads, so its digit is the number standing between a closing and an opening parenthesis.
+    const swapped = Object.entries(swap).map(([key, word]) => [Number(key.match(/\)(\d+)\(/)[1]), word]);
+    assert.deepEqual(
+      swapped,
+      numbers.map((word, i) => [i + 2, word]),
+    );
   });
 });
