@@ -18,15 +18,20 @@ The prose rules run through Vale on `PATH`, at the version `scripts/check.js` re
 
 ## The check
 
-The target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/` - and it defaults to the current directory. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
+Each argument is a target, a folder or a file, and the current directory is the target when there is none. A folder target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/`. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories under a folder target are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
 
 ```bash
 node <skill-dir>/scripts/check.js path/to/the-skill
+node <skill-dir>/scripts/check.js AGENTS.md .agents/gh-solo.md
 ```
+
+**A file target is read as named, even inside a dot-directory**, which is how a file such as `<repo-root>/.agents/gh-solo.md` is reached at all. A file names no tree of its own, so its root is the current directory, where a folder target is its own root: the path rules resolve against it and the layout search stops at it. Run a file target from the folder its paths were written against. Several targets print every path from the folder they share, and a file reached by more than one is read once.
 
 **One skill is the gate; a wider target is a survey.** Against a single skill the exit code answers "is this skill clean", which is what a branch and a sweep both want. Against a directory of skills or a package root it answers only "does anything under here have findings", and it will usually be non-zero: the run reports every skill it reaches, and `references/managing.md` forbids editing a manager-installed one, so a finding there is a report to that skill's author rather than work for the runner.
 
-Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported. Checking nothing exits non-zero: a target with no markdown under it is a wrong target, and its silence is indistinguishable from a clean sweep. A target holding markdown but no skill is a legitimate one and is read.
+Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported.
+
+A target the check cannot read fails the run, naming that target: a path that does not exist, a folder with no markdown under it, or a file no reader takes. Its silence is indistinguishable from a clean sweep, and beside other targets it would hide. A folder holding markdown but no skill is a legitimate target and is read.
 
 Every `*.js` and `*.py` file under the target is read too, under the same exclusions, by the prose rules alone: Vale reads a code file as its comments and docstrings and skips the code and its string literals, so a comment is held to the rules a paragraph is, and markdownlint never sees the file. When Vale ran, a code file counts in the closing line's file count as a markdown one does, so a code file that raised nothing is visible there rather than silently skipped.
 

@@ -11,31 +11,54 @@ import { isSkillFile } from "./rules/frontmatter.js";
 const here = path.dirname(fileURLToPath(import.meta.url));
 const valeConfig = path.join(here, "..", ".vale.ini");
 
-const target = path.resolve(process.argv[2] ?? ".");
+const targets = (process.argv.length > 2 ? process.argv.slice(2) : ["."]).map((arg) => path.resolve(arg));
 
-// Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
-const found = (
-  await Array.fromAsync(
-    glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
-  )
-).map((file) => path.join(target, file));
+const nothingChecked = (why) => {
+  console.log(`${why}: nothing was checked`);
+  process.exit(1);
+};
+
+// Each file keeps the root of the first target reaching it, so a file two targets reach is read once.
+const rootOf = new Map();
+const folders = [];
+for (const target of targets) {
+  const stat = fs.statSync(target, { throwIfNoEntry: false });
+  if (!stat) nothingChecked(`no such file or folder: ${target}`);
+  let reached = [target];
+  if (stat.isDirectory()) {
+    // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
+    reached = (
+      await Array.fromAsync(
+        glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
+      )
+    ).map((file) => path.join(target, file));
+    if (!reached.some((file) => file.endsWith(".md"))) nothingChecked(`no markdown file found under ${target}`);
+  } else if (!/\.(md|js|py|ya?ml)$/.test(target)) nothingChecked(`no reader takes ${target}`);
+  // A file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
+  const root = stat.isDirectory() ? target : process.cwd();
+  for (const file of reached) if (!rootOf.has(file)) rootOf.set(file, root);
+  folders.push(stat.isDirectory() ? target : path.dirname(target));
+}
+
+// Paths print from the folder every target shares, so no printed path repeats the part common to all of them.
+const base = folders.reduce((shared, folder) => {
+  while (shared !== folder && !folder.startsWith(shared.endsWith(path.sep) ? shared : shared + path.sep)) shared = path.dirname(shared);
+  return shared;
+});
+
+const found = [...rootOf.keys()];
 const files = found.filter((file) => file.endsWith(".md")).sort();
 // A code file reaches Vale alone, which reads it as its comments and docstrings, and never markdownlint.
 const codeFiles = found.filter((file) => /\.(js|py)$/.test(file)).sort();
 // A YAML file is read by this script alone, since Vale leaves it out for the reason workflows/check.md gives.
 const yamlFiles = found.filter((file) => /\.ya?ml$/.test(file)).sort();
 
-if (!files.length) {
-  console.log(`no markdown file found under ${target}: nothing was checked`);
-  process.exit(1);
-}
-
 // The skills found are named because a file count alone cannot tell a sweep that covered one skill of a package from one that covered all of them.
 const skills = files
   .filter(isSkillFile)
-  .map((file) => path.relative(target, path.dirname(file)) || ".")
+  .map((file) => path.relative(base, path.dirname(file)) || ".")
   .sort();
-console.log(skills.length ? `${skills.length} skill(s) found under ${target}` : `no skill found under ${target}`);
+console.log(skills.length ? `${skills.length} skill(s) found under ${base}` : `no skill found under ${base}`);
 for (const skill of skills) console.log(`  ${skill}`);
 
 // A constant because the branch reporting a Vale that could not start prints this heading too, and a rename reaching one site and not the other would put a heading no other run uses on the run whose reader most needs to recognise it.
@@ -47,14 +70,20 @@ const report = (label, lines, summary = lines.length || "none") => {
   for (const line of lines) console.log(`  ${line}`);
 };
 
-// The target is passed to the layout and referenced-path rules so neither reads a tree nobody asked it to read.
-const results = await lint({
-  files,
-  customRules: rules,
-  config: { ...config, "skill-layout": { root: target }, "skill-referenced-paths": { root: target } },
-  // Without this a <!-- markdownlint-disable --> in the target would switch off every rule, skill-vale-directive included.
-  noInlineConfig: true,
-});
+// One run per root, passed to the layout and referenced-path rules so neither reads a tree nobody asked it to read.
+const results = {};
+for (const root of new Set(files.map((file) => rootOf.get(file)))) {
+  Object.assign(
+    results,
+    await lint({
+      files: files.filter((file) => rootOf.get(file) === root),
+      customRules: rules,
+      config: { ...config, "skill-layout": { root }, "skill-referenced-paths": { root } },
+      // Without this a <!-- markdownlint-disable --> in the target would switch off every rule, skill-vale-directive included.
+      noInlineConfig: true,
+    }),
+  );
+}
 
 // Every markdownlint class prints before Vale runs, so a structural finding is never withheld by a prose linter that cannot start.
 let issues = 0;
@@ -62,7 +91,7 @@ const contractFindings = [];
 const proseShapeFindings = [];
 const generalFindings = [];
 for (const file of files) {
-  const rel = path.relative(target, file);
+  const rel = path.relative(base, file);
   for (const e of results[file] ?? []) {
     issues++;
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
@@ -97,7 +126,7 @@ const commentsOf = (source) => {
 
 const yamlFindings = [];
 for (const file of yamlFiles) {
-  const rel = path.relative(target, file);
+  const rel = path.relative(base, file);
   const source = fs.readFileSync(file, "utf8");
   const docs = YAML.parseAllDocuments(source);
   // A stream holding no document comes back empty and raises nothing, so a file of directives alone is parsed again as one document, which reports what is missing.
@@ -163,7 +192,7 @@ let warnings = 0;
 let proseIssues = 0;
 const proseFindings = [];
 for (const file of valeFiles) {
-  const rel = path.relative(target, file);
+  const rel = path.relative(base, file);
   for (const a of alerts[file] ?? []) {
     if (a.Severity === "error") {
       issues++;
