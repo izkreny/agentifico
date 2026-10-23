@@ -194,6 +194,9 @@ beforeAll(() => {
   });
   mkPlugin("listed", JSON.stringify({ name: "listed", commands: ["./commands/", "./extra/"] }), { "commands/x.md": "# X\n\nbody\n" });
   mkPlugin("inside", JSON.stringify({ name: "inside", commands: ["./commands/deploy.md"] }), { "commands/deploy.md": "# Deploy\n\nbody\n" });
+  mkPlugin("mapped", JSON.stringify({ name: "mapped", commands: { deploy: { source: "./commands/deploy.md" } } }), {
+    "commands/deploy.md": "# Deploy\n\nbody\n",
+  });
   mkPlugin("hollow", JSON.stringify({ name: "hollow", agents: "./elsewhere/" }));
   fs.mkdirSync(path.join(plugins, "hollow", "agents"));
   mkPlugin("broken", "{", { "hooks/hooks.json": '{ "hooks": { "Stop": [ { "matcher": "x", "hooks": [] }, ] } }' });
@@ -478,9 +481,9 @@ describe("check.js", () => {
   it("a plugin holding no markdown is found under a package target", () => {
     assert.match(run(path.join(tmp, "plugins")).out, /^ {2}hookonly\/hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/m);
   });
-  it("a key that lists its own default folder, or a path inside it, shadows nothing", () => {
+  it("a key that lists its own default folder, or a path inside it, in a list or an object map, shadows nothing", () => {
     const r = run(path.join(tmp, "plugins"));
-    assert.doesNotMatch(r.out, /^ {2}(listed|inside)\/.*plugin-manifest/m);
+    assert.doesNotMatch(r.out, /^ {2}(listed|inside|mapped)\/.*plugin-manifest/m);
   });
   it("a default folder holding only a symlink still holds files", () => {
     assert.match(run(path.join(tmp, "plugins", "linked")).out, /plugin-manifest .*agents replaces the default agents\//);
