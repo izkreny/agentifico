@@ -487,6 +487,11 @@ describe("agent-frontmatter", () => {
     const found = await findings("fx/.claude/agents/late.md", `\n${skill("name: r\ndescription: Reviews code.")}`, agentFrontmatter);
     expectDetail(found, "agent-frontmatter", "not the first line");
   });
+  it("an opening --- that is never closed is not a late one", async () => {
+    const found = await findings("fx/.claude/agents/unclosed.md", "---\nname: r\ndescription: Reviews code.\n\nbody\n", agentFrontmatter);
+    expectDetail(found, "agent-frontmatter", "never closed");
+    assert.ok(!has(found, "agent-frontmatter", "not the first line"), JSON.stringify(found));
+  });
   it("empty frontmatter has no name", async () => {
     expectDetail(await findings("fx/.claude/agents/empty.md", "---\n---\n\nbody\n", agentFrontmatter), "agent-frontmatter", "no name");
   });

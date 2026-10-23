@@ -20,9 +20,10 @@ export function agentKind(file) {
 export function defects(fm, inPlugin, lines = []) {
   if (!fm) {
     if (inPlugin) return [];
-    // markdownlint hands a rule no frontmatter when anything precedes the opening delimiter, which is the shape Claude Code reads as none either.
-    const first = lines.find((l) => l.trim() !== "");
-    if (first !== undefined && /^---\s*$/.test(first))
+    // markdownlint hands a rule no frontmatter both when anything precedes the opening delimiter and when nothing closes it, so the line the delimiter sits on is what says which happened.
+    const at = lines.findIndex((l) => l.trim() !== "");
+    if (at === 0 && /^---\s*$/.test(lines[0])) return ["the opening --- is never closed, so the file has no frontmatter and no name"];
+    if (at > 0 && /^---\s*$/.test(lines[at]))
       return ["the opening --- is not the first line: Claude Code reads no frontmatter and skips the file as documentation"];
     return ["no name: Claude Code skips the file as documentation kept beside the agents"];
   }
