@@ -89,7 +89,7 @@ The directory match cannot decide the charset on its own, because a directory ma
 
 **`agent-frontmatter`** holds an agent file to what Claude Code loads, per the [sub-agents page](https://code.claude.com/docs/en/sub-agents) and the [plugin components page](https://code.claude.com/docs/en/plugins/components). Claude Code skips a defective agent without saying so in the session, so every finding is a contract one.
 
-**An agent file sits under a plugin's `<plugin-dir>/agents/`, or under `<repo-root>/.claude/agents/` or `<home-dir>/.claude/agents/`, at any depth**, since Claude Code scans each recursively. A plugin is told apart by the `<plugin-dir>/.claude-plugin/` folder beside its agents folder. Any other folder named `agents` is left alone. A file under a `.claude` folder is reached only as a named file target, since a folder target skips dot-directories.
+**An agent file sits under a plugin's `<plugin-dir>/agents/`, or under `<repo-root>/.claude/agents/` or `<home-dir>/.claude/agents/`, at any depth**, since Claude Code scans each recursively. A plugin is told apart by the `<plugin-dir>/.claude-plugin/` folder beside its agents folder. Any other folder named `agents` is left alone. A folder target skips the dot-directories under it, so a `.claude` folder's agents are reached by naming that folder, its agents folder, or one of its files as the target.
 
 **Outside a plugin it reports** a missing `name`, an opening `---` that is not the first line, a `name` that contains `:`, starts with `-` or runs past 256 characters, and `permissionMode: bypassPermissions`, which a subagent does not get. A capital or an underscore in a `name` is not reported, since the page bars neither.
 
