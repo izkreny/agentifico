@@ -29,7 +29,7 @@ node <skill-dir>/scripts/check.js AGENTS.md .agents/gh-solo.md
 
 **One skill is the gate; a wider target is a survey.** Against a single skill the exit code answers "is this skill clean", which is what a branch and a sweep both want. Against a directory of skills or a package root it answers only "does anything under here have findings", and it will usually be non-zero: the run reports every skill it reaches, and `references/managing.md` forbids editing a manager-installed one, so a finding there is a report to that skill's author rather than work for the runner.
 
-Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported.
+Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about a skill's frontmatter apply to a file named `SKILL.md`, *The agent rule* applies to an agent file, and each leaves the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported.
 
 A target the check cannot read fails the run, naming that target: a path that does not exist, a folder with no markdown under it, or a file no reader takes. Its silence is indistinguishable from a clean sweep, and beside other targets it would hide. A folder holding markdown but no skill is a legitimate target and is read.
 
@@ -84,6 +84,18 @@ The directory match cannot decide the charset on its own, because a directory ma
 **`skill-invocation`**: `disable-model-invocation` and `user-invocable` decide who may invoke a skill, and `workflows/new.md` owns what each does. A field present must be lowercase `true` or `false`, once and unquoted: `yes` and `True` are booleans in some parsers and strings in others, a quoted value is a string in every parser, and a duplicate key is the last-wins trap the description rule reports. A field at a non-default value has to be matched by a description that says something about invocation, because another agent ignores the field silently and there the description is all that holds.
 
 **What it cannot decide is whether the sentence it found matches the field.** It tells a description silent on invocation from one that speaks, and stops there; a description stating the wrong policy is the reviewer's to catch.
+
+## The agent rule
+
+**`agent-frontmatter`** holds an agent file to what Claude Code loads, per the [sub-agents page](https://code.claude.com/docs/en/sub-agents) and the [plugin components page](https://code.claude.com/docs/en/plugins/components). Claude Code skips a defective agent without saying so in the session, so every finding is a contract one.
+
+**An agent file sits under a plugin's `<plugin-dir>/agents/`, or under `<repo-root>/.claude/agents/` or `<home-dir>/.claude/agents/`, at any depth**, since Claude Code scans each recursively. A plugin is told apart by the `<plugin-dir>/.claude-plugin/` folder beside its agents folder. Any other folder named `agents` is left alone. A file under a `.claude` folder is reached only as a named file target, since a folder target skips dot-directories.
+
+**Outside a plugin it reports** a missing `name`, an opening `---` that is not the first line, a `name` that contains `:`, starts with `-` or runs past 256 characters, and `permissionMode: bypassPermissions`, which a subagent does not get. A capital or an underscore in a `name` is not reported, since the page bars neither.
+
+**In a plugin it reports** each of `permissionMode`, `hooks`, `mcpServers` and `initialPrompt` that is set, since a plugin's agent ignores all of them. A missing `name` is no defect there, because the agent loads under its filename.
+
+What stays out of its reach: frontmatter that does not parse and a missing `description`, which `claude plugin validate --strict` reports; a plugin with no `<plugin-dir>/.claude-plugin/` folder, or one whose manifest points its agents at another folder; and any list of valid models, tools or permission modes, because a copied list goes stale and then flags correct files.
 
 ## The continuation rule
 
