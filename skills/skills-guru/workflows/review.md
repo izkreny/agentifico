@@ -56,6 +56,10 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **A count of adjacent content, or a position claim.** *Write sentences that survive change* in `workflows/new.md` owns the rule and its cap-or-count test, and `Counts` and `Position` under `assets/` report the phrasings they know. Reading catches the rest, such as "the two facts below", "the only copy" or "the newest section" worded in a shape no token matches.
 
+### Prose that copies the code
+
+**A document restating the code it describes.** A workflow or a reference walks through a script or a rule file: every defect it reports, every case it leaves alone, every message, every figure. Grep the document for a message's wording or a figure the code defines, and ask whether the sentence says anything the file cannot. *Point at the code that owns a detail, never restate it* in `workflows/new.md` owns the rule and what a document keeps.
+
 ### Text that does no work
 
 **Enumerations that end in "and anything else".** The list was doing no work. Cut it to the rule.
