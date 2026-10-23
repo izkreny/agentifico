@@ -100,6 +100,10 @@ A banner ages into a lie because nothing updates it; a version attached to a spe
 
 Duplication between a global instructions file and a skill drifts, and the drifted copy is the one nobody is looking at. When a fact must appear twice, one copy owns it and every other copy points at it: a stale pointer fails loudly, since the heading it names is gone, while a stale copy fails silently, two truths disagreeing and both looking right.
 
+### Point at the code that owns a detail, never restate it
+
+A document about a script, a rule or a configuration file names that file and says what the code cannot: what it is for, what it reads, and what it leaves to another tool or to a reader. Every defect it reports, every case it leaves alone and every message are the code's to say, because the code is what runs and what the suite tests, so a prose copy drifts with nothing to fail and is still the copy a reader trusts.
+
 ### Code blocks are Bash
 
 An agent executes a skill's commands through its shell tool, which is Bash; fish or zsh syntax in a skill fails at execution time, on the machine of whoever installed it.
