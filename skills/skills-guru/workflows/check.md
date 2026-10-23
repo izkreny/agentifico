@@ -29,7 +29,7 @@ node <skill-dir>/scripts/check.js AGENTS.md .agents/gh-solo.md
 
 **One skill is the gate; a wider target is a survey.** Against a single skill the exit code answers "is this skill clean", which is what a branch and a sweep both want. Against a directory of skills or a package root it answers only "does anything under here have findings", and it will usually be non-zero: the run reports every skill it reaches, and `references/managing.md` forbids editing a manager-installed one, so a finding there is a report to that skill's author rather than work for the runner.
 
-Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about frontmatter apply to a file named `SKILL.md` and leave the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported.
+Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about a skill's frontmatter apply to a file named `SKILL.md`, *The agent rule* applies to an agent file, and each leaves the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported.
 
 A target the check cannot read fails the run, naming that target: a path that does not exist, a folder with no markdown under it, or a file no reader takes. Its silence is indistinguishable from a clean sweep, and beside other targets it would hide. A folder holding markdown but no skill is a legitimate target and is read.
 
@@ -84,6 +84,10 @@ The directory match cannot decide the charset on its own, because a directory ma
 **`skill-invocation`**: `disable-model-invocation` and `user-invocable` decide who may invoke a skill, and `workflows/new.md` owns what each does. A field present must be lowercase `true` or `false`, once and unquoted: `yes` and `True` are booleans in some parsers and strings in others, a quoted value is a string in every parser, and a duplicate key is the last-wins trap the description rule reports. A field at a non-default value has to be matched by a description that says something about invocation, because another agent ignores the field silently and there the description is all that holds.
 
 **What it cannot decide is whether the sentence it found matches the field.** It tells a description silent on invocation from one that speaks, and stops there; a description stating the wrong policy is the reviewer's to catch.
+
+## The agent rule
+
+**`agent-frontmatter`** reports what makes Claude Code skip an agent file, or ignore a field in it, without saying so, per the [sub-agents page](https://code.claude.com/docs/en/sub-agents) and the [plugin components page](https://code.claude.com/docs/en/plugins/components); each finding names its defect. An agent file sits under `<plugin-dir>/agents/` beside a `<plugin-dir>/.claude-plugin/` folder, or under the agents folder of any `.claude` folder, which a folder target reaches only when it names that `.claude` folder or one inside it. Frontmatter that does not parse and a missing `description` are left to `claude plugin validate --strict`.
 
 ## The continuation rule
 

@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { lint } from "markdownlint/promise";
 import { describe, it } from "vitest";
+import agentFrontmatter, { defects as agentDefects } from "../rules/agent-frontmatter.js";
 import { description as descriptionValue } from "../rules/frontmatter.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
 import boldedRuns from "../rules/skill-bolded-runs.js";
@@ -13,7 +14,7 @@ import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
 import valeDirective from "../rules/skill-vale-directive.js";
 
-const RULES = [description, parsed, name, invocation, continuations, boldedRuns, boldedParagraphs, portablePaths, valeDirective];
+const RULES = [description, parsed, name, invocation, agentFrontmatter, continuations, boldedRuns, boldedParagraphs, portablePaths, valeDirective];
 
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
 async function findings(path, content, ...only) {
@@ -457,4 +458,71 @@ describe("skill-vale-directive", () => {
     });
     assert.equal(results["fx/ctx/SKILL.md"][0].errorContext, "<!-- vale off -->");
   });
+});
+
+describe("agent-frontmatter", () => {
+  // A path under .claude/agents/ is an agents directory by its name alone, so these fixtures need no tree on disk.
+  const cases = [
+    ["clean", "name: code-reviewer\ndescription: Reviews code.", null],
+    // The sub-agents page bars neither, so a rule holding an agent's name to a skill's charset would flag a file Claude Code loads.
+    ["capital-underscore", "name: Code_Reviewer\ndescription: Reviews code.", null],
+    ["no-name", "description: Reviews code.", "no name"],
+    ["colon", "name: my:reviewer\ndescription: Reviews code.", 'contains ":"'],
+    ["leading-dash", "name: -reviewer\ndescription: Reviews code.", 'starts with "-"'],
+    ["at-limit", `name: ${"a".repeat(256)}\ndescription: Reviews code.`, null],
+    ["over-limit", `name: ${"a".repeat(257)}\ndescription: Reviews code.`, "257 characters"],
+    ["bypass", "name: r\ndescription: Reviews code.\npermissionMode: bypassPermissions", "bypassPermissions"],
+    ["other-mode", "name: r\ndescription: Reviews code.\npermissionMode: plan", null],
+    // Frontmatter that does not parse is the validator's to report, so this rule says nothing rather than a second thing.
+    ["unparsed", "description: Reviews code.\nother: [1, 2", null],
+  ];
+  for (const [id, fm, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/.claude/agents/${id}.md`, skill(fm), agentFrontmatter);
+      if (want) expectDetail(found, "agent-frontmatter", want);
+      else expectClean(found, "agent-frontmatter");
+    });
+  }
+  it("an opening --- after a blank line is not frontmatter", async () => {
+    const found = await findings("fx/.claude/agents/late.md", `\n${skill("name: r\ndescription: Reviews code.")}`, agentFrontmatter);
+    expectDetail(found, "agent-frontmatter", "not the first line");
+  });
+  it("an opening --- that is never closed is not a late one", async () => {
+    const found = await findings("fx/.claude/agents/unclosed.md", "---\nname: r\ndescription: Reviews code.\n\nbody\n", agentFrontmatter);
+    expectDetail(found, "agent-frontmatter", "never closed");
+    assert.ok(!has(found, "agent-frontmatter", "not the first line"), JSON.stringify(found));
+  });
+  it("empty frontmatter has no name", async () => {
+    expectDetail(await findings("fx/.claude/agents/empty.md", "---\n---\n\nbody\n", agentFrontmatter), "agent-frontmatter", "no name");
+  });
+  it("a file with no frontmatter has no name", async () => {
+    expectDetail(await findings("fx/.claude/agents/notes.md", "# Notes\n\nbody\n", agentFrontmatter), "agent-frontmatter", "no name");
+  });
+  it("a subfolder of an agents directory is scanned too", async () => {
+    expectDetail(await findings("fx/.claude/agents/review/x.md", skill("description: Reviews code."), agentFrontmatter), "agent-frontmatter", "no name");
+  });
+  it("an agents folder that is neither a plugin's nor under .claude is left alone", async () => {
+    expectClean(await findings("fx/pkg/agents/x.md", skill("name: -x\nmcpServers: {}"), agentFrontmatter), "agent-frontmatter");
+  });
+  it("a markdown file outside any agents folder is left alone", async () => {
+    expectClean(await findings("fx/notes/x.md", skill("name: -x"), agentFrontmatter), "agent-frontmatter");
+  });
+
+  // Exercised directly because a plugin is told apart by a folder on disk, which a string fixture has none of.
+  const lines = (fm) => fm.split("\n");
+  it("a plugin's agent with no name loads under its filename", () => {
+    assert.deepEqual(agentDefects(lines("description: Reviews code."), true), []);
+  });
+  it("a plugin's agent with no frontmatter loads under its filename", () => {
+    assert.deepEqual(agentDefects(null, true, ["# Reviewer"]), []);
+  });
+  for (const key of ["permissionMode", "hooks", "mcpServers", "initialPrompt"]) {
+    it(`a plugin's agent setting ${key}`, () => {
+      const found = agentDefects(lines(`name: r\ndescription: Reviews code.\n${key}: x`), true);
+      assert.ok(
+        found.some((d) => d.startsWith(`${key} is ignored`)),
+        JSON.stringify(found),
+      );
+    });
+  }
 });
