@@ -87,15 +87,7 @@ The directory match cannot decide the charset on its own, because a directory ma
 
 ## The agent rule
 
-**`agent-frontmatter`** holds an agent file to what Claude Code loads, per the [sub-agents page](https://code.claude.com/docs/en/sub-agents) and the [plugin components page](https://code.claude.com/docs/en/plugins/components). Claude Code skips a defective agent without saying so in the session, so every finding is a contract one.
-
-**An agent file sits under a plugin's `<plugin-dir>/agents/`, or under `<repo-root>/.claude/agents/` or `<home-dir>/.claude/agents/`, at any depth**, since Claude Code scans each recursively. A plugin is told apart by the `<plugin-dir>/.claude-plugin/` folder beside its agents folder. Any other folder named `agents` is left alone. A folder target skips the dot-directories under it, so a `.claude` folder's agents are reached by naming that folder, its agents folder, or one of its files as the target.
-
-**Outside a plugin it reports** a missing `name`, an opening `---` that is not the first line, a `name` that contains `:`, starts with `-` or runs past 256 characters, and `permissionMode: bypassPermissions`, which a subagent does not get. A capital or an underscore in a `name` is not reported, since the page bars neither.
-
-**In a plugin it reports** each of `permissionMode`, `hooks`, `mcpServers` and `initialPrompt` that is set, since a plugin's agent ignores all of them. A missing `name` is no defect there, because the agent loads under its filename.
-
-What stays out of its reach: frontmatter that does not parse and a missing `description`, which `claude plugin validate --strict` reports; a plugin with no `<plugin-dir>/.claude-plugin/` folder, or one whose manifest points its agents at another folder; and any list of valid models, tools or permission modes, because a copied list goes stale and then flags correct files.
+**`agent-frontmatter`** reports what makes Claude Code skip an agent file, or ignore a field in it, without saying so, per the [sub-agents page](https://code.claude.com/docs/en/sub-agents) and the [plugin components page](https://code.claude.com/docs/en/plugins/components); each finding names its defect. An agent file sits under `<plugin-dir>/agents/` beside a `<plugin-dir>/.claude-plugin/` folder, or under the agents folder of any `.claude` folder, which a folder target reaches only when it names that `.claude` folder or one inside it. Frontmatter that does not parse and a missing `description` are left to `claude plugin validate --strict`.
 
 ## The continuation rule
 
