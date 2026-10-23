@@ -83,7 +83,10 @@ export function hooksDefects(source) {
 const holdsFiles = (location) => {
   const stat = fs.statSync(location, { throwIfNoEntry: false });
   if (!stat) return false;
-  return stat.isFile() || fs.readdirSync(location, { recursive: true, withFileTypes: true }).some((entry) => entry.isFile());
+  // A symlink is stated through, because a Dirent reports the link rather than the file it points at.
+  const isFile = (entry) =>
+    entry.isFile() || (entry.isSymbolicLink() && fs.statSync(path.join(entry.parentPath, entry.name), { throwIfNoEntry: false })?.isFile());
+  return stat.isFile() || fs.readdirSync(location, { recursive: true, withFileTypes: true }).some(isFile);
 };
 
 // A commands object maps each name to a source, so its paths are the sources rather than the names.

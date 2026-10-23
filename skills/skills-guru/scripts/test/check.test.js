@@ -197,6 +197,9 @@ beforeAll(() => {
   mkPlugin("hollow", JSON.stringify({ name: "hollow", agents: "./elsewhere/" }));
   fs.mkdirSync(path.join(plugins, "hollow", "agents"));
   mkPlugin("broken", "{", { "hooks/hooks.json": '{ "hooks": { "Stop": [ { "matcher": "x", "hooks": [] }, ] } }' });
+  mkPlugin("linked", JSON.stringify({ name: "linked", agents: "./other/" }), { "shared/rev.md": "# Rev\n\nbody\n" });
+  fs.mkdirSync(path.join(plugins, "linked", "agents"));
+  fs.symlinkSync(path.join("..", "shared", "rev.md"), path.join(plugins, "linked", "agents", "rev.md"));
   // No markdown, so only a search for .claude-plugin itself finds this plugin under a wider target.
   put(path.join(plugins, "hookonly", ".claude-plugin", "plugin.json"), '{ "name": "hookonly" }');
   put(path.join(plugins, "hookonly", "hooks", "hooks.json"), stopMatcher);
@@ -478,6 +481,9 @@ describe("check.js", () => {
   it("a key that lists its own default folder, or a path inside it, shadows nothing", () => {
     const r = run(path.join(tmp, "plugins"));
     assert.doesNotMatch(r.out, /^ {2}(listed|inside)\/.*plugin-manifest/m);
+  });
+  it("a default folder holding only a symlink still holds files", () => {
+    assert.match(run(path.join(tmp, "plugins", "linked")).out, /plugin-manifest .*agents replaces the default agents\//);
   });
   it("an empty default folder is not shadowed", () => {
     assert.doesNotMatch(run(path.join(tmp, "plugins", "hollow")).out, /plugin-manifest/);
