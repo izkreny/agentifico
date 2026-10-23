@@ -26,7 +26,7 @@ A skill is worth writing when one of these happened: a multi-step workflow prove
 | `disable-model-invocation` | `true` means explicit invocation only, never auto-discovered, and it blocks the model's call through the Skill tool, a spawned subagent's included (Claude Code 2.1.252). Use it for side effects the owner should trigger themselves, and for reference material that would otherwise fire on unrelated work. A skill an agent loads through the Skill tool takes `user-invocable: false` instead, whatever its side effects, because this field would block that very call |
 | `user-invocable` | Defaults to `true`. `false` hides the skill from the `/` menu and from `/name` while the model can still invoke it: the field for a skill whose only caller is an agent, through the Skill tool |
 
-**Any long plain value takes a block scalar, not the description alone.** The truncation belongs to the key rather than to that one field: the same space-and-`#` edit drops the tail of whichever key it lands in, and `compatibility` is the field that most often grows long enough to attract one. The specification caps `compatibility` far below the description, so that field runs out on much less text than the one an author is watching; `workflows/check.md` states each ceiling in its `skill-frontmatter-parsed` entry. A block scalar has no comment, anchor, tag or escape processing, so the whole family is unreachable inside it.
+**Any long plain value takes a block scalar, not the description alone.** The truncation belongs to the key rather than to that one field: the same space-and-`#` edit drops the tail of whichever key it lands in, and `compatibility` is the field that most often grows long enough to attract one. The specification caps `compatibility` far below the description, so that field runs out on much less text than the one an author is watching; `scripts/rules/skill-frontmatter-parsed.js` holds each ceiling. A block scalar has no comment, anchor, tag or escape processing, so the whole family is unreachable inside it.
 
 Write the description as trigger phrases plus a boundary. **Say what the skill is not for**: one boundary sentence prevents more misfires than another trigger phrase adds.
 
@@ -123,7 +123,7 @@ Inside the skill, relative to the skill's own directory and say so; for user loc
 - `<repo-root>`: the top of the repository the skill serves.
 - `<home-dir>`: the user's home directory, in prose only.
 
-A path to a file the skill holds stays bare, because a bare path is the one the check can verify. Any other path in prose takes a placeholder rather than single quotes, because the placeholder tells the reader which tree the file lives in and a quoted path tells them nothing. Which spans the path rules read is in `workflows/check.md`.
+A path to a file the skill holds stays bare, because a bare path is the one the check can verify. Any other path in prose takes a placeholder rather than single quotes, because the placeholder tells the reader which tree the file lives in and a quoted path tells them nothing. `scripts/rules/paths.js` decides which spans the path rules read.
 
 ### No hard wrapping
 
