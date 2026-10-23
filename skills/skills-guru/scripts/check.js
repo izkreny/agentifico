@@ -7,6 +7,7 @@ import { lint } from "markdownlint/promise";
 import YAML from "yaml";
 import { config, contractRuleNames, proseShapeRuleNames, rules } from "./lint-config.js";
 import { isSkillFile } from "./rules/frontmatter.js";
+import { hooksDefects, isPluginRoot, manifestDefects } from "./rules/plugin-files.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const valeConfig = path.join(here, "..", ".vale.ini");
@@ -148,10 +149,35 @@ for (const file of yamlFiles) {
 issues += yamlFindings.length;
 report("yaml files", yamlFindings);
 
+// A plugin's hooks file and manifest are read by their fixed paths, because the walk skips the .claude-plugin folder that marks a plugin.
+const folderTargets = new Set(targets.filter((target) => fs.statSync(target).isDirectory()));
+const candidates = new Set(folderTargets);
+for (const file of found) {
+  const root = rootOf.get(file);
+  if (!folderTargets.has(root)) continue;
+  for (let dir = path.dirname(file); dir !== root && dir !== path.dirname(dir); dir = path.dirname(dir)) candidates.add(dir);
+}
+const pluginFiles = [];
+const pluginFindings = [];
+for (const dir of [...candidates].filter(isPluginRoot).sort()) {
+  const readers = [
+    ["hooks/hooks.json", "plugin-hooks", hooksDefects],
+    [".claude-plugin/plugin.json", "plugin-manifest", (source) => manifestDefects(source, dir)],
+  ];
+  for (const [name, rule, defects] of readers) {
+    const file = path.join(dir, name);
+    if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) continue;
+    pluginFiles.push(file);
+    for (const { line, detail } of defects(fs.readFileSync(file, "utf8"))) pluginFindings.push(`${path.relative(base, file)}:${line} ${rule} ${detail}`);
+  }
+}
+issues += pluginFindings.length;
+report("plugin files", pluginFindings);
+
 const proseNotRun = (why) => {
   report(PROSE_RULES, [], "not run");
-  // The markdown and YAML files alone, since a code file's only reader is the process that did not start.
-  console.log(`${files.length + yamlFiles.length} files checked, ${issues} issues, prose rules not run`);
+  // The markdown, YAML and plugin files alone, since a code file's only reader is the process that did not start.
+  console.log(`${files.length + yamlFiles.length + pluginFiles.length} files checked, ${issues} issues, prose rules not run`);
   console.log(why);
   process.exit(1);
 };
@@ -202,5 +228,5 @@ for (const file of valeFiles) {
   }
 }
 report(PROSE_RULES, proseFindings, proseFindings.length ? `${proseIssues} issues, ${warnings} warnings` : "none");
-console.log(`${valeFiles.length + yamlFiles.length} files checked, ${issues} issues, ${warnings} warnings`);
+console.log(`${valeFiles.length + yamlFiles.length + pluginFiles.length} files checked, ${issues} issues, ${warnings} warnings`);
 process.exit(issues ? 1 : 0);
