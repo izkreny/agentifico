@@ -162,6 +162,16 @@ beforeAll(() => {
     "---\nname: Wrong Name\ndescription: review PR #N and more\ndisable-model-invocation: yes\n---\n\n# Agents\n\nbody\n",
   );
 
+  // A plugin is told apart by the .claude-plugin folder beside its agents folder, which a string fixture in rules.test.js has no disk for.
+  const plugin = path.join(tmp, "plugin");
+  fs.mkdirSync(path.join(plugin, ".claude-plugin"), { recursive: true });
+  fs.writeFileSync(path.join(plugin, ".claude-plugin", "plugin.json"), '{ "name": "plugin" }\n');
+  fs.mkdirSync(path.join(plugin, "agents", "review"), { recursive: true });
+  fs.writeFileSync(path.join(plugin, "agents", "tooled.md"), "---\nname: tooled\ndescription: Reviews code.\nmcpServers: {}\n---\n\nBody.\n");
+  fs.writeFileSync(path.join(plugin, "agents", "review", "nameless.md"), "---\ndescription: Reviews code.\ninitialPrompt: Start.\n---\n\nBody.\n");
+  fs.mkdirSync(path.join(tmp, "project", ".claude", "agents"), { recursive: true });
+  fs.writeFileSync(path.join(tmp, "project", ".claude", "agents", "nameless.md"), "---\ndescription: Reviews code.\n---\n\nBody.\n");
+
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
   fs.writeFileSync(path.join(tmp, "dotted", ".hidden", "w.md"), "- **lead.** first\n\n  the reason\n\n  a second paragraph\n");
@@ -404,6 +414,21 @@ describe("check.js", () => {
     const r = run(path.join("not-a-skill", "nested", "agents.md"), process.env, tmp);
     assert.equal(r.linted, 1, r.out);
     assert.match(r.out, /^skill rules: none$/m);
+  });
+  it("a plugin's agent is held to the fields a plugin agent ignores, in a subfolder too, and not to a name", () => {
+    const r = run(path.join(tmp, "plugin"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}agents\/tooled\.md:\d+ agent-frontmatter .*mcpServers is ignored/m);
+    assert.match(r.out, /^ {2}agents\/review\/nameless\.md:\d+ agent-frontmatter .*initialPrompt is ignored/m);
+    assert.doesNotMatch(r.out, /no name/);
+  });
+  it("an agent named inside a .claude folder is held to a name", () => {
+    const r = run(path.join(tmp, "project", ".claude", "agents", "nameless.md"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}nameless\.md:\d+ agent-frontmatter .*no name/m);
+  });
+  it("an agents folder with no .claude-plugin beside it is not a plugin's", () => {
+    assert.doesNotMatch(run(path.join(tmp, "pkg")).out, /agent-frontmatter/);
   });
   it("a YAML file named alone is read by the YAML rules", () => {
     const r = run(path.join(tmp, "yaml-duplicate", "rule.yml"));
