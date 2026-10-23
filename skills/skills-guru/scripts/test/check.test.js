@@ -169,6 +169,9 @@ beforeAll(() => {
   fs.mkdirSync(path.join(plugin, "agents", "review"), { recursive: true });
   fs.writeFileSync(path.join(plugin, "agents", "tooled.md"), "---\nname: tooled\ndescription: Reviews code.\nmcpServers: {}\n---\n\nBody.\n");
   fs.writeFileSync(path.join(plugin, "agents", "review", "nameless.md"), "---\ndescription: Reviews code.\ninitialPrompt: Start.\n---\n\nBody.\n");
+  // A field a plugin's agent is reported for, so this folder counted as a plugin's is a named failure.
+  fs.mkdirSync(path.join(tmp, "loose", "agents"), { recursive: true });
+  fs.writeFileSync(path.join(tmp, "loose", "agents", "tooled.md"), "---\nname: tooled\ndescription: Reviews code.\nmcpServers: {}\n---\n\nBody.\n");
   fs.mkdirSync(path.join(tmp, "project", ".claude", "agents"), { recursive: true });
   fs.writeFileSync(path.join(tmp, "project", ".claude", "agents", "nameless.md"), "---\ndescription: Reviews code.\n---\n\nBody.\n");
 
@@ -428,7 +431,7 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}nameless\.md:\d+ agent-frontmatter .*no name/m);
   });
   it("an agents folder with no .claude-plugin beside it is not a plugin's", () => {
-    assert.doesNotMatch(run(path.join(tmp, "pkg")).out, /agent-frontmatter/);
+    assert.doesNotMatch(run(path.join(tmp, "loose")).out, /agent-frontmatter/);
   });
   it("a YAML file named alone is read by the YAML rules", () => {
     const r = run(path.join(tmp, "yaml-duplicate", "rule.yml"));

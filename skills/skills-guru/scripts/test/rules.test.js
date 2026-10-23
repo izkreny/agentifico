@@ -497,7 +497,7 @@ describe("agent-frontmatter", () => {
     expectDetail(await findings("fx/.claude/agents/review/x.md", skill("description: Reviews code."), agentFrontmatter), "agent-frontmatter", "no name");
   });
   it("an agents folder that is neither a plugin's nor under .claude is left alone", async () => {
-    expectClean(await findings("fx/pkg/agents/x.md", skill("name: -x"), agentFrontmatter), "agent-frontmatter");
+    expectClean(await findings("fx/pkg/agents/x.md", skill("name: -x\nmcpServers: {}"), agentFrontmatter), "agent-frontmatter");
   });
   it("a markdown file outside any agents folder is left alone", async () => {
     expectClean(await findings("fx/notes/x.md", skill("name: -x"), agentFrontmatter), "agent-frontmatter");
