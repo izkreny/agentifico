@@ -149,17 +149,14 @@ for (const file of yamlFiles) {
 issues += yamlFindings.length;
 report("yaml files", yamlFindings);
 
-// A plugin's hooks file and manifest are read by their fixed paths, because the walk skips the .claude-plugin folder that marks a plugin.
-const folderTargets = new Set(targets.filter((target) => fs.statSync(target).isDirectory()));
-const candidates = new Set(folderTargets);
-for (const file of found) {
-  const root = rootOf.get(file);
-  if (!folderTargets.has(root)) continue;
-  for (let dir = path.dirname(file); dir !== root && dir !== path.dirname(dir); dir = path.dirname(dir)) candidates.add(dir);
-}
+// The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
+const pluginDirs = new Set();
+for (const target of targets.filter((target) => fs.statSync(target).isDirectory()))
+  for await (const marker of glob("**/.claude-plugin", { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }))
+    pluginDirs.add(path.dirname(path.join(target, marker)));
 const pluginFiles = [];
 const pluginFindings = [];
-for (const dir of [...candidates].filter(isPluginRoot).sort()) {
+for (const dir of [...pluginDirs].filter(isPluginRoot).sort()) {
   const readers = [
     ["hooks/hooks.json", "plugin-hooks", hooksDefects],
     [".claude-plugin/plugin.json", "plugin-manifest", (source) => manifestDefects(source, dir)],

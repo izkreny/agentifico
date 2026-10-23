@@ -197,6 +197,9 @@ beforeAll(() => {
   mkPlugin("hollow", JSON.stringify({ name: "hollow", agents: "./elsewhere/" }));
   fs.mkdirSync(path.join(plugins, "hollow", "agents"));
   mkPlugin("broken", "{", { "hooks/hooks.json": '{ "hooks": { "Stop": [ { "matcher": "x", "hooks": [] }, ] } }' });
+  // No markdown, so only a search for .claude-plugin itself finds this plugin under a wider target.
+  put(path.join(plugins, "hookonly", ".claude-plugin", "plugin.json"), '{ "name": "hookonly" }');
+  put(path.join(plugins, "hookonly", "hooks", "hooks.json"), stopMatcher);
   // A hooks file reported for a matcher, so this folder read as a plugin's is a named failure.
   put(path.join(plugins, "unmarked", "README.md"), "# unmarked\n\nbody\n");
   put(path.join(plugins, "unmarked", "hooks", "hooks.json"), stopMatcher);
@@ -468,6 +471,9 @@ describe("check.js", () => {
   });
   it("a plugin under a package target is found", () => {
     assert.match(run(path.join(tmp, "plugins")).out, /^ {2}plug\/hooks\/hooks\.json:\d+ plugin-hooks /m);
+  });
+  it("a plugin holding no markdown is found under a package target", () => {
+    assert.match(run(path.join(tmp, "plugins")).out, /^ {2}hookonly\/hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/m);
   });
   it("a key that lists its own default folder, or a path inside it, shadows nothing", () => {
     const r = run(path.join(tmp, "plugins"));
