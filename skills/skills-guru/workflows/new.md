@@ -38,7 +38,7 @@ The format's authority is the [Agent Skills specification](https://agentskills.i
 
 ### Let size decide whether to split
 
-Under roughly 2,000 words, one `SKILL.md` is right and splitting it is overhead. Measure size in words of prose, which is how `SkillSplit` in `workflows/check.md` counts it, or in tokens, never in lines: a line count depends on the author's wrapping style, and an unwrapped paragraph is one line where an 80-column author writes six.
+Under roughly 2,000 words, one `SKILL.md` is right and splitting it is overhead. Measure size in words of prose, which is how `assets/Agentifico/SkillSplit.yml` counts it, or in tokens, never in lines: a line count depends on the author's wrapping style, and an unwrapped paragraph is one line where an 80-column author writes six.
 
 Past that, split: `SKILL.md` keeps the frontmatter, the shared model and a routing table; each operation gets `workflows/<verb>.md`; long reference material gets `references/<topic>.md`. The router reads exactly one workflow and follows it inline, which keeps loaded context proportional to the task rather than to the skill.
 
