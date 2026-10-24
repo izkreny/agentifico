@@ -194,6 +194,10 @@ beforeAll(() => {
   });
   mkPlugin("listed", JSON.stringify({ name: "listed", commands: ["./commands/", "./extra/"] }), { "commands/x.md": "# X\n\nbody\n" });
   mkPlugin("inside", JSON.stringify({ name: "inside", commands: ["./commands/deploy.md"] }), { "commands/deploy.md": "# Deploy\n\nbody\n" });
+  mkPlugin("partial", JSON.stringify({ name: "partial", commands: ["./commands/deploy.md"] }), {
+    "commands/deploy.md": "# Deploy\n\nbody\n",
+    "commands/rollback.md": "# Rollback\n\nbody\n",
+  });
   mkPlugin("mapped", JSON.stringify({ name: "mapped", commands: { deploy: { source: "./commands/deploy.md" } } }), {
     "commands/deploy.md": "# Deploy\n\nbody\n",
   });
@@ -468,7 +472,7 @@ describe("check.js", () => {
   it("a plugin's hooks file and manifest are read by their fixed paths", () => {
     const r = run(path.join(tmp, "plugins", "plug"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^plugin files: 3$/m);
+    assert.match(r.out, /^plugin files: 1 issues, 2 warnings$/m);
     assert.match(r.out, /^ {2}hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/m);
     assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest .*commands replaces the default commands\//m);
     assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest .*experimental\.monitors replaces the default monitors\/monitors\.json/m);
@@ -484,6 +488,16 @@ describe("check.js", () => {
   it("a key that lists its own default folder, or a path inside it, in a list or an object map, shadows nothing", () => {
     const r = run(path.join(tmp, "plugins"));
     assert.doesNotMatch(r.out, /^ {2}(listed|inside|mapped)\/.*plugin-manifest/m);
+  });
+  it("each file a key leaves out of its default folder is a warning, even beside a listed one", () => {
+    const r = run(path.join(tmp, "plugins", "partial"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(
+      r.out,
+      /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(warning\) commands replaces the default commands\/, so Claude Code ignores commands\/rollback\.md$/m,
+    );
+    assert.doesNotMatch(r.out, /ignores commands\/deploy\.md/);
+    assert.match(r.out, /^plugin files: 0 issues, 1 warnings$/m);
   });
   it("a default folder holding only a symlink still holds files", () => {
     assert.match(run(path.join(tmp, "plugins", "linked")).out, /plugin-manifest .*agents replaces the default agents\//);

@@ -80,13 +80,17 @@ export function hooksDefects(source) {
   return found;
 }
 
-const holdsFiles = (location) => {
+const filesIn = (location) => {
   const stat = fs.statSync(location, { throwIfNoEntry: false });
-  if (!stat) return false;
+  if (!stat) return [];
+  if (stat.isFile()) return [location];
   // A symlink is stated through, because a Dirent reports the link rather than the file it points at.
   const isFile = (entry) =>
     entry.isFile() || (entry.isSymbolicLink() && fs.statSync(path.join(entry.parentPath, entry.name), { throwIfNoEntry: false })?.isFile());
-  return stat.isFile() || fs.readdirSync(location, { recursive: true, withFileTypes: true }).some(isFile);
+  return fs
+    .readdirSync(location, { recursive: true, withFileTypes: true })
+    .filter(isFile)
+    .map((entry) => path.join(entry.parentPath, entry.name));
 };
 
 // A commands object maps each name to a source, so its paths are the sources rather than the names.
@@ -107,15 +111,17 @@ export function manifestDefects(source, pluginDir) {
     const segments = key.split(".");
     const pair = pairOf(segments.length > 1 ? pairOf(file.root, segments[0])?.value : file.root, segments.at(-1));
     if (!pair) continue;
-    const location = path.join(pluginDir, folder);
-    if (!holdsFiles(location)) continue;
-    // A path inside the default location keeps it loaded, which the plugins reference names as the way to silence Claude Code's own warning.
-    const keeps = pathsOf(pair.value?.toJSON()).some((p) => {
-      const resolved = path.resolve(pluginDir, p);
-      return resolved === location || resolved.startsWith(location + path.sep);
-    });
-    const shown = folder.endsWith(".json") ? folder : `${folder}/`;
-    if (!keeps) found.push({ line: file.lineOf(pair.key), detail: `${key} replaces the default ${shown}, which still holds files Claude Code now ignores` });
+    const location = path.resolve(pluginDir, folder);
+    const listed = pathsOf(pair.value?.toJSON()).map((p) => path.resolve(pluginDir, p));
+    // Each file no listed path covers is reported, even where a listed path inside the folder silences Claude Code's own warning, because that file still never loads.
+    const loaded = (held) => listed.some((p) => held === p || held.startsWith(p + path.sep));
+    for (const held of filesIn(location).filter((held) => !loaded(held)))
+      found.push({
+        line: file.lineOf(pair.key),
+        detail: folder.endsWith(".json")
+          ? `${key} replaces the default ${folder}, which Claude Code now ignores`
+          : `${key} replaces the default ${folder}/, so Claude Code ignores ${path.relative(pluginDir, held)}`,
+      });
   }
   return found;
 }

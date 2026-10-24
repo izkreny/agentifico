@@ -156,20 +156,28 @@ for (const target of targets.filter((target) => fs.statSync(target).isDirectory(
     pluginDirs.add(path.dirname(path.join(target, marker)));
 const pluginFiles = [];
 const pluginFindings = [];
+// A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
+let warnings = 0;
+let pluginIssues = 0;
 for (const dir of [...pluginDirs].filter(isPluginRoot).sort()) {
+  // A file the manifest leaves unloaded is a warning, because the plugin may leave it out on purpose.
   const readers = [
-    ["hooks/hooks.json", "plugin-hooks", hooksDefects],
-    [".claude-plugin/plugin.json", "plugin-manifest", (source) => manifestDefects(source, dir)],
+    ["hooks/hooks.json", "plugin-hooks", "error", hooksDefects],
+    [".claude-plugin/plugin.json", "plugin-manifest", "warning", (source) => manifestDefects(source, dir)],
   ];
-  for (const [name, rule, defects] of readers) {
+  for (const [name, rule, severity, defects] of readers) {
     const file = path.join(dir, name);
     if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) continue;
     pluginFiles.push(file);
-    for (const { line, detail } of defects(fs.readFileSync(file, "utf8"))) pluginFindings.push(`${path.relative(base, file)}:${line} ${rule} ${detail}`);
+    for (const { line, detail } of defects(fs.readFileSync(file, "utf8"))) {
+      if (severity === "error") pluginIssues++;
+      else warnings++;
+      pluginFindings.push(`${path.relative(base, file)}:${line} ${rule} (${severity}) ${detail}`);
+    }
   }
 }
-issues += pluginFindings.length;
-report("plugin files", pluginFindings);
+issues += pluginIssues;
+report("plugin files", pluginFindings, pluginFindings.length ? `${pluginIssues} issues, ${warnings} warnings` : "none");
 
 const proseNotRun = (why) => {
   report(PROSE_RULES, [], "not run");
@@ -210,9 +218,8 @@ if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error)
 // Vale's exit code is not read because it is non-zero only for an error-level alert and the JSON carries every alert.
 const alerts = vale.stdout.trim() ? JSON.parse(vale.stdout) : {};
 
-// A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
-let warnings = 0;
 let proseIssues = 0;
+let proseWarnings = 0;
 const proseFindings = [];
 for (const file of valeFiles) {
   const rel = path.relative(base, file);
@@ -220,10 +227,11 @@ for (const file of valeFiles) {
     if (a.Severity === "error") {
       issues++;
       proseIssues++;
-    } else warnings++;
+    } else proseWarnings++;
     proseFindings.push(`${rel}:${a.Line} ${a.Check} (${a.Severity}) ${a.Message}`);
   }
 }
-report(PROSE_RULES, proseFindings, proseFindings.length ? `${proseIssues} issues, ${warnings} warnings` : "none");
+warnings += proseWarnings;
+report(PROSE_RULES, proseFindings, proseFindings.length ? `${proseIssues} issues, ${proseWarnings} warnings` : "none");
 console.log(`${valeFiles.length + yamlFiles.length + pluginFiles.length} files checked, ${issues} issues, ${warnings} warnings`);
 process.exit(issues ? 1 : 0);
