@@ -126,11 +126,12 @@ export function manifestDefects(source, pluginDir) {
     if (!ignored.length) continue;
     // A folder dropped whole is an error, because no plugin means to lose every file in it, while a file left beside a listed one is a warning, since a plugin may leave it out on purpose.
     if (ignored.length === held.length) {
-      const shown = folder.endsWith(".json") ? folder : `${folder}/`;
       found.push({
         line: file.lineOf(pair.key),
         severity: "error",
-        detail: `${key} replaces the default ${shown}, which still holds files Claude Code now ignores`,
+        detail: folder.endsWith(".json")
+          ? `${key} replaces the default ${folder}, which Claude Code now ignores`
+          : `${key} replaces the default ${folder}/, which still holds files Claude Code now ignores`,
       });
       continue;
     }

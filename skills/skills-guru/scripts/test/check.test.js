@@ -477,7 +477,10 @@ describe("check.js", () => {
     assert.match(r.out, /^plugin files: 3 issues, 0 warnings$/m);
     assert.match(r.out, /^ {2}hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/m);
     assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) commands replaces the default commands\/, which still holds files/m);
-    assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest .*experimental\.monitors replaces the default monitors\/monitors\.json/m);
+    assert.match(
+      r.out,
+      /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) experimental\.monitors replaces the default monitors\/monitors\.json, which Claude Code now ignores$/m,
+    );
     // Both markdown files and both JSON files, so a JSON file read is a file checked.
     assert.equal(r.linted, 4, r.out);
   });
