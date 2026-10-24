@@ -160,16 +160,15 @@ const pluginFindings = [];
 let warnings = 0;
 let pluginIssues = 0;
 for (const dir of [...pluginDirs].filter(isPluginRoot).sort()) {
-  // A file the manifest leaves unloaded is a warning, because the plugin may leave it out on purpose.
   const readers = [
-    ["hooks/hooks.json", "plugin-hooks", "error", hooksDefects],
-    [".claude-plugin/plugin.json", "plugin-manifest", "warning", (source) => manifestDefects(source, dir)],
+    ["hooks/hooks.json", "plugin-hooks", hooksDefects],
+    [".claude-plugin/plugin.json", "plugin-manifest", (source) => manifestDefects(source, dir)],
   ];
-  for (const [name, rule, severity, defects] of readers) {
+  for (const [name, rule, defects] of readers) {
     const file = path.join(dir, name);
     if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) continue;
     pluginFiles.push(file);
-    for (const { line, detail } of defects(fs.readFileSync(file, "utf8"))) {
+    for (const { line, detail, severity = "error" } of defects(fs.readFileSync(file, "utf8"))) {
       if (severity === "error") pluginIssues++;
       else warnings++;
       pluginFindings.push(`${path.relative(base, file)}:${line} ${rule} (${severity}) ${detail}`);

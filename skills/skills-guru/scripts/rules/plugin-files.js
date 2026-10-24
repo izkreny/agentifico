@@ -120,14 +120,26 @@ export function manifestDefects(source, pluginDir) {
     if (!pair) continue;
     const location = path.resolve(pluginDir, folder);
     const listed = pathsOf(pair.value?.toJSON()).map((p) => path.resolve(pluginDir, p));
-    // Each file no listed path covers is reported, even where a listed path inside the folder silences Claude Code's own warning, because that file still never loads.
-    const loaded = (held) => listed.some((p) => held === p || held.startsWith(p + path.sep));
-    for (const held of filesIn(location).filter((held) => !loaded(held)))
+    const loaded = (entry) => listed.some((p) => entry === p || entry.startsWith(p + path.sep));
+    const held = filesIn(location);
+    const ignored = held.filter((entry) => !loaded(entry));
+    if (!ignored.length) continue;
+    // A folder dropped whole is an error, because no plugin means to lose every file in it, while a file left beside a listed one is a warning, since a plugin may leave it out on purpose.
+    if (ignored.length === held.length) {
+      const shown = folder.endsWith(".json") ? folder : `${folder}/`;
       found.push({
         line: file.lineOf(pair.key),
-        detail: folder.endsWith(".json")
-          ? `${key} replaces the default ${folder}, which Claude Code now ignores`
-          : `${key} replaces the default ${folder}/, so Claude Code ignores ${path.relative(pluginDir, held)}`,
+        severity: "error",
+        detail: `${key} replaces the default ${shown}, which still holds files Claude Code now ignores`,
+      });
+      continue;
+    }
+    // Each file is named even where a listed path inside the folder silences Claude Code's own warning, because that file still never loads.
+    for (const each of ignored)
+      found.push({
+        line: file.lineOf(pair.key),
+        severity: "warning",
+        detail: `${key} replaces the default ${folder}/, so Claude Code ignores ${path.relative(pluginDir, each)}`,
       });
   }
   return found;

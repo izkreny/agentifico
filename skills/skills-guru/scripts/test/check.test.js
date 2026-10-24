@@ -474,9 +474,9 @@ describe("check.js", () => {
   it("a plugin's hooks file and manifest are read by their fixed paths", () => {
     const r = run(path.join(tmp, "plugins", "plug"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^plugin files: 1 issues, 2 warnings$/m);
+    assert.match(r.out, /^plugin files: 3 issues, 0 warnings$/m);
     assert.match(r.out, /^ {2}hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/m);
-    assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest .*commands replaces the default commands\//m);
+    assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) commands replaces the default commands\/, which still holds files/m);
     assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest .*experimental\.monitors replaces the default monitors\/monitors\.json/m);
     // Both markdown files and both JSON files, so a JSON file read is a file checked.
     assert.equal(r.linted, 4, r.out);
@@ -501,8 +501,10 @@ describe("check.js", () => {
     assert.doesNotMatch(r.out, /ignores commands\/(deploy\.md|\.gitkeep|\.drafts)/);
     assert.match(r.out, /^plugin files: 0 issues, 1 warnings$/m);
   });
-  it("a default folder holding only a symlink still holds files", () => {
-    assert.match(run(path.join(tmp, "plugins", "linked")).out, /plugin-manifest .*agents replaces the default agents\//);
+  it("a default folder dropped whole fails the run, and one holding only a symlink still holds files", () => {
+    const r = run(path.join(tmp, "plugins", "linked"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /plugin-manifest \(error\) agents replaces the default agents\//);
   });
   it("an empty default folder is not shadowed", () => {
     assert.doesNotMatch(run(path.join(tmp, "plugins", "hollow")).out, /plugin-manifest/);
