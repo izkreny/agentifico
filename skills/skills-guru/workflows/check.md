@@ -111,7 +111,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The plugin file rules
 
-**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json` and `<plugin-dir>/.claude-plugin/plugin.json` to what Claude Code loads. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and each file is read by its fixed path because the walk skips dot-folders. `plugin-manifest` names each file in a default folder, dot-files aside, that the key replacing it does not list, even when a listed path inside the folder silences Claude Code's own warning. Its findings are warnings, since a plugin may leave a file out on purpose. A file that is not valid JSON, and every mistake `claude plugin validate --strict` reports, are left to that command.
+**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json` and `<plugin-dir>/.claude-plugin/plugin.json` to what Claude Code loads. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and each file is read by its fixed path because the walk skips dot-folders. `plugin-manifest` names each file in a default folder that the key replacing it does not list, even when a listed path inside the folder silences Claude Code's own warning. A file or folder named with a leading dot is skipped. Its findings are warnings, since a plugin may leave a file out on purpose. A file that is not valid JSON, and every mistake `claude plugin validate --strict` reports, are left to that command.
 
 ## The prose rules
 

@@ -87,7 +87,7 @@ const filesIn = (location) => {
   // A symlink is stated through, because a Dirent reports the link rather than the file it points at.
   const isFile = (entry) =>
     entry.isFile() || (entry.isSymbolicLink() && fs.statSync(path.join(entry.parentPath, entry.name), { throwIfNoEntry: false })?.isFile());
-  // A dot-file is skipped as the walk skips one, because a placeholder such as .gitkeep is no component and nothing could silence its warning.
+  // A file or folder named with a leading dot is skipped as the walk skips one, because a placeholder such as .gitkeep is no component and nothing could silence its warning.
   const hidden = (file) =>
     path
       .relative(location, file)
