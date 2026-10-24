@@ -75,6 +75,12 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **What it cannot decide is whether the sentence it found matches the field.** A description stating the wrong policy is the reviewer's to catch.
 
+## The fork rule
+
+**`skill-fork`**, in `scripts/rules/skill-fork.js`, reports a skill that sets `agent` while its `context` is not `fork`, where Claude Code runs it inline and ignores the field. `workflows/new.md` owns what each field does.
+
+**What it cannot decide is whether a forked skill's body holds a task.** That is the reviewer's to catch.
+
 ## The agent rule
 
 **`agent-frontmatter`**, in `scripts/rules/agent-frontmatter.js`, holds an agent file's frontmatter to what Claude Code loads. An agent file sits under `<plugin-dir>/agents/` beside a `<plugin-dir>/.claude-plugin/` folder, or under the agents folder of any `.claude` folder, which a folder target reaches only when it names that `.claude` folder or one inside it. Frontmatter that does not parse and a missing `description` are left to `claude plugin validate --strict`.
