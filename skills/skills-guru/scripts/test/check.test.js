@@ -197,6 +197,8 @@ beforeAll(() => {
   mkPlugin("partial", JSON.stringify({ name: "partial", commands: ["./commands/deploy.md"] }), {
     "commands/deploy.md": "# Deploy\n\nbody\n",
     "commands/rollback.md": "# Rollback\n\nbody\n",
+    "commands/.gitkeep": "",
+    "commands/.drafts/old.md": "# Old\n\nbody\n",
   });
   mkPlugin("mapped", JSON.stringify({ name: "mapped", commands: { deploy: { source: "./commands/deploy.md" } } }), {
     "commands/deploy.md": "# Deploy\n\nbody\n",
@@ -496,7 +498,7 @@ describe("check.js", () => {
       r.out,
       /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(warning\) commands replaces the default commands\/, so Claude Code ignores commands\/rollback\.md$/m,
     );
-    assert.doesNotMatch(r.out, /ignores commands\/deploy\.md/);
+    assert.doesNotMatch(r.out, /ignores commands\/(deploy\.md|\.gitkeep|\.drafts)/);
     assert.match(r.out, /^plugin files: 0 issues, 1 warnings$/m);
   });
   it("a default folder holding only a symlink still holds files", () => {

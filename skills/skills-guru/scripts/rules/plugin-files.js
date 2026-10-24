@@ -87,10 +87,17 @@ const filesIn = (location) => {
   // A symlink is stated through, because a Dirent reports the link rather than the file it points at.
   const isFile = (entry) =>
     entry.isFile() || (entry.isSymbolicLink() && fs.statSync(path.join(entry.parentPath, entry.name), { throwIfNoEntry: false })?.isFile());
+  // A dot-file is skipped as the walk skips one, because a placeholder such as .gitkeep is no component and nothing could silence its warning.
+  const hidden = (file) =>
+    path
+      .relative(location, file)
+      .split(path.sep)
+      .some((part) => part.startsWith("."));
   return fs
     .readdirSync(location, { recursive: true, withFileTypes: true })
     .filter(isFile)
-    .map((entry) => path.join(entry.parentPath, entry.name));
+    .map((entry) => path.join(entry.parentPath, entry.name))
+    .filter((file) => !hidden(file));
 };
 
 // A commands object maps each name to a source, so its paths are the sources rather than the names.
