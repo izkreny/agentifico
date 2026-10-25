@@ -16,7 +16,7 @@ On Claude Code specifically, run `claude plugin validate --strict <plugin-dir>` 
 
 **Find them by walking the tree, never by following references out of the skills.** A plugin's agent is spawned by name at runtime and cited by path in no skill under it.
 
-**A plugin's `<plugin-dir>/.claude-plugin/` holds its manifest alone.** The [plugins reference](https://code.claude.com/docs/en/plugins-reference) puts every other plugin file at the plugin root, and on Claude Code 2.1.310 the validator passes a component placed inside the folder, so reading is what catches one.
+**A plugin's `<plugin-dir>/.claude-plugin/` holds no plugin component.** The [plugins reference](https://code.claude.com/docs/en/plugins-reference) puts every plugin file but the manifest at the plugin root, and on Claude Code 2.1.310 the validator passes a component placed inside the folder, so reading is what catches one.
 
 **Report which files were read**, so a run that covered part of a package is distinguishable from one that covered all of it.
 
