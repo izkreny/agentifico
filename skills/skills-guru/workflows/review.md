@@ -10,7 +10,9 @@ Read every file in the skill's directory, whatever the layout: `SKILL.md`, what 
 
 **The path may be a package root rather than one skill.** `workflows/check.md` states the argument shapes.
 
-**Read every file under the root, not only the files under its skills.** A package's manifest, its agents, its hooks and its own `README.md` belong to no skill, and a branch review reads a diff, so a sweep is what reads them whole. On Claude Code specifically, run `claude plugin validate --strict <plugin-dir>` on each plugin under the root and read a non-zero exit as a finding: it checks those files against what Claude Code loads, and it moves with Claude Code's releases where a copied rule would not. It leaves an agent's name limits and a frontmatter field's value to *The agent rule* in `workflows/check.md`, and the hooks and manifest defects it passes to *The plugin file rules*.
+**Read every file under the root, not only the files under its skills.** A package's manifest, its agents, its hooks and its own `README.md` belong to no skill, and a branch review reads a diff, so a sweep is what reads them whole.
+
+On Claude Code specifically, run `claude plugin validate --strict <plugin-dir>` on each plugin under the root and read a non-zero exit as a finding: it checks those files against what Claude Code loads, and it moves with Claude Code's releases where a copied rule would not. It leaves an agent's name limits to *The agent rule* in `workflows/check.md`, and the hooks and manifest defects it passes to *The plugin file rules*. Neither tool reads a frontmatter field's value, such as a misspelt `model` or an `isolation` other than `worktree`, so the sweep reads those itself.
 
 **Find them by walking the tree, never by following references out of the skills.** A plugin's agent is spawned by name at runtime and cited by path in no skill under it.
 
