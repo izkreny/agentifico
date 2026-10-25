@@ -4,6 +4,7 @@ import { FRONTMATTER_LINE, frontmatter, parsed } from "./frontmatter.js";
 import { isPluginRoot } from "./plugin-files.js";
 
 const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
+const NAME_LIMIT = 256;
 
 // The nearest agents folder decides, because both kinds of agents directory are scanned recursively.
 export function agentKind(file) {
@@ -42,7 +43,7 @@ export function defects(fm, inPlugin, lines = []) {
     const name = String(mapping.name);
     if (name.includes(":")) bad.push(`name ${JSON.stringify(name)} contains ":", which is reserved for plugin-scoped names, so Claude Code skips the file`);
     if (name.startsWith("-")) bad.push(`name ${JSON.stringify(name)} starts with "-", so Claude Code skips the file`);
-    if (name.length > 256) bad.push(`name is ${name.length} characters, over the 256 Claude Code allows, so it skips the file`);
+    if (name.length > NAME_LIMIT) bad.push(`name is ${name.length} characters, over the ${NAME_LIMIT} Claude Code allows, so it skips the file`);
   }
   if (mapping.permissionMode === "bypassPermissions")
     bad.push("permissionMode: bypassPermissions does nothing in a subagent, which keeps the main conversation's mode instead");
@@ -57,7 +58,9 @@ export function pluginNameWarnings(fm) {
   const name = doc.toJS()?.name;
   if (name === undefined || name === null) return [];
   const length = String(name).length;
-  return length > 256 ? [`name is ${length} characters, over the 256 Claude Code allows, so it loads the agent under its file name instead`] : [];
+  return length > NAME_LIMIT
+    ? [`name is ${length} characters, over the ${NAME_LIMIT} Claude Code allows, so it loads the agent under its file name instead`]
+    : [];
 }
 
 export const agentPluginName = {
