@@ -49,6 +49,28 @@ export function defects(fm, inPlugin, lines = []) {
   return bad;
 }
 
+// Only the length is warned on, because on Claude Code 2.1.310 a plugin's agent named "-x" or "a:b" loaded under that name, while one past 256 characters loaded under its file name.
+export function pluginNameWarnings(fm) {
+  if (!fm) return [];
+  const doc = parsed(fm);
+  if (doc.errors.length) return [];
+  const name = doc.toJS()?.name;
+  if (name === undefined || name === null) return [];
+  const length = String(name).length;
+  return length > 256 ? [`name is ${length} characters, over the 256 Claude Code allows, so it loads the agent under its file name instead`] : [];
+}
+
+export const agentPluginName = {
+  names: ["agent-plugin-name"],
+  description: "A plugin's agent loads under the name its frontmatter gives it",
+  tags: ["skills-guru"],
+  parser: "none",
+  function(params, onError) {
+    if (agentKind(params.name) !== "plugin") return;
+    for (const detail of pluginNameWarnings(frontmatter(params))) onError({ lineNumber: FRONTMATTER_LINE, detail });
+  },
+};
+
 export default {
   names: ["agent-frontmatter"],
   description: "An agent file's frontmatter is one Claude Code loads, and sets no field it ignores",

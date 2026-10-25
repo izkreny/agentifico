@@ -83,7 +83,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The agent rule
 
-**`agent-frontmatter`**, in `scripts/rules/agent-frontmatter.js`, holds an agent file's frontmatter to what Claude Code loads. An agent file sits under `<plugin-dir>/agents/` beside a `<plugin-dir>/.claude-plugin/` folder, or under the agents folder of any `.claude` folder, which a folder target reaches only when it names that `.claude` folder or one inside it. Frontmatter that does not parse and a missing `description` are left to `claude plugin validate --strict`.
+**`agent-frontmatter`**, in `scripts/rules/agent-frontmatter.js`, holds an agent file's frontmatter to what Claude Code loads. An agent file sits under `<plugin-dir>/agents/` beside a `<plugin-dir>/.claude-plugin/` folder, or under the agents folder of any `.claude` folder, which a folder target reaches only when it names that `.claude` folder or one inside it. Frontmatter that does not parse and a missing `description` are left to `claude plugin validate --strict`. Beside it, `agent-plugin-name` warns on a plugin's agent named past 256 characters, which Claude Code loads under its file name, and a warning leaves the run passing.
 
 ## The continuation rule
 

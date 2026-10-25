@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { lint } from "markdownlint/promise";
 import { describe, it } from "vitest";
-import agentFrontmatter, { defects as agentDefects } from "../rules/agent-frontmatter.js";
+import agentFrontmatter, { defects as agentDefects, pluginNameWarnings } from "../rules/agent-frontmatter.js";
 import { description as descriptionValue } from "../rules/frontmatter.js";
 import { hooksDefects } from "../rules/plugin-files.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
@@ -560,6 +560,33 @@ describe("agent-frontmatter", () => {
       );
     });
   }
+});
+
+describe("agent-plugin-name", () => {
+  const lines = (fm) => fm.split("\n");
+  const cases = [
+    ["over-limit", `name: ${"a".repeat(257)}\ndescription: Reviews code.`, "257 characters"],
+    ["at-limit", `name: ${"a".repeat(256)}\ndescription: Reviews code.`, null],
+    // On Claude Code 2.1.310 a plugin's agent named either way loaded under that name, so neither is warned on.
+    ["leading-dash", "name: -reviewer\ndescription: Reviews code.", null],
+    ["colon", "name: my:reviewer\ndescription: Reviews code.", null],
+    ["no-name", "description: Reviews code.", null],
+    ["unparsed", "description: Reviews code.\nother: [1, 2", null],
+  ];
+  for (const [id, fm, want] of cases) {
+    it(id, () => {
+      const found = pluginNameWarnings(lines(fm));
+      if (want)
+        assert.ok(
+          found.some((d) => d.includes(want)),
+          JSON.stringify(found),
+        );
+      else assert.deepEqual(found, []);
+    });
+  }
+  it("no frontmatter", () => {
+    assert.deepEqual(pluginNameWarnings(null), []);
+  });
 });
 
 describe("plugin-hooks", () => {

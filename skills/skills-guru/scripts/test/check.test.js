@@ -169,6 +169,12 @@ beforeAll(() => {
   fs.mkdirSync(path.join(plugin, "agents", "review"), { recursive: true });
   fs.writeFileSync(path.join(plugin, "agents", "tooled.md"), "---\nname: tooled\ndescription: Reviews code.\nmcpServers: {}\n---\n\nBody.\n");
   fs.writeFileSync(path.join(plugin, "agents", "review", "nameless.md"), "---\ndescription: Reviews code.\ninitialPrompt: Start.\n---\n\nBody.\n");
+  // A plugin whose one agent draws only a warning, so the run's exit code says whether a warning fails it.
+  const longName = path.join(tmp, "long-name");
+  fs.mkdirSync(path.join(longName, ".claude-plugin"), { recursive: true });
+  fs.writeFileSync(path.join(longName, ".claude-plugin", "plugin.json"), '{ "name": "long-name" }\n');
+  fs.mkdirSync(path.join(longName, "agents"), { recursive: true });
+  fs.writeFileSync(path.join(longName, "agents", "long.md"), `---\nname: ${"a".repeat(300)}\ndescription: Reviews code.\n---\n\nBody.\n`);
   // A field a plugin's agent is reported for, so this folder counted as a plugin's is a named failure.
   fs.mkdirSync(path.join(tmp, "loose", "agents"), { recursive: true });
   fs.writeFileSync(path.join(tmp, "loose", "agents", "tooled.md"), "---\nname: tooled\ndescription: Reviews code.\nmcpServers: {}\n---\n\nBody.\n");
@@ -465,6 +471,12 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}agents\/tooled\.md:\d+ agent-frontmatter .*mcpServers is ignored/m);
     assert.match(r.out, /^ {2}agents\/review\/nameless\.md:\d+ agent-frontmatter .*initialPrompt is ignored/m);
     assert.doesNotMatch(r.out, /no name/);
+  });
+  it("a plugin's agent named past 256 characters is a warning, which leaves the run passing", () => {
+    const r = run(path.join(tmp, "long-name"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}agents\/long\.md:\d+ agent-plugin-name \(warning\) .*300 characters/m);
+    assert.match(r.out, /^skill rules: 0 issues, 1 warnings$/m);
   });
   it("an agent named inside a .claude folder is held to a name", () => {
     const r = run(path.join(tmp, "project", ".claude", "agents", "nameless.md"));

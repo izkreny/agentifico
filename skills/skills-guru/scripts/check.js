@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { lint } from "markdownlint/promise";
 import YAML from "yaml";
-import { config, contractRuleNames, proseShapeRuleNames, rules } from "./lint-config.js";
+import { config, contractRuleNames, proseShapeRuleNames, rules, warningRuleNames } from "./lint-config.js";
 import { isSkillFile } from "./rules/frontmatter.js";
 import { hooksDefects, isPluginRoot, manifestDefects } from "./rules/plugin-files.js";
 
@@ -88,16 +88,21 @@ for (const root of new Set(files.map((file) => rootOf.get(file)))) {
 
 // Every markdownlint class prints before Vale runs, so a structural finding is never withheld by a prose linter that cannot start.
 let issues = 0;
+// A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
+let warnings = 0;
+let contractWarnings = 0;
 const contractFindings = [];
 const proseShapeFindings = [];
 const generalFindings = [];
 for (const file of files) {
   const rel = path.relative(base, file);
   for (const e of results[file] ?? []) {
-    issues++;
+    const warning = e.ruleNames.some((name) => warningRuleNames.has(name));
+    if (warning) contractWarnings++;
+    else issues++;
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
-    const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")} ${e.ruleDescription}${detail}${context}`;
+    const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")}${warning ? " (warning)" : ""} ${e.ruleDescription}${detail}${context}`;
     const bucket = e.ruleNames.some((name) => contractRuleNames.has(name))
       ? contractFindings
       : e.ruleNames.some((name) => proseShapeRuleNames.has(name))
@@ -106,7 +111,8 @@ for (const file of files) {
     bucket.push(line);
   }
 }
-report("skill rules", contractFindings);
+warnings += contractWarnings;
+report("skill rules", contractFindings, contractWarnings ? `${contractFindings.length - contractWarnings} issues, ${contractWarnings} warnings` : undefined);
 report("prose shape", proseShapeFindings);
 report("general lint", generalFindings);
 
@@ -156,9 +162,8 @@ for (const target of targets.filter((target) => fs.statSync(target).isDirectory(
     pluginDirs.add(path.dirname(path.join(target, marker)));
 const pluginFiles = [];
 const pluginFindings = [];
-// A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
-let warnings = 0;
 let pluginIssues = 0;
+let pluginWarnings = 0;
 for (const dir of [...pluginDirs].filter(isPluginRoot).sort()) {
   const readers = [
     ["hooks/hooks.json", "plugin-hooks", hooksDefects],
@@ -170,13 +175,14 @@ for (const dir of [...pluginDirs].filter(isPluginRoot).sort()) {
     pluginFiles.push(file);
     for (const { line, detail, severity = "error" } of defects(fs.readFileSync(file, "utf8"))) {
       if (severity === "error") pluginIssues++;
-      else warnings++;
+      else pluginWarnings++;
       pluginFindings.push(`${path.relative(base, file)}:${line} ${rule} (${severity}) ${detail}`);
     }
   }
 }
 issues += pluginIssues;
-report("plugin files", pluginFindings, pluginFindings.length ? `${pluginIssues} issues, ${warnings} warnings` : "none");
+warnings += pluginWarnings;
+report("plugin files", pluginFindings, pluginFindings.length ? `${pluginIssues} issues, ${pluginWarnings} warnings` : "none");
 
 const proseNotRun = (why) => {
   report(PROSE_RULES, [], "not run");
