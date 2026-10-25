@@ -227,6 +227,9 @@ describe("skill-fork", () => {
     ["f-fork-quoted", 'context: "fork"\nagent: Explore', null],
     ["f-fork-next-line", "context:\n  fork\nagent: Explore", null],
     ["f-fork-block", "context: >-\n  fork\nagent: Explore", null],
+    // A clipped block keeps its line break, and Claude Code compares the value to `fork` exactly, so the skill runs inline.
+    ["f-fork-literal", "context: |\n  fork\nagent: Explore", idle],
+    ["f-fork-folded", "context: >\n  fork\nagent: Explore", idle],
     // Frontmatter the parser rejects gets the differential's parse error and not a second finding here.
     ["f-unparsed", "agent: Explore\nother: [1, 2", null],
     // The last key is the one a last-wins parser loads, so a fork overridden by a later key is the idle case.
