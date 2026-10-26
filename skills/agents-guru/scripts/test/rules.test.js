@@ -601,6 +601,12 @@ describe("skill-bash-blocks", () => {
     ["good-single-quoted", "```bash\necho 'a; and b'\n```", null],
     ["b-beside-quotes", '```bash\necho "x"; or echo y\n```', "; or"],
     ["b-after-heredoc", "```bash\ncat <<EOF\nok\nEOF\nmake; and true\n```", "; and"],
+    // A `<<` inside quotes or arithmetic is no heredoc, so the lines after it are still read.
+    ["b-quoted-shift", '```bash\necho "a << b"\nmake; and true\n```', "; and"],
+    ["b-arith-shift", "```bash\necho $(( 1 << 2 ))\nmake; and true\n```", "; and"],
+    ["b-arith-var", "```bash\necho $(( x << y ))\nmake; and true\n```", "; and"],
+    ["b-hyphen-bare", "```bash\ncat <<END-BODY\nok\nEND-BODY\nmake; and true\n```", "; and"],
+    ["good-hyphen-quoted", "```bash\ncat <<'END-BODY'\nfixed; and pushed\nEND-BODY\n```", null],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {

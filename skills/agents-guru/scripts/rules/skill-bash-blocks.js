@@ -10,8 +10,18 @@ const FISH = [
 ];
 
 // A heredoc body and a quoted string are data the command carries, so neither is matched as syntax.
-const HEREDOC = /(?<!<)<<(?!<)-?\s*(['"]?)(\w+)\1/;
+const HEREDOC = /(?<!<)<<(?!<)-?\s*(?:'([^']+)'|"([^"]+)"|([A-Za-z_][\w-]*))/g;
 const QUOTED = /'[^']*'|"(?:[^"\\]|\\.)*"/g;
+// A `<<` inside quotes or inside `(( ))` arithmetic is text or a shift, never a heredoc.
+const ARITHMETIC = /\(\(.*?\)\)/g;
+
+function heredocTerminator(text) {
+  const spans = [...text.matchAll(QUOTED), ...text.matchAll(ARITHMETIC)].map((m) => [m.index, m.index + m[0].length]);
+  for (const m of text.matchAll(HEREDOC)) {
+    if (!spans.some(([start, end]) => m.index >= start && m.index < end)) return m[1] ?? m[2] ?? m[3];
+  }
+  return null;
+}
 
 const ADVICE = "write it in Bash, the shell an agent runs commands through";
 
@@ -51,7 +61,7 @@ export default {
         // An agent never executes a comment, so prose in one is free to say "; and".
         if (/^\s*#/.test(line.text)) continue;
         const code = line.text.replace(QUOTED, "''");
-        terminator = line.text.match(HEREDOC)?.[2] ?? null;
+        terminator = heredocTerminator(line.text);
         for (const [phrase, pattern] of FISH) {
           if (pattern.test(code))
             onError({ lineNumber: line.startLine, detail: `Fish syntax "${phrase}" in a Bash block: ${ADVICE}`, context: line.text.trim() });
