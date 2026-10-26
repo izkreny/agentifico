@@ -45,9 +45,17 @@ const headingLevel = (t) => {
 };
 
 // Only an item's lead paragraph up to its first arrow is the condition: what follows the arrow names files, tools and other skills.
+// Bold and emphasis wrap a condition's spans and its arrow in tokens of their own, so the paragraph is read flattened.
+function* inline(tokens) {
+  for (const t of tokens) {
+    if (t.type !== "codeText" && t.children?.length) yield* inline(t.children);
+    else yield t;
+  }
+}
+
 function conditionVerbs(paragraph) {
   const verbs = [];
-  for (const c of paragraph.children) {
+  for (const c of inline(paragraph.children)) {
     if (c.type === "data" && c.text.includes("→")) return verbs;
     if (c.type === "codeText") {
       const word = firstWord(
@@ -61,6 +69,24 @@ function conditionVerbs(paragraph) {
   }
   // An item with no arrow states no route, so whatever it backticks is not one.
   return [];
+}
+
+function readList(list, out) {
+  let lead = false;
+  for (const c of list.children) {
+    if (c.type === "listItemPrefix") {
+      lead = true;
+      continue;
+    }
+    if (isList(c)) {
+      readList(c, out);
+      continue;
+    }
+    if (!lead || c.type !== "content") continue;
+    lead = false;
+    const p = c.children.find((d) => d.type === "paragraph");
+    if (p) for (const verb of conditionVerbs(p)) out.push({ verb, line: p.startLine });
+  }
 }
 
 function routes(tokens) {
@@ -77,18 +103,7 @@ function routes(tokens) {
       }
       continue;
     }
-    if (!section || !isList(t)) continue;
-    let lead = false;
-    for (const c of t.children) {
-      if (c.type === "listItemPrefix") {
-        lead = true;
-        continue;
-      }
-      if (!lead || c.type !== "content") continue;
-      lead = false;
-      const p = c.children.find((d) => d.type === "paragraph");
-      if (p) for (const verb of conditionVerbs(p)) out.push({ verb, line: p.startLine });
-    }
+    if (section && isList(t)) readList(t, out);
   }
   // A routing section yielding no route is a shape the rule cannot read, such as a table, and not proof that nothing routes.
   return found && out.length ? out : null;

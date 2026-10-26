@@ -548,6 +548,10 @@ describe("skill-argument-hint", () => {
     // A group with no `|` is a placeholder, as in the [issue-number] and [filename] [format] hints Claude Code's own docs show.
     ["h-bare-placeholder", "[new | check] [issue-number]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
     ["h-bare-placeholders", "[new | check] [filename] [format]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
+    // Each pairs the bold bullet with a plain one, since a section routing nothing is left alone whatever the bold does.
+    ["h-bold-condition", "[new | check]", routing("**If it starts with `new`** → read a.", "If it starts with `check` → read b."), null],
+    ["h-bold-arrow", "[new | check]", routing("**If it starts with `new` → read a.**", "If it starts with `check` → read b."), null],
+    ["h-nested", "[new | check]", "## Routing\n\n- If it starts with `new` → read a.\n  - If it starts with `check` → read b.", null],
   ];
   for (const [id, hint, body, want] of cases) {
     it(id, async () => {
