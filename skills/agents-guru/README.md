@@ -52,6 +52,8 @@ Plan and author a new skill with the most capable model available to you, and ru
 
 ## Install
 
+The skill is supported on Linux, and on Windows only under WSL. It is untested on macOS.
+
 ```bash
 skills add izkreny/agentifico -g -y -s agents-guru
 ```
