@@ -2,12 +2,16 @@
 const OTHER_SHELLS = new Set(["fish", "zsh"]);
 const BASH_TAGS = new Set(["bash", "sh", ""]);
 
-// These are the Fish phrasings workflows/check.md names, matched as written rather than by parsing Fish.
+// Matched as written rather than parsed, since catching the common Fish forms needs no Fish grammar.
 const FISH = [
   ["set <name> (", /(?:^|[\s;&|])set\s+[A-Za-z_]\w*\s+\(/],
   ["; or", /;\s*or\b/],
   ["; and", /;\s*and\b/],
 ];
+
+// A heredoc body and a quoted string are data the command carries, so neither is matched as syntax.
+const HEREDOC = /(?<!<)<<(?!<)-?\s*(['"]?)(\w+)\1/;
+const QUOTED = /'[^']*'|"(?:[^"\\]|\\.)*"/g;
 
 const ADVICE = "write it in Bash, the shell an agent runs commands through";
 
@@ -37,11 +41,19 @@ export default {
         return;
       }
       if (!BASH_TAGS.has(tag)) return;
+      let terminator = null;
       for (const line of token.children) {
+        if (line.type !== "codeFlowValue") continue;
+        if (terminator) {
+          if (line.text.trim() === terminator) terminator = null;
+          continue;
+        }
         // An agent never executes a comment, so prose in one is free to say "; and".
-        if (line.type !== "codeFlowValue" || /^\s*#/.test(line.text)) continue;
+        if (/^\s*#/.test(line.text)) continue;
+        const code = line.text.replace(QUOTED, "''");
+        terminator = line.text.match(HEREDOC)?.[2] ?? null;
         for (const [phrase, pattern] of FISH) {
-          if (pattern.test(line.text))
+          if (pattern.test(code))
             onError({ lineNumber: line.startLine, detail: `Fish syntax "${phrase}" in a Bash block: ${ADVICE}`, context: line.text.trim() });
         }
       }

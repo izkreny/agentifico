@@ -543,7 +543,12 @@ describe("skill-argument-hint", () => {
     ["h-no-hint", null, routing("If it starts with `new` → read a."), null],
     ["h-no-routing", "[text | file] [issues | style]", "## Arguments\n\n- If it starts with `text` → read a.", null],
     // A routing section the rule reads no route from cannot be told from one that routes nothing, so it is left alone.
-    ["h-table-routing", "[new | check]", "## Routing\n\n| Says | Workflow |\n|---|---|\n| `new` | `workflows/new.md` |\n| `check` | `workflows/check.md` |", null],
+    [
+      "h-table-routing",
+      "[new | check]",
+      "## Routing\n\n| Says | Workflow |\n|---|---|\n| `new` | `workflows/new.md` |\n| `check` | `workflows/check.md` |",
+      null,
+    ],
     ["h-no-arrow", "[new | check]", routing("If it starts with `new`, read a.", "If it starts with `check`, read b."), null],
     // A group with no `|` is a placeholder, as in the [issue-number] and [filename] [format] hints Claude Code's own docs show.
     ["h-bare-placeholder", "[new | check] [issue-number]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
@@ -589,6 +594,13 @@ describe("skill-bash-blocks", () => {
     ["good-span", "Fish writes `set x (cmd)` and `; or`.", null],
     ["good-comment", "```bash\n# build; and then test\nmake\n```", null],
     ["good-word", "```bash\nmake; order-files\n```", null],
+    // A heredoc body and a quoted string are data the command carries, never syntax Bash runs.
+    ["good-heredoc", "```bash\ncat > body.md <<'EOF'\nFixed it; and pushed.\nEOF\n```", null],
+    ["good-heredoc-bare", "```bash\ncat > body.md <<EOF\nset files (ls)\nEOF\n```", null],
+    ["good-double-quoted", '```bash\ngh pr comment 1 -b "fixed; or not"\n```', null],
+    ["good-single-quoted", "```bash\necho 'a; and b'\n```", null],
+    ["b-beside-quotes", '```bash\necho "x"; or echo y\n```', "; or"],
+    ["b-after-heredoc", "```bash\ncat <<EOF\nok\nEOF\nmake; and true\n```", "; and"],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
