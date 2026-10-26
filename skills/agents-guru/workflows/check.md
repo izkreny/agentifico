@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(node:*)` for the check, `npm` for the one-time install of what it needs, which prompts, `Glob` to enumerate skills.
 
-The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
+The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs every rule this file names: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, the YAML and plugin-file readers in `scripts/check.js`, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
 **Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `yaml files` for *The YAML rules*, `plugin files` for *The plugin file rules*, `prose rules` for Vale's alerts.
 
@@ -111,9 +111,9 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The Bash rule
 
-**`skill-bash-blocks`**, in `scripts/rules/skill-bash-blocks.js`, is the mechanical face of *Code blocks are Bash* in `workflows/new.md`. It reports a fence tagged `fish` or `zsh`, and a line carrying `set <name> (`, `; or` or `; and` in a fence tagged `bash` or `sh` or left untagged. It reads fenced blocks only, so a code span may name those phrasings.
+**`skill-bash-blocks`**, in `scripts/rules/skill-bash-blocks.js`, is the mechanical face of *Code blocks are Bash* in `workflows/new.md`. It reports a fence tagged for another shell, and a recorded Fish phrasing in a fence tagged for Bash or left untagged; the rule's file holds the tags and the phrasings. It reads fenced blocks only, so a code span may name a phrasing it reports.
 
-**What it cannot decide is another shell's syntax beyond those phrasings.** That is the reviewer's to catch.
+**What it cannot decide is another shell's syntax beyond the phrasings it records.** That is the reviewer's to catch.
 
 ## The YAML rules
 
@@ -123,7 +123,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json` and `<plugin-dir>/.claude-plugin/plugin.json` to what Claude Code loads. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and each file is read by its fixed path because the walk skips dot-folders.
 
-`plugin-manifest` reports a key that leaves files in its default folder unloaded, even when a listed path inside the folder silences Claude Code's own warning. A file or folder named with a leading dot is skipped. A folder the key drops whole is one issue. Each file left beside a listed one is a warning of its own, since a plugin may leave it out on purpose.
+`plugin-manifest` reports a key that leaves files in its default folder unloaded, even when a listed path inside the folder silences Claude Code's own warning. Which files it skips, and which of its findings fail the run, `scripts/rules/plugin-files.js` states beside each case.
 
 A file that is not valid JSON, and every mistake `claude plugin validate --strict` reports, are left to that command.
 
