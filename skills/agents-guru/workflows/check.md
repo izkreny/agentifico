@@ -115,7 +115,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **`skill-argument-hint`**, in `scripts/rules/skill-argument-hint.js`, holds a `SKILL.md`'s `argument-hint` to its routing section, per that field's row in the frontmatter table of `workflows/new.md`. It reports a verb the hint advertises that no routing bullet routes, and a routed verb the hint leaves out.
 
-**What it cannot decide is whether a route does what the hint promises.** That is the reviewer's to catch.
+**What it cannot decide is whether a one-word group such as `[manage]` is a verb or a placeholder, or whether a route does what the hint promises.** It holds only a group listing alternatives with `|` to routing, so an unrouted verb in a one-word group, and a route that does the wrong thing, are the reviewer's to catch.
 
 ## The Bash rule
 
