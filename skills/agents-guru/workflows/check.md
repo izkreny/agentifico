@@ -123,8 +123,6 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json` and `<plugin-dir>/.claude-plugin/plugin.json` to what Claude Code loads. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and each file is read by its fixed path because the walk skips dot-folders.
 
-`plugin-manifest` reports a key that leaves files in its default folder unloaded, even when a listed path inside the folder silences Claude Code's own warning. Which files it skips, and which of its findings fail the run, `scripts/rules/plugin-files.js` states beside each case.
-
 A file that is not valid JSON, and every mistake `claude plugin validate --strict` reports, are left to that command.
 
 ## The prose rules
