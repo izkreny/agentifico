@@ -609,6 +609,7 @@ describe("skill-bash-blocks", () => {
     ["b-arith-var", "```bash\necho $(( x << y ))\nmake; and true\n```", "; and"],
     ["b-hyphen-bare", "```bash\ncat <<END-BODY\nok\nEND-BODY\nmake; and true\n```", "; and"],
     ["good-hyphen-quoted", "```bash\ncat <<'END-BODY'\nfixed; and pushed\nEND-BODY\n```", null],
+    ["good-digit-terminator", "```bash\ncat <<1EOF\nfixed; and pushed\n1EOF\n```", null],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {

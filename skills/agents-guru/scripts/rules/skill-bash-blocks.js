@@ -10,7 +10,7 @@ const FISH = [
 ];
 
 // A heredoc body and a quoted string are data the command carries, so neither is matched as syntax.
-const HEREDOC = /(?<!<)<<(?!<)-?\s*(?:'([^']+)'|"([^"]+)"|([A-Za-z_][\w-]*))/g;
+const HEREDOC = /(?<!<)<<(?!<)-?\s*(?:'([^']+)'|"([^"]+)"|([\w-]+))/g;
 const QUOTED = /'[^']*'|"(?:[^"\\]|\\.)*"/g;
 // A `<<` inside quotes or inside `(( ))` arithmetic is text or a shift, never a heredoc.
 const ARITHMETIC = /\(\(.*?\)\)/g;
