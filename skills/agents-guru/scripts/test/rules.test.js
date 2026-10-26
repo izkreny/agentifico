@@ -5,6 +5,8 @@ import { describe, it } from "vitest";
 import agentFrontmatter, { defects as agentDefects, pluginNameWarnings } from "../rules/agent-frontmatter.js";
 import { description as descriptionValue } from "../rules/frontmatter.js";
 import { hooksDefects } from "../rules/plugin-files.js";
+import argumentHint from "../rules/skill-argument-hint.js";
+import bashBlocks from "../rules/skill-bash-blocks.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
 import boldedRuns from "../rules/skill-bolded-runs.js";
 import continuations from "../rules/skill-continuations.js";
@@ -16,7 +18,21 @@ import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
 import valeDirective from "../rules/skill-vale-directive.js";
 
-const RULES = [description, parsed, name, invocation, fork, agentFrontmatter, continuations, boldedRuns, boldedParagraphs, portablePaths, valeDirective];
+const RULES = [
+  description,
+  parsed,
+  name,
+  invocation,
+  fork,
+  agentFrontmatter,
+  continuations,
+  boldedRuns,
+  boldedParagraphs,
+  portablePaths,
+  valeDirective,
+  argumentHint,
+  bashBlocks,
+];
 
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
 async function findings(path, content, ...only) {
@@ -492,6 +508,95 @@ describe("skill-vale-directive", () => {
       config: { default: false, "skill-vale-directive": true },
     });
     assert.equal(results["fx/ctx/SKILL.md"][0].errorContext, "<!-- vale off -->");
+  });
+});
+
+describe("skill-argument-hint", () => {
+  const unrouted = (verb) => `advertises \`${verb}\``;
+  const unadvertised = (verb) => `routes \`${verb}\``;
+  const routing = (...bullets) => `## Routing\n\n${bullets.map((b) => `- ${b}`).join("\n")}`;
+  const cases = [
+    ["h-clean", "[new <name> | check [<path>...]]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
+    ["h-unrouted", "[new | check | export]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), unrouted("export")],
+    ["h-unadvertised", "[new]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), unadvertised("check")],
+    ["h-exactly", "[help | status]", routing("If the argument is exactly `help` → print it.", "If it starts with `status` → read a."), null],
+    ["h-list", "[state | start | close]", routing("If it starts with `state`, `start` or `close` → read a."), null],
+    // Everything after the arrow names files, tools and other skills, so a span there routes nothing.
+    [
+      "h-after-arrow",
+      "[ready]",
+      routing("If it starts with `ready` → read `workflows/ready.md`. **If it also contains `review`** → continue, then `TaskStop`."),
+      null,
+    ],
+    ["h-placeholder", "[<pr-number> | fix <pr-number>]", routing("If the argument starts with `fix` → read a.", "Otherwise → read b."), null],
+    // Neither the empty route nor the catch-all carries a span before its arrow, so neither is a verb.
+    ["h-empty-and-catch-all", "[check]", routing("If it starts with `check`, or is empty → read a.", "If it matches no verb in this list → say so."), null],
+    [
+      "h-sentence-span",
+      "[create issues for X | next]",
+      routing("If it starts with `next` → read a.", "If the argument reads as prose - `create issues for X` - → read b."),
+      null,
+    ],
+    ["h-heading-case", "[new | check]", "## Explicit routing\n\n- If it starts with `new` → read a.", unrouted("check")],
+    ["h-table-ignored", "[merge]", "## Routing\n\n| Says | Workflow |\n|---|---|\n| `land it` | `merge` |\n\n- If it starts with `merge` → read a.", null],
+    ["h-section-ends", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n\n## Supporting files\n\n- If it starts with `check` → read b.", null],
+    ["h-no-hint", null, routing("If it starts with `new` → read a."), null],
+    ["h-no-routing", "[text | file] [issues | style]", "## Arguments\n\n- If it starts with `text` → read a.", null],
+  ];
+  for (const [id, hint, body, want] of cases) {
+    it(id, async () => {
+      const fm = hint === null ? `name: ${id}` : `name: ${id}\nargument-hint: "${hint}"`;
+      const found = await findings(`fx/${id}/SKILL.md`, skill(fm, body), argumentHint);
+      if (want) expectDetail(found, "skill-argument-hint", want);
+      else expectClean(found, "skill-argument-hint");
+    });
+  }
+  it("leaves a file other than SKILL.md alone", async () => {
+    const body = routing("If it starts with `new` → read a.");
+    expectClean(await findings("fx/h/workflows/w.md", skill('argument-hint: "[check]"', body), argumentHint), "skill-argument-hint");
+  });
+  // markdownlint admits no line inside the frontmatter, so an unrouted verb lands on the first body line as every frontmatter finding does.
+  it("names the first body line for an unrouted verb and the bullet's line for an unadvertised one", async () => {
+    const body = routing("If it starts with `new` → read a.", "If it starts with `check` → read b.");
+    const found = await findings("fx/h-lines/SKILL.md", skill('name: h-lines\nargument-hint: "[new | export]"', body), argumentHint);
+    assert.deepEqual(
+      found.map((f) => f.line).sort((a, b) => a - b),
+      [6, 9],
+    );
+  });
+});
+
+describe("skill-bash-blocks", () => {
+  const cases = [
+    ["b-fish", "```fish\necho hi\n```", "tagged fish"],
+    ["b-zsh", "```zsh\necho hi\n```", "tagged zsh"],
+    ["b-set", "```bash\nset files (ls)\n```", "set <name> ("],
+    ["b-or", "```sh\nmake; or echo failed\n```", "; or"],
+    ["b-and", "```\nmake; and make install\n```", "; and"],
+    ["good-bash", '```bash\nset -euo pipefail\nfiles=$(ls) && echo "$files"\n```', null],
+    ["good-text-tag", "```text\nset files (ls); or echo failed\n```", null],
+    // check.md and new.md name the phrasings in code spans, which no agent executes.
+    ["good-span", "Fish writes `set x (cmd)` and `; or`.", null],
+    ["good-comment", "```bash\n# build; and then test\nmake\n```", null],
+    ["good-word", "```bash\nmake; order-files\n```", null],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}`, body), bashBlocks);
+      if (want) expectDetail(found, "skill-bash-blocks", want);
+      else expectClean(found, "skill-bash-blocks");
+    });
+  }
+  it("a workflow file is read, not only SKILL.md", async () => {
+    expectDetail(await findings("fx/b/workflows/w.md", "```fish\necho hi\n```\n", bashBlocks), "skill-bash-blocks", "tagged fish");
+  });
+  it("names the fence's line for a tag and the command's line for a phrase", async () => {
+    const body = "```fish\necho hi\n```\n\n```bash\necho one\nmake; or true\n```";
+    const found = await findings("fx/b-lines/SKILL.md", skill("name: b-lines", body), bashBlocks);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [5, 11],
+    );
   });
 });
 
