@@ -1,113 +1,65 @@
-# The other half of "Write sentences that survive change" in workflows/new.md:
-# a claim of position, uniqueness or recency is falsified by an edit made
-# anywhere in the document, and nothing points at the sentence when it
-# happens. The repair a review always landed on is to name the section, the
-# file or the member instead. Tokens are the shapes caught in this repository,
-# each named by the pull request or commit that removed it.
+# The other half of "Write sentences that survive change" in workflows/new.md: a claim of position, uniqueness or recency is falsified by an edit made anywhere in the document, and nothing points at the sentence when it happens. The repair a review always landed on is to name the section, the file or the member instead. Tokens are the shapes caught in this repository, each named by the pull request or commit that removed it.
 extends: existence
 message: "Write sentences that survive change: '%s' claims a position or uniqueness that any edit can falsify; name the section, file or member instead."
 link: https://github.com/izkreny/agentifico/blob/main/skills/skills-guru/workflows/new.md
 level: error
 ignorecase: true
 exceptions:
-  # An exception is compared against the matched text, case included, so
-  # each is listed as it appears.
-  # workflows/review.md's own example, "Never do X. Doing X is bad.", judged
-  # by its second sentence: the position is inside the quoted example.
+  # An exception is compared against the matched text, case included, so each is listed as it appears.
+  # workflows/review.md's own example, "Never do X. Doing X is bad.", judged by its second sentence: the position is inside the quoted example.
   - 'The second sentence'
   - 'the second sentence'
-  # The form a review sanctioned for introducing a list, PR 46: "below"
-  # names what follows in the same file and no edit anywhere falsifies it.
+  # The form a review sanctioned for introducing a list, PR 46: "below" names what follows in the same file and no edit anywhere falsifies it.
   - 'Each part below'
   - 'each part below'
-  # "one copy owns it and every other copy says so" in workflows/new.md is
-  # the rule's own prescription, made true by construction.
+  # "one copy owns it and every other copy says so" in workflows/new.md is the rule's own prescription, made true by construction.
   - 'every other copy'
 tokens:
-  # A pointer by position: "the escape above" PR 46, "the row below" PR 58,
-  # "the paragraph above" PR 58, "the table above" and "label taxonomy below"
-  # ae1cd1a, "the name loop below" PR 100; twenty removals of "above" and
-  # sixteen of "below" across the history; "the above" live in
-  # skills/review-text, matched with no word between. "no rule above decides
-  # them" 9827051, PR 128, adds "no"; "the `rescope` list below" PR 181 lets
-  # a word be a code span, which is masked to asterisks by the time the token
-  # reads it. Narrows determiners: "that" is left out because "that floats
-  # above" is a CSS reference, not a pointer, and the record holds no "its"
-  # or "a" before one.
+  # A pointer by position: "the escape above" PR 46, "the row below" PR 58, "the paragraph above" PR 58, "the table above" and "label taxonomy below" ae1cd1a, "the name loop below" PR 100; twenty removals of "above" and sixteen of "below" across the history; "the above" live in skills/review-text, matched with no word between. "no rule above decides them" 9827051, PR 128, adds "no"; "the `rescope` list below" PR 181 lets a word be a code span, which is masked to asterisks by the time the token reads it. Narrows determiners: "that" is left out because "that floats above" is a CSS reference, not a pointer, and the record holds no "its" or "a" before one.
   - '(?:the|this|these|those|any|every|each|no) (?:[\w''*-]+ ){0,3}(?:above|below)'
-  # "everything above" and "everything below" PR 181; "Everything below
-  # this section" f1cf1f9, PR 31; "Everything after this is the ordinary
-  # path" #230 RF2, c6c81e8.
+  # "everything above" and "everything below" PR 181; "Everything below this section" f1cf1f9, PR 31; "Everything after this is the ordinary path" #230 RF2, c6c81e8.
   - 'everything (?:above|below|after this)'
-  # "the by-hand list further down" PR 167 RF6, left pointing at a bullet
-  # the same diff deleted. "the `{type}` vocabulary itself is one section
-  # further on" #236 SW20, b149279, adds "on".
+  # "the by-hand list further down" PR 167 RF6, left pointing at a bullet the same diff deleted. "the `{type}` vocabulary itself is one section further on" #236 SW20, b149279, adds "on".
   # Widened to parts, PR 263.
   - '(?:bullet|paragraph|row|section|table|list|entry|sentence|block|column|span|item) further (?:down|on)'
   # "per the companion rule beside that bullet" 22ff7c6, PR 37.
-  # Narrows determiners: the record holds only "that", "this" and "the" before
-  # a part. Widened to parts, PR 263.
+  # Narrows determiners: the record holds only "that", "this" and "the" before a part. Widened to parts, PR 263.
   - 'beside (?:that|this|the) (?:bullet|paragraph|row|section|table|list|entry|sentence|block|column|span|item)'
-  # "the same as above" e3f094d and 6581c8c; "rules out above" 9ed0bb8;
-  # "named above" live in plugins/gh-solo.
+  # "the same as above" e3f094d and 6581c8c; "rules out above" 9ed0bb8; "named above" live in plugins/gh-solo.
   - '(?:as|per|see|stated|described|named|listed|mentioned|noted|shown|explained|defined|quoted|said|same as|out) (?:[a-z]+ )?(?:above|below)'
-  # "governs this step's read and nothing later" 54c301c: a pointer at the
-  # steps after this one, falsified when the paragraph moved to a later step.
+  # "governs this step's read and nothing later" 54c301c: a pointer at the steps after this one, falsified when the paragraph moved to a later step.
   - 'and nothing (?:later|earlier)'
-  # A bare "above." or "below," closing a clause: "per *Who this is for*
-  # above." 187f851.
+  # A bare "above." or "below," closing a clause: "per *Who this is for* above." 187f851.
   - '(?:above|below)(?=[,.;:)]|$)'
-  # A uniqueness claim: "the only one in this table" PR 37, "the one place a
-  # body section's cap is stated" PR 46, "the one statement of what follows"
-  # PR 82, "the one exception" PR 87, "the only read in this workflow" PR 73.
-  # "the only plan still being written" PR 155 RF4, false on a stacked
-  # branch, adds "plan"; "the only one in this table" adds "one".
+  # A uniqueness claim: "the only one in this table" PR 37, "the one place a body section's cap is stated" PR 46, "the one statement of what follows" PR 82, "the one exception" PR 87, "the only read in this workflow" PR 73. "the only plan still being written" PR 155 RF4, false on a stacked branch, adds "plan"; "the only one in this table" adds "one".
   - 'the (?:only|one|single|sole) (?:place|thing|way|copy|exception|exclusion|entrance|statement|read|workflow|site|home|rule|shape|state|point|reason|file|check|command|source|entry|surface|finding|kind|plan|one)'
-  # "the trap is visible to it alone" 783e1a9: a uniqueness claim postposed
-  # after the pronoun, which the determiner shapes cannot reach.
+  # "the trap is visible to it alone" 783e1a9: a uniqueness claim postposed after the pronoun, which the determiner shapes cannot reach.
   - '(?:to|for) it alone'
   # "This is the one that works" .agents/gh-solo.md; "the one whose absence" AGENTS.md.
   - '(?:this|that|it) is the one (?:that|whose|which)'
-  # "and nowhere else" PR 46; "nothing else states what follows" PR 82;
-  # "every other site points there" PR 82; "exactly those" PR 103;
-  # "stated here in full" ae1cd1a; "this repository's one plugin" PR 53.
+  # "and nowhere else" PR 46; "nothing else states what follows" PR 82; "every other site points there" PR 82; "exactly those" PR 103; "stated here in full" ae1cd1a; "this repository's one plugin" PR 53.
   - 'nowhere else'
   - 'nothing else (?:states|reads|does|is|has|sees|decides)'
   - 'every other (?:site|file|read|copy|cap|command|check|workflow)'
-  # "every other site points there rather than carrying its own copy" and
-  # "the sites that mention a merge follows point here rather than carrying
-  # their own copy of the command", PR 82 RF3 and RF4 on second attempts.
+  # "every other site points there rather than carrying its own copy" and "the sites that mention a merge follows point here rather than carrying their own copy of the command", PR 82 RF3 and RF4 on second attempts.
   - '(?:site|sites|copy|copies|file|files|workflow|workflows) (?:[a-z]+ ){0,6}?points? (?:here|there) rather than'
   - 'exactly those'
   - 'stated here in full'
-  # Narrows determiners: the record holds only "this" and "the" before a
-  # possessive.
+  # Narrows determiners: the record holds only "this" and "the" before a possessive.
   - '(?:this|the) (?:repository|plugin|skill|package)''s one [a-z]+'
-  # A recency claim: "the newest section" is workflows/review.md's own
-  # example; "the current" and "the latest" are left out because "the current
-  # directory" and "the latest published version" are technical facts.
+  # A recency claim: "the newest section" is workflows/review.md's own example; "the current" and "the latest" are left out because "the current directory" and "the latest published version" are technical facts.
   - 'the (?:newest|most recent) (?:section|paragraph|rule|entry|bullet|file|item|copy)'
   # "A reader who took the new refusal to reach step 7" PR 86 RF5.
   - 'the new refusal'
-  # An ordinal pointer: "the next bullet" PR 73, "the last paragraph of this
-  # section" PR 68, "the first thing this workflow does" ae1cd1a. "step" and
-  # "line" are left out: "the first unticked step" is a procedure, not a
-  # position in the document. "The last span belongs to the plans that named
-  # the scripts" PR 116 RF8 adds "span". "which the first case tolerates"
-  # e5df8b3, PR 234, adds "case" with no word before it, since "the last edge
-  # case" is a procedure rather than a position. Widened to ordinals, PR 263.
+  # An ordinal pointer: "the next bullet" PR 73, "the last paragraph of this section" PR 68, "the first thing this workflow does" ae1cd1a. "step" and "line" are left out: "the first unticked step" is a procedure, not a position in the document. "The last span belongs to the plans that named the scripts" PR 116 RF8 adds "span". "which the first case tolerates" e5df8b3, PR 234, adds "case" with no word before it, since "the last edge case" is a procedure rather than a position. Widened to ordinals, PR 263.
   - 'the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) (?:(?:[a-z]+ ){0,2}(?:bullet|paragraph|row|section|sentence|entry|column|span|thing this)|case)'
-  # "is the second of them" PR 181. "that" and "which" after it are left out:
-  # "the first of these that is set wins" is a precedence rule.
+  # "is the second of them" PR 181. "that" and "which" after it are left out: "the first of these that is set wins" is a precedence rule.
   # Widened to ordinals, PR 263.
   - 'the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) of (?:them|these|those)(?! that\b| which\b)'
-  # An ordinal pair walking the document's own list: "The first is a check",
-  # "The second is" #2; "the third row is the finding" #7.
-  # Widened to ordinals, PR 263. Narrows auxiliaries: the record holds only
-  # "is" and "was".
+  # An ordinal pair walking the document's own list: "The first is a check", "The second is" #2; "the third row is the finding" #7.
+  # Widened to ordinals, PR 263. Narrows auxiliaries: the record holds only "is" and "was".
   - '^the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) (?:is|was)\b'
-  # "beneath it" as a pointer at a heading, #236 SW6 and 694a588, belongs
-  # here and has no token: every general form trips "the floor beneath it".
+  # "beneath it" as a pointer at a heading, #236 SW6 and 694a588, belongs here and has no token: every general form trips "the floor beneath it".
 tests:
   - name: fires on each recorded shape, once per line
     input: |
