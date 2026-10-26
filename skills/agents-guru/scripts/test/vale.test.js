@@ -191,3 +191,23 @@ describe("word classes", () => {
     );
   });
 });
+
+describe("rule messages", () => {
+  // The headings are read from workflows/new.md, which owns them, so a heading renamed without its rules fails here by name.
+  const headings = fs
+    .readFileSync(path.join(pkg, "workflows", "new.md"), "utf8")
+    .split("\n")
+    .filter((l) => l.startsWith("### "))
+    .map((l) => l.slice(4));
+  const rules = fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"));
+  it("reads the headings from workflows/new.md and the rule files from assets/", () => assert.ok(headings.length > 0 && rules.length > 0));
+  for (const file of rules) {
+    it(`${file} opens its message on a heading of workflows/new.md`, () => {
+      const { message } = YAML.parse(fs.readFileSync(path.join(styleDir, file), "utf8"));
+      assert.equal(typeof message, "string", `${file} carries no message`);
+      // The text before the first colon may shorten its heading but never reword it, which is how Banner names its own.
+      const opening = message.split(":")[0];
+      assert.ok(opening && headings.some((h) => h.startsWith(opening)), `${file}: "${message}" opens on no ### heading of workflows/new.md`);
+    });
+  }
+});
