@@ -33,11 +33,11 @@ A public repository permanently publishes everything in the skill. Strip anythin
 
 ## Step 4 - Make the code blocks Bash
 
-The rule and its reason are in `workflows/new.md` ("Code blocks are Bash"), and the by-hand pass in Step 5 reads for the leftover signatures. What export adds: a local skill may legitimately carry its author's interactive shell, so convert every block and re-test each converted command, since a translation that was never run is a guess with a shebang.
+The rule and its reason are in `workflows/new.md` ("Code blocks are Bash"), and `skill-bash-blocks` reports the phrasings *The Bash rule* in `workflows/check.md` names. What export adds: a local skill may legitimately carry its author's interactive shell, so convert every block and re-test each converted command, since a translation that was never run is a guess with a shebang.
 
 ## Step 5 - Verify the exported copy
 
-Run `workflows/check.md` against the exported directory. Its command verifies that the description is intact and free of the frontmatter traps, that the name matches the directory, that every referenced file exists and that no machine-absolute paths are left. Then read the copy for the items that file lists under *What a sweep still looks for by hand* that bear on an export, since no rule decides them: every advertised verb routes, and every code block is Bash.
+Run `workflows/check.md` against the exported directory. Its command verifies that the description is intact and free of the frontmatter traps, that the name matches the directory, that every referenced file exists and that no machine-absolute paths are left. Then read the copy for what *The argument-hint rule* and *The Bash rule* in that file leave to a reader, and for the items under *What a sweep still looks for by hand* that bear on an export.
 
 If the skill carries `metadata.version`, bump it in this same pass whenever the content changed; a version that does not move with the content is the banner lie in frontmatter form. Then grep the copy for the author's username and home directory as a final sweep; zero hits is the exit criterion. Excepted, since each is public the moment the repository is: the destination repository's own name, in a URL such as a rule's `link:` or in the install command in `README.md`, and the author's byline there.
 
