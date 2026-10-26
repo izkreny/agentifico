@@ -10,7 +10,7 @@ const FISH = [
 ];
 
 // A heredoc body and a quoted string are data the command carries, so neither is matched as syntax.
-const HEREDOC = /(?<!<)<<(?!<)-?\s*(?:'([^']+)'|"([^"]+)"|([\w-]+))/g;
+const HEREDOC = /(?<!<)<<(?!<)(-?)\s*(?:'([^']+)'|"([^"]+)"|\\([\w-]+)|([\w-]+))/g;
 const QUOTED = /'[^']*'|"(?:[^"\\]|\\.)*"/g;
 // A `<<` inside quotes or inside `(( ))` arithmetic is text or a shift, never a heredoc.
 const ARITHMETIC = /\(\(.*?\)\)/g;
@@ -18,7 +18,7 @@ const ARITHMETIC = /\(\(.*?\)\)/g;
 function heredocTerminator(text) {
   const spans = [...text.matchAll(QUOTED), ...text.matchAll(ARITHMETIC)].map((m) => [m.index, m.index + m[0].length]);
   for (const m of text.matchAll(HEREDOC)) {
-    if (!spans.some(([start, end]) => m.index >= start && m.index < end)) return m[1] ?? m[2] ?? m[3];
+    if (!spans.some(([start, end]) => m.index >= start && m.index < end)) return { word: m[2] ?? m[3] ?? m[4] ?? m[5], tabs: m[1] === "-" };
   }
   return null;
 }
@@ -55,7 +55,7 @@ export default {
       for (const line of token.children) {
         if (line.type !== "codeFlowValue") continue;
         if (terminator) {
-          if (line.text.trim() === terminator) terminator = null;
+          if ((terminator.tabs ? line.text.replace(/^\t+/, "") : line.text) === terminator.word) terminator = null;
           continue;
         }
         // An agent never executes a comment, so prose in one is free to say "; and".

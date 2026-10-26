@@ -184,13 +184,15 @@ Reviewer model: opus
 This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
 ```
 
-The sweep's last act, after its review round's fixes are pushed and just before merge, is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/agents-guru/references/maintaining.md`. It reads everything merged since that package's last `<name>_<version>` tag, or the whole trunk history where the package has none. Beside that range it reads the sweep's own issue findings, its own pull request's review threads and its branch's fix commits. No merged range ever holds those: the sweep's pull request is unmerged while the sweep runs, and the tag on its squash commit starts the next range after it. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
+The sweep's last act, after its review round's fixes are pushed and just before merge, is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/agents-guru/references/maintaining.md`, which owns what it reads. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
 
 New tokens land on the sweep's own branch only when the package is `agents-guru`. The lists live under `skills/agents-guru/assets/`, so any other sweep that landed them would move a second package's version inside its own release, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`. That sweep opens an `agents-guru` issue for its tokens instead.
 
-The sweep issue carries the step as its last acceptance criterion, naming its own findings, review threads and fix commits as sources beside the merged range. It records on itself which findings and commits were read. The criterion is what `merge` audits, so a skipped step is reported at the door rather than lost. The record lets a later sweep over the same range skip what this one already judged.
+The sweep issue carries the step as its last acceptance criterion, naming the sources *How a phrase list grows* lists. It records on itself which findings and commits were read. The criterion is what `merge` audits, so a skipped step is reported at the door rather than lost. The record lets a later sweep over the same range skip what this one already judged.
 
 **Every finding the reading stands behind is fixed on the sweep's own branch, and nothing waits for a later release.** This is the rule for every sweep, an epic's last child included, so no epic states an answer of its own to it. The tag asserts the package was read whole, so a defect found and left standing makes that assertion false. Whether a finding is a defect at all is settled by `skills/agents-guru/workflows/review.md` Step 5, which has the resumed reviewer confirm or refute one set aside as phantom. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
+
+**That holds when the fix lands outside the package, in `AGENTS.md` or this file.** Both are held to the agents-guru rules, per *Skill files follow the agents-guru rules* in `AGENTS.md`, and a repository-level path moves no version, so the sweep's branch carries the edit without asking. A restatement left behind would reach the trunk disagreeing with the rule it copies.
 
 **The run is inline, and the reviewer that produced the findings is kept resumable with its id**, which is what `skills/agents-guru/workflows/review.md` Step 5 asks for when it later judges the fix commit.
 
@@ -212,7 +214,7 @@ The sweep issue carries the step as its last acceptance criterion, naming its ow
 
 **No child's criteria turn on another child being merged.** `gh stack merge` lands the stack at once and no child merges before the top branch, so such a criterion is unsatisfiable at the moment the child is asked to close it rather than merely awkward. The checkable relation to write instead is that the other children sit in that branch's ancestry, which is readable off the branch.
 
-**A package-labelled child's criteria may not require editing a repository-level file without the owner's say.** The package axis is the release boundary, so a package child carrying a `repo` edit puts two deliverables in one diff and one review. The child names the edit in its `## Technical notes` and asks on the branch, or the edit becomes a `repo`-labelled issue of its own; landing it in the package branch anyway is the owner's exception to grant, never the child's to assume.
+**A package-labelled child's criteria may not require editing a repository-level file without the owner's say.** The package axis is the release boundary, so a package child carrying a `repo` edit puts two deliverables in one diff and one review. The child names the edit in its `## Technical notes` and asks on the branch, or the edit becomes a `repo`-labelled issue of its own; landing it in the package branch anyway is the owner's exception to grant, never the child's to assume. A sweep's own fix is the standing exception, per *The skill review is its own issue, not a branch's gate*.
 
 ## An epic child's blocker is its stack parent, not a wait
 

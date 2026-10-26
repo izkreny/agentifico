@@ -1,12 +1,12 @@
 ---
 name: agents-guru
 description: |
-  Write, review, check, maintain and export agent skills. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file or a package of skills. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill, only for the files that make one. Never invoked by an agent to install, update or remove a skill: the owner types `/agents-guru manage` for that.
+  Write, review, check, maintain and export agent skills, and check agent definitions and a plugin's hooks file and manifest. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file, a package of skills, an agent file, or a plugin's hooks file or manifest. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill or an agent, only for the files that make one. Never invoked by an agent to install, update or remove a skill: the owner types `/agents-guru manage` for that.
 argument-hint: "[new <name> | review <path> | check [<path>...] | export <path> | manage]"
 compatibility: |
   Supported on Linux, and on Windows only under WSL; untested on macOS. Requires Node 26.1 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list.
 metadata:
-  version: "7.1.0"
+  version: "7.2.0"
 allowed-tools: Bash(gh:*) Bash(node:*) Read Write Edit Grep Glob
 ---
 
@@ -20,7 +20,7 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 
 ## Where skills live
 
-Keep one canonical copy in an agent-neutral location such as `<home-dir>/.agents/skills/<name>/`, and symlink each agent's skills directory to it as needed: one file then serves every agent, and no copy drifts. Each agent reads its own directory; Claude Code, for example, reads `<home-dir>/.claude/skills/<name>/SKILL.md`. When a workflow below says "the skills directory", resolve it for the agent in use.
+Keep one canonical copy in an agent-neutral location such as `<home-dir>/.agents/skills/<name>/`, and symlink each agent's skills directory to it as needed: one file then serves every agent, and no copy drifts. Each agent reads its own directory; Claude Code, for example, reads `<home-dir>/.claude/skills/<name>/SKILL.md`. When a workflow of this skill says "the skills directory", resolve it for the agent in use.
 
 ## The facts every workflow here depends on
 
@@ -74,6 +74,7 @@ Based on `$ARGUMENTS`, do exactly one of the following. Test the `manage` bullet
 | `workflows/review.md` | reviewing an existing skill against the defects that actually occur |
 | `workflows/check.md` | the mechanical audit: a gate over one skill, a survey over a directory of them |
 | `workflows/export.md` | publishing a local skill to a shared repository |
+| `references/setup.md` | installing what the check needs, once per install; read it before the first check and when the check refuses for Vale |
 | `references/managing.md` | installing and updating skills, and why not to hand-edit an installed one |
 | `references/maintaining.md` | registering a rule, why the rules take their shape, growing a phrase list, and the suite; read it before editing `assets/` or `scripts/`, and on no route |
-| `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, and the helpers they share beside them; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |
+| `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, beside the helpers they share; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |

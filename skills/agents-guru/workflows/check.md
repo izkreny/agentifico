@@ -1,22 +1,14 @@
 > **Tools used:** `Bash(node:*)` for the check, `npm` for the one-time install of what it needs, which prompts, `Glob` to enumerate skills.
 
-The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
+The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs every rule this file names: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, the YAML and plugin-file readers in `scripts/check.js`, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
 **Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `yaml files` for *The YAML rules*, `plugin files` for *The plugin file rules*, `prose rules` for Vale's alerts.
 
 **Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, printed a version the check could not read, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown, YAML and plugin files alone, since a code file's only reader is the process that did not start.
 
-## Setup, once per install
-
-The check runs on Node 26.1 or later with what `package.json` declares, installed once into the skill's own directory. `<skill-dir>` is where this skill is installed, one of the placeholders `workflows/new.md` defines under *Paths must survive any working directory and any machine*:
-
-```bash
-npm --prefix <skill-dir> ci
-```
-
-The prose rules run through Vale on `PATH`, at the version `scripts/check.js` requires; a run on an older one refuses and names that version. Vale's [installation page](https://docs.vale.sh/topics/installation) gives a route per machine; a pinned version through a tool manager is the one that keeps the version the rules were written against.
-
 ## The check
+
+Before the first run on an install, follow `references/setup.md`.
 
 Each argument is a target, a folder or a file, and the current directory is the target when there is none. A folder target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/`. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories under a folder target are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
 
@@ -113,15 +105,15 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The argument-hint rule
 
-**`skill-argument-hint`**, in `scripts/rules/skill-argument-hint.js`, holds a `SKILL.md`'s `argument-hint` to its routing section, per that field's row in the frontmatter table of `workflows/new.md`. It reports a verb the hint advertises that no routing bullet routes, and a routed verb the hint leaves out.
+**`skill-argument-hint`**, in `scripts/rules/skill-argument-hint.js`, holds a `SKILL.md`'s `argument-hint` to its routing section, per that field's row in the frontmatter table of `workflows/new.md`.
 
 **What it cannot decide is whether a one-word group such as `[manage]` is a verb or a placeholder, or whether a route does what the hint promises.** It holds only a group listing alternatives with `|` to routing, so an unrouted verb in a one-word group, and a route that does the wrong thing, are the reviewer's to catch.
 
 ## The Bash rule
 
-**`skill-bash-blocks`**, in `scripts/rules/skill-bash-blocks.js`, is the mechanical face of *Code blocks are Bash* in `workflows/new.md`. It reports a fence tagged `fish` or `zsh`, and a line carrying `set <name> (`, `; or` or `; and` in a fence tagged `bash` or `sh` or left untagged. It reads fenced blocks only, so a code span may name those phrasings.
+**`skill-bash-blocks`**, in `scripts/rules/skill-bash-blocks.js`, is the mechanical face of *Code blocks are Bash* in `workflows/new.md`. It reads fenced blocks only, so a code span may name a phrasing it reports.
 
-**What it cannot decide is another shell's syntax beyond those phrasings.** That is the reviewer's to catch.
+**What it cannot decide is another shell's syntax beyond the phrasings it records.** That is the reviewer's to catch.
 
 ## The YAML rules
 
@@ -130,8 +122,6 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 ## The plugin file rules
 
 **`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json` and `<plugin-dir>/.claude-plugin/plugin.json` to what Claude Code loads. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and each file is read by its fixed path because the walk skips dot-folders.
-
-`plugin-manifest` reports a key that leaves files in its default folder unloaded, even when a listed path inside the folder silences Claude Code's own warning. A file or folder named with a leading dot is skipped. A folder the key drops whole is one issue. Each file left beside a listed one is a warning of its own, since a plugin may leave it out on purpose.
 
 A file that is not valid JSON, and every mistake `claude plugin validate --strict` reports, are left to that command.
 

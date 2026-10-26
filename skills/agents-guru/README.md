@@ -2,7 +2,7 @@
 
 # agents-guru
 
-A skill for writing, reviewing, maintaining and exporting agent skills. You type `/agents-guru <argument>`, or an agent invokes it when told to, or when it reviews or checks a change to a skill. Installing and updating skills stays yours: only your typed `/agents-guru manage` reaches that route.
+A skill for writing, reviewing, maintaining and exporting agent skills. You type `/agents-guru <argument>`, or an agent invokes it on the triggers the `description` in `SKILL.md` names. Installing and updating skills stays yours: only your typed `/agents-guru manage` reaches that route.
 
 It targets the [Agent Skills](https://agentskills.io) format, the open standard originally developed by Anthropic and since adopted across the agent ecosystem. The [specification](https://agentskills.io/specification) is the authority on the format, and the standard ships a [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference validator; the traps this skill exists to catch live below the spec's radar, since a truncated description is still valid YAML.
 
@@ -48,7 +48,7 @@ The mechanical check is the shared foundation: authoring ends with it, review ru
 
 ## Which model to run it with
 
-Plan and author a new skill with the most capable model available to you, and run the agents-guru workflows themselves one tier below it. Authoring decides what will be true in the skill, which is open-ended judgement; review, check and export verify against rules already written down, which a lower tier does reliably and more cheaply.
+Plan and author a new skill with the most capable model available to you, and run review, check and export one tier below it. Authoring decides what will be true in the skill, which is open-ended judgement; review, check and export verify against rules already written down, which a lower tier does reliably and more cheaply.
 
 ## Install
 
@@ -58,7 +58,7 @@ The skill is supported on Linux, and on Windows only under WSL. It is untested o
 skills add izkreny/agentifico -g -y -s agents-guru
 ```
 
-That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) installs in one line, `mise use -g npm:skills`. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `workflows/check.md` states both. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
+That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) installs in one line, `mise use -g npm:skills`. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `references/setup.md` states both. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
 
 ## What a YAML parser cannot see
 

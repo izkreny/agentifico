@@ -40,7 +40,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **Triggers that only exist in the body.** Every phrase meant to fire the skill must be in `description:`. Grep the body for "use this when" and similar, and confirm each has a counterpart in the frontmatter.
 
-**Advertised verbs that route nowhere.** Check `argument-hint` against the routing table. An argument the skill accepts but does not handle is a promise it breaks.
+**Advertised verbs that route nowhere.** `skill-argument-hint` holds a hint's verb menus to the routing section, and *The argument-hint rule* in `workflows/check.md` names what it leaves to a reader. An argument the skill accepts but does not handle is a promise it breaks.
 
 **A placeholder standing in for a payload.** `-f body='...'` is one line, so *A payload that breaks a line, or carries a backtick or a `#`, travels in a file* in `workflows/new.md` passes it, while the prose around it describes a multi-paragraph body with a blockquote. Read what the skill says the placeholder stands for, and test that.
 

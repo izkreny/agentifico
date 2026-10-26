@@ -4,7 +4,7 @@ Read this before editing anything under `assets/` or `scripts/`. No route loads 
 
 ## Registering a rule
 
-A rule you add is filed against the heading its findings group under, which `workflows/check.md` names. Register a new rule in `scripts/lint-config.js`, in the array for the heading it belongs under; Vale needs no registration.
+A rule you add is filed against the heading its findings group under, which `workflows/check.md` names. Register a markdownlint rule in `scripts/lint-config.js`, in the array for the heading it belongs under. A rule over a file markdownlint does not read, such as a YAML file or a plugin's manifest, is a reader in `scripts/check.js`, under its own heading. Vale needs no registration.
 
 ## Where the prose rules live
 
@@ -38,26 +38,28 @@ A phrase rule's tokens are evidence, per *Where the prose rules live*, and the r
 
 ### The sources
 
-**A finding is a review comment carrying `::RF{n}::`**, which is how a `pr-flow` review round posts one, and a finding on prose is one whose `path` names a markdown file. Read the pull requests merged since the last run, then the review comments on each. `gh pr list` cuts its output at `--limit` without saying so, so the count it returns is read against that figure, and the figure is raised when the count reaches it:
+**A finding is a review comment carrying `::RF{n}::`**, which is how a `pr-flow` review round posts one, and a finding on prose is one whose `path` names a markdown, JavaScript or Python file, since the prose rules read a code file's comments too. Read the pull requests merged since the last run, then the review comments on each. `gh pr list` cuts its output at `--limit` without saying so, so the count it returns is read against that figure, and the figure is raised when the count reaches it:
 
 ```bash
 gh pr list --state merged --limit 200 --search "merged:>=<date>" --json number --jq '.[].number'
-gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate --jq '.[] | select(.path | endswith(".md")) | select(.body | test("::RF[0-9]+::")) | "\(.path):\(.line)\n\(.body)\n"'
+gh api repos/{owner}/{repo}/pulls/<pr-number>/comments --paginate --jq '.[] | select(.path | test("\\.(md|js|py)$")) | select(.body | test("::RF[0-9]+::")) | "\(.path):\(.line)\n\(.body)\n"'
 ```
 
 **A fix commit's diff carries the phrase removed and the phrase written in its place**, which is a token and its guards line at once. Read every prose commit from a tag or a date onward; the fix commits are the ones whose body cites a finding, and the range between two runs is short enough to read whole:
 
 ```bash
-git log --patch <tag>..origin/main -- '*.md'
-git log --patch --since=<date> origin/main -- '*.md'
+git log --patch <tag>..origin/main -- '*.md' '*.js' '*.py'
+git log --patch --since=<date> origin/main -- '*.md' '*.js' '*.py'
 ```
 
 **The sweep's own records are read beside the merged range**: its own issue's findings, its own pull request's review threads and its branch's fix commits. No merged range ever holds them. The sweep's pull request is unmerged while the sweep runs, and the tag on its squash commit starts the next range after it. The review-comment query reads the open pull request as it reads a merged one. The issue's findings carry the sweep's own ids rather than `::RF{n}::`, so they are read from the issue, and the branch's commits are their own range:
 
 ```bash
 gh issue view <issue-number> --json body,comments
-git log --patch origin/main..<branch> -- '*.md'
+git log --patch origin/main..<branch> -- '*.md' '*.js' '*.py'
 ```
+
+**Where the sweep's branch tops an epic's stack, every other pull request in the stack is read the same way.** Each is unmerged while the sweep runs and lands before the same tag, so no merged range ever holds it either. The review-comment query reads each one, and `origin/main..<branch>` already spans their commits.
 
 ### Which rule a phrase belongs to
 
