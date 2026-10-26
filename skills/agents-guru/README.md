@@ -48,7 +48,7 @@ The mechanical check is the shared foundation: authoring ends with it, review ru
 
 ## Which model to run it with
 
-Plan and author a new skill with the most capable model available to you, and run the agents-guru workflows themselves one tier below it. Authoring decides what will be true in the skill, which is open-ended judgement; review, check and export verify against rules already written down, which a lower tier does reliably and more cheaply.
+Plan and author a new skill with the most capable model available to you, and run review, check and export one tier below it. Authoring decides what will be true in the skill, which is open-ended judgement; review, check and export verify against rules already written down, which a lower tier does reliably and more cheaply.
 
 ## Install
 

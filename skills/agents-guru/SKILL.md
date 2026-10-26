@@ -20,7 +20,7 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 
 ## Where skills live
 
-Keep one canonical copy in an agent-neutral location such as `<home-dir>/.agents/skills/<name>/`, and symlink each agent's skills directory to it as needed: one file then serves every agent, and no copy drifts. Each agent reads its own directory; Claude Code, for example, reads `<home-dir>/.claude/skills/<name>/SKILL.md`. When a workflow below says "the skills directory", resolve it for the agent in use.
+Keep one canonical copy in an agent-neutral location such as `<home-dir>/.agents/skills/<name>/`, and symlink each agent's skills directory to it as needed: one file then serves every agent, and no copy drifts. Each agent reads its own directory; Claude Code, for example, reads `<home-dir>/.claude/skills/<name>/SKILL.md`. When a workflow of this skill says "the skills directory", resolve it for the agent in use.
 
 ## The facts every workflow here depends on
 
@@ -77,4 +77,4 @@ Based on `$ARGUMENTS`, do exactly one of the following. Test the `manage` bullet
 | `references/setup.md` | installing what the check needs, once per install; read it before the first check and when the check refuses for Vale |
 | `references/managing.md` | installing and updating skills, and why not to hand-edit an installed one |
 | `references/maintaining.md` | registering a rule, why the rules take their shape, growing a phrase list, and the suite; read it before editing `assets/` or `scripts/`, and on no route |
-| `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, one file each, and the helpers they share beside them; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |
+| `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, beside the helpers they share; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |
