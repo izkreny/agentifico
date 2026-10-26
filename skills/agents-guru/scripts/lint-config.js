@@ -1,5 +1,7 @@
 // A module rather than a config file, so nothing under a target is ever read as configuration.
 import agentFrontmatter, { agentPluginName } from "./rules/agent-frontmatter.js";
+import skillArgumentHint from "./rules/skill-argument-hint.js";
+import skillBashBlocks from "./rules/skill-bash-blocks.js";
 import skillBoldedParagraphs from "./rules/skill-bolded-paragraphs.js";
 import skillBoldedRuns from "./rules/skill-bolded-runs.js";
 import skillContinuations from "./rules/skill-continuations.js";
@@ -26,6 +28,8 @@ const contractRules = [
   skillPortablePaths,
   skillReferencedPaths,
   skillValeDirective,
+  skillArgumentHint,
+  skillBashBlocks,
   agentFrontmatter,
 ];
 const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs];
