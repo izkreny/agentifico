@@ -1,4 +1,4 @@
-> **Tools used:** `Read` to load the skill, `Grep` to cross-check against other skills, `Bash(node:*)` for the check run via `workflows/check.md`.
+> **Tools used:** `Read` to load the skill, `Grep` to cross-check against other skills, `Bash(node:*)` for the check run via `workflows/check.md`, `claude plugin validate` for a plugin under a package root, which prompts.
 
 Review an existing skill. Find what is wrong and name the specific defect; agreement is not the output being asked for.
 
@@ -12,7 +12,11 @@ Read every file in the skill's directory, whatever the layout: `SKILL.md`, what 
 
 **Read every file under the root, not only the files under its skills.** A package's manifest, its agents, its hooks and its own `README.md` belong to no skill, and a branch review reads a diff, so a sweep is what reads them whole.
 
+On Claude Code specifically, run `claude plugin validate --strict <plugin-dir>` on each plugin under the root and read a non-zero exit as a finding: it checks those files against what Claude Code loads, and it moves with Claude Code's releases where a copied rule would not. It leaves an agent's name limits to *The agent rule* in `workflows/check.md`, and the hooks and manifest defects it passes to *The plugin file rules*. Neither tool checks the value of a field such as `model`, `effort` or `isolation`, so the sweep reads those itself.
+
 **Find them by walking the tree, never by following references out of the skills.** A plugin's agent is spawned by name at runtime and cited by path in no skill under it.
+
+**A plugin's `<plugin-dir>/.claude-plugin/` holds no plugin component.** The [plugins reference](https://code.claude.com/docs/en/plugins-reference) puts every plugin file but the manifest at the plugin root, and on Claude Code 2.1.310 the validator passes a component placed inside the folder, so reading is what catches one.
 
 **Report which files were read**, so a run that covered part of a package is distinguishable from one that covered all of it.
 

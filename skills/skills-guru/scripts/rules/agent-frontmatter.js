@@ -4,6 +4,7 @@ import { FRONTMATTER_LINE, frontmatter, parsed } from "./frontmatter.js";
 import { isPluginRoot } from "./plugin-files.js";
 
 const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
+const NAME_LIMIT = 256;
 
 // The nearest agents folder decides, because both kinds of agents directory are scanned recursively.
 export function agentKind(file) {
@@ -42,12 +43,36 @@ export function defects(fm, inPlugin, lines = []) {
     const name = String(mapping.name);
     if (name.includes(":")) bad.push(`name ${JSON.stringify(name)} contains ":", which is reserved for plugin-scoped names, so Claude Code skips the file`);
     if (name.startsWith("-")) bad.push(`name ${JSON.stringify(name)} starts with "-", so Claude Code skips the file`);
-    if (name.length > 256) bad.push(`name is ${name.length} characters, over the 256 Claude Code allows, so it skips the file`);
+    if (name.length > NAME_LIMIT) bad.push(`name is ${name.length} characters, over the ${NAME_LIMIT} Claude Code allows, so it skips the file`);
   }
   if (mapping.permissionMode === "bypassPermissions")
     bad.push("permissionMode: bypassPermissions does nothing in a subagent, which keeps the main conversation's mode instead");
   return bad;
 }
+
+// Only the length is warned on, because on Claude Code 2.1.310 a plugin's agent named "-x" or "a:b" loaded under that name, while one past 256 characters loaded under its file name.
+export function pluginNameWarnings(fm) {
+  if (!fm) return [];
+  const doc = parsed(fm);
+  if (doc.errors.length) return [];
+  const name = doc.toJS()?.name;
+  if (name === undefined || name === null) return [];
+  const length = String(name).length;
+  return length > NAME_LIMIT
+    ? [`name is ${length} characters, over the ${NAME_LIMIT} Claude Code allows, so it loads the agent under its file name instead`]
+    : [];
+}
+
+export const agentPluginName = {
+  names: ["agent-plugin-name"],
+  description: "A plugin's agent loads under the name its frontmatter gives it",
+  tags: ["skills-guru"],
+  parser: "none",
+  function(params, onError) {
+    if (agentKind(params.name) !== "plugin") return;
+    for (const detail of pluginNameWarnings(frontmatter(params))) onError({ lineNumber: FRONTMATTER_LINE, detail });
+  },
+};
 
 export default {
   names: ["agent-frontmatter"],

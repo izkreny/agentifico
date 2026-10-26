@@ -6,11 +6,11 @@ argument-hint: "[new <name> | review <path> | check [<path>...] | export <path> 
 compatibility: |
   Requires Node 26.1 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list.
 metadata:
-  version: "6.5.0"
+  version: "6.6.0"
 allowed-tools: Bash(gh:*) Bash(node:*) Read Write Edit Grep Glob
 ---
 
-> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/`, which runs Vale with the prose rules in `assets/`, `npm` for the one-time install of what the check needs and for its suite and lint, and `skills` for install and updates, both left out of `allowed-tools` so that each command prompts, `Bash(gh:*)` for repository visibility during export and, with `git`, for reading findings and fix commits when a phrase list grows.
+> **Tools used:** `Read` / `Grep` / `Glob` to inspect existing skills, `Write` / `Edit` to author them, `Bash(node:*)` for the check in `scripts/`, which runs Vale with the prose rules in `assets/`, `npm` for the one-time install of what the check needs and for its suite and lint, `skills` for install and updates, and `claude plugin validate` for a plugin's sweep, all left out of `allowed-tools` so that each command prompts, `Bash(gh:*)` for repository visibility during export and, with `git`, for reading findings and fix commits when a phrase list grows.
 
 This skill was invoked with the argument: **`$ARGUMENTS`**
 

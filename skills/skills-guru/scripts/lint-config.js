@@ -1,5 +1,5 @@
 // A module rather than a config file, so nothing under a target is ever read as configuration.
-import agentFrontmatter from "./rules/agent-frontmatter.js";
+import agentFrontmatter, { agentPluginName } from "./rules/agent-frontmatter.js";
 import skillBoldedParagraphs from "./rules/skill-bolded-paragraphs.js";
 import skillBoldedRuns from "./rules/skill-bolded-runs.js";
 import skillContinuations from "./rules/skill-continuations.js";
@@ -29,10 +29,13 @@ const contractRules = [
   agentFrontmatter,
 ];
 const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs];
-export const rules = [...contractRules, ...proseShapeRules];
+// A warning rule's findings print among the contract findings but leave the run passing, since the file still loads.
+const warningRules = [agentPluginName];
+export const rules = [...contractRules, ...warningRules, ...proseShapeRules];
 
 const namesOf = (group) => new Set(group.flatMap((rule) => rule.names));
-export const contractRuleNames = namesOf(contractRules);
+export const contractRuleNames = namesOf([...contractRules, ...warningRules]);
+export const warningRuleNames = namesOf(warningRules);
 export const proseShapeRuleNames = namesOf(proseShapeRules);
 
 // A rule named here is off for the reason beside it, never for quiet.
