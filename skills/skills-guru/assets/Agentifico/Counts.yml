@@ -18,6 +18,9 @@ tokens:
   # "Two of them change what an agent does" #30; "Say which of the two it is"
   # .agents/gh-solo.md.
   - '(?:two|three|four|five) of them'
+  # "report which half of the cleanup is still owed" e5df8b3, PR 234: "half"
+  # counts the two parts of the cleanup the step named.
+  - 'which half of'
   # "the two caps above" PR 68; "the two traps" PR 116; "the three most
   # memorable ones" 187f851; "the two axes" and "the two hazards" ae1cd1a,
   # 600884c; "those two lists" live in plugins/gh-solo; "the three `Reviewer`
@@ -100,6 +103,7 @@ tests:
       It refuses on a resolved thread carrying none of the three, naming its line.
       It holds for a moved head. Two causes remain, and the report names them.
       It routes the three `Reviewer` lines to the review skill.
+      On any error, report which half of the cleanup is still owed.
     want: |
       3:11:Agentifico.Counts:Write sentences that survive change: 'all three' counts adjacent content, and the list is the authority on its own length.
       4:7:Agentifico.Counts:Write sentences that survive change: 'the two caps' counts adjacent content, and the list is the authority on its own length.
@@ -124,6 +128,7 @@ tests:
       21:50:Agentifico.Counts:Write sentences that survive change: 'the three' counts adjacent content, and the list is the authority on its own length.
       22:28:Agentifico.Counts:Write sentences that survive change: 'Two causes' counts adjacent content, and the list is the authority on its own length.
       23:11:Agentifico.Counts:Write sentences that survive change: 'the three ******** lines' counts adjacent content, and the list is the authority on its own length.
+      24:22:Agentifico.Counts:Write sentences that survive change: 'which half of' counts adjacent content, and the list is the authority on its own length.
   - name: leaves caps, a bare both and code alone
     input: |
       # Title
@@ -139,4 +144,5 @@ tests:
       Steps 3 and 4 are two posts and are never merged into one.
       A file carries at most one exception to the cap.
       The check states each ceiling in its entry, and the rule binds each entrance.
+      Use `_` between the axis and the value, and `-` inside either half.
     want: ""
