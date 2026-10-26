@@ -113,13 +113,13 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The argument-hint rule
 
-**`skill-argument-hint`**, in `scripts/rules/skill-argument-hint.js`, holds a `SKILL.md`'s `argument-hint` to its routing, per that field's row in the frontmatter table of `workflows/new.md`. It reports a verb the hint advertises that no routing bullet routes, and a routed verb the hint leaves out. An advertised verb is the first word of each `|`-separated alternative inside the hint's brackets. A routed verb is the first word of each code span in a list item under a heading containing "routing", read only up to the item's first `→`. A skill with no `argument-hint`, or no such heading, is left alone.
+**`skill-argument-hint`**, in `scripts/rules/skill-argument-hint.js`, holds a `SKILL.md`'s `argument-hint` to its routing section, per that field's row in the frontmatter table of `workflows/new.md`. It reports a verb the hint advertises that no routing bullet routes, and a routed verb the hint leaves out.
 
 **What it cannot decide is whether a route does what the hint promises.** That is the reviewer's to catch.
 
 ## The Bash rule
 
-**`skill-bash-blocks`**, in `scripts/rules/skill-bash-blocks.js`, is the mechanical face of *Code blocks are Bash* in `workflows/new.md`. It reports a fence tagged `fish` or `zsh`, and a line carrying `set <name> (`, `; or` or `; and` in a fence tagged `bash` or `sh` or left untagged. It reads fenced blocks only, so a code span may name those phrasings, and it skips a comment line inside a fence.
+**`skill-bash-blocks`**, in `scripts/rules/skill-bash-blocks.js`, is the mechanical face of *Code blocks are Bash* in `workflows/new.md`. It reports a fence tagged `fish` or `zsh`, and a line carrying `set <name> (`, `; or` or `; and` in a fence tagged `bash` or `sh` or left untagged. It reads fenced blocks only, so a code span may name those phrasings.
 
 **What it cannot decide is another shell's syntax beyond those phrasings.** That is the reviewer's to catch.
 
