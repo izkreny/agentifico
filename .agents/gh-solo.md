@@ -17,7 +17,7 @@ python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .ag
 
 **A merged plan is not read, and the open branch's own plan is.** A plan is a record of intent and stays as written, so the paths a merged one names go stale by design: reading them back asks for a permanent ignore span per rewrite the repository has ever done. The substitution names every plan still being written, which on the upper branch of a stack is one per branch in it, per *The stacked release train asks nothing of this script, and the reason is not that each branch is checked alone*. It is unquoted on purpose: the script falls back to the whole tree when it is handed no target, and `Path("")` is the current directory, so a quoted substitution on a branch that carries no plan yet would hand it an empty string and scan the repository root. Unquoted, an empty result contributes no word at all and the named targets stand alone; plan filenames carry no spaces, so nothing else splits.
 
-**A path relative to a package opens with a placeholder**, as `<skill-dir>/SKILL.md`, from the set *Paths must survive any working directory and any machine* in `skills/skills-guru/workflows/new.md` names. The script skips any span holding `<` or `>`, so a placeholder needs no ignore.
+**A path relative to a package opens with a placeholder**, as `<skill-dir>/SKILL.md`, from the set *Paths must survive any working directory and any machine* in `skills/agents-guru/workflows/new.md` names. The script skips any span holding `<` or `>`, so a placeholder needs no ignore.
 
 **The command takes no `--ignore`.** `--ignore` skips a matching *span* rather than a file, so `--ignore 'AGENTS.md'`, `--ignore 'CLAUDE.md'` and `--ignore '.agents/*'` would skip exactly the cross-links between this file and `AGENTS.md` - the spans most worth checking, since both files exist here where in a served repository they do not. Never add one to make an output quieter.
 
@@ -31,7 +31,7 @@ python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .ag
 python3 plugins/gh-solo/skills/pr-flow/scripts/plan-check.py $(git diff --name-only origin/main...HEAD -- docs/plans)
 ```
 
-The substitution is the docs check's, unquoted for the same reason. A branch carrying no plan hands the script no file, and it exits 2 rather than passing, since every branch here has one. It needs the same Vale as the skills-guru check.
+The substitution is the docs check's, unquoted for the same reason. A branch carrying no plan hands the script no file, and it exits 2 rather than passing, since every branch here has one. It needs the same Vale as the agents-guru check.
 
 **Every package a branch touches has moved its own version**, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`, which owns the rule:
 
@@ -45,28 +45,28 @@ It compares `origin/main...HEAD` by default and takes a range or a single commit
 
 Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
 
-### The skills-guru check
+### The agents-guru check
 
-**The skills-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/skills-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are `plugins/gh-solo`, `skills/review-text`, `skills/skills-guru` and `skills/socratic-tutor`, and `<package-dir>` is each of them the branch owes the run on:
-
-```bash
-node skills/skills-guru/scripts/check.js <package-dir>
-```
-
-It needs the `npm ci` and the Vale that *The skills-guru package's checks* name. **A package joins this list the day the check exits zero on it.** A package still carrying findings stays off, so no branch has to clear another package's backlog to pass its own gate. Its sweep, or an issue of its own, is what puts it here.
-
-**Here a run over a package root is a gate, not a survey.** `skills/skills-guru/workflows/check.md` calls a run over a directory of skills a survey, because it may reach a skill someone else maintains. Every skill under a package here is this repository's own, so a non-zero exit is this repository's work.
-
-**Unlike `/skills-guru review`, this check is a `## Verification` entry.** It is a set of rules with an exit code, where the review is a whole-skill judgement, per *The skill review is its own issue, not a branch's gate*.
-
-**The skills-guru package's checks**, after any edit under `skills/skills-guru/`: its suite and its lint, beside the skills-guru check it owes as a listed package. Each needs a one-time `npm --prefix skills/skills-guru ci`, and the suite and the check each need the Vale that `skills/skills-guru/scripts/check.js` requires, on `PATH`, since the check runs the package's prose rules through it and the suite runs those same rules against their fixtures:
+**The agents-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/agents-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are `plugins/gh-solo`, `skills/review-text`, `skills/agents-guru` and `skills/socratic-tutor`, and `<package-dir>` is each of them the branch owes the run on:
 
 ```bash
-npm --prefix skills/skills-guru test
-npm --prefix skills/skills-guru run lint
+node skills/agents-guru/scripts/check.js <package-dir>
 ```
 
-**A package that declares a `lint` script in its own manifest owes that run beside its suite.** The rule is the manifest rather than the command, so a package that later ships a linter is already covered and owes this file no edit. What `skills/skills-guru/package.json` declares today is `biome check scripts/`, which neither its suite nor its own check invokes, so a branch that skips it leaves that package's JavaScript unlinted and nothing else catches it.
+It needs the `npm ci` and the Vale that *The agents-guru package's checks* name. **A package joins this list the day the check exits zero on it.** A package still carrying findings stays off, so no branch has to clear another package's backlog to pass its own gate. Its sweep, or an issue of its own, is what puts it here.
+
+**Here a run over a package root is a gate, not a survey.** `skills/agents-guru/workflows/check.md` calls a run over a directory of skills a survey, because it may reach a skill someone else maintains. Every skill under a package here is this repository's own, so a non-zero exit is this repository's work.
+
+**Unlike `/agents-guru review`, this check is a `## Verification` entry.** It is a set of rules with an exit code, where the review is a whole-skill judgement, per *The skill review is its own issue, not a branch's gate*.
+
+**The agents-guru package's checks**, after any edit under `skills/agents-guru/`: its suite and its lint, beside the agents-guru check it owes as a listed package. Each needs a one-time `npm --prefix skills/agents-guru ci`, and the suite and the check each need the Vale that `skills/agents-guru/scripts/check.js` requires, on `PATH`, since the check runs the package's prose rules through it and the suite runs those same rules against their fixtures:
+
+```bash
+npm --prefix skills/agents-guru test
+npm --prefix skills/agents-guru run lint
+```
+
+**A package that declares a `lint` script in its own manifest owes that run beside its suite.** The rule is the manifest rather than the command, so a package that later ships a linter is already covered and owes this file no edit. What `skills/agents-guru/package.json` declares today is `biome check scripts/`, which neither its suite nor its own check invokes, so a branch that skips it leaves that package's JavaScript unlinted and nothing else catches it.
 
 ### The benches
 
@@ -148,7 +148,7 @@ bash scripts/test-manifest-check.sh
 | `gh-solo` | `plugins/gh-solo/` |
 | `rails-style` | `skills/rails-style/` |
 | `review-text` | `skills/review-text/` |
-| `skills-guru` | `skills/skills-guru/` |
+| `skills-guru` | `skills/agents-guru/` |
 | `socratic-tutor` | `skills/socratic-tutor/` |
 | `repo` | the repository itself: `README.md`, `.claude-plugin/marketplace.json`, `LICENSE`, `AGENTS.md`, this file |
 
@@ -170,7 +170,7 @@ Reviewer model: opus
 
 ## The skill review is its own issue, not a branch's gate
 
-**`/skills-guru review <path>` reviews a whole skill, so it is never a `## Verification` entry.** A skill change carries no such box. Run once against `plugins/gh-solo/skills/pr-flow`, it returned nine findings and not one was in the diff of the branch that triggered it; a per-branch gate built on a whole-file review reports something unrelated every time, and such a gate gets waved through.
+**`/agents-guru review <path>` reviews a whole skill, so it is never a `## Verification` entry.** A skill change carries no such box. Run once against `plugins/gh-solo/skills/pr-flow`, it returned nine findings and not one was in the diff of the branch that triggered it; a per-branch gate built on a whole-file review reports something unrelated every time, and such a gate gets waved through.
 
 **The sweep is its own issue, one per package, and it must have run before that package's `<name>_<version>` tag is cut**, carrying that package's own label. Open is not run: an issue nobody has worked is a review nobody has done, and a tag over one asserts something untrue, which is the whole thing a tag is for here. A release is when the whole file matters, and a trigger tied to one fires where a habit does not.
 
@@ -179,22 +179,22 @@ Reviewer model: opus
 **The sweep's invocation, with the context a run needs**, so starting one is a paste rather than a recall. `<package-dir>` is `plugins/<name>` or `skills/<name>`, per *How a package is released* in `AGENTS.md`:
 
 ```text
-/skills-guru review <package-dir>
+/agents-guru review <package-dir>
 
 This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
 ```
 
-The sweep's last act, after its review round's fixes are pushed and just before merge, is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/skills-guru/references/maintaining.md`. It reads everything merged since that package's last `<name>_<version>` tag, or the whole trunk history where the package has none. Beside that range it reads the sweep's own issue findings, its own pull request's review threads and its branch's fix commits. No merged range ever holds those: the sweep's pull request is unmerged while the sweep runs, and the tag on its squash commit starts the next range after it. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
+The sweep's last act, after its review round's fixes are pushed and just before merge, is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/agents-guru/references/maintaining.md`. It reads everything merged since that package's last `<name>_<version>` tag, or the whole trunk history where the package has none. Beside that range it reads the sweep's own issue findings, its own pull request's review threads and its branch's fix commits. No merged range ever holds those: the sweep's pull request is unmerged while the sweep runs, and the tag on its squash commit starts the next range after it. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
 
-New tokens land on the sweep's own branch only when the package is `skills-guru`. The lists live under `skills/skills-guru/assets/`, so any other sweep that landed them would move a second package's version inside its own release, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`. That sweep opens a `skills-guru` issue for its tokens instead.
+New tokens land on the sweep's own branch only when the package is `agents-guru`. The lists live under `skills/agents-guru/assets/`, so any other sweep that landed them would move a second package's version inside its own release, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`. That sweep opens a `skills-guru` issue for its tokens instead.
 
 The sweep issue carries the step as its last acceptance criterion, naming its own findings, review threads and fix commits as sources beside the merged range. It records on itself which findings and commits were read. The criterion is what `merge` audits, so a skipped step is reported at the door rather than lost. The record lets a later sweep over the same range skip what this one already judged.
 
-**Every finding the reading stands behind is fixed on the sweep's own branch, and nothing waits for a later release.** This is the rule for every sweep, an epic's last child included, so no epic states an answer of its own to it. The tag asserts the package was read whole, so a defect found and left standing makes that assertion false. Whether a finding is a defect at all is settled by `skills/skills-guru/workflows/review.md` Step 5, which has the resumed reviewer confirm or refute one set aside as phantom. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
+**Every finding the reading stands behind is fixed on the sweep's own branch, and nothing waits for a later release.** This is the rule for every sweep, an epic's last child included, so no epic states an answer of its own to it. The tag asserts the package was read whole, so a defect found and left standing makes that assertion false. Whether a finding is a defect at all is settled by `skills/agents-guru/workflows/review.md` Step 5, which has the resumed reviewer confirm or refute one set aside as phantom. A hotfix is the one release that triages, per *A hotfix runs the sweep too* in `AGENTS.md`.
 
-**The run is inline, and the reviewer that produced the findings is kept resumable with its id**, which is what `skills/skills-guru/workflows/review.md` Step 5 asks for when it later judges the fix commit.
+**The run is inline, and the reviewer that produced the findings is kept resumable with its id**, which is what `skills/agents-guru/workflows/review.md` Step 5 asks for when it later judges the fix commit.
 
-**The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the skills-guru rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
+**The change itself is covered by the round**, against the standard `AGENTS.md` states under *Skill files follow the agents-guru rules*. The reviewer reads that file by its own precedence, so a broken mechanical rule is an ordinary `standards` finding.
 
 ## What an epic here must carry
 
