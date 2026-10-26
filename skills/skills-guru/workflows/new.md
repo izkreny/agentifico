@@ -26,7 +26,7 @@ A skill is worth writing when one of these happened: a multi-step workflow prove
 | `disable-model-invocation` | `true` means explicit invocation only, never auto-discovered, and it blocks the model's call through the Skill tool, a spawned subagent's included (Claude Code 2.1.252). Use it for side effects the owner should trigger themselves, and for reference material that would otherwise fire on unrelated work. A skill an agent loads through the Skill tool takes `user-invocable: false` instead, whatever its side effects, because this field would block that very call |
 | `user-invocable` | Defaults to `true`. `false` hides the skill from the `/` menu and from `/name` while the model can still invoke it: the field for a skill whose only caller is an agent, through the Skill tool |
 
-**Any long plain value takes a block scalar, not the description alone.** The truncation belongs to the key rather than to that one field: the same space-and-`#` edit drops the tail of whichever key it lands in, and `compatibility` is the field that most often grows long enough to attract one. The specification caps `compatibility` far below the description, so that field runs out on much less text than the one an author is watching; `workflows/check.md` states each ceiling in its `skill-frontmatter-parsed` entry. A block scalar has no comment, anchor, tag or escape processing, so the whole family is unreachable inside it.
+**Any long plain value takes a block scalar, not the description alone.** The truncation belongs to the key rather than to that one field: the same space-and-`#` edit drops the tail of whichever key it lands in, and `compatibility` is the field that most often grows long enough to attract one. The specification caps `compatibility` far below the description, so that field runs out on much less text than the one an author is watching; `scripts/rules/skill-frontmatter-parsed.js` holds each ceiling. A block scalar has no comment, anchor, tag or escape processing, so the whole family is unreachable inside it.
 
 Write the description as trigger phrases plus a boundary. **Say what the skill is not for**: one boundary sentence prevents more misfires than another trigger phrase adds.
 
@@ -38,7 +38,7 @@ The format's authority is the [Agent Skills specification](https://agentskills.i
 
 ### Let size decide whether to split
 
-Under roughly 2,000 words, one `SKILL.md` is right and splitting it is overhead. Measure size in words of prose, which is how `SkillSplit` in `workflows/check.md` counts it, or in tokens, never in lines: a line count depends on the author's wrapping style, and an unwrapped paragraph is one line where an 80-column author writes six.
+Under roughly 2,000 words, one `SKILL.md` is right and splitting it is overhead. Measure size in words of prose, which is how `assets/Agentifico/SkillSplit.yml` counts it, or in tokens, never in lines: a line count depends on the author's wrapping style, and an unwrapped paragraph is one line where an 80-column author writes six.
 
 Past that, split: `SKILL.md` keeps the frontmatter, the shared model and a routing table; each operation gets `workflows/<verb>.md`; long reference material gets `references/<topic>.md`. The router reads exactly one workflow and follows it inline, which keeps loaded context proportional to the task rather than to the skill.
 
@@ -100,6 +100,10 @@ A banner ages into a lie because nothing updates it; a version attached to a spe
 
 Duplication between a global instructions file and a skill drifts, and the drifted copy is the one nobody is looking at. When a fact must appear twice, one copy owns it and every other copy points at it: a stale pointer fails loudly, since the heading it names is gone, while a stale copy fails silently, two truths disagreeing and both looking right.
 
+### Point at the code that owns a detail, never restate it
+
+A document about a script, a rule or a configuration file names that file and says what the code cannot: what it is for, what it reads, and what it leaves to another tool or to a reader. Every defect it reports, every case it leaves alone and every message are the code's to say, because the code is what runs and what the suite tests, so a prose copy drifts with nothing to fail and is still the copy a reader trusts.
+
 ### Code blocks are Bash
 
 An agent executes a skill's commands through its shell tool, which is Bash; fish or zsh syntax in a skill fails at execution time, on the machine of whoever installed it.
@@ -119,7 +123,7 @@ Inside the skill, relative to the skill's own directory and say so; for user loc
 - `<repo-root>`: the top of the repository the skill serves.
 - `<home-dir>`: the user's home directory, in prose only.
 
-A path to a file the skill holds stays bare, because a bare path is the one the check can verify. Any other path in prose takes a placeholder rather than single quotes, because the placeholder tells the reader which tree the file lives in and a quoted path tells them nothing. Which spans the path rules read is in `workflows/check.md`.
+A path to a file the skill holds stays bare, because a bare path is the one the check can verify. Any other path in prose takes a placeholder rather than single quotes, because the placeholder tells the reader which tree the file lives in and a quoted path tells them nothing. `scripts/rules/paths.js` decides which spans the path rules read.
 
 ### No hard wrapping
 

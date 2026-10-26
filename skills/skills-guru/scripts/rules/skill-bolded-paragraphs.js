@@ -1,4 +1,4 @@
-// Only the top-level tokens are read, which keeps a paragraph inside an item or a quote out of the count, per the skill-bolded-paragraphs entry in workflows/check.md.
+// Only the top-level tokens are read, which keeps a paragraph inside an item or a quote out of the count, per "At most five paragraphs in a row open with a bolded lead" in workflows/new.md.
 import { CAP } from "./skill-bolded-runs.js";
 import { opensBold, paragraphOf } from "./skill-continuations.js";
 

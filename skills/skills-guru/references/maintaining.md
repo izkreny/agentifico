@@ -77,7 +77,7 @@ git log --patch origin/main..<branch> -- '*.md'
 
 A token widens past its recorded phrasing only where the widening is quite obvious, and only with the owner's approval. A token is evidence, per *Where the prose rules live*, so a wider list is a claim no review made. The approval is recorded in a thread on the pull request that widens the token. The token's comment then cites that pull request in place of its `Narrows` line.
 
-**Then the check runs over this skill, and every place the token fires is fixed or excepted.** A true finding is fixed in the prose. A phrase that is right where it stands goes into the rule's `exceptions` with the reason beside it, never into a directive, per *The directive rule* in `workflows/check.md`.
+**Then the check runs over this skill, and every place the token fires is fixed or excepted.** A true finding is fixed in the prose. A phrase that is right where it stands goes into the rule's `exceptions` with the reason beside it, never into a directive, per the message of `scripts/rules/skill-vale-directive.js`.
 
 ## The suite
 
