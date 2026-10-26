@@ -33,7 +33,7 @@ A public repository permanently publishes everything in the skill. Strip anythin
 
 ## Step 4 - Make the code blocks Bash
 
-The rule and its reason are in `workflows/new.md` ("Code blocks are Bash"), and `skill-bash-blocks` reports the phrasings *The Bash rule* in `workflows/check.md` names. What export adds: a local skill may legitimately carry its author's interactive shell, so convert every block and re-test each converted command, since a translation that was never run is a guess with a shebang.
+The rule and its reason are in `workflows/new.md` ("Code blocks are Bash"), and `skill-bash-blocks`, in `scripts/rules/skill-bash-blocks.js`, reports the phrasings that file records. What export adds: a local skill may legitimately carry its author's interactive shell, so convert every block and re-test each converted command, since a translation that was never run is a guess with a shebang.
 
 ## Step 5 - Verify the exported copy
 
