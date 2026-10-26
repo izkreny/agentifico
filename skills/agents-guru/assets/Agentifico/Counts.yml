@@ -54,13 +54,15 @@ tests:
       # Title
 
       It covers all three forms of appointment.
-      Reads the two caps above and the three most memorable ones.
+      Reads the two caps above.
+      It keeps the three most memorable ones.
       The standards are the three below.
       Two lines matter: the subject and the body.
       It runs in three parts: read, judge, post.
       Both checks are per stack rather than per branch.
       Take whichever of the two applies.
-      Two of them change what an agent does, and both sources are named.
+      Two of them change what an agent does.
+      It says both sources are named.
       Three cures.
       Its suite and its check, both needing a one-time install, run locally.
       Both, like every validator with a real parser, accept the truncation.
@@ -78,28 +80,28 @@ tests:
     want: |
       3:11:Agentifico.Counts:Write sentences that survive change: 'all three' counts adjacent content, and the list is the authority on its own length.
       4:7:Agentifico.Counts:Write sentences that survive change: 'the two caps' counts adjacent content, and the list is the authority on its own length.
-      4:30:Agentifico.Counts:Write sentences that survive change: 'the three most' counts adjacent content, and the list is the authority on its own length.
-      5:19:Agentifico.Counts:Write sentences that survive change: 'the three below' counts adjacent content, and the list is the authority on its own length.
-      6:1:Agentifico.Counts:Write sentences that survive change: 'Two lines matter' counts adjacent content, and the list is the authority on its own length.
-      7:4:Agentifico.Counts:Write sentences that survive change: 'runs in three parts' counts adjacent content, and the list is the authority on its own length.
-      8:1:Agentifico.Counts:Write sentences that survive change: 'Both checks' counts adjacent content, and the list is the authority on its own length.
-      9:6:Agentifico.Counts:Write sentences that survive change: 'whichever of the two' counts adjacent content, and the list is the authority on its own length.
-      10:1:Agentifico.Counts:Write sentences that survive change: 'Two of them' counts adjacent content, and the list is the authority on its own length.
-      10:44:Agentifico.Counts:Write sentences that survive change: 'both sources' counts adjacent content, and the list is the authority on its own length.
-      11:1:Agentifico.Counts:Write sentences that survive change: 'Three cures' counts adjacent content, and the list is the authority on its own length.
-      12:26:Agentifico.Counts:Write sentences that survive change: 'both needing' counts adjacent content, and the list is the authority on its own length.
-      13:1:Agentifico.Counts:Write sentences that survive change: 'Both' counts adjacent content, and the list is the authority on its own length.
-      14:6:Agentifico.Counts:Write sentences that survive change: 'three above' counts adjacent content, and the list is the authority on its own length.
-      15:1:Agentifico.Counts:Write sentences that survive change: 'Two things' counts adjacent content, and the list is the authority on its own length.
-      16:1:Agentifico.Counts:Write sentences that survive change: 'Only two headings' counts adjacent content, and the list is the authority on its own length.
-      17:15:Agentifico.Counts:Write sentences that survive change: 'are three files' counts adjacent content, and the list is the authority on its own length.
-      18:34:Agentifico.Counts:Write sentences that survive change: 'with one exception' counts adjacent content, and the list is the authority on its own length.
-      19:19:Agentifico.Counts:Write sentences that survive change: 'both figures' counts adjacent content, and the list is the authority on its own length.
-      20:25:Agentifico.Counts:Write sentences that survive change: 'twice over' counts adjacent content, and the list is the authority on its own length.
-      21:50:Agentifico.Counts:Write sentences that survive change: 'the three' counts adjacent content, and the list is the authority on its own length.
-      22:28:Agentifico.Counts:Write sentences that survive change: 'Two causes' counts adjacent content, and the list is the authority on its own length.
-      23:11:Agentifico.Counts:Write sentences that survive change: 'the three ******** lines' counts adjacent content, and the list is the authority on its own length.
-      24:22:Agentifico.Counts:Write sentences that survive change: 'which half of' counts adjacent content, and the list is the authority on its own length.
+      5:10:Agentifico.Counts:Write sentences that survive change: 'the three most' counts adjacent content, and the list is the authority on its own length.
+      6:19:Agentifico.Counts:Write sentences that survive change: 'the three below' counts adjacent content, and the list is the authority on its own length.
+      7:1:Agentifico.Counts:Write sentences that survive change: 'Two lines matter' counts adjacent content, and the list is the authority on its own length.
+      8:4:Agentifico.Counts:Write sentences that survive change: 'runs in three parts' counts adjacent content, and the list is the authority on its own length.
+      9:1:Agentifico.Counts:Write sentences that survive change: 'Both checks' counts adjacent content, and the list is the authority on its own length.
+      10:6:Agentifico.Counts:Write sentences that survive change: 'whichever of the two' counts adjacent content, and the list is the authority on its own length.
+      11:1:Agentifico.Counts:Write sentences that survive change: 'Two of them' counts adjacent content, and the list is the authority on its own length.
+      12:9:Agentifico.Counts:Write sentences that survive change: 'both sources' counts adjacent content, and the list is the authority on its own length.
+      13:1:Agentifico.Counts:Write sentences that survive change: 'Three cures' counts adjacent content, and the list is the authority on its own length.
+      14:26:Agentifico.Counts:Write sentences that survive change: 'both needing' counts adjacent content, and the list is the authority on its own length.
+      15:1:Agentifico.Counts:Write sentences that survive change: 'Both' counts adjacent content, and the list is the authority on its own length.
+      16:6:Agentifico.Counts:Write sentences that survive change: 'three above' counts adjacent content, and the list is the authority on its own length.
+      17:1:Agentifico.Counts:Write sentences that survive change: 'Two things' counts adjacent content, and the list is the authority on its own length.
+      18:1:Agentifico.Counts:Write sentences that survive change: 'Only two headings' counts adjacent content, and the list is the authority on its own length.
+      19:15:Agentifico.Counts:Write sentences that survive change: 'are three files' counts adjacent content, and the list is the authority on its own length.
+      20:34:Agentifico.Counts:Write sentences that survive change: 'with one exception' counts adjacent content, and the list is the authority on its own length.
+      21:19:Agentifico.Counts:Write sentences that survive change: 'both figures' counts adjacent content, and the list is the authority on its own length.
+      22:25:Agentifico.Counts:Write sentences that survive change: 'twice over' counts adjacent content, and the list is the authority on its own length.
+      23:50:Agentifico.Counts:Write sentences that survive change: 'the three' counts adjacent content, and the list is the authority on its own length.
+      24:28:Agentifico.Counts:Write sentences that survive change: 'Two causes' counts adjacent content, and the list is the authority on its own length.
+      25:11:Agentifico.Counts:Write sentences that survive change: 'the three ******** lines' counts adjacent content, and the list is the authority on its own length.
+      26:22:Agentifico.Counts:Write sentences that survive change: 'which half of' counts adjacent content, and the list is the authority on its own length.
   - name: leaves caps, a bare both and code alone
     input: |
       # Title
