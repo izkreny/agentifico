@@ -610,6 +610,10 @@ describe("skill-bash-blocks", () => {
     ["b-hyphen-bare", "```bash\ncat <<END-BODY\nok\nEND-BODY\nmake; and true\n```", "; and"],
     ["good-hyphen-quoted", "```bash\ncat <<'END-BODY'\nfixed; and pushed\nEND-BODY\n```", null],
     ["good-digit-terminator", "```bash\ncat <<1EOF\nfixed; and pushed\n1EOF\n```", null],
+    ["good-backslash-heredoc", "```bash\ncat > body.md <<\\EOF\nFixed it; and pushed.\nEOF\n```", null],
+    // Bash ends a heredoc only on its exact terminator line, stripping leading tabs for `<<-` alone.
+    ["good-indented-terminator", "```bash\ncat <<EOF\nok\n  EOF\nset files (ls)\nEOF\n```", null],
+    ["b-tab-terminator", "```bash\ncat <<-EOF\n\tok\n\tEOF\nmake; and true\n```", "; and"],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
