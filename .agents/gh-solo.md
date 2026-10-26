@@ -148,7 +148,7 @@ bash scripts/test-manifest-check.sh
 | `gh-solo` | `plugins/gh-solo/` |
 | `rails-style` | `skills/rails-style/` |
 | `review-text` | `skills/review-text/` |
-| `skills-guru` | `skills/agents-guru/` |
+| `agents-guru` | `skills/agents-guru/` |
 | `socratic-tutor` | `skills/socratic-tutor/` |
 | `repo` | the repository itself: `README.md`, `.claude-plugin/marketplace.json`, `LICENSE`, `AGENTS.md`, this file |
 
@@ -159,7 +159,7 @@ bash scripts/test-manifest-check.sh
 **The mandatory-axis audit has to be rewritten here, not reused.** The plugin's version names the layer values it excludes, and none of them exists in this repository, so it excludes nothing and reports every open issue as unlabelled. This is the one that works:
 
 ```bash
-gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:skills-guru -label:socratic-tutor -label:repo"
+gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:agents-guru -label:socratic-tutor -label:repo"
 ```
 
 **A new value in the table above is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
@@ -186,7 +186,7 @@ This is the sweep that precedes the <name>_<version> tag. Give every finding a s
 
 The sweep's last act, after its review round's fixes are pushed and just before merge, is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/agents-guru/references/maintaining.md`. It reads everything merged since that package's last `<name>_<version>` tag, or the whole trunk history where the package has none. Beside that range it reads the sweep's own issue findings, its own pull request's review threads and its branch's fix commits. No merged range ever holds those: the sweep's pull request is unmerged while the sweep runs, and the tag on its squash commit starts the next range after it. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
 
-New tokens land on the sweep's own branch only when the package is `agents-guru`. The lists live under `skills/agents-guru/assets/`, so any other sweep that landed them would move a second package's version inside its own release, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`. That sweep opens a `skills-guru` issue for its tokens instead.
+New tokens land on the sweep's own branch only when the package is `agents-guru`. The lists live under `skills/agents-guru/assets/`, so any other sweep that landed them would move a second package's version inside its own release, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`. That sweep opens an `agents-guru` issue for its tokens instead.
 
 The sweep issue carries the step as its last acceptance criterion, naming its own findings, review threads and fix commits as sources beside the merged range. It records on itself which findings and commits were read. The criterion is what `merge` audits, so a skipped step is reported at the door rather than lost. The record lets a later sweep over the same range skip what this one already judged.
 
