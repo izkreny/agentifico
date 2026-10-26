@@ -82,7 +82,8 @@ function routes(tokens) {
       if (p) for (const verb of conditionVerbs(p)) out.push({ verb, line: p.startLine });
     }
   }
-  return found ? out : null;
+  // A routing section yielding no route is a shape the rule cannot read, such as a table, and not proof that nothing routes.
+  return found && out.length ? out : null;
 }
 
 export default {
