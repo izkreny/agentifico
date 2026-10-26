@@ -2,9 +2,9 @@
 
 The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs everything: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
-**Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `yaml files` for *The YAML rules*, `prose rules` for Vale's alerts.
+**Findings group by heading**: `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `yaml files` for *The YAML rules*, `plugin files` for *The plugin file rules*, `prose rules` for Vale's alerts.
 
-**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, printed a version the check could not read, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown and YAML files alone, since a code file's only reader is the process that did not start.
+**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, printed a version the check could not read, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown, YAML and plugin files alone, since a code file's only reader is the process that did not start.
 
 ## Setup, once per install
 
@@ -36,6 +36,8 @@ A target the check cannot read fails the run, naming that target: a path that do
 Every `*.js` and `*.py` file under the target is read too, under the same exclusions, by the prose rules alone: Vale reads a code file as its comments and docstrings and skips the code and its string literals, so a comment is held to the rules a paragraph is, and markdownlint never sees the file. When Vale ran, a code file counts in the closing line's file count as a markdown one does, so a code file that raised nothing is visible there rather than silently skipped.
 
 Every `*.yml` and `*.yaml` file under the target is read too, under the same exclusions, by the check itself and by neither linter, per *The YAML rules*. A YAML file counts in the closing line's file count whether or not Vale ran.
+
+A plugin's hooks file and manifest are read too, by the check itself and by fixed paths, per *The plugin file rules*. Each counts in the closing line's file count as a YAML file does.
 
 How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
@@ -106,6 +108,14 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 ## The YAML rules
 
 `scripts/check.js` parses every YAML file under the target and holds its comments to *No hard wrapping* in `workflows/new.md`. It reads comments off the parser's tree, and neither linter reads a YAML file. Commented-out YAML reads as a wrap, and deleting the block is the fix.
+
+## The plugin file rules
+
+**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json` and `<plugin-dir>/.claude-plugin/plugin.json` to what Claude Code loads. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and each file is read by its fixed path because the walk skips dot-folders.
+
+`plugin-manifest` reports a key that leaves files in its default folder unloaded, even when a listed path inside the folder silences Claude Code's own warning. A file or folder named with a leading dot is skipped. A folder the key drops whole is one issue. Each file left beside a listed one is a warning of its own, since a plugin may leave it out on purpose.
+
+A file that is not valid JSON, and every mistake `claude plugin validate --strict` reports, are left to that command.
 
 ## The prose rules
 

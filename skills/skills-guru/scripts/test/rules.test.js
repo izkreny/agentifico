@@ -4,6 +4,7 @@ import { lint } from "markdownlint/promise";
 import { describe, it } from "vitest";
 import agentFrontmatter, { defects as agentDefects } from "../rules/agent-frontmatter.js";
 import { description as descriptionValue } from "../rules/frontmatter.js";
+import { hooksDefects } from "../rules/plugin-files.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
 import boldedRuns from "../rules/skill-bolded-runs.js";
 import continuations from "../rules/skill-continuations.js";
@@ -524,5 +525,71 @@ describe("agent-frontmatter", () => {
         JSON.stringify(found),
       );
     });
+  }
+});
+
+describe("plugin-hooks", () => {
+  const hooksFile = (event, group) => JSON.stringify({ hooks: { [event]: [group] } }, null, 2);
+  const command = (extra = {}) => ({ type: "command", command: "echo hi", ...extra });
+  const http = (extra = {}) => ({ type: "http", url: "https://example.com/hook", ...extra });
+  const expectHook = (source, part) => {
+    const found = hooksDefects(source);
+    assert.ok(
+      found.some((d) => d.detail.includes(part)),
+      `wanted "${part}", got ${JSON.stringify(found)}`,
+    );
+  };
+  const expectNoHook = (source) => assert.deepEqual(hooksDefects(source), []);
+
+  for (const event of [
+    "CwdChanged",
+    "UserPromptSubmit",
+    "PostToolBatch",
+    "Stop",
+    "TeammateIdle",
+    "TaskCreated",
+    "TaskCompleted",
+    "WorktreeCreate",
+    "WorktreeRemove",
+    "MessageDisplay",
+  ]) {
+    it(`a matcher on ${event}`, () => expectHook(hooksFile(event, { matcher: "x", hooks: [command()] }), `matcher on ${event}`));
+  }
+  it("a matcher on an event with matcher support", () => expectNoHook(hooksFile("PreToolUse", { matcher: "Bash", hooks: [command()] })));
+  it("no matcher on an event without matcher support", () => expectNoHook(hooksFile("Stop", { hooks: [command()] })));
+  it("async on an http hook", () => expectHook(hooksFile("PreToolUse", { hooks: [http({ async: true })] }), "async"));
+  it("async on a command hook", () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ async: true })] })));
+  it("once in a hooks file", () => expectHook(hooksFile("PreToolUse", { hooks: [command({ once: true })] }), "once"));
+  it("a header naming an unlisted variable", () =>
+    expectHook(hooksFile("PreToolUse", { hooks: [http({ headers: { Authorization: "Bearer $MY_TOKEN" } })] }), "MY_TOKEN"));
+  it("a braced header variable that is unlisted", () =>
+    expectHook(hooksFile("PreToolUse", { hooks: [http({ headers: { "X-Key": `\${API_KEY}` }, allowedEnvVars: ["OTHER"] })] }), "API_KEY"));
+  it("a header naming listed variables", () =>
+    expectNoHook(
+      hooksFile("PreToolUse", {
+        hooks: [http({ headers: { Authorization: "Bearer $MY_TOKEN", "X-Key": `\${API_KEY}` }, allowedEnvVars: ["MY_TOKEN", "API_KEY"] })],
+      }),
+    ));
+  it("user_config in a shell-form command", () =>
+    expectHook(hooksFile("PreToolUse", { hooks: [command({ command: `curl \${user_config.url}` })] }), "user_config"));
+  // Exec form substitutes into command as well as args, so only a missing args makes the same command a defect.
+  it("user_config in an exec-form command", () =>
+    expectNoHook(hooksFile("PreToolUse", { hooks: [command({ command: `curl \${user_config.url}`, args: [] })] })));
+  it("a finding names the line its key sits on", () => {
+    const source = hooksFile("Stop", { matcher: "x", hooks: [command()] });
+    const line = source.split("\n").findIndex((l) => l.includes('"matcher"')) + 1;
+    assert.deepEqual(
+      hooksDefects(source).map((d) => d.line),
+      [line],
+    );
+  });
+  // A file that is not JSON is the validator's to report, so the rule says nothing rather than a second thing.
+  it("a file that is not valid JSON", () => expectNoHook('{ "hooks": { "Stop": [ { "matcher": "x", "hooks": [] }, ] } }'));
+  for (const [id, source] of [
+    ["an event map that is a list", '{ "hooks": [] }'],
+    ["a top level that is a list", "[]"],
+    ["a top level that is null", "null"],
+  ]) {
+    it(id, () => expectNoHook(source));
   }
 });

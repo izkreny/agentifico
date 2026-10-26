@@ -175,6 +175,47 @@ beforeAll(() => {
   fs.mkdirSync(path.join(tmp, "project", ".claude", "agents"), { recursive: true });
   fs.writeFileSync(path.join(tmp, "project", ".claude", "agents", "nameless.md"), "---\ndescription: Reviews code.\n---\n\nBody.\n");
 
+  // Each plugin carries markdown, since a folder with none is a target the check refuses before it looks for a plugin.
+  const plugins = path.join(tmp, "plugins");
+  const put = (file, text) => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, text);
+  };
+  const mkPlugin = (name, manifest, files = {}) => {
+    put(path.join(plugins, name, ".claude-plugin", "plugin.json"), manifest);
+    put(path.join(plugins, name, "README.md"), `# ${name}\n\nbody\n`);
+    for (const [file, text] of Object.entries(files)) put(path.join(plugins, name, file), text);
+  };
+  const stopMatcher = JSON.stringify({ hooks: { Stop: [{ matcher: "x", hooks: [{ type: "command", command: "true" }] }] } }, null, 2);
+  mkPlugin("plug", JSON.stringify({ name: "plug", commands: "./extra/", experimental: { monitors: [] } }, null, 2), {
+    "commands/x.md": "# X\n\nbody\n",
+    "monitors/monitors.json": "[]\n",
+    "hooks/hooks.json": stopMatcher,
+  });
+  mkPlugin("listed", JSON.stringify({ name: "listed", commands: ["./commands/", "./extra/"] }), { "commands/x.md": "# X\n\nbody\n" });
+  mkPlugin("inside", JSON.stringify({ name: "inside", commands: ["./commands/deploy.md"] }), { "commands/deploy.md": "# Deploy\n\nbody\n" });
+  mkPlugin("partial", JSON.stringify({ name: "partial", commands: ["./commands/deploy.md"] }), {
+    "commands/deploy.md": "# Deploy\n\nbody\n",
+    "commands/rollback.md": "# Rollback\n\nbody\n",
+    "commands/.gitkeep": "",
+    "commands/.drafts/old.md": "# Old\n\nbody\n",
+  });
+  mkPlugin("mapped", JSON.stringify({ name: "mapped", commands: { deploy: { source: "./commands/deploy.md" } } }), {
+    "commands/deploy.md": "# Deploy\n\nbody\n",
+  });
+  mkPlugin("hollow", JSON.stringify({ name: "hollow", agents: "./elsewhere/" }));
+  fs.mkdirSync(path.join(plugins, "hollow", "agents"));
+  mkPlugin("broken", "{", { "hooks/hooks.json": '{ "hooks": { "Stop": [ { "matcher": "x", "hooks": [] }, ] } }' });
+  mkPlugin("linked", JSON.stringify({ name: "linked", agents: "./other/" }), { "shared/rev.md": "# Rev\n\nbody\n" });
+  fs.mkdirSync(path.join(plugins, "linked", "agents"));
+  fs.symlinkSync(path.join("..", "shared", "rev.md"), path.join(plugins, "linked", "agents", "rev.md"));
+  // No markdown, so only a search for .claude-plugin itself finds this plugin under a wider target.
+  put(path.join(plugins, "hookonly", ".claude-plugin", "plugin.json"), '{ "name": "hookonly" }');
+  put(path.join(plugins, "hookonly", "hooks", "hooks.json"), stopMatcher);
+  // A hooks file reported for a matcher, so this folder read as a plugin's is a named failure.
+  put(path.join(plugins, "unmarked", "README.md"), "# unmarked\n\nbody\n");
+  put(path.join(plugins, "unmarked", "hooks", "hooks.json"), stopMatcher);
+
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
   fs.writeFileSync(path.join(tmp, "dotted", ".hidden", "w.md"), "- **lead.** first\n\n  the reason\n\n  a second paragraph\n");
@@ -429,6 +470,55 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "project", ".claude", "agents", "nameless.md"));
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^ {2}nameless\.md:\d+ agent-frontmatter .*no name/m);
+  });
+  it("a plugin's hooks file and manifest are read by their fixed paths", () => {
+    const r = run(path.join(tmp, "plugins", "plug"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^plugin files: 3 issues, 0 warnings$/m);
+    assert.match(r.out, /^ {2}hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/m);
+    assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) commands replaces the default commands\/, which still holds files/m);
+    assert.match(
+      r.out,
+      /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) experimental\.monitors replaces the default monitors\/monitors\.json, which Claude Code now ignores$/m,
+    );
+    // Both markdown files and both JSON files, so a JSON file read is a file checked.
+    assert.equal(r.linted, 4, r.out);
+  });
+  it("a plugin under a package target is found", () => {
+    assert.match(run(path.join(tmp, "plugins")).out, /^ {2}plug\/hooks\/hooks\.json:\d+ plugin-hooks /m);
+  });
+  it("a plugin holding no markdown is found under a package target", () => {
+    assert.match(run(path.join(tmp, "plugins")).out, /^ {2}hookonly\/hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/m);
+  });
+  it("a key that lists its own default folder, or a path inside it, in a list or an object map, shadows nothing", () => {
+    const r = run(path.join(tmp, "plugins"));
+    assert.doesNotMatch(r.out, /^ {2}(listed|inside|mapped)\/.*plugin-manifest/m);
+  });
+  it("each file a key leaves out of its default folder is a warning, even beside a listed one", () => {
+    const r = run(path.join(tmp, "plugins", "partial"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(
+      r.out,
+      /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(warning\) commands replaces the default commands\/, so Claude Code ignores commands\/rollback\.md$/m,
+    );
+    assert.doesNotMatch(r.out, /ignores commands\/(deploy\.md|\.gitkeep|\.drafts)/);
+    assert.match(r.out, /^plugin files: 0 issues, 1 warnings$/m);
+  });
+  it("a default folder dropped whole fails the run, and one holding only a symlink still holds files", () => {
+    const r = run(path.join(tmp, "plugins", "linked"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /plugin-manifest \(error\) agents replaces the default agents\//);
+  });
+  it("an empty default folder is not shadowed", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "hollow")).out, /plugin-manifest/);
+  });
+  it("a file that is not valid JSON is left to the validator", () => {
+    const r = run(path.join(tmp, "plugins", "broken"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^plugin files: none$/m);
+  });
+  it("a hooks file with no .claude-plugin beside it is not a plugin's", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "unmarked")).out, /plugin-hooks/);
   });
   it("an agents folder with no .claude-plugin beside it is not a plugin's", () => {
     assert.doesNotMatch(run(path.join(tmp, "loose")).out, /agent-frontmatter/);

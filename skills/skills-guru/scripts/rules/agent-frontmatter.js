@@ -1,7 +1,7 @@
 // Each limit is the sub-agents page's or the plugin components page's, at https://code.claude.com/docs/en/sub-agents and https://code.claude.com/docs/en/plugins/components.
-import fs from "node:fs";
 import path from "node:path";
 import { FRONTMATTER_LINE, frontmatter, parsed } from "./frontmatter.js";
+import { isPluginRoot } from "./plugin-files.js";
 
 const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
 
@@ -11,8 +11,7 @@ export function agentKind(file) {
   for (let i = parts.length - 2; i > 0; i--) {
     if (parts[i] !== "agents") continue;
     if (parts[i - 1] === ".claude") return "standalone";
-    const plugin = path.join(parts.slice(0, i).join(path.sep) || path.sep, ".claude-plugin");
-    if (fs.statSync(plugin, { throwIfNoEntry: false })?.isDirectory()) return "plugin";
+    if (isPluginRoot(parts.slice(0, i).join(path.sep) || path.sep)) return "plugin";
   }
   return null;
 }
