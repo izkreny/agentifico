@@ -21,8 +21,8 @@ function mk(dir, fm, readme = README) {
 }
 const block = (name, text = "Fine.") => `name: ${name}\ndescription: |\n  ${text}`;
 
-function run(target, env = process.env) {
-  const r = spawnSync(process.execPath, [check, target], { encoding: "utf8", env });
+function run(targets, env = process.env, cwd = undefined) {
+  const r = spawnSync(process.execPath, [check, ...[targets].flat()], { encoding: "utf8", env, cwd });
   const linted = /^(\d+) files checked/m.exec(r.stdout);
   return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
 }
@@ -153,6 +153,14 @@ beforeAll(() => {
   }
   // A stream of several documents is well-formed YAML, so it parses rather than failing as one document with a second appended.
   fs.writeFileSync(path.join(tmp, "yaml-separate", "stream.yaml"), "a: 1\n---\nb: 2\n");
+
+  // Every skill-only rule reports this file's frontmatter and place inside a skill when it is named SKILL.md, so one firing on another name is a named failure.
+  mk(path.join(tmp, "not-a-skill"), block("not-a-skill"));
+  fs.mkdirSync(path.join(tmp, "not-a-skill", "nested"));
+  fs.writeFileSync(
+    path.join(tmp, "not-a-skill", "nested", "agents.md"),
+    "---\nname: Wrong Name\ndescription: review PR #N and more\ndisable-model-invocation: yes\n---\n\n# Agents\n\nbody\n",
+  );
 
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
@@ -365,6 +373,66 @@ describe("check.js", () => {
   it("a relative target resolves against the working directory", () => {
     const r = spawnSync(process.execPath, [check, "good"], { cwd: tmp, encoding: "utf8" });
     assert.equal(r.status, 0, r.stdout + r.stderr);
+  });
+  it("several folder targets are each checked, every path printed from the folder they share", () => {
+    const r = run([path.join(tmp, "good"), path.join(tmp, "bad")]);
+    assert.equal(r.code, 1, r.out);
+    assert.equal(r.linted, 4, r.out);
+    assert.match(r.out, /^ {2}bad\/SKILL\.md:\d+ skill-description/m);
+    assert.match(r.out, /^2 skill\(s\) found under /m);
+    assert.match(r.out, /^ {2}good$/m);
+  });
+  it("a wrong target among right ones fails the run, naming it", () => {
+    const r = run([path.join(tmp, "good"), path.join(tmp, "empty")]);
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /no markdown file found under .*empty: nothing was checked/);
+  });
+  it("a single file is checked, and printed by its own name", () => {
+    const r = run(path.join(tmp, "prose-only", "notes.md"));
+    assert.equal(r.code, 1, r.out);
+    assert.equal(r.linted, 1, r.out);
+    assert.match(r.out, /^ {2}notes\.md:\d+ Agentifico\.Position \(error\)/m);
+  });
+  it("a file named inside a dot-folder is read, where a walk skips it", () => {
+    const r = run(path.join(tmp, "dotted", ".hidden", "w.md"));
+    assert.equal(r.code, 1, r.out);
+    assert.equal(r.linted, 1, r.out);
+    assert.match(r.out, /^ {2}w\.md:\d+ skill-continuations/m);
+  });
+  it("a file not named SKILL.md gets no skill-only rule", () => {
+    // Run from tmp, so the skill around the file is inside the root the layout search stops at.
+    const r = run(path.join("not-a-skill", "nested", "agents.md"), process.env, tmp);
+    assert.equal(r.linted, 1, r.out);
+    assert.match(r.out, /^skill rules: none$/m);
+  });
+  it("a YAML file named alone is read by the YAML rules", () => {
+    const r = run(path.join(tmp, "yaml-duplicate", "rule.yml"));
+    assert.equal(r.code, 1, r.out);
+    assert.equal(r.linted, 1, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key /m);
+  });
+  it("a file two targets reach is checked once", () => {
+    const r = run([path.join(tmp, "good"), path.join(tmp, "good", "SKILL.md")]);
+    assert.equal(r.code, 0, r.out);
+    assert.equal(r.linted, 2, r.out);
+  });
+  it("a path that does not exist fails, naming it", () => {
+    const r = run([path.join(tmp, "good"), path.join(tmp, "nope.md")]);
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /no such file or folder: .*nope\.md/);
+  });
+  it("a file no reader takes fails, naming it", () => {
+    const r = run(path.join(tmp, "notes", "notes.txt"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /no reader takes .*notes\.txt: nothing was checked/);
+  });
+  it("a file target's paths resolve against the working directory", () => {
+    const file = path.join("skills", "inner", "workflows", "deep", "only-root.md");
+    const inside = run(file, process.env, path.join(tmp, "refs"));
+    assert.doesNotMatch(inside.out, /skill-referenced-paths/);
+    assert.equal(inside.linted, 1, inside.out);
+    const outside = run(path.join(tmp, "refs", file), process.env, tmp);
+    assert.match(outside.out, /only-root\.md:\d+ skill-referenced-paths .*top\.md/);
   });
   it("the default target is the working directory", () => {
     const r = spawnSync(process.execPath, [check], { cwd: path.join(tmp, "bad"), encoding: "utf8" });
