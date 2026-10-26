@@ -214,7 +214,7 @@ The sweep issue carries the step as its last acceptance criterion, naming the so
 
 **No child's criteria turn on another child being merged.** `gh stack merge` lands the stack at once and no child merges before the top branch, so such a criterion is unsatisfiable at the moment the child is asked to close it rather than merely awkward. The checkable relation to write instead is that the other children sit in that branch's ancestry, which is readable off the branch.
 
-**A package-labelled child's criteria may not require editing a repository-level file without the owner's say.** The package axis is the release boundary, so a package child carrying a `repo` edit puts two deliverables in one diff and one review. The child names the edit in its `## Technical notes` and asks on the branch, or the edit becomes a `repo`-labelled issue of its own; landing it in the package branch anyway is the owner's exception to grant, never the child's to assume.
+**A package-labelled child's criteria may not require editing a repository-level file without the owner's say.** The package axis is the release boundary, so a package child carrying a `repo` edit puts two deliverables in one diff and one review. The child names the edit in its `## Technical notes` and asks on the branch, or the edit becomes a `repo`-labelled issue of its own; landing it in the package branch anyway is the owner's exception to grant, never the child's to assume. A sweep's own fix is the standing exception, per *The skill review is its own issue, not a branch's gate*.
 
 ## An epic child's blocker is its stack parent, not a wait
 
