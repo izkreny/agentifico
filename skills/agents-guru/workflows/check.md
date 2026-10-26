@@ -105,13 +105,13 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The argument-hint rule
 
-**`skill-argument-hint`**, in `scripts/rules/skill-argument-hint.js`, holds a `SKILL.md`'s `argument-hint` to its routing section, per that field's row in the frontmatter table of `workflows/new.md`. It reports a verb the hint advertises that no routing bullet routes, and a routed verb the hint leaves out.
+**`skill-argument-hint`**, in `scripts/rules/skill-argument-hint.js`, holds a `SKILL.md`'s `argument-hint` to its routing section, per that field's row in the frontmatter table of `workflows/new.md`.
 
 **What it cannot decide is whether a one-word group such as `[manage]` is a verb or a placeholder, or whether a route does what the hint promises.** It holds only a group listing alternatives with `|` to routing, so an unrouted verb in a one-word group, and a route that does the wrong thing, are the reviewer's to catch.
 
 ## The Bash rule
 
-**`skill-bash-blocks`**, in `scripts/rules/skill-bash-blocks.js`, is the mechanical face of *Code blocks are Bash* in `workflows/new.md`. It reports a fence tagged for another shell, and a recorded Fish phrasing in a fence tagged for Bash or left untagged; the rule's file holds the tags and the phrasings. It reads fenced blocks only, so a code span may name a phrasing it reports.
+**`skill-bash-blocks`**, in `scripts/rules/skill-bash-blocks.js`, is the mechanical face of *Code blocks are Bash* in `workflows/new.md`. It reads fenced blocks only, so a code span may name a phrasing it reports.
 
 **What it cannot decide is another shell's syntax beyond the phrasings it records.** That is the reviewer's to catch.
 
