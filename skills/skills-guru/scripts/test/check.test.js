@@ -4,8 +4,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { after, before, describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
+import { afterAll, beforeAll, describe, it } from "vitest";
 import { enclosingSkill } from "../rules/skill-layout.js";
 import { carriesInstallForm } from "../rules/skill-readme.js";
 
@@ -27,7 +27,7 @@ function run(target, env = process.env) {
   return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
 }
 
-before(() => {
+beforeAll(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), "skills-guru-check-"));
   mk(path.join(tmp, "good"), block("good"));
   mk(path.join(tmp, "bad"), "name: bad\ndescription: review PR #N and more");
@@ -159,7 +159,7 @@ before(() => {
   fs.writeFileSync(path.join(tmp, "dotted", ".hidden", "w.md"), "- **lead.** first\n\n  the reason\n\n  a second paragraph\n");
 });
 
-after(() => fs.rmSync(tmp, { recursive: true, force: true }));
+afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
 describe("check.js", () => {
   it("a single skill directory is checked and passes", () => {
