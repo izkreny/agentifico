@@ -6,17 +6,9 @@ The mechanical audit. Run it after writing or editing any skill, and in a review
 
 **Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, printed a version the check could not read, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown, YAML and plugin files alone, since a code file's only reader is the process that did not start.
 
-## Setup, once per install
-
-The check runs on Node 26.1 or later with what `package.json` declares, installed once into the skill's own directory. `<skill-dir>` is where this skill is installed, one of the placeholders `workflows/new.md` defines under *Paths must survive any working directory and any machine*:
-
-```bash
-npm --prefix <skill-dir> ci
-```
-
-The prose rules run through Vale on `PATH`, at the version `scripts/check.js` requires; a run on an older one refuses and names that version. Vale's [installation page](https://docs.vale.sh/topics/installation) gives a route per machine; a pinned version through a tool manager is the one that keeps the version the rules were written against.
-
 ## The check
+
+Before the first run on an install, follow `references/setup.md`.
 
 Each argument is a target, a folder or a file, and the current directory is the target when there is none. A folder target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/`. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories under a folder target are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
 

@@ -58,7 +58,7 @@ The skill is supported on Linux, and on Windows only under WSL. It is untested o
 skills add izkreny/agentifico -g -y -s agents-guru
 ```
 
-That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) installs in one line, `mise use -g npm:skills`. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `workflows/check.md` states both. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
+That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) installs in one line, `mise use -g npm:skills`. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `references/setup.md` states both. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
 
 ## What a YAML parser cannot see
 
