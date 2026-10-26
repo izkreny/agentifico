@@ -79,6 +79,8 @@ tokens:
   - 'which is what (?:the|that|this|its) (?:[^\s.?!]+ ){0,3}?(?:span|rule|check|test|command|flag|line|list|set|section|block|loop) was'
   # "how a list grows afterwards is #130's to document" 54c301c: the file promising its own future to an issue, which dates it as "until #101 lands" does.
   - 'is #\d+''s to (?:document|state|add|decide|settle|fix|write|say)'
+  # "so one folder target prints exactly what it always has" #290 RF2, de22a7e: a code comment measuring the code against its own earlier behaviour.
+  - 'what it always has'
 tests:
   - name: fires on each recorded shape, once per line
     input: |
@@ -141,6 +143,7 @@ tests:
       The choice was made on 2026-09-06 against stated criteria.
       The older one-condition version is wrong.
       Testing the disclaimer was enough only while the owner posted by hand.
+      One target prints exactly what it always has.
     want: |
       3:1:Agentifico.History:Never write the file's own history: 'This reverses' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       4:21:Agentifico.History:Never write the file's own history: 'any more' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
@@ -199,6 +202,7 @@ tests:
       57:16:Agentifico.History:Never write the file's own history: 'made on 2026-09-06' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       58:1:Agentifico.History:Never write the file's own history: 'The older one-condition version' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       59:24:Agentifico.History:Never write the file's own history: 'was enough only while' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      60:27:Agentifico.History:Never write the file's own history: 'what it always has' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
   - name: leaves imperatives and state alone
     input: |
       # Title
@@ -214,4 +218,5 @@ tests:
       Nothing in a title reveals a missing layer label, so audit for it.
       The rest carry over unchanged: the index runs from 1 upward.
       The protocol exists because fixes were pushed mid-read and threads went outdated.
+      A skill always has a name, and what it has is read.
     want: ""

@@ -41,6 +41,10 @@ tokens:
   - 'nowhere else'
   - 'nothing else (?:states|reads|does|is|has|sees|decides)'
   - 'every other (?:site|file|read|copy|cap|command|check|workflow)'
+  # "every other plugin file" #332 RF3, e325ffe: a folder said to hold the manifest alone, falsified by the next file the reference admitted there.
+  - 'every other plugin file'
+  # "When a workflow below says" #229 SW10, 00b5217: an article no determiner shape reaches, pointing at workflows in other files.
+  - 'a workflow below'
   # "every other site points there rather than carrying its own copy" and "the sites that mention a merge follows point here rather than carrying their own copy of the command", PR 82 RF3 and RF4 on second attempts.
   - '(?:site|sites|copy|copies|file|files|workflow|workflows) (?:[a-z]+ ){0,6}?points? (?:here|there) rather than'
   - 'exactly those'
@@ -99,6 +103,8 @@ tests:
       Everything after this is the ordinary path.
       The type vocabulary is one section further on.
       A detached trunk is what the first case tolerates.
+      It reads every other plugin file.
+      When a workflow below says it, resolve it.
     want: |
       3:5:Agentifico.Position:Write sentences that survive change: 'the escape above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       4:1:Agentifico.Position:Write sentences that survive change: 'The row below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
@@ -134,6 +140,8 @@ tests:
       34:1:Agentifico.Position:Write sentences that survive change: 'Everything after this' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       35:28:Agentifico.Position:Write sentences that survive change: 'section further on' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       36:26:Agentifico.Position:Write sentences that survive change: 'the first case' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      37:10:Agentifico.Position:Write sentences that survive change: 'every other plugin file' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      38:6:Agentifico.Position:Write sentences that survive change: 'a workflow below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
   - name: leaves the sanctioned forms alone
     input: |
       # Title
