@@ -52,7 +52,7 @@ git log --patch <tag>..origin/main -- '*.md' '*.js' '*.py'
 git log --patch --since=<date> origin/main -- '*.md' '*.js' '*.py'
 ```
 
-**The sweep's own records are read beside the merged range**: its own issue's findings, its own pull request's review threads and its branch's fix commits. No merged range ever holds them. The sweep's pull request is unmerged while the sweep runs, and the tag on its squash commit starts the next range after it. The review-comment query reads the open pull request as it reads a merged one. The issue's findings carry the sweep's own ids rather than `::RF{n}::`, so they are read from the issue, and the branch's commits are their own range.:
+**The sweep's own records are read beside the merged range**: its own issue's findings, its own pull request's review threads and its branch's fix commits. No merged range ever holds them. The sweep's pull request is unmerged while the sweep runs, and the tag on its squash commit starts the next range after it. The review-comment query reads the open pull request as it reads a merged one. The issue's findings carry the sweep's own ids rather than `::RF{n}::`, so they are read from the issue, and the branch's commits are their own range:
 
 ```bash
 gh issue view <issue-number> --json body,comments
