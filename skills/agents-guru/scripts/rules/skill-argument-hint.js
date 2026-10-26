@@ -44,7 +44,6 @@ const headingLevel = (t) => {
   return 0;
 };
 
-// Only an item's lead paragraph up to its first arrow is the condition: what follows the arrow names files, tools and other skills.
 // Bold and emphasis wrap a condition's spans and its arrow in tokens of their own, so the paragraph is read flattened.
 function* inline(tokens) {
   for (const t of tokens) {
@@ -53,6 +52,7 @@ function* inline(tokens) {
   }
 }
 
+// Only an item's lead paragraph up to its first arrow is the condition: what follows the arrow names files, tools and other skills.
 function conditionVerbs(paragraph) {
   const verbs = [];
   for (const c of inline(paragraph.children)) {
