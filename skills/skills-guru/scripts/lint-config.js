@@ -4,6 +4,7 @@ import skillBoldedParagraphs from "./rules/skill-bolded-paragraphs.js";
 import skillBoldedRuns from "./rules/skill-bolded-runs.js";
 import skillContinuations from "./rules/skill-continuations.js";
 import skillDescription from "./rules/skill-description.js";
+import skillFork from "./rules/skill-fork.js";
 import skillFrontmatterParsed from "./rules/skill-frontmatter-parsed.js";
 import skillInvocation from "./rules/skill-invocation.js";
 import skillLayout from "./rules/skill-layout.js";
@@ -19,6 +20,7 @@ const contractRules = [
   skillFrontmatterParsed,
   skillName,
   skillInvocation,
+  skillFork,
   skillLayout,
   skillReadme,
   skillPortablePaths,

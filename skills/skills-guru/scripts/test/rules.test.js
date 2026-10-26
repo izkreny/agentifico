@@ -9,13 +9,14 @@ import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
 import boldedRuns from "../rules/skill-bolded-runs.js";
 import continuations from "../rules/skill-continuations.js";
 import description from "../rules/skill-description.js";
+import fork from "../rules/skill-fork.js";
 import parsed from "../rules/skill-frontmatter-parsed.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
 import valeDirective from "../rules/skill-vale-directive.js";
 
-const RULES = [description, parsed, name, invocation, agentFrontmatter, continuations, boldedRuns, boldedParagraphs, portablePaths, valeDirective];
+const RULES = [description, parsed, name, invocation, fork, agentFrontmatter, continuations, boldedRuns, boldedParagraphs, portablePaths, valeDirective];
 
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
 async function findings(path, content, ...only) {
@@ -211,6 +212,39 @@ describe("skill-invocation", () => {
       else expectClean(found, "skill-invocation");
     });
   }
+});
+
+describe("skill-fork", () => {
+  const idle = "agent does nothing without context: fork";
+  const cases = [
+    ["f-agent-alone", "agent: Explore", idle],
+    ["f-agent-inline", "context: inline\nagent: Explore", idle],
+    ["f-agent-empty-context", "context:\nagent: Explore", idle],
+    ["f-forked", "context: fork\nagent: Explore", null],
+    ["f-fork-alone", "context: fork", null],
+    ["f-neither", "description: |\n  Neither field.", null],
+    ["f-fork-comment", "context: fork # runs in a subagent\nagent: Explore", null],
+    ["f-fork-quoted", 'context: "fork"\nagent: Explore', null],
+    ["f-fork-next-line", "context:\n  fork\nagent: Explore", null],
+    ["f-fork-block", "context: >-\n  fork\nagent: Explore", null],
+    // A clipped block keeps its line break, and Claude Code compares the value to `fork` exactly, so the skill runs inline.
+    ["f-fork-literal", "context: |\n  fork\nagent: Explore", idle],
+    ["f-fork-folded", "context: >\n  fork\nagent: Explore", idle],
+    // Frontmatter the parser rejects gets the differential's parse error and not a second finding here.
+    ["f-unparsed", "agent: Explore\nother: [1, 2", null],
+    // The last key is the one a last-wins parser loads, so a fork overridden by a later key is the idle case.
+    ["f-dupe-context", "context: fork\ncontext: inline\nagent: Explore", idle],
+  ];
+  for (const [dir, fm, want] of cases) {
+    it(dir, async () => {
+      const found = await findings(`fx/${dir}/SKILL.md`, skill(`name: ${dir}\n${fm}`), fork);
+      if (want) expectDetail(found, "skill-fork", want);
+      else expectClean(found, "skill-fork");
+    });
+  }
+  it("leaves a file other than SKILL.md alone", async () => {
+    expectClean(await findings("fx/f/workflows/w.md", skill("agent: Explore"), fork), "skill-fork");
+  });
 });
 
 // Each want is a literal from a run against the pinned yaml, because an assertion that asked the parser again could only fail if two calls disagreed about options.
