@@ -111,6 +111,18 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **`skill-vale-directive`**, in `scripts/rules/skill-vale-directive.js`, keeps a target from switching the prose rules off from inside its own markdown while the run still prints a clean last line. It reads HTML comments, so a directive inside a code span or a fenced block is left alone.
 
+## The argument-hint rule
+
+**`skill-argument-hint`**, in `scripts/rules/skill-argument-hint.js`, holds a `SKILL.md`'s `argument-hint` to its routing, per that field's row in the frontmatter table of `workflows/new.md`. It reports a verb the hint advertises that no routing bullet routes, and a routed verb the hint leaves out. An advertised verb is the first word of each `|`-separated alternative inside the hint's brackets. A routed verb is the first word of each code span in a list item under a heading containing "routing", read only up to the item's first `→`. A skill with no `argument-hint`, or no such heading, is left alone.
+
+**What it cannot decide is whether a route does what the hint promises.** That is the reviewer's to catch.
+
+## The Bash rule
+
+**`skill-bash-blocks`**, in `scripts/rules/skill-bash-blocks.js`, is the mechanical face of *Code blocks are Bash* in `workflows/new.md`. It reports a fence tagged `fish` or `zsh`, and a line carrying `set <name> (`, `; or` or `; and` in a fence tagged `bash` or `sh` or left untagged. It reads fenced blocks only, so a code span may name those phrasings, and it skips a comment line inside a fence.
+
+**What it cannot decide is another shell's syntax beyond those phrasings.** That is the reviewer's to catch.
+
 ## The YAML rules
 
 `scripts/check.js` parses every YAML file under the target and holds its comments to *No hard wrapping* in `workflows/new.md`. It reads comments off the parser's tree, and neither linter reads a YAML file. Commented-out YAML reads as a wrap, and deleting the block is the fix.
@@ -148,8 +160,6 @@ Vale runs the `Agentifico` style, one rule file under `assets/Agentifico/` per m
 
 No rule in this file decides these, so a sweep reads for them, and where an item is an authoring rule, `workflows/new.md` owns it and its reason:
 
-- **`argument-hint` against the routing table.** Every advertised verb routes somewhere, and every route is advertised.
-- **Code blocks are Bash.** Shell-specific syntax from another shell (`set x (cmd)`, `; or`, `; and`) fails when an agent executes it.
 - **The opening line of every file.** `MD041` is off because the files here open with different things and no one rule fits them all: a skill file and a workflow here with the tools blockquote, a convention of this package that `workflows/new.md` does not require, a `README.md` with whatever it is written to open with, a heading or a byline, and a file under `references/` with a heading. Which of those a given file owes is what a sweep reads for, and a repository's own convention for that opening is the authority on its own files: `workflows/export.md` states why, which is that the skill may practise its author's conventions and must not require them.
 - **Over-writing no rule reads.** No rule caps a section, compares one file with another or tells a reason from a defence, so a sweep reads for each under its note in `workflows/review.md` Step 3: *Rationale that restates the rule*, *A rule stated in two files of one skill*, *A document restating the code it describes*, *A defence of the design after the instruction*, *One-time reference inside a workflow*, and, past the heading `ClosingRecap` warns on, the bullets of *A closing recap*.
 - **The judgement half of every prose rule.** A regex catches the wording of a defect and never its substance, so a clean prose run says only that the recorded phrasings are absent.
