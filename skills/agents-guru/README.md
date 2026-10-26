@@ -2,7 +2,7 @@
 
 # agents-guru
 
-A skill for writing, reviewing, maintaining and exporting agent skills. You type `/agents-guru <argument>`, or an agent invokes it when told to, or when it reviews or checks a change to a skill, an agent file, or a plugin's hooks file or manifest. Installing and updating skills stays yours: only your typed `/agents-guru manage` reaches that route.
+A skill for writing, reviewing, maintaining and exporting agent skills. You type `/agents-guru <argument>`, or an agent invokes it on the triggers the `description` in `SKILL.md` names. Installing and updating skills stays yours: only your typed `/agents-guru manage` reaches that route.
 
 It targets the [Agent Skills](https://agentskills.io) format, the open standard originally developed by Anthropic and since adopted across the agent ecosystem. The [specification](https://agentskills.io/specification) is the authority on the format, and the standard ships a [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference validator; the traps this skill exists to catch live below the spec's radar, since a truncated description is still valid YAML.
 
