@@ -545,6 +545,9 @@ describe("skill-argument-hint", () => {
     // A routing section the rule reads no route from cannot be told from one that routes nothing, so it is left alone.
     ["h-table-routing", "[new | check]", "## Routing\n\n| Says | Workflow |\n|---|---|\n| `new` | `workflows/new.md` |\n| `check` | `workflows/check.md` |", null],
     ["h-no-arrow", "[new | check]", routing("If it starts with `new`, read a.", "If it starts with `check`, read b."), null],
+    // A group with no `|` is a placeholder, as in the [issue-number] and [filename] [format] hints Claude Code's own docs show.
+    ["h-bare-placeholder", "[new | check] [issue-number]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
+    ["h-bare-placeholders", "[new | check] [filename] [format]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
   ];
   for (const [id, hint, body, want] of cases) {
     it(id, async () => {

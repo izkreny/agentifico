@@ -8,26 +8,34 @@ const firstWord = (text) => {
   return VERB.test(word) ? word : null;
 };
 
-// A hint is a row of bracket groups, each listing its alternatives with `|`, and a nested group belongs to the alternative it sits in.
+// A group of one word is either a verb or a bare placeholder such as `[issue-number]`, so only a group listing alternatives with `|` is held to routing.
 function advertised(hint) {
-  const alternatives = [];
+  const all = new Set();
+  const menu = new Set();
   let depth = 0;
+  let group = [];
   let current = "";
+  const close = () => {
+    group.push(current);
+    current = "";
+  };
   for (const ch of hint) {
     if (ch === "[" && depth++ === 0) continue;
     if (ch === "]" && --depth === 0) {
-      alternatives.push(current);
-      current = "";
+      close();
+      const words = group.map(firstWord).filter(Boolean);
+      for (const word of words) all.add(word);
+      if (group.length > 1) for (const word of words) menu.add(word);
+      group = [];
       continue;
     }
     if (ch === "|" && depth === 1) {
-      alternatives.push(current);
-      current = "";
+      close();
       continue;
     }
     if (depth > 0) current += ch;
   }
-  return new Set(alternatives.map(firstWord).filter(Boolean));
+  return { all, menu };
 }
 
 const headingLevel = (t) => {
@@ -102,9 +110,9 @@ export default {
     if (typeof hint !== "string") return;
     const routed = routes(params.parsers.micromark.tokens);
     if (!routed) return;
-    const offered = advertised(hint);
+    const { all: offered, menu } = advertised(hint);
     const routedVerbs = new Set(routed.map((r) => r.verb));
-    for (const verb of offered) {
+    for (const verb of menu) {
       if (!routedVerbs.has(verb)) onError({ lineNumber: FRONTMATTER_LINE, detail: `argument-hint advertises \`${verb}\`, which no routing bullet routes` });
     }
     for (const { verb, line } of routed) {
