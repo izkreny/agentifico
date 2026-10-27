@@ -12,6 +12,7 @@ import { hooksDefects, isPluginRoot, manifestDefects } from "./rules/plugin-file
 const here = path.dirname(fileURLToPath(import.meta.url));
 const valeConfig = path.join(here, "..", ".vale.ini");
 
+// Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
 const targets = (process.argv.length > 2 ? process.argv.slice(2) : ["."]).map((arg) => path.resolve(arg));
 
 const nothingChecked = (why) => {
@@ -210,6 +211,7 @@ const minVale = MIN_VALE.join(".");
 
 // An older Vale loads a rule naming a scope from config/scopes and matches nothing, so a run on one would pass with the comment rules off.
 const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
+// Stryker disable next-line StringLiteral: stdout is null only when Vale did not start, and no fallback text holds a version.
 const valeVersion = /(\d+)\.(\d+)\.\d+/.exec(versionRun.stdout ?? "");
 // An unreadable version is refused like an old one, while a Vale that failed to start is left to the lint run, which names its failure.
 if (!valeVersion && versionRun.status === 0)

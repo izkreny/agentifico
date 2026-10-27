@@ -17,6 +17,7 @@ export function agentKind(file) {
   return null;
 }
 
+// Stryker disable next-line ArrayDeclaration: every caller passes the lines, and a line that is no delimiter reads as no lines.
 export function defects(fm, inPlugin, lines = []) {
   if (!fm) {
     if (inPlugin) return [];

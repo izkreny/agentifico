@@ -9,9 +9,11 @@ export function defects(fm) {
   if (!dl.length) bad.push("no description: never advertised");
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
   // The last `description:` line is swept because that is the one a last-wins parser loads, and sweeping the first would report the duplicate and call the winning value clean.
+  // Stryker disable next-line StringLiteral: raw is read only when a description line exists.
   const raw = (dl.at(-1) || "").slice(12).trim();
   const block = dl.length && BLOCK_SCALAR.test(raw);
   // The value is joined the way YAML folds continuation lines because a continuation can carry the same traps as the first line and a legal fold is not a defect.
+  // Stryker disable next-line StringLiteral: value is read only when a description line exists.
   const value = dl.length ? folded(fm, fm.lastIndexOf(dl.at(-1))) : "";
   // Only a value opening with a curly quote is pretending to be quoted, since an apostrophe inside a value is harmless and a block scalar is immune.
   if (!block && /^[“”‘’]/.test(raw)) bad.push("curly quotes are not YAML quotes");
@@ -45,6 +47,7 @@ export default {
   parser: "none",
   function(params, onError) {
     if (!isSkillFile(params.name)) return;
+    // Stryker disable next-line ArrayDeclaration: defects reads keys off the lines, and a line naming no key reads exactly as no lines.
     const fm = frontmatter(params) ?? [];
     for (const detail of defects(fm)) onError({ lineNumber: FRONTMATTER_LINE, detail });
   },

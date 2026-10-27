@@ -235,6 +235,8 @@ beforeAll(() => {
   });
   // One file of each kind the summary counts, so a sum that drops a kind prints the wrong total.
   mkPlugin("counted", JSON.stringify({ name: "counted" }), { "rule.yml": "key: value\n" });
+  // A path naming the default folder itself replaces it with itself, so nothing in it is ignored.
+  mkPlugin("self", JSON.stringify({ name: "self", commands: "./commands/" }), { "commands/x.md": "# X\n\nbody\n" });
   mkPlugin("listed", JSON.stringify({ name: "listed", commands: ["./commands/", "./extra/"] }), { "commands/x.md": "# X\n\nbody\n" });
   mkPlugin("inside", JSON.stringify({ name: "inside", commands: ["./commands/deploy.md"] }), { "commands/deploy.md": "# Deploy\n\nbody\n" });
   mkPlugin("partial", JSON.stringify({ name: "partial", commands: ["./commands/deploy.md"] }), {
@@ -425,7 +427,7 @@ describe("check.js", () => {
   it("without vale the prose heading says so rather than going missing", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "empty") });
     assert.equal(r.code, 1);
-    assert.match(r.out, /^prose rules: not run$/m);
+    assert.match(r.out, /^prose rules: not run\n\d+ files checked, /m);
   });
   it("a single skill is named, as the target itself", () => {
     const r = run(path.join(tmp, "good"));
@@ -453,7 +455,7 @@ describe("check.js", () => {
   it("a duplicate key fails, naming the file and the line", () => {
     const r = run(path.join(tmp, "yaml-duplicate"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key /m);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key Map keys must be unique at line 2, column 1:$/m);
   });
   it("a comment line continuing a sentence is a warning, naming the line that continues it and not failing", () => {
     const r = run(path.join(tmp, "yaml-wrapped"));
@@ -580,6 +582,9 @@ describe("check.js", () => {
   });
   it("a commands map's sources are the paths it loads", () => {
     assert.doesNotMatch(run(path.join(tmp, "plugins", "mapped")).out, /plugin-manifest/);
+  });
+  it("a commands path naming the default folder loads everything in it", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "self")).out, /plugin-manifest/);
   });
   it("a replaced folder that does not exist holds nothing Claude Code ignores", () => {
     assert.doesNotMatch(run(path.join(tmp, "plugins", "folderless")).out, /plugin-manifest/);

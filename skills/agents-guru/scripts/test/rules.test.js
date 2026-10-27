@@ -128,7 +128,7 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["t-curly", "name: x\ndescription: “Use for PR #N”", "SILENTLY MUTATED"],
     ["t-dupe", "name: x\ndescription: first\ndescription: second", "SILENTLY MUTATED"],
     ["t-bool", "name: x\ndescription: yes", "not a string"],
-    ["t-colon", "name: x\ndescription: Use when: reviewing", "PARSE ERROR"],
+    ["t-colon", "name: x\ndescription: Use when: reviewing", "PARSE ERROR, skill will not load: Nested mappings are not allowed"],
     ["t-tailcolon", "name: x\ndescription: Use when reviewing:", "PARSE ERROR"],
     ["t-innerdq", 'name: x\ndescription: "say "hi" now"', "PARSE ERROR"],
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "PARSE ERROR"],
@@ -219,6 +219,8 @@ describe("skill-invocation", () => {
     ["i-caps", "description: |\n  Explicit invocation only.\ndisable-model-invocation: True", "not true or false"],
     ["i-empty", "description: |\n  Explicit invocation only.\ndisable-model-invocation:", "not true or false"],
     ["i-quoted", 'description: |\n  Explicit invocation only.\nuser-invocable: "false"', "quoted"],
+    // A name is matched literally, so a dot in it is not a wildcard that a slash command could miss.
+    ["i.dot", "description: |\n  Type `/i.dot` yourself.\ndisable-model-invocation: true", null],
     ["i-quote-in-comment", 'description: |\n  Explicit invocation only.\nuser-invocable: true # "really"', null],
     ["i-dupe", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true\ndisable-model-invocation: false", "duplicate"],
     ["i-comment", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true # the owner types it", null],
@@ -306,6 +308,11 @@ describe("description(), the value a caller reads", () => {
     it(`a single-quoted scalar: ${raw}`, () => assert.equal(scalar(raw), want));
   }
   it("frontmatter holding only a comment has no description", () => assert.equal(descriptionValue(["# only a comment"]), ""));
+  it("an escaped quote inside a double-quoted scalar is the quote", () => assert.equal(scalar('"say \\"hi\\""'), 'say "hi"'));
+  it("the fallback keeps a block's lines and the blank line between them", () => {
+    const got = descriptionValue(["name: x", "description: |", "  one", "", "  two", "other: [1, 2"]);
+    assert.equal(got, "  one\n\n  two");
+  });
 });
 
 describe("skill-continuations", () => {
@@ -572,6 +579,7 @@ describe("skill-argument-hint", () => {
     ],
     ["h-no-arrow", "[new | check]", routing("If it starts with `new`, read a.", "If it starts with `check`, read b."), null],
     // A group with no `|` is a placeholder, as in the [issue-number] and [filename] [format] hints Claude Code's own docs show.
+    ["h-lone-first-group", "[manage] [new | check]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
     ["h-bare-placeholder", "[new | check] [issue-number]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
     // The documented gap: a one-word group is not held to routing, so its unrouted verb passes.
     ["h-lone-group-unchecked", "[new | check] [manage]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],

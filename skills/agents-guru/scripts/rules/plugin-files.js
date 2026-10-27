@@ -44,6 +44,7 @@ function read(source) {
 
 // Stryker disable next-line OptionalChaining: read() admits only JSON, whose every key is a scalar.
 const pairOf = (map, key) => (YAML.isMap(map) ? map.items.find((pair) => pair.key?.value === key) : undefined);
+// Stryker disable next-line ArrayDeclaration: an item that is no map is skipped wherever items are read, so a stray one changes nothing.
 const itemsOf = (node) => (YAML.isSeq(node) || YAML.isMap(node) ? node.items : []);
 
 export function hooksDefects(source) {
