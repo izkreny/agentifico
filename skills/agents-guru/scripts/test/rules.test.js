@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { lint } from "markdownlint/promise";
 import { describe, it } from "vitest";
 import agentFrontmatter, { defects as agentDefects, pluginNameWarnings } from "../rules/agent-frontmatter.js";
-import { description as descriptionValue } from "../rules/frontmatter.js";
+import { description as descriptionValue, scalar } from "../rules/frontmatter.js";
 import { hooksDefects } from "../rules/plugin-files.js";
 import argumentHint from "../rules/skill-argument-hint.js";
 import bashBlocks from "../rules/skill-bash-blocks.js";
@@ -17,6 +17,7 @@ import hardWrap from "../rules/skill-hard-wrap.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
+import referencedPaths from "../rules/skill-referenced-paths.js";
 import valeDirective from "../rules/skill-vale-directive.js";
 
 const RULES = [
@@ -34,6 +35,7 @@ const RULES = [
   valeDirective,
   argumentHint,
   bashBlocks,
+  referencedPaths,
 ];
 
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
@@ -41,7 +43,7 @@ async function findings(path, content, ...only) {
   const config = { default: false };
   for (const r of only) config[r.names[0]] = true;
   const results = await lint({ strings: { [path]: content }, customRules: RULES, config, noInlineConfig: true });
-  return results[path].map((e) => ({ rule: e.ruleNames[0], line: e.lineNumber, detail: e.errorDetail ?? "" }));
+  return results[path].map((e) => ({ rule: e.ruleNames[0], line: e.lineNumber, detail: e.errorDetail ?? "", context: e.errorContext }));
 }
 
 // The blank line after the frontmatter is deliberate, since the frontmatter pattern swallows it and the reader has to give it back.
@@ -74,6 +76,12 @@ describe("skill-description, the raw sweep", () => {
     ["t-backslash", 'name: x\ndescription: "matches \\d+ digits"', "risky backslash"],
     ["t-innerdq", 'name: x\ndescription: "say "hi" now"', "inner double quote"],
     ["t-unclosed", 'name: x\ndescription: "never closed', "unclosed double quote"],
+    // An escaped closing quote leaves the value open, and a quote found later in it does not close it.
+    ["t-unclosed-escaped", 'name: x\ndescription: "a\\"', "unclosed double quote"],
+    // A blank line folds into a newline, and text after the closing quote on the line below it is still text after the quote.
+    ["t-double-then-text", 'name: x\ndescription: "a"\n\n  b', "parse error"],
+    ["t-single-then-text", "name: x\ndescription: 'a'\n\n  b", "parse error"],
+    ["t-single-across-blank", "name: x\ndescription: 'a'\n\n  b'", "stray apostrophe"],
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "apostrophe"],
     ["t-bool", "name: x\ndescription: yes", "boolean"],
     ["t-missing", "name: x", "no description"],
@@ -211,6 +219,7 @@ describe("skill-invocation", () => {
     ["i-caps", "description: |\n  Explicit invocation only.\ndisable-model-invocation: True", "not true or false"],
     ["i-empty", "description: |\n  Explicit invocation only.\ndisable-model-invocation:", "not true or false"],
     ["i-quoted", 'description: |\n  Explicit invocation only.\nuser-invocable: "false"', "quoted"],
+    ["i-quote-in-comment", 'description: |\n  Explicit invocation only.\nuser-invocable: true # "really"', null],
     ["i-dupe", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true\ndisable-model-invocation: false", "duplicate"],
     ["i-comment", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true # the owner types it", null],
     ["i-para", "description: |\n  Does a thing for the user.\n\n  Only when the user invokes it by name.\ndisable-model-invocation: true", null],
@@ -286,8 +295,9 @@ describe("description(), the value a caller reads", () => {
   }
   it("falls back to text a rejected parse cannot supply", () => {
     const got = descriptionValue(["name: x", "description: |", "  Explicit invocation only.", "other: [1, 2"]);
-    assert.match(got, /invocation/);
+    assert.equal(got, "  Explicit invocation only.");
   });
+  it("an escaped closing quote leaves a double-quoted scalar unclosed, so it is read as written", () => assert.equal(scalar('"a\\"'), '"a\\"'));
 });
 
 describe("skill-continuations", () => {
@@ -314,6 +324,7 @@ describe("skill-continuations", () => {
     ["c-tablein", "- **lead.** first\n\n  the reason\n\n  | a | b |\n  | --- | --- |\n  | c | d |\n", []],
     ["c-quotein", "- **lead.** first\n\n  the reason\n\n  > a quoted line, which is not a paragraph of the item\n", []],
     ["c-leadfence", "- ```bash\n  echo hi\n  ```\n\n  the one continuation\n", []],
+    ["c-leadcode", "-     indented code as the lead\n\n  first.\n\n  second.\n", [`2 ${cap}`]],
     ["c-quoted", "> -\n>   **lead.** its text starts on the line after the marker\n>\n>   the one continuation\n", []],
     ["c-footnote", "text[^1]\n\n[^1]: -\n      **lead.** its text starts on the line after the marker\n", []],
     ["c-markeralone", "-\n  **lead.** its text starts on the line after the marker\n\n  the one continuation\n", []],
@@ -610,6 +621,9 @@ describe("skill-bash-blocks", () => {
     ["b-arith-shift", "```bash\necho $(( 1 << 2 ))\nmake; and true\n```", "; and"],
     ["b-arith-var", "```bash\necho $(( x << y ))\nmake; and true\n```", "; and"],
     ["b-hyphen-bare", "```bash\ncat <<END-BODY\nok\nEND-BODY\nmake; and true\n```", "; and"],
+    // <<- strips every leading tab from the terminator line and nothing else.
+    ["b-tabs-terminator", "```bash\ncat <<-EOF\n\tok\n\t\tEOF\nmake; and true\n```", "; and"],
+    ["good-tab-after-terminator", "```bash\ncat <<-EOF\nEOF\t\nfixed; and pushed\nEOF\n```", null],
     ["good-hyphen-quoted", "```bash\ncat <<'END-BODY'\nfixed; and pushed\nEND-BODY\n```", null],
     ["good-digit-terminator", "```bash\ncat <<1EOF\nfixed; and pushed\n1EOF\n```", null],
     ["good-backslash-heredoc", "```bash\ncat > body.md <<\\EOF\nFixed it; and pushed.\nEOF\n```", null],
@@ -693,6 +707,22 @@ describe("agent-frontmatter", () => {
   it("a plugin's agent with no frontmatter loads under its filename", () => {
     assert.deepEqual(agentDefects(null, true, ["# Reviewer"]), []);
   });
+  // The delimiter is a whole line of three dashes, trailing spaces allowed, and a line holding only spaces is as empty as one holding nothing.
+  for (const [label, given, want] of [
+    ["an unclosed delimiter with trailing spaces", ["---  ", "name: r"], "never closed"],
+    ["dashes after text", ["a ---", "name: r"], "^no name"],
+    ["text after dashes", ["--- a", "name: r"], "^no name"],
+    ["a late delimiter with trailing spaces", ["", "---  ", "name: r", "---"], "not the first line"],
+    ["late dashes after text", ["", "a ---"], "^no name"],
+    ["late text after dashes", ["", "--- a"], "^no name"],
+    ["a delimiter after a line of spaces", ["  ", "---", "name: r", "---"], "not the first line"],
+  ]) {
+    it(`no frontmatter: ${label}`, () => {
+      const found = agentDefects(null, false, given);
+      assert.equal(found.length, 1, JSON.stringify(found));
+      assert.match(found[0], new RegExp(want));
+    });
+  }
   for (const key of ["permissionMode", "hooks", "mcpServers", "initialPrompt"]) {
     it(`a plugin's agent setting ${key}`, () => {
       const found = agentDefects(lines(`name: r\ndescription: Reviews code.\n${key}: x`), true);
@@ -848,4 +878,35 @@ describe("skill-hard-wrap", () => {
       [1, 4, 7],
     );
   });
+});
+
+// check.js prints a finding's context beside its line number, so each case pads the flagged line and wants it back trimmed, and from that line rather than the next.
+describe("a finding's context is its own line, trimmed", () => {
+  const bolded = (open) => Array.from({ length: 6 }, (_, i) => `${open}**Lead ${i}** text.${i ? "" : "  "}`).join(open ? "\n" : "\n\n");
+  const cases = [
+    [
+      "c-unadvertised",
+      argumentHint,
+      'argument-hint: "[new]"',
+      "## Routing\n\n- If it starts with `new` → read a.\n- If it starts with `check` → read b.  ",
+      "- If it starts with `check` → read b.",
+    ],
+    ["c-tagged", bashBlocks, "", "  ```fish\n  echo hi\n  ```", "```fish"],
+    ["c-fish", bashBlocks, "", "```bash\n  make; and make install\n```", "make; and make install"],
+    ["c-bolded-paragraphs", boldedParagraphs, "", bolded(""), "**Lead 0** text."],
+    ["c-bolded-runs", boldedRuns, "", bolded("- "), "- **Lead 0** text."],
+    ["c-bold-continuation", continuations, "", "- item\n\n  **Bold** continuation.", "**Bold** continuation."],
+    ["c-continuations", continuations, "", "- item  \n\n  one.\n\n  two.", "- item"],
+    ["c-hard-wrap", hardWrap, "", "  First line\nsecond line.", "First line"],
+    ["c-portable", portablePaths, "", "  A span `/home/someone/notes.md` here.", "A span `/home/someone/notes.md` here."],
+    ["c-referenced", referencedPaths, "", "  See `workflows/gone.md` here.", "See `workflows/gone.md` here."],
+    ["c-vale", valeDirective, "", "<!-- vale off -->  \n\nProse.", "<!-- vale off -->"],
+  ];
+  for (const [id, rule, fm, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x${fm ? `\n${fm}` : ""}`, body), rule);
+      assert.ok(found.length, `wanted a finding, got none`);
+      for (const f of found) assert.equal(f.context, want);
+    });
+  }
 });

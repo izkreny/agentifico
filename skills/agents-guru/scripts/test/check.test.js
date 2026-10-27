@@ -6,6 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, it } from "vitest";
+import { looksLikePath, owningSkill, resolves } from "../rules/paths.js";
 import { enclosingSkill } from "../rules/skill-layout.js";
 import { carriesInstallForm } from "../rules/skill-readme.js";
 
@@ -51,6 +52,8 @@ function run(targets, env = process.env, cwd = undefined) {
 beforeAll(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), "agents-guru-check-"));
   mk(path.join(tmp, "good"), block("good"));
+  // A sibling whose name extends good's, so a folder test made on strings rather than path segments would put it inside good.
+  mk(path.join(tmp, "good-too"), block("good-too"));
   mk(path.join(tmp, "bad"), "name: bad\ndescription: review PR #N and more");
   fs.mkdirSync(path.join(tmp, "empty"));
   // The real .vale.ini is resolved from the script's own directory, so a stub on PATH is what reaches the refused-configuration branch.
@@ -171,6 +174,11 @@ beforeAll(() => {
       "yaml-separate",
       "# One note.\n# Another note.\n# A paragraph's close, before an empty line.\n#\n# The next paragraph.\nkey: |\n  # a heading inside a block scalar\n  # and its text\n",
     ],
+    ["yaml-mid-stop", "# A first sentence. A second one wrapped\n# at a column.\nkey: value\n"],
+    ["yaml-indented", "key:\n  # A nested comment wrapped at\n  # a column.\n  inner: 1\n"],
+    ["yaml-blank-hash", "# A note before a separator\n#   \n# The next paragraph.\nkey: value\n"],
+    ["yaml-trailing-space", "# A note that ends.  \n# Another note.\nkey: value\n"],
+    ["yaml-trailing-comment", "key: value # a note after the value\n"],
   ]) {
     mk(path.join(tmp, dir), block(dir));
     fs.writeFileSync(path.join(tmp, dir, "rule.yml"), yaml);
@@ -222,6 +230,8 @@ beforeAll(() => {
     "monitors/monitors.json": "[]\n",
     "hooks/hooks.json": stopMatcher,
   });
+  // One file of each kind the summary counts, so a sum that drops a kind prints the wrong total.
+  mkPlugin("counted", JSON.stringify({ name: "counted" }), { "rule.yml": "key: value\n" });
   mkPlugin("listed", JSON.stringify({ name: "listed", commands: ["./commands/", "./extra/"] }), { "commands/x.md": "# X\n\nbody\n" });
   mkPlugin("inside", JSON.stringify({ name: "inside", commands: ["./commands/deploy.md"] }), { "commands/deploy.md": "# Deploy\n\nbody\n" });
   mkPlugin("partial", JSON.stringify({ name: "partial", commands: ["./commands/deploy.md"] }), {
@@ -295,6 +305,7 @@ describe("check.js", () => {
     assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
     assert.match(r.out, /vale could not run/);
     assert.match(r.out, /cannot parse config/);
+    assert.ok(r.out.endsWith("vale could not run: E100 [core] cannot parse config: bad line\n"), r.out);
   });
   it("a vale older than 3.23 fails the run, and says so", () => {
     for (const version of ["3.21.0", "3.22.0"]) {
@@ -442,6 +453,27 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /m);
     assert.match(r.out, /^yaml files: 0 issues, 1 warnings$/m);
   });
+  it("a sentence ending inside a comment line does not end the line", () => {
+    const r = run(path.join(tmp, "yaml-mid-stop"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /m);
+  });
+  it("an indented comment block is read as whole lines", () => {
+    const r = run(path.join(tmp, "yaml-indented"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:3 yaml-comment-wrap \(warning\) /m);
+  });
+  for (const [dir, why] of [
+    ["yaml-blank-hash", "a # line holding only spaces separates paragraphs"],
+    ["yaml-trailing-space", "spaces after a full stop still end the sentence"],
+    ["yaml-trailing-comment", "a comment after a value is no comment line"],
+  ]) {
+    it(why, () => {
+      const r = run(path.join(tmp, dir));
+      assert.equal(r.code, 0, r.out);
+      assert.match(r.out, /^yaml files: none$/m);
+    });
+  }
   it("separate one-line comments in a row pass, and a block scalar's text is not a comment", () => {
     const r = run(path.join(tmp, "yaml-separate"));
     assert.equal(r.code, 0, r.out);
@@ -473,6 +505,16 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}bad\/SKILL\.md:\d+ skill-description/m);
     assert.match(r.out, /^2 skill\(s\) found under /m);
     assert.match(r.out, /^ {2}good$/m);
+  });
+  it("two sibling targets, one name extending the other, print from their parent", () => {
+    const r = run([path.join(tmp, "good"), path.join(tmp, "good-too")]);
+    assert.match(r.out, /^ {2}good$/m);
+    assert.match(r.out, /^ {2}good-too$/m);
+  });
+  it("the summary counts markdown, YAML and plugin files, with Vale and without", () => {
+    const target = path.join(tmp, "plugins", "counted");
+    assert.match(run(target).out, /^3 files checked, /m);
+    assert.match(run(target, { ...process.env, PATH: path.join(tmp, "empty") }).out, /^3 files checked, \d+ issues, prose rules not run$/m);
   });
   it("a wrong target among right ones fails the run, naming it", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "empty")]);
@@ -588,6 +630,12 @@ describe("check.js", () => {
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /no reader takes .*notes\.txt: nothing was checked/);
   });
+  it("a reader's extension inside a longer one is not that reader's", () => {
+    fs.writeFileSync(path.join(tmp, "notes", "data.json"), "{}\n");
+    const r = run(path.join(tmp, "notes", "data.json"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /no reader takes .*data\.json: nothing was checked/);
+  });
   it("a file target's paths resolve against the working directory", () => {
     const file = path.join("skills", "inner", "workflows", "deep", "only-root.md");
     const inside = run(file, process.env, path.join(tmp, "refs"));
@@ -687,5 +735,17 @@ describe("skill-referenced-paths", () => {
     const r = run(path.join(tmp, "refs"));
     for (const span of ["GHI-50_login-form", "gh-stack", "\\/usr\\/bin\\/env", "\\.agents\\/skills", "docs\\/\\*", "E:\\/work"])
       assert.doesNotMatch(r.out, new RegExp(`${span}.*does not resolve`));
+  });
+});
+
+describe("paths.js", () => {
+  it("a span with a trailing slash names a folder", () => assert.equal(looksLikePath("assets/"), true));
+  it("only a drive letter at the start makes a span absolute", () => assert.equal(looksLikePath("notes/a:/b.md"), true));
+  it("a span's trailing slashes are dropped before it is resolved", () => {
+    const pkg = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+    assert.equal(resolves("SKILL.md//", path.join(pkg, "SKILL.md"), pkg), true);
+  });
+  it("a folder whose name extends the root's is outside the root", () => {
+    assert.equal(owningSkill(path.join(tmp, "good-too", "SKILL.md"), path.join(tmp, "good")), null);
   });
 });

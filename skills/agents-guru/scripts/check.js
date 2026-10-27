@@ -131,6 +131,7 @@ const commentsOf = (source) => {
     }
   };
   for (const token of new YAML.Parser(lines.addNewLine).parse(source)) walk(token);
+  // Stryker disable next-line all: the parser's tokens already arrive in source order, so the sort guards an order nothing produces.
   return found.sort((a, b) => a.line - b.line);
 };
 
