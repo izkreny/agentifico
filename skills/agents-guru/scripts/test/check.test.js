@@ -415,10 +415,11 @@ describe("check.js", () => {
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key /m);
   });
-  it("a comment line continuing a sentence fails, naming the line that continues it", () => {
+  it("a comment line continuing a sentence is a warning, naming the line that continues it and not failing", () => {
     const r = run(path.join(tmp, "yaml-wrapped"));
-    assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap /m);
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /m);
+    assert.match(r.out, /^yaml files: 0 issues, 1 warnings$/m);
   });
   it("separate one-line comments in a row pass, and a block scalar's text is not a comment", () => {
     const r = run(path.join(tmp, "yaml-separate"));

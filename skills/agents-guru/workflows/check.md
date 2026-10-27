@@ -123,7 +123,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The YAML rules
 
-`scripts/check.js` parses every YAML file under the target and holds its comments to *No hard wrapping* in `workflows/new.md`. It reads comments off the parser's tree, and neither linter reads a YAML file. Commented-out YAML reads as a wrap, and deleting the block is the fix.
+`scripts/check.js` parses every YAML file under the target and holds its comments to *No hard wrapping* in `workflows/new.md`. It reads comments off the parser's tree, and neither linter reads a YAML file. Commented-out YAML reads as a wrap, and deleting the block is the fix. A wrapped comment is a warning, which leaves the run passing, for the reason *The hard-wrap rule* gives.
 
 ## The plugin file rules
 

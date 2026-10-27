@@ -135,6 +135,7 @@ const commentsOf = (source) => {
 };
 
 const yamlFindings = [];
+let yamlWarnings = 0;
 for (const file of yamlFiles) {
   const rel = path.relative(base, file);
   const source = fs.readFileSync(file, "utf8");
@@ -151,12 +152,17 @@ for (const file of yamlFiles) {
   for (const [i, c] of whole.entries()) {
     const before = whole[i - 1];
     // A colon is no sentence end, since a wrapped comment breaks after one mid-sentence as often as after a word.
-    if (before?.line === c.line - 1 && !/[.!?]["')\]`*_]*$/.test(before.text.trimEnd()))
-      yamlFindings.push(`${rel}:${c.line} yaml-comment-wrap continues the sentence on the line before: write each paragraph of a comment on one line`);
+    if (before?.line === c.line - 1 && !/[.!?]["')\]`*_]*$/.test(before.text.trimEnd())) {
+      yamlFindings.push(
+        `${rel}:${c.line} yaml-comment-wrap (warning) continues the sentence on the line before: write each paragraph of a comment on one line`,
+      );
+      yamlWarnings++;
+    }
   }
 }
-issues += yamlFindings.length;
-report("yaml files", yamlFindings);
+issues += yamlFindings.length - yamlWarnings;
+warnings += yamlWarnings;
+report("yaml files", yamlFindings, yamlWarnings ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
 // The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 const pluginDirs = new Set();
