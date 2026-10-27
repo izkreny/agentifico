@@ -10,7 +10,7 @@
     "check": "node scripts/check.js",
     "test": "vitest run scripts/test/",
     "lint": "biome check scripts/",
-    "mutate": "stryker run --incremental"
+    "mutate": "nice -n 19 ionice -c 3 stryker run --incremental"
   },
   "dependencies": {
     "markdownlint": "0.42.0",
