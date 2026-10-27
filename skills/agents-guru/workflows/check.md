@@ -95,6 +95,12 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **What it cannot decide is where a run's subsections fall.** The writer chooses the seams.
 
+## The hard-wrap rule
+
+**`skill-hard-wrap`**, in `scripts/rules/skill-hard-wrap.js`, is the mechanical face of *No hard wrapping* in `workflows/new.md`. It reads every paragraph on the parser's tree, so a list item's and a blockquote's are reached too, and it leaves an HTML block alone.
+
+**What it cannot decide is what a reported paragraph was meant to be.** A list item the parser read as an earlier paragraph's text, as after a block at column 0 that closed its list, needs its structure fixed rather than its lines joined.
+
 ## The layout rule
 
 **`skill-layout`**, in `scripts/rules/skill-layout.js`, holds every `SKILL.md` out of another skill's directory, searching no higher than the target.
