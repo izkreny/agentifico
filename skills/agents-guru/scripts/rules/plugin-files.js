@@ -66,6 +66,7 @@ export function hooksDefects(source) {
         const once = pairOf(hook, "once");
         if (once) report(once, "once is ignored in a plugin's hooks file: Claude Code honours it only in a skill's frontmatter");
         const headers = pairOf(hook, "headers");
+        // Stryker disable next-line BooleanLiteral: get() returns a sequence as its node either way, and a scalar holds no items either way.
         const allowed = new Set(itemsOf(hook.get("allowedEnvVars", true)).map((item) => item.value));
         for (const header of itemsOf(headers?.value)) {
           if (typeof header.value?.value !== "string") continue;

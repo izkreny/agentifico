@@ -19,6 +19,7 @@ const isSpace = (t) => /^lineEnding|Prefix$|Indent$/.test(t.type);
 export function items(list) {
   const out = [];
   let item = null;
+  // Stryker disable next-line BooleanLiteral: a list's first child is its item prefix, which sets lead before anything reads it.
   let lead = false;
   for (const c of list.children) {
     if (c.type === "listItemPrefix") {

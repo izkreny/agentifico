@@ -237,6 +237,8 @@ beforeAll(() => {
   mkPlugin("counted", JSON.stringify({ name: "counted" }), { "rule.yml": "key: value\n" });
   // A path naming the default folder itself replaces it with itself, so nothing in it is ignored.
   mkPlugin("self", JSON.stringify({ name: "self", commands: "./commands/" }), { "commands/x.md": "# X\n\nbody\n" });
+  // The only file the replaced folder holds sits one level down, so a walk that stops at the top finds none.
+  mkPlugin("deep", JSON.stringify({ name: "deep", commands: "./extra/" }), { "commands/sub/x.md": "# X\n\nbody\n" });
   mkPlugin("listed", JSON.stringify({ name: "listed", commands: ["./commands/", "./extra/"] }), { "commands/x.md": "# X\n\nbody\n" });
   mkPlugin("inside", JSON.stringify({ name: "inside", commands: ["./commands/deploy.md"] }), { "commands/deploy.md": "# Deploy\n\nbody\n" });
   mkPlugin("partial", JSON.stringify({ name: "partial", commands: ["./commands/deploy.md"] }), {
@@ -516,6 +518,9 @@ describe("check.js", () => {
     assert.match(r.out, /^2 skill\(s\) found under /m);
     assert.match(r.out, /^ {2}good$/m);
   });
+  it("one folder named twice prints from that folder", () => {
+    assert.match(run([path.join(tmp, "good"), path.join(tmp, "good")]).out, /^ {2}\.$/m);
+  });
   it("two sibling targets, one name extending the other, print from their parent", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "good-too")]);
     assert.match(r.out, /^ {2}good$/m);
@@ -582,6 +587,9 @@ describe("check.js", () => {
   });
   it("a commands map's sources are the paths it loads", () => {
     assert.doesNotMatch(run(path.join(tmp, "plugins", "mapped")).out, /plugin-manifest/);
+  });
+  it("a replaced folder's nested files are what Claude Code ignores", () => {
+    assert.match(run(path.join(tmp, "plugins", "deep")).out, /plugin-manifest \(error\) commands replaces the default commands\//);
   });
   it("a commands path naming the default folder loads everything in it", () => {
     assert.doesNotMatch(run(path.join(tmp, "plugins", "self")).out, /plugin-manifest/);
@@ -771,6 +779,13 @@ describe("paths.js", () => {
     const pkg = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
     assert.equal(resolves("SKILL.md//", path.join(pkg, "SKILL.md"), pkg), true);
   });
+  it("a span opening with a slash, a dash, a hash or an at sign is no path", () => {
+    for (const span of ["/etc/notes.md", "-x.md", "#x.md", "@x.md"]) assert.equal(looksLikePath(span), false, span);
+  });
+  it("a file in the root's own folder belongs to the root's skill", () => {
+    assert.equal(owningSkill(path.join(tmp, "good", "SKILL.md"), path.join(tmp, "good")), path.join(tmp, "good"));
+  });
+  it("the walk up stops at the filesystem root", () => assert.equal(owningSkill("/no/such/place/x.md", "/"), null));
   it("a folder whose name extends the root's is outside the root", () => {
     assert.equal(owningSkill(path.join(tmp, "good-too", "SKILL.md"), path.join(tmp, "good")), null);
   });

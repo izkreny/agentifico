@@ -308,6 +308,8 @@ describe("description(), the value a caller reads", () => {
     it(`a single-quoted scalar: ${raw}`, () => assert.equal(scalar(raw), want));
   }
   it("frontmatter holding only a comment has no description", () => assert.equal(descriptionValue(["# only a comment"]), ""));
+  it("the fallback reads a description on the first line", () => assert.equal(descriptionValue(["description: |", "  text", "other: [1, 2"]), "  text"));
+  it("the fallback reads a plain description", () => assert.equal(descriptionValue(["name: x", "description: plain text", "other: [1, 2"]), "plain text"));
   it("an escaped quote inside a double-quoted scalar is the quote", () => assert.equal(scalar('"say \\"hi\\""'), 'say "hi"'));
   it("the fallback keeps a block's lines and the blank line between them", () => {
     const got = descriptionValue(["name: x", "description: |", "  one", "", "  two", "other: [1, 2"]);
@@ -387,6 +389,8 @@ describe("skill-bolded-runs", () => {
     ["b-markeralone", "-\n  **lead.** its text starts on the line after the marker\n".repeat(7), ["7 bolded-lead items in a row"]],
     ["b-quoted", "> -\n>   **lead.** its text starts on the line after the marker\n".repeat(7), ["7 bolded-lead items in a row"]],
     ["b-midbold", "- a lead that is **bolded later** in the line\n".repeat(7), []],
+    // An item with no lead block has no bolded lead, so it ends the run as a plain item does.
+    ["b-empty-item", `${bolded(5)}-\n${bolded(1)}`, []],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
@@ -579,6 +583,30 @@ describe("skill-argument-hint", () => {
     ],
     ["h-no-arrow", "[new | check]", routing("If it starts with `new`, read a.", "If it starts with `check`, read b."), null],
     // A group with no `|` is a placeholder, as in the [issue-number] and [filename] [format] hints Claude Code's own docs show.
+    // A `|` inside a nested bracket separates that bracket's alternatives, not the outer group's.
+    ["h-nested-group", "[manage [x | y]] [new | check]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
+    [
+      "h-between-groups",
+      "[new | check] or [help | status]",
+      routing(
+        "If it starts with `new` → read a.",
+        "If it starts with `check` → read b.",
+        "If it starts with `help` → read c.",
+        "If it starts with `status` → read d.",
+      ),
+      null,
+    ],
+    [
+      "h-subsection",
+      "[new]",
+      "## Routing\n\n- If it starts with `new` → read a.\n\n### Detail\n\n- If it starts with `check` → read b.",
+      unadvertised("check"),
+    ],
+    ["h-arrow-in-span", "[new]", routing("If it starts with `new` → read a.", "If it names `a→b` or starts with `check` → read b."), unadvertised("check")],
+    ["h-placeholder-span", "[new]", routing("If it starts with `new` or `<n>` → read a."), null],
+    // Only an item's lead paragraph states its route, so a later paragraph in the item routes nothing.
+    ["h-continuation", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n\n  If it starts with `check` → read b.", null],
+    ["h-definition-item", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n- [a]: https://example.com", null],
     ["h-lone-first-group", "[manage] [new | check]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
     ["h-bare-placeholder", "[new | check] [issue-number]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
     // The documented gap: a one-word group is not held to routing, so its unrouted verb passes.
@@ -652,6 +680,12 @@ describe("skill-bash-blocks", () => {
     ["b-arith-var", "```bash\necho $(( x << y ))\nmake; and true\n```", "; and"],
     ["b-hyphen-bare", "```bash\ncat <<END-BODY\nok\nEND-BODY\nmake; and true\n```", "; and"],
     // <<- strips every leading tab from the terminator line and nothing else.
+    ["good-heredoc-after-quote", "```bash\necho 'a' && cat <<EOF\nfixed; and pushed\nEOF\n```", null],
+    ["good-heredoc-touching-quote", "```bash\ncat 'f'<<EOF\nfixed; and pushed\nEOF\n```", null],
+    ["b-after-quoted-terminator", "```bash\ncat <<'EOF'\nfixed; and pushed\nEOF\nmake; and true\n```", "; and"],
+    ["b-after-double-quoted-terminator", '```bash\ncat <<"EOF"\nfixed; and pushed\nEOF\nmake; and true\n```', "; and"],
+    // Without the dash, a tab before the terminator makes it a line of the body.
+    ["good-tab-without-dash", "```bash\ncat <<EOF\n\tEOF\nfixed; and pushed\nEOF\n```", null],
     ["b-tabs-terminator", "```bash\ncat <<-EOF\n\tok\n\t\tEOF\nmake; and true\n```", "; and"],
     ["good-tab-after-terminator", "```bash\ncat <<-EOF\nEOF\t\nfixed; and pushed\nEOF\n```", null],
     ["good-hyphen-quoted", "```bash\ncat <<'END-BODY'\nfixed; and pushed\nEND-BODY\n```", null],
@@ -733,6 +767,12 @@ describe("agent-frontmatter", () => {
   const lines = (fm) => fm.split("\n");
   it("a plugin's agent with no name loads under its filename", () => {
     assert.deepEqual(agentDefects(lines("description: Reviews code."), true), []);
+  });
+  it("an agent whose name is null has no name", () => {
+    assert.match(agentDefects(["name:", "description: Reviews code."], false).join("\n"), /^no name/m);
+  });
+  it("a plugin's agent whose frontmatter does not parse is not measured", () => {
+    assert.deepEqual(pluginNameWarnings([`name: ${"x".repeat(300)}`, "other: [1, 2"]), []);
   });
   it("a plugin's agent whose frontmatter holds only a comment has no name to measure", () => {
     assert.deepEqual(pluginNameWarnings(["# only a comment"]), []);
@@ -824,6 +864,11 @@ describe("plugin-hooks", () => {
   it("a matcher on an event with matcher support", () => expectNoHook(hooksFile("PreToolUse", { matcher: "Bash", hooks: [command()] })));
   // A malformed file is the schema's to report, so each of these is read past rather than thrown on.
   it("a group with no hooks list", () => expectNoHook(hooksFile("PreToolUse", { matcher: "Bash" })));
+  it("a hooks list holding a string", () => expectNoHook(hooksFile("PreToolUse", { hooks: ["x"] })));
+  it("user_config in an http hook's command field", () => expectNoHook(hooksFile("PreToolUse", { hooks: [http({ command: `\${user_config.x}` })] })));
+  it("a commands list holding a number", () =>
+    assert.deepEqual(manifestDefects(JSON.stringify({ name: "p", commands: ["./commands/", 5] }), "/no/such/plugin"), []));
+  it("a commands value of null", () => assert.deepEqual(manifestDefects(JSON.stringify({ name: "p", commands: null }), "/no/such/plugin"), []));
   it("a headers list holding null", () => expectNoHook(hooksFile("PreToolUse", { hooks: [http({ headers: [null] })] })));
   it("a command hook with no command", () => expectNoHook(hooksFile("PreToolUse", { hooks: [{ type: "command" }] })));
   it("a commands map holding null", () => assert.deepEqual(manifestDefects(JSON.stringify({ name: "p", commands: { x: null } }), "/no/such/plugin"), []));
