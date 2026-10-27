@@ -17,7 +17,7 @@ export default {
       if (t.type !== "paragraph" || t.endLine === t.startLine) return;
       onError({
         lineNumber: t.startLine,
-        detail: `paragraph spans ${t.endLine - t.startLine + 1} lines, write it on one`,
+        detail: `paragraph spans ${t.endLine - t.startLine + 1} lines`,
         context: params.lines[t.startLine - 1].trim(),
       });
     });
