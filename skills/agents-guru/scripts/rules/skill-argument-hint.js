@@ -40,6 +40,7 @@ function advertised(hint) {
 
 const headingLevel = (t) => {
   if (t.type === "atxHeading") return t.children.find((c) => c.type === "atxHeadingSequence").text.length;
+  // Stryker disable next-line MethodExpression: a setext underline is one character repeated, so it ends with the character it starts with.
   if (t.type === "setextHeading") return t.children.find((c) => c.type === "setextHeadingLine").text.startsWith("=") ? 1 : 2;
   return 0;
 };
@@ -47,6 +48,7 @@ const headingLevel = (t) => {
 // Bold and emphasis wrap a condition's spans and its arrow in tokens of their own, so the paragraph is read flattened.
 function* inline(tokens) {
   for (const t of tokens) {
+    // Stryker disable next-line OptionalChaining: markdownlint gives every token a children array.
     if (t.type !== "codeText" && t.children?.length) yield* inline(t.children);
     else yield t;
   }

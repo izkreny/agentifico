@@ -97,6 +97,7 @@ const proseShapeFindings = [];
 const generalFindings = [];
 for (const file of files) {
   const rel = path.relative(base, file);
+  // Stryker disable next-line ArrayDeclaration: markdownlint returns an entry for every file it is handed, so the fallback is never read.
   for (const e of results[file] ?? []) {
     const warning = e.ruleNames.some((name) => warningRuleNames.has(name));
     const proseShape = e.ruleNames.some((name) => proseShapeRuleNames.has(name));
@@ -145,6 +146,7 @@ for (const file of yamlFiles) {
   const errors = docs.length ? docs.flatMap((doc) => doc.errors) : YAML.parseDocument(source).errors;
   for (const e of errors) {
     const rule = e.code === "DUPLICATE_KEY" ? "yaml-duplicate-key" : "yaml-parse";
+    // Stryker disable next-line OptionalChaining: yaml leaves an error unplaced only at offset -1, which neither parse call here passes, so linePos is always set.
     yamlFindings.push(`${rel}:${e.linePos?.[0]?.line ?? 1} ${rule} ${e.message.split("\n")[0]}`);
   }
   const sourceLines = source.split("\n");

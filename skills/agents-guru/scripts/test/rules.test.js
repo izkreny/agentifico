@@ -4,7 +4,7 @@ import { lint } from "markdownlint/promise";
 import { describe, it } from "vitest";
 import agentFrontmatter, { defects as agentDefects, pluginNameWarnings } from "../rules/agent-frontmatter.js";
 import { description as descriptionValue, scalar } from "../rules/frontmatter.js";
-import { hooksDefects } from "../rules/plugin-files.js";
+import { hooksDefects, manifestDefects } from "../rules/plugin-files.js";
 import argumentHint from "../rules/skill-argument-hint.js";
 import bashBlocks from "../rules/skill-bash-blocks.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
@@ -298,6 +298,14 @@ describe("description(), the value a caller reads", () => {
     assert.equal(got, "  Explicit invocation only.");
   });
   it("an escaped closing quote leaves a double-quoted scalar unclosed, so it is read as written", () => assert.equal(scalar('"a\\"'), '"a\\"'));
+  for (const [raw, want] of [
+    ["'it''s'", "it's"],
+    ["'plain' # a note", "plain"],
+    ["'never closed", "'never closed"],
+  ]) {
+    it(`a single-quoted scalar: ${raw}`, () => assert.equal(scalar(raw), want));
+  }
+  it("frontmatter holding only a comment has no description", () => assert.equal(descriptionValue(["# only a comment"]), ""));
 });
 
 describe("skill-continuations", () => {
@@ -572,6 +580,20 @@ describe("skill-argument-hint", () => {
     ["h-bold-condition", "[new | check]", routing("**If it starts with `new`** → read a.", "If it starts with `check` → read b."), null],
     ["h-bold-arrow", "[new | check]", routing("**If it starts with `new` → read a.**", "If it starts with `check` → read b."), null],
     ["h-nested", "[new | check]", "## Routing\n\n- If it starts with `new` → read a.\n  - If it starts with `check` → read b.", null],
+    ["h-setext", "[new]", "Routing\n-------\n\n- If it starts with `new` → read a.\n- If it starts with `check` → read b.", unadvertised("check")],
+    // A level-2 heading inside a level-1 routing section is a subsection of it, so the bullets under it still route.
+    [
+      "h-setext-level",
+      "[new]",
+      "Routing\n=======\n\n- If it starts with `new` → read a.\n\nDetail\n------\n\n- If it starts with `check` → read b.",
+      unadvertised("check"),
+    ],
+    [
+      "h-setext-ends",
+      "[new]",
+      "Routing\n-------\n\n- If it starts with `new` → read a.\n\nSupporting files\n----------------\n\n- If it starts with `check` → read b.",
+      null,
+    ],
   ];
   for (const [id, hint, body, want] of cases) {
     it(id, async () => {
@@ -704,6 +726,9 @@ describe("agent-frontmatter", () => {
   it("a plugin's agent with no name loads under its filename", () => {
     assert.deepEqual(agentDefects(lines("description: Reviews code."), true), []);
   });
+  it("a plugin's agent whose frontmatter holds only a comment has no name to measure", () => {
+    assert.deepEqual(pluginNameWarnings(["# only a comment"]), []);
+  });
   it("a plugin's agent with no frontmatter loads under its filename", () => {
     assert.deepEqual(agentDefects(null, true, ["# Reviewer"]), []);
   });
@@ -789,6 +814,11 @@ describe("plugin-hooks", () => {
     it(`a matcher on ${event}`, () => expectHook(hooksFile(event, { matcher: "x", hooks: [command()] }), `matcher on ${event}`));
   }
   it("a matcher on an event with matcher support", () => expectNoHook(hooksFile("PreToolUse", { matcher: "Bash", hooks: [command()] })));
+  // A malformed file is the schema's to report, so each of these is read past rather than thrown on.
+  it("a group with no hooks list", () => expectNoHook(hooksFile("PreToolUse", { matcher: "Bash" })));
+  it("a headers list holding null", () => expectNoHook(hooksFile("PreToolUse", { hooks: [http({ headers: [null] })] })));
+  it("a command hook with no command", () => expectNoHook(hooksFile("PreToolUse", { hooks: [{ type: "command" }] })));
+  it("a commands map holding null", () => assert.deepEqual(manifestDefects(JSON.stringify({ name: "p", commands: { x: null } }), "/no/such/plugin"), []));
   it("no matcher on an event without matcher support", () => expectNoHook(hooksFile("Stop", { hooks: [command()] })));
   it("async on an http hook", () => expectHook(hooksFile("PreToolUse", { hooks: [http({ async: true })] }), "async"));
   it("async on a command hook", () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ async: true })] })));

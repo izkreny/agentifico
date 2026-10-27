@@ -42,6 +42,7 @@ function read(source) {
   return { root: doc.contents, lineOf: (node) => lineCounter.linePos(node.range[0]).line };
 }
 
+// Stryker disable next-line OptionalChaining: read() admits only JSON, whose every key is a scalar.
 const pairOf = (map, key) => (YAML.isMap(map) ? map.items.find((pair) => pair.key?.value === key) : undefined);
 const itemsOf = (node) => (YAML.isSeq(node) || YAML.isMap(node) ? node.items : []);
 
@@ -119,6 +120,7 @@ export function manifestDefects(source, pluginDir) {
     const pair = pairOf(segments.length > 1 ? pairOf(file.root, segments[0])?.value : file.root, segments.at(-1));
     if (!pair) continue;
     const location = path.resolve(pluginDir, folder);
+    // Stryker disable next-line OptionalChaining: read() admits only JSON, where a key always has a value node.
     const listed = pathsOf(pair.value?.toJSON()).map((p) => path.resolve(pluginDir, p));
     const loaded = (entry) => listed.some((p) => entry === p || entry.startsWith(p + path.sep));
     const held = filesIn(location);

@@ -54,6 +54,9 @@ beforeAll(() => {
   mk(path.join(tmp, "good"), block("good"));
   // A sibling whose name extends good's, so a folder test made on strings rather than path segments would put it inside good.
   mk(path.join(tmp, "good-too"), block("good-too"));
+  // A built-in rule that carries no detail.
+  mk(path.join(tmp, "detail-less"), block("detail-less"));
+  fs.writeFileSync(path.join(tmp, "detail-less", "notes.md"), "# Notes\n\nbody");
   mk(path.join(tmp, "bad"), "name: bad\ndescription: review PR #N and more");
   fs.mkdirSync(path.join(tmp, "empty"));
   // The real .vale.ini is resolved from the script's own directory, so a stub on PATH is what reaches the refused-configuration branch.
@@ -243,6 +246,11 @@ beforeAll(() => {
   mkPlugin("mapped", JSON.stringify({ name: "mapped", commands: { deploy: { source: "./commands/deploy.md" } } }), {
     "commands/deploy.md": "# Deploy\n\nbody\n",
   });
+  // Read only by its test, which says why.
+  mkPlugin("folderless", JSON.stringify({ name: "folderless", commands: "./extra/" }));
+  mkPlugin("dangling", JSON.stringify({ name: "dangling", agents: "./other/" }));
+  fs.mkdirSync(path.join(plugins, "dangling", "agents"));
+  fs.symlinkSync(path.join("..", "nowhere.md"), path.join(plugins, "dangling", "agents", "gone"));
   mkPlugin("hollow", JSON.stringify({ name: "hollow", agents: "./elsewhere/" }));
   fs.mkdirSync(path.join(plugins, "hollow", "agents"));
   mkPlugin("broken", "{", { "hooks/hooks.json": '{ "hooks": { "Stop": [ { "matcher": "x", "hooks": [] }, ] } }' });
@@ -570,6 +578,16 @@ describe("check.js", () => {
     // Both markdown files and both JSON files, so a JSON file read is a file checked.
     assert.equal(r.linted, 4, r.out);
   });
+  it("a commands map's sources are the paths it loads", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "mapped")).out, /plugin-manifest/);
+  });
+  it("a replaced folder that does not exist holds nothing Claude Code ignores", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "folderless")).out, /plugin-manifest/);
+  });
+  it("a dangling link in a replaced folder is no file", () => {
+    const r = run(path.join(tmp, "plugins", "dangling"));
+    assert.doesNotMatch(r.out, /plugin-manifest|TypeError/);
+  });
   it("a plugin under a package target is found", () => {
     assert.match(run(path.join(tmp, "plugins")).out, /^ {2}plug\/hooks\/hooks\.json:\d+ plugin-hooks /m);
   });
@@ -629,6 +647,9 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "notes", "notes.txt"));
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /no reader takes .*notes\.txt: nothing was checked/);
+  });
+  it("a finding with no detail prints none", () => {
+    assert.match(run(path.join(tmp, "detail-less")).out, /^ {2}notes\.md:3 MD047\/single-trailing-newline Files should end with a single newline character$/m);
   });
   it("a reader's extension inside a longer one is not that reader's", () => {
     fs.writeFileSync(path.join(tmp, "notes", "data.json"), "{}\n");
