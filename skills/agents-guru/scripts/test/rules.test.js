@@ -188,6 +188,7 @@ describe("skill-name", () => {
     // Each name matches its directory exactly, so only the charset clause can decide it.
     ["My_Skill--v2", "name: My_Skill--v2\ndescription: |\n  x", "lowercase"],
     ["-leading-hyphen", "name: -leading-hyphen\ndescription: |\n  x", "hyphen"],
+    ["trailing-hyphen-", "name: trailing-hyphen-\ndescription: |\n  x", "hyphen"],
     // The name is all lowercase letters, so only the length clause can decide it.
     [`${"a".repeat(65)}`, `name: ${"a".repeat(65)}\ndescription: |\n  x`, "over the spec's 64"],
   ];
