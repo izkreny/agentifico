@@ -64,3 +64,4 @@ None.
 - **What happens to gh-solo's two findings?** `plugins/gh-solo` comes off the check's list on this branch, and #357 fixes `plugins/gh-solo/skills/pr-flow/workflows/review.md` and puts it back.
 - **Where does this branch sit against #293?** At the bottom of the stack, cut from `main`, with #293 rebased onto it.
 - **Is a hard-wrap finding an error or a warning?** A warning, settled after the review round, because unwrapped prose is the author's convention and `skills/agents-guru/workflows/export.md` lets a skill decline its author's conventions. The check exits zero on `plugins/gh-solo` again, so it stays on the check's list, and #357 only fixes the broken list.
+- **Does a wrapped YAML comment warn too?** Yes, so both faces of *No hard wrapping* behave alike.
