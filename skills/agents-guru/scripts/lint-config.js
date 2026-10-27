@@ -8,6 +8,7 @@ import skillContinuations from "./rules/skill-continuations.js";
 import skillDescription from "./rules/skill-description.js";
 import skillFork from "./rules/skill-fork.js";
 import skillFrontmatterParsed from "./rules/skill-frontmatter-parsed.js";
+import skillHardWrap from "./rules/skill-hard-wrap.js";
 import skillInvocation from "./rules/skill-invocation.js";
 import skillLayout from "./rules/skill-layout.js";
 import skillName from "./rules/skill-name.js";
@@ -32,7 +33,7 @@ const contractRules = [
   skillBashBlocks,
   agentFrontmatter,
 ];
-const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs];
+const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs, skillHardWrap];
 // A warning rule's findings print among the contract findings but leave the run passing, since the file still loads.
 const warningRules = [agentPluginName];
 export const rules = [...contractRules, ...warningRules, ...proseShapeRules];
