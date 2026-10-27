@@ -13,6 +13,7 @@ import continuations from "../rules/skill-continuations.js";
 import description from "../rules/skill-description.js";
 import fork from "../rules/skill-fork.js";
 import parsed from "../rules/skill-frontmatter-parsed.js";
+import hardWrap from "../rules/skill-hard-wrap.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
@@ -28,6 +29,7 @@ const RULES = [
   continuations,
   boldedRuns,
   boldedParagraphs,
+  hardWrap,
   portablePaths,
   valeDirective,
   argumentHint,
@@ -793,4 +795,57 @@ describe("plugin-hooks", () => {
   ]) {
     it(id, () => expectNoHook(source));
   }
+});
+
+describe("skill-hard-wrap", () => {
+  const spans = (n) => `paragraph spans ${n} lines`;
+  const cases = [
+    ["w-paragraph", "One\nwrapped.", spans(2)],
+    ["w-three", "One\ntwo\nthree.", spans(3)],
+    ["w-item", "- item\n  wrapped", spans(2)],
+    ["w-ordered", "1. item\n   wrapped", spans(2)],
+    ["w-nested", "- outer\n  - inner\n    wrapped", spans(2)],
+    ["w-continuation", "- item\n\n  a continuation\n  wrapped", spans(2)],
+    ["w-quote", "> quote\n> wrapped", spans(2)],
+    ["w-quote-lazy", "> quote\nlazy", spans(2)],
+    ["w-item-lazy", "- item\nlazy", spans(2)],
+    ["w-break-spaces", "hard  \nbreak", spans(2)],
+    ["w-break-backslash", "hard\\\nbreak", spans(2)],
+    // A column-0 table closes the list, and an item numbered `2.` cannot interrupt a paragraph, so it runs on as that paragraph's text.
+    ["w-broken-list", "1. one\n\n| a | b |\n| --- | --- |\n| c | d |\n\n   a paragraph\n2. two", spans(2)],
+    ["c-lines", "One line.\n\nAnother line.", null],
+    ["c-items", "- a\n- b\n\n1. c\n2. d", null],
+    ["c-quote", "> a\n>\n> b", null],
+    ["c-fence", "```bash\necho a\necho b\n```", null],
+    ["c-fence-in-item", "- item\n\n  ```bash\n  echo a\n  echo b\n  ```", null],
+    ["c-indented", "    a\n    b", null],
+    ["c-table", "| a | b |\n| --- | --- |\n| c | d |", null],
+    ["c-html", "<div>\nsome html\nover lines\n</div>", null],
+    ["c-setext", "A heading\n---------", null],
+    ["c-heading", "## A heading\n\nOne line.", null],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/w.md`, `${body}\n`, hardWrap);
+      if (want) expectDetail(found, "skill-hard-wrap", want);
+      else expectClean(found, "skill-hard-wrap");
+    });
+  }
+  it("frontmatter is not read", async () => {
+    expectClean(await findings("fx/w-fm/SKILL.md", skill("name: w-fm\ndescription: |\n  a\n  b", "One line."), hardWrap), "skill-hard-wrap");
+  });
+  it("names the paragraph's first line, past the frontmatter", async () => {
+    const found = await findings("fx/w-line/SKILL.md", skill("name: w-line\ndescription: |\n  x", "intro\n\nOne\nwrapped."), hardWrap);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [9],
+    );
+  });
+  it("reports each wrapped paragraph once", async () => {
+    const found = await findings("fx/w-count/w.md", "a\nb\n\n- c\n  d\n\n> e\n> f\n", hardWrap);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [1, 4, 7],
+    );
+  });
 });
