@@ -78,7 +78,7 @@ describe("skill-description, the raw sweep", () => {
     ["t-unclosed", 'name: x\ndescription: "never closed', "unclosed double quote"],
     // An escaped closing quote leaves the value open, and a quote found later in it does not close it.
     ["t-unclosed-escaped", 'name: x\ndescription: "a\\"', "unclosed double quote"],
-    // A blank line folds into a newline, and text after the closing quote on the line below it is still text after the quote.
+    // A blank line folds into a newline, and text after the closing quote stays text after the quote across that fold.
     ["t-double-then-text", 'name: x\ndescription: "a"\n\n  b', "parse error"],
     ["t-single-then-text", "name: x\ndescription: 'a'\n\n  b", "parse error"],
     ["t-single-across-blank", "name: x\ndescription: 'a'\n\n  b'", "stray apostrophe"],
@@ -582,7 +582,6 @@ describe("skill-argument-hint", () => {
       null,
     ],
     ["h-no-arrow", "[new | check]", routing("If it starts with `new`, read a.", "If it starts with `check`, read b."), null],
-    // A group with no `|` is a placeholder, as in the [issue-number] and [filename] [format] hints Claude Code's own docs show.
     // A `|` inside a nested bracket separates that bracket's alternatives, not the outer group's.
     ["h-nested-group", "[manage [x | y]] [new | check]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
     [
@@ -608,6 +607,7 @@ describe("skill-argument-hint", () => {
     ["h-continuation", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n\n  If it starts with `check` → read b.", null],
     ["h-definition-item", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n- [a]: https://example.com", null],
     ["h-lone-first-group", "[manage] [new | check]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
+    // A group with no `|` is a placeholder, as in the [issue-number] and [filename] [format] hints Claude Code's own docs show.
     ["h-bare-placeholder", "[new | check] [issue-number]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
     // The documented gap: a one-word group is not held to routing, so its unrouted verb passes.
     ["h-lone-group-unchecked", "[new | check] [manage]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
@@ -679,13 +679,13 @@ describe("skill-bash-blocks", () => {
     ["b-arith-shift", "```bash\necho $(( 1 << 2 ))\nmake; and true\n```", "; and"],
     ["b-arith-var", "```bash\necho $(( x << y ))\nmake; and true\n```", "; and"],
     ["b-hyphen-bare", "```bash\ncat <<END-BODY\nok\nEND-BODY\nmake; and true\n```", "; and"],
-    // <<- strips every leading tab from the terminator line and nothing else.
     ["good-heredoc-after-quote", "```bash\necho 'a' && cat <<EOF\nfixed; and pushed\nEOF\n```", null],
     ["good-heredoc-touching-quote", "```bash\ncat 'f'<<EOF\nfixed; and pushed\nEOF\n```", null],
     ["b-after-quoted-terminator", "```bash\ncat <<'EOF'\nfixed; and pushed\nEOF\nmake; and true\n```", "; and"],
     ["b-after-double-quoted-terminator", '```bash\ncat <<"EOF"\nfixed; and pushed\nEOF\nmake; and true\n```', "; and"],
     // Without the dash, a tab before the terminator makes it a line of the body.
     ["good-tab-without-dash", "```bash\ncat <<EOF\n\tEOF\nfixed; and pushed\nEOF\n```", null],
+    // <<- strips every leading tab from the terminator line and nothing else.
     ["b-tabs-terminator", "```bash\ncat <<-EOF\n\tok\n\t\tEOF\nmake; and true\n```", "; and"],
     ["good-tab-after-terminator", "```bash\ncat <<-EOF\nEOF\t\nfixed; and pushed\nEOF\n```", null],
     ["good-hyphen-quoted", "```bash\ncat <<'END-BODY'\nfixed; and pushed\nEND-BODY\n```", null],

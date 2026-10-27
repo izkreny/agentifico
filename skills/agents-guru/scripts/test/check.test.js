@@ -237,7 +237,7 @@ beforeAll(() => {
   mkPlugin("counted", JSON.stringify({ name: "counted" }), { "rule.yml": "key: value\n" });
   // A path naming the default folder itself replaces it with itself, so nothing in it is ignored.
   mkPlugin("self", JSON.stringify({ name: "self", commands: "./commands/" }), { "commands/x.md": "# X\n\nbody\n" });
-  // The only file the replaced folder holds sits one level down, so a walk that stops at the top finds none.
+  // The replaced folder holds one file, a level down, so a walk that stops at the top finds none.
   mkPlugin("deep", JSON.stringify({ name: "deep", commands: "./extra/" }), { "commands/sub/x.md": "# X\n\nbody\n" });
   mkPlugin("listed", JSON.stringify({ name: "listed", commands: ["./commands/", "./extra/"] }), { "commands/x.md": "# X\n\nbody\n" });
   mkPlugin("inside", JSON.stringify({ name: "inside", commands: ["./commands/deploy.md"] }), { "commands/deploy.md": "# Deploy\n\nbody\n" });
@@ -250,7 +250,7 @@ beforeAll(() => {
   mkPlugin("mapped", JSON.stringify({ name: "mapped", commands: { deploy: { source: "./commands/deploy.md" } } }), {
     "commands/deploy.md": "# Deploy\n\nbody\n",
   });
-  // Read only by its test, which says why.
+  // Two replaced folders holding no file Claude Code could load: one never created, one holding only a dangling link.
   mkPlugin("folderless", JSON.stringify({ name: "folderless", commands: "./extra/" }));
   mkPlugin("dangling", JSON.stringify({ name: "dangling", agents: "./other/" }));
   fs.mkdirSync(path.join(plugins, "dangling", "agents"));
