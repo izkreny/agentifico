@@ -625,6 +625,13 @@ describe("skill-argument-hint", () => {
       "Routing\n=======\n\n- If it starts with `new` → read a.\n\nDetail\n------\n\n- If it starts with `check` → read b.",
       unadvertised("check"),
     ],
+    // A setext underline may carry trailing spaces, which do not change its level.
+    [
+      "h-setext-trailing",
+      "[new]",
+      "Routing\n=======  \n\n- If it starts with `new` → read a.\n\nDetail\n------\n\n- If it starts with `check` → read b.",
+      unadvertised("check"),
+    ],
     [
       "h-setext-ends",
       "[new]",

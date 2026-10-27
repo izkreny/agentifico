@@ -40,7 +40,6 @@ function advertised(hint) {
 
 const headingLevel = (t) => {
   if (t.type === "atxHeading") return t.children.find((c) => c.type === "atxHeadingSequence").text.length;
-  // Stryker disable next-line MethodExpression: a setext underline is one character repeated, so it ends with the character it starts with.
   if (t.type === "setextHeading") return t.children.find((c) => c.type === "setextHeadingLine").text.startsWith("=") ? 1 : 2;
   return 0;
 };
