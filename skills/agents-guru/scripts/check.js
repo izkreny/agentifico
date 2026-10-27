@@ -91,6 +91,7 @@ let issues = 0;
 // A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
 let warnings = 0;
 let contractWarnings = 0;
+let proseShapeWarnings = 0;
 const contractFindings = [];
 const proseShapeFindings = [];
 const generalFindings = [];
@@ -98,22 +99,24 @@ for (const file of files) {
   const rel = path.relative(base, file);
   for (const e of results[file] ?? []) {
     const warning = e.ruleNames.some((name) => warningRuleNames.has(name));
-    if (warning) contractWarnings++;
-    else issues++;
+    const proseShape = e.ruleNames.some((name) => proseShapeRuleNames.has(name));
+    if (!warning) issues++;
+    else if (proseShape) proseShapeWarnings++;
+    else contractWarnings++;
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
     const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")}${warning ? " (warning)" : ""} ${e.ruleDescription}${detail}${context}`;
-    const bucket = e.ruleNames.some((name) => contractRuleNames.has(name))
-      ? contractFindings
-      : e.ruleNames.some((name) => proseShapeRuleNames.has(name))
-        ? proseShapeFindings
-        : generalFindings;
+    const bucket = e.ruleNames.some((name) => contractRuleNames.has(name)) ? contractFindings : proseShape ? proseShapeFindings : generalFindings;
     bucket.push(line);
   }
 }
-warnings += contractWarnings;
+warnings += contractWarnings + proseShapeWarnings;
 report("skill rules", contractFindings, contractWarnings ? `${contractFindings.length - contractWarnings} issues, ${contractWarnings} warnings` : undefined);
-report("prose shape", proseShapeFindings);
+report(
+  "prose shape",
+  proseShapeFindings,
+  proseShapeWarnings ? `${proseShapeFindings.length - proseShapeWarnings} issues, ${proseShapeWarnings} warnings` : undefined,
+);
 report("general lint", generalFindings);
 
 // A comment is read off the parser's tree, because a "#" inside a block scalar is text and a raw-line scan would read it as a comment.

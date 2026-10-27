@@ -33,15 +33,16 @@ const contractRules = [
   skillBashBlocks,
   agentFrontmatter,
 ];
-const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs, skillHardWrap];
-// A warning rule's findings print among the contract findings but leave the run passing, since the file still loads.
-const warningRules = [agentPluginName];
-export const rules = [...contractRules, ...warningRules, ...proseShapeRules];
+const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs];
+// A warning rule's findings print in its group but leave the run passing: agent-plugin-name because the file still loads, skill-hard-wrap because a skill may decline its author's conventions, per workflows/export.md.
+const contractWarningRules = [agentPluginName];
+const proseShapeWarningRules = [skillHardWrap];
+export const rules = [...contractRules, ...contractWarningRules, ...proseShapeRules, ...proseShapeWarningRules];
 
 const namesOf = (group) => new Set(group.flatMap((rule) => rule.names));
-export const contractRuleNames = namesOf([...contractRules, ...warningRules]);
-export const warningRuleNames = namesOf(warningRules);
-export const proseShapeRuleNames = namesOf(proseShapeRules);
+export const contractRuleNames = namesOf([...contractRules, ...contractWarningRules]);
+export const warningRuleNames = namesOf([...contractWarningRules, ...proseShapeWarningRules]);
+export const proseShapeRuleNames = namesOf([...proseShapeRules, ...proseShapeWarningRules]);
 
 // A rule named here is off for the reason beside it, never for quiet.
 export const config = {
