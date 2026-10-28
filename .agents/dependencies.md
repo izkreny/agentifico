@@ -6,7 +6,7 @@ Read this before opening or working an update issue, bumping any package, editin
 
 ## An update round
 
-**One update issue covers every upgradable dependency in the repository**: the npm packages under each package directory, Node, and Vale. There is no CI, so there are no GitHub Actions to move. The inventory below is taken whole before the issue's scope is fixed. Whatever it finds either moves in that round or is named in the issue as left where it is, with what holds it.
+**One update issue covers every upgradable dependency in the repository**: the npm packages under each package directory, Node, and Vale. The exception is work in another package's files, which *Floors* sends to an issue of its own. There is no CI, so there are no GitHub Actions to move. The inventory below is taken whole before the issue's scope is fixed. Whatever it finds either moves in that round or is named in the issue as left where it is, with what holds it.
 
 **The npm commands run inside `<package-dir>`**, or with `--prefix <package-dir>` from the repository root. `<package-dir>` is any package directory that holds a `<package-dir>/package.json`.
 
@@ -41,6 +41,6 @@ Then compare the lockfile against the branch below it by version: no package sho
 
 ## Floors
 
-**A Vale floor moves with the round.** A run on an older Vale can report fewer alerts than one on the latest, and a lower count is a silent pass. Raising a floor refuses every installer on an older Vale, so it is a breaking change and moves that package's major version.
+**A Vale floor moves with the round, on the branch of the package that owns it.** A run on an older Vale can report fewer alerts than one on the latest, and a lower count is a silent pass. Raising a floor refuses every installer on an older Vale, so it is a breaking change and moves that package's major version.
 
 **A round that reaches another package's files splits that work into an issue of its own.** An epic covers one package, per *A package epic's last child is that package's sweep issue, and its branch is the stack's top branch* in [`AGENTS.md`](../AGENTS.md), so each package's floor moves on that package's own branch.
