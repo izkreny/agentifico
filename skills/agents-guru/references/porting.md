@@ -38,6 +38,8 @@ Owned is confirmed, never inferred, per *A check that has never been seen to fai
 
 A defect a script can decide from the file alone becomes a check rule under `scripts/rules/`. One that needs the author's intent, or that a script could only guess at from a list of English words, becomes a sentence: in `workflows/new.md` when the author makes the choice, in `workflows/review.md` when the sweep has to read for it.
 
+A check rule names the reader it builds on, such as `scripts/rules/plugin-files.js` for a plugin's hooks file and manifest. Where the check reads no file of that kind, the verdict says so, and weighs building a reader against stating the rule as prose. The answer is then a destination rather than a skip.
+
 ## Never a reason to skip
 
 **That no file here uses what the rule judges.** A mistake another project has already documented is a lesson learned, so guarding against it is not speculation.
