@@ -67,7 +67,7 @@ beforeAll(() => {
   for (const version of ["3.23.0", "3.24.0", "3.25.0"]) {
     const bin = path.join(tmp, `stub-bin-${version}`);
     fs.mkdirSync(bin);
-    fs.writeFileSync(path.join(bin, "vale"), `#!/bin/sh\necho "vale version ${version}"\n`, { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, "vale"), `#!/bin/sh\nif [ "$1" = --version ]; then echo "vale version ${version}"; else echo "{}"; fi\n`, { mode: 0o755 });
   }
   const unversioned = path.join(tmp, "unversioned-bin");
   fs.mkdirSync(unversioned);
@@ -329,7 +329,8 @@ describe("check.js", () => {
   });
   it("a vale at 3.25 is not refused for its version", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "stub-bin-3.25.0") });
-    assert.doesNotMatch(r.out, /is older than|could not read Vale's version/);
+    assert.match(r.out, /2 files checked, \d+ issues/);
+    assert.doesNotMatch(r.out, /prose rules not run/);
   });
   it("a vale whose version cannot be read fails the run, and says so", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "unversioned-bin") });
