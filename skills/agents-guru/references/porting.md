@@ -16,7 +16,7 @@ The catalogue's own type label sorts the queue and never decides it. A rule type
 
 Every page the rule cites is fetched and read, never trusted from the catalogue. The page has to state the defect, or the behaviour that makes it one. A rule whose page is silent is skipped, and one the page supports in part ports only that part.
 
-Quote the sentence the verdict rests on. A fetch that summarises a page is a second reader, and a skip that rests on what a page does not say is the claim a summary gets wrong most easily, so such a skip is checked against the page's own words before it stands.
+Read the sentence the verdict rests on in the page's own words, so the reason the answer restates can be checked against it. A fetch that summarises a page is a second reader, and a skip that rests on what a page does not say is the claim a summary gets wrong most easily, so such a skip is checked against the page's own words before it stands.
 
 ### One package's files can decide it
 
