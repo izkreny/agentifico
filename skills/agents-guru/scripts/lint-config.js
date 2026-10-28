@@ -34,7 +34,7 @@ const contractRules = [
   agentFrontmatter,
 ];
 const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs];
-// A warning rule's findings print in its group but leave the run passing: agent-plugin-name because the file still loads, skill-hard-wrap because a skill may decline its author's conventions, per workflows/export.md.
+// A warning rule's findings print in its group but leave the run passing: agent-plugin-name because the file still loads, skill-hard-wrap because a skill may decline its author's conventions, per workflows/export.md, which a caller can also do with --skip.
 const contractWarningRules = [agentPluginName];
 const proseShapeWarningRules = [skillHardWrap];
 export const rules = [...contractRules, ...contractWarningRules, ...proseShapeRules, ...proseShapeWarningRules];
@@ -43,6 +43,8 @@ const namesOf = (group) => new Set(group.flatMap((rule) => rule.names));
 export const contractRuleNames = namesOf([...contractRules, ...contractWarningRules]);
 export const warningRuleNames = namesOf([...contractWarningRules, ...proseShapeWarningRules]);
 export const proseShapeRuleNames = namesOf([...proseShapeRules, ...proseShapeWarningRules]);
+// A caller's --skip reaches only the author's conventions, because a contract rule's failure is silent; yaml-comment-wrap is named here since scripts/check.js raises it itself.
+export const skippableRuleNames = new Set([...namesOf(proseShapeWarningRules), "yaml-comment-wrap"]);
 
 // A rule named here is off for the reason beside it, never for quiet.
 export const config = {
