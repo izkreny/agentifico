@@ -10,7 +10,7 @@ A rule stops at the first test it fails, and its verdict names that test as its 
 
 A rule is a candidate when it cites the Agent Skills specification or a vendor's documentation. A rule whose only evidence is source code, or a community's practice, is skipped: code shows what one build of one tool does, and a practice shows what some authors do, where the format and its vendors' pages state what is promised.
 
-The catalogue's own type label sorts the queue and never decides it. A rule typed as community research is still a candidate when a vendor page it cites states it, and one typed as vendor documentation is still skipped when no page it cites does.
+The catalogue's own type label sorts the queue and never decides it. A rule typed as community research is still a candidate when a vendor page it cites states it.
 
 ### The page states what the rule checks
 
