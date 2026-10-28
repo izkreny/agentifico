@@ -46,4 +46,14 @@ A defect a script can decide from the file alone becomes a check rule under `scr
 
 **Every rule gets one row**: its id, linked to the catalogue's page for it; a verdict of port as a check rule, port as prose, already owned, or skip; and a reason that restates the page rather than the catalogue's wording, naming the page re-read. A rule that ports names its destination file and the issue that builds it, and rules that port into the same file share an issue.
 
+The rows form one table, in this shape:
+
+```markdown
+| Rule | What <tool> checks | Verdict | Why |
+|---|---|---|---|
+| [<rule-id>](<the catalogue's page for it>) | <the rule's own name> | <verdict> | <what the page says, restated, and where the port lands>. Page re-read: [<page name>](<page url>). |
+```
+
+**A second table opens the answer and defines its terms**, so a row reads without this file: what each verdict means, what the columns hold, and which validator ran, on which version, against what.
+
 **A defect in the other tool, found on the way, is reported to its maintainers.** That covers a rule its own cited page contradicts and a check that fires on a correct file. Reproduce each on a minimal tree first, and check the tool's tracker for an existing report.
