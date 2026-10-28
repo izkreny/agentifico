@@ -5,20 +5,33 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { lint } from "markdownlint/promise";
 import YAML from "yaml";
-import { config, contractRuleNames, proseShapeRuleNames, rules, warningRuleNames } from "./lint-config.js";
+import { config, contractRuleNames, proseShapeRuleNames, rules, skippableRuleNames, warningRuleNames } from "./lint-config.js";
 import { isSkillFile } from "./rules/frontmatter.js";
 import { hooksDefects, isPluginRoot, manifestDefects } from "./rules/plugin-files.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const valeConfig = path.join(here, "..", ".vale.ini");
 
-// Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
-const targets = (process.argv.length > 2 ? process.argv.slice(2) : ["."]).map((arg) => path.resolve(arg));
-
 const nothingChecked = (why) => {
   console.log(`${why}: nothing was checked`);
   process.exit(1);
 };
+
+// --skip is taken out before any argument resolves as a path, so a run naming only --skip still checks the working directory.
+const skip = new Set();
+const paths = [];
+for (let i = 2; i < process.argv.length; i++) {
+  if (process.argv[i] !== "--skip") {
+    paths.push(process.argv[i]);
+    continue;
+  }
+  const name = process.argv[++i];
+  if (!skippableRuleNames.has(name))
+    nothingChecked(`${name === undefined ? "--skip names no rule" : `--skip ${name}`}: only ${[...skippableRuleNames].join(", ")} can be skipped`);
+  skip.add(name);
+}
+// Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
+const targets = (paths.length ? paths : ["."]).map((arg) => path.resolve(arg));
 
 // Each file keeps the root of the first target reaching it, so a file two targets reach is read once.
 const rootOf = new Map();
@@ -72,6 +85,23 @@ const report = (label, lines, summary = lines.length || "none") => {
   for (const line of lines) console.log(`  ${line}`);
 };
 
+// One filter by rule name serves markdownlint's findings, the YAML reader's and Vale's, so a rule joining the skippable set needs no stream of its own.
+const withheld = new Map([...skip].sort().map((name) => [name, 0]));
+const withholds = (names) => {
+  const name = names.find((n) => skip.has(n));
+  if (name) withheld.set(name, withheld.get(name) + 1);
+  return Boolean(name);
+};
+// Nothing prints when nothing was skipped, so a plain run shows no group for a switch its caller never used.
+const reportSkipped = () => {
+  if (!skip.size) return "";
+  report(
+    "skipped rules",
+    [...withheld].map(([name, count]) => `${name}: ${count} findings withheld`),
+  );
+  return `, ${skip.size} rule(s) skipped`;
+};
+
 // One run per root, passed to the layout and referenced-path rules so neither reads a tree nobody asked it to read.
 const results = {};
 for (const root of new Set(files.map((file) => rootOf.get(file)))) {
@@ -100,6 +130,7 @@ for (const file of files) {
   const rel = path.relative(base, file);
   // Stryker disable next-line ArrayDeclaration: markdownlint returns an entry for every file it is handed, so the fallback is never read.
   for (const e of results[file] ?? []) {
+    if (withholds(e.ruleNames)) continue;
     const warning = e.ruleNames.some((name) => warningRuleNames.has(name));
     const proseShape = e.ruleNames.some((name) => proseShapeRuleNames.has(name));
     if (!warning) issues++;
@@ -156,7 +187,7 @@ for (const file of yamlFiles) {
   for (const [i, c] of whole.entries()) {
     const before = whole[i - 1];
     // A colon is no sentence end, since a wrapped comment breaks after one mid-sentence as often as after a word.
-    if (before?.line === c.line - 1 && !/[.!?]["')\]`*_]*$/.test(before.text.trimEnd())) {
+    if (before?.line === c.line - 1 && !/[.!?]["')\]`*_]*$/.test(before.text.trimEnd()) && !withholds(["yaml-comment-wrap"])) {
       yamlFindings.push(
         `${rel}:${c.line} yaml-comment-wrap (warning) continues the sentence on the line before: write each paragraph of a comment on one line`,
       );
@@ -199,8 +230,9 @@ report("plugin files", pluginFindings, pluginFindings.length ? `${pluginIssues} 
 
 const proseNotRun = (why) => {
   report(PROSE_RULES, [], "not run");
+  const skipped = reportSkipped();
   // The markdown, YAML and plugin files alone, since a code file's only reader is the process that did not start.
-  console.log(`${files.length + yamlFiles.length + pluginFiles.length} files checked, ${issues} issues, prose rules not run`);
+  console.log(`${files.length + yamlFiles.length + pluginFiles.length} files checked, ${issues} issues, prose rules not run${skipped}`);
   console.log(why);
   process.exit(1);
 };
@@ -243,6 +275,7 @@ const proseFindings = [];
 for (const file of valeFiles) {
   const rel = path.relative(base, file);
   for (const a of alerts[file] ?? []) {
+    if (withholds([a.Check])) continue;
     if (a.Severity === "error") {
       issues++;
       proseIssues++;
@@ -252,5 +285,6 @@ for (const file of valeFiles) {
 }
 warnings += proseWarnings;
 report(PROSE_RULES, proseFindings, proseFindings.length ? `${proseIssues} issues, ${proseWarnings} warnings` : "none");
-console.log(`${valeFiles.length + yamlFiles.length + pluginFiles.length} files checked, ${issues} issues, ${warnings} warnings`);
+const skipped = reportSkipped();
+console.log(`${valeFiles.length + yamlFiles.length + pluginFiles.length} files checked, ${issues} issues, ${warnings} warnings${skipped}`);
 process.exit(issues ? 1 : 0);

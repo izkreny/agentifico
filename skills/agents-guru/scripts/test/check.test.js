@@ -688,6 +688,56 @@ describe("check.js", () => {
     assert.equal(r.code, 1);
     assert.match(r.out, /TRUNCATED/);
   });
+  it("a skipped hard wrap is withheld, named and counted", () => {
+    const r = run(["--skip", "skill-hard-wrap", path.join(tmp, "wrapped")]);
+    assert.equal(r.code, 0, r.out);
+    assert.doesNotMatch(r.out, /SKILL\.md:\d+ skill-hard-wrap/);
+    assert.match(r.out, /^prose shape: none$/m);
+    assert.match(r.out, /^skipped rules: 1\n {2}skill-hard-wrap: 1 findings withheld\n2 files checked, 0 issues, 0 warnings, 1 rule\(s\) skipped\n$/m);
+  });
+  it("a skipped YAML comment wrap is withheld, named and counted", () => {
+    const r = run(["--skip", "yaml-comment-wrap", path.join(tmp, "yaml-wrapped")]);
+    assert.equal(r.code, 0, r.out);
+    assert.doesNotMatch(r.out, /rule\.yml:\d+ yaml-comment-wrap/);
+    assert.match(r.out, /^yaml files: none$/m);
+    assert.match(r.out, /^ {2}yaml-comment-wrap: 1 findings withheld$/m);
+    assert.match(r.out, /^3 files checked, 0 issues, 0 warnings, 1 rule\(s\) skipped$/m);
+  });
+  it("--skip repeats, and a rule named twice is skipped once", () => {
+    const targets = [path.join(tmp, "wrapped"), path.join(tmp, "yaml-wrapped")];
+    const both = run(["--skip", "yaml-comment-wrap", "--skip", "skill-hard-wrap", ...targets]);
+    assert.equal(both.code, 0, both.out);
+    assert.match(both.out, /^skipped rules: 2\n {2}skill-hard-wrap: 1 findings withheld\n {2}yaml-comment-wrap: 1 findings withheld$/m);
+    assert.match(both.out, /, 0 warnings, 2 rule\(s\) skipped$/m);
+    const twice = run(["--skip", "skill-hard-wrap", "--skip", "skill-hard-wrap", ...targets]);
+    assert.match(twice.out, /^skipped rules: 1$/m);
+    assert.match(twice.out, /, 0 issues, 1 warnings, 1 rule\(s\) skipped$/m);
+  });
+  it("skipping a convention rule leaves a contract issue failing the run", () => {
+    const r = run(["--skip", "skill-hard-wrap", path.join(tmp, "bad")]);
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /TRUNCATED/);
+    assert.match(r.out, /^ {2}skill-hard-wrap: 0 findings withheld$/m);
+  });
+  it("--skip with no path checks the working directory", () => {
+    const r = run(["--skip", "skill-hard-wrap"], process.env, path.join(tmp, "wrapped"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}skill-hard-wrap: 1 findings withheld$/m);
+  });
+  it("without vale the skipped rules are still named and counted", () => {
+    const r = run(["--skip", "skill-hard-wrap", path.join(tmp, "wrapped")], { ...process.env, PATH: path.join(tmp, "empty") });
+    assert.equal(r.code, 1);
+    assert.match(r.out, /^ {2}skill-hard-wrap: 1 findings withheld$/m);
+    assert.match(r.out, /^2 files checked, 0 issues, prose rules not run, 1 rule\(s\) skipped$/m);
+  });
+  it("a --skip naming a contract rule, no rule, or nothing refuses the run and names the skippable rules", () => {
+    for (const args of [["--skip", "skill-name"], ["--skip", "no-such-rule"], ["--skip"]]) {
+      const r = run([...args, path.join(tmp, "good")]);
+      assert.equal(r.code, 1, args.join(" "));
+      assert.match(r.out, /only skill-hard-wrap, yaml-comment-wrap can be skipped: nothing was checked/, args.join(" "));
+      assert.doesNotMatch(r.out, /found under/, args.join(" "));
+    }
+  });
 });
 
 // Exercised directly because check.js globs under its target and can never hand the function a path outside it.
