@@ -6,7 +6,7 @@ Read this before opening or working an update issue, bumping any package, editin
 
 ## An update round
 
-**One update issue covers every upgradable dependency in the repository**: the npm packages under each package directory, Node, and Vale. The exception is work in another package's files, which *Floors* sends to an issue of its own. There is no CI, so there are no GitHub Actions to move. The inventory below is taken whole before the issue's scope is fixed. Whatever it finds either moves in that round or is named in the issue as left where it is, with what holds it.
+**One update issue covers every upgradable dependency in the repository**: the npm packages under each package directory, Node, and Vale. The exception is work in another package's files, which *Floors* sends to an issue of its own. There is no CI, so there are no GitHub Actions to move. The inventory under *The inventory* is taken whole before the issue's scope is fixed. Whatever it finds either moves in that round or is named in the issue as left where it is, with what holds it.
 
 **The npm commands run inside `<package-dir>`**, or with `--prefix <package-dir>` from the repository root. `<package-dir>` is any package directory that holds a `<package-dir>/package.json`.
 
@@ -37,7 +37,7 @@ Then compare the lockfile against the branch below it by version: no package sho
 
 **Adapting the code to a bump goes in the round's pull request at any size**: a renamed API, a deprecation, a new lint rule, a rule case a new Vale reports differently. Anything that leaves the package's behaviour unchanged counts.
 
-**A behaviour change the bump reveals goes in the round only when it is small**: at most 3 files and 5 changed lines, tests included, and named in the issue so the round's scope says so. Anything larger is a separate issue. The dependency that revealed it stays at its old version, named in the round's issue as left, until that issue lands.
+**A behaviour change the bump reveals goes in the round only when it is small**: at most three files and five changed lines, tests included, and named in the issue so the round's scope says so. Anything larger is a separate issue. The dependency that revealed it stays at its old version, named in the round's issue as left, until that issue lands.
 
 ## Floors
 
