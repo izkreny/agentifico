@@ -6,7 +6,7 @@ argument-hint: "[new <name> | review <path> | check [<path>...] | export <path> 
 compatibility: |
   Supported on Linux, and on Windows only under WSL; untested on macOS. Requires Node 26.1 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list.
 metadata:
-  version: "7.3.1"
+  version: "7.4.0"
 allowed-tools: Bash(gh:*) Bash(node:*) Read Write Edit Grep Glob
 ---
 
@@ -77,4 +77,5 @@ Based on `$ARGUMENTS`, do exactly one of the following. Test the `manage` bullet
 | `references/setup.md` | installing what the check needs, once per install; read it before the first check and when the check refuses for Vale |
 | `references/managing.md` | installing and updating skills, and why not to hand-edit an installed one |
 | `references/maintaining.md` | registering a rule, why the rules take their shape, growing a phrase list, and the suite; read it before editing `assets/` or `scripts/`, and on no route |
+| `references/porting.md` | whether a rule from another tool's catalogue earns a place here, and where; read it before porting one, and on no route |
 | `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, beside the helpers they share; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |
