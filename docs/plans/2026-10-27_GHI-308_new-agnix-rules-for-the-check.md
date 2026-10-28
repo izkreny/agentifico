@@ -10,7 +10,7 @@ Issue [#308](https://github.com/izkreny/agentifico/issues/308), a spike and a ch
 
 ## What this branch carries
 
-This plan and nothing else. The deliverable is a comment on #308 and the follow-up issues it names. The issue rules out a rule as a deliverable, so anything the reading writes into the tree is reverted and no package version moves.
+This plan, and the method the spike used, as `skills/agents-guru/references/porting.md` (new). The other deliverables are a comment on #308 and the follow-up issues it names. The issue rules out a rule as a deliverable, so anything else the reading writes into the tree is reverted. The reference file is a package change, so agents-guru's version moves a minor.
 
 ## The source
 
@@ -57,15 +57,19 @@ Everything posted under the owner's name is drafted first and posted on their wo
 - Give each candidate a verdict, naming the destination file of each rule that ports and the page that was re-read.
 - Run agnix over `plugins/` and `skills/`, and reproduce every defect it shows.
 - Draft the verdict comment, the follow-up issues with the agnix credit, and the one upstream issue, for the owner.
+- Write the method into `skills/agents-guru/references/porting.md` (new), point `skills/agents-guru/references/maintaining.md` and `skills/agents-guru/SKILL.md` at it, and move agents-guru's version a minor.
 - Post each draft on the owner's word.
-- Revert anything the reading wrote into the tree.
+- Revert anything else the reading wrote into the tree.
 
 ## Verification
 
 - `python3 plugins/gh-solo/skills/pr-flow/scripts/plan-check.py $(git diff --name-only origin/main...HEAD -- docs/plans)`
 - `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md $(git diff --name-only origin/main...HEAD -- docs/plans) --plans docs/plans`
 - `python3 scripts/version-check.py`
-- `git diff --quiet origin/chore/GHI-231_add-stryker-to-bench...HEAD -- plugins skills scripts` exits zero, so this branch changed no package and no check.
+- `npm --prefix skills/agents-guru test`
+- `npm --prefix skills/agents-guru run lint`
+- `node skills/agents-guru/scripts/check.js <package-dir>` exits zero on each of `plugins/gh-solo`, `skills/review-text`, `skills/agents-guru` and `skills/socratic-tutor`.
+- `git diff --quiet origin/chore/GHI-231_add-stryker-to-bench...HEAD -- plugins skills/agents-guru/scripts skills/agents-guru/assets skills/agents-guru/workflows scripts` exits zero, so this branch changed no rule, no check and no workflow.
 
 The gates cannot tell whether a verdict is right. Whether a page supports a rule is a reading the owner judges on the comment.
 
@@ -75,4 +79,4 @@ None.
 
 ## Settled
 
-None yet.
+**Where does the method the spike used live?** In `skills/agents-guru/references/porting.md` (new), written on this branch while its reasons are fresh, and read before a rule from another tool's catalogue is taken into the package. The owner chose it in the terminal on 2026-10-28. Not an ADR: the owner's 2026-10-08 decision against ADRs stands. Not `docs/`: an installed copy of the package has no path to it.
