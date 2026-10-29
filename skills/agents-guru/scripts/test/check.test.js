@@ -116,6 +116,10 @@ beforeAll(() => {
   // A link to itself, which statSync cannot resolve for a reason other than a missing target.
   mk(path.join(tmp, "looped-md"), block("looped-md"));
   fs.symlinkSync("loop.md", path.join(tmp, "looped-md", "loop.md"));
+  // A second name extending the first by a character that sorts below a comma, so a sort over "file,code" strings would put it first.
+  mk(path.join(tmp, "dangling-order"), block("dangling-order"));
+  fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-order", "a.md"));
+  fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-order", "a.md (1).md"));
   fs.mkdirSync(path.join(tmp, "dangling-only"));
   fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-only", "gone.md"));
 
@@ -548,6 +552,9 @@ describe("check.js", () => {
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^dangling links: 1\n {2}loop\.md dangling-link cannot be resolved \(ELOOP\), so nothing was read from it$/m);
     assert.match(r.out, /^2 files checked, 1 issues, /m);
+  });
+  it("dangling links print in path order", () => {
+    assert.match(run(path.join(tmp, "dangling-order")).out, /^dangling links: 2\n {2}a\.md dangling-link .*\n {2}a\.md \(1\)\.md dangling-link /m);
   });
   it("a dangling link two targets reach is named once", () => {
     assert.match(run([path.join(tmp, "dangling-md"), path.join(tmp, "dangling-md")]).out, /^dangling links: 1$/m);
