@@ -52,7 +52,7 @@ The bundle is MIT-licensed, as documentation maintained in the gem's own [reposi
 ## Maintenance
 
 ```bash
-scripts/check-upstream.sh
+<skill-dir>/scripts/check-upstream.sh
 ```
 
 Re-fetches the bundle and compares it with the snapshot. Its exit code says whether upstream still matches the snapshot, differs from it or links a page it does not embed, or could not be checked. The script's header comment owns which code means which, and the code owns the cases behind each.

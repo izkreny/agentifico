@@ -111,6 +111,8 @@ before { allow(controller).to receive(:current_user).and_return(user) }
 
 ## Debugging a rule that answers wrongly
 
+upstream: debugging.md
+
 With `prism` and `method_source` available, `pp :feed?` on a policy instance prints the rule's expression tree annotated with what each term returned, which locates the failing predicate in a composed rule without bisecting it by hand.
 
 ```text

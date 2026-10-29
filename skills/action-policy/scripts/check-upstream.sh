@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
-# Re-fetch the Action Policy documentation bundle this skill was written from and
-# report whether upstream has changed since the snapshot in assets/.
+# Re-fetch the Action Policy documentation bundle this skill was written from and report whether upstream has changed since the snapshot in assets/.
 #
-# Exit 0: unchanged. Exit 1: changed, and the diff is printed, or the bundle links a page
-# it does not embed. Exit 2: could not check.
+# Exit 0: unchanged. Exit 1: changed, and the diff is printed, or the bundle links a page it does not embed. Exit 2: could not check.
 
 set -euo pipefail
 
@@ -30,8 +28,7 @@ if ! curl -sSL --fail --max-time 120 "$SOURCE_URL" -o "$fetched"; then
   exit 2
 fi
 
-# A truncated or error-page response would otherwise diff as a total rewrite and
-# read as "upstream changed everything", which is the wrong conclusion to draw.
+# WHY: a truncated or error-page response would otherwise diff as a total rewrite and read as "upstream changed everything".
 fetched_lines=$(wc -l < "$fetched")
 if [ "$fetched_lines" -lt 100 ]; then
   echo "check-upstream: fetched only $fetched_lines lines, which is not the bundle" >&2

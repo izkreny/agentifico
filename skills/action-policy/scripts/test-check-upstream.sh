@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # Regression bench for check-upstream.sh. Run it after any edit to that file.
 #
-# WHY: the script's clean run is only evidence once each of its other outcomes has been
-# seen. A stub curl serves crafted bundles, so every case runs offline and none depends on
-# what upstream happens to publish today.
+# WHY: the script's clean run is only evidence once each of its other outcomes has been seen.
 set -euo pipefail
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/check-upstream.sh"
@@ -24,8 +22,7 @@ exit 22
 STUB
 chmod +x "$WORK/bin/curl"
 
-# WHY: the script refuses a response under 100 lines as not the bundle, so every bundle
-# that should be read carries padding past that floor.
+# WHY: the script refuses a response under 100 lines as not the bundle, so every bundle that should be read carries padding past that floor.
 bundle() {
   local body="$1" markers="${2:-yes}"
   if [ "$markers" = yes ]; then printf -- '---\nurl: /guide.md\n---\n'; fi
@@ -51,8 +48,7 @@ expect() {
     fails=$((fails + 1))
     return
   fi
-  # WHY: a here-string, since grep -q exits at the first match and under pipefail the
-  # writer's SIGPIPE on a long diff would read as the match failing.
+  # WHY: a here-string, since grep -q exits at the first match and under pipefail the writer's SIGPIPE on a long diff would read as the match failing.
   if ! grep -q -- "$match" <<< "$out"; then
     printf '  FAIL %s -> exit %s, but never said %s\n' "$name" "$status" "$match"
     printf '       %s\n' "$out"
