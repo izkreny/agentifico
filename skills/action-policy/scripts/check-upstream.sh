@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Re-fetch the Action Policy documentation bundle this skill was written from and
+# report whether upstream has changed since the snapshot in assets/.
+#
+# Exit 0: unchanged. Exit 1: changed, and the diff is printed. Exit 2: could not check.
+
+set -euo pipefail
+
+SOURCE_URL="https://actionpolicy.evilmartians.io/llms-full.txt"
+
+skill_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+snapshot="$skill_dir/assets/llms-full.txt"
+
+if ! command -v curl >/dev/null; then
+  echo "check-upstream: curl is required and was not found" >&2
+  exit 2
+fi
+
+if [ ! -f "$snapshot" ]; then
+  echo "check-upstream: no snapshot at $snapshot" >&2
+  exit 2
+fi
+
+fetched=$(mktemp) || exit 2
+trap 'rm -f "$fetched"' EXIT
+
+if ! curl -sSL --fail --max-time 120 "$SOURCE_URL" -o "$fetched"; then
+  echo "check-upstream: could not fetch $SOURCE_URL" >&2
+  exit 2
+fi
+
+# A truncated or error-page response would otherwise diff as a total rewrite and
+# read as "upstream changed everything", which is the wrong conclusion to draw.
+fetched_lines=$(wc -l < "$fetched")
+if [ "$fetched_lines" -lt 100 ]; then
+  echo "check-upstream: fetched only $fetched_lines lines, which is not the bundle" >&2
+  exit 2
+fi
+
+# The bundle embeds every guide page inline, and the "./behaviour.md" style links
+# in its text are cross-references between its own sections. That is what makes one
+# snapshot enough. If upstream ever links a page it no longer embeds, the snapshot
+# stops covering the docs and the missing pages need fetching separately, so the
+# invariant is asserted rather than assumed.
+#
+# Both greps are guarded with `|| true`: under `set -o pipefail` a grep that matches
+# nothing aborts the command substitution and kills the script silently, which would
+# exit 1 with no diff printed and so report "upstream changed" for what is actually
+# "this check could not run" - the exact distinction the exit codes above exist to keep.
+embedded=$({ grep -o '^url: .*' "$fetched" || true; } |
+  sed 's|^url: ||; s|^/guide/||; s|^/||' | sort -u)
+
+if [ -z "$embedded" ]; then
+  echo "check-upstream: the fetched bundle carries no 'url:' markers, so its structure changed and the coverage check cannot run" >&2
+  exit 2
+fi
+
+linked=$({ grep -o '](\.\{0,2\}/*[a-z0-9_-]*\.md[^)]*)' "$fetched" || true; } |
+  sed 's|^](||; s|)$||; s|#.*||; s|^\./||; s|^/guide/||' | sort -u)
+uncovered=$(comm -23 <(printf '%s\n' "$linked") <(printf '%s\n' "$embedded"))
+
+status=0
+
+if [ -n "$uncovered" ]; then
+  echo "UNCOVERED: the bundle links pages it does not embed, so it is no longer the whole docs"
+  printf '%s\n' "$uncovered" | sed 's|^|  |'
+  echo "Fetch each of those separately into assets/ and widen this check."
+  echo
+  status=1
+fi
+
+if diff -q "$snapshot" "$fetched" >/dev/null; then
+  echo "unchanged: upstream matches the snapshot ($(wc -l < "$snapshot") lines, $(printf '%s\n' "$embedded" | wc -l) pages embedded)"
+  exit "$status"
+fi
+
+echo "CHANGED: upstream differs from the snapshot"
+echo
+diff -u "$snapshot" "$fetched" || true
+echo
+echo "Read the diff before refreshing: a changed bundle may contradict a claim the"
+echo "skill states, and refreshing the snapshot without fixing the prose hides that."
+echo "When the prose is right again:"
+echo
+echo "  curl -sSL '$SOURCE_URL' -o '$snapshot'"
+exit 1
