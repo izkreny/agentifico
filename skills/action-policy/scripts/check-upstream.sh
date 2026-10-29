@@ -40,16 +40,23 @@ fi
 # WHY: one snapshot covers the docs only while every page the bundle links is also embedded, so that is checked rather than assumed.
 # WHY: each grep takes `|| true`, since under pipefail one that matches nothing would end the script with exit 1, which reads as "upstream changed".
 embedded=$({ grep -o '^url: .*' "$fetched" || true; } |
-  sed 's|^url: ||; s|.*/||' | sort -u)
+  sed 's|^url: ||; s|^/guide/||; s|^/||' | sort -u)
 
 if [ -z "$embedded" ]; then
   echo "check-upstream: the fetched bundle carries no 'url:' markers, so its structure changed and the coverage check cannot run" >&2
   exit 2
 fi
 
+# WHY: the bundle's own links resolve every page in one guide namespace, so a page nested below it breaks the comparison and is refused rather than guessed at.
+if printf '%s\n' "$embedded" | grep -q '/'; then
+  echo "check-upstream: the fetched bundle embeds a page nested below the guide, so its structure changed and the coverage check cannot run" >&2
+  exit 2
+fi
+
 linked=$({ grep -oE '\]\([^)]+\)|^\[[^]]+\]:[[:space:]]*[^[:space:]]+' "$fetched" || true; } |
   sed -E 's/^\]\(//; s/\)$//; s/^\[[^]]+\]:[[:space:]]*//; s/[[:space:]].*//; s/#.*//' |
-  { grep -v '://' || true; } | { grep '\.md$' || true; } | sed 's|.*/||' | sort -u)
+  { grep -v '://' || true; } | { grep '\.md$' || true; } |
+  sed -E 's#^(\.{1,2}/)+##; s#^/##; s#^guide/##' | sort -u)
 uncovered=$(comm -23 <(printf '%s\n' "$linked") <(printf '%s\n' "$embedded"))
 
 status=0
