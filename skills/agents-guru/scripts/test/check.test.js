@@ -731,11 +731,17 @@ describe("check.js", () => {
     assert.match(r.out, /^2 files checked, 0 issues, prose rules not run, 1 rule\(s\) skipped$/m);
   });
   it("a --skip naming a contract rule, no rule, or nothing refuses the run and names the skippable rules", () => {
-    for (const args of [["--skip", "skill-name"], ["--skip", "no-such-rule"], ["--skip"]]) {
-      const r = run([...args, path.join(tmp, "good")]);
-      assert.equal(r.code, 1, args.join(" "));
-      assert.match(r.out, /only skill-hard-wrap, yaml-comment-wrap can be skipped: nothing was checked/, args.join(" "));
-      assert.doesNotMatch(r.out, /found under/, args.join(" "));
+    const good = path.join(tmp, "good");
+    // A bare --skip runs from the fixture, since any path after it would be read as the rule's name.
+    for (const [args, named] of [
+      [["--skip", "skill-name", good], "--skip skill-name"],
+      [["--skip", "no-such-rule", good], "--skip no-such-rule"],
+      [["--skip"], "--skip names no rule"],
+    ]) {
+      const r = run(args, process.env, good);
+      assert.equal(r.code, 1, named);
+      assert.ok(r.out.startsWith(`${named}: only skill-hard-wrap, yaml-comment-wrap can be skipped: nothing was checked\n`), r.out);
+      assert.doesNotMatch(r.out, /found under/, named);
     }
   });
 });
