@@ -12,7 +12,7 @@ Authorization runs many times per request, and a rule that queries turns that in
 
 **Per-instance rule memoization** applies a rule once per policy instance and returns the remembered result, which is what makes an alias free.
 
-Outside Rails, these are `ActionPolicy::Behaviours::Memoized` and `ActionPolicy::Behaviours::ThreadMemoized`, and a long-lived caller must call `ActionPolicy::PerThreadCache.clear_all` itself.
+Outside Rails, these are `ActionPolicy::Behaviours::Memoized` and `ActionPolicy::Behaviours::ThreadMemoized`. Outside the Rails executor, whatever includes `ThreadMemoized` calls `ActionPolicy::PerThreadCache.clear_all` at each request or job boundary, or a pooled thread carries memoized policies and their remembered results into the next request.
 
 ## The cache store
 
@@ -38,7 +38,9 @@ Define `policy_cache_key` on any record whose `cache_key` is expensive, and on a
 
 Preferring a key that changes on its own beats invalidating: `"user::#{id}::#{role_id}"` for the actor and a `touch`ed timestamp on the record's access join make a permission change produce a new key with nothing to clear.
 
-Failing that, `cache_namespace` overridden with a version constant discards everything at once, and a custom `cache_key(rule)` plus `delete_matched` clears one actor or one pair, where the store supports wildcards.
+Failing that, `cache_namespace` overridden with a version constant discards everything at once, and a custom `rule_cache_key(rule)` plus `delete_matched` clears one actor or one pair, where the store supports wildcards.
+
+**Override `rule_cache_key`, never the `cache_key(rule)` upstream's invalidation example shows.** The gem calls `cache_key` with every part of the key, so a one-argument override raises `ArgumentError` on the first cached rule, and only where a cache store is set, which a spec suite usually lacks; observed on 0.7.7.
 
 ## Instrumentation
 

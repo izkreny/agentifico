@@ -24,7 +24,7 @@ The snapshot is a pinned copy, and `scripts/check-upstream.sh` is what says whet
 
 Where a repository documents who may do what, that document decides what a rule should return, and this skill decides how the rule is written. Read it before changing a rule or the spec that proves one, and treat a disagreement between it and the code as a defect in one of them rather than as licence to pick either.
 
-`rails-style` defaults to model predicate methods and names Pundit and CanCanCan as gems to skip. That default is overridden per project, in the file `rails-style` reads for deviations, and a project that has committed to Action Policy has already made that call: `<repo-root>/app/policies/` there is intended rather than a violation.
+`rails-style` defaults to model predicate methods and names Pundit and CanCanCan as gems to skip. That default is overridden per project, in the file `rails-style` reads for deviations, and a project that records its commitment to Action Policy there has made that call: `<repo-root>/app/policies/` there is intended rather than a violation.
 
 ## References
 
@@ -36,7 +36,7 @@ Loaded when the task touches them, since each costs context on every load:
 - [references/reasons.md](references/reasons.md): failure reasons, detailed reasons, `result.all_details`, i18n messages
 - [references/caching.md](references/caching.md): memoization layers, the rule cache store, invalidation, instrumentation events
 
-Read [assets/llms-full.txt](assets/llms-full.txt) directly only for a question those files leave unanswered.
+For a question those files leave unanswered, grep [assets/llms-full.txt](assets/llms-full.txt) for the page, as *Reading this skill against the source* shows, rather than loading the whole bundle.
 
 ## The policy class
 
@@ -53,7 +53,7 @@ end
 
 `record` is the target being authorized and `user` is the authorization context. Both are readers on the policy, so a rule is an ordinary predicate method and needs no framework knowledge to read.
 
-**Rules must be public.** A private method used as a rule raises, which is the gem refusing to let a rule hide from the specs that would prove it.
+**Rules must be public, because a private one is denied rather than refused loudly.** On `ActionPolicy::Base` a private `update?` is not a rule at all: it falls to the default rule and returns `false`, the same path as a typo, so only the permitted-case spec under *Deny by default, and the price of it* catches it. It raises only under `default_rule nil`, as `ActionPolicy::UnknownRule`, or as a `NoMethodError` when an alias reaches it; observed on 0.7.7, where upstream says a private rule always raises (upstream: aliases.md).
 
 **Never instantiate a policy in application code.** `authorize!` and `allowed_to?` add pre-checks, caching and reason tracking that `PostPolicy.new(post, user:).update?` skips silently, so a hand-built policy answers a different question from the one the request asks. A spec is the exception, and it calls `apply(:update?)` rather than the rule method for the same reason.
 
@@ -138,6 +138,8 @@ upstream: aliases.md
 `alias_rule :edit?, :destroy?, to: :update?` resolves at authorization time rather than defining a method, which keeps the alias out of the specs: the rule is tested once and the alias is asserted to point at it. `ActionPolicy::Base` ships `alias_rule :new?, to: :create?`.
 
 Resolution order for a rule on a subclass: a concrete method on the subclass, then a matching alias, then a concrete method up the ancestry, then the default rule. The alias step is the one worth reading twice, because it covers inherited aliases too: a subclass with no concrete `destroy?` of its own still resolves `destroy?` through an alias its *superclass* declared, ahead of any concrete superclass method. A subclass alias of the same name overwrites the inherited one rather than adding to it. That resolution order, overwrite included, was observed on 0.7.6.
+
+**Within one class, declaration order decides between a method and an alias of the same name.** Defining a method deletes an alias already declared under its name, but an `alias_rule` declared after the method wins, so an alias line added below an existing concrete rule silently replaces it; observed on 0.7.7.
 
 `default_rule nil` turns an unmatched rule into `ActionPolicy::UnknownRule` instead of a denial, which trades the safe direction for a loud one.
 

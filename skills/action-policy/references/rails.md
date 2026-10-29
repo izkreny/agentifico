@@ -18,7 +18,7 @@ end
 
 `authorize :user, through: -> { Current.user }` is the form to use where the current user lives in `ActiveSupport::CurrentAttributes` rather than in a controller method.
 
-Two config flags turn the automatic wiring off, `config.action_policy.auto_inject_into_controller` and `config.action_policy.controller_authorize_current_user`. Leave both alone unless something concrete demands otherwise: turning the first off from an initializer is the shape that hits the gem's Rails 8.1 initialization-order issue, `palkan/action_policy` issue 312, and turning the second off changes only how the controller builds the context, never what the policy requires. A policy inheriting `ActionPolicy::Base` still demands a `user` either way, so dropping the context without `authorize :user, optional: true` on the base policy trades a denial for a raise.
+Two config flags turn the automatic wiring off, `config.action_policy.auto_inject_into_controller` and `config.action_policy.controller_authorize_current_user`. Leave both alone unless something concrete demands otherwise: turning the first off from an initializer is the shape that hits the gem's Rails 8.1 initialization-order issue, `palkan/action_policy` issue 312, on 0.7.6 and earlier, fixed in 0.7.7, and turning the second off changes only how the controller builds the context, never what the policy requires. A policy inheriting `ActionPolicy::Base` still demands a `user` either way, so dropping the context without `authorize :user, optional: true` on the base policy trades a denial for a raise.
 
 ## Generators
 
