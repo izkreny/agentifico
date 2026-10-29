@@ -13,6 +13,7 @@ AI agent skills, instructions and gotchas. Each package here is published one of
 | [review-text](skills/review-text/README.md)       | skill       | A proofreader for prose that reports errors apart from style suggestions and edits only when asked                |
 | [agents-guru](skills/agents-guru/README.md)       | skill       | Writing, reviewing, maintaining and exporting agent skills, with checks for the traps a YAML parser cannot see    |
 | [socratic-tutor](skills/socratic-tutor/README.md) | skill       | A tutor that asks one question at a time until you reach the answer yourself                                      |
+| [action-policy](skills/action-policy/README.md)   | skill       | Writing, reviewing and testing Action Policy authorization in Ruby and Rails code                                 |
 
 Each package's own README has its requirements and the full picture.
 
