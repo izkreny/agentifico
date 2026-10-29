@@ -58,7 +58,23 @@ relation_scope(:edit) do |relation|
 end
 ```
 
-Outside a class with the behaviour mixed in, `apply_scope` applies one explicitly, and the type has to be named:
+A plain Ruby class, such as a service object, gets `authorized_scope` by including `ActionPolicy::Behaviour` and declaring its context, rather than by building a policy:
+
+```ruby
+class PostSearch
+  include ActionPolicy::Behaviour
+
+  authorize :user
+
+  def initialize(user) = @user = user
+
+  attr_reader :user
+
+  def call = authorized_scope(Post.all)
+end
+```
+
+A spec applies one explicitly with `apply_scope`, where the type has to be named:
 
 ```ruby
 PostPolicy.new(nil, user: user).apply_scope(Post.all, type: :active_record_relation)
