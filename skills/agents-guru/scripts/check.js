@@ -55,6 +55,8 @@ for (const target of targets) {
         try {
           return fs.statSync(file).isFile();
         } catch (error) {
+          // A plain file that cannot be stat'ed is no link, so it stops the run rather than being named as one.
+          if (!fs.lstatSync(file).isSymbolicLink()) throw error;
           lost.push([file, error.code]);
           return false;
         }
