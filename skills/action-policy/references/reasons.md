@@ -1,6 +1,6 @@
 # Failure reasons and messages
 
-*upstream: reasons.md, i18n.md*
+upstream: reasons.md, i18n.md
 
 A denial that only says "no" forces the caller to guess. Reasons make the refusal say which check refused, which is what turns a `403` page into an actionable one and what lets a controller respond differently to different refusals.
 

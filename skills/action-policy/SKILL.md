@@ -16,7 +16,7 @@ Paths inside this skill are relative to the skill's own directory.
 
 Every section names the upstream guide page it was distilled from, as `upstream: <page>`. Those pages are embedded in [assets/llms-full.txt](assets/llms-full.txt), so checking any claim here against the source is `grep -n "url: /guide/<page>" assets/llms-full.txt` and reading forward. The prose is derived rather than copied: read it as a claim with a citation, not as upstream's own words.
 
-Two things follow. A claim without a citation is this skill's own judgement rather than upstream's, and a claim that disagrees with the cited page is a defect in this skill. Code examples are restyled from upstream's, so an example never carries upstream's exact text either.
+A claim without a citation is this skill's own judgement rather than upstream's, and a claim that disagrees with the cited page is a defect in this skill. Code examples are restyled from upstream's, so an example never carries upstream's exact text either.
 
 The snapshot is a pinned copy, and `scripts/check-upstream.sh` is what says whether it still matches the live docs.
 
@@ -24,7 +24,7 @@ The snapshot is a pinned copy, and `scripts/check-upstream.sh` is what says whet
 
 Where a repository documents who may do what, that document decides what a rule should return, and this skill decides how the rule is written. Read it before changing a rule or the spec that proves one, and treat a disagreement between it and the code as a defect in one of them rather than as licence to pick either.
 
-`rails-style` defaults to model predicate methods and names Pundit and CanCanCan as gems to skip. That default is overridden per project, in the file `rails-style` reads for deviations, and a project that has committed to Action Policy has already made that call: `app/policies/` there is intended rather than a violation.
+`rails-style` defaults to model predicate methods and names Pundit and CanCanCan as gems to skip. That default is overridden per project, in the file `rails-style` reads for deviations, and a project that has committed to Action Policy has already made that call: `<repo-root>/app/policies/` there is intended rather than a violation.
 
 ## References
 
@@ -40,9 +40,9 @@ Read [assets/llms-full.txt](assets/llms-full.txt) directly only for a question t
 
 ## The policy class
 
-*upstream: writing_policies.md*
+upstream: writing_policies.md
 
-One policy per resource, named for the singular resource with a `Policy` suffix, in `app/policies/`, with rules named as the predicate form of the controller action they authorize.
+One policy per resource, named for the singular resource with a `Policy` suffix, in `<repo-root>/app/policies/`, with rules named as the predicate form of the controller action they authorize.
 
 ```ruby
 class PostPolicy < ApplicationPolicy
@@ -59,7 +59,7 @@ end
 
 ## Deny by default, and the price of it
 
-*upstream: custom_policy.md, aliases.md*
+upstream: custom_policy.md, aliases.md
 
 `ActionPolicy::Base` sets `default_rule :manage?` and defines `manage?` as `false`, so a rule the policy does not define resolves to `manage?` and is denied. An empty policy denies everything without a line of code.
 
@@ -69,7 +69,7 @@ end
 
 ## Applying a policy
 
-*upstream: behaviour.md, writing_policies.md*
+upstream: behaviour.md, writing_policies.md
 
 - `authorize! post, to: :update?` raises `ActionPolicy::Unauthorized` on failure. The exception carries `policy`, `rule` and `result`, and `result` is where the reasons live.
 - `allowed_to?(:edit?, post)` returns true or false, and is what a view asks before rendering a link.
@@ -92,7 +92,7 @@ end
 
 ## Authorization context
 
-*upstream: authorization_context.md*
+upstream: authorization_context.md
 
 The context is everything a rule needs besides the record, and it is declared in two places that must agree: the policy says what it requires, the calling layer says where each value comes from.
 
@@ -112,7 +112,7 @@ A missing or `nil` context value raises `ActionPolicy::AuthorizationContextMissi
 
 ## Pre-checks
 
-*upstream: pre_checks.md*
+upstream: pre_checks.md
 
 A predicate repeated at the top of most rules belongs in a pre-check, which runs before the rule and can end authorization outright.
 
@@ -133,25 +133,25 @@ A pre-check halts only by returning the value of `allow!` or `deny!`; any other 
 
 ## Aliases and the default rule
 
-*upstream: aliases.md*
+upstream: aliases.md
 
 `alias_rule :edit?, :destroy?, to: :update?` resolves at authorization time rather than defining a method, which keeps the alias out of the specs: the rule is tested once and the alias is asserted to point at it. `ActionPolicy::Base` ships `alias_rule :new?, to: :create?`.
 
-Resolution order for a rule on a subclass: a concrete method on the subclass, then a matching alias, then a concrete method up the ancestry, then the default rule. The alias step is the one worth reading twice, because it covers inherited aliases too: a subclass with no concrete `destroy?` of its own still resolves `destroy?` through an alias its *superclass* declared, ahead of any concrete superclass method. A subclass alias of the same name overwrites the inherited one rather than adding to it. Both halves observed on 0.7.6.
+Resolution order for a rule on a subclass: a concrete method on the subclass, then a matching alias, then a concrete method up the ancestry, then the default rule. The alias step is the one worth reading twice, because it covers inherited aliases too: a subclass with no concrete `destroy?` of its own still resolves `destroy?` through an alias its *superclass* declared, ahead of any concrete superclass method. A subclass alias of the same name overwrites the inherited one rather than adding to it. That resolution order, overwrite included, was observed on 0.7.6.
 
 `default_rule nil` turns an unmatched rule into `ActionPolicy::UnknownRule` instead of a denial, which trades the safe direction for a loud one.
 
-`index?` and `create?` are defined as `false` on `ActionPolicy::Base` and `new?` aliases to `create?`, so the default rule never sees any of the three; routing them through it as well takes `alias_rule :index?, :create?, :new?, to: :manage?`.
+`index?` and `create?` are defined as `false` on `ActionPolicy::Base` and `new?` aliases to `create?`, so the default rule never sees them; routing them through it as well takes `alias_rule :index?, :create?, :new?, to: :manage?`.
 
 ## Identifiers
 
-*upstream: writing_policies.md*
+upstream: writing_policies.md
 
 `CommentPolicy.identifier` is `:comment`, and a namespaced policy's is `:"admin/comment"`. The identifier is the key failure reasons are reported under and the scope i18n messages are looked up in, so renaming a policy moves both; `self.identifier = :short_name` pins it when the class name is unwieldy.
 
 ## Policy lookup
 
-*upstream: lookup_chain.md, namespaces.md*
+upstream: lookup_chain.md, namespaces.md
 
 Lookup infers `PostPolicy` from a `Post`, and takes these overrides in order of how much they say: `with: CustomPostPolicy` names the class outright, `namespace: Admin` prefers `Admin::PostPolicy` and falls back, `strict_namespace: true` removes the fallback, and `default: GuestPolicy` catches a record with no policy at all. Without any of them a record with no policy raises `ActionPolicy::NotFound`.
 

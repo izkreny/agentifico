@@ -1,6 +1,6 @@
 # Rails integration
 
-*upstream: rails.md, non_rails.md*
+upstream: rails.md, non_rails.md
 
 What the gem wires up on its own in a Rails application, and the hooks worth turning on deliberately.
 
@@ -28,7 +28,7 @@ bin/rails generate action_policy:policy Post
 bin/rails generate action_policy:policy Post --parent=base_policy
 ```
 
-The install generator creates `app/policies/application_policy.rb` and nothing else.
+The install generator creates `<repo-root>/app/policies/application_policy.rb` and nothing else.
 
 ## The verify hooks
 
@@ -50,7 +50,7 @@ end
 
 **Watch each hook fail once before trusting it.** Remove a skip from an unconverted action, see the raise, put it back. A guard that has never been seen to raise is indistinguishable from one that is misconfigured, and both look green.
 
-## Resource-less authorize!
+## Resource-less `authorize!`
 
 `authorize!` with no argument infers the target from the controller name via `controller_name.classify.safe_constantize`, and infers the rule from the action name. Override `implicit_authorization_target` where the controller's name is not the resource's.
 

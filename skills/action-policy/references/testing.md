@@ -1,10 +1,10 @@
 # Testing
 
-*upstream: testing.md*
+upstream: testing.md
 
 Authorization is one of the few places where full coverage of a class is proportionate: every rule is a decision someone will rely on, and an untested rule fails silently in the safe-looking direction.
 
-Three separate things need proving, and passing one says nothing about the others:
+Each of these needs proving on its own, and passing one says nothing about the others:
 
 1. The rule answers correctly.
 2. The action actually authorizes.
@@ -19,7 +19,7 @@ require "action_policy/rspec/dsl"
 
 The first adds the `be_authorized_to`, `have_authorized_scope` and `be_an_alias_of` matchers. The second adds the policy DSL, which is included only for examples tagged `type: :policy` or living in `spec/policies`; elsewhere it takes `include ActionPolicy::RSpec::PolicyExampleGroup`.
 
-`rubocop-rspec` does not recognise the DSL's aliases on its own. Add to `.rubocop.yml`:
+`rubocop-rspec` does not recognise the DSL's aliases on its own. Add to `<repo-root>/.rubocop.yml`:
 
 ```yaml
 inherit_gem:
@@ -113,7 +113,7 @@ before { allow(controller).to receive(:current_user).and_return(user) }
 
 With `prism` and `method_source` available, `pp :feed?` on a policy instance prints the rule's expression tree annotated with what each term returned, which locates the failing predicate in a composed rule without bisecting it by hand.
 
-```
+```text
 MyPolicy#feed?
 ↳ (admin? #=> false OR allowed_to?(:access_feed?) #=> true)
   AND (user.name == "Jack" #=> false OR user.name == "Kate" #=> true)

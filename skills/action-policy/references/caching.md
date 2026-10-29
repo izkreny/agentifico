@@ -1,6 +1,6 @@
 # Caching and instrumentation
 
-*upstream: caching.md, instrumentation.md*
+upstream: caching.md, instrumentation.md
 
 Authorization runs many times per request, and a rule that queries turns that into many queries. The gem layers caches for this; reach for them when a measurement says to, since each one trades away a guarantee that the rule is answering about the present.
 

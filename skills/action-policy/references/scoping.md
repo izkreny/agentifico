@@ -1,6 +1,6 @@
 # Scoping
 
-*upstream: scoping.md*
+upstream: scoping.md
 
 Scoping is a policy filtering a collection, where a rule authorizes one record. It is what an `index` needs: a rule can only say yes or no about a record already fetched, and fetching every row to reject most of them is both a leak and a full table scan.
 
@@ -79,7 +79,7 @@ class PostPolicy < ApplicationPolicy
 end
 ```
 
-Prefer a named scope when the two results answer different questions, and an option when they answer the same question about a different set of rows. A named scope is addressable from a spec by name; an option has to be reconstructed at every call site.
+Prefer a named scope when the results answer different questions, and an option when they answer the same question about a different set of rows. A named scope is addressable from a spec by name; an option has to be reconstructed at every call site.
 
 ## Filtering parameters
 
