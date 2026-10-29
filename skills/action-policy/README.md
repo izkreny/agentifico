@@ -33,6 +33,7 @@ The skill auto-fires on authorization work; there is no argument to pass. `SKILL
 | `references/caching.md` | memoization layers, the rule cache store, invalidation, instrumentation events |
 | `assets/llms-full.txt` | the pinned upstream documentation bundle these were distilled from |
 | `scripts/check-upstream.sh` | reports whether that bundle still matches upstream |
+| `scripts/test-check-upstream.sh` | the offline bench for that script, run after any edit to it |
 
 ## Per-project overrides
 
