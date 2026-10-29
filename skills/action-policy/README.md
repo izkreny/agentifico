@@ -10,13 +10,13 @@ It does not apply to a codebase on Pundit, CanCanCan or model predicate methods,
 
 Action Policy denies by default, and a rule name that does not resolve is denied by the same path as a rule that considered the request and refused. So a typo in a rule name, an `authorize!` that was never added, or an `index` that forgot to scope all look correct from the outside and pass every spec that only asserts a refusal. The traps this skill names are the ones that fail silently in the direction that looks safe.
 
-## Installation
-
-The canonical copy lives at `~/.agents/skills/action-policy/`, with each agent's skills directory symlinked to `~/.agents/skills/` so one file serves every agent.
+## Install
 
 ```bash
 npx skills add izkreny/agentifico -g -y -s action-policy
 ```
+
+That is the [skills CLI](https://skills.sh).
 
 ## Invocation
 
