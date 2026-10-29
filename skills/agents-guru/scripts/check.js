@@ -135,7 +135,9 @@ for (const root of new Set(files.map((file) => rootOf.get(file)))) {
 let issues = dangling.size;
 report(
   "dangling links",
-  [...dangling].sort().map(([file, code]) => `${path.relative(base, file)} dangling-link cannot be resolved (${code}), so nothing was read from it`),
+  [...dangling.keys()]
+    .sort()
+    .map((file) => `${path.relative(base, file)} dangling-link cannot be resolved (${dangling.get(file)}), so nothing was read from it`),
 );
 // A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
 let warnings = 0;
