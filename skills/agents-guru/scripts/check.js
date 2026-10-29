@@ -36,6 +36,8 @@ const targets = (paths.length ? paths : ["."]).map((arg) => path.resolve(arg));
 // Each file keeps the root of the first target reaching it, so a file two targets reach is read once.
 const rootOf = new Map();
 const folders = [];
+// The walk matches names rather than files, so a folder named notes.md arrives beside the files inside it, and a dangling link arrives as a file nothing can read.
+const dangling = new Set();
 for (const target of targets) {
   const stat = fs.statSync(target, { throwIfNoEntry: false });
   if (!stat) nothingChecked(`no such file or folder: ${target}`);
@@ -46,7 +48,13 @@ for (const target of targets) {
       await Array.fromAsync(
         glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
       )
-    ).map((file) => path.join(target, file));
+    )
+      .map((file) => path.join(target, file))
+      .filter((file) => {
+        const entry = fs.statSync(file, { throwIfNoEntry: false });
+        if (!entry) dangling.add(file);
+        return entry?.isFile();
+      });
     if (!reached.some((file) => file.endsWith(".md"))) nothingChecked(`no markdown file found under ${target}`);
   } else if (!/\.(md|js|py|ya?ml)$/.test(target)) nothingChecked(`no reader takes ${target}`);
   // A file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
@@ -118,7 +126,11 @@ for (const root of new Set(files.map((file) => rootOf.get(file)))) {
 }
 
 // Every markdownlint class prints before Vale runs, so a structural finding is never withheld by a prose linter that cannot start.
-let issues = 0;
+let issues = dangling.size;
+report(
+  "dangling links",
+  [...dangling].sort().map((file) => `${path.relative(base, file)} dangling-link points at nothing, so nothing was read from it`),
+);
 // A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
 let warnings = 0;
 let contractWarnings = 0;
