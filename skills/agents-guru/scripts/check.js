@@ -36,8 +36,8 @@ const targets = (paths.length ? paths : ["."]).map((arg) => path.resolve(arg));
 // Each file keeps the root of the first target reaching it, so a file two targets reach is read once.
 const rootOf = new Map();
 const folders = [];
-// The walk matches names rather than files, so a folder named notes.md arrives beside the files inside it, and a dangling link arrives as a file nothing can read.
-const dangling = new Set();
+// The walk matches names rather than files, so a folder named notes.md arrives beside the files inside it, and a link statSync cannot resolve arrives as a file nothing can read.
+const dangling = new Map();
 for (const target of targets) {
   const stat = fs.statSync(target, { throwIfNoEntry: false });
   if (!stat) nothingChecked(`no such file or folder: ${target}`);
@@ -52,13 +52,16 @@ for (const target of targets) {
     )
       .map((file) => path.join(target, file))
       .filter((file) => {
-        const entry = fs.statSync(file, { throwIfNoEntry: false });
-        if (!entry) lost.push(file);
-        return entry?.isFile();
+        try {
+          return fs.statSync(file).isFile();
+        } catch (error) {
+          lost.push([file, error.code]);
+          return false;
+        }
       });
-    for (const file of lost) dangling.add(file);
+    for (const [file, code] of lost) dangling.set(file, code);
     // A dangling link counts as markdown found, so a target holding nothing else reaches the group that names it.
-    if (![...reached, ...lost].some((file) => file.endsWith(".md"))) nothingChecked(`no markdown file found under ${target}`);
+    if (![...reached, ...lost.map(([file]) => file)].some((file) => file.endsWith(".md"))) nothingChecked(`no markdown file found under ${target}`);
   } else if (!/\.(md|js|py|ya?ml)$/.test(target)) nothingChecked(`no reader takes ${target}`);
   // A file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
   const root = stat.isDirectory() ? target : process.cwd();
@@ -132,7 +135,7 @@ for (const root of new Set(files.map((file) => rootOf.get(file)))) {
 let issues = dangling.size;
 report(
   "dangling links",
-  [...dangling].sort().map((file) => `${path.relative(base, file)} dangling-link points at nothing, so nothing was read from it`),
+  [...dangling].sort().map(([file, code]) => `${path.relative(base, file)} dangling-link cannot be resolved (${code}), so nothing was read from it`),
 );
 // A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
 let warnings = 0;

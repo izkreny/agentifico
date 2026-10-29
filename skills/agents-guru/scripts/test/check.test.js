@@ -113,6 +113,9 @@ beforeAll(() => {
   fs.writeFileSync(path.join(tmp, "md-folder", "notes.md", "inner.md"), "# Inner\n\nbody");
   mk(path.join(tmp, "dangling-md"), block("dangling-md"));
   fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-md", "gone.md"));
+  // A link to itself, which statSync cannot resolve for a reason other than a missing target.
+  mk(path.join(tmp, "looped-md"), block("looped-md"));
+  fs.symlinkSync("loop.md", path.join(tmp, "looped-md", "loop.md"));
   fs.mkdirSync(path.join(tmp, "dangling-only"));
   fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-only", "gone.md"));
 
@@ -531,7 +534,7 @@ describe("check.js", () => {
   it("a dangling link is named as an issue, and every other file is still read", () => {
     const r = run(path.join(tmp, "dangling-md"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link points at nothing, so nothing was read from it$/m);
+    assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link cannot be resolved \(ENOENT\), so nothing was read from it$/m);
     assert.match(r.out, /^2 files checked, 1 issues, /m);
   });
   it("a target whose only markdown is a dangling link names it rather than refusing", () => {
@@ -539,6 +542,12 @@ describe("check.js", () => {
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link /m);
     assert.doesNotMatch(r.out, /no markdown file found/);
+  });
+  it("a link to itself is named as a dangling link, and every other file is still read", () => {
+    const r = run(path.join(tmp, "looped-md"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^dangling links: 1\n {2}loop\.md dangling-link cannot be resolved \(ELOOP\), so nothing was read from it$/m);
+    assert.match(r.out, /^2 files checked, 1 issues, /m);
   });
   it("a dangling link two targets reach is named once", () => {
     assert.match(run([path.join(tmp, "dangling-md"), path.join(tmp, "dangling-md")]).out, /^dangling links: 1$/m);
