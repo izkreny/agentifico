@@ -55,4 +55,4 @@ The suite cannot show that an unchanged run prints exactly what it printed befor
 
 ## Settled
 
-None yet.
+**Should `skill-hard-wrap` and `yaml-comment-wrap` go back to errors now that `--skip` exists?** No, they stay warnings. The owner decided it in the terminal on 2026-10-29. A warning still prints with its file and line, so a review that runs the check sees it and holds the skill to *No hard wrapping* in `skills/agents-guru/workflows/new.md`.
