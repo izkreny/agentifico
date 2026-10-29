@@ -556,6 +556,21 @@ describe("check.js", () => {
   it("dangling links print in path order", () => {
     assert.match(run(path.join(tmp, "dangling-order")).out, /^dangling links: 2\n {2}a\.md dangling-link .*\n {2}a\.md \(1\)\.md dangling-link /m);
   });
+  it("a plain file the walk cannot stat is never named as a dangling link", () => {
+    const dir = path.join(tmp, "locked");
+    mk(dir, block("locked"));
+    fs.mkdirSync(path.join(dir, "sub"));
+    fs.writeFileSync(path.join(dir, "sub", "x.md"), "# X\n\nbody\n");
+    // WHY: read without execute lets the walk list the folder while every stat inside it fails with EACCES.
+    fs.chmodSync(path.join(dir, "sub"), 0o644);
+    try {
+      const r = run(dir);
+      assert.notEqual(r.code, 0, r.out);
+      assert.doesNotMatch(r.out, /dangling-link/);
+    } finally {
+      fs.chmodSync(path.join(dir, "sub"), 0o755);
+    }
+  });
   it("a dangling link two targets reach is named once", () => {
     assert.match(run([path.join(tmp, "dangling-md"), path.join(tmp, "dangling-md")]).out, /^dangling links: 1$/m);
   });
