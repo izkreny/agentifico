@@ -37,16 +37,8 @@ if [ "$fetched_lines" -lt 100 ]; then
   exit 2
 fi
 
-# The bundle embeds every guide page inline, and the "./behaviour.md" style links
-# in its text are cross-references between its own sections. That is what makes one
-# snapshot enough. If upstream ever links a page it no longer embeds, the snapshot
-# stops covering the docs and the missing pages need fetching separately, so the
-# invariant is asserted rather than assumed.
-#
-# Both greps are guarded with `|| true`: under `set -o pipefail` a grep that matches
-# nothing aborts the command substitution and kills the script silently, which would
-# exit 1 with no diff printed and so report "upstream changed" for what is actually
-# "this check could not run" - the exact distinction the exit codes above exist to keep.
+# WHY: one snapshot covers the docs only while every page the bundle links is also embedded, so that is checked rather than assumed.
+# WHY: each grep takes `|| true`, since under pipefail one that matches nothing would end the script with exit 1, which reads as "upstream changed".
 embedded=$({ grep -o '^url: .*' "$fetched" || true; } |
   sed 's|^url: ||; s|.*/||' | sort -u)
 
