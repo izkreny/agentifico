@@ -113,6 +113,8 @@ beforeAll(() => {
   fs.writeFileSync(path.join(tmp, "md-folder", "notes.md", "inner.md"), "# Inner\n\nbody");
   mk(path.join(tmp, "dangling-md"), block("dangling-md"));
   fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-md", "gone.md"));
+  fs.mkdirSync(path.join(tmp, "dangling-only"));
+  fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-only", "gone.md"));
 
   // <tmp>/ab is not inside <tmp>/a though its path string opens with it, which is enclosingSkill's own boundary.
   mk(path.join(tmp, "ab"), block("ab"));
@@ -531,6 +533,12 @@ describe("check.js", () => {
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link points at nothing, so nothing was read from it$/m);
     assert.match(r.out, /^2 files checked, 1 issues, /m);
+  });
+  it("a target whose only markdown is a dangling link names it rather than refusing", () => {
+    const r = run(path.join(tmp, "dangling-only"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link /m);
+    assert.doesNotMatch(r.out, /no markdown file found/);
   });
   it("a dangling link two targets reach is named once", () => {
     assert.match(run([path.join(tmp, "dangling-md"), path.join(tmp, "dangling-md")]).out, /^dangling links: 1$/m);

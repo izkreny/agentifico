@@ -44,6 +44,7 @@ for (const target of targets) {
   let reached = [target];
   if (stat.isDirectory()) {
     // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
+    const lost = [];
     reached = (
       await Array.fromAsync(
         glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
@@ -52,10 +53,12 @@ for (const target of targets) {
       .map((file) => path.join(target, file))
       .filter((file) => {
         const entry = fs.statSync(file, { throwIfNoEntry: false });
-        if (!entry) dangling.add(file);
+        if (!entry) lost.push(file);
         return entry?.isFile();
       });
-    if (!reached.some((file) => file.endsWith(".md"))) nothingChecked(`no markdown file found under ${target}`);
+    for (const file of lost) dangling.add(file);
+    // A dangling link counts as markdown found, so a target holding nothing else reaches the group that names it.
+    if (![...reached, ...lost].some((file) => file.endsWith(".md"))) nothingChecked(`no markdown file found under ${target}`);
   } else if (!/\.(md|js|py|ya?ml)$/.test(target)) nothingChecked(`no reader takes ${target}`);
   // A file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
   const root = stat.isDirectory() ? target : process.cwd();
