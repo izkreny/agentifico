@@ -47,7 +47,7 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 
 ### The agents-guru check
 
-**The agents-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/agents-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are `plugins/gh-solo`, `skills/review-text`, `skills/agents-guru` and `skills/socratic-tutor`, and `<package-dir>` is each of them the branch owes the run on:
+**The agents-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/agents-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are `plugins/gh-solo`, `skills/review-text`, `skills/agents-guru`, `skills/socratic-tutor` and `skills/action-policy`, and `<package-dir>` is each of them the branch owes the run on:
 
 ```bash
 node skills/agents-guru/scripts/check.js <package-dir>
@@ -74,6 +74,12 @@ npm --prefix skills/agents-guru run lint
 
 ```bash
 bash scripts/test-version-check.sh
+```
+
+**The action-policy upstream check's bench**, after any edit to `skills/action-policy/scripts/check-upstream.sh`:
+
+```bash
+bash skills/action-policy/scripts/test-check-upstream.sh
 ```
 
 #### The plugin's benches
@@ -150,6 +156,7 @@ bash scripts/test-manifest-check.sh
 | `review-text` | `skills/review-text/` |
 | `agents-guru` | `skills/agents-guru/` |
 | `socratic-tutor` | `skills/socratic-tutor/` |
+| `action-policy` | `skills/action-policy/` |
 | `repo` | the repository itself: `README.md`, `.claude-plugin/marketplace.json`, `LICENSE`, `AGENTS.md`, this file |
 
 **The label is where the deliverable lands, not every directory the branch touches.** A change to the plugin that also updates its README is `gh-solo`; ask what the issue would be closed *for*.
@@ -159,7 +166,7 @@ bash scripts/test-manifest-check.sh
 **The mandatory-axis audit has to be rewritten here, not reused.** The plugin's version names the layer values it excludes, and none of them exists in this repository, so it excludes nothing and reports every open issue as unlabelled. This is the one that works:
 
 ```bash
-gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:agents-guru -label:socratic-tutor -label:repo"
+gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:agents-guru -label:socratic-tutor -label:action-policy -label:repo"
 ```
 
 **A new value in the table above is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
