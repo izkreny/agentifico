@@ -55,7 +55,7 @@ The bundle is MIT-licensed, as documentation maintained in the gem's own [reposi
 scripts/check-upstream.sh
 ```
 
-Re-fetches the bundle and compares it with the snapshot. Its exit code says whether upstream still matches the snapshot, differs from it, or could not be checked. The script's header comment owns which code means which, and the code owns the cases behind each.
+Re-fetches the bundle and compares it with the snapshot. Its exit code says whether upstream still matches the snapshot, differs from it or links a page it does not embed, or could not be checked. The script's header comment owns which code means which, and the code owns the cases behind each.
 
 Read the diff before refreshing the snapshot. Upstream changing is the moment a claim in this skill can quietly stop being true, and refreshing first destroys the evidence of what changed.
 

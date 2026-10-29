@@ -2,7 +2,8 @@
 # Re-fetch the Action Policy documentation bundle this skill was written from and
 # report whether upstream has changed since the snapshot in assets/.
 #
-# Exit 0: unchanged. Exit 1: changed, and the diff is printed. Exit 2: could not check.
+# Exit 0: unchanged. Exit 1: changed, and the diff is printed, or the bundle links a page
+# it does not embed. Exit 2: could not check.
 
 set -euo pipefail
 
