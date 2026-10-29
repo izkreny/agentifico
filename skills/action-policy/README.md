@@ -55,7 +55,7 @@ The bundle is MIT-licensed, as documentation maintained in the gem's own [reposi
 scripts/check-upstream.sh
 ```
 
-Re-fetches the bundle and compares it with the snapshot. It exits `0` when nothing changed, `1` when upstream differs (printing the diff) or when the bundle links a page it does not embed, and `2` when it could not check at all: no `curl`, no snapshot, a fetch that failed, a response too short to be the bundle, or a bundle whose `url:` page markers have gone, which is upstream restructuring rather than upstream editing. That last case is what keeps "no change" distinct from "did not run".
+Re-fetches the bundle and compares it with the snapshot. Its exit code says whether upstream still matches the snapshot, differs from it, or could not be checked. The script's header comment owns which code means which, and the code owns the cases behind each.
 
 Read the diff before refreshing the snapshot. Upstream changing is the moment a claim in this skill can quietly stop being true, and refreshing first destroys the evidence of what changed.
 
