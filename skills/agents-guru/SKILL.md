@@ -6,7 +6,7 @@ argument-hint: "[new <name> | review <path> | check [--skip <rule>]... [<path>..
 compatibility: |
   Supported on Linux, and on Windows only under WSL; untested on macOS. Requires Node 26.1 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list.
 metadata:
-  version: "8.1.0"
+  version: "8.1.1"
 allowed-tools: Bash(gh:*) Bash(node:*) Read Write Edit Grep Glob
 ---
 
