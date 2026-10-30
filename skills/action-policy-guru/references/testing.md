@@ -131,4 +131,6 @@ Breakpoints inside the rule are skipped rather than triggered during that evalua
 
 ## The per-thread cache in tests
 
+upstream: caching.md
+
 Per-thread policy caching is disabled when `RAILS_ENV` or `RACK_ENV` is `test`, so a spec sees each rule applied for real. A spec that asserts caching behaviour has to turn it on with `ActionPolicy::PerThreadCache.enabled = true` and turn it back off.

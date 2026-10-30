@@ -60,7 +60,7 @@ relation_scope(:edit) do |relation|
 end
 ```
 
-A plain Ruby class, such as a service object, gets `authorized_scope` by including `ActionPolicy::Behaviour` and declaring its context, rather than by building a policy:
+A plain Ruby class, such as a service object, gets `authorized_scope` by including `ActionPolicy::Behaviour` and declaring its context, rather than by building a policy (upstream: behaviour.md, non_rails.md):
 
 ```ruby
 class PostSearch

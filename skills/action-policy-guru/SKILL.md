@@ -8,13 +8,19 @@ description: |
 
 # Action Policy
 
-Action Policy answers one question, *how to verify access*, and deliberately answers no other. It ships no roles, no permissions and no model of who a user is, so every capability question in a codebase is that codebase's own; this skill covers the mechanism that expresses the answer.
+Action Policy answers one question, *how to verify access*, and deliberately answers no other. It ships no roles, no permissions and no model of who a user is, so every capability question in a codebase is that codebase's own; this skill covers the mechanism that expresses the answer (upstream: guide.md).
 
 Paths inside this skill are relative to the skill's own directory.
 
 ## Reading this skill against the source
 
-Every section names the upstream guide page it was distilled from, as `upstream: <page>`. Those pages are embedded in [assets/llms-full.txt](assets/llms-full.txt), so checking any claim here against the source is `grep -n "url: /guide/<page>" assets/llms-full.txt` and reading forward. The prose is derived rather than copied: read it as a claim with a citation, not as upstream's own words.
+Every section names the upstream guide page it was distilled from, as `upstream: <page>`. Those pages are embedded in [assets/llms-full.txt](assets/llms-full.txt), so checking any claim here against the source is one grep for the page's `url:` line, then reading forward:
+
+```bash
+grep -n "^url: .*/<page>$" <skill-dir>/assets/llms-full.txt
+```
+
+The prose is derived rather than copied: read it as a claim with a citation, not as upstream's own words.
 
 A claim without a citation is this skill's own judgement rather than upstream's, and a claim that disagrees with the cited page is a defect in this skill. Code examples are restyled from upstream's, so an example never carries upstream's exact text either.
 
@@ -40,7 +46,7 @@ For a question those files leave unanswered, grep [assets/llms-full.txt](assets/
 
 ## The policy class
 
-upstream: writing_policies.md
+upstream: quick_start.md, writing_policies.md
 
 One policy per resource, named for the singular resource with a `Policy` suffix, in `<repo-root>/app/policies/`, with rules named as the predicate form of the controller action they authorize.
 
@@ -153,7 +159,7 @@ upstream: writing_policies.md
 
 ## Policy lookup
 
-upstream: lookup_chain.md, namespaces.md
+upstream: behaviour.md, lookup_chain.md, namespaces.md
 
 Lookup infers `PostPolicy` from a `Post`, and takes these overrides in order of how much they say: `with: CustomPostPolicy` names the class outright, `namespace: Admin` prefers `Admin::PostPolicy` and falls back, `strict_namespace: true` removes the fallback, and `default: GuestPolicy` catches a record with no policy at all. Without any of them a record with no policy raises `ActionPolicy::NotFound`.
 

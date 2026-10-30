@@ -1,6 +1,6 @@
 # Rails integration
 
-upstream: rails.md, non_rails.md
+upstream: rails.md
 
 What the gem wires up on its own in a Rails application, and the hooks worth turning on deliberately.
 
