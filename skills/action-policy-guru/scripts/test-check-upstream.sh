@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regression bench for check-upstream.sh. Run it after any edit to that file.
+# Regression bench for check-upstream.sh.
 #
 # WHY: the script's clean run is only evidence once each of its other outcomes has been seen.
 set -euo pipefail

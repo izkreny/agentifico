@@ -56,7 +56,7 @@ Re-fetches the bundle and compares it with the snapshot. Its exit code says whet
 
 Read the diff before refreshing the snapshot. Upstream changing is the moment a claim in this skill can quietly stop being true, and refreshing first destroys the evidence of what changed.
 
-Do not pipe the run through `head` or a pager: the diff is long, the writer takes a `SIGPIPE`, and the exit code becomes 141 instead of the 1 or 0 that carries the answer.
+Do not pipe the run through `head` or a pager: the diff is long, the script dies of `SIGPIPE`, and without `pipefail` the pipeline reports `head`'s `0`, so a changed bundle reads as unchanged.
 
 ## Deliberate choices
 

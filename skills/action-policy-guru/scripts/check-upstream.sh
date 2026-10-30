@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Re-fetch the Action Policy documentation bundle this skill was written from and report whether upstream has changed since the snapshot in assets/.
-#
 # Exit 0: unchanged. Exit 1: changed, and the diff is printed, or the bundle links a page it does not embed. Exit 2: could not check.
 
 set -euo pipefail
@@ -80,5 +78,5 @@ echo "Read the diff before refreshing: a changed bundle may contradict a claim t
 echo "skill states, and refreshing the snapshot without fixing the prose hides that."
 echo "When the prose is right again:"
 echo
-echo "  curl -sSL '$SOURCE_URL' -o '$snapshot'"
+echo "  curl -sSL --fail '$SOURCE_URL' -o '$snapshot'"
 exit 1
