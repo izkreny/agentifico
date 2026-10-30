@@ -1,4 +1,4 @@
-// Each limit is the hooks page's or the plugins reference's, at https://code.claude.com/docs/en/hooks and https://code.claude.com/docs/en/plugins/manifest-reference.
+// Each limit is the hooks page's, the plugins reference's, the plugin components page's or the plugin dependencies page's, at https://code.claude.com/docs/en/hooks, https://code.claude.com/docs/en/plugins/manifest-reference, https://code.claude.com/docs/en/plugins/components and https://code.claude.com/docs/en/plugins/dependencies.
 import fs from "node:fs";
 import path from "node:path";
 import semver from "semver";
