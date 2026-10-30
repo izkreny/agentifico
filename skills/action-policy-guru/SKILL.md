@@ -137,7 +137,7 @@ end
 
 A pre-check halts the moment it calls `allow!` or `deny!`, directly or through a helper, because both throw out of the check. Its return value is never read, so returning `false` does not deny, and a pre-check that calls neither lets the rule run; observed on 0.7.7, where upstream says the call's value must be returned.
 
-Pre-checks take `only:` and `except:` like callbacks. `skip_pre_check` with `only:` removes an inherited one for the rules it names, and with neither option removes it outright. With `except:` the check runs for the rules `except:` names, less any the inherited check excluded with its own `except:`. Over a check declared with `only:` that replaces its rule list, so it adds rules the check never ran for. Observed on 0.7.7. Pre-checks come from `ActionPolicy::Base`, or from including `ActionPolicy::Policy::PreCheck` into a base policy written from scratch.
+Pre-checks take `only:` and `except:` like callbacks. `skip_pre_check` with `only:` removes an inherited one for the rules it names, and with neither option removes it outright. With `except:` the check runs for the rules `except:` names, less any it already skips, whether through its own `except:` or an earlier `skip_pre_check` with `only:`. Over a check declared with `only:` that replaces its rule list, so it adds rules the check never ran for. Observed on 0.7.7. Pre-checks come from `ActionPolicy::Base`, or from including `ActionPolicy::Policy::PreCheck` into a base policy written from scratch.
 
 ## Aliases and the default rule
 
