@@ -40,7 +40,20 @@ class StagePolicy < ApplicationPolicy
 end
 ```
 
-`result.all_details` merges every detail into one hash, which is what a controller branches on:
+`result.all_details` merges the details of every recorded reason, so a detail reaches it only by riding on one. `StagePolicy`'s title arrives when `ApplicantPolicy` composes the rule in through `allowed_to?`; authorizing a stage directly, the called rule records no reason and `all_details` comes back `{}`. `deny!(:not_found)` alone records the reason with no details, so the detail is set before it. Observed on 0.7.7:
+
+```ruby
+class PostPolicy < ApplicationPolicy
+  def show?
+    return true if record.group.member?(user)
+
+    details[:not_found] = true
+    deny!(:not_found)
+  end
+end
+```
+
+That merged hash is what a controller branches on:
 
 ```ruby
 rescue_from ActionPolicy::Unauthorized do |ex|

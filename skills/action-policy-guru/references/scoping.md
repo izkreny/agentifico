@@ -18,7 +18,7 @@ class PostPolicy < ApplicationPolicy
 end
 ```
 
-`relation_scope` is `scope_for :active_record_relation`, and `params_filter` is `scope_for :action_controller_params`. The block is evaluated in the policy, so `user` and the rest of the context are in scope; the second argument names the scope, defaulting to `:default`.
+`relation_scope` is `scope_for :active_record_relation`, and `params_filter` is `scope_for :action_controller_params`. The block is evaluated in the policy, so `user` and the rest of the context are in scope. The scope's name is the first argument to `relation_scope` and `params_filter` and the second to `scope_for`, defaulting to `:default`.
 
 Scopes have types because different targets need different filtering, and a type is matched by a *scope matcher*. Rails registers matchers for Active Record relations and Action Controller parameters, so a type rarely needs stating.
 
@@ -49,6 +49,8 @@ end
 ```ruby
 @user = User.create!(authorized(params.require(:user)))
 ```
+
+**A call through `authorized` does not count for `verify_authorized_scoped`**, so an action whose only scoping is `authorized` still raises `ActionPolicy::UnscopedAction`; use `authorized_scope` there. Without an explicit target it also needs the implicit one, a controller named after the resource, or it raises `ActionPolicy::NotFound`. Both observed on 0.7.7.
 
 A scope can be applied inside a policy with the same `authorized_scope`, which is how one policy's scope composes another's:
 

@@ -6,11 +6,11 @@ Authorization runs many times per request, and a rule that queries turns that in
 
 ## The layers that are already on
 
-**Per-instance policy memoization** reuses one policy object across repeated authorizations of the same record in the same controller instance, keyed by `policy_cache_key`, falling back to `cache_key` then `object_id`. It assumes the caller is short-lived and the context constant, which is why it is in controllers and not in channels.
+**Per-instance policy memoization** reuses one policy object across repeated authorizations of the same record in the same controller instance, keyed by `policy_cache_key`, falling back to `cache_key_with_version`, then `cache_key`, then `object_id`, so an Active Record record's key changes when it is `touch`ed; observed on 0.7.7. It assumes the caller is short-lived and the context constant, which is why it is in controllers and not in channels.
 
 **Per-thread policy memoization** carries that across records: a list of comments whose rules each consult the same post builds one `PostPolicy` rather than one per comment. This is the N+1 authorization problem, and it becomes an N+1 query problem the moment a rule touches the database. Disabled under `RAILS_ENV` or `RACK_ENV` of `test`.
 
-**Per-instance rule memoization** applies a rule once per policy instance and returns the remembered result, which is what makes an alias free.
+**Per-instance rule memoization** applies a rule once per policy instance and returns the remembered result. Through `allowed_to?` and `authorize!`, which resolve an alias before reading the memo, that makes an alias free; `apply` keys the memo by the name it was handed, so `apply(:edit?)` then `apply(:update?)` runs the rule twice; observed on 0.7.7.
 
 Outside Rails, these are `ActionPolicy::Behaviours::Memoized` and `ActionPolicy::Behaviours::ThreadMemoized`. Outside the Rails executor, whatever includes `ThreadMemoized` calls `ActionPolicy::PerThreadCache.clear_all` at each request or job boundary, or a pooled thread carries memoized policies and their remembered results into the next request.
 
@@ -30,7 +30,7 @@ config.action_policy.cache_store = :redis_cache_store
 
 The key is `cache_namespace/context_cache_key/record.policy_cache_key/policy_class/rule`, so every part of it is something you can control. The store must serialize an `ExecutionResult`, since the cached value carries the failure reasons and not just the boolean; the Rails cache stores do.
 
-Define `policy_cache_key` on any record whose `cache_key` is expensive, and on any context object, or the cache lookup costs what it saved.
+Define `policy_cache_key` on any record whose `cache_key` is expensive, or the cache lookup costs what it saved. A context object needs one too, or a `cache_key`: without either, the first cached rule raises `ArgumentError: object is not cacheable`; observed on 0.7.7.
 
 `cache(user) { ... }` inside a policy caches an arbitrary value under the same scheme, which is the form for a permissions list read by several rules.
 

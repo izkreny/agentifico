@@ -66,6 +66,8 @@ describe "rule aliases" do
 end
 ```
 
+**Never `describe_rule` an alias.** `apply(:new?)` runs the pre-checks with `result.rule` still `:new?`, where `authorize!` resolves the alias first and they see `:create?`, so a pre-check that reads the rule's name answers one way in the spec and another in the request; observed on 0.7.7.
+
 ## Scope specs
 
 Create the rows, name them deterministically, and assert the set that survives:
@@ -103,10 +105,14 @@ it { expect { get posts_path }.to have_authorized_scope(:active_record_relation)
 
 ## View specs
 
-A view calling `allowed_to?` raises `Missing policy authorization context: user` unless the current user is stubbed:
+A view calling `allowed_to?` needs a `current_user` on the view spec's controller. Where `ActionController::Base` already answers one, as with Devise, an unstubbed spec raises `Missing policy authorization context: user`. Where only the application's own controllers define it, the call raises `NoMethodError`, and `verify_partial_doubles`, on in the rspec-rails generated config, refuses the stub too. Observed on 0.7.7 with rspec-rails 8.0.4. This stub works either way:
 
 ```ruby
-before { allow(controller).to receive(:current_user).and_return(user) }
+before do
+  without_partial_double_verification do
+    allow(controller).to receive(:current_user).and_return(user)
+  end
+end
 ```
 
 ## Debugging a rule that answers wrongly

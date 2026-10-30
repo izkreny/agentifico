@@ -65,7 +65,7 @@ upstream: custom_policy.md, aliases.md
 
 **A mistyped rule name is therefore a denial, not an error.** `update?` misspelled resolves to `manage?` and returns `false`, which looks exactly like a considered refusal. Only a spec that asserts the *permitted* case catches it, which is why a rule proven solely by its denials is not proven. This is the trap [references/testing.md](references/testing.md) is written around.
 
-`allowed_to?(:new, post)` with the question mark missing hits the same path. Set `ActionPolicy.enforce_predicate_rules_naming = true` to make that shape raise instead, since a rule name without a question mark is always a typo.
+`allowed_to?(:new, post)` with the question mark missing hits the same path. Set `ActionPolicy.enforce_predicate_rules_naming = true` to make that shape raise instead. It does not catch a name the policy answers as a public method, such as `:user`, `:record` or a public helper, which is applied as a rule and allows on a truthy value; observed on 0.7.7.
 
 ## Applying a policy
 
@@ -129,7 +129,7 @@ class PostPolicy < ApplicationPolicy
 end
 ```
 
-A pre-check halts only by returning the value of `allow!` or `deny!`; any other return value is ignored and the rule runs. They take `only:` and `except:` like callbacks, and `skip_pre_check` removes an inherited one for named rules. Pre-checks come from `ActionPolicy::Base`, or from including `ActionPolicy::Policy::PreCheck` into a base policy written from scratch.
+A pre-check halts the moment it calls `allow!` or `deny!`, directly or through a helper, because both throw out of the check. Its return value is never read, so returning `false` does not deny, and a pre-check that calls neither lets the rule run; observed on 0.7.7, where upstream says the call's value must be returned. They take `only:` and `except:` like callbacks, and `skip_pre_check` removes an inherited one for the rules its own `only:` or `except:` names, or for every rule without either. Pre-checks come from `ActionPolicy::Base`, or from including `ActionPolicy::Policy::PreCheck` into a base policy written from scratch.
 
 ## Aliases and the default rule
 

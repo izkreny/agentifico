@@ -44,6 +44,8 @@ class PostsController < ApplicationController
 end
 ```
 
+**`only:` and `except:` name actions that must exist.** Where `config.action_controller.raise_on_missing_callback_actions` is on, as Rails generates it for development and test, a skip naming an action the controller lacks raises `AbstractController::ActionNotFound`, so a hook in a base controller takes `if:` instead; observed on Rails 8.1.
+
 `verify_authorized_scoped` is the same guard for `authorized_scope`, raising `ActionPolicy::UnscopedAction`, and is what stops an `index` from quietly returning every row. Both have a dynamic form, `skip_verify_authorized!` and `skip_verify_authorized_scoped!`, for a branch inside an action.
 
 **A skip is a claim, and the claim belongs next to it.** An action that skips because it is unauthenticated by design and one that skips because its policy is not written yet are the same line of code and different facts; name which it is, and where the second applies, name the issue that removes it.
