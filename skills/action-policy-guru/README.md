@@ -20,18 +20,15 @@ That is the [skills CLI](https://skills.sh).
 
 ## Invocation
 
-The skill auto-fires on authorization work; there is no argument to pass. `SKILL.md` loads on every invocation and routes to the files under *Reference map*.
+The skill auto-fires on authorization work; there is no argument to pass. `SKILL.md` loads on every invocation and routes to the files under `references/`.
 
 ## Reference map
 
+`SKILL.md` lists the files under `references/` and what each covers, under *References*. Beside them:
+
 | File | Domain |
 | --- | --- |
-| `references/rails.md` | controller and channel integration, the `verify_authorized` hooks, generators, config flags, rescuing the exception |
-| `references/scoping.md` | `authorized_scope`, `relation_scope`, `params_filter`, named scopes, scope options, matchers |
-| `references/testing.md` | policy specs and the RSpec DSL, authorization and scoping matchers, view specs, debugging a rule |
-| `references/reasons.md` | failure reasons, detailed reasons, `result.all_details`, i18n messages |
-| `references/caching.md` | memoization layers, the rule cache store, invalidation, instrumentation events |
-| `assets/llms-full.txt` | the pinned upstream documentation bundle these were distilled from |
+| `assets/llms-full.txt` | the pinned upstream documentation bundle the references were distilled from |
 | `scripts/check-upstream.sh` | reports whether that bundle still matches upstream |
 | `scripts/test-check-upstream.sh` | the offline bench for that script, run after any edit to it |
 
@@ -41,9 +38,9 @@ Where a repository documents its own authorization model, that document decides 
 
 ## Provenance
 
-Distilled from the gem's own documentation bundle at `https://actionpolicy.evilmartians.io/llms-full.txt`, read in full. The prose is derived rather than copied, so every section names the upstream guide page it came from as `upstream: <page>`, and checking a claim against the source is one grep into the pinned bundle. A claim carrying no citation is the skill's own judgement; a claim that disagrees with its cited page is a defect in the skill.
+Distilled from the gem's own documentation bundle at `https://actionpolicy.evilmartians.io/llms-full.txt`, read in full. Every section cites the upstream page it came from, under the contract `SKILL.md` states in *Reading this skill against the source*.
 
-Code examples are restyled rather than copied, and correctness is established by running them against the gem, never by their provenance; the claims they encode were last executed against `action_policy` 0.7.7. A verbatim example is not thereby correct: an example can depend on setup its page made earlier, such as a scope matcher registered by hand, and copied into an application without that setup it raises.
+Code examples are restyled rather than copied, and correctness is established by running them against the gem, never by their provenance; the claims they encode were run against `action_policy` 0.7.7, both in plain Ruby and inside a Rails 8.1 application with RSpec. A verbatim example is not thereby correct: an example can depend on setup its page made earlier, such as a scope matcher registered by hand, and copied into an application without that setup it raises.
 
 That bundle is kept at `assets/llms-full.txt` as a pinned snapshot, so the source the prose was written from stays readable and comparable rather than being a URL whose content has since moved. It embeds every guide page inline, which is why one file covers the whole documentation: the relative links to other guide pages in its text are cross-references between its own sections, not pages to fetch separately.
 

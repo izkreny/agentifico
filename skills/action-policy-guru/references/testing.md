@@ -28,7 +28,7 @@ inherit_gem:
 
 ## Policy specs
 
-A policy is a plain Ruby object and can be tested as one. `apply(:update?)` rather than `update?` is what a spec calls, because only `apply` runs pre-checks, caching and reason tracking; testing the bare method tests something the application never executes.
+A policy is a plain Ruby object and can be tested as one. `apply(:update?)` rather than `update?` is what a spec calls, for the reason `SKILL.md` gives under *The policy class*: testing the bare method tests something the application never executes.
 
 ```ruby
 RSpec.describe PostPolicy, type: :policy do

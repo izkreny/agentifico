@@ -143,7 +143,7 @@ upstream: aliases.md
 
 `alias_rule :edit?, :destroy?, to: :update?` resolves at authorization time rather than defining a method, which keeps the alias out of the specs: the rule is tested once and the alias is asserted to point at it. `ActionPolicy::Base` ships `alias_rule :new?, to: :create?`.
 
-Resolution order for a rule on a subclass: a concrete method on the subclass, then a matching alias, then a concrete method up the ancestry, then the default rule. The alias step is the one worth reading twice, because it covers inherited aliases too: a subclass with no concrete `destroy?` of its own still resolves `destroy?` through an alias its *superclass* declared, ahead of any concrete superclass method. A subclass alias of the same name overwrites the inherited one rather than adding to it. That resolution order, overwrite included, was observed on 0.7.7.
+Resolution order for a rule on a subclass: a concrete method on the subclass, then a matching alias, then a concrete method up the ancestry, then the default rule. The alias step covers inherited aliases too: a subclass with no concrete `destroy?` of its own still resolves `destroy?` through an alias its *superclass* declared, ahead of any concrete superclass method. A subclass alias of the same name overwrites the inherited one rather than adding to it. That resolution order, overwrite included, was observed on 0.7.7.
 
 **Within one class, declaration order decides between a method and an alias of the same name.** Defining a method deletes an alias already declared under its name, but an `alias_rule` declared after the method wins, so an alias line added below an existing concrete rule silently replaces it; observed on 0.7.7.
 

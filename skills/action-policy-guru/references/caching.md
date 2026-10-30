@@ -8,7 +8,7 @@ Authorization runs many times per request, and a rule that queries turns that in
 
 **Per-instance policy memoization** reuses one policy object across repeated authorizations of the same record in the same controller instance, keyed by `policy_cache_key`, falling back to `cache_key_with_version`, then `cache_key`, then `object_id`, so an Active Record record's key changes when it is `touch`ed; observed on 0.7.7. It assumes the caller is short-lived and the context constant, which is why it is in controllers and not in channels.
 
-**Per-thread policy memoization** carries that across records: a list of comments whose rules each consult the same post builds one `PostPolicy` rather than one per comment. This is the N+1 authorization problem, and it becomes an N+1 query problem the moment a rule touches the database. Disabled under `RAILS_ENV` or `RACK_ENV` of `test`.
+**Per-thread policy memoization** carries that across records: a list of comments whose rules each consult the same post builds one `PostPolicy` rather than one per comment. This is the N+1 authorization problem, and it becomes an N+1 query problem the moment a rule touches the database. Tests run without it, per *The per-thread cache in tests* in [testing.md](testing.md).
 
 **Per-instance rule memoization** applies a rule once per policy instance and returns the remembered result. Through `allowed_to?` and `authorize!`, which resolve an alias before reading the memo, that makes an alias free; `apply` keys the memo by the name it was handed, so `apply(:edit?)` then `apply(:update?)` runs the rule twice; observed on 0.7.7.
 

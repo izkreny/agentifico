@@ -6,7 +6,7 @@ A denial that only says "no" forces the caller to guess. Reasons make the refusa
 
 ## How a reason gets recorded
 
-Only a check made through `allowed_to?`, `check?` or `deny!` is recorded. A rule composed out of bare predicate calls fails with no reason at all, which is the single most common reason a reasons hash comes back empty.
+Only a check made through `allowed_to?`, `check?` or `deny!` is recorded, as `SKILL.md` states under *Applying a policy*. A rule composed out of bare predicate calls fails with no reason at all, which is the single most common reason a reasons hash comes back empty.
 
 ```ruby
 class ApplicantPolicy < ApplicationPolicy

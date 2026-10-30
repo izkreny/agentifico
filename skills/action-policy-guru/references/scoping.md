@@ -42,7 +42,7 @@ end
 @all   = authorized_scope(Post.all, scope_options: { with_deleted: true })
 ```
 
-**The target must already be a relation.** `authorized_scope(Post)` raises, because `Post` is a class and no relation matcher accepts it; `Post.all` is the form that works. This is the mistake that gets made once per codebase.
+**The target must already be a relation.** `authorized_scope(Post)` raises, because `Post` is a class and no relation matcher accepts it; `Post.all` is the form that works.
 
 `authorized` is an alias, and reads better on parameters than on a relation:
 

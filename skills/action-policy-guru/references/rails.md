@@ -32,7 +32,7 @@ The install generator creates `<repo-root>/app/policies/application_policy.rb` a
 
 ## The verify hooks
 
-`verify_authorized` adds an `after_action` that raises `ActionPolicy::UnauthorizedAction` when the action finished without calling `authorize!`. It is the whole value of the layer: without it, an action that forgets to authorize is indistinguishable from one that has nothing to authorize.
+`verify_authorized` adds an `after_action` that raises `ActionPolicy::UnauthorizedAction` when the action finished without calling `authorize!`. Without it, an action that forgets to authorize is indistinguishable from one that has nothing to authorize.
 
 ```ruby
 class ApplicationController < ActionController::Base
@@ -64,7 +64,7 @@ This is the form to reach for in `index` and `create`, where there is no single 
 rescue_from ActionPolicy::Unauthorized, with: :deny_access
 ```
 
-The exception carries `policy`, `rule` and `result`. Rendering one status for every failure is the right start; branching on `result.all_details` is how a policy asks for a `404` instead of a `403` without the controller knowing why. See [reasons.md](reasons.md).
+The exception carries what `SKILL.md` lists under *Applying a policy*. Rendering one status for every failure is the right start; branching on `result.all_details` is how a policy asks for a `404` instead of a `403` without the controller knowing why. See [reasons.md](reasons.md).
 
 ## Channels
 
@@ -80,4 +80,4 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-Channels get no policy memoization, because memoization assumes a short-lived caller and a channel is not one. A rule applied per message in a channel is applied for real every time, so a rule that queries is a query per message.
+Channels get no policy memoization, per *The layers that are already on* in [caching.md](caching.md), so a rule applied per message is applied for real every time, and a rule that queries is a query per message.
