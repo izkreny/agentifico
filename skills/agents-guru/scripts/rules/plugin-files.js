@@ -45,7 +45,7 @@ const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'([^']*)'/g;
 
 const EXACT_MATCHER = /^[\w\- ,|]*$/;
 const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/;
-const MATCHED_SERVER = /^\^?mcp__(.+?)(?:__|$)/;
+const MATCHED_SERVER = /^[\^(]*mcp__([\w-]+?)(?:__|[^\w-]|$)/;
 
 export const isPluginRoot = (dir) => fs.statSync(path.join(dir, ".claude-plugin"), { throwIfNoEntry: false })?.isDirectory() ?? false;
 
