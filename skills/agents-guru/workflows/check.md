@@ -134,25 +134,9 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The plugin file rules
 
-**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json`, `<plugin-dir>/.claude-plugin/plugin.json` and monitors file to what Claude Code loads. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and the hooks file and manifest are read by their fixed paths because the walk skips dot-folders.
+**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json`, `<plugin-dir>/.claude-plugin/plugin.json` and monitors file to what Claude Code loads: a field with no effect where it is set, a matcher or a server name that never fires, and a value that fails when it runs. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and the hooks file and manifest are read by their fixed paths because the walk skips dot-folders.
 
-`plugin-hooks` reports each of these:
-
-- A `matcher` on an event with no matcher support.
-- `async` on a hook that is no command hook, and `once` anywhere in the file.
-- A header naming a variable `allowedEnvVars` does not list.
-- `${user_config.*}` in a shell-form command.
-- `onFailure` where it has no effect: on a `Stop`, `SubagentStop`, `TaskCompleted` or `TeammateIdle` hook, or on a command hook whose `async` or `asyncRewake` is `true`.
-- `args` beside a `command` whose first word is a bare program with more after it. A path with spaces has a separator in its first word, so it stays clean.
-- On a shell-form hook whose `shell` is `powershell`, a bare `$CLAUDE_PROJECT_DIR`, `$CLAUDE_PLUGIN_ROOT` or `$CLAUDE_PLUGIN_DATA`, and any of those as a `${...}` placeholder inside single quotes.
-- On a tool event, an exact-match `matcher` naming a server prefix such as `mcp__memory` with no `.*`.
-- On a tool event, a `matcher` naming one of the plugin's own MCP servers by its bare key, and an `mcp_tool` hook's `server` doing the same on any event.
-
-**The plugin's own servers are read from `<plugin-dir>/.mcp.json` and from the manifest's `mcpServers`**, inline or by a JSON file, each wrapped in `mcpServers` or flat. A bundle or a URL adds no name, so a matcher on its server goes unreported.
-
-`plugin-manifest` reports a key that replaces a default location still holding files, a `dependencies` entry whose `version` is not a node-semver range, and `${user_config.*}` in a monitor's `command`.
-
-**A monitor is read where it loads from**: inline in the manifest, in the file `experimental.monitors` or the top-level `monitors` key names, or in `<plugin-dir>/monitors/monitors.json` when neither key is set. A finding in a file prints that file's own path and line.
+**Some of these rules need more than the file they judge.** `plugin-hooks` takes the plugin's own MCP server names from `<plugin-dir>/.mcp.json` and the manifest's `mcpServers`, and what a bundle or a URL declares goes unread. `plugin-manifest` reads monitors where they load from, inline or in a file, and a finding in a file prints that file's own path and line.
 
 A file that is not valid JSON, and every mistake `claude plugin validate --strict` reports, are left to that command.
 
