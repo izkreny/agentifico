@@ -32,10 +32,6 @@ The skill auto-fires on authorization work; there is no argument to pass. `SKILL
 | `scripts/check-upstream.sh` | reports whether that bundle still matches upstream |
 | `scripts/test-check-upstream.sh` | the offline bench for that script, run after any edit to it |
 
-## Per-project overrides
-
-Where a repository documents its own authorization model, that document decides what a rule should return and this skill decides how the rule is written. A style guide that steers Rails code away from authorization gems, such as the `rails-style` skill, is overridden in the project's own agent instructions, or wherever its style guide reads deviations from: a project that has committed to Action Policy says so there, and `<repo-root>/app/policies/` is then intended rather than a violation.
-
 ## Provenance
 
 Distilled from the gem's own documentation bundle at `https://actionpolicy.evilmartians.io/llms-full.txt`, read in full. Every section cites the upstream page it came from, under the contract `SKILL.md` states in *Reading this skill against the source*.

@@ -30,8 +30,6 @@ The snapshot is a pinned copy, and `scripts/check-upstream.sh` is what says whet
 
 Where a repository documents who may do what, that document decides what a rule should return, and this skill decides how the rule is written. Read it before changing a rule or the spec that proves one, and treat a disagreement between it and the code as a defect in one of them rather than as licence to pick either.
 
-A style guide that steers Rails code away from authorization gems, such as `rails-style`, is overridden per project in the project's own agent instructions, or wherever its style guide reads deviations from. A project that records its commitment to Action Policy there has made that call: `<repo-root>/app/policies/` there is intended rather than a violation.
-
 ## References
 
 Loaded when the task touches them, since each costs context on every load:
