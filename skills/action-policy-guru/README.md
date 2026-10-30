@@ -1,6 +1,6 @@
 > 🤖 Written by AI --- read/modified by izkreny! 🤓
 
-# action-policy
+# action-policy-guru
 
 How to write, review and test authorization built on the [Action Policy](https://actionpolicy.evilmartians.io) gem: policy classes and rules, the applying methods, scoping a relation by permission, failure reasons, and the kinds of spec that prove an authorization layer works. It covers the mechanism only, never the model: which role may do what is a decision each application makes, and this skill has nothing to say about it.
 
@@ -13,7 +13,7 @@ Action Policy denies by default, and a rule name that does not resolve is denied
 ## Install
 
 ```bash
-npx skills add izkreny/agentifico -g -y -s action-policy
+npx skills add izkreny/agentifico -g -y -s action-policy-guru
 ```
 
 That is the [skills CLI](https://skills.sh).

@@ -1,5 +1,5 @@
 ---
-name: action-policy
+name: action-policy-guru
 metadata:
   version: "1.0.0"
 description: |

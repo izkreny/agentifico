@@ -6,14 +6,14 @@ AI agent skills, instructions and gotchas. Each package here is published one of
 
 ## What is here
 
-| Package                                           | Route       | What it is for                                                                                                    |
-| ------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------- |
-| [gh-solo](plugins/gh-solo/README.md)              | marketplace | The solo maintainer's GitHub loop: issues, plan-first pull requests, fresh-context review rounds and gated merges |
-| [rails-style](skills/rails-style/README.md)       | skill       | A house Rails style from 37signals practice, applied to Rails coding, refactoring and code review                 |
-| [review-text](skills/review-text/README.md)       | skill       | A proofreader for prose that reports errors apart from style suggestions and edits only when asked                |
-| [agents-guru](skills/agents-guru/README.md)       | skill       | Writing, reviewing, maintaining and exporting agent skills, with checks for the traps a YAML parser cannot see    |
-| [socratic-tutor](skills/socratic-tutor/README.md) | skill       | A tutor that asks one question at a time until you reach the answer yourself                                      |
-| [action-policy](skills/action-policy/README.md)   | skill       | Writing, reviewing and testing Action Policy authorization in Ruby and Rails code                                 |
+| Package | Route | What it is for |
+|---|---|---|
+| [gh-solo](plugins/gh-solo/README.md) | marketplace | The solo maintainer's GitHub loop: issues, plan-first pull requests, fresh-context review rounds and gated merges |
+| [rails-style](skills/rails-style/README.md) | skill | A house Rails style from 37signals practice, applied to Rails coding, refactoring and code review |
+| [review-text](skills/review-text/README.md) | skill | A proofreader for prose that reports errors apart from style suggestions and edits only when asked |
+| [agents-guru](skills/agents-guru/README.md) | skill | Writing, reviewing, maintaining and exporting agent skills, with checks for the traps a YAML parser cannot see |
+| [socratic-tutor](skills/socratic-tutor/README.md) | skill | A tutor that asks one question at a time until you reach the answer yourself |
+| [action-policy-guru](skills/action-policy-guru/README.md) | skill | Writing, reviewing and testing Action Policy authorization in Ruby and Rails code |
 
 Each package's own README has its requirements and the full picture.
 

@@ -1,8 +1,8 @@
 > 🤖 Written by AI --- read/modified by izkreny! 🤓
 
-# Add the action-policy skill
+# Add the action-policy-guru skill
 
-Issue [#32](https://github.com/izkreny/agentifico/issues/32). The skill was drafted outside this repository and is complete. This branch lands it as a package under `skills/action-policy/` (new), makes it pass this repository's checks, and registers it where the repository lists its packages. It sits in no epic, so it is not stacked.
+Issue [#32](https://github.com/izkreny/agentifico/issues/32). The skill was drafted outside this repository and is complete. This branch lands it as a package under `skills/action-policy-guru/` (new), makes it pass this repository's checks, and registers it where the repository lists its packages. It sits in no epic, so it is not stacked.
 
 ## Where the draft stands
 
@@ -19,24 +19,24 @@ The check exits zero on the package once these are fixed. Per `.agents/gh-solo.m
 
 ## Steps
 
-- Copy the draft into `skills/action-policy/` (new) byte for byte, and commit it alone. Every later commit then reads as a diff against the draft.
+- Copy the draft into `skills/action-policy-guru/` (new) byte for byte, and commit it alone. Every later commit then reads as a diff against the draft.
 - Replace the README's Installation section with the install form `skills/review-text/README.md` uses, naming the skills CLI.
-- Fix the remaining check findings, and run `node skills/agents-guru/scripts/check.js skills/action-policy` to exit zero.
+- Fix the remaining check findings, and run `node skills/agents-guru/scripts/check.js skills/action-policy-guru` to exit zero.
 - Watch the description rules fail on a trapped copy of the skill in the scratchpad: the description rewritten as a plain scalar carrying ` #`. Record the red run in the commit body.
-- Write `skills/action-policy/scripts/test-check-upstream.sh` (new), a bench that runs `skills/action-policy/scripts/check-upstream.sh` (new) against a stub `curl` serving crafted bundles. It covers an unchanged bundle, a changed one, a bundle linking a page it does not embed, a bundle with no page links at all, and a bundle with no `url:` markers. Watch it fail against a deliberately broken copy of the script before trusting it green.
-- In `.agents/gh-solo.md`, add the `action-policy` row to the label table, its exclusion to the mandatory-axis audit query, the package to the agents-guru check's list, and the bench under *The benches*.
-- Add an `action-policy` row to the package table in the root `README.md`.
+- Write `skills/action-policy-guru/scripts/test-check-upstream.sh` (new), a bench that runs `skills/action-policy-guru/scripts/check-upstream.sh` (new) against a stub `curl` serving crafted bundles. It covers an unchanged bundle, a changed one, a bundle linking a page it does not embed, a bundle with no page links at all, and a bundle with no `url:` markers. Watch it fail against a deliberately broken copy of the script before trusting it green.
+- In `.agents/gh-solo.md`, add the `action-policy-guru` row to the label table, its exclusion to the mandatory-axis audit query, the package to the agents-guru check's list, and the bench under *The benches*.
+- Add an `action-policy-guru` row to the package table in the root `README.md`.
 
 ## Verification
 
 - `python3 plugins/gh-solo/skills/pr-flow/scripts/plan-check.py $(git diff --name-only origin/main...HEAD -- docs/plans)`
 - `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md .agents/dependencies.md AGENTS.md $(git diff --name-only origin/main...HEAD -- docs/plans) --plans docs/plans`
 - `python3 scripts/version-check.py`
-- `node skills/agents-guru/scripts/check.js skills/action-policy`
-- `bash skills/action-policy/scripts/test-check-upstream.sh`
-- `bash skills/action-policy/scripts/check-upstream.sh`
+- `node skills/agents-guru/scripts/check.js skills/action-policy-guru`
+- `bash skills/action-policy-guru/scripts/test-check-upstream.sh`
+- `bash skills/action-policy-guru/scripts/check-upstream.sh`
 
-The version check sees `skills/action-policy/` (new) as a new package, so it passes on any version, and 1.0.0 is checked by reading the frontmatter. The skills CLI resolves `izkreny/agentifico` against the default branch and takes no ref, so the README's install command cannot resolve until this branch merges. The live upstream check passes only while upstream stays as snapshotted. Whether the skill's claims about Action Policy are right is the owner's `/agents-guru review`, and no gate reads it. Replacing the hand-built local copy with a manager-installed one is an install, so it is left for the owner after the merge.
+The version check sees `skills/action-policy-guru/` (new) as a new package, so it passes on any version, and 1.0.0 is checked by reading the frontmatter. The skills CLI resolves `izkreny/agentifico` against the default branch and takes no ref, so the README's install command cannot resolve until this branch merges. The live upstream check passes only while upstream stays as snapshotted. Whether the skill's claims about Action Policy are right is the owner's `/agents-guru review`, and no gate reads it. Replacing the hand-built local copy with a manager-installed one is an install, so it is left for the owner after the merge.
 
 ## Open questions
 
