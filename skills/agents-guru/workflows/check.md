@@ -36,7 +36,7 @@ Every `*.js` and `*.py` file under the target is read too, under the same exclus
 
 Every `*.yml` and `*.yaml` file under the target is read too, under the same exclusions, by the check itself and by neither linter, per *The YAML rules*. A YAML file counts in the closing line's file count whether or not Vale ran.
 
-A plugin's hooks file and manifest are read too, by the check itself and by fixed paths, per *The plugin file rules*. Each counts in the closing line's file count as a YAML file does.
+A plugin's hooks file, manifest and monitors file are read too, by the check itself rather than the walk, per *The plugin file rules*. Each counts in the closing line's file count as a YAML file does.
 
 How a review reads a target covering more than one skill is `workflows/review.md` Step 1's.
 
@@ -134,7 +134,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The plugin file rules
 
-**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json` and `<plugin-dir>/.claude-plugin/plugin.json` to what Claude Code loads. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and each file is read by its fixed path because the walk skips dot-folders.
+**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json`, `<plugin-dir>/.claude-plugin/plugin.json` and monitors file to what Claude Code loads. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and the hooks file and manifest are read by their fixed paths because the walk skips dot-folders.
 
 `plugin-hooks` reports each of these:
 
