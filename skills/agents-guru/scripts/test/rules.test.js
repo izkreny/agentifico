@@ -992,11 +992,37 @@ describe("plugin-hooks", () => {
       "Bash|mcp__db.*",
       "(mcp__db__.*)",
       "^(mcp__db__.*)$",
+      "(?:mcp__db__.*)",
+      "^(?:mcp__db__.*)$",
+      "mcp__db.+",
     ]) {
       it(matcher, () => expectOwn(matched(matcher), "own MCP server db"));
     }
-    for (const matcher of ["mcp__dbx__.*", "mcp__other__.*", "mcp__plugin_p_db__.*", "Bash", "not_mcp__db__x", "mcp__db_x.*", "mcp__db-x__.*"]) {
+    for (const matcher of [
+      "mcp__dbx__.*",
+      "mcp__other__.*",
+      "mcp__plugin_p_db__.*",
+      "Bash",
+      "not_mcp__db__x",
+      "mcp__db_x.*",
+      "mcp__db-x__.*",
+      "mcp__db[12]__.*",
+      "mcp__db\\d__.*",
+      "mcp__db.x__.*",
+    ]) {
       it(matcher, () => expectNotOwn(matched(matcher)));
+    }
+    for (const [key, matcher] of [
+      ["my.server", "mcp__my.server__.*"],
+      ["my server", "mcp__my server__.*"],
+    ]) {
+      it(`${matcher} with the key ${key}`, () => {
+        const details = hooksDefects(matched(matcher), new Set([key])).map((d) => d.detail);
+        assert.ok(
+          details.some((d) => d.includes(`own MCP server ${key}`)),
+          JSON.stringify(details),
+        );
+      });
     }
     it("an event that does not match tools", () => expectNotOwn(matched("mcp__db__.*", "Notification")));
     it("a set that does not hold the key", () => expectNoHook(matched("mcp__db__.*")));

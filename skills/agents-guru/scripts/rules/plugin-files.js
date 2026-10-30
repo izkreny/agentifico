@@ -45,7 +45,8 @@ const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'([^']*)'/g;
 
 const EXACT_MATCHER = /^[\w\- ,|]*$/;
 const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/;
-const MATCHED_SERVER = /^[\^(]*mcp__([\w-]+?)(?:__|[^\w-]|$)/;
+// WHY: each key is tested whole rather than a segment captured, because a key may hold a dot or a space, and only a wildcard or the end may follow it or a longer name would read as the key.
+const namesServer = (part, server) => new RegExp(`^(?:\\^|\\(\\?:|\\()*mcp__${RegExp.escape(server)}(?:__|\\.[*+]|[)$]*$)`).test(part);
 
 export const isPluginRoot = (dir) => fs.statSync(path.join(dir, ".claude-plugin"), { throwIfNoEntry: false })?.isDirectory() ?? false;
 
@@ -95,9 +96,10 @@ function matcherRules(matcher, event, own, report) {
   if (EXACT_MATCHER.test(matched))
     for (const part of parts.filter((each) => SERVER_PREFIX_ONLY.test(each)))
       report(matcher, `matcher part ${part} is compared as an exact tool name, so it matches no tool: add the .* a server prefix needs`);
-  for (const server of parts.map((part) => part.match(MATCHED_SERVER)?.[1]))
-    if (own.has(server))
-      report(matcher, `matcher names the plugin's own MCP server ${server} by its bare key, so it never fires: write mcp__plugin_<plugin-name>_${server}__`);
+  for (const part of parts)
+    for (const server of own)
+      if (namesServer(part, server))
+        report(matcher, `matcher names the plugin's own MCP server ${server} by its bare key, so it never fires: write mcp__plugin_<plugin-name>_${server}__`);
 }
 
 function fieldRules(hook, event, report) {
