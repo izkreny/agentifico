@@ -135,7 +135,9 @@ class PostPolicy < ApplicationPolicy
 end
 ```
 
-A pre-check halts the moment it calls `allow!` or `deny!`, directly or through a helper, because both throw out of the check. Its return value is never read, so returning `false` does not deny, and a pre-check that calls neither lets the rule run; observed on 0.7.7, where upstream says the call's value must be returned. They take `only:` and `except:` like callbacks, and `skip_pre_check` removes an inherited one: for the rules its `only:` names, for every rule but those its `except:` names, or for every rule given neither; observed on 0.7.7. Pre-checks come from `ActionPolicy::Base`, or from including `ActionPolicy::Policy::PreCheck` into a base policy written from scratch.
+A pre-check halts the moment it calls `allow!` or `deny!`, directly or through a helper, because both throw out of the check. Its return value is never read, so returning `false` does not deny, and a pre-check that calls neither lets the rule run; observed on 0.7.7, where upstream says the call's value must be returned.
+
+Pre-checks take `only:` and `except:` like callbacks. `skip_pre_check` with `only:` removes an inherited one for the rules it names, and with neither option removes it outright. With `except:` it makes the check run for exactly the rules `except:` names, replacing whatever the inherited one covered, so over a check declared with `only:` it adds rules the check never ran for. Observed on 0.7.7. Pre-checks come from `ActionPolicy::Base`, or from including `ActionPolicy::Policy::PreCheck` into a base policy written from scratch.
 
 ## Aliases and the default rule
 
