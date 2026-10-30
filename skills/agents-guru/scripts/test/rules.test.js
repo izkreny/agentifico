@@ -981,10 +981,21 @@ describe("plugin-hooks", () => {
     };
     const expectNotOwn = (source) => assert.deepEqual(hooksDefects(source, own), []);
     const matched = (matcher, event = "PreToolUse") => hooksFile(event, { matcher, hooks: [command()] });
-    for (const matcher of ["mcp__db__.*", "mcp__db__query", "^mcp__db__.*$", "Bash|mcp__db__.*", "Edit, mcp__db__query", "mcp__db"]) {
+    for (const matcher of [
+      "mcp__db__.*",
+      "mcp__db__query",
+      "^mcp__db__.*$",
+      "Bash|mcp__db__.*",
+      "Edit, mcp__db__query",
+      "mcp__db",
+      "mcp__db.*",
+      "Bash|mcp__db.*",
+      "(mcp__db__.*)",
+      "^(mcp__db__.*)$",
+    ]) {
       it(matcher, () => expectOwn(matched(matcher), "own MCP server db"));
     }
-    for (const matcher of ["mcp__dbx__.*", "mcp__other__.*", "mcp__plugin_p_db__.*", "Bash", "not_mcp__db__x"]) {
+    for (const matcher of ["mcp__dbx__.*", "mcp__other__.*", "mcp__plugin_p_db__.*", "Bash", "not_mcp__db__x", "mcp__db_x.*", "mcp__db-x__.*"]) {
       it(matcher, () => expectNotOwn(matched(matcher)));
     }
     it("an event that does not match tools", () => expectNotOwn(matched("mcp__db__.*", "Notification")));
