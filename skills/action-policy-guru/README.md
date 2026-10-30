@@ -28,9 +28,9 @@ The skill auto-fires on authorization work; there is no argument to pass. `SKILL
 
 | File | Domain |
 | --- | --- |
-| `assets/llms-full.txt` | the pinned upstream documentation bundle the references were distilled from |
-| `scripts/check-upstream.sh` | reports whether that bundle still matches upstream |
-| `scripts/test-check-upstream.sh` | the offline bench for that script, run after any edit to it |
+| [`assets/llms-full.txt`](assets/llms-full.txt) | the pinned upstream documentation bundle the references were distilled from |
+| [`scripts/check-upstream.sh`](scripts/check-upstream.sh) | reports whether that bundle still matches upstream |
+| [`scripts/test-check-upstream.sh`](scripts/test-check-upstream.sh) | the offline bench for that script, run after any edit to it |
 
 ## Provenance
 
