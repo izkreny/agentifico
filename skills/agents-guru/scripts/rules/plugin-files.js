@@ -145,7 +145,10 @@ export function hooksDefects(source, own = new Set()) {
           report(command, "command holds more than the program while args is set, so the spawn fails: move the extra words into args");
         if (type === "command" && !execForm && hook.get("shell") === "powershell") {
           for (const [, name] of text.matchAll(POWERSHELL_BARE))
-            report(command, `command names a bare $${name}, which PowerShell resolves to $null: write \${${name}} or $env:${name}`);
+            report(
+              command,
+              `command names a bare $${name}, which Claude Code does not rewrite, so PowerShell resolves it to $null unless it is escaped or single-quoted: write \${${name}} or $env:${name}`,
+            );
           for (const [, singleQuoted] of text.matchAll(POWERSHELL_STRING)) {
             const placeholder = singleQuoted?.match(POWERSHELL_BRACED);
             if (placeholder) report(command, `command holds ${placeholder[0]} inside single quotes, where PowerShell never expands it: use double quotes`);
