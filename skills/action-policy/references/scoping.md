@@ -80,7 +80,7 @@ A spec applies one explicitly with `apply_scope`, where the type has to be named
 PostPolicy.new(nil, user: user).apply_scope(Post.all, type: :active_record_relation)
 ```
 
-**Name the type Rails registered, not the one upstream's examples define.** The Rails matchers are `:active_record_relation` and `:action_controller_params`; the `:relation` seen in upstream's scope-matcher examples is a custom matcher those examples register themselves, and asking for it in an application that never registered one raises `ActionPolicy::UnknownScopeType`, observed on 0.7.6.
+**Name the type Rails registered, not the one upstream's examples define.** The Rails matchers are `:active_record_relation` and `:action_controller_params`; the `:relation` seen in upstream's scope-matcher examples is a custom matcher those examples register themselves, and asking for it in an application that never registered one raises `ActionPolicy::UnknownScopeType`, observed on 0.7.7.
 
 ## Scope options
 
