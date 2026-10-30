@@ -964,7 +964,7 @@ describe("plugin-hooks", () => {
     ]) {
       it(matcher, () => expectHook(matched(matcher), `matcher part ${part}`));
     }
-    for (const matcher of ["mcp__memory__.*", "mcp__memory__read", "Bash", "mcp__memory|Edit.*", "mcp__.*"]) {
+    for (const matcher of ["mcp__memory__.*", "mcp__memory__read", "Bash", "mcp__memory|Edit.*", "mcp__.*", "not_mcp__memory"]) {
       it(matcher, () => expectNoHook(matched(matcher)));
     }
     it("an event that does not match tools", () => expectNoHook(matched("mcp__memory", "Notification")));
@@ -984,7 +984,7 @@ describe("plugin-hooks", () => {
     for (const matcher of ["mcp__db__.*", "mcp__db__query", "^mcp__db__.*$", "Bash|mcp__db__.*", "Edit, mcp__db__query", "mcp__db"]) {
       it(matcher, () => expectOwn(matched(matcher), "own MCP server db"));
     }
-    for (const matcher of ["mcp__dbx__.*", "mcp__other__.*", "mcp__plugin_p_db__.*", "Bash"]) {
+    for (const matcher of ["mcp__dbx__.*", "mcp__other__.*", "mcp__plugin_p_db__.*", "Bash", "not_mcp__db__x"]) {
       it(matcher, () => expectNotOwn(matched(matcher)));
     }
     it("an event that does not match tools", () => expectNotOwn(matched("mcp__db__.*", "Notification")));
@@ -993,6 +993,7 @@ describe("plugin-hooks", () => {
     it("an mcp_tool hook's server", () => expectOwn(tool("db"), "server db"));
     it("an mcp_tool hook's scoped server", () => expectNotOwn(tool("plugin:p:db")));
     it("a server field on another hook type", () => expectNotOwn(tool("db", "http")));
+    it("an mcp_tool hook with no server", () => expectNotOwn(hooksFile("Stop", { hooks: [{ type: "mcp_tool", tool: "query" }] })));
   });
   it("a finding names the line its key sits on", () => {
     const source = hooksFile("Stop", { matcher: "x", hooks: [command()] });

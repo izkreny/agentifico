@@ -41,7 +41,7 @@ const PROGRAM_THEN_MORE = /^[^\s/\\]+\s/;
 const POWERSHELL_BARE = /\$(CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA))\b/g;
 const POWERSHELL_BRACED = /\$\{CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA)\}/;
 // WHY: strings are walked in order rather than searched for quotes, because a single quote inside a double-quoted string opens nothing.
-const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'[^']*'/g;
+const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'([^']*)'/g;
 
 const EXACT_MATCHER = /^[\w\- ,|]*$/;
 const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/;
@@ -66,10 +66,11 @@ const pairOf = (map, key) => (YAML.isMap(map) ? map.items.find((pair) => pair.ke
 // Stryker disable next-line ArrayDeclaration: an item that is no map is skipped wherever items are read, so a stray one changes nothing.
 const itemsOf = (node) => (YAML.isSeq(node) || YAML.isMap(node) ? node.items : []);
 
-const namesUserConfig = (pair) => String(pair?.value?.value).includes(`\${user_config.`);
+const namesUserConfig = (pair) => String(pair?.value.value).includes(`\${user_config.`);
 
 const jsonIn = (pluginDir, file) => {
   try {
+    // Stryker disable next-line StringLiteral: JSON.parse reads the buffer an empty encoding returns just the same.
     return JSON.parse(fs.readFileSync(path.resolve(pluginDir, file), "utf8"));
   } catch {
     return null;
@@ -97,13 +98,13 @@ export function hooksDefects(source, own = new Set()) {
     for (const group of itemsOf(groups)) {
       const matcher = pairOf(group, "matcher");
       if (matcher && NO_MATCHER.has(key.value)) report(matcher, `matcher on ${key.value} is silently ignored: the event has no matcher support`);
-      const matched = matcher?.value?.value;
+      const matched = matcher?.value.value;
       if (TOOL_EVENTS.has(key.value) && typeof matched === "string") {
         const parts = matched.split(/[|,]/).map((part) => part.trim());
         if (EXACT_MATCHER.test(matched))
           for (const part of parts.filter((each) => SERVER_PREFIX_ONLY.test(each)))
             report(matcher, `matcher part ${part} is compared as an exact tool name, so it matches no tool: add the .* a server prefix needs`);
-        for (const [, server] of parts.map((part) => part.match(MATCHED_SERVER) ?? []))
+        for (const server of parts.map((part) => part.match(MATCHED_SERVER)?.[1]))
           if (own.has(server))
             report(
               matcher,
@@ -139,19 +140,19 @@ export function hooksDefects(source, own = new Set()) {
         const execForm = pairOf(hook, "args");
         if (type === "command" && !execForm && namesUserConfig(command))
           report(command, `command names \${user_config.*} in shell form, so the hook fails instead of running: set args, or read $CLAUDE_PLUGIN_OPTION_<KEY>`);
-        const text = String(command?.value?.value);
+        const text = String(command?.value.value);
         if (type === "command" && execForm && PROGRAM_THEN_MORE.test(text))
           report(command, "command holds more than the program while args is set, so the spawn fails: move the extra words into args");
         if (type === "command" && !execForm && hook.get("shell") === "powershell") {
           for (const [, name] of text.matchAll(POWERSHELL_BARE))
             report(command, `command names a bare $${name}, which PowerShell resolves to $null: write \${${name}} or $env:${name}`);
-          for (const [quoted] of text.matchAll(POWERSHELL_STRING)) {
-            const placeholder = quoted.startsWith("'") && quoted.match(POWERSHELL_BRACED);
+          for (const [, singleQuoted] of text.matchAll(POWERSHELL_STRING)) {
+            const placeholder = singleQuoted?.match(POWERSHELL_BRACED);
             if (placeholder) report(command, `command holds ${placeholder[0]} inside single quotes, where PowerShell never expands it: use double quotes`);
           }
         }
         const server = pairOf(hook, "server");
-        if (type === "mcp_tool" && own.has(server?.value?.value))
+        if (type === "mcp_tool" && own.has(server?.value.value))
           report(server, `server ${server.value.value} names the plugin's own MCP server by its bare key: write plugin:<plugin-name>:${server.value.value}`);
       }
     }
