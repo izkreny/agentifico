@@ -37,7 +37,7 @@ The skill auto-fires on authorization work; there is no argument to pass. `SKILL
 
 ## Per-project overrides
 
-Where a repository documents its own authorization model, that document decides what a rule should return and this skill decides how the rule is written. The `rails-style` skill defaults to model predicate methods and names Pundit and CanCanCan as gems to skip; a project that has committed to Action Policy records the deviation in its own `<repo-root>/.agents/rails-style.md`, and `<repo-root>/app/policies/` there is intended rather than a violation.
+Where a repository documents its own authorization model, that document decides what a rule should return and this skill decides how the rule is written. A style guide that steers Rails code away from authorization gems, such as the `rails-style` skill, is overridden in the project's own agent instructions: a project that has committed to Action Policy says so there, and `<repo-root>/app/policies/` is then intended rather than a violation.
 
 ## Provenance
 

@@ -24,7 +24,7 @@ The snapshot is a pinned copy, and `scripts/check-upstream.sh` is what says whet
 
 Where a repository documents who may do what, that document decides what a rule should return, and this skill decides how the rule is written. Read it before changing a rule or the spec that proves one, and treat a disagreement between it and the code as a defect in one of them rather than as licence to pick either.
 
-`rails-style` defaults to model predicate methods and names Pundit and CanCanCan as gems to skip. That default is overridden per project, in the file `rails-style` reads for deviations, and a project that records its commitment to Action Policy there has made that call: `<repo-root>/app/policies/` there is intended rather than a violation.
+A style guide that steers Rails code away from authorization gems, such as `rails-style`, is overridden per project in that project's own agent instructions. A project that records its commitment to Action Policy there has made that call: `<repo-root>/app/policies/` there is intended rather than a violation.
 
 ## References
 
