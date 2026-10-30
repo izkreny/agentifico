@@ -4,7 +4,7 @@ import { lint } from "markdownlint/promise";
 import { describe, it } from "vitest";
 import agentFrontmatter, { defects as agentDefects, pluginNameWarnings } from "../rules/agent-frontmatter.js";
 import { description as descriptionValue, scalar } from "../rules/frontmatter.js";
-import { hooksDefects, manifestDefects } from "../rules/plugin-files.js";
+import { hooksDefects, manifestDefects, monitorFileDefects } from "../rules/plugin-files.js";
 import argumentHint from "../rules/skill-argument-hint.js";
 import bashBlocks from "../rules/skill-bash-blocks.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
@@ -897,8 +897,103 @@ describe("plugin-hooks", () => {
   it("user_config in a shell-form command", () =>
     expectHook(hooksFile("PreToolUse", { hooks: [command({ command: `curl \${user_config.url}` })] }), "user_config"));
   // Exec form substitutes into command as well as args, so only a missing args makes the same command a defect.
-  it("user_config in an exec-form command", () =>
-    expectNoHook(hooksFile("PreToolUse", { hooks: [command({ command: `curl \${user_config.url}`, args: [] })] })));
+  it("user_config in an exec-form command", () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ command: `\${user_config.tool}`, args: [] })] })));
+  describe("onFailure with no effect", () => {
+    for (const event of ["Stop", "SubagentStop", "TaskCompleted", "TeammateIdle"]) {
+      it(`onFailure on ${event}`, () => expectHook(hooksFile(event, { hooks: [command({ onFailure: "block" })] }), `onFailure on ${event}`));
+    }
+    it("onFailure on an http hook of such an event", () => expectHook(hooksFile("Stop", { hooks: [http({ onFailure: "block" })] }), "onFailure on Stop"));
+    for (const field of ["async", "asyncRewake"]) {
+      it(`onFailure beside ${field}`, () => expectHook(hooksFile("PreToolUse", { hooks: [command({ onFailure: "block", [field]: true })] }), `sets ${field}`));
+      it(`onFailure beside ${field} set to false`, () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ onFailure: "block", [field]: false })] })));
+    }
+    it("onFailure on an event it works on", () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ onFailure: "block" })] })));
+    it("async on an http hook leaves its onFailure working", () => {
+      const details = hooksDefects(hooksFile("PreToolUse", { hooks: [http({ onFailure: "block", async: true })] })).map((d) => d.detail);
+      assert.equal(details.length, 1, JSON.stringify(details));
+      assert.match(details[0], /^async on a http hook/);
+    });
+    it("names the line onFailure sits on", () => {
+      const source = hooksFile("Stop", { hooks: [command({ onFailure: "block" })] });
+      assert.deepEqual(
+        hooksDefects(source).map((d) => d.line),
+        [source.split("\n").findIndex((l) => l.includes('"onFailure"')) + 1],
+      );
+    });
+  });
+  describe("args beside a command holding more than the program", () => {
+    for (const held of ["node script.js", "node ./script.js", `node \${CLAUDE_PLUGIN_ROOT}/script.js`]) {
+      it(held, () => expectHook(hooksFile("PreToolUse", { hooks: [command({ command: held, args: ["--fix"] })] }), "args is set"));
+    }
+    for (const held of ["node", "./bin/run", `\${CLAUDE_PLUGIN_ROOT}/my tool`, "/opt/my tool/run", "C:\\Program Files\\nodejs\\node.exe"]) {
+      it(held, () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ command: held, args: ["--fix"] })] })));
+    }
+    it("the same command in shell form", () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ command: "node script.js" })] })));
+    it("the same fields on an http hook", () => expectNoHook(hooksFile("PreToolUse", { hooks: [http({ command: "node script.js", args: [] })] })));
+  });
+  describe("a placeholder PowerShell never expands", () => {
+    const powershell = (held, extra = {}) => hooksFile("PreToolUse", { hooks: [command({ shell: "powershell", command: held, ...extra })] });
+    for (const name of ["CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_PLUGIN_DATA"]) {
+      it(`a bare $${name}`, () => expectHook(powershell(`& "$${name}\\check.ps1"`), `bare $${name}`));
+      it(`\${${name}} in single quotes`, () => expectHook(powershell(`& '\${${name}}\\check.ps1'`), `\${${name}}`));
+      it(`\${${name}} in double quotes`, () => expectNoHook(powershell(`& "\${${name}}\\check.ps1"`)));
+      it(`$env:${name}`, () => expectNoHook(powershell(`& "$env:${name}\\check.ps1"`)));
+    }
+    it("a double quote inside the single quotes", () => expectHook(powershell(`'a "b" \${CLAUDE_PROJECT_DIR}'`), `\${CLAUDE_PROJECT_DIR}`));
+    it("a single quote each side, inside double quotes", () => expectNoHook(powershell(`"it's \${CLAUDE_PROJECT_DIR}/it's"`)));
+    it("an escaped double quote before the single quotes", () => expectNoHook(powershell(`"a\`"'\${CLAUDE_PROJECT_DIR}'"`)));
+    it("single quotes after a closed double-quoted string", () => expectHook(powershell(`"a" '\${CLAUDE_PROJECT_DIR}'`), `\${CLAUDE_PROJECT_DIR}`));
+    it("single quotes holding another variable", () => expectNoHook(powershell(`'\${OTHER}'`)));
+    it("a longer name that starts with a placeholder's", () => expectNoHook(powershell(`& "$CLAUDE_PROJECT_DIRECTORY"`)));
+    it("no shell set", () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ command: `"$CLAUDE_PROJECT_DIR/x" '\${CLAUDE_PROJECT_DIR}'` })] })));
+    it("shell set to bash", () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ shell: "bash", command: `"$CLAUDE_PROJECT_DIR/x"` })] })));
+    it("exec form, where shell is ignored", () => expectNoHook(powershell("$CLAUDE_PROJECT_DIR/x", { args: [] })));
+    it("an http hook", () => expectNoHook(hooksFile("PreToolUse", { hooks: [http({ shell: "powershell", command: "$CLAUDE_PROJECT_DIR/x" })] })));
+  });
+  describe("an MCP server prefix with no .*", () => {
+    const matched = (matcher, event = "PreToolUse") => hooksFile(event, { matcher, hooks: [command()] });
+    for (const event of ["PreToolUse", "PostToolUse", "PostToolUseFailure", "PermissionRequest", "PermissionDenied"]) {
+      it(`mcp__memory on ${event}`, () => expectHook(matched("mcp__memory", event), "matcher part mcp__memory"));
+    }
+    for (const [matcher, part] of [
+      ["mcp__brave-search", "mcp__brave-search"],
+      ["mcp__my_server", "mcp__my_server"],
+      ["mcp__memory__", "mcp__memory__"],
+      ["Bash|mcp__memory", "mcp__memory"],
+      ["Edit, mcp__memory", "mcp__memory"],
+    ]) {
+      it(matcher, () => expectHook(matched(matcher), `matcher part ${part}`));
+    }
+    for (const matcher of ["mcp__memory__.*", "mcp__memory__read", "Bash", "mcp__memory|Edit.*", "mcp__.*"]) {
+      it(matcher, () => expectNoHook(matched(matcher)));
+    }
+    it("an event that does not match tools", () => expectNoHook(matched("mcp__memory", "Notification")));
+    it("a matcher that is no string", () => expectNoHook(matched(5)));
+  });
+  describe("the plugin's own MCP server by its bare key", () => {
+    const own = new Set(["db"]);
+    const expectOwn = (source, part) => {
+      const details = hooksDefects(source, own).map((d) => d.detail);
+      assert.ok(
+        details.some((d) => d.includes(part)),
+        `wanted "${part}", got ${JSON.stringify(details)}`,
+      );
+    };
+    const expectNotOwn = (source) => assert.deepEqual(hooksDefects(source, own), []);
+    const matched = (matcher, event = "PreToolUse") => hooksFile(event, { matcher, hooks: [command()] });
+    for (const matcher of ["mcp__db__.*", "mcp__db__query", "^mcp__db__.*$", "Bash|mcp__db__.*", "Edit, mcp__db__query", "mcp__db"]) {
+      it(matcher, () => expectOwn(matched(matcher), "own MCP server db"));
+    }
+    for (const matcher of ["mcp__dbx__.*", "mcp__other__.*", "mcp__plugin_p_db__.*", "Bash"]) {
+      it(matcher, () => expectNotOwn(matched(matcher)));
+    }
+    it("an event that does not match tools", () => expectNotOwn(matched("mcp__db__.*", "Notification")));
+    it("a set that does not hold the key", () => expectNoHook(matched("mcp__db__.*")));
+    const tool = (server, type = "mcp_tool") => hooksFile("Stop", { hooks: [{ type, server, tool: "query" }] });
+    it("an mcp_tool hook's server", () => expectOwn(tool("db"), "server db"));
+    it("an mcp_tool hook's scoped server", () => expectNotOwn(tool("plugin:p:db")));
+    it("a server field on another hook type", () => expectNotOwn(tool("db", "http")));
+  });
   it("a finding names the line its key sits on", () => {
     const source = hooksFile("Stop", { matcher: "x", hooks: [command()] });
     const line = source.split("\n").findIndex((l) => l.includes('"matcher"')) + 1;
@@ -916,6 +1011,58 @@ describe("plugin-hooks", () => {
   ]) {
     it(id, () => expectNoHook(source));
   }
+});
+
+describe("plugin-manifest", () => {
+  const defects = (manifest) => manifestDefects(JSON.stringify({ name: "p", ...manifest }, null, 2), "/no/such/plugin");
+  describe("a dependency's version", () => {
+    const depending = (entry) => defects({ dependencies: [entry] });
+    for (const version of ["latest", "not.a.range", 1, null, ["^2.0"]]) {
+      it(`the version ${JSON.stringify(version)}`, () => {
+        const found = depending({ name: "x", version });
+        assert.equal(found.length, 1, JSON.stringify(found));
+        assert.match(found[0].detail, /is not a node-semver range/);
+      });
+    }
+    for (const version of ["~2.1.0", "^2.0", ">=1.4", "=2.1.0", "^2.0.0-0", "*"]) {
+      it(`the range ${version}`, () => assert.deepEqual(depending({ name: "x", version }), []));
+    }
+    it("a string entry", () => assert.deepEqual(depending("x@market"), []));
+    it("an entry with no version", () => assert.deepEqual(depending({ name: "x" }), []));
+    it("a dependencies value that is no list", () => assert.deepEqual(defects({ dependencies: "x" }), []));
+    it("names the line the version sits on", () => {
+      const source = JSON.stringify({ name: "p", dependencies: [{ name: "x", version: "latest" }] }, null, 2);
+      assert.deepEqual(
+        manifestDefects(source, "/no/such/plugin").map((d) => d.line),
+        [source.split("\n").findIndex((l) => l.includes('"version"')) + 1],
+      );
+    });
+  });
+  describe("user_config in a monitor's command", () => {
+    const monitor = (command) => ({ name: "m", command, description: "d" });
+    const held = `tail \${user_config.path}`;
+    it("inline under experimental", () =>
+      assert.match(defects({ experimental: { monitors: [monitor(held)] } })[0].detail, /monitor command names \$\{user_config/));
+    it("inline under the top-level key", () => assert.match(defects({ monitors: [monitor(held)] })[0].detail, /monitor command names \$\{user_config/));
+    it("names the line the command sits on", () => {
+      const source = JSON.stringify({ name: "p", experimental: { monitors: [monitor(held)] } }, null, 2);
+      assert.deepEqual(
+        manifestDefects(source, "/no/such/plugin").map((d) => d.line),
+        [source.split("\n").findIndex((l) => l.includes('"command"')) + 1],
+      );
+    });
+    it("a command with no user_config", () => assert.deepEqual(defects({ experimental: { monitors: [monitor("tail x.log")] } }), []));
+    it("an entry that is no map", () => assert.deepEqual(defects({ experimental: { monitors: ["x"] } }), []));
+    it("a path, which is the file's to answer", () => assert.deepEqual(defects({ experimental: { monitors: "./m.json" } }), []));
+    it("the file's own reader", () => {
+      const source = JSON.stringify([monitor(held)], null, 2);
+      assert.deepEqual(
+        monitorFileDefects(source).map((d) => d.line),
+        [source.split("\n").findIndex((l) => l.includes('"command"')) + 1],
+      );
+    });
+    it("a file that is not valid JSON", () => assert.deepEqual(monitorFileDefects("["), []));
+  });
 });
 
 describe("skill-hard-wrap", () => {
