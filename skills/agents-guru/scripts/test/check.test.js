@@ -286,6 +286,37 @@ beforeAll(() => {
   put(path.join(plugins, "unmarked", "README.md"), "# unmarked\n\nbody\n");
   put(path.join(plugins, "unmarked", "hooks", "hooks.json"), stopMatcher);
 
+  const dbMatcher = JSON.stringify({ hooks: { PreToolUse: [{ matcher: "mcp__db__.*", hooks: [{ type: "command", command: "true" }] }] } }, null, 2);
+  const server = { db: { command: "node" } };
+  mkPlugin("own-wrapped", JSON.stringify({ name: "own-wrapped" }), { ".mcp.json": JSON.stringify({ mcpServers: server }), "hooks/hooks.json": dbMatcher });
+  mkPlugin("own-flat", JSON.stringify({ name: "own-flat" }), { ".mcp.json": JSON.stringify(server), "hooks/hooks.json": dbMatcher });
+  mkPlugin("own-inline", JSON.stringify({ name: "own-inline", mcpServers: server }), { "hooks/hooks.json": dbMatcher });
+  mkPlugin("own-file", JSON.stringify({ name: "own-file", mcpServers: "./mcp/servers.json" }), {
+    "mcp/servers.json": JSON.stringify({ mcpServers: server }),
+    "hooks/hooks.json": dbMatcher,
+  });
+  mkPlugin("own-list", JSON.stringify({ name: "own-list", mcpServers: ["./bundle.mcpb", "https://example.com/s.mcpb", "./mcp/flat.json", 5, null] }), {
+    "bundle.mcpb": "not json",
+    "mcp/flat.json": JSON.stringify(server),
+    "hooks/hooks.json": dbMatcher,
+  });
+  mkPlugin("own-dotted", JSON.stringify({ name: "own-dotted", mcpServers: { "my.db": { command: "node" } } }), {
+    "hooks/hooks.json": JSON.stringify({ hooks: { PreToolUse: [{ matcher: "mcp__my_db__.*", hooks: [{ type: "command", command: "true" }] }] } }),
+  });
+  mkPlugin("own-other", JSON.stringify({ name: "own-other", mcpServers: { api: { command: "node" } } }), { "hooks/hooks.json": dbMatcher });
+  mkPlugin("own-unreadable", JSON.stringify({ name: "own-unreadable", mcpServers: "./gone.json" }), { ".mcp.json": "{", "hooks/hooks.json": dbMatcher });
+  const userConfigMonitors = JSON.stringify([{ name: "m", command: `tail \${user_config.path}`, description: "d" }], null, 2);
+  mkPlugin("monitor-default", JSON.stringify({ name: "monitor-default" }), { "monitors/monitors.json": userConfigMonitors });
+  mkPlugin("monitor-named", JSON.stringify({ name: "monitor-named", experimental: { monitors: "./watch/m.json" } }), { "watch/m.json": userConfigMonitors });
+  mkPlugin("monitor-top", JSON.stringify({ name: "monitor-top", monitors: "./watch/m.json" }), { "watch/m.json": userConfigMonitors });
+  mkPlugin("monitor-inline", JSON.stringify({ name: "monitor-inline", experimental: { monitors: JSON.parse(userConfigMonitors) } }));
+  mkPlugin("monitor-gone", JSON.stringify({ name: "monitor-gone", experimental: { monitors: "./watch/gone.json" } }));
+  mkPlugin("monitor-clean", JSON.stringify({ name: "monitor-clean" }), { "monitors/monitors.json": "[]\n" });
+  // No manifest at all, so neither reader that opens it has one to read.
+  put(path.join(plugins, "manifestless", "README.md"), "# manifestless\n\nbody\n");
+  put(path.join(plugins, "manifestless", "hooks", "hooks.json"), dbMatcher);
+  fs.mkdirSync(path.join(plugins, "manifestless", ".claude-plugin"));
+
   mk(path.join(tmp, "dotted"), block("dotted"));
   fs.mkdirSync(path.join(tmp, "dotted", ".hidden"));
   fs.writeFileSync(path.join(tmp, "dotted", ".hidden", "w.md"), "- **lead.** first\n\n  the reason\n\n  a second paragraph\n");
@@ -709,6 +740,51 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "plugins", "broken"));
     assert.equal(r.code, 0, r.out);
     assert.match(r.out, /^plugin files: none$/m);
+  });
+  for (const name of ["own-wrapped", "own-flat", "own-inline", "own-file", "own-list"]) {
+    it(`${name}: the hooks file is held to the plugin's own server names`, () => {
+      const r = run(path.join(tmp, "plugins", name));
+      assert.equal(r.code, 1, r.out);
+      assert.match(r.out, /^ {2}hooks\/hooks\.json:\d+ plugin-hooks \(error\) matcher names the plugin's own MCP server db by its bare key/m);
+    });
+  }
+  it("a server key is matched in the form its tool names take", () => {
+    assert.match(run(path.join(tmp, "plugins", "own-dotted")).out, /plugin-hooks \(error\) matcher names the plugin's own MCP server my_db/);
+  });
+  it("a server the plugin does not declare is no bare key of its own", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "own-other")).out, /plugin-hooks/);
+  });
+  it("an MCP file that cannot be read declares nothing", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "own-unreadable")).out, /plugin-hooks|TypeError/);
+  });
+  it("a plugin with no manifest declares no server and reads the default monitors path", () => {
+    const r = run(path.join(tmp, "plugins", "manifestless"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^plugin files: none$/m);
+  });
+  it("a monitors file is reported under its own path", () => {
+    const r = run(path.join(tmp, "plugins", "monitor-default"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}monitors\/monitors\.json:\d+ plugin-manifest \(error\) monitor command names \$\{user_config/m);
+  });
+  it("a monitors file the manifest names is read in place of the default", () => {
+    assert.match(run(path.join(tmp, "plugins", "monitor-named")).out, /^ {2}watch\/m\.json:\d+ plugin-manifest \(error\) monitor command/m);
+  });
+  it("a monitors file the top-level key names is read", () => {
+    assert.match(run(path.join(tmp, "plugins", "monitor-top")).out, /^ {2}watch\/m\.json:\d+ plugin-manifest \(error\) monitor command/m);
+  });
+  it("inline monitors are reported in the manifest", () => {
+    assert.match(run(path.join(tmp, "plugins", "monitor-inline")).out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) monitor command/m);
+  });
+  it("a named monitors file that does not exist is left to the validator", () => {
+    const r = run(path.join(tmp, "plugins", "monitor-gone"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^plugin files: none$/m);
+  });
+  it("a monitors file read is a file checked", () => {
+    const r = run(path.join(tmp, "plugins", "monitor-clean"));
+    assert.equal(r.code, 0, r.out);
+    assert.equal(r.linted, 3, r.out);
   });
   it("a hooks file with no .claude-plugin beside it is not a plugin's", () => {
     assert.doesNotMatch(run(path.join(tmp, "plugins", "unmarked")).out, /plugin-hooks/);

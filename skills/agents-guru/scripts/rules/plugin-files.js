@@ -1,6 +1,7 @@
 // Each limit is the hooks page's or the plugins reference's, at https://code.claude.com/docs/en/hooks and https://code.claude.com/docs/en/plugins/manifest-reference.
 import fs from "node:fs";
 import path from "node:path";
+import semver from "semver";
 import YAML from "yaml";
 
 // Only the events without matcher support are listed, because a stale copy of this list then misses a warning where a list of the supported events would flag a correct file on a new event.
@@ -17,6 +18,12 @@ const NO_MATCHER = new Set([
   "MessageDisplay",
 ]);
 
+// WHY: only the events the field has no effect on are listed, because a stale copy of this list then misses a warning and flags no correct file.
+const NO_ON_FAILURE = new Set(["Stop", "SubagentStop", "TaskCompleted", "TeammateIdle"]);
+
+// WHY: only the events a tool name is matched on are listed, because a stale copy of this list then misses a warning and flags no correct file.
+const TOOL_EVENTS = new Set(["PreToolUse", "PostToolUse", "PostToolUseFailure", "PermissionRequest", "PermissionDenied"]);
+
 const REPLACES = [
   ["commands", "commands"],
   ["agents", "agents"],
@@ -27,6 +34,18 @@ const REPLACES = [
 ];
 
 const HEADER_VARIABLE = /\$\{([A-Za-z_]\w*)\}|\$([A-Za-z_]\w*)/g;
+
+// WHY: a command's first word holding no path separator is the program, so what follows it is arguments, where a path with spaces has its separator before the first space.
+const PROGRAM_THEN_MORE = /^[^\s/\\]+\s/;
+
+const POWERSHELL_BARE = /\$(CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA))\b/g;
+const POWERSHELL_BRACED = /\$\{CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA)\}/;
+// WHY: strings are walked in order rather than searched for quotes, because a single quote inside a double-quoted string opens nothing.
+const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'[^']*'/g;
+
+const EXACT_MATCHER = /^[\w\- ,|]*$/;
+const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/;
+const MATCHED_SERVER = /^\^?mcp__(.+?)(?:__|$)/;
 
 export const isPluginRoot = (dir) => fs.statSync(path.join(dir, ".claude-plugin"), { throwIfNoEntry: false })?.isDirectory() ?? false;
 
@@ -47,7 +66,27 @@ const pairOf = (map, key) => (YAML.isMap(map) ? map.items.find((pair) => pair.ke
 // Stryker disable next-line ArrayDeclaration: an item that is no map is skipped wherever items are read, so a stray one changes nothing.
 const itemsOf = (node) => (YAML.isSeq(node) || YAML.isMap(node) ? node.items : []);
 
-export function hooksDefects(source) {
+const namesUserConfig = (pair) => String(pair?.value?.value).includes(`\${user_config.`);
+
+const jsonIn = (pluginDir, file) => {
+  try {
+    return JSON.parse(fs.readFileSync(path.resolve(pluginDir, file), "utf8"));
+  } catch {
+    return null;
+  }
+};
+
+export function ownServers(pluginDir) {
+  // WHY: a bundle or a URL fails to read as JSON, so it needs no test of its own and adds no name.
+  const declared = [jsonIn(pluginDir, ".claude-plugin/plugin.json")?.mcpServers]
+    .flat()
+    .map((entry) => (typeof entry === "string" ? jsonIn(pluginDir, entry) : entry));
+  const names = [jsonIn(pluginDir, ".mcp.json"), ...declared].flatMap((config) => Object.keys(config?.mcpServers ?? config ?? {}));
+  // WHY: a tool name turns any other character in the key into an underscore, so a matcher written for the tool carries that form.
+  return new Set(names.flatMap((name) => [name, name.replace(/[^\w-]/g, "_")]));
+}
+
+export function hooksDefects(source, own = new Set()) {
   const file = read(source);
   if (!file) return [];
   const found = [];
@@ -58,11 +97,33 @@ export function hooksDefects(source) {
     for (const group of itemsOf(groups)) {
       const matcher = pairOf(group, "matcher");
       if (matcher && NO_MATCHER.has(key.value)) report(matcher, `matcher on ${key.value} is silently ignored: the event has no matcher support`);
+      const matched = matcher?.value?.value;
+      if (TOOL_EVENTS.has(key.value) && typeof matched === "string") {
+        const parts = matched.split(/[|,]/).map((part) => part.trim());
+        if (EXACT_MATCHER.test(matched))
+          for (const part of parts.filter((each) => SERVER_PREFIX_ONLY.test(each)))
+            report(matcher, `matcher part ${part} is compared as an exact tool name, so it matches no tool: add the .* a server prefix needs`);
+        for (const [, server] of parts.map((part) => part.match(MATCHED_SERVER) ?? []))
+          if (own.has(server))
+            report(
+              matcher,
+              `matcher names the plugin's own MCP server ${server} by its bare key, so it never fires: write mcp__plugin_<plugin-name>_${server}__`,
+            );
+      }
       for (const hook of itemsOf(pairOf(group, "hooks")?.value)) {
         if (!YAML.isMap(hook)) continue;
         const type = hook.get("type");
         const async = pairOf(hook, "async");
         if (async && type !== "command") report(async, `async on a ${type} hook is ignored: it is available on command hooks only`);
+        const onFailure = pairOf(hook, "onFailure");
+        if (onFailure && NO_ON_FAILURE.has(key.value))
+          report(
+            onFailure,
+            `onFailure on ${key.value} has no effect: exit code 2 there sends Claude back to work, and Claude can't repair a hook that won't run`,
+          );
+        const background = ["async", "asyncRewake"].find((field) => hook.get(field) === true);
+        if (onFailure && type === "command" && background)
+          report(onFailure, `onFailure on a command hook that sets ${background} has no effect: it runs in the background`);
         const once = pairOf(hook, "once");
         if (once) report(once, "once is ignored in a plugin's hooks file: Claude Code honours it only in a skill's frontmatter");
         const headers = pairOf(hook, "headers");
@@ -75,8 +136,23 @@ export function hooksDefects(source) {
               report(header, `header ${header.key.value} names ${braced ?? bare}, which allowedEnvVars does not list, so it is sent empty`);
         }
         const command = pairOf(hook, "command");
-        if (type === "command" && !pairOf(hook, "args") && String(command?.value?.value).includes(`\${user_config.`))
+        const execForm = pairOf(hook, "args");
+        if (type === "command" && !execForm && namesUserConfig(command))
           report(command, `command names \${user_config.*} in shell form, so the hook fails instead of running: set args, or read $CLAUDE_PLUGIN_OPTION_<KEY>`);
+        const text = String(command?.value?.value);
+        if (type === "command" && execForm && PROGRAM_THEN_MORE.test(text))
+          report(command, "command holds more than the program while args is set, so the spawn fails: move the extra words into args");
+        if (type === "command" && !execForm && hook.get("shell") === "powershell") {
+          for (const [, name] of text.matchAll(POWERSHELL_BARE))
+            report(command, `command names a bare $${name}, which PowerShell resolves to $null: write \${${name}} or $env:${name}`);
+          for (const [quoted] of text.matchAll(POWERSHELL_STRING)) {
+            const placeholder = quoted.startsWith("'") && quoted.match(POWERSHELL_BRACED);
+            if (placeholder) report(command, `command holds ${placeholder[0]} inside single quotes, where PowerShell never expands it: use double quotes`);
+          }
+        }
+        const server = pairOf(hook, "server");
+        if (type === "mcp_tool" && own.has(server?.value?.value))
+          report(server, `server ${server.value.value} names the plugin's own MCP server by its bare key: write plugin:<plugin-name>:${server.value.value}`);
       }
     }
   }
@@ -113,6 +189,27 @@ const pathsOf = (value) =>
         ? Object.values(value).flatMap((entry) => (typeof entry?.source === "string" ? [entry.source] : []))
         : [];
 
+const monitorDefects = (monitors, lineOf) =>
+  itemsOf(monitors)
+    .map((monitor) => pairOf(monitor, "command"))
+    .filter(namesUserConfig)
+    .map((command) => ({
+      line: lineOf(command.key),
+      detail: `monitor command names \${user_config.*}, so the monitor fails instead of running: its script has to obtain the value on its own`,
+    }));
+
+export function monitorFileDefects(source) {
+  const file = read(source);
+  return file ? monitorDefects(file.root, file.lineOf) : [];
+}
+
+// WHY: inline monitors are the manifest's own findings, so only a key holding a path, or no key at all, leaves a file to read.
+export function monitorsFile(pluginDir) {
+  const manifest = jsonIn(pluginDir, ".claude-plugin/plugin.json");
+  const monitors = manifest?.experimental?.monitors ?? manifest?.monitors ?? "monitors/monitors.json";
+  return typeof monitors === "string" ? monitors : undefined;
+}
+
 export function manifestDefects(source, pluginDir) {
   const file = read(source);
   if (!file) return [];
@@ -147,5 +244,12 @@ export function manifestDefects(source, pluginDir) {
         detail: `${key} replaces the default ${folder}/, so Claude Code ignores ${path.relative(pluginDir, each)}`,
       });
   }
+  for (const entry of itemsOf(pairOf(file.root, "dependencies")?.value)) {
+    const version = pairOf(entry, "version");
+    if (version && !semver.validRange(version.value.value))
+      found.push({ line: file.lineOf(version.key), detail: `dependency version ${String(version.value)} is not a node-semver range such as ~2.1.0` });
+  }
+  const monitors = pairOf(pairOf(file.root, "experimental")?.value, "monitors") ?? pairOf(file.root, "monitors");
+  found.push(...monitorDefects(monitors?.value, file.lineOf));
   return found;
 }
