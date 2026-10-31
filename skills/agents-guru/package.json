@@ -9,7 +9,8 @@
   "scripts": {
     "check": "node scripts/check.js",
     "test": "vitest run scripts/test/",
-    "lint": "biome check scripts/"
+    "lint": "biome check scripts/",
+    "mutate": "nice -n 19 ionice -c 3 stryker run --incremental"
   },
   "dependencies": {
     "markdownlint": "0.42.0",
@@ -17,6 +18,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/vitest-runner": "10.1.1",
     "vitest": "5.0.5"
   }
 }

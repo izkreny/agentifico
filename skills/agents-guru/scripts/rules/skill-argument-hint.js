@@ -47,6 +47,7 @@ const headingLevel = (t) => {
 // Bold and emphasis wrap a condition's spans and its arrow in tokens of their own, so the paragraph is read flattened.
 function* inline(tokens) {
   for (const t of tokens) {
+    // Stryker disable next-line OptionalChaining: markdownlint gives every token a children array.
     if (t.type !== "codeText" && t.children?.length) yield* inline(t.children);
     else yield t;
   }
@@ -72,6 +73,7 @@ function conditionVerbs(paragraph) {
 }
 
 function readList(list, out) {
+  // Stryker disable next-line BooleanLiteral: a list's first child is its item prefix, which sets lead before anything reads it.
   let lead = false;
   for (const c of list.children) {
     if (c.type === "listItemPrefix") {
@@ -92,6 +94,7 @@ function readList(list, out) {
 function routes(tokens) {
   const out = [];
   let section = 0;
+  // Stryker disable next-line BooleanLiteral: out stays empty until a routing section is found, and an empty out returns null either way.
   let found = false;
   for (const t of tokens) {
     const level = headingLevel(t);

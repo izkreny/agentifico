@@ -17,6 +17,7 @@ export function agentKind(file) {
   return null;
 }
 
+// Stryker disable next-line ArrayDeclaration: every caller passes the lines, and a line that is no delimiter reads as no lines.
 export function defects(fm, inPlugin, lines = []) {
   if (!fm) {
     if (inPlugin) return [];
@@ -56,6 +57,7 @@ export function pluginNameWarnings(fm) {
   const doc = parsed(fm);
   if (doc.errors.length) return [];
   const name = doc.toJS()?.name;
+  // Stryker disable next-line LogicalOperator: a missing or null name stringifies far under the limit, so the early return only saves the work.
   if (name === undefined || name === null) return [];
   const length = String(name).length;
   return length > NAME_LIMIT

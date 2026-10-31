@@ -12,6 +12,7 @@ import { hooksDefects, isPluginRoot, manifestDefects } from "./rules/plugin-file
 const here = path.dirname(fileURLToPath(import.meta.url));
 const valeConfig = path.join(here, "..", ".vale.ini");
 
+// Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
 const targets = (process.argv.length > 2 ? process.argv.slice(2) : ["."]).map((arg) => path.resolve(arg));
 
 const nothingChecked = (why) => {
@@ -97,6 +98,7 @@ const proseShapeFindings = [];
 const generalFindings = [];
 for (const file of files) {
   const rel = path.relative(base, file);
+  // Stryker disable next-line ArrayDeclaration: markdownlint returns an entry for every file it is handed, so the fallback is never read.
   for (const e of results[file] ?? []) {
     const warning = e.ruleNames.some((name) => warningRuleNames.has(name));
     const proseShape = e.ruleNames.some((name) => proseShapeRuleNames.has(name));
@@ -131,6 +133,7 @@ const commentsOf = (source) => {
     }
   };
   for (const token of new YAML.Parser(lines.addNewLine).parse(source)) walk(token);
+  // Stryker disable next-line all: the parser's tokens already arrive in source order, so the sort guards an order nothing produces.
   return found.sort((a, b) => a.line - b.line);
 };
 
@@ -144,6 +147,7 @@ for (const file of yamlFiles) {
   const errors = docs.length ? docs.flatMap((doc) => doc.errors) : YAML.parseDocument(source).errors;
   for (const e of errors) {
     const rule = e.code === "DUPLICATE_KEY" ? "yaml-duplicate-key" : "yaml-parse";
+    // Stryker disable next-line OptionalChaining: yaml leaves an error unplaced only at offset -1, which neither parse call here passes, so linePos is always set.
     yamlFindings.push(`${rel}:${e.linePos?.[0]?.line ?? 1} ${rule} ${e.message.split("\n")[0]}`);
   }
   const sourceLines = source.split("\n");
@@ -207,6 +211,7 @@ const minVale = MIN_VALE.join(".");
 
 // An older Vale loads a rule naming a scope from config/scopes and matches nothing, so a run on one would pass with the comment rules off.
 const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
+// Stryker disable next-line StringLiteral: stdout is null only when Vale did not start, and no fallback text holds a version.
 const valeVersion = /(\d+)\.(\d+)\.\d+/.exec(versionRun.stdout ?? "");
 // An unreadable version is refused like an old one, while a Vale that failed to start is left to the lint run, which names its failure.
 if (!valeVersion && versionRun.status === 0)

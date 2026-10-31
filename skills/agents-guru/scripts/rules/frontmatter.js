@@ -10,6 +10,7 @@ export function frontmatter(params) {
   const body = lines.slice(1);
   // The default frontmatter pattern lets the closing delimiter swallow a blank line after it, so trailing blanks go before the delimiter does.
   while (body.length && body.at(-1).trim() === "") body.pop();
+  // Stryker disable next-line StringLiteral: the lines after the opening delimiter always hold the closing one, so body is never empty here.
   if (/^---\s*$/.test(body.at(-1) ?? "")) body.pop();
   return body;
 }

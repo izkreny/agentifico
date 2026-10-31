@@ -6,10 +6,12 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, it } from "vitest";
+import { looksLikePath, owningSkill, resolves } from "../rules/paths.js";
 import { enclosingSkill } from "../rules/skill-layout.js";
 import { carriesInstallForm } from "../rules/skill-readme.js";
 
 const check = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "check.js");
+const strykerChild = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "stryker-child.js");
 let tmp;
 
 // Every fixture carries a README unless `readme` is null, so a skill-readme finding never lands in a test about another rule.
@@ -21,8 +23,28 @@ function mk(dir, fm, readme = README) {
 }
 const block = (name, text = "Fine.") => `name: ${name}\ndescription: |\n  ${text}`;
 
+// WHY: Stryker's Vitest runner activates a mutant and collects coverage in this process only, and the spawned check reaches most of what it mutates.
+function underStryker(args, env) {
+  const ns = globalThis.__stryker__;
+  if (ns?.activeMutant !== undefined) return { args, env: { ...env, __STRYKER_ACTIVE_MUTANT__: ns.activeMutant } };
+  if (ns?.currentTestId === undefined) return { args, env };
+  const dump = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "stryker-child-")), "coverage.json");
+  const absorb = () => {
+    if (fs.existsSync(dump)) {
+      ns.mutantCoverage ??= { static: {}, perTest: {} };
+      ns.mutantCoverage.perTest[ns.currentTestId] ??= {};
+      const into = ns.mutantCoverage.perTest[ns.currentTestId];
+      for (const [id, hits] of Object.entries(JSON.parse(fs.readFileSync(dump, "utf8")).static)) into[id] = (into[id] ?? 0) + hits;
+    }
+    fs.rmSync(path.dirname(dump), { recursive: true });
+  };
+  return { args: ["--import", strykerChild, ...args], env: { ...env, STRYKER_CHILD_COVERAGE: dump }, absorb };
+}
+
 function run(targets, env = process.env, cwd = undefined) {
-  const r = spawnSync(process.execPath, [check, ...[targets].flat()], { encoding: "utf8", env, cwd });
+  const spawn = underStryker([check, ...[targets].flat()], env);
+  const r = spawnSync(process.execPath, spawn.args, { encoding: "utf8", env: spawn.env, cwd });
+  spawn.absorb?.();
   const linted = /^(\d+) files checked/m.exec(r.stdout);
   return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
 }
@@ -30,6 +52,11 @@ function run(targets, env = process.env, cwd = undefined) {
 beforeAll(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), "agents-guru-check-"));
   mk(path.join(tmp, "good"), block("good"));
+  // A sibling whose name extends good's, so a folder test made on strings rather than path segments would put it inside good.
+  mk(path.join(tmp, "good-too"), block("good-too"));
+  // A built-in rule that carries no detail.
+  mk(path.join(tmp, "detail-less"), block("detail-less"));
+  fs.writeFileSync(path.join(tmp, "detail-less", "notes.md"), "# Notes\n\nbody");
   mk(path.join(tmp, "bad"), "name: bad\ndescription: review PR #N and more");
   fs.mkdirSync(path.join(tmp, "empty"));
   // The real .vale.ini is resolved from the script's own directory, so a stub on PATH is what reaches the refused-configuration branch.
@@ -150,6 +177,11 @@ beforeAll(() => {
       "yaml-separate",
       "# One note.\n# Another note.\n# A paragraph's close, before an empty line.\n#\n# The next paragraph.\nkey: |\n  # a heading inside a block scalar\n  # and its text\n",
     ],
+    ["yaml-mid-stop", "# A first sentence. A second one wrapped\n# at a column.\nkey: value\n"],
+    ["yaml-indented", "key:\n  # A nested comment wrapped at\n  # a column.\n  inner: 1\n"],
+    ["yaml-blank-hash", "# A note before a separator\n#   \n# The next paragraph.\nkey: value\n"],
+    ["yaml-trailing-space", "# A note that ends.  \n# Another note.\nkey: value\n"],
+    ["yaml-trailing-comment", "key: value # a note after the value\n"],
   ]) {
     mk(path.join(tmp, dir), block(dir));
     fs.writeFileSync(path.join(tmp, dir, "rule.yml"), yaml);
@@ -201,6 +233,12 @@ beforeAll(() => {
     "monitors/monitors.json": "[]\n",
     "hooks/hooks.json": stopMatcher,
   });
+  // One file of each kind the summary counts, so a sum that drops a kind prints the wrong total.
+  mkPlugin("counted", JSON.stringify({ name: "counted" }), { "rule.yml": "key: value\n" });
+  // A path naming the default folder itself replaces it with itself, so nothing in it is ignored.
+  mkPlugin("self", JSON.stringify({ name: "self", commands: "./commands/" }), { "commands/x.md": "# X\n\nbody\n" });
+  // The replaced folder holds one file, a level down, so a walk that stops at the top finds none.
+  mkPlugin("deep", JSON.stringify({ name: "deep", commands: "./extra/" }), { "commands/sub/x.md": "# X\n\nbody\n" });
   mkPlugin("listed", JSON.stringify({ name: "listed", commands: ["./commands/", "./extra/"] }), { "commands/x.md": "# X\n\nbody\n" });
   mkPlugin("inside", JSON.stringify({ name: "inside", commands: ["./commands/deploy.md"] }), { "commands/deploy.md": "# Deploy\n\nbody\n" });
   mkPlugin("partial", JSON.stringify({ name: "partial", commands: ["./commands/deploy.md"] }), {
@@ -212,6 +250,11 @@ beforeAll(() => {
   mkPlugin("mapped", JSON.stringify({ name: "mapped", commands: { deploy: { source: "./commands/deploy.md" } } }), {
     "commands/deploy.md": "# Deploy\n\nbody\n",
   });
+  // Two replaced folders holding no file Claude Code could load: one never created, one holding only a dangling link.
+  mkPlugin("folderless", JSON.stringify({ name: "folderless", commands: "./extra/" }));
+  mkPlugin("dangling", JSON.stringify({ name: "dangling", agents: "./other/" }));
+  fs.mkdirSync(path.join(plugins, "dangling", "agents"));
+  fs.symlinkSync(path.join("..", "nowhere.md"), path.join(plugins, "dangling", "agents", "gone"));
   mkPlugin("hollow", JSON.stringify({ name: "hollow", agents: "./elsewhere/" }));
   fs.mkdirSync(path.join(plugins, "hollow", "agents"));
   mkPlugin("broken", "{", { "hooks/hooks.json": '{ "hooks": { "Stop": [ { "matcher": "x", "hooks": [] }, ] } }' });
@@ -274,6 +317,7 @@ describe("check.js", () => {
     assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
     assert.match(r.out, /vale could not run/);
     assert.match(r.out, /cannot parse config/);
+    assert.ok(r.out.endsWith("vale could not run: E100 [core] cannot parse config: bad line\n"), r.out);
   });
   it("a vale older than 3.23 fails the run, and says so", () => {
     for (const version of ["3.21.0", "3.22.0"]) {
@@ -385,7 +429,7 @@ describe("check.js", () => {
   it("without vale the prose heading says so rather than going missing", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "empty") });
     assert.equal(r.code, 1);
-    assert.match(r.out, /^prose rules: not run$/m);
+    assert.match(r.out, /^prose rules: not run\n\d+ files checked, /m);
   });
   it("a single skill is named, as the target itself", () => {
     const r = run(path.join(tmp, "good"));
@@ -413,7 +457,7 @@ describe("check.js", () => {
   it("a duplicate key fails, naming the file and the line", () => {
     const r = run(path.join(tmp, "yaml-duplicate"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key /m);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key Map keys must be unique at line 2, column 1:$/m);
   });
   it("a comment line continuing a sentence is a warning, naming the line that continues it and not failing", () => {
     const r = run(path.join(tmp, "yaml-wrapped"));
@@ -421,6 +465,27 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /m);
     assert.match(r.out, /^yaml files: 0 issues, 1 warnings$/m);
   });
+  it("a sentence ending inside a comment line does not end the line", () => {
+    const r = run(path.join(tmp, "yaml-mid-stop"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /m);
+  });
+  it("an indented comment block is read as whole lines", () => {
+    const r = run(path.join(tmp, "yaml-indented"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:3 yaml-comment-wrap \(warning\) /m);
+  });
+  for (const [dir, why] of [
+    ["yaml-blank-hash", "a # line holding only spaces separates paragraphs"],
+    ["yaml-trailing-space", "spaces after a full stop still end the sentence"],
+    ["yaml-trailing-comment", "a comment after a value is no comment line"],
+  ]) {
+    it(why, () => {
+      const r = run(path.join(tmp, dir));
+      assert.equal(r.code, 0, r.out);
+      assert.match(r.out, /^yaml files: none$/m);
+    });
+  }
   it("separate one-line comments in a row pass, and a block scalar's text is not a comment", () => {
     const r = run(path.join(tmp, "yaml-separate"));
     assert.equal(r.code, 0, r.out);
@@ -442,8 +507,8 @@ describe("check.js", () => {
     assert.match(r.out, /1 files checked, 1 issues, 0 warnings/);
   });
   it("a relative target resolves against the working directory", () => {
-    const r = spawnSync(process.execPath, [check, "good"], { cwd: tmp, encoding: "utf8" });
-    assert.equal(r.status, 0, r.stdout + r.stderr);
+    const r = run("good", process.env, tmp);
+    assert.equal(r.code, 0, r.out);
   });
   it("several folder targets are each checked, every path printed from the folder they share", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "bad")]);
@@ -452,6 +517,19 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}bad\/SKILL\.md:\d+ skill-description/m);
     assert.match(r.out, /^2 skill\(s\) found under /m);
     assert.match(r.out, /^ {2}good$/m);
+  });
+  it("one folder named twice prints from that folder", () => {
+    assert.match(run([path.join(tmp, "good"), path.join(tmp, "good")]).out, /^ {2}\.$/m);
+  });
+  it("two sibling targets, one name extending the other, print from their parent", () => {
+    const r = run([path.join(tmp, "good"), path.join(tmp, "good-too")]);
+    assert.match(r.out, /^ {2}good$/m);
+    assert.match(r.out, /^ {2}good-too$/m);
+  });
+  it("the summary counts markdown, YAML and plugin files, with Vale and without", () => {
+    const target = path.join(tmp, "plugins", "counted");
+    assert.match(run(target).out, /^3 files checked, /m);
+    assert.match(run(target, { ...process.env, PATH: path.join(tmp, "empty") }).out, /^3 files checked, \d+ issues, prose rules not run$/m);
   });
   it("a wrong target among right ones fails the run, naming it", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "empty")]);
@@ -506,6 +584,22 @@ describe("check.js", () => {
     );
     // Both markdown files and both JSON files, so a JSON file read is a file checked.
     assert.equal(r.linted, 4, r.out);
+  });
+  it("a commands map's sources are the paths it loads", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "mapped")).out, /plugin-manifest/);
+  });
+  it("a replaced folder's nested files are what Claude Code ignores", () => {
+    assert.match(run(path.join(tmp, "plugins", "deep")).out, /plugin-manifest \(error\) commands replaces the default commands\//);
+  });
+  it("a commands path naming the default folder loads everything in it", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "self")).out, /plugin-manifest/);
+  });
+  it("a replaced folder that does not exist holds nothing Claude Code ignores", () => {
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "folderless")).out, /plugin-manifest/);
+  });
+  it("a dangling link in a replaced folder is no file", () => {
+    const r = run(path.join(tmp, "plugins", "dangling"));
+    assert.doesNotMatch(r.out, /plugin-manifest|TypeError/);
   });
   it("a plugin under a package target is found", () => {
     assert.match(run(path.join(tmp, "plugins")).out, /^ {2}plug\/hooks\/hooks\.json:\d+ plugin-hooks /m);
@@ -567,6 +661,15 @@ describe("check.js", () => {
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /no reader takes .*notes\.txt: nothing was checked/);
   });
+  it("a finding with no detail prints none", () => {
+    assert.match(run(path.join(tmp, "detail-less")).out, /^ {2}notes\.md:3 MD047\/single-trailing-newline Files should end with a single newline character$/m);
+  });
+  it("a reader's extension inside a longer one is not that reader's", () => {
+    fs.writeFileSync(path.join(tmp, "notes", "data.json"), "{}\n");
+    const r = run(path.join(tmp, "notes", "data.json"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /no reader takes .*data\.json: nothing was checked/);
+  });
   it("a file target's paths resolve against the working directory", () => {
     const file = path.join("skills", "inner", "workflows", "deep", "only-root.md");
     const inside = run(file, process.env, path.join(tmp, "refs"));
@@ -576,9 +679,9 @@ describe("check.js", () => {
     assert.match(outside.out, /only-root\.md:\d+ skill-referenced-paths .*top\.md/);
   });
   it("the default target is the working directory", () => {
-    const r = spawnSync(process.execPath, [check], { cwd: path.join(tmp, "bad"), encoding: "utf8" });
-    assert.equal(r.status, 1);
-    assert.match(r.stdout, /TRUNCATED/);
+    const r = run([], process.env, path.join(tmp, "bad"));
+    assert.equal(r.code, 1);
+    assert.match(r.out, /TRUNCATED/);
   });
 });
 
@@ -666,5 +769,24 @@ describe("skill-referenced-paths", () => {
     const r = run(path.join(tmp, "refs"));
     for (const span of ["GHI-50_login-form", "gh-stack", "\\/usr\\/bin\\/env", "\\.agents\\/skills", "docs\\/\\*", "E:\\/work"])
       assert.doesNotMatch(r.out, new RegExp(`${span}.*does not resolve`));
+  });
+});
+
+describe("paths.js", () => {
+  it("a span with a trailing slash names a folder", () => assert.equal(looksLikePath("assets/"), true));
+  it("only a drive letter at the start makes a span absolute", () => assert.equal(looksLikePath("notes/a:/b.md"), true));
+  it("a span's trailing slashes are dropped before it is resolved", () => {
+    const pkg = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+    assert.equal(resolves("SKILL.md//", path.join(pkg, "SKILL.md"), pkg), true);
+  });
+  it("a span opening with a slash, a dash, a hash or an at sign is no path", () => {
+    for (const span of ["/etc/notes.md", "-x.md", "#x.md", "@x.md"]) assert.equal(looksLikePath(span), false, span);
+  });
+  it("a file in the root's own folder belongs to the root's skill", () => {
+    assert.equal(owningSkill(path.join(tmp, "good", "SKILL.md"), path.join(tmp, "good")), path.join(tmp, "good"));
+  });
+  it("the walk up stops at the filesystem root", () => assert.equal(owningSkill("/no/such/place/x.md", "/"), null));
+  it("a folder whose name extends the root's is outside the root", () => {
+    assert.equal(owningSkill(path.join(tmp, "good-too", "SKILL.md"), path.join(tmp, "good")), null);
   });
 });

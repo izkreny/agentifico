@@ -19,6 +19,7 @@ export default {
     const root = params.config.root ?? process.cwd();
     walk(params.parsers.micromark.tokens, (token) => {
       if (!IS_PROSE_SPAN(token)) return;
+      // Stryker disable next-line StringLiteral: markdownlint gives every token its text, so the fallback is never read.
       const span = String(token.text ?? "");
       if (isHomeRelative(span)) return;
       if (!looksLikePath(span)) return;
