@@ -75,14 +75,14 @@ function declaredName(fm) {
   try {
     value = doc.toJS();
   } catch {
-    // WHY: toJS throws on a merge key with nothing to merge, which the errors list above does not hold.
+    // WHY: toJS throws on a merge key with nothing to merge, which doc.errors does not hold.
     return null;
   }
   const name = value?.name;
   return name === undefined || name === null ? null : String(name);
 }
 
-// WHY: this is the shape defects reads, since a file opening any other way has no frontmatter, and the BOM goes because markdownlint drops one before the judged file reaches this rule.
+// WHY: markdownlint drops a BOM before the judged file reaches this rule, so a sibling has to lose one too.
 function nameOnDisk(file) {
   const lines = fs
     .readFileSync(file, "utf8")
@@ -93,7 +93,7 @@ function nameOnDisk(file) {
   return close < 0 ? null : declaredName(lines.slice(1, close));
 }
 
-// WHY: one entry that cannot be read should cost the comparison that entry alone, so the walk catches per entry, and it leaves dot-named entries out as the check's own walk does.
+// WHY: one entry that cannot be read should cost the comparison that entry alone.
 function agentFilesIn(folder) {
   const files = [];
   const unread = [];
@@ -107,6 +107,7 @@ function agentFilesIn(folder) {
       return;
     }
     for (const entry of entries) {
+      // WHY: the check's own walk leaves a dot-named entry out, and the sub-agents page does not say Claude Code reads one.
       if (entry.name.startsWith(".")) continue;
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) walk(full);
@@ -125,7 +126,7 @@ function agentFilesIn(folder) {
   return { files, unread };
 }
 
-// WHY: a target rarely holds the whole tree, so it is read from disk, and what could not be read is reported since a clean run would otherwise claim a comparison that never happened.
+// WHY: a target rarely holds the whole tree, so it is read from disk.
 function duplicateNames(file, folder, fm) {
   const name = declaredName(fm);
   if (name === null) return [];
@@ -139,6 +140,7 @@ function duplicateNames(file, folder, fm) {
     }
   }
   const relative = (entry) => path.relative(folder, entry) || ".";
+  // WHY: a clean run would otherwise claim a comparison that never happened.
   const details = unread
     .map(([entry, code]) => [relative(entry), code])
     .sort()
