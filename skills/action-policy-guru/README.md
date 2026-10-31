@@ -57,6 +57,6 @@ Do not pipe the run through `head` or a pager: the diff is long, the script dies
 ## Deliberate choices
 
 - The GraphQL integration and the Pundit migration guide are omitted. The first belongs to a separate gem, `action_policy-graphql`, and the second is a one-off procedure rather than something an agent needs loaded while writing code.
-- `references/testing.md` is RSpec-first, because RSpec is what its claims were run on. It points a Minitest codebase at upstream's assertions rather than stating forms nobody here ran.
+- Minitest gets a pointer rather than coverage. `references/testing.md` says why, under *Setup*.
 - `allowed-tools` is omitted from the frontmatter: the skill is reference material applied during ordinary coding, so it needs whatever tools the surrounding task already has.
 - Caching and instrumentation share one reference file. Both answer "authorization is costing too much", and splitting them would put the measurement in a different file from the fix.
