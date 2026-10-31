@@ -1032,6 +1032,18 @@ describe("plugin-hooks", () => {
         );
       });
     }
+    // WHY: the rule reads a matcher's spelling and never runs it, so these stay unreported though none reaches the plugin's own tool, rather than a regex parser growing here.
+    for (const [key, matcher] of [
+      ["db", "mcp__db(__.*)"],
+      ["db", "mcp__db(?:__.*)"],
+      ["db", "(mcp__db)__.*"],
+      ["db", "mcp__db.{1,}"],
+      ["db", "mcp__db.*__.*"],
+      ["db", "mcp__db.*?"],
+      ["my.server", "mcp__my\\.server__.*"],
+    ]) {
+      it(`known limit: ${matcher} with the key ${key}`, () => assert.deepEqual(hooksDefects(matched(matcher), new Set([key])), []));
+    }
     it("an event that does not match tools", () => expectNotOwn(matched("mcp__db__.*", "Notification")));
     it("a set that does not hold the key", () => expectNoHook(matched("mcp__db__.*")));
     const tool = (server, type = "mcp_tool") => hooksFile("Stop", { hooks: [{ type, server, tool: "query" }] });
