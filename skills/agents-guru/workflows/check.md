@@ -138,6 +138,8 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **Some of these rules need more than the file they judge.** `plugin-hooks` takes the plugin's own MCP server names from `<plugin-dir>/.mcp.json` and the manifest's `mcpServers`, and what a bundle or a URL declares goes unread. `plugin-manifest` reads monitors where they load from, inline or in a file, and a finding in a file prints that file's own path and line.
 
+**`plugin-hooks` reads a matcher as written and never runs it, so a clean result does not prove the matcher fires.** A spelling it does not recognise goes unreported rather than failing, and `scripts/test/rules.test.js` names those cases as known limits.
+
 A file that is not valid JSON, and every mistake `claude plugin validate --strict` reports, are left to that command.
 
 ## The prose rules
