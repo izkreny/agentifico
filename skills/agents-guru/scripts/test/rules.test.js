@@ -1026,6 +1026,10 @@ describe("plugin-hooks", () => {
           details.some((d) => d.includes(`own MCP server ${key}`)),
           JSON.stringify(details),
         );
+        assert.ok(
+          details.some((d) => d.endsWith("write mcp__plugin_<plugin-name>_my_server__")),
+          JSON.stringify(details),
+        );
       });
     }
     it("an event that does not match tools", () => expectNotOwn(matched("mcp__db__.*", "Notification")));

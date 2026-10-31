@@ -47,6 +47,8 @@ const EXACT_MATCHER = /^[\w\- ,|]*$/;
 const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/;
 // WHY: each key is tested whole rather than a segment captured, because a key may hold a dot or a space, and a wildcard may follow it only at the end of the part or a longer name would read as the key.
 const namesServer = (part, server) => new RegExp(`^(?:\\^|\\(\\?:|\\()*mcp__${RegExp.escape(server)}(?:__|(?:\\.[*+])?[)$]*$)`).test(part);
+// WHY: a tool name turns any other character in the key into an underscore, so a matcher written for the tool carries that form.
+const toolSpelling = (name) => name.replace(/[^\w-]/g, "_");
 
 export const isPluginRoot = (dir) => fs.statSync(path.join(dir, ".claude-plugin"), { throwIfNoEntry: false })?.isDirectory() ?? false;
 
@@ -84,8 +86,7 @@ export function ownServers(pluginDir) {
     .flat()
     .map((entry) => (typeof entry === "string" ? jsonIn(pluginDir, entry) : entry));
   const names = [jsonIn(pluginDir, ".mcp.json"), ...declared].flatMap((config) => Object.keys(config?.mcpServers ?? config ?? {}));
-  // WHY: a tool name turns any other character in the key into an underscore, so a matcher written for the tool carries that form.
-  return new Set(names.flatMap((name) => [name, name.replace(/[^\w-]/g, "_")]));
+  return new Set(names.flatMap((name) => [name, toolSpelling(name)]));
 }
 
 function matcherRules(matcher, event, own, report) {
@@ -99,7 +100,10 @@ function matcherRules(matcher, event, own, report) {
   for (const part of parts)
     for (const server of own)
       if (namesServer(part, server))
-        report(matcher, `matcher names the plugin's own MCP server ${server} by its bare key, so it never fires: write mcp__plugin_<plugin-name>_${server}__`);
+        report(
+          matcher,
+          `matcher names the plugin's own MCP server ${server} by its bare key, so it never fires: write mcp__plugin_<plugin-name>_${toolSpelling(server)}__`,
+        );
 }
 
 function fieldRules(hook, event, report) {
