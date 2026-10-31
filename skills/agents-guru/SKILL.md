@@ -2,11 +2,11 @@
 name: agents-guru
 description: |
   Write, review, check, maintain and export agent skills, and check agent definitions and a plugin's hooks file and manifest. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file, a package of skills, an agent file, or a plugin's hooks file or manifest. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill or an agent, only for the files that make one. Never invoked by an agent to install, update or remove a skill: the owner types `/agents-guru manage` for that.
-argument-hint: "[new <name> | review <path> | check [<path>...] | export <path> | manage]"
+argument-hint: "[new <name> | review <path> | check [--skip <rule>]... [<path>...] | export <path> | manage]"
 compatibility: |
   Supported on Linux, and on Windows only under WSL; untested on macOS. Requires Node 26.1 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list.
 metadata:
-  version: "8.0.0"
+  version: "8.1.0"
 allowed-tools: Bash(gh:*) Bash(node:*) Read Write Edit Grep Glob
 ---
 
@@ -62,7 +62,7 @@ Based on `$ARGUMENTS`, do exactly one of the following. Test the `manage` bullet
 - If it starts with `manage`, or the request that invoked this skill is about installing, updating or removing a skill someone else wrote → read `references/managing.md`, but only when the owner typed `/agents-guru manage`. Any other way in stops here, an agent's own invocation and a request phrased as a sentence alike, and says that the owner types `/agents-guru manage` for that: that file installs software whose instructions then run with the agent's permissions.
 - If it starts with `new` → read `workflows/new.md` and follow it.
 - If it starts with `review` → read `workflows/review.md` and follow it. It owns how a path covering more than one skill is read.
-- If it starts with `check`, or is empty → read `workflows/check.md` and follow it.
+- If it starts with `check`, or is empty → read `workflows/check.md` and follow it, passing every `--skip <rule>` the argument carries through to the command unchanged.
 - If it starts with `export` → read `workflows/export.md` and follow it.
 - If it matches no verb in this list → say so and name the verbs, rather than guessing which was meant. A mistyped verb and a verb this skill does not have look identical from here, and both are answered by printing the list.
 

@@ -15,7 +15,12 @@ Each argument is a target, a folder or a file, and the current directory is the 
 ```bash
 node <skill-dir>/scripts/check.js path/to/the-skill
 node <skill-dir>/scripts/check.js AGENTS.md .agents/gh-solo.md
+node <skill-dir>/scripts/check.js --skip skill-hard-wrap path/to/the-skill
 ```
+
+**`--skip <rule>` switches a convention rule off for one run, and may be given more than once.** Only `skill-hard-wrap` and `yaml-comment-wrap` take it, the rules the check already reports as warnings because `workflows/export.md` lets a skill decline its author's conventions. A rule that fails the run is one this skill holds every skill to, so no caller can decline it. Any other name refuses the run and prints the names that do take it.
+
+The switch is the caller's, written in the command where whoever reads the run sees it, and nothing under the target can set it. A run that skipped anything names each skipped rule with how many findings it withheld, and its last line adds `N rule(s) skipped`; the exit code is decided by the findings that remain.
 
 **A file target is read as named, even inside a dot-directory**, which is how a file such as `<repo-root>/.agents/gh-solo.md` is reached at all. A file names no tree of its own, so its root is the current directory, where a folder target is its own root: the path rules resolve against it and the layout search stops at it. Run a file target from the folder its paths were written against. Several targets print every path from the folder they share, and a file reached by more than one is read once.
 
@@ -35,7 +40,7 @@ How a review reads a target covering more than one skill is `workflows/review.md
 
 ## What the general lint covers
 
-markdownlint's own rules run at their defaults. A rule that is off is named in `scripts/lint-config.js` with its reason, and none is turned off for quiet. A comment in the target turns none off, since `scripts/check.js` ignores markdownlint's inline configuration.
+markdownlint's own rules run at their defaults. A rule that is off is named in `scripts/lint-config.js` with its reason, and none is turned off there for quiet. A comment in the target turns none off, since `scripts/check.js` ignores markdownlint's inline configuration. The one switch is the caller's `--skip`, per *The check*.
 
 ## The description rules
 
