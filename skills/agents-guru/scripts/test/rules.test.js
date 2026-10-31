@@ -995,6 +995,8 @@ describe("plugin-hooks", () => {
       "(?:mcp__db__.*)",
       "^(?:mcp__db__.*)$",
       "mcp__db.+",
+      "(mcp__db.*)",
+      "^mcp__db.*$",
     ]) {
       it(matcher, () => expectOwn(matched(matcher), "own MCP server db"));
     }
@@ -1009,6 +1011,8 @@ describe("plugin-hooks", () => {
       "mcp__db[12]__.*",
       "mcp__db\\d__.*",
       "mcp__db.x__.*",
+      "mcp__db.+__.*",
+      "mcp__db.*_replica__.*",
     ]) {
       it(matcher, () => expectNotOwn(matched(matcher)));
     }

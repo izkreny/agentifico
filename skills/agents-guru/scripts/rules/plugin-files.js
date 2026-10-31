@@ -45,8 +45,8 @@ const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'([^']*)'/g;
 
 const EXACT_MATCHER = /^[\w\- ,|]*$/;
 const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/;
-// WHY: each key is tested whole rather than a segment captured, because a key may hold a dot or a space, and only a wildcard or the end may follow it or a longer name would read as the key.
-const namesServer = (part, server) => new RegExp(`^(?:\\^|\\(\\?:|\\()*mcp__${RegExp.escape(server)}(?:__|\\.[*+]|[)$]*$)`).test(part);
+// WHY: each key is tested whole rather than a segment captured, because a key may hold a dot or a space, and a wildcard may follow it only at the end of the part or a longer name would read as the key.
+const namesServer = (part, server) => new RegExp(`^(?:\\^|\\(\\?:|\\()*mcp__${RegExp.escape(server)}(?:__|(?:\\.[*+])?[)$]*$)`).test(part);
 
 export const isPluginRoot = (dir) => fs.statSync(path.join(dir, ".claude-plugin"), { throwIfNoEntry: false })?.isDirectory() ?? false;
 
