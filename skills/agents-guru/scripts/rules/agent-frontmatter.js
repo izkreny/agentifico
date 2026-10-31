@@ -75,9 +75,9 @@ function declaredName(fm) {
   return name === undefined || name === null ? null : String(name);
 }
 
-// The shape defects reads, because a file opening any other way has no frontmatter and so declares no name.
+// The shape defects reads, because a file opening any other way has no frontmatter and so declares no name. A BOM is dropped because markdownlint drops one before the judged file reaches this rule.
 function nameOnDisk(file) {
-  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  const lines = fs.readFileSync(file, "utf8").replace(/^﻿/, "").split(/\r?\n/);
   if (lines[0].trimEnd() !== "---") return null;
   const close = lines.findIndex((line, i) => i > 0 && line.trimEnd() === "---");
   return close < 0 ? null : declaredName(lines.slice(1, close));

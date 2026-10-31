@@ -265,6 +265,9 @@ beforeAll(() => {
   const crlf = path.join(tmp, "crlf", ".claude", "agents");
   agent(path.join(crlf, "same.md"), "same");
   fs.writeFileSync(path.join(crlf, "windows.md"), "---\r\nname: same\r\n---\r\n\r\nBody.\r\n");
+  const bom = path.join(tmp, "bom", ".claude", "agents");
+  agent(path.join(bom, "same.md"), "same");
+  fs.writeFileSync(path.join(bom, "marked.md"), "\uFEFF---\nname: same\n---\n\nBody.\n");
 
   // Each plugin carries markdown, since a folder with none is a target the check refuses before it looks for a plugin.
   const plugins = path.join(tmp, "plugins");
@@ -794,6 +797,12 @@ describe("check.js", () => {
       const r = run(path.join(dir, "same.md"));
       assert.match(r.out, /also declared by link\.md:/);
       assert.doesNotMatch(r.out, /could not read|dangling\.md/);
+    });
+    it("a sibling opening with a BOM declares its name", () => {
+      assert.match(run(path.join(tmp, "bom", ".claude", "agents", "same.md")).out, /also declared by marked\.md:/);
+    });
+    it("a judged file opening with a BOM is compared like any other", () => {
+      assert.match(run(path.join(tmp, "bom", ".claude", "agents", "marked.md")).out, /also declared by same\.md:/);
     });
   });
   it("a plugin's hooks file and manifest are read by their fixed paths", () => {
