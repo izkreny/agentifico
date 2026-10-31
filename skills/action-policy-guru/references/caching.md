@@ -8,7 +8,7 @@ Authorization runs many times per request, and a rule that queries turns that in
 
 **Per-instance policy memoization** reuses one policy object across repeated authorizations of the same record in the same controller instance, keyed by `policy_cache_key`, falling back to `cache_key_with_version`, then `cache_key`, then `object_id`, so an Active Record record's key changes when it is `touch`ed; observed on 0.7.7. It assumes the caller is short-lived and the context constant, which is why it is in controllers and not in channels.
 
-**Per-thread policy memoization** carries that across records: a list of comments whose rules each consult the same post builds one `PostPolicy` rather than one per comment. This is the N+1 authorization problem, and it becomes an N+1 query problem the moment a rule touches the database. Tests run without it, per *The per-thread cache in tests* in [testing.md](testing.md).
+**Per-thread policy memoization** carries that across controller instances in one thread, so a second instance asking about the same record reuses the policy. It stops at the controller: a rule composed through `allowed_to?` builds a new policy on every call. A list of five comments whose rules each consult the same post builds five `PostPolicy` objects and runs the rule five times; observed on 0.7.7, where upstream says the layer builds one. That is the N+1 authorization problem, and it becomes an N+1 query problem the moment a rule touches the database, so count it with `action_policy.init` rather than assuming it is handled. Tests run without this layer, per *The per-thread cache in tests* in `references/testing.md`.
 
 **Per-instance rule memoization** applies a rule once per policy instance and returns the remembered result. Through `allowed_to?` and `authorize!`, which resolve an alias before reading the memo, that makes an alias free; `apply` keys the memo by the name it was handed, so `apply(:edit?)` then `apply(:update?)` runs the rule twice; observed on 0.7.7.
 
@@ -32,7 +32,7 @@ The key is `cache_namespace/context_cache_key/record.policy_cache_key/policy_cla
 
 Define `policy_cache_key` on any record whose `cache_key` is expensive, or the cache lookup costs what it saved. A context object needs one too, or a `cache_key`: without either, the first cached rule raises `ArgumentError: object is not cacheable`; observed on 0.7.7.
 
-`cache(user) { ... }` inside a policy caches an arbitrary value under the same scheme, which is the form for a permissions list read by several rules.
+`cache(user) { ... }` inside a policy caches an arbitrary value under the same scheme, which is the form for a permissions list read by several rules. Where no store is set a cached rule skips its cache silently, but this form raises `NoMethodError`; observed on 0.7.7.
 
 ## Invalidation
 
