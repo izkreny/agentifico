@@ -736,6 +736,22 @@ describe("agent-frontmatter", () => {
     ["over-limit", `name: ${"a".repeat(257)}\ndescription: Reviews code.`, "257 characters"],
     ["bypass", "name: r\ndescription: Reviews code.\npermissionMode: bypassPermissions", "bypassPermissions"],
     ["other-mode", "name: r\ndescription: Reviews code.\npermissionMode: plan", null],
+    ["specifier-in-string", "name: r\ndescription: Reviews code.\ndisallowedTools: Write, Bash(git push *)", 'entry "Bash(git push *)" removes the whole tool'],
+    [
+      "specifier-in-list",
+      "name: r\ndescription: Reviews code.\ndisallowedTools:\n  - Write\n  - Bash(git push *)",
+      'entry "Bash(git push *)" removes the whole tool',
+    ],
+    // A comma inside the parentheses separates nothing, so the entry prints whole.
+    ["specifier-with-comma", "name: r\ndescription: Reviews code.\ndisallowedTools: Agent(a, b), Edit", 'entry "Agent(a, b)" removes the whole tool'],
+    ["whole-tools", "name: r\ndescription: Reviews code.\ndisallowedTools: Write, Edit", null],
+    ["whole-tools-list", "name: r\ndescription: Reviews code.\ndisallowedTools: [Write, Edit]", null],
+    ["whole-server", "name: r\ndescription: Reviews code.\ndisallowedTools: mcp__github, mcp__jira__*", null],
+    ["no-entries", "name: r\ndescription: Reviews code.\ndisallowedTools:", null],
+    ["not-entries", "name: r\ndescription: Reviews code.\ndisallowedTools: 1", null],
+    ["not-entry-in-list", "name: r\ndescription: Reviews code.\ndisallowedTools: [1, Write]", null],
+    // The page says this of disallowedTools alone.
+    ["specifier-in-tools", "name: r\ndescription: Reviews code.\ntools: Bash(git status *)", null],
     // Frontmatter that does not parse is the validator's to report, so this rule says nothing rather than a second thing.
     ["unparsed", "description: Reviews code.\nother: [1, 2", null],
   ];
@@ -773,6 +789,13 @@ describe("agent-frontmatter", () => {
 
   // Exercised directly because a plugin is told apart by a folder on disk, which a string fixture has none of.
   const lines = (fm) => fm.split("\n");
+  it("a plugin's agent loses the whole tool to a specifier too", () => {
+    assert.match(agentDefects(lines("description: Reviews code.\ndisallowedTools: Bash(git push *)"), true).join("\n"), /removes the whole tool/);
+  });
+  it("each entry with a specifier is its own finding", () => {
+    const found = agentDefects(lines("name: r\ndisallowedTools: Bash(git push *), Read(./secrets/**)"), false);
+    assert.equal(found.length, 2, JSON.stringify(found));
+  });
   it("a plugin's agent with no name loads under its filename", () => {
     assert.deepEqual(agentDefects(lines("description: Reviews code."), true), []);
   });

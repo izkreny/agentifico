@@ -180,7 +180,7 @@ export function hooksDefects(source, own = new Set()) {
   return found;
 }
 
-const filesIn = (location) => {
+export const filesIn = (location) => {
   const stat = fs.statSync(location, { throwIfNoEntry: false });
   if (!stat) return [];
   if (stat.isFile()) return [location];
