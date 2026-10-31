@@ -77,3 +77,7 @@ No gate shows that Claude Code still behaves as the pages say. The rules rest on
 ## Open questions
 
 None.
+
+## Settled
+
+**Should the own-server rule read every regex spelling of a matcher?** No: it reads the common spellings and leaves the rest as known limits (RF9, RF12, RF13), which `skills/agents-guru/workflows/check.md` and `skills/agents-guru/scripts/test/rules.test.js` name. The owner settled this in the terminal, in the review round on PR #377.
