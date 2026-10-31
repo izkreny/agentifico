@@ -115,6 +115,9 @@ beforeAll(() => {
   const long = Array.from({ length: 41 }, (_, i) => Array.from({ length: 50 }, (_, j) => `word${i}x${j}`).join(" ")).join("\n\n");
   mk(path.join(tmp, "long"), block("long", "A long skill."));
   fs.appendFileSync(path.join(tmp, "long", "SKILL.md"), `\n${long}\n`);
+  // A wrapped paragraph alone, so the run's exit code says whether a hard-wrap warning fails it.
+  mk(path.join(tmp, "wrapped"), block("wrapped"));
+  fs.appendFileSync(path.join(tmp, "wrapped", "SKILL.md"), "\nOne paragraph\nover two lines.\n");
 
   // The grouping is only legible on a target that reaches every heading, so it is watched here rather than on a clean one.
   const classes = path.join(tmp, "classes");
@@ -246,6 +249,13 @@ describe("check.js", () => {
     assert.equal(r.code, 0, r.out);
     assert.match(r.out, /SKILL\.md:1 Agentifico\.SkillSplit \(warning\)/);
     assert.match(r.out, /^prose rules: 0 issues, 1 warnings$/m);
+    assert.match(r.out, /2 files checked, 0 issues, 1 warnings/);
+  });
+  it("a hard-wrapped paragraph is a warning, counted apart and not failing", () => {
+    const r = run(path.join(tmp, "wrapped"));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-hard-wrap \(warning\) .*paragraph spans 2 lines/m);
+    assert.match(r.out, /^prose shape: 0 issues, 1 warnings$/m);
     assert.match(r.out, /2 files checked, 0 issues, 1 warnings/);
   });
   it("without vale the structural findings are still printed, and the run fails", () => {
@@ -405,10 +415,11 @@ describe("check.js", () => {
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key /m);
   });
-  it("a comment line continuing a sentence fails, naming the line that continues it", () => {
+  it("a comment line continuing a sentence is a warning, naming the line that continues it and not failing", () => {
     const r = run(path.join(tmp, "yaml-wrapped"));
-    assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap /m);
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /m);
+    assert.match(r.out, /^yaml files: 0 issues, 1 warnings$/m);
   });
   it("separate one-line comments in a row pass, and a block scalar's text is not a comment", () => {
     const r = run(path.join(tmp, "yaml-separate"));
