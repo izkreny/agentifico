@@ -244,14 +244,14 @@ beforeAll(() => {
   agent(path.join(dupes, "alone.md"), "alone");
   const three = path.join(tmp, "three", ".claude", "agents");
   for (const name of ["a", "b", "c"]) agent(path.join(three, `${name}.md`), "same");
-  // Nested project folders follow an order the page documents, so the same name in each is no duplicate.
+  // WHY: nested project folders follow an order the page documents, so the same name in each is no duplicate.
   agent(path.join(tmp, "nested", ".claude", "agents", "same.md"), "same");
   agent(path.join(tmp, "nested", "sub", ".claude", "agents", "same.md"), "same");
   fs.mkdirSync(path.join(tmp, "plugin-dupes", ".claude-plugin"), { recursive: true });
   fs.writeFileSync(path.join(tmp, "plugin-dupes", ".claude-plugin", "plugin.json"), '{ "name": "plugin-dupes" }\n');
   agent(path.join(tmp, "plugin-dupes", "agents", "same.md"), "same");
   agent(path.join(tmp, "plugin-dupes", "agents", "review", "same.md"), "same");
-  // Each sibling holds the name in a way that declares nothing, so a reader taking the text at its word reports the file beside it.
+  // WHY: each sibling holds the name in a way that declares nothing, so a reader taking the text at its word reports the file beside it.
   const decoys = path.join(tmp, "decoys", ".claude", "agents");
   agent(path.join(decoys, "same.md"), "same");
   agent(path.join(decoys, "notes.txt"), "same");

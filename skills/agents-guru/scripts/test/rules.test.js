@@ -742,7 +742,7 @@ describe("agent-frontmatter", () => {
       "name: r\ndescription: Reviews code.\ndisallowedTools:\n  - Write\n  - Bash(git push *)",
       'entry "Bash(git push *)" removes the whole tool',
     ],
-    // A comma inside the parentheses separates nothing, so the entry prints whole.
+    // WHY: a comma inside the parentheses separates nothing, so the entry prints whole.
     ["specifier-with-comma", "name: r\ndescription: Reviews code.\ndisallowedTools: Agent(a, b), Edit", 'entry "Agent(a, b)" removes the whole tool'],
     ["whole-tools", "name: r\ndescription: Reviews code.\ndisallowedTools: Write, Edit", null],
     ["whole-tools-list", "name: r\ndescription: Reviews code.\ndisallowedTools: [Write, Edit]", null],
@@ -750,7 +750,7 @@ describe("agent-frontmatter", () => {
     ["no-entries", "name: r\ndescription: Reviews code.\ndisallowedTools:", null],
     ["not-entries", "name: r\ndescription: Reviews code.\ndisallowedTools: 1", null],
     ["not-entry-in-list", "name: r\ndescription: Reviews code.\ndisallowedTools: [1, Write]", null],
-    // The page says this of disallowedTools alone.
+    // WHY: the page says this of disallowedTools alone.
     ["specifier-in-tools", "name: r\ndescription: Reviews code.\ntools: Bash(git status *)", null],
     // Frontmatter that does not parse is the validator's to report, so this rule says nothing rather than a second thing.
     ["unparsed", "description: Reviews code.\nother: [1, 2", null],

@@ -19,7 +19,7 @@ function agentFolder(file) {
   return null;
 }
 
-// A specifier can hold a comma, as in Agent(a, b), so entries are matched in the text rather than split on commas.
+// WHY: a specifier can hold a comma, as in Agent(a, b), so entries are matched in the text rather than split on commas.
 const SPECIFIED = /[^\s,()]+\([^)]*\)?/g;
 
 const specifierDefects = (value) =>
@@ -75,7 +75,7 @@ function declaredName(fm) {
   return name === undefined || name === null ? null : String(name);
 }
 
-// The shape defects reads, because a file opening any other way has no frontmatter and so declares no name. A BOM is dropped because markdownlint drops one before the judged file reaches this rule.
+// WHY: this is the shape defects reads, since a file opening any other way has no frontmatter, and the BOM goes because markdownlint drops one before the judged file reaches this rule.
 function nameOnDisk(file) {
   const lines = fs.readFileSync(file, "utf8").replace(/^﻿/, "").split(/\r?\n/);
   if (lines[0].trimEnd() !== "---") return null;
@@ -83,7 +83,7 @@ function nameOnDisk(file) {
   return close < 0 ? null : declaredName(lines.slice(1, close));
 }
 
-// Walked entry by entry, because one entry that cannot be read should cost the comparison that entry alone. A dot-named entry stays out as it does from the check's own walk, and a link to a folder is not followed.
+// WHY: one entry that cannot be read should cost the comparison that entry alone, so the walk catches per entry, and it leaves dot-named entries out as the check's own walk does.
 function agentFilesIn(folder) {
   const files = [];
   const unread = [];
@@ -92,7 +92,7 @@ function agentFilesIn(folder) {
     try {
       entries = fs.readdirSync(dir, { withFileTypes: true });
     } catch (error) {
-      // A folder that is not there holds no names, which is every fixture markdownlint is handed as a string.
+      // WHY: a folder that is not there holds no names, which is every fixture markdownlint is handed as a string.
       if (error.code !== "ENOENT") unread.push([dir, error.code]);
       return;
     }
@@ -114,7 +114,7 @@ function agentFilesIn(folder) {
   return { files, unread };
 }
 
-// The tree is read from disk because a target rarely holds all of it, and what could not be read is reported because a clean run would otherwise claim a comparison that never happened.
+// WHY: a target rarely holds the whole tree, so it is read from disk, and what could not be read is reported since a clean run would otherwise claim a comparison that never happened.
 function duplicateNames(file, folder, fm) {
   const name = declaredName(fm);
   if (name === null) return [];
