@@ -807,6 +807,15 @@ describe("check.js", () => {
       assert.equal(r.code, 0, r.out);
       assert.doesNotMatch(r.out, /could not read/);
     });
+    it("a sibling whose frontmatter the parser throws on declares nothing, and was read", () => {
+      const dir = path.join(tmp, "merge-key", ".claude", "agents");
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.writeFileSync(path.join(dir, "bad.md"), "---\nname: same\n<<: 1\n---\n\nBody.\n");
+      const r = run(path.join(dir, "same.md"));
+      assert.equal(r.code, 0, r.out);
+      assert.doesNotMatch(r.out, /could not read|also declared by/);
+    });
     it("a sibling opening with a BOM declares its name", () => {
       assert.match(run(path.join(tmp, "bom", ".claude", "agents", "same.md")).out, /also declared by marked\.md:/);
     });

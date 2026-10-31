@@ -71,7 +71,14 @@ function declaredName(fm) {
   if (!fm) return null;
   const doc = parsed(fm);
   if (doc.errors.length) return null;
-  const name = doc.toJS()?.name;
+  let value;
+  try {
+    value = doc.toJS();
+  } catch {
+    // WHY: toJS throws on a merge key with nothing to merge, which the errors list above does not hold.
+    return null;
+  }
+  const name = value?.name;
   return name === undefined || name === null ? null : String(name);
 }
 
