@@ -103,6 +103,7 @@ function agentFilesIn(folder) {
       if (entry.name.startsWith(".")) continue;
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) walk(full);
+      else if (!entry.name.endsWith(".md")) continue;
       else if (entry.isFile()) files.push(full);
       else if (entry.isSymbolicLink()) {
         try {
@@ -123,7 +124,7 @@ function duplicateNames(file, folder, fm) {
   if (name === null) return [];
   const { files, unread } = agentFilesIn(folder);
   const others = [];
-  for (const other of files.filter((candidate) => candidate.endsWith(".md") && candidate !== path.resolve(file))) {
+  for (const other of files.filter((candidate) => candidate !== path.resolve(file))) {
     try {
       if (nameOnDisk(other) === name) others.push(other);
     } catch (error) {

@@ -798,6 +798,15 @@ describe("check.js", () => {
       assert.match(r.out, /also declared by link\.md:/);
       assert.doesNotMatch(r.out, /could not read|dangling\.md/);
     });
+    it("a link the rule would never compare fails nothing", () => {
+      const dir = path.join(tmp, "looped-text", ".claude", "agents");
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.symlinkSync("notes.txt", path.join(dir, "notes.txt"));
+      const r = run(path.join(dir, "same.md"));
+      assert.equal(r.code, 0, r.out);
+      assert.doesNotMatch(r.out, /could not read/);
+    });
     it("a sibling opening with a BOM declares its name", () => {
       assert.match(run(path.join(tmp, "bom", ".claude", "agents", "same.md")).out, /also declared by marked\.md:/);
     });
