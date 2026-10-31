@@ -7,7 +7,7 @@ import { lint } from "markdownlint/promise";
 import YAML from "yaml";
 import { config, contractRuleNames, proseShapeRuleNames, rules, skippableRuleNames, warningRuleNames } from "./lint-config.js";
 import { isSkillFile } from "./rules/frontmatter.js";
-import { hooksDefects, isPluginRoot, manifestDefects } from "./rules/plugin-files.js";
+import { hooksDefects, isPluginRoot, manifestDefects, monitorFileDefects, monitorsFile, ownServers } from "./rules/plugin-files.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const valeConfig = path.join(here, "..", ".vale.ini");
@@ -232,10 +232,11 @@ let pluginIssues = 0;
 let pluginWarnings = 0;
 for (const dir of [...pluginDirs].filter(isPluginRoot).sort()) {
   const readers = [
-    ["hooks/hooks.json", "plugin-hooks", hooksDefects],
+    ["hooks/hooks.json", "plugin-hooks", (source) => hooksDefects(source, ownServers(dir))],
     [".claude-plugin/plugin.json", "plugin-manifest", (source) => manifestDefects(source, dir)],
+    [monitorsFile(dir), "plugin-manifest", monitorFileDefects],
   ];
-  for (const [name, rule, defects] of readers) {
+  for (const [name, rule, defects] of readers.filter(([name]) => name)) {
     const file = path.join(dir, name);
     if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) continue;
     pluginFiles.push(file);
