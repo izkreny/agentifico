@@ -234,6 +234,38 @@ beforeAll(() => {
   fs.mkdirSync(path.join(tmp, "project", ".claude", "agents"), { recursive: true });
   fs.writeFileSync(path.join(tmp, "project", ".claude", "agents", "nameless.md"), "---\ndescription: Reviews code.\n---\n\nBody.\n");
 
+  const agent = (file, name) => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, `---\nname: ${name}\ndescription: Reviews code.\n---\n\nBody.\n`);
+  };
+  const dupes = path.join(tmp, "dupes", ".claude", "agents");
+  agent(path.join(dupes, "same.md"), "same");
+  agent(path.join(dupes, "review", "deep.md"), "same");
+  agent(path.join(dupes, "alone.md"), "alone");
+  const three = path.join(tmp, "three", ".claude", "agents");
+  for (const name of ["a", "b", "c"]) agent(path.join(three, `${name}.md`), "same");
+  // Nested project folders follow an order the page documents, so the same name in each is no duplicate.
+  agent(path.join(tmp, "nested", ".claude", "agents", "same.md"), "same");
+  agent(path.join(tmp, "nested", "sub", ".claude", "agents", "same.md"), "same");
+  fs.mkdirSync(path.join(tmp, "plugin-dupes", ".claude-plugin"), { recursive: true });
+  fs.writeFileSync(path.join(tmp, "plugin-dupes", ".claude-plugin", "plugin.json"), '{ "name": "plugin-dupes" }\n');
+  agent(path.join(tmp, "plugin-dupes", "agents", "same.md"), "same");
+  agent(path.join(tmp, "plugin-dupes", "agents", "review", "same.md"), "same");
+  // Each sibling holds the name in a way that declares nothing, so a reader taking the text at its word reports the file beside it.
+  const decoys = path.join(tmp, "decoys", ".claude", "agents");
+  agent(path.join(decoys, "same.md"), "same");
+  agent(path.join(decoys, "notes.txt"), "same");
+  agent(path.join(decoys, ".archive", "same.md"), "same");
+  fs.writeFileSync(path.join(decoys, "late.md"), "\n---\nname: same\n---\n\nBody.\n");
+  fs.writeFileSync(path.join(decoys, "unclosed.md"), "---\nname: same\n");
+  fs.writeFileSync(path.join(decoys, "body.md"), "# Notes\nname: same\n---\n");
+  fs.writeFileSync(path.join(decoys, "unparsed.md"), "---\nname: same\nother: [1, 2\n---\n\nBody.\n");
+  fs.writeFileSync(path.join(decoys, "nameless.md"), "---\ndescription: Reviews code.\n---\n\nBody.\n");
+  fs.mkdirSync(path.join(decoys, "same-folder.md"));
+  const crlf = path.join(tmp, "crlf", ".claude", "agents");
+  agent(path.join(crlf, "same.md"), "same");
+  fs.writeFileSync(path.join(crlf, "windows.md"), "---\r\nname: same\r\n---\r\n\r\nBody.\r\n");
+
   // Each plugin carries markdown, since a folder with none is a target the check refuses before it looks for a plugin.
   const plugins = path.join(tmp, "plugins");
   const put = (file, text) => {
@@ -677,6 +709,68 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "project", ".claude", "agents", "nameless.md"));
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^ {2}nameless\.md:\d+ agent-frontmatter .*no name/m);
+  });
+  describe("two agents declaring one name", () => {
+    const duplicate = /agent-frontmatter .*also declared by/;
+    it("each file of the pair names the other, across a subfolder", () => {
+      const r = run(path.join(tmp, "dupes", ".claude"));
+      assert.equal(r.code, 1, r.out);
+      assert.match(r.out, /^ {2}agents\/same\.md:\d+ agent-frontmatter .*name "same" is also declared by review\/deep\.md/m);
+      assert.match(r.out, /^ {2}agents\/review\/deep\.md:\d+ agent-frontmatter .*name "same" is also declared by same\.md/m);
+      assert.doesNotMatch(r.out, /agents\/alone\.md:\d+ agent-frontmatter/);
+    });
+    it("a file target is compared with the tree it sits in, not only with what the run reads", () => {
+      const r = run(path.join(tmp, "dupes", ".claude", "agents", "same.md"));
+      assert.equal(r.code, 1, r.out);
+      assert.equal(r.linted, 1, r.out);
+      assert.match(r.out, /also declared by review\/deep\.md/);
+    });
+    it("a file with a name of its own is clean beside the pair", () => {
+      assert.doesNotMatch(run(path.join(tmp, "dupes", ".claude", "agents", "alone.md")).out, duplicate);
+    });
+    it("every other file declaring the name is listed, in order", () => {
+      assert.match(run(path.join(tmp, "three", ".claude", "agents", "b.md")).out, /also declared by a\.md, c\.md:/);
+    });
+    it("agents in different trees are not duplicates", () => {
+      const r = run([path.join(tmp, "nested", ".claude"), path.join(tmp, "nested", "sub", ".claude")]);
+      assert.doesNotMatch(r.out, duplicate);
+    });
+    it("a plugin's agents are not duplicates", () => {
+      assert.doesNotMatch(run(path.join(tmp, "plugin-dupes")).out, duplicate);
+    });
+    it("a file that declares no name is no duplicate, and neither is a file no agent loads from", () => {
+      assert.doesNotMatch(run(path.join(tmp, "decoys", ".claude", "agents", "same.md")).out, duplicate);
+    });
+    it("a sibling with CRLF line endings declares its name", () => {
+      assert.match(run(path.join(tmp, "crlf", ".claude", "agents", "same.md")).out, /also declared by windows\.md/);
+    });
+    it("a sibling the rule cannot read declares nothing, and the run still finishes", () => {
+      const dir = path.join(tmp, "locked-file", ".claude", "agents");
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.writeFileSync(path.join(dir, "shut.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.chmodSync(path.join(dir, "shut.md"), 0o000);
+      try {
+        const r = run(path.join(dir, "same.md"));
+        assert.equal(r.linted, 1, r.out);
+        assert.doesNotMatch(r.out, duplicate);
+      } finally {
+        fs.chmodSync(path.join(dir, "shut.md"), 0o644);
+      }
+    });
+    it("a tree the rule cannot list compares nothing, and the run still finishes", () => {
+      const dir = path.join(tmp, "locked-tree", ".claude", "agents");
+      fs.mkdirSync(path.join(dir, "shut"), { recursive: true });
+      fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.chmodSync(path.join(dir, "shut"), 0o000);
+      try {
+        const r = run(path.join(dir, "same.md"));
+        assert.equal(r.linted, 1, r.out);
+        assert.doesNotMatch(r.out, duplicate);
+      } finally {
+        fs.chmodSync(path.join(dir, "shut"), 0o755);
+      }
+    });
   });
   it("a plugin's hooks file and manifest are read by their fixed paths", () => {
     const r = run(path.join(tmp, "plugins", "plug"));

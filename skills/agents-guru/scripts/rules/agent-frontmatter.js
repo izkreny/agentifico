@@ -1,21 +1,33 @@
 // Each limit is the sub-agents page's or the plugin components page's, at https://code.claude.com/docs/en/sub-agents and https://code.claude.com/docs/en/plugins/components.
+import fs from "node:fs";
 import path from "node:path";
 import { FRONTMATTER_LINE, frontmatter, parsed } from "./frontmatter.js";
-import { isPluginRoot } from "./plugin-files.js";
+import { filesIn, isPluginRoot } from "./plugin-files.js";
 
 const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
 const NAME_LIMIT = 256;
 
 // The nearest agents folder decides, because both kinds of agents directory are scanned recursively.
-export function agentKind(file) {
+function agentFolder(file) {
   const parts = path.resolve(file).split(path.sep);
   for (let i = parts.length - 2; i > 0; i--) {
     if (parts[i] !== "agents") continue;
-    if (parts[i - 1] === ".claude") return "standalone";
-    if (isPluginRoot(parts.slice(0, i).join(path.sep) || path.sep)) return "plugin";
+    const folder = parts.slice(0, i + 1).join(path.sep);
+    if (parts[i - 1] === ".claude") return { kind: "standalone", folder };
+    if (isPluginRoot(parts.slice(0, i).join(path.sep) || path.sep)) return { kind: "plugin", folder };
   }
   return null;
 }
+
+// A specifier can hold a comma, as in Agent(a, b), so entries are matched in the text rather than split on commas.
+const SPECIFIED = /[^\s,()]+\([^)]*\)?/g;
+
+const specifierDefects = (value) =>
+  [value]
+    .flat()
+    .filter((entry) => typeof entry === "string")
+    .flatMap((entry) => entry.match(SPECIFIED) ?? [])
+    .map((entry) => `disallowedTools entry ${JSON.stringify(entry)} removes the whole tool, not only what it names: a permissions.deny rule blocks only that`);
 
 // Stryker disable next-line ArrayDeclaration: every caller passes the lines, and a line that is no delimiter reads as no lines.
 export function defects(fm, inPlugin, lines = []) {
@@ -34,11 +46,15 @@ export function defects(fm, inPlugin, lines = []) {
   const value = doc.toJS();
   // Empty frontmatter parses to null, and it sets no name just as a mapping without one does.
   const mapping = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const specifiers = specifierDefects(mapping.disallowedTools);
   if (inPlugin)
-    return PLUGIN_IGNORES.filter((key) => Object.hasOwn(mapping, key)).map(
-      (key) => `${key} is ignored in a plugin's agent: Claude Code loads the agent without it`,
-    );
-  const bad = [];
+    return [
+      ...PLUGIN_IGNORES.filter((key) => Object.hasOwn(mapping, key)).map(
+        (key) => `${key} is ignored in a plugin's agent: Claude Code loads the agent without it`,
+      ),
+      ...specifiers,
+    ];
+  const bad = [...specifiers];
   if (mapping.name === undefined || mapping.name === null) bad.push("no name: Claude Code skips the file as documentation kept beside the agents");
   else {
     const name = String(mapping.name);
@@ -51,15 +67,53 @@ export function defects(fm, inPlugin, lines = []) {
   return bad;
 }
 
+function declaredName(fm) {
+  if (!fm) return null;
+  const doc = parsed(fm);
+  if (doc.errors.length) return null;
+  const name = doc.toJS()?.name;
+  return name === undefined || name === null ? null : String(name);
+}
+
+// The shape defects reads, because a file opening any other way has no frontmatter and so declares no name.
+function nameOnDisk(file) {
+  let lines;
+  try {
+    lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
+  } catch {
+    return null;
+  }
+  if (lines[0].trimEnd() !== "---") return null;
+  const close = lines.findIndex((line, i) => i > 0 && line.trimEnd() === "---");
+  return close < 0 ? null : declaredName(lines.slice(1, close));
+}
+
+// The tree is read from disk because a target rarely holds all of it, and a tree that cannot be listed compares nothing rather than stopping the run.
+function duplicateNames(file, folder, fm) {
+  const name = declaredName(fm);
+  if (name === null) return [];
+  let tree;
+  try {
+    tree = filesIn(folder);
+  } catch {
+    return [];
+  }
+  const others = tree
+    .filter((other) => other.endsWith(".md") && other !== path.resolve(file) && nameOnDisk(other) === name)
+    .map((other) => path.relative(folder, other))
+    .sort();
+  return others.length
+    ? [
+        `name ${JSON.stringify(name)} is also declared by ${others.join(", ")}: Claude Code loads only one of them from this .claude/agents folder, by read order`,
+      ]
+    : [];
+}
+
 // Only the length is warned on, because on Claude Code 2.1.310 a plugin's agent named "-x" or "a:b" loaded under that name, while one past 256 characters loaded under its file name.
 export function pluginNameWarnings(fm) {
-  if (!fm) return [];
-  const doc = parsed(fm);
-  if (doc.errors.length) return [];
-  const name = doc.toJS()?.name;
-  // Stryker disable next-line LogicalOperator: a missing or null name stringifies far under the limit, so the early return only saves the work.
-  if (name === undefined || name === null) return [];
-  const length = String(name).length;
+  const name = declaredName(fm);
+  if (name === null) return [];
+  const length = name.length;
   return length > NAME_LIMIT
     ? [`name is ${length} characters, over the ${NAME_LIMIT} Claude Code allows, so it loads the agent under its file name instead`]
     : [];
@@ -71,19 +125,22 @@ export const agentPluginName = {
   tags: ["agents-guru"],
   parser: "none",
   function(params, onError) {
-    if (agentKind(params.name) !== "plugin") return;
+    if (agentFolder(params.name)?.kind !== "plugin") return;
     for (const detail of pluginNameWarnings(frontmatter(params))) onError({ lineNumber: FRONTMATTER_LINE, detail });
   },
 };
 
 export default {
   names: ["agent-frontmatter"],
-  description: "An agent file's frontmatter is one Claude Code loads, and sets no field it ignores",
+  description: "An agent file's frontmatter is one Claude Code loads, and every field in it does what it says",
   tags: ["agents-guru"],
   parser: "none",
   function(params, onError) {
-    const kind = agentKind(params.name);
-    if (!kind) return;
-    for (const detail of defects(frontmatter(params), kind === "plugin", params.lines)) onError({ lineNumber: FRONTMATTER_LINE, detail });
+    const found = agentFolder(params.name);
+    if (!found) return;
+    const fm = frontmatter(params);
+    const details = defects(fm, found.kind === "plugin", params.lines);
+    if (found.kind === "standalone") details.push(...duplicateNames(params.name, found.folder, fm));
+    for (const detail of details) onError({ lineNumber: FRONTMATTER_LINE, detail });
   },
 };
