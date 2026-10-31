@@ -138,7 +138,7 @@ function duplicateNames(file, folder, fm) {
       unread.push([other, error.code]);
     }
   }
-  const relative = (entry) => path.relative(folder, entry);
+  const relative = (entry) => path.relative(folder, entry) || ".";
   const details = unread
     .map(([entry, code]) => [relative(entry), code])
     .sort()
