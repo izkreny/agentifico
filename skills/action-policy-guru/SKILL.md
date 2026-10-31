@@ -1,7 +1,7 @@
 ---
 name: action-policy-guru
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 description: |
   How to write, review and test Action Policy authorization in a Ruby or Rails codebase: policy classes under app/policies, rules and default-deny, authorize!, allowed_to?, allowance_to, check?, allow! and deny!, pre-checks, rule aliases, authorization context, policy lookup, authorized_scope and scoping, verify_authorized hooks, failure reasons and their details, i18n messages, policy caching, and policy, request and scope specs. Use whenever a task touches a policy class, an authorization rule, a scope that filters records by permission, an ActionPolicy exception, or a spec that proves who may do what. Not for choosing an authorization library, and not for a codebase on Pundit, CanCanCan or model predicate methods, where this API does not exist; where a project documents its own authorization model, that document stays the authority on which answer is correct and this skill only covers how to express it.
 ---
@@ -22,7 +22,7 @@ grep -n "^url: .*/<page>$" <skill-dir>/assets/llms-full.txt
 
 The prose is derived rather than copied: read it as a claim with a citation, not as upstream's own words.
 
-A claim without a citation is this skill's own judgement rather than upstream's, and a claim that disagrees with the cited page is a defect in this skill. Code examples are restyled from upstream's, so an example never carries upstream's exact text either.
+A claim without a citation is this skill's own judgement rather than upstream's. A claim that disagrees with the cited page is a defect in this skill unless it names the gem version it was observed on, and an observed claim outranks the page. Code examples are restyled from upstream's, so an example never carries upstream's exact text either.
 
 The snapshot is a pinned copy, and `scripts/check-upstream.sh` is what says whether it still matches the live docs.
 
@@ -73,7 +73,7 @@ upstream: custom_policy.md, aliases.md
 
 ## Applying a policy
 
-upstream: behaviour.md, writing_policies.md
+upstream: behaviour.md, writing_policies.md, quick_start.md, reasons.md
 
 - `authorize! post, to: :update?` raises `ActionPolicy::Unauthorized` on failure. The exception carries `policy`, `rule` and `result`, and `result` is where the reasons live.
 - `allowed_to?(:edit?, post)` returns true or false, and is what a view asks before rendering a link.

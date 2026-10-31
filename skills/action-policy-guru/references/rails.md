@@ -64,11 +64,11 @@ This is the form to reach for in `index` and `create`, where there is no single 
 rescue_from ActionPolicy::Unauthorized, with: :deny_access
 ```
 
-The exception carries what `SKILL.md` lists under *Applying a policy*. Rendering one status for every failure is the right start; branching on `result.all_details` is how a policy asks for a `404` instead of a `403` without the controller knowing why. See [reasons.md](reasons.md).
+The exception carries what `SKILL.md` lists under *Applying a policy*. Rendering one status for every failure is the right start; branching on `result.all_details` is how a policy asks for a `404` instead of a `403` without the controller knowing why. See `references/reasons.md`.
 
 ## Channels
 
-Action Cable channels get the same `authorize!`, with `current_user` from the connection identifier, under `config.action_policy.auto_inject_into_channel` and `config.action_policy.channel_authorize_current_user`.
+Action Cable channels get `authorize!`, with `current_user` from the connection identifier, under `config.action_policy.auto_inject_into_channel` and `config.action_policy.channel_authorize_current_user`. On a channel `to:` is required and there is no implicit target, so *Resource-less `authorize!`* does not apply; observed on 0.7.7.
 
 ```ruby
 class ChatChannel < ApplicationCable::Channel
@@ -80,4 +80,4 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-Channels get no policy memoization, per *The layers that are already on* in [caching.md](caching.md), so a rule applied per message is applied for real every time, and a rule that queries is a query per message.
+Channels get no policy memoization, per *The layers that are already on* in `references/caching.md`, so a rule applied per message is applied for real every time, and a rule that queries is a query per message.

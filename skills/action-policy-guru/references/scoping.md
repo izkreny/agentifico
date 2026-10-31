@@ -50,7 +50,9 @@ end
 @user = User.create!(authorized(params.require(:user)))
 ```
 
-**A call through `authorized` does not count for `verify_authorized_scoped`**, so an action whose only scoping is `authorized` still raises `ActionPolicy::UnscopedAction`; use `authorized_scope` there. Without an explicit target it also needs the implicit one, a controller named after the resource, or it raises `ActionPolicy::NotFound`. Both observed on 0.7.7.
+**A call through `authorized` does not count for `verify_authorized_scoped`**, so an action whose only scoping is `authorized` still raises `ActionPolicy::UnscopedAction`; use `authorized_scope` there. Observed on 0.7.7.
+
+**A target with no policy of its own, such as `params`, takes its policy from the implicit target**, a controller named after the resource, through `authorized_scope` and `authorized` alike. So `authorized_scope(params.require(:user))` in an `AccountsController` applies `AccountPolicy`. With no implicit target either it raises `ActionPolicy::NotFound`. `with:` names the policy outright and needs neither. Observed on 0.7.7.
 
 A scope can be applied inside a policy with the same `authorized_scope`, which is how one policy's scope composes another's:
 
@@ -113,4 +115,4 @@ This is where an attribute a role must not set belongs, rather than in a control
 
 ## The guard
 
-`verify_authorized_scoped` is what stops an action returning without scoping. It is a controller concern, and [rails.md](rails.md) owns it.
+`verify_authorized_scoped` is what stops an action returning without scoping. It is a controller concern, and `references/rails.md` owns it.

@@ -17,7 +17,9 @@ require "action_policy/rspec"
 require "action_policy/rspec/dsl"
 ```
 
-The first adds the `be_authorized_to`, `have_authorized_scope` and `be_an_alias_of` matchers. The second adds the policy DSL, which is included only for examples tagged `type: :policy` or living in `spec/policies`; elsewhere it takes `include ActionPolicy::RSpec::PolicyExampleGroup`.
+The first adds the `be_authorized_to`, `have_authorized_scope` and `be_an_alias_of` matchers. The second adds the policy DSL, which is included only for examples tagged `type: :policy` or living in `<repo-root>/spec/policies`; elsewhere it takes `include ActionPolicy::RSpec::PolicyExampleGroup`.
+
+This file gives the RSpec forms, because RSpec is what its claims were run on. A Minitest codebase takes `require "action_policy/test_helper"`, since the gem does not load it, then includes `ActionPolicy::TestHelper` and proves that an action authorizes with `assert_authorized_to` and that it scopes with `assert_have_authorized_scope`. Both are in upstream's testing page, found as *Reading this skill against the source* in `SKILL.md` shows.
 
 `rubocop-rspec` does not recognise the DSL's aliases on its own. Add to `<repo-root>/.rubocop.yml`:
 
