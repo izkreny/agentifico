@@ -77,7 +77,10 @@ function declaredName(fm) {
 
 // WHY: this is the shape defects reads, since a file opening any other way has no frontmatter, and the BOM goes because markdownlint drops one before the judged file reaches this rule.
 function nameOnDisk(file) {
-  const lines = fs.readFileSync(file, "utf8").replace(/^﻿/, "").split(/\r?\n/);
+  const lines = fs
+    .readFileSync(file, "utf8")
+    .replace(/^\uFEFF/, "")
+    .split(/\r?\n/);
   if (lines[0].trimEnd() !== "---") return null;
   const close = lines.findIndex((line, i) => i > 0 && line.trimEnd() === "---");
   return close < 0 ? null : declaredName(lines.slice(1, close));
