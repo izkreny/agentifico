@@ -8,7 +8,7 @@ It does not apply to a codebase on Pundit, CanCanCan or model predicate methods,
 
 ## Why it exists
 
-Action Policy denies by default, and a rule name that does not resolve is denied by the same path as a rule that considered the request and refused. So a typo in a rule name, an `authorize!` that was never added, or an `index` that forgot to scope all look correct from the outside and pass every spec that only asserts a refusal. The traps this skill names are the ones that fail silently in the direction that looks safe.
+Action Policy denies by default, and a rule name that does not resolve is denied by the same path as a rule that considered the request and refused. So a typo in a rule name looks like a considered refusal and passes every spec that only asserts one. An `authorize!` that was never added, or an `index` that forgot to scope, fails the other way: it lets the request through, and it passes every policy spec because nothing calls the policy. The traps this skill names are the ones that look correct from the outside.
 
 ## Install
 
@@ -57,5 +57,6 @@ Do not pipe the run through `head` or a pager: the diff is long, the script dies
 ## Deliberate choices
 
 - The GraphQL integration and the Pundit migration guide are omitted. The first belongs to a separate gem, `action_policy-graphql`, and the second is a one-off procedure rather than something an agent needs loaded while writing code.
+- `references/testing.md` is RSpec-first, because RSpec is what its claims were run on. It points a Minitest codebase at upstream's assertions rather than stating forms nobody here ran.
 - `allowed-tools` is omitted from the frontmatter: the skill is reference material applied during ordinary coding, so it needs whatever tools the surrounding task already has.
 - Caching and instrumentation share one reference file. Both answer "authorization is costing too much", and splitting them would put the measurement in a different file from the fix.
