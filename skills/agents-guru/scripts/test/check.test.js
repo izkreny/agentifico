@@ -744,32 +744,56 @@ describe("check.js", () => {
     it("a sibling with CRLF line endings declares its name", () => {
       assert.match(run(path.join(tmp, "crlf", ".claude", "agents", "same.md")).out, /also declared by windows\.md/);
     });
-    it("a sibling the rule cannot read declares nothing, and the run still finishes", () => {
+    it("a sibling the rule cannot read fails the run, naming it, and the rest are still compared", () => {
       const dir = path.join(tmp, "locked-file", ".claude", "agents");
       fs.mkdirSync(dir, { recursive: true });
-      fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
-      fs.writeFileSync(path.join(dir, "shut.md"), "---\nname: same\n---\n\nBody.\n");
+      for (const name of ["same", "other", "shut"]) fs.writeFileSync(path.join(dir, `${name}.md`), "---\nname: same\n---\n\nBody.\n");
       fs.chmodSync(path.join(dir, "shut.md"), 0o000);
       try {
         const r = run(path.join(dir, "same.md"));
+        assert.equal(r.code, 1, r.out);
         assert.equal(r.linted, 1, r.out);
-        assert.doesNotMatch(r.out, duplicate);
+        assert.match(r.out, /also declared by other\.md:/);
+        assert.match(r.out, /could not read shut\.md \(EACCES\)/);
       } finally {
         fs.chmodSync(path.join(dir, "shut.md"), 0o644);
       }
     });
-    it("a tree the rule cannot list compares nothing, and the run still finishes", () => {
+    it("a folder the rule cannot list fails the run, naming it, and the rest are still compared", () => {
       const dir = path.join(tmp, "locked-tree", ".claude", "agents");
       fs.mkdirSync(path.join(dir, "shut"), { recursive: true });
-      fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
+      for (const name of ["same", "other"]) fs.writeFileSync(path.join(dir, `${name}.md`), "---\nname: same\n---\n\nBody.\n");
       fs.chmodSync(path.join(dir, "shut"), 0o000);
       try {
         const r = run(path.join(dir, "same.md"));
+        assert.equal(r.code, 1, r.out);
         assert.equal(r.linted, 1, r.out);
-        assert.doesNotMatch(r.out, duplicate);
+        assert.match(r.out, /also declared by other\.md:/);
+        assert.match(r.out, /could not read shut \(EACCES\)/);
       } finally {
         fs.chmodSync(path.join(dir, "shut"), 0o755);
       }
+    });
+    it("a link that loops fails the run, naming it, and the rest are still compared", () => {
+      const dir = path.join(tmp, "looped", ".claude", "agents");
+      fs.mkdirSync(dir, { recursive: true });
+      for (const name of ["same", "other"]) fs.writeFileSync(path.join(dir, `${name}.md`), "---\nname: same\n---\n\nBody.\n");
+      fs.symlinkSync("loop.md", path.join(dir, "loop.md"));
+      const r = run(path.join(dir, "same.md"));
+      assert.equal(r.code, 1, r.out);
+      assert.match(r.out, /also declared by other\.md:/);
+      assert.match(r.out, /could not read loop\.md \(ELOOP\)/);
+    });
+    it("a link to a file declares what the file declares, and a dangling one declares nothing", () => {
+      const dir = path.join(tmp, "linked", ".claude", "agents");
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.writeFileSync(path.join(tmp, "linked", "elsewhere.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.symlinkSync(path.join(tmp, "linked", "elsewhere.md"), path.join(dir, "link.md"));
+      fs.symlinkSync("gone.md", path.join(dir, "dangling.md"));
+      const r = run(path.join(dir, "same.md"));
+      assert.match(r.out, /also declared by link\.md:/);
+      assert.doesNotMatch(r.out, /could not read|dangling\.md/);
     });
   });
   it("a plugin's hooks file and manifest are read by their fixed paths", () => {

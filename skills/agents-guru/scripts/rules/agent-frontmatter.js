@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { FRONTMATTER_LINE, frontmatter, parsed } from "./frontmatter.js";
-import { filesIn, isPluginRoot } from "./plugin-files.js";
+import { isPluginRoot } from "./plugin-files.js";
 
 const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
 const NAME_LIMIT = 256;
@@ -77,36 +77,66 @@ function declaredName(fm) {
 
 // The shape defects reads, because a file opening any other way has no frontmatter and so declares no name.
 function nameOnDisk(file) {
-  let lines;
-  try {
-    lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
-  } catch {
-    return null;
-  }
+  const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
   if (lines[0].trimEnd() !== "---") return null;
   const close = lines.findIndex((line, i) => i > 0 && line.trimEnd() === "---");
   return close < 0 ? null : declaredName(lines.slice(1, close));
 }
 
-// The tree is read from disk because a target rarely holds all of it, and a tree that cannot be listed compares nothing rather than stopping the run.
+// Walked entry by entry, because one entry that cannot be read should cost the comparison that entry alone. A dot-named entry stays out as it does from the check's own walk, and a link to a folder is not followed.
+function agentFilesIn(folder) {
+  const files = [];
+  const unread = [];
+  const walk = (dir) => {
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (error) {
+      // A folder that is not there holds no names, which is every fixture markdownlint is handed as a string.
+      if (error.code !== "ENOENT") unread.push([dir, error.code]);
+      return;
+    }
+    for (const entry of entries) {
+      if (entry.name.startsWith(".")) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.isFile()) files.push(full);
+      else if (entry.isSymbolicLink()) {
+        try {
+          if (fs.statSync(full, { throwIfNoEntry: false })?.isFile()) files.push(full);
+        } catch (error) {
+          unread.push([full, error.code]);
+        }
+      }
+    }
+  };
+  walk(folder);
+  return { files, unread };
+}
+
+// The tree is read from disk because a target rarely holds all of it, and what could not be read is reported because a clean run would otherwise claim a comparison that never happened.
 function duplicateNames(file, folder, fm) {
   const name = declaredName(fm);
   if (name === null) return [];
-  let tree;
-  try {
-    tree = filesIn(folder);
-  } catch {
-    return [];
+  const { files, unread } = agentFilesIn(folder);
+  const others = [];
+  for (const other of files.filter((candidate) => candidate.endsWith(".md") && candidate !== path.resolve(file))) {
+    try {
+      if (nameOnDisk(other) === name) others.push(other);
+    } catch (error) {
+      unread.push([other, error.code]);
+    }
   }
-  const others = tree
-    .filter((other) => other.endsWith(".md") && other !== path.resolve(file) && nameOnDisk(other) === name)
-    .map((other) => path.relative(folder, other))
-    .sort();
-  return others.length
-    ? [
-        `name ${JSON.stringify(name)} is also declared by ${others.join(", ")}: Claude Code loads only one of them from this .claude/agents folder, by read order`,
-      ]
-    : [];
+  const relative = (entry) => path.relative(folder, entry);
+  const details = unread
+    .map(([entry, code]) => [relative(entry), code])
+    .sort()
+    .map(([entry, code]) => `could not read ${entry} (${code}), so the name ${JSON.stringify(name)} was not compared with it`);
+  if (others.length)
+    details.unshift(
+      `name ${JSON.stringify(name)} is also declared by ${others.map(relative).sort().join(", ")}: Claude Code loads only one of them from this .claude/agents folder, by read order`,
+    );
+  return details;
 }
 
 // Only the length is warned on, because on Claude Code 2.1.310 a plugin's agent named "-x" or "a:b" loaded under that name, while one past 256 characters loaded under its file name.
