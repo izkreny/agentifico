@@ -1367,6 +1367,26 @@ describe("skill-package-runners", () => {
     ["flag-value-slash", "npx --prefix tools/x eslint ."],
     ["hash-in-quotes", 'git commit -m "fix #12" && npx eslint .'],
     ["hash-in-single-quotes", "echo 'a # b'; npx eslint ."],
+    ["flag-before", "time -v npx eslint ."],
+    ["env-flag-before", "env -v npx eslint ."],
+    ["strace-flag-before", "strace -v npx eslint ."],
+    ["double-quoted", 'bash -c "npx eslint ."'],
+    ["single-quoted", "sh -c 'npx eslint .'"],
+    ["yaml-quoted", '- run: "npx eslint ."'],
+    ["registry-name-with-extension", "npx chart.js"],
+    ["hosted-with-extension", "npx tools/run.js"],
+    ["uvx-with-extension", "uvx tools/run.py"],
+    ["flag-value-path", "npx --prefix ./tools eslint ."],
+    ["argument-named-go", "uvx ruff check go"],
+    ["arguments-named-runners", "npx prettier --check go deno"],
+    ["pipx-argument-named-go", "pipx run black go"],
+    // WHY: the rule warns when it cannot tell, so each of these warns although it runs no package.
+    ["cannot-tell-which", "which npx uvx"],
+    ["cannot-tell-list", "npx bunx uvx"],
+    ["cannot-tell-prose-span", "npx or bunx"],
+    ["cannot-tell-echo", "echo npx eslint"],
+    ["cannot-tell-grep", "grep npx package.json"],
+    ["cannot-tell-commit", 'git commit -m "use npx eslint here"'],
   ];
   // Every example on the using-scripts page, so a finding here reports the page's own advice.
   const pinned = [
@@ -1401,6 +1421,8 @@ describe("skill-package-runners", () => {
     "deno run ./script.ts",
     "deno run --allow-read script.ts",
     "npx ./bin/tool",
+    "npx ./bin/tool input.txt",
+    "npx --prefix ./tools ./bin/tool",
     "npx /opt/tool",
     "npx <tool>",
     "npx $TOOL",
@@ -1413,16 +1435,10 @@ describe("skill-package-runners", () => {
     "deno test",
     "mynpx eslint",
     "npx-like eslint",
-    "which npx uvx",
     "type npx",
     "command -v npx",
-    "npx bunx uvx",
-    "npx uvx",
-    "uvx npx",
-    "npx or bunx",
-    "echo npx eslint",
     "pipx run extract.py",
-    "uvx tools/run.py",
+    "pipx run scripts/extract.py input.txt",
     "ls # npx eslint",
   ];
   const skillWith = (body) => skill("name: x\ndescription: |\n  x", body);
@@ -1446,6 +1462,17 @@ describe("skill-package-runners", () => {
     const found = await findings("fx/name/SKILL.md", skillWith("`npx a@1; npx b --flag`"), packageRunners);
     assert.equal(found.length, 1);
     expectDetail(found, "skill-package-runners", "npx b --flag names no version");
+  });
+  it("a quote is not part of the command it names", async () => {
+    expectDetail(
+      await findings("fx/quote/SKILL.md", skillWith('`bash -c "npx eslint ."`'), packageRunners),
+      "skill-package-runners",
+      "npx eslint . names no version",
+    );
+  });
+  it("a backtick substitution in a fence opens a command", async () => {
+    const found = await findings("fx/backtick/SKILL.md", skillWith("```bash\nx=`npx eslint .`\n```"), packageRunners);
+    expectDetail(found, "skill-package-runners", "npx eslint . names no version");
   });
   it("an agent never runs a comment", async () => {
     expectClean(await findings("fx/comment/SKILL.md", skillWith("```bash\n  # npx eslint .\n```"), packageRunners), "skill-package-runners");

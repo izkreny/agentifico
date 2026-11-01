@@ -3,14 +3,14 @@ import path from "node:path";
 import { isSkillFile } from "./frontmatter.js";
 import { owningSkill } from "./paths.js";
 
-// WHY: a command that only asks about a runner runs nothing, while any other word before one, such as a prompt or a wrapper, leaves it running.
-const RUNNER = /(?:^|[\s;&|(])(?<!(?:^|[\s;&|(])(?:which|type|echo|printf|hash|-v)\s+)((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s|$)([^;&|)]*))/g;
-// WHY: words naming another runner are a list of tools rather than a package to run.
-const ANOTHER_RUNNER = /(?:^|\s)(?:npx|bunx|uvx|pipx|deno|go)(?:\s|$)/;
+// WHY: this rule warns when it cannot tell, so whatever stands before a runner leaves it counted, since a wrapper, a prompt or a quoted command leaves it running.
+const RUNNER = /(?:^|[\s;&|(`'"])((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s|$)([^;&|)`]*))/g;
 // WHY: a leading @ opens a scoped name and `npm:@` opens a scoped specifier, and neither is a version.
 const VERSION = /[^\s'":/]@[^\s/]|[=~<>!]=/;
-// WHY: a script's own extension marks a file these runners run locally, while every other word may be a registry name or a hosted spec.
-const ANY_PACKAGE = /^['"]?[\w@].*(?<!\.(?:py|js|mjs|cjs|ts|sh)['"]?)$/;
+// WHY: only a path or a placeholder marks a local file, since npm reads `chart.js` as a registry name and `tools/run.js` as a hosted spec.
+const LOCAL = /^['"]?(?:\.{1,2}(?:\/|['"]?$)|\/|~\/|\$|<)/;
+// WHY: pipx runs a word ending in .py as a script, as the using-scripts page shows.
+const PIPX_SCRIPT = /\.py['"]?$/;
 // WHY: go run and deno run also take a local file, and only these shapes fetch a package.
 const PACKAGE = { go: /^[\w-]+(?:\.[\w-]+)+\//, deno: /^(?:npm|jsr):/ };
 // WHY: a quoted string is matched first, so a # inside one is not taken for a comment.
@@ -18,16 +18,20 @@ const QUOTED_OR_COMMENT = /'[^']*'|"(?:[^"\\]|\\.)*"|(?:^|\s)#.*$/g;
 
 const withoutComment = (text) => text.replace(QUOTED_OR_COMMENT, (match) => (/^\s*#/.test(match) ? "" : match));
 
+function fetchesPackage(runner, args) {
+  const tokens = args.split(/\s+/).filter(Boolean);
+  const words = tokens.filter((word) => !word.startsWith("-"));
+  const shape = PACKAGE[runner];
+  if (shape) return words.some((word) => shape.test(word));
+  const local = (word) => LOCAL.test(word) || (runner === "pipx" && PIPX_SCRIPT.test(word));
+  // WHY: a flag's separate value can sit before the package, so behind a flag any word may be the package.
+  return tokens[0]?.startsWith("-") ? words.some((word) => !local(word)) : words.length > 0 && !local(words[0]);
+}
+
 function unpinned(text) {
   return [...text.matchAll(RUNNER)]
-    .filter(([, , runner, args]) => {
-      const words = args.split(/\s+/).filter((word) => word && !word.startsWith("-"));
-      const shape = PACKAGE[runner.split(/\s+/)[0]];
-      // WHY: a flag's separate value can sit before the package, and go run and deno run give the package a shape to find it by.
-      const fetches = shape ? words.some((word) => shape.test(word)) : ANY_PACKAGE.test(words[0] ?? "");
-      return fetches && !VERSION.test(args) && !ANOTHER_RUNNER.test(args);
-    })
-    .map(([, command]) => command.trim());
+    .filter(([, , runner, args]) => fetchesPackage(runner.split(/\s+/)[0], args) && !VERSION.test(args))
+    .map(([, command]) => command.trim().replace(/^([^'"]*)['"]$/, "$1"));
 }
 
 function walk(tokens, fn) {
