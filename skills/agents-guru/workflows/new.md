@@ -19,8 +19,8 @@ A skill is worth writing when one of these happened: a multi-step workflow prove
 
 | Field | Purpose |
 | --- | --- |
-| `name` | Must match the directory name exactly |
-| `description` | The trigger surface. **Write it as a `\|` block scalar** (the trap family is in `SKILL.md`). Name the phrases the user actually says, not a summary of the topic |
+| `name` | Must match the directory name exactly. Keep it specific, since a vague name such as `helper`, `utils` or `tools` tells nobody what the skill does |
+| `description` | The trigger surface. **Write it as a `\|` block scalar** (the trap family is in `SKILL.md`). Name the phrases the user actually says, not a summary of the topic. Write it in the [third person](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices), because it is injected into the system prompt and an inconsistent point of view can cause discovery problems |
 | `argument-hint` | Shown in the slash-command UI, e.g. `"[view \| add \| submit]"`. Only advertise verbs that route somewhere |
 | `allowed-tools` | Narrow it. `Bash(gh:*)` rather than bare `Bash` |
 | `disable-model-invocation` | `true` means explicit invocation only, never auto-discovered, and it blocks the model's call through the Skill tool, a spawned subagent's included (Claude Code 2.1.252). Use it for side effects the owner should trigger themselves, and for reference material that would otherwise fire on unrelated work. A skill an agent loads through the Skill tool takes `user-invocable: false` instead, whatever its side effects, because this field would block that very call |
@@ -55,6 +55,8 @@ Whatever every workflow depends on belongs there, because a fact copied into thr
 ### Material a workflow does not need on every run goes to a reference file
 
 A workflow is loaded whole on every run that reaches it, so setup read once per repository, or a playbook for a rare failure, is context spent on every run that needs none of it. Move it to `references/<topic>.md` and leave the workflow one line saying when to read it. This holds whatever the size of the `SKILL.md`: *Let size decide whether to split* is about how much one file carries, and this is about what a run reads.
+
+A long reference file opens with its contents, so an agent previewing it with a partial read still sees everything it covers.
 
 ### State in `SKILL.md` that paths are relative to the skill's own directory
 
@@ -111,6 +113,10 @@ A document about a script, a rule or a configuration file names that file and sa
 ### Code blocks are Bash
 
 An agent executes a skill's commands through its shell tool, which is Bash; fish or zsh syntax in a skill fails at execution time, on the machine of whoever installed it.
+
+### A bundled script takes its input from flags, environment variables or stdin, and never prompts
+
+An agent runs a script in a non-interactive shell, so a script that waits for an answer hangs indefinitely; the [using scripts page](https://agentskills.io/skill-creation/using-scripts) calls this a hard requirement.
 
 ### A payload that breaks a line, or carries a backtick or a `#`, travels in a file
 
