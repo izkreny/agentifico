@@ -8,7 +8,7 @@ Usage, from the project's root:
 Writes Glossary/Terms.yml from the `_Avoid_:` and `_Except_:` lines under
 `## Language`, under the StylesPath in the project's Vale config, or under
 .vale/styles where the config names none. A project with no Vale config gets a
-.vale.ini that turns the rule on; one that has a config is told the lines to add.
+.vale.ini that turns the rule on; one that has a config is told the lines to set.
 
 Exit 0: the rule was written. A glossary naming no drift word gets a rule that
 swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
@@ -32,11 +32,10 @@ GLOSSARY_PATHS = (Path("docs/GLOSSARY.md"), Path("GLOSSARY.md"))
 CONFIG_NAMES = (".vale.ini", "vale.ini", "_vale.ini", ".vale", "_vale")
 DEFAULT_STYLES = ".vale/styles"
 ABOVE_SECTIONS = "glossary-rule: above every section"
-SAMPLE_DOCUMENT = "doc.md"
 # WHY: the name carries `.template` so that a Vale run started in this skill's directory never takes it for a config.
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "vale.ini.template"
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
-PLAIN_WORDS = re.compile(r"(?!')(?:[^\W_]|[ '-])+")
+PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ -]|(?<=[^\W_])'(?=[^\W_]))+")
 LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
 # WHY: Vale 3.25.1 honours an exception only when it holds a space, so `Pre-Order` in `exceptions` silences nothing.
 NO_SPACE = "holds no space, and Vale skips only a phrase that holds one"
@@ -80,12 +79,17 @@ def read_config(path):
     return styles_path, [(heading, dict(parser[heading])) for heading in parser.sections() if heading != ABOVE_SECTIONS]
 
 
+def expand(heading):
+    """Return the plain globs a Vale section heading stands for."""
+    braces = re.fullmatch(r"(.*)\{([^{}]*)\}(.*)", heading)
+    if not braces:
+        return [heading]
+    return [glob for option in braces[2].split(",") for glob in expand(f"{braces[1]}{option}{braces[3]}")]
+
+
 def covers(heading, path):
     """Say whether a Vale section heading covers a path."""
-    braces = re.fullmatch(r"(.*)\{([^{}]*)\}(.*)", heading)
-    if braces:
-        return any(covers(f"{braces[1]}{option}{braces[3]}", path) for option in braces[2].split(","))
-    return fnmatchcase(path, heading) or fnmatchcase(path, heading.removeprefix("**/"))
+    return any(fnmatchcase(path, glob) or fnmatchcase(path, glob.removeprefix("**/")) for glob in expand(heading))
 
 
 def last_setting(sections, key, path):
@@ -97,19 +101,36 @@ def last_setting(sections, key, path):
     return decided
 
 
+def holds_word(text, word):
+    return re.search(rf"\b{re.escape(word)}\b", text)
+
+
+def style_lines(heading, value, sections):
+    """Return the lines adding a style: a project's own sections keep theirs, and a new one takes only what none covers."""
+    decided = {glob: last_setting(sections, "BasedOnStyles", glob.replace("*", "doc")) for glob in expand(heading)}
+    found = [setting for setting in decided.values() if setting]
+    if any(holds_word(setting[1], value) for setting in found):
+        return []
+    lines = []
+    for own_heading, own_value in dict(found).items():
+        lines += [f"[{own_heading}]", f"BasedOnStyles = {own_value}, {value}"]
+    uncovered = [glob.removeprefix("*.") for glob, setting in decided.items() if not setting]
+    if uncovered:
+        lines += [f"[*.{{{','.join(uncovered)}}}]", f"BasedOnStyles = {value}"]
+    return lines
+
+
 def lines_to_set(styles_path, sections, glossary_path):
     """Return the lines that turn the rule on in a project's config, leaving what its own sections do alone."""
     template_styles, template_sections = read_config(TEMPLATE)
     lines = [] if styles_path else [f"StylesPath = {template_styles}"]
     for heading, settings in template_sections:
         for key, value in settings.items():
-            path = glossary_path if heading.endswith("GLOSSARY.md") else SAMPLE_DOCUMENT
-            decided = last_setting(sections, key, path)
-            if decided and re.search(rf"\b{re.escape(value)}\b", decided[1]):
+            if key == "BasedOnStyles":
+                lines += style_lines(heading, value, sections)
                 continue
-            if decided and key == "BasedOnStyles":
-                lines += [f"[{decided[0]}]", f"{key} = {decided[1]}, {value}"]
-            else:
+            decided = last_setting(sections, key, glossary_path)
+            if not (decided and holds_word(decided[1], value)):
                 lines += [f"[{heading}]", f"{key} = {value}"]
     return lines
 
@@ -141,7 +162,7 @@ def parse_language(text):
         term = entries[-1][0]
         for word in words:
             if not PLAIN_WORDS.fullmatch(word):
-                problems.append(f"{term}, line {number}: '{word}' must be letters, digits, spaces, hyphens or apostrophes, and not open with a quote")
+                problems.append(f"{term}, line {number}: '{word}' must be letters, digits, spaces, hyphens or an apostrophe inside a word")
             elif kind == "Except" and " " not in word:
                 problems.append(f"{term}, line {number}: '{word}' {NO_SPACE}")
         if kind == "Avoid":
@@ -173,7 +194,7 @@ def terms_holding_drift(entries, swap):
     for term, _ in entries:
         if any(re.search(rf"\b{re.escape(word)}\b", term, re.IGNORECASE) for word in swap):
             if not PLAIN_WORDS.fullmatch(term):
-                problems.append(f"{term}: holds a drift word, so the rule must skip it, and it must be letters, digits, spaces, hyphens or apostrophes for that")
+                problems.append(f"{term}: holds a drift word, so the rule must skip it, and it must be letters, digits, spaces, hyphens or an apostrophe inside a word for that")
             elif " " not in term:
                 problems.append(f"{term}: holds a drift word, so the rule must skip it, and it {NO_SPACE}")
             else:

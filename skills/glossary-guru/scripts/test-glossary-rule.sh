@@ -289,6 +289,9 @@ printf '/* A purchase here. */\n' >"$PROJECT/code.css"
 for extension in js ts rs c java go css; do
   expect_alert "the written config checks .$extension comments" "code.$extension:1:6:Glossary.Terms:Use 'Order' instead of 'purchase'."
 done
+printf '# A purchase here.\n' >"$PROJECT/code.py"
+(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
+expect_alert "the written config checks .py comments" "code.py:1:5:Glossary.Terms:Use 'Order' instead of 'purchase'."
 cp "$PROJECT/.vale.ini" "$WORK/written-config"
 expect_exit "a second run on the written config" 0
 if cmp -s "$PROJECT/.vale.ini" "$WORK/written-config"; then pass "a second run leaves the written config alone"; else fail "a second run changed the written config"; fi
@@ -344,6 +347,23 @@ expect_alert "with the printed lines the rule fires" "doc.md:3:3:Glossary.Terms:
 expect_alert "with the printed lines the project's own style still fires" "doc.md:3:18:Other.Fees:Use 'Charge' instead of 'fee'."
 expect_no_alert "with the printed lines the glossary stays quiet" "GLOSSARY.md:"
 
+new_project config-other-language
+one_entry
+mkdir -p "$PROJECT/styles/Other"
+printf 'extends: substitution\nmessage: "Use '"'"'%%s'"'"' instead of '"'"'%%s'"'"'."\nlevel: warning\nswap:\n  fee: Charge\n' >"$PROJECT/styles/Other/Fees.yml"
+printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
+printf '# A fee here.\n' >"$PROJECT/code.rb"
+printf 'StylesPath = styles\n\n[*.rb]\nBasedOnStyles = Other\n' >"$PROJECT/.vale.ini"
+expect_exit "a config covering one of the template's languages" 0
+expect_stdout "that section keeps its own style" "BasedOnStyles = Other, Glossary"
+expect_stdout "that section is named" "[*.rb]"
+new_heading="$(grep -F '[*.{' "$PROJECT/stdout" || true)"
+if [[ "$new_heading" == *md* && "$new_heading" != *rb* ]]; then pass "the new section leaves out what the project covers"; else fail "the new section: '$new_heading'"; fi
+{ printf 'StylesPath = styles\n\n[*.rb]\nBasedOnStyles = Other, Glossary\n\n'; printf '%s\nBasedOnStyles = Glossary\n\n' "$new_heading"; printf '[**/GLOSSARY.md]\nGlossary.Terms = NO\n'; } >"$PROJECT/.vale.ini"
+(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
+expect_alert "the project's style still fires on its language" "code.rb:1:5:Other.Fees:Use 'Charge' instead of 'fee'."
+expect_alert "the new section turns the rule on" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
+
 new_project config-wrong-sections
 one_entry
 printf 'StylesPath = styles\n\n[*.txt]\nBasedOnStyles = Glossary\n\n[README.md]\nGlossary.Terms = NO\n' >"$PROJECT/.vale.ini"
@@ -381,7 +401,31 @@ A request to buy.
 
 _Avoid_: 'purchase'
 EOF
-expect_refusal "a single-quoted word" "not open with a quote"
+expect_refusal "a single-quoted word" "an apostrophe inside a word"
+
+new_project quote-at-the-end
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+_Avoid_: purchase'
+EOF
+expect_refusal "a quote mark closing a word" "an apostrophe inside a word"
+
+new_project quoted-part
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+_Avoid_: big 'order'
+EOF
+expect_refusal "a quoted word inside a phrase" "an apostrophe inside a word"
 
 new_project possessive-word
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'

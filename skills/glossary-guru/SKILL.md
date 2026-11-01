@@ -101,7 +101,7 @@ Propose folding or retiring only on evidence of where the concept went. A delete
 python3 <skill-dir>/scripts/glossary-rule.py
 ```
 
-The rule lands at `<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none. A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told which of that file's lines to add. Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it.
+The rule lands at `<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none. A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told which lines to set, with the style added to the sections it already has. Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it.
 
 `assets/vale.ini.template` holds the lines that turn the rule on, and explains in its comments what Vale checks and how to make a drifted word fail the run.
 
