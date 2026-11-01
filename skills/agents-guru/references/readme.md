@@ -30,7 +30,7 @@ Whether it fires on its own or has to be typed, and for a routing skill every ar
 
 Required when the skill draws on an outside source, under a heading reading `## Inspiration` or `## Sources`, with one entry per source: its link, then what the skill took from it. A reader can then go to the original, and judge how much of it survived here.
 
-A source on a git host is linked at the commit that was read, because `main` moves and a later version could not be compared against what the skill took.
+A source on a git host is linked at the commit that was read, because `main` moves and a later version could not be compared against what the skill took. Record that commit at the moment of reading, because it cannot be recovered with certainty afterwards.
 
 ## When it links a file
 

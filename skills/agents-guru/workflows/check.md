@@ -56,6 +56,8 @@ Each of their failure modes is silent: a truncated description keeps loading wit
 
 **`skill-readme`**, in `scripts/rules/skill-readme.js`, holds every skill to a `README.md` that says how it is installed. Which install forms count is `references/readme.md`'s to state, under *How it is installed*.
 
+**`skill-pinned-sources`**, in `scripts/rules/skill-pinned-sources.js`, warns on a git-host link that names no commit inside a section of a skill's `README.md` headed `Inspiration` or `Sources`, per *What inspired it* in `references/readme.md`. A warning leaves the run passing, because the link still opens, and a commit nobody recorded may not be recoverable. **What it cannot decide is whether the commit named is the one that was read**, nor whether a source is credited at all.
+
 ## The path rules
 
 **`skill-portable-paths`**, in `scripts/rules/skill-portable-paths.js`, holds a path to one that survives another machine. It reads code spans, fenced lines and link destinations off the token tree, never a raw line.

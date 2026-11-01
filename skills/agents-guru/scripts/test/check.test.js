@@ -1509,6 +1509,93 @@ describe("skill-readme", () => {
   });
 });
 
+describe("skill-pinned-sources", () => {
+  const SHA = "36c6801f79a12fb1c639696d4095182a322362f2";
+  const INSTALL = "# A skill\n\n## Install\n\n```bash\nskills add owner/repo\n```\n";
+  const mkSkill = (name, readme) => {
+    const dir = path.join(tmp, `pinned-${name}`);
+    mk(dir, block(`pinned-${name}`), `${INSTALL}\n${readme}`);
+    return dir;
+  };
+  const findings = (dir) => run(dir).out.match(/^ {2}README\.md:\d+ skill-pinned-sources .*/gm) ?? [];
+  const unpinned = [
+    ["a branch", "https://github.com/owner/repo/blob/main/SKILL.md"],
+    ["a bare repository", "https://github.com/owner/repo"],
+    ["a tag", "https://github.com/owner/repo/tree/v1.2.3"],
+    ["a bare gist", "https://gist.github.com/owner/c28c7a7189726dc3d8a89b6db92c1c8d"],
+    ["another git host", "https://gitlab.com/owner/repo/-/blob/main/SKILL.md"],
+    ["a sha cut short", `https://github.com/owner/repo/blob/${SHA.slice(0, 7)}/SKILL.md`],
+    ["a sha that does not end its segment", `https://github.com/owner/repo/blob/${SHA}x/SKILL.md`],
+  ];
+  for (const [what, url] of unpinned)
+    it(`warns on ${what} and leaves the run passing`, () => {
+      const dir = mkSkill(what.replace(/\W+/g, "-"), `## Sources\n\n- [A source](${url}): an idea.\n`);
+      const r = run(dir);
+      assert.equal(r.code, 0, r.out);
+      assert.match(r.out, new RegExp(`^ {2}README\\.md:11 skill-pinned-sources \\(warning\\) .*${url.replaceAll(/[.]/g, "\\.")} names no commit`, "m"));
+    });
+  const pinned = [
+    ["a blob at a commit", `https://github.com/owner/repo/blob/${SHA}/SKILL.md`],
+    ["a tree at a commit", `https://github.com/owner/repo/tree/${SHA}`],
+    ["a commit with a fragment", `https://github.com/owner/repo/blob/${SHA}#readme`],
+    ["a gist revision", `https://gist.github.com/owner/c28c7a7189726dc3d8a89b6db92c1c8d/${SHA}`],
+    ["a page on no git host", "https://suchow.io/assets/docs/paper.pdf"],
+    ["a file of the repository", "../sibling/SKILL.md"],
+  ];
+  for (const [what, url] of pinned)
+    it(`passes ${what}`, () => {
+      const dir = mkSkill(`ok-${what.replace(/\W+/g, "-")}`, `## Inspiration\n\n- [A source](${url}): an idea.\n`);
+      assert.deepEqual(findings(dir), []);
+    });
+  it("reads each section heading whatever its level or case", () => {
+    for (const heading of ["## Inspiration", "### SOURCES", "Sources\n-------", "Inspiration\n==========="]) {
+      const dir = mkSkill(`level-${heading.replace(/\W+/g, "-")}`, `${heading}\n\n[A source](https://github.com/owner/repo)\n`);
+      assert.equal(findings(dir).length, 1, heading);
+    }
+  });
+  it("reads an autolink, a bare URL, a reference definition, a table cell and a deeper heading in the section", () => {
+    const url = "https://github.com/owner/repo";
+    const dir = mkSkill(
+      "shapes",
+      `## Sources\n\n- <${url}/autolink>\n- ${url}/bare\n\n[ref]: ${url}/definition\n\n| Source |\n|---|\n| [cell](${url}/cell) |\n\n### Deeper\n\n[deeper](${url}/deeper)\n`,
+    );
+    const found = findings(dir);
+    for (const shape of ["autolink", "bare", "definition", "cell", "deeper"])
+      assert.ok(
+        found.some((f) => f.includes(`${url}/${shape} names no commit`)),
+        `${shape}: ${found}`,
+      );
+    assert.equal(found.length, 5, String(found));
+  });
+  it("leaves the same link alone outside a source section", () => {
+    const url = "https://github.com/owner/repo";
+    const dir = mkSkill(
+      "outside",
+      `Validated by [a tool](${url}).\n\n## Usage\n\n[a tool](${url})\n\n## Sources and more\n\n[a tool](${url})\n\n## Sources\n\nNone from a git host.\n\n## After\n\n[a tool](${url})\n\n\`\`\`text\n## Sources\n\`\`\`\n\n[a tool](${url})\n`,
+    );
+    assert.deepEqual(findings(dir), []);
+  });
+  it("a heading no deeper than the section ends it, and a later section still counts", () => {
+    const url = "https://github.com/owner/repo";
+    const dir = mkSkill("ends", `### Sources\n\nNone.\n\n## After\n\n[a tool](${url})\n\n## Sources\n\n[a tool](${url}/second)\n`);
+    const found = findings(dir);
+    assert.equal(found.length, 1, String(found));
+    assert.match(found[0], /repo\/second names no commit/);
+  });
+  it("reads only a README beside a SKILL.md", () => {
+    const url = "https://github.com/owner/repo";
+    const dir = mkSkill("others", "Nothing here.\n");
+    fs.mkdirSync(path.join(dir, "references"));
+    fs.writeFileSync(path.join(dir, "references", "README.md"), `# R\n\n## Sources\n\n[a](${url})\n`);
+    fs.writeFileSync(path.join(dir, "references", "sources.md"), `# R\n\n## Sources\n\n[a](${url})\n`);
+    const elsewhere = path.join(tmp, "pinned-no-skill");
+    fs.mkdirSync(elsewhere);
+    fs.writeFileSync(path.join(elsewhere, "README.md"), `# R\n\n## Sources\n\n[a](${url})\n`);
+    assert.doesNotMatch(run(dir).out, /skill-pinned-sources/);
+    assert.doesNotMatch(run(elsewhere).out, /skill-pinned-sources/);
+  });
+});
+
 describe("carriesInstallForm", () => {
   // The forms are read from references/readme.md, which owns the list, so a form added there alone fails here by name.
   const readmeMd = fs.readFileSync(path.resolve(path.dirname(check), "..", "references", "readme.md"), "utf8");
