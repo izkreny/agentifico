@@ -1619,6 +1619,12 @@ describe("skill-pinned-sources", () => {
     const undefinedRef = "## Sources\n\nA [plain][bracket] pair and [another].\n";
     assert.deepEqual(findings(mkSkill("ref-undefined", undefinedRef)), []);
   });
+  it("judges a reference-style image as it judges an inline one", () => {
+    const url = "https://github.com/owner/repo";
+    const found = findings(mkSkill("ref-image", `## Sources\n\n![badge][img]\n\n[img]: ${url}/blob/main/img.png\n`));
+    assert.equal(found.length, 1, String(found));
+    assert.match(found[0], /README\.md:11 .*img\.png names no commit/);
+  });
   it("leaves the same link alone outside a source section", () => {
     const url = "https://github.com/owner/repo";
     const dir = mkSkill(
