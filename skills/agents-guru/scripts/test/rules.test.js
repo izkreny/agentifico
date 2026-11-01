@@ -1483,6 +1483,26 @@ describe("skill-package-runners", () => {
       "npx eslint . names no version",
     );
   });
+  it("a quote opened before the runner's own command also ends it", async () => {
+    expectDetail(
+      await findings("fx/word/SKILL.md", skillWith('`bash -c "cd x && npx eslint ." --norc`'), packageRunners),
+      "skill-package-runners",
+      "npx eslint . names no version",
+    );
+    expectDetail(
+      await findings("fx/semi/SKILL.md", skillWith("`sh -c 'cd x; npx eslint .'`"), packageRunners),
+      "skill-package-runners",
+      "npx eslint . names no version",
+    );
+  });
+  it("an escaped quote does not end a quoted command", async () => {
+    expectDetail(
+      await findings("fx/esc/SKILL.md", skillWith('`bash -c "npx eslint \\"$f\\""`'), packageRunners),
+      "skill-package-runners",
+      'npx eslint \\"$f\\" names no version',
+    );
+    expectClean(await findings("fx/esc-pin/SKILL.md", skillWith('`bash -c "npx \\"eslint@9\\""`'), packageRunners), "skill-package-runners");
+  });
   it("a backtick substitution in a fence opens a command", async () => {
     const found = await findings("fx/backtick/SKILL.md", skillWith("```bash\nx=`npx eslint .`\n```"), packageRunners);
     expectDetail(found, "skill-package-runners", "npx eslint . names no version");
