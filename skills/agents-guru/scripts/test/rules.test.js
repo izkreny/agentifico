@@ -1377,6 +1377,10 @@ describe("skill-package-runners", () => {
     ["hosted-with-extension", "npx tools/run.js"],
     ["uvx-with-extension", "uvx tools/run.py"],
     ["flag-value-path", "npx --prefix ./tools eslint ."],
+    ["quoted-substitution", 'out="$(npx "eslint" .)"'],
+    ["quoted-substitution-flag", 'out="$(npx --yes "eslint" .)"'],
+    ["quoted-substitution-uvx", 'out="$(uvx "ruff" check)"'],
+    ["nested-quotes", `bash -c "sh -c 'npx eslint .'"`],
     ["argument-named-go", "uvx ruff check go"],
     ["arguments-named-runners", "npx prettier --check go deno"],
     ["pipx-argument-named-go", "pipx run black go"],
@@ -1471,41 +1475,37 @@ describe("skill-package-runners", () => {
       "npx eslint . names no version",
     );
   });
-  it("a quoted command ends at its closing quote", async () => {
-    expectDetail(
-      await findings("fx/inner/SKILL.md", skillWith(`\`sh -c 'npx eslint "$f"'\``), packageRunners),
-      "skill-package-runners",
-      'npx eslint "$f" names no version',
-    );
+  it("a quote with no partner in the command is not part of what it names", async () => {
+    const names = [
+      [`sh -c 'npx eslint "$f"'`, 'npx eslint "$f" names no version'],
+      ["sh -c 'cd x; npx eslint .'", "npx eslint . names no version"],
+      ['bash -c "npx eslint \\"$f\\""', 'npx eslint \\"$f\\" names no version'],
+      [`bash -c "sh -c 'npx eslint .'"`, "npx eslint . names no version"],
+      [`bash -c 'sh -c "npx eslint ."'`, "npx eslint . names no version"],
+      ['out="$(npx eslint "$f")"', 'npx eslint "$f" names no version'],
+    ];
+    for (const [command, detail] of names)
+      expectDetail(await findings("fx/inner/SKILL.md", skillWith(`\`${command}\``), packageRunners), "skill-package-runners", detail);
+  });
+  it("a pin inside a quoted command counts", async () => {
+    expectClean(await findings("fx/esc-pin/SKILL.md", skillWith('`bash -c "npx \\"eslint@9\\""`'), packageRunners), "skill-package-runners");
+  });
+  // WHY: the rule reads no shell, so a command runs to the next separator and a word past its closing quote is read with it.
+  it("a word past a closing quote is read with the command", async () => {
     expectDetail(
       await findings("fx/after/SKILL.md", skillWith('`bash -c "npx eslint ." --norc`'), packageRunners),
       "skill-package-runners",
-      "npx eslint . names no version",
+      'npx eslint ." --norc names no version',
     );
-  });
-  it("a quote opened before the runner's own command also ends it", async () => {
-    expectDetail(
-      await findings("fx/word/SKILL.md", skillWith('`bash -c "cd x && npx eslint ." --norc`'), packageRunners),
-      "skill-package-runners",
-      "npx eslint . names no version",
-    );
-    expectDetail(
-      await findings("fx/semi/SKILL.md", skillWith("`sh -c 'cd x; npx eslint .'`"), packageRunners),
-      "skill-package-runners",
-      "npx eslint . names no version",
-    );
-  });
-  it("an escaped quote does not end a quoted command", async () => {
-    expectDetail(
-      await findings("fx/esc/SKILL.md", skillWith('`bash -c "npx eslint \\"$f\\""`'), packageRunners),
-      "skill-package-runners",
-      'npx eslint \\"$f\\" names no version',
-    );
-    expectClean(await findings("fx/esc-pin/SKILL.md", skillWith('`bash -c "npx \\"eslint@9\\""`'), packageRunners), "skill-package-runners");
+    expectClean(await findings("fx/past-pin/SKILL.md", skillWith('`bash -c "npx eslint ." x@1`'), packageRunners), "skill-package-runners");
   });
   it("a backtick substitution in a fence opens a command", async () => {
     const found = await findings("fx/backtick/SKILL.md", skillWith("```bash\nx=`npx eslint .`\n```"), packageRunners);
     expectDetail(found, "skill-package-runners", "npx eslint . names no version");
+  });
+  it("a quoted backtick substitution still warns", async () => {
+    const found = await findings("fx/quoted-backtick/SKILL.md", skillWith('```bash\nout="`npx "eslint" .`"\n```'), packageRunners);
+    expectDetail(found, "skill-package-runners", 'npx "eslint" . names no version');
   });
   it("an agent never runs a comment", async () => {
     expectClean(await findings("fx/comment/SKILL.md", skillWith("```bash\n  # npx eslint .\n```"), packageRunners), "skill-package-runners");

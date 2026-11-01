@@ -28,29 +28,19 @@ function fetchesPackage(runner, args) {
   return tokens[0]?.startsWith("-") ? words.some((word) => !local(word)) : words.length > 0 && !local(words[0]);
 }
 
-const UNTIL_CLOSE = { "'": /^[^']*/, '"': /^(?:[^"\\]|\\.)*/ };
-
-function quoteOpenAt(text, end) {
-  let open = "";
-  for (let i = 0; i < end; i++) {
-    const character = text[i];
-    if (character === "\\" && open !== "'") i++;
-    else if (open) open = character === open ? "" : open;
-    else if (character === "'" || character === '"') open = character;
-  }
-  return open;
+// WHY: a quoted command takes its closing quotes along, and a quote with no partner can only be one of those, so this shapes the message and never the verdict.
+function withoutClosingQuotes(command) {
+  const last = command.at(-1);
+  const unpaired = (last === "'" || last === '"') && command.split(last).length % 2 === 0;
+  return unpaired ? withoutClosingQuotes(command.slice(0, -1)) : command;
 }
 
+// WHY: this rule only warns, and reading shell quoting kept silencing real commands, so a command runs to the next separator and a word past its closing quote is read with it.
 function unpinned(text) {
   return [...text.matchAll(RUNNER)]
-    .map((match) => {
-      const [whole, written, runner] = match;
-      // WHY: a quote opened anywhere before a runner holds its command, so the words past the close are no part of it.
-      const close = UNTIL_CLOSE[quoteOpenAt(text, match.index + whole.length - written.length)];
-      return { runner, command: (close ? written.match(close)[0] : written).trim() };
-    })
+    .map(([, written, runner]) => ({ runner, command: written.trim() }))
     .filter(({ runner, command }) => fetchesPackage(runner.split(/\s+/)[0], command.slice(runner.length)) && !VERSION.test(command))
-    .map(({ command }) => command);
+    .map(({ command }) => withoutClosingQuotes(command));
 }
 
 function walk(tokens, fn) {
