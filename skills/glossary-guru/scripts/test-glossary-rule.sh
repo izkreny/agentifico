@@ -199,6 +199,36 @@ _Avoid_: cart
 EOF
 expect_refusal "a term holding a drift word and a metacharacter" "must be letters"
 
+new_project term-no-space
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Pre-Order
+
+An order placed before release.
+
+### Purchase
+
+A request to buy.
+
+_Avoid_: order
+EOF
+expect_refusal "a term with no space holding a drift word" "holds no space"
+
+new_project except-no-space
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Purchase
+
+A request to buy.
+
+_Avoid_: order
+
+_Except_: pre-order
+EOF
+expect_refusal "an Except entry with no space" "holds no space"
+
 new_project root
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 ## Language

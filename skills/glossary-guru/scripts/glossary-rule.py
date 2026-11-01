@@ -25,6 +25,8 @@ GLOSSARY_PATHS = (Path("docs/GLOSSARY.md"), Path("GLOSSARY.md"))
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
 PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ '-])+")
 LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
+# WHY: Vale 3.25.1 honours an exception only when it holds a space, so `Pre-Order` in `exceptions` silences nothing.
+NO_SPACE = "holds no space, and Vale skips only a phrase that holds one"
 
 
 def stop(message) -> NoReturn:
@@ -69,6 +71,8 @@ def parse_language(text):
         for word in words:
             if not PLAIN_WORDS.fullmatch(word):
                 problems.append(f"{term}, line {number}: '{word}' must be letters, digits, spaces, hyphens or apostrophes")
+            elif kind == "Except" and " " not in word:
+                problems.append(f"{term}, line {number}: '{word}' {NO_SPACE}")
         if kind == "Avoid":
             entries[-1][1].extend(words)
         else:
@@ -97,10 +101,12 @@ def terms_holding_drift(entries, swap):
     held, problems = [], []
     for term, _ in entries:
         if any(re.search(rf"\b{re.escape(word)}\b", term, re.IGNORECASE) for word in swap):
-            if PLAIN_WORDS.fullmatch(term):
-                held.append(term)
-            else:
+            if not PLAIN_WORDS.fullmatch(term):
                 problems.append(f"{term}: holds a drift word, so the rule must skip it, and it must be letters, digits, spaces, hyphens or apostrophes for that")
+            elif " " not in term:
+                problems.append(f"{term}: holds a drift word, so the rule must skip it, and it {NO_SPACE}")
+            else:
+                held.append(term)
     return held, problems
 
 
