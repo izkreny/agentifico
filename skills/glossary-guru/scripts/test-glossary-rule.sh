@@ -210,6 +210,38 @@ if [ "$pair_differs" = no ]; then pass "a case-only pair regenerates byte-identi
 pair_count="$(grep -ci '(?i)shopping cart' "$WORK/case-pair-rule" || true)"
 if [ "$pair_count" = 1 ]; then pass "a case-only pair is written once"; else fail "a case-only pair is written $pair_count times"; fi
 
+new_project sharp-s
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Bestellung
+
+Was ein Kunde kauft.
+
+_Avoid_: strasse
+
+_Except_: Große Strasse, grosse strasse
+EOF
+cat >"$PROJECT/.vale.ini" <<'EOF'
+StylesPath = .vale/styles
+
+[doc.md]
+BasedOnStyles = Glossary
+EOF
+cat >"$PROJECT/doc.md" <<'EOF'
+# Probe
+
+Die grosse strasse da.
+
+Die Große Strasse da.
+
+Eine strasse hier.
+EOF
+expect_exit "two phrases apart only under full case folding" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_no_alert "both phrases folding alike stay quiet" "doc.md:(3|5):"
+expect_alert "a drift word beside them still fires" "doc.md:7:6:Glossary.Terms:Use 'Bestellung' instead of 'strasse'."
+
 new_project term-metacharacter
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 ## Language

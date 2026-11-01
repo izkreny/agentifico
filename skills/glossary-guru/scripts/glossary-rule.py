@@ -124,7 +124,8 @@ def render(swap, exceptions, styles_arg):
         # WHY: Vale matches an exception case-sensitively even under ignorecase, so each one carries its own flag.
         unique = {}
         for phrase in sorted(exceptions):
-            unique.setdefault(phrase.casefold(), phrase)
+            # WHY: `casefold` makes `ß` equal `ss` and `(?i)` does not, so a phrase dropped on that key would fire as drift.
+            unique.setdefault(phrase.lower(), phrase)
         lines.extend(f"  - {json.dumps('(?i)' + unique[key], ensure_ascii=False)}" for key in sorted(unique))
     lines.append("swap:" if swap else "swap: {}")
     for word in sorted(swap, key=str.casefold):
