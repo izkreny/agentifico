@@ -63,7 +63,7 @@ def find_config():
         for name in CONFIG_NAMES:
             if (directory / name).is_file():
                 # WHY: the rule's file name is fixed, so every project beneath a shared config would overwrite the others' rule.
-                stop(f"glossary-rule: Vale here reads {directory / name}, which other projects may share; run this from that directory, or add a config here")
+                stop(f"glossary-rule: Vale here reads {directory / name}, which other projects may share; add a config here, which takes over from it for this directory")
     return None
 
 
@@ -82,7 +82,7 @@ def read_config(path):
 # WHY: only the project knows which of its sections should run the check, and a later matching section replaces an earlier one, so computed lines can take its styles away.
 def config_advice(config, styles_path):
     template_styles, template_sections = read_config(TEMPLATE)
-    lines = [f"glossary-rule: to check a file, {config} needs Glossary in the BasedOnStyles of the section covering it, and these lines, with any StylesPath above every section:"]
+    lines = [f"glossary-rule: to check a file, {config} needs Glossary in the BasedOnStyles of the last section covering it, because a later section replaces an earlier one, and these lines, with any StylesPath above every section:"]
     if not styles_path:
         lines.append(f"StylesPath = {template_styles}")
     for heading, settings in template_sections:
@@ -118,7 +118,7 @@ def parse_language(text):
         term = entries[-1][0]
         for word in words:
             if not PLAIN_WORDS.fullmatch(word):
-                problems.append(f"{term}, line {number}: '{word}' must be letters, digits, spaces, hyphens or an apostrophe after a letter, inside a phrase")
+                problems.append(f"{term}, line {number}: '{word}' must be letters, digits, spaces, hyphens or an apostrophe after a letter, with more of the phrase after it")
             elif kind == "Except" and " " not in word:
                 problems.append(f"{term}, line {number}: '{word}' {NO_SPACE}")
         if kind == "Avoid":
@@ -148,7 +148,7 @@ def terms_holding_drift(entries, swap):
     for term, _ in entries:
         if any(re.search(rf"\b{re.escape(word)}\b", term, re.IGNORECASE) for word in swap):
             if not PLAIN_WORDS.fullmatch(term):
-                problems.append(f"{term}: holds a drift word, so the rule must skip it, and it must be letters, digits, spaces, hyphens or an apostrophe after a letter for that")
+                problems.append(f"{term}: holds a drift word, so the rule must skip it, and it must be letters, digits, spaces, hyphens or an apostrophe after a letter, with more of the term after it, for that")
             elif " " not in term:
                 problems.append(f"{term}: holds a drift word, so the rule must skip it, and it {NO_SPACE}")
             else:

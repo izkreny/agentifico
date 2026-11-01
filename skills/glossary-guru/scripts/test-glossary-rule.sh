@@ -330,7 +330,7 @@ expect_stdout "the script prints the glossary section" "[**/GLOSSARY.md]"
 expect_stdout "the script prints the glossary line" "Glossary.Terms = NO"
 expect_no_stdout "the script prints no section for the project's own files" "[*."
 expect_no_stdout "the script prints no BasedOnStyles line to clash with the project's" "BasedOnStyles ="
-if grep -qF "Glossary in the BasedOnStyles" "$PROJECT/stdout"; then pass "the script says where the style goes"; else fail "the script does not say where the style goes: $(cat "$PROJECT/stdout")"; fi
+if grep -qF "Glossary in the BasedOnStyles of the last section covering it" "$PROJECT/stdout"; then pass "the script says which section the style goes in"; else fail "the script does not say which section: $(cat "$PROJECT/stdout")"; fi
 expect_no_stdout "the script does not ask for a StylesPath the config has" "StylesPath ="
 
 new_project config-own-style
@@ -351,6 +351,7 @@ one_entry
 printf 'StylesPath = styles\n\n[*.md]\nBasedOnStyles = Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms = NO\n' >"$PROJECT/../.vale.ini"
 expect_exit "a config in a parent directory" 2
 if grep -qF "add a config here" "$PROJECT/stderr"; then pass "a parent's config: the refusal says what to do"; else fail "a parent's config: stderr: $(cat "$PROJECT/stderr")"; fi
+if grep -qF "run this from" "$PROJECT/stderr"; then fail "a parent's config: the refusal offers a route that refuses again: $(cat "$PROJECT/stderr")"; else pass "a parent's config: the refusal offers only what works"; fi
 expect_no_file "a parent's config gets no second config below it" .vale.ini
 expect_no_file "a parent's config gets no shared rule" ../styles
 
@@ -388,7 +389,7 @@ A request to buy.
 
 _Avoid_: purchase'
 EOF
-expect_refusal "a quote mark closing a word" "an apostrophe after a letter"
+expect_refusal "a quote mark closing a word" "more of the phrase after it"
 
 new_project quoted-part
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
