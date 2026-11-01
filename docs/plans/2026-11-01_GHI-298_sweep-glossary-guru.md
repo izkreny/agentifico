@@ -74,3 +74,5 @@ None.
 **Should the script refuse a word in a script written without spaces, or should `<skill-dir>/SKILL.md` state the limit?** State the limit: the check supports Latin script only. The owner decided this, since a refusal would block the whole rule over one word and needs a list of scripts for a kind of project nobody here has.
 
 **Should the glossary keep `## Relationships`?** No. The owner dropped it, since a schema and specs already own those facts and nothing checks the copy.
+
+**Should the glossary keep `## Retired`?** No. The owner dropped it, since version history already holds a dead term, the rule never read the section, and Fold covers a word a live entry can carry.
