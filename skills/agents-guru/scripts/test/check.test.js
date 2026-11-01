@@ -1060,7 +1060,6 @@ describe("check.js", () => {
   });
 });
 
-// Exercised directly because check.js globs under its target and can never hand the function a path outside it.
 describe("skill-bundled-files", () => {
   // WHY: each fixture states every file it holds, so a test reads as the tree it judges.
   const tree = (name, files) => {
@@ -1302,6 +1301,7 @@ describe("plugin-body-variables", () => {
   });
 });
 
+// Exercised directly because check.js globs under its target and can never hand the function a path outside it.
 describe("enclosingSkill", () => {
   it("a sibling whose name extends the target's is outside it", () => {
     assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), path.join(tmp, "a")), null);
