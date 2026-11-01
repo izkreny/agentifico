@@ -1,9 +1,9 @@
 ---
 name: glossary-guru
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
 description: |
-  Own a project's glossary: the format of its GLOSSARY.md, reading it before writing names or prose in the project's domain, challenging a word that sits on an _Avoid_ line or contradicts a definition, adding, changing, folding or retiring a term on the owner's decision, and generating a Vale rule from it. Use whenever a project holds a GLOSSARY.md and the work writes code names, docs, commit messages or issue text in its domain; when asked to define a term, settle what a word means, start a glossary or rename a domain concept; when two words compete for one concept; and when asked to catch a drifted word with Vale. Not for a skill's own terms, which stay inside that skill, not for ADRs, and not for general programming vocabulary.
+  Load this as soon as a project turns out to hold a docs/GLOSSARY.md or a GLOSSARY.md, before writing code names, docs, commit messages or issue text in its domain, because it says what to do when a word disagrees with the file, which the file alone does not. Owns a project's glossary: its format, challenging a word that sits on an _Avoid_ line or contradicts a definition, adding, changing, folding or retiring a term on the owner's decision, and generating a Vale rule from it. Use when asked to define a term, settle what a word means, start a glossary or rename a domain concept; when two words compete for one concept; and when asked to catch a drifted word with Vale. Not for a skill's own terms, which stay inside that skill, not for ADRs, and not for general programming vocabulary.
 ---
 
 # Glossary
@@ -95,15 +95,17 @@ Propose folding or retiring only on evidence of where the concept went. A delete
 
 ## Automatic rule check
 
-`scripts/glossary-rule.py` turns the `_Avoid_:` and `_Except_:` lines into one Vale `substitution` rule, so a drifted word is caught by a check as well as by a reader. Run it from the project's root, and again whenever either kind of line changes, because the rule only knows what the glossary said when it was generated:
+`scripts/glossary-rule.py` turns the `_Avoid_:` and `_Except_:` lines into one Vale `substitution` rule, so a drifted word is caught by a check as well as by a reader. Run it from the project's root when asked for the check, because it writes Vale files into the project, and again where the rule already exists whenever an entry's heading or either kind of line changes, because the rule only knows what the glossary said when it was generated:
 
 ```bash
 python3 <skill-dir>/scripts/glossary-rule.py
 ```
 
-The rule lands at `<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none. A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it.
+The rule lands at `<repo-root>/<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none. A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it.
 
 `assets/vale.ini.template` holds the lines that turn the rule on, and explains in its comments what Vale checks and how to make a drifted word fail the run.
+
+The check supports Latin script only. Vale 3.25.1 did not flag a Chinese, Thai or Japanese word inside a sentence, and the script does not refuse one, so a reader has to catch such a word.
 
 ## What it does not cover
 
