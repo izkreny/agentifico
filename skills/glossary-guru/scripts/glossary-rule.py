@@ -8,7 +8,8 @@ Usage, from the project's root:
 Writes <styles-path>/Glossary/Terms.yml from the `_Avoid_:` and `_Except_:`
 lines under `## Language`.
 
-Exit 0: the rule was written, or the glossary names no drift word.
+Exit 0: the rule was written, or the glossary names no drift word, which
+removes any earlier rule.
 Exit 1: the glossary cannot become a correct rule; each reason is on stderr.
 Exit 2: wrong arguments, or no single glossary to read.
 """
@@ -138,10 +139,14 @@ def main():
         for problem in problems:
             print(f"  {problem}", file=sys.stderr)
         return 1
-    if not swap:
-        print(f"glossary-rule: {glossary} names no drift word, so there is no rule to write")
-        return 0
     rule = Path(styles_arg) / "Glossary" / "Terms.yml"
+    if not swap:
+        if rule.exists():
+            rule.unlink()
+            print(f"glossary-rule: {glossary} names no drift word, so {rule} is removed")
+        else:
+            print(f"glossary-rule: {glossary} names no drift word, so there is no rule to write")
+        return 0
     rule.parent.mkdir(parents=True, exist_ok=True)
     rule.write_text(render(swap, exceptions, styles_arg), encoding="utf-8")
     print(f"glossary-rule: wrote {rule} with {len(swap)} word(s) from {glossary}")

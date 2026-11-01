@@ -232,6 +232,27 @@ EOF
 expect_exit "a glossary naming no drift word" 0
 if [ -e "$PROJECT/.vale/styles/Glossary/Terms.yml" ]; then fail "a glossary naming no drift word wrote a rule"; else pass "a glossary naming no drift word writes no rule"; fi
 
+new_project stale
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+_Avoid_: purchase
+EOF
+expect_exit "a glossary before its last drift word goes" 0
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+EOF
+expect_exit "a glossary after its last drift word went" 0
+if [ -e "$PROJECT/.vale/styles/Glossary/Terms.yml" ]; then fail "a rule outlived the glossary's last drift word"; else pass "the rule goes with the glossary's last drift word"; fi
+
 new_project two-entries
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 ## Language
