@@ -221,6 +221,21 @@ expect_exit "a glossary at both paths" 2
 new_project none
 expect_exit "no glossary" 2
 
+new_project option
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+_Avoid_: purchase
+EOF
+option_exit=0
+(cd "$PROJECT" && python3 "$SCRIPT" --help >/dev/null 2>&1) || option_exit=$?
+if [ "$option_exit" = 2 ]; then pass "an option exits 2"; else fail "an option exits $option_exit, wanted 2"; fi
+if [ -e "$PROJECT/--help" ]; then fail "an option was taken as a styles path"; else pass "an option writes nothing"; fi
+
 new_project quiet
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 ## Language

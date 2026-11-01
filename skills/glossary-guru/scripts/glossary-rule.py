@@ -124,7 +124,7 @@ def render(swap, exceptions, styles_arg):
 
 
 def main():
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 2 or sys.argv[1].startswith("-"):
         stop(__doc__)
     # WHY: the path lands in a committed file's comment, so it stays relative however it was typed.
     styles_arg = os.path.relpath(sys.argv[1])
