@@ -295,7 +295,6 @@ expect_alert "the written config checks .py comments" "code.py:1:5:Glossary.Term
 cp "$PROJECT/.vale.ini" "$WORK/written-config"
 expect_exit "a second run on the written config" 0
 if cmp -s "$PROJECT/.vale.ini" "$WORK/written-config"; then pass "a second run leaves the written config alone"; else fail "a second run changed the written config"; fi
-expect_no_stdout "a second run asks for nothing" "set these"
 
 new_project template-name
 cp "$TEMPLATE" "$PROJECT/"
@@ -311,7 +310,6 @@ cp "$PROJECT/.vale.ini" "$WORK/full-config"
 expect_exit "a config naming a StylesPath" 0
 expect_file "the rule lands under the config's StylesPath" custom/styles/Glossary/Terms.yml
 expect_no_file "the rule stays out of the default path" .vale/styles
-expect_no_stdout "a config that turns the rule on is asked for nothing" "set these"
 if cmp -s "$PROJECT/.vale.ini" "$WORK/full-config"; then pass "an existing config stays untouched"; else fail "an existing config changed"; fi
 
 new_project config-quoted-path
@@ -328,9 +326,11 @@ expect_exit "a config under another name Vale reads" 0
 expect_file "the rule lands under that config's StylesPath" styles/Glossary/Terms.yml
 expect_no_file "no second config appears beside it" .vale.ini
 if cmp -s "$PROJECT/vale.ini" "$WORK/other-config"; then pass "that config stays untouched"; else fail "that config changed"; fi
-expect_stdout "the script names the section already covering the files" "[*.md]"
-expect_stdout "the script adds the style to that section's own line" "BasedOnStyles = Vale, Glossary"
-expect_stdout "the script prints the glossary line to set" "Glossary.Terms = NO"
+expect_stdout "the script prints the glossary section" "[**/GLOSSARY.md]"
+expect_stdout "the script prints the glossary line" "Glossary.Terms = NO"
+expect_no_stdout "the script prints no section for the project's own files" "[*."
+expect_no_stdout "the script prints no BasedOnStyles line to clash with the project's" "BasedOnStyles ="
+if grep -qF "Glossary in the BasedOnStyles" "$PROJECT/stdout"; then pass "the script says where the style goes"; else fail "the script does not say where the style goes: $(cat "$PROJECT/stdout")"; fi
 expect_no_stdout "the script does not ask for a StylesPath the config has" "StylesPath ="
 
 new_project config-own-style
@@ -340,44 +340,19 @@ printf 'extends: substitution\nmessage: "Use '"'"'%%s'"'"' instead of '"'"'%%s'"
 printf '# Probe\n\nA purchase and a fee.\n' >"$PROJECT/doc.md"
 printf 'StylesPath = styles\n\n[*.md]\nBasedOnStyles = Other\n' >"$PROJECT/.vale.ini"
 expect_exit "a config with its own style" 0
-expect_stdout "the printed line keeps the project's style" "BasedOnStyles = Other, Glossary"
 printf 'StylesPath = styles\n\n[*.md]\nBasedOnStyles = Other, Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms = NO\n' >"$PROJECT/.vale.ini"
 (cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
 expect_alert "with the printed lines the rule fires" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
 expect_alert "with the printed lines the project's own style still fires" "doc.md:3:18:Other.Fees:Use 'Charge' instead of 'fee'."
 expect_no_alert "with the printed lines the glossary stays quiet" "GLOSSARY.md:"
 
-new_project config-other-language
-one_entry
-mkdir -p "$PROJECT/styles/Other"
-printf 'extends: substitution\nmessage: "Use '"'"'%%s'"'"' instead of '"'"'%%s'"'"'."\nlevel: warning\nswap:\n  fee: Charge\n' >"$PROJECT/styles/Other/Fees.yml"
-printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
-printf '# A fee here.\n' >"$PROJECT/code.rb"
-printf 'StylesPath = styles\n\n[*.rb]\nBasedOnStyles = Other\n' >"$PROJECT/.vale.ini"
-expect_exit "a config covering one of the template's languages" 0
-expect_stdout "that section keeps its own style" "BasedOnStyles = Other, Glossary"
-expect_stdout "that section is named" "[*.rb]"
-new_heading="$(grep -F '[*.{' "$PROJECT/stdout" || true)"
-if [[ "$new_heading" == *md* && "$new_heading" != *rb* ]]; then pass "the new section leaves out what the project covers"; else fail "the new section: '$new_heading'"; fi
-{ printf 'StylesPath = styles\n\n[*.rb]\nBasedOnStyles = Other, Glossary\n\n'; printf '%s\nBasedOnStyles = Glossary\n\n' "$new_heading"; printf '[**/GLOSSARY.md]\nGlossary.Terms = NO\n'; } >"$PROJECT/.vale.ini"
-(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
-expect_alert "the project's style still fires on its language" "code.rb:1:5:Other.Fees:Use 'Charge' instead of 'fee'."
-expect_alert "the new section turns the rule on" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
-
-new_project config-wrong-sections
-one_entry
-printf 'StylesPath = styles\n\n[*.txt]\nBasedOnStyles = Glossary\n\n[README.md]\nGlossary.Terms = NO\n' >"$PROJECT/.vale.ini"
-expect_exit "settings under sections covering other files" 0
-expect_stdout "a style set for other files does not count" "BasedOnStyles = Glossary"
-expect_stdout "an exemption for another file does not count" "Glossary.Terms = NO"
-
 new_project parent-config/sub
 one_entry
 printf 'StylesPath = styles\n\n[*.md]\nBasedOnStyles = Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms = NO\n' >"$PROJECT/../.vale.ini"
-expect_exit "a config in a parent directory" 0
+expect_exit "a config in a parent directory" 2
+if grep -qF "add a config here" "$PROJECT/stderr"; then pass "a parent's config: the refusal says what to do"; else fail "a parent's config: stderr: $(cat "$PROJECT/stderr")"; fi
 expect_no_file "a parent's config gets no second config below it" .vale.ini
-expect_file "the parent's StylesPath is read against the parent" ../styles/Glossary/Terms.yml
-expect_no_stdout "a parent's config that turns the rule on is asked for nothing" "set these"
+expect_no_file "a parent's config gets no shared rule" ../styles
 
 new_project config-inline-comment
 one_entry
@@ -401,7 +376,7 @@ A request to buy.
 
 _Avoid_: 'purchase'
 EOF
-expect_refusal "a single-quoted word" "an apostrophe inside a word"
+expect_refusal "a single-quoted word" "an apostrophe after a letter"
 
 new_project quote-at-the-end
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -413,7 +388,7 @@ A request to buy.
 
 _Avoid_: purchase'
 EOF
-expect_refusal "a quote mark closing a word" "an apostrophe inside a word"
+expect_refusal "a quote mark closing a word" "an apostrophe after a letter"
 
 new_project quoted-part
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -425,7 +400,7 @@ A request to buy.
 
 _Avoid_: big 'order'
 EOF
-expect_refusal "a quoted word inside a phrase" "an apostrophe inside a word"
+expect_refusal "a quoted word inside a phrase" "an apostrophe after a letter"
 
 new_project possessive-word
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -439,12 +414,35 @@ _Avoid_: customer's purchase
 EOF
 expect_exit "an apostrophe inside a word" 0
 
+new_project possessive-phrase
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Customer
+
+A person who buys.
+
+_Avoid_: ledger, customers' purchase
+
+_Except_: customers' ledger
+
+### Customers' Book
+
+What a shop keeps on them.
+
+_Avoid_: book
+EOF
+printf "# Probe\n\nThe customers' purchase here.\n\nThe customers' ledger here.\n\nThe customers' book here.\n" >"$PROJECT/doc.md"
+expect_exit "a plural possessive inside a phrase" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_alert "a possessive phrase on an Avoid line fires" "doc.md:3:5:Glossary.Terms:Use 'Customer' instead of 'customers' purchase'."
+expect_no_alert "a possessive phrase on an Except line and in a term stays quiet" "doc.md:(5|7):"
+
 new_project config-colon
 one_entry
 printf 'StylesPath: col\n\n[*.md]\nBasedOnStyles: Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms: NO\n' >"$PROJECT/.vale.ini"
 expect_exit "a config using colons" 0
 expect_file "a colon sets the StylesPath too" col/Glossary/Terms.yml
-expect_no_stdout "a colon sets the other settings too" "set these"
 
 new_project config-no-styles-path
 one_entry
