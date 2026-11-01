@@ -68,15 +68,13 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **`skill-bundled-files`**, in `scripts/rules/skill-bundled-files.js`, holds a file directly under a skill's `scripts/` or `references/` folder to being named by another file of that skill, so an agent can learn it exists. It reads the skill's tree from disk.
 
-**It fails only when it is sure, so a written path counts when it could mean the file.** The working directory of a command is unknown, so a path counts when it lands on the file from any folder of the skill, unless it lands from the writer's own folder on another file. A Python file also names a Python file by importing it.
-
-**What it cannot decide is whether the file that names it is one an agent reaches.** A name in a file no route loads still counts.
+**What it cannot decide is whether the file that names it is one an agent reaches, or where a command's working directory is.** It fails a skill only when it is sure, so an unnamed file can pass.
 
 ## The package-runner rule
 
 **`skill-package-runners`**, in `scripts/rules/skill-package-runners.js`, warns on a runner command the using-scripts page lists that names no version, in a skill's markdown.
 
-**It warns whenever it cannot tell, and what it cannot tell is what the words around a runner mean.** It reads a runner's name followed by a word as a command, whatever stands before it, so a search for a runner's name or a list of runners warns although it runs nothing. A word after a runner can read as a version or as the package. A warning leaves the run passing, so the author reads it and decides.
+**What it cannot decide is what the words around a runner mean.** It warns when it cannot tell, so a warning can name a command that runs no package, and the author reads each one.
 
 ## The argument-placeholder rule
 
