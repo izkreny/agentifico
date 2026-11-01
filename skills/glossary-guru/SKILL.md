@@ -117,7 +117,7 @@ The last section keeps the rule off the glossary, the one file that has to name 
 
 The rule reports a warning, because a common word can still fire on a correct sentence. Add `Glossary.Terms = error` under the `[*.{md,rb}]` section to make a drifted word fail the run.
 
-Vale reads the comments of a source file and never its identifiers or string literals, so a drifted variable name stays for a reader to catch. It has no format for ERB: it reads a `.erb` file whole, whether or not `[formats]` maps it to HTML, so a view's page text fires, and so do its Ruby and its class names, with `place` firing on `place-items-center`. Add `erb` to the `[*.{md,rb}]` section only where the extra `_Except_:` lines are worth it.
+Vale reads the comments of a source file and never its identifiers or string literals, so a drifted variable name stays for a reader to catch. It has no format for ERB. Read as plain text, a `.erb` file's page text, Ruby and class names all fire, with `place` firing on `place-items-center`. With `erb = html` under `[formats]`, a plain HTML tag's attributes go quiet, and the page text and the Ruby still fire, including a class name inside a helper call. Add `erb` to the `[*.{md,rb}]` section only where the extra `_Except_:` lines are worth it.
 
 ## What it does not cover
 
