@@ -118,7 +118,7 @@ const reportSkipped = () => {
   return `, ${skip.size} rule(s) skipped`;
 };
 
-// One run per root, passed to the layout and referenced-path rules so neither reads a tree nobody asked it to read.
+// One run per root, passed to the layout, referenced-path and package-runner rules so none reads a tree nobody asked it to read.
 const results = {};
 for (const root of new Set(files.map((file) => rootOf.get(file)))) {
   Object.assign(
@@ -126,7 +126,7 @@ for (const root of new Set(files.map((file) => rootOf.get(file)))) {
     await lint({
       files: files.filter((file) => rootOf.get(file) === root),
       customRules: rules,
-      config: { ...config, "skill-layout": { root }, "skill-referenced-paths": { root } },
+      config: { ...config, "skill-layout": { root }, "skill-referenced-paths": { root }, "skill-package-runners": { root } },
       // Without this a <!-- markdownlint-disable --> in the target would switch off every rule, skill-vale-directive included.
       noInlineConfig: true,
     }),

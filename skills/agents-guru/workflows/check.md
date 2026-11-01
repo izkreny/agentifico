@@ -64,6 +64,12 @@ Each of their failure modes is silent: a truncated description keeps loading wit
 
 A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root, per *Paths must survive any working directory and any machine* in `workflows/new.md`.
 
+## The package-runner rule
+
+**`skill-package-runners`**, in `scripts/rules/skill-package-runners.js`, warns on a runner command the using-scripts page lists that names no version, in a code span or a fenced line of a skill's markdown. A partial version counts as one, since the page's own examples pin a major alone. A `README.md` is left alone, since a person reads it. A warning leaves the run passing.
+
+**What it cannot decide is whether a word in the command is a version.** Any `@` or comparison in the command reads as one, and a runner it does not list goes unreported.
+
 ## The argument-placeholder rule
 
 **`skill-argument-placeholders`**, in `scripts/rules/skill-argument-placeholders.js`, reports an unescaped `$N` in a code span or a fenced line of a `SKILL.md`, which Claude Code replaces when the skill is called with arguments.

@@ -18,6 +18,7 @@ import hardWrap from "../rules/skill-hard-wrap.js";
 import injectedCommands from "../rules/skill-injected-commands.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
+import packageRunners from "../rules/skill-package-runners.js";
 import portablePaths from "../rules/skill-portable-paths.js";
 import referencedPaths from "../rules/skill-referenced-paths.js";
 import valeDirective from "../rules/skill-vale-directive.js";
@@ -40,6 +41,7 @@ const RULES = [
   referencedPaths,
   argumentPlaceholders,
   injectedCommands,
+  packageRunners,
 ];
 
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
@@ -1322,6 +1324,107 @@ describe("skill-injected-commands", () => {
   });
 });
 
+describe("skill-package-runners", () => {
+  const unpinned = [
+    ["npx", "npx eslint ."],
+    ["bunx", "bunx eslint --fix ."],
+    ["uvx", "uvx ruff check ."],
+    ["pipx", "pipx run black ."],
+    ["deno-npm", "deno run npm:eslint"],
+    ["deno-flag", "deno run --allow-read npm:eslint -- --fix ."],
+    ["deno-jsr", "deno run jsr:@std/http/file-server"],
+    ["go", "go run golang.org/x/tools/cmd/goimports ."],
+    ["scoped", "npx @scope/tool ."],
+    ["flag-first", "npx --yes eslint ."],
+    ["quoted", "pipx run 'black' ."],
+    ["after-and", "cd x && npx eslint ."],
+    ["after-pipe", "cat a | npx eslint"],
+    ["after-semicolon", "cd x; npx eslint"],
+    ["in-substitution", "echo $(npx eslint)"],
+    ["pinned-beside-unpinned", "npx a@1; npx b"],
+    ["wide-space", "pipx   run   black"],
+  ];
+  // Every example on the using-scripts page, so a finding here reports the page's own advice.
+  const pinned = [
+    "uvx ruff@0.8.0 check .",
+    "uvx black@24.10.0 .",
+    "pipx run 'black==24.10.0' .",
+    "pipx run 'ruff==0.8.0' check .",
+    "npx eslint@9 --fix .",
+    "npx create-vite@6 my-app",
+    "bunx eslint@9 --fix .",
+    "bunx create-vite@6 my-app",
+    "deno run npm:create-vite@6 my-app",
+    "deno run --allow-read npm:eslint@9 -- --fix .",
+    "go run golang.org/x/tools/cmd/goimports@v0.28.0 .",
+    "go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0 run",
+    "go run golang.org/x/tools/cmd/goimports@latest .",
+    "npx eslint@9.0.0 .",
+    "npx @scope/tool@1 .",
+    "deno run jsr:@std/http@1/file-server",
+    "npx -p eslint@9 eslint .",
+    "npx --package=eslint@9 eslint .",
+    "uvx --from 'ruff>=0.8' ruff check .",
+  ];
+  const notPackages = [
+    "go run main.go",
+    "go run ./cmd/x",
+    "go run .",
+    "go run -race main.go",
+    "deno run script.ts",
+    "deno run ./script.ts",
+    "deno run --allow-read script.ts",
+    "npx ./bin/tool",
+    "npx /opt/tool",
+    "npx <tool>",
+    "npx $TOOL",
+    'npx "$TOOL"',
+    "npx",
+    "pipx run",
+    "npx --help",
+    "pipx install black",
+    "go build ./...",
+    "deno test",
+    "mynpx eslint",
+    "npx-like eslint",
+  ];
+  const skillWith = (body) => skill("name: x\ndescription: |\n  x", body);
+  for (const [id, command] of unpinned) {
+    it(`reports ${id} in a span and a fence`, async () => {
+      expectDetail(await findings(`fx/${id}/SKILL.md`, skillWith(`Run \`${command}\` now.`), packageRunners), "skill-package-runners", "names no version");
+      expectDetail(
+        await findings(`fx/${id}/SKILL.md`, skillWith(`\`\`\`bash\n${command}\n\`\`\``), packageRunners),
+        "skill-package-runners",
+        "names no version",
+      );
+    });
+  }
+  for (const command of [...pinned, ...notPackages]) {
+    it(`leaves ${command} alone`, async () => {
+      expectClean(await findings("fx/clean/SKILL.md", skillWith(`Run \`${command}\` now.`), packageRunners), "skill-package-runners");
+      expectClean(await findings("fx/clean/SKILL.md", skillWith(`\`\`\`bash\n${command}\n\`\`\``), packageRunners), "skill-package-runners");
+    });
+  }
+  it("names the command it found, and only the unpinned one", async () => {
+    const found = await findings("fx/name/SKILL.md", skillWith("`npx a@1; npx b --flag`"), packageRunners);
+    assert.equal(found.length, 1);
+    expectDetail(found, "skill-package-runners", "npx b --flag names no version");
+  });
+  it("an agent never runs a comment", async () => {
+    expectClean(await findings("fx/comment/SKILL.md", skillWith("```bash\n  # npx eslint .\n```"), packageRunners), "skill-package-runners");
+  });
+  it("prose is not a command", async () => {
+    expectClean(await findings("fx/prose/SKILL.md", skillWith("Do not run npx eslint here."), packageRunners), "skill-package-runners");
+  });
+  it("each finding lands on its own line", async () => {
+    const found = await findings("fx/lines/SKILL.md", skillWith("```bash\nnpx a\nls\nnpx b\n```"), packageRunners);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [8, 10],
+    );
+  });
+});
+
 // check.js prints a finding's context beside its line number, so each case pads the flagged line and wants it back trimmed, and from that line rather than the next.
 describe("a finding's context is its own line, trimmed", () => {
   const bolded = (open) => Array.from({ length: 6 }, (_, i) => `${open}**Lead ${i}** text.${i ? "" : "  "}`).join(open ? "\n" : "\n\n");
@@ -1345,6 +1448,7 @@ describe("a finding's context is its own line, trimmed", () => {
     ["c-vale", valeDirective, "", "<!-- vale off -->  \n\nProse.", "<!-- vale off -->"],
     ["c-placeholder", argumentPlaceholders, "", "  Run `echo $1` here.", "Run `echo $1` here."],
     ["c-injected", injectedCommands, "", "  KEY=!`cmd`", "KEY=!`cmd`"],
+    ["c-runner", packageRunners, "", "  Run `npx eslint` here.", "Run `npx eslint` here."],
   ];
   for (const [id, rule, fm, body, want] of cases) {
     it(id, async () => {

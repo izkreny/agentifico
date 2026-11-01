@@ -1061,6 +1061,33 @@ describe("check.js", () => {
 });
 
 // Exercised directly because check.js globs under its target and can never hand the function a path outside it.
+describe("skill-package-runners, off a tree", () => {
+  const dir = () => path.join(tmp, "runners");
+  beforeAll(() => {
+    mk(dir(), block("runners"), "# Runners\n\n## Install\n\n```bash\nnpx skills add owner/repo\n```\n");
+    fs.mkdirSync(path.join(dir(), "workflows"));
+    fs.writeFileSync(path.join(dir(), "workflows", "run.md"), "# Run\n\nRun `npx eslint .` first.\n");
+  });
+  it("a workflow of the skill is read, and a warning leaves the run passing", () => {
+    const r = run(dir());
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}workflows\/run\.md:3 skill-package-runners \(warning\) .*npx eslint \. names no version/m);
+  });
+  it("a README is for a person, so its install line raises nothing", () => {
+    assert.doesNotMatch(run(dir()).out, /README\.md:\d+ skill-package-runners/);
+  });
+  it("a markdown file outside any skill is not read", () => {
+    const outside = path.join(tmp, "runners-outside");
+    fs.mkdirSync(outside);
+    fs.writeFileSync(path.join(outside, "notes.md"), "# Notes\n\nRun `npx eslint .` first.\n");
+    assert.doesNotMatch(run(outside).out, /skill-package-runners/);
+  });
+  it("a file target resolves against the folder the command runs in", () => {
+    assert.match(run(path.join(dir(), "workflows", "run.md"), process.env, dir()).out, /skill-package-runners/);
+    assert.doesNotMatch(run(path.join(dir(), "workflows", "run.md"), process.env, path.join(dir(), "workflows")).out, /skill-package-runners/);
+  });
+});
+
 describe("enclosingSkill", () => {
   it("a sibling whose name extends the target's is outside it", () => {
     assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), path.join(tmp, "a")), null);
