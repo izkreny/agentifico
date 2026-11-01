@@ -39,8 +39,8 @@ The version check sees a new package, so it passes on any version, and `1.0.0` i
 
 ## Open questions
 
-- **May this branch add a `glossary-guru` row to the package table in the root `README.md`?** I recommend yes: every other package has a row, and the row is one line. The owner's grant in the issue covers `.agents/gh-solo.md` only, so the row stays out until the owner says so.
+None.
 
 ## Settled
 
-None yet.
+- **May this branch add a `glossary-guru` row to the package table in the root `README.md`?** Yes, the owner said so in the terminal. The edit is that one row, and nothing else in the file.
