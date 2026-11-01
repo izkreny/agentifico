@@ -90,7 +90,8 @@ export default {
       }
       if (sectionLevel === null) continue;
       walk([token], (inner) => {
-        const url = inner.type === "link" || inner.type === "image" ? definitions.get(referenceLabel(inner)) : CARRIES_A_LINK.has(inner.type) ? inner.text : undefined;
+        const url =
+          inner.type === "link" || inner.type === "image" ? definitions.get(referenceLabel(inner)) : CARRIES_A_LINK.has(inner.type) ? inner.text : undefined;
         if (!url || !unpinned(url)) return;
         onError({
           lineNumber: inner.startLine,
