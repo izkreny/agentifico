@@ -64,7 +64,7 @@ The sections are `## Language`, `## Relationships`, `## Flagged ambiguities` and
 
 An entry is the term in bold, a definition of one or two sentences saying what the term is rather than what it does, and an `_Avoid_:` line naming the words not to use for it. A term no other word competes with has no `_Avoid_:` line, because an invented word would send the next reader looking for drift that never happened.
 
-An entry stands on its own: it names no file path, class, method, table, config value, date, owner or issue link, so it stays true when the code it describes is renamed. It may lean on another entry, and a project-specific word it leans on needs an entry of its own, unless the word is a property its definition explains.
+An entry stands on its own: it names no file path, class, method, table, config value, date, owner or issue link, so it stays true when the code it describes is renamed. It may lean on another entry, and a project-specific word it leans on needs an entry of its own, unless the word is a property some entry's definition explains.
 
 Refuse an entry for a general programming term, such as a timeout, a queue or a session, however heavily the project uses it, and say why, because a reader already knows the word and an entry would only bury the ones that are specific to this project.
 
