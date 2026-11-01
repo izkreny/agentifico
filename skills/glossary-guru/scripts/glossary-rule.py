@@ -35,7 +35,7 @@ TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "vale.ini.templat
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
 PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ -]|(?<=[^\W_])'(?=[^\W_]| ))+")
 LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
-NEAR_LIST_LINE = re.compile(r"(?:^|\W)[_*]{1,2}(?:avoid|except)(?:[_*]{1,2}\s*:|\s*:)|^\W*(?:avoid|except)\s*:|^\W*[_*]{1,2}(?:avoid|except)[_*]{1,2}(?:\s|[-=])", re.IGNORECASE)
+NEAR_LIST_LINE = re.compile(r"(?:^|\W)[_*]{1,2}(?:avoid|except)(?:[_*]{1,2}\s*:|\s*:)|^\W*(?:avoid|except)\s*:|^\W*[_*]{1,2}(?:avoid|except)[_*]{1,2}(?![^\W_])", re.IGNORECASE)
 SECTION = re.compile(r"##[ \t]+(.+?)(?:[ \t]+#+)?")
 TERM = re.compile(r"###[ \t]+(.+?)(?:[ \t]+#+)?")
 # WHY: a backtick fence's info string cannot hold a backtick, so a line such as "```order``` is a request." opens no fence.
