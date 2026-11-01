@@ -1542,7 +1542,7 @@ describe("skill-pinned-sources", () => {
       const dir = mkSkill(what.replace(/\W+/g, "-"), `## Sources\n\n- [A source](${url}): an idea.\n`);
       const r = run(dir);
       assert.equal(r.code, 0, r.out);
-      assert.match(r.out, new RegExp(`^ {2}README\\.md:11 skill-pinned-sources \\(warning\\) .*${url.replaceAll(/[.]/g, "\\.")} names no commit`, "m"));
+      assert.match(r.out, new RegExp(`^ {2}README\\.md:11 skill-pinned-sources \\(warning\\) .*${url.replaceAll(/[.?]/g, "\\$&")} names no commit`, "m"));
     });
   const pinned = [
     ["a blob at a commit", `https://github.com/owner/repo/blob/${SHA}/SKILL.md`],
