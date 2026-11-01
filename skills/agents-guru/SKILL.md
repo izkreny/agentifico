@@ -78,4 +78,5 @@ Based on `$ARGUMENTS`, do exactly one of the following. Test the `manage` bullet
 | `references/managing.md` | installing and updating skills, and why not to hand-edit an installed one |
 | `references/maintaining.md` | registering a rule, why the rules take their shape, growing a phrase list, and the suite; read it before editing `assets/` or `scripts/`, and on no route |
 | `references/porting.md` | whether a rule from another tool's catalogue earns a place here, and where; read it before porting one, and on no route |
+| `references/readme.md` | what a skill's README owes its reader, and when it links a file; read it when writing or reviewing a README |
 | `scripts/` | `scripts/check.js`, the command that runs markdownlint and Vale over a target with this skill's own rules; `scripts/lint-config.js`, the configuration and the rule list it runs with; the rules under `scripts/rules/`, beside the helpers they share; and the suite under `scripts/test/`, which re-verifies every rule and every argument shape after any edit |

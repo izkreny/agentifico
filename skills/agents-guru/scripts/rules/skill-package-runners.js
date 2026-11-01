@@ -56,7 +56,7 @@ export default {
   tags: ["agents-guru"],
   parser: "micromark",
   function(params, onError) {
-    // WHY: a README is written for a person, per workflows/new.md, so its install line is no instruction to an agent.
+    // WHY: a README is written for a person, per references/readme.md, so its install line is no instruction to an agent.
     if (path.basename(params.name) === "README.md") return;
     if (!isSkillFile(params.name) && !owningSkill(params.name, params.config.root ?? process.cwd())) return;
     walk(params.parsers.micromark.tokens, (token) => {

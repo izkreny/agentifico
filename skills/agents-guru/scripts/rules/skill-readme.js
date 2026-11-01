@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { FRONTMATTER_LINE, isSkillFile } from "./frontmatter.js";
 
-// No trailing word boundary on the heading, because workflows/new.md states the form as a heading whose text opens with the word.
+// No trailing word boundary on the heading, because references/readme.md states the form as a heading whose text opens with the word.
 const INSTALL_HEADING = /^#{1,6}\s+(?:install|installation|setup|getting started)/im;
 const INSTALL_COMMAND = /^[^\S\n]*(?:skills add|npm install|npm ci|mise use|claude plugin install|git clone|ln -s)\b/im;
 

@@ -1510,15 +1510,15 @@ describe("skill-readme", () => {
 });
 
 describe("carriesInstallForm", () => {
-  // The forms are read from workflows/new.md, which owns the list, so a form added there alone fails here by name.
-  const newMd = fs.readFileSync(path.resolve(path.dirname(check), "..", "workflows", "new.md"), "utf8");
-  const listed = newMd.split("\n").find((l) => l.startsWith("Give the section a heading opening with")) ?? "";
+  // The forms are read from references/readme.md, which owns the list, so a form added there alone fails here by name.
+  const readmeMd = fs.readFileSync(path.resolve(path.dirname(check), "..", "references", "readme.md"), "utf8");
+  const listed = readmeMd.split("\n").find((l) => l.startsWith("Give the section a heading opening with")) ?? "";
   const [headingPart = "", commandPart = ""] = listed.split("or put the command in a fenced block");
   const spans = (s) => [...s.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
   const headings = spans(headingPart);
   const commands = spans(commandPart);
-  it("reads a heading list and a command list from workflows/new.md", () => assert.ok(headings.length > 0 && commands.length > 0));
-  // Each heading is asked for at more than one level and capitalised, because new.md accepts any heading that opens with the word.
+  it("reads a heading list and a command list from references/readme.md", () => assert.ok(headings.length > 0 && commands.length > 0));
+  // Each heading is asked for at more than one level and capitalised, because readme.md accepts any heading that opens with the word.
   const capitalised = (s) => s[0].toUpperCase() + s.slice(1);
   for (const h of headings) {
     for (const level of ["#", "##", "###"]) {

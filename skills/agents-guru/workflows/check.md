@@ -54,7 +54,7 @@ Each of their failure modes is silent: a truncated description keeps loading wit
 
 ## The README rule
 
-**`skill-readme`**, in `scripts/rules/skill-readme.js`, holds every skill to a `README.md` that says how it is installed. Which install forms count is `workflows/new.md`'s to state, under *How it is installed*.
+**`skill-readme`**, in `scripts/rules/skill-readme.js`, holds every skill to a `README.md` that says how it is installed. Which install forms count is `references/readme.md`'s to state, under *How it is installed*.
 
 ## The path rules
 
