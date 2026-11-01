@@ -26,10 +26,8 @@ GLOSSARY_PATHS = (Path("docs/GLOSSARY.md"), Path("GLOSSARY.md"))
 # WHY: Vale 3.25.1 finds its config under exactly these names, and a project with one of them must not get a second.
 CONFIG_PATHS = (Path(".vale.ini"), Path("vale.ini"), Path("_vale.ini"), Path(".vale"), Path("_vale"))
 DEFAULT_STYLES = ".vale/styles"
-STYLES_LINE = f"StylesPath = {DEFAULT_STYLES}"
-STYLE_LINES = ["[*.{md,rb}]", "BasedOnStyles = Glossary"]
-# WHY: a rule has no key limiting it by file path, and the glossary has to name its drift words, so only the config can keep the rule off it.
-GLOSSARY_LINES = ["[**/GLOSSARY.md]", "Glossary.Terms = NO"]
+# WHY: the name carries `.template` so that a Vale run started in this skill's directory never takes it for a config.
+TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "vale.ini.template"
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
 PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ '-])+")
 LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
@@ -71,11 +69,22 @@ def styles_path_in(config_text):
 
 
 def lines_to_add(config_text, styles_path):
-    lines = [] if styles_path else [STYLES_LINE]
-    if not re.search(r"^\s*BasedOnStyles\s*=.*\bGlossary\b", config_text, re.MULTILINE):
-        lines += STYLE_LINES
-    if not re.search(r"^\s*Glossary\.Terms\s*=\s*NO\b", config_text, re.MULTILINE):
-        lines += GLOSSARY_LINES
+    """Return each setting of the template the config lacks, under its section heading."""
+    lines, section = [], None
+    for raw in TEMPLATE.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("["):
+            section = line
+            continue
+        key, _, value = line.partition(" = ")
+        if key == "StylesPath":
+            present = styles_path
+        else:
+            present = re.search(rf"^\s*{re.escape(key)}\s*=.*\b{re.escape(value)}\b", config_text, re.MULTILINE)
+        if not present:
+            lines += [section, line] if section else [line]
     return lines
 
 
@@ -191,7 +200,7 @@ def main():
     rule.write_text(render(swap, exceptions), encoding="utf-8")
     print(f"glossary-rule: wrote {rule} with {len(swap)} word(s) from {glossary}")
     if config is None:
-        CONFIG_PATHS[0].write_text("\n\n".join([STYLES_LINE, "\n".join(STYLE_LINES), "\n".join(GLOSSARY_LINES)]) + "\n", encoding="utf-8")
+        CONFIG_PATHS[0].write_text(TEMPLATE.read_text(encoding="utf-8"), encoding="utf-8")
         print(f"glossary-rule: wrote {CONFIG_PATHS[0]}, which turns the rule on")
     elif missing := lines_to_add(config_text, styles_path):
         print(f"glossary-rule: add these lines to {config} to turn the rule on, with any StylesPath above every section:")

@@ -101,15 +101,9 @@ Propose folding or retiring only on evidence of where the concept went. A delete
 python3 <skill-dir>/scripts/glossary-rule.py
 ```
 
-The rule lands at `<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none. A project with no config gets a `<repo-root>/.vale.ini` that turns the rule on, and a project with one is told which lines to add. Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it.
+The rule lands at `<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none. A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told which of that file's lines to add. Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it.
 
-The lines that turn it on are `BasedOnStyles = Glossary` under `[*.{md,rb}]`, and `Glossary.Terms = NO` under `[**/GLOSSARY.md]`, which keeps the rule off the glossary because a glossary has to name its drift words.
-
-The rule reports a warning, because a common word can still fire on a correct sentence. Add `Glossary.Terms = error` under the `[*.{md,rb}]` section to make a drifted word fail the run.
-
-Vale checks a source file's comments, but not its variable names or strings, so a reader still has to catch a drifted name in code.
-
-Leave `.erb` files out of the `[*.{md,rb}]` section. Vale cannot parse them, so it flags their Ruby and CSS class names as well as their page text, and `erb = html` under `[formats]` barely helps.
+`assets/vale.ini.template` holds the lines that turn the rule on, and explains in its comments what Vale checks and how to make a drifted word fail the run.
 
 ## What it does not cover
 

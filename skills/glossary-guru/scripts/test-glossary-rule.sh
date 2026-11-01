@@ -5,6 +5,7 @@
 set -euo pipefail
 
 SCRIPT="$(cd "$(dirname "$0")" && pwd)/glossary-rule.py"
+TEMPLATE="$(cd "$(dirname "$0")/../assets" && pwd)/vale.ini.template"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
@@ -276,6 +277,7 @@ printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
 expect_exit "a project with no Vale config" 0
 expect_file "no config: the rule lands under .vale/styles" .vale/styles/Glossary/Terms.yml
 expect_file "no config: the script writes .vale.ini" .vale.ini
+if cmp -s "$PROJECT/.vale.ini" "$TEMPLATE"; then pass "the written config is a copy of the template"; else fail "the written config differs from the template"; fi
 (cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
 expect_alert "the written config turns the rule on" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
 expect_no_alert "the written config keeps the rule off the glossary" "GLOSSARY.md:"
@@ -283,6 +285,13 @@ cp "$PROJECT/.vale.ini" "$WORK/written-config"
 expect_exit "a second run on the written config" 0
 if cmp -s "$PROJECT/.vale.ini" "$WORK/written-config"; then pass "a second run leaves the written config alone"; else fail "a second run changed the written config"; fi
 expect_no_stdout "a second run asks for nothing" "add"
+
+new_project template-name
+cp "$TEMPLATE" "$PROJECT/"
+printf 'A probe.\n' >"$PROJECT/doc.md"
+template_exit=0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || template_exit=$?
+if [ "$template_exit" = 2 ] && grep -qF "E100" "$PROJECT/alerts"; then pass "Vale does not take the template for its config"; else fail "Vale took the template for its config: exit $template_exit: $(cat "$PROJECT/alerts")"; fi
 
 new_project config-styles-path
 one_entry

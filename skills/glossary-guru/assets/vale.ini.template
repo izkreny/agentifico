@@ -1,0 +1,13 @@
+# Written by the glossary-guru skill's glossary-rule.py, which never changes this file once it exists.
+# The rule lands at Glossary/Terms.yml under StylesPath. Commit both, and rerun the script when an `_Avoid_:` or `_Except_:` line changes.
+StylesPath = .vale/styles
+
+# Vale checks a source file's comments, but not its variable names or strings, so a reader still has to catch a drifted name in code.
+# Leave .erb files out. Vale cannot parse them, so it flags their Ruby and CSS class names as well as their page text, and `erb = html` under [formats] barely helps.
+# The rule reports a warning, because a common word can still fire on a correct sentence. To make a drifted word fail the run, add `Glossary.Terms = error` under this section.
+[*.{md,rb}]
+BasedOnStyles = Glossary
+
+# WHY: a glossary has to name its drift words, and a rule has no key limiting it by file path.
+[**/GLOSSARY.md]
+Glossary.Terms = NO
