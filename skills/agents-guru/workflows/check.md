@@ -48,7 +48,7 @@ markdownlint's own rules run at their defaults. A rule that is off is named in `
 
 Each of their failure modes is silent: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. `SKILL.md` owns the trap classes, under "YAML eats the description at `#`".
 
-**`skill-description`**, in `scripts/rules/skill-description.js`, reads the frontmatter as raw lines and never parses it. A placeholder in angle brackets counts as the XML tag it bars, and square brackets or `argument-hint` carry one instead.
+**`skill-description`**, in `scripts/rules/skill-description.js`, reads the frontmatter as raw lines and never parses it.
 
 **`skill-frontmatter-parsed`**, in `scripts/rules/skill-frontmatter-parsed.js`, parses the same frontmatter with a real YAML parser and compares each top-level plain scalar against its raw line. Neither replaces the other: the silent class is valid YAML, so a parser returns the corrupted value without complaint.
 
@@ -66,7 +66,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The bundled-file rule
 
-**`skill-bundled-files`**, in `scripts/rules/skill-bundled-files.js`, holds a file directly under a skill's `scripts/` or `references/` folder to being named by another file of that skill, so an agent can learn it exists. It reads the skill's tree from disk, and a dot-named file is neither held to it nor counted as naming one.
+**`skill-bundled-files`**, in `scripts/rules/skill-bundled-files.js`, holds a file directly under a skill's `scripts/` or `references/` folder to being named by another file of that skill, so an agent can learn it exists. It reads the skill's tree from disk.
 
 **What it cannot decide is whether the file that names it is one an agent reaches.** A name in a file no route loads still counts.
 
@@ -84,13 +84,13 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The injected-command rule
 
-**`skill-injected-commands`**, in `scripts/rules/skill-injected-commands.js`, reports what stops a `!` command in a `SKILL.md` from running: a `!` that neither opens a line nor follows whitespace, and a raw control character in the command. It reads the parser's tree, so a `!` inside a code span is no command.
+**`skill-injected-commands`**, in `scripts/rules/skill-injected-commands.js`, reports what stops a `!` command in a `SKILL.md` from running, per the skills page and the errors page. It reads the parser's tree, so a `!` inside a code span is no command.
 
 **What it cannot decide is whether a command in prose was meant to run.** Text such as ``see!`this` `` reads as a command in the wrong place.
 
 ## The plugin-variable rule
 
-**`plugin-body-variables`**, in `scripts/rules/plugin-body-variables.js`, reports a bare path variable in the body of a plugin's `SKILL.md` or agent file. A skill counts as a plugin's when a folder above it holds `<plugin-dir>/.claude-plugin/plugin.json`, since a marketplace's root holds a `.claude-plugin` folder too.
+**`plugin-body-variables`**, in `scripts/rules/plugin-body-variables.js`, reports a bare path variable in the body of a plugin's `SKILL.md` or agent file.
 
 ## The name rule
 
