@@ -113,7 +113,7 @@ BasedOnStyles = Glossary
 Glossary.Terms = NO
 ```
 
-The last section keeps the rule off the glossary, the one file that has to name its drift words.
+The `[**/GLOSSARY.md]` section keeps the rule off the glossary, because a glossary has to name its drift words.
 
 The rule reports a warning, because a common word can still fire on a correct sentence. Add `Glossary.Terms = error` under the `[*.{md,rb}]` section to make a drifted word fail the run.
 
