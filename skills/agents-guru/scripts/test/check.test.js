@@ -1100,7 +1100,6 @@ describe("skill-bundled-files", () => {
     ["own-path", "Read references/kept.md."],
     ["own-path-relative", "Read ../references/kept.md."],
     ["own-path-placeholder", "Read <skill-dir>/references/kept.md."],
-    ["dot-slash", "Read ./kept.md."],
     ["variable", "Read $DIR/kept.md."],
     ["braced-variable", `Read \${DIR}/kept.md.`],
     ["substitution", 'Read "$(dirname "$0")/kept.md".'],
@@ -1117,16 +1116,33 @@ describe("skill-bundled-files", () => {
     fs.appendFileSync(path.join(dir, "SKILL.md"), "\nUse this to deploy the thing.\n");
     assert.equal(reports(run(dir).out, "scripts\\/deploy"), true);
   });
-  for (const [id, text] of [
-    ["own path", "Run `scripts/deploy` first."],
-    ["dot slash", "Run `./deploy` first."],
+  it("an extensionless file is named by its own path", () => {
+    const dir = tree("word-path", { "scripts/deploy": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun `scripts/deploy` first.\n");
+    assert.equal(reports(run(dir).out, "scripts\\/deploy"), false);
+  });
+  it("an extensionless file is named by a sibling's dot slash", () => {
+    const dir = tree("word-sibling", { "scripts/deploy": "x\n", "scripts/run.sh": "./deploy\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun `scripts/run.sh` first.\n");
+    assert.equal(reports(run(dir).out, "scripts\\/deploy"), false);
+  });
+  // WHY: each of these points at a file of the same name somewhere other than this one.
+  for (const [id, file, text] of [
+    ["another-skill", "SKILL.md", "\nRead ../other-skill/references/review.md.\n"],
+    ["longer-path", "SKILL.md", "\nRead skills/foo/references/review.md.\n"],
+    ["own-folder-dot-slash", "workflows/a.md", "./review.md\n"],
   ]) {
-    it(`an extensionless file is named by its ${id}`, () => {
-      const dir = tree(`word-${id.replace(" ", "-")}`, { "scripts/deploy": "x\n" });
-      fs.appendFileSync(path.join(dir, "SKILL.md"), `\n${text}\n`);
-      assert.equal(reports(run(dir).out, "scripts\\/deploy"), false);
+    it(`a path elsewhere does not name it: ${id}`, () => {
+      const dir = tree(`elsewhere-${id}`, { "references/review.md": "# R\n\nbody\n", "workflows/a.md": "# A\n\nbody\n" });
+      fs.appendFileSync(path.join(dir, file), text);
+      assert.equal(reports(run(dir).out, "references\\/review\\.md"), true);
     });
   }
+  it("a dot slash names a file of the same folder", () => {
+    const dir = tree("own-folder", { "references/kept.md": "# K\n\nbody\n", "references/a.md": "# A\n\nSee ./kept.md.\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead references/a.md.\n");
+    assert.equal(reports(run(dir).out, "references\\/kept"), false);
+  });
   for (const [id, line] of [
     ["plain", "import helper"],
     ["list", "import os, helper"],
@@ -1134,24 +1150,42 @@ describe("skill-bundled-files", () => {
     ["from", "from helper import run"],
     ["from-package", "from scripts.helper import run"],
     ["from-dot", "from . import helper"],
+    ["from-relative", "from .helper import run"],
+    ["from-relative-up", "from ..helper import run"],
+    ["from-own-folder", "from scripts import helper"],
+    ["import-own-folder", "import scripts.helper"],
+    ["from-dot-list", "from . import os, helper as h"],
+    ["from-dot-lines", "from . import (\n    other,\n    helper,\n)"],
   ]) {
     it(`a Python file is named by an import: ${id}`, () => {
       const r = run(tree(`py-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
       assert.equal(reports(r.out, "scripts\\/helper"), false, r.out);
     });
   }
-  it("an import of a longer module name, and a non-Python file's module name, are not the name", () => {
+  for (const [id, line] of [
+    ["longer", "import helper_two"],
+    ["attribute", "from os import helper"],
+    ["dotted", "import os.helper"],
+    ["alias", "import json as helper"],
+    ["imported-from-longer", "from helper_two import helper"],
+    ["comment", "# import helper"],
+  ]) {
+    it(`a Python line does not name it: ${id}`, () => {
+      const r = run(tree(`py-not-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
+      assert.equal(reports(r.out, "scripts\\/helper"), true, r.out);
+    });
+  }
+  it("only a Python file imports, and only a Python file is imported", () => {
     const r = run(
-      tree("py-other", {
-        "scripts/main.py": "import helper_two\n",
-        "scripts/helper.py": "x\n",
+      tree("py-prose", {
         "scripts/tool.sh": "x\n",
         "scripts/caller.py": "import tool\n",
-        "notes.md": "# N\n\nRun main.py and caller.py.\n",
+        "scripts/helper.py": "x\n",
+        "notes.md": "# N\n\nimport helper\n\nRun caller.py.\n",
       }),
     );
-    assert.equal(reports(r.out, "scripts\\/helper"), true, r.out);
     assert.equal(reports(r.out, "scripts\\/tool"), true, r.out);
+    assert.equal(reports(r.out, "scripts\\/helper"), true, r.out);
   });
   it("a file does not name itself", () => {
     assert.equal(reports(run(tree("self", { "references/self.md": "# Self\n\nThis is self.md.\n" })).out, "references\\/self\\.md"), true);

@@ -37,19 +37,36 @@ const isBundled = (rel) => {
   return parts.length === 2 && BUNDLE_FOLDERS.has(parts[0]);
 };
 
-function namingPatterns(rel) {
-  const { base, ext, name } = path.parse(rel);
+function pythonImport(rel) {
+  const { dir, name } = path.parse(rel);
+  const module = RegExp.escape(name);
+  const item = "[\\w.]+(?:\\s+as\\s+\\w+)?\\s*,\\s*";
+  const end = "(?![\\w.])";
+  return new RegExp(
+    [
+      `^\\s*from\\s+[\\w.]*?(?<!\\w)${module}\\s+import\\b`,
+      `^\\s*import\\s+(?:${item})*(?:${dir}\\.)?${module}${end}`,
+      `^\\s*from\\s+(?:\\.+|${dir})\\s+import\\s+\\(?\\s*(?:${item})*${module}${end}`,
+    ].join("|"),
+    "m",
+  );
+}
+
+function naming(rel) {
+  const { base, ext } = path.parse(rel);
+  // WHY: `workflows/review.md` points at another file of the same name, while `$DIR/review.md` does not.
+  const start = "(?<![\\w.-])(?<!(?:^|[^$\\w])[\\w-]+/)";
   // WHY: a period after a name closes a sentence, while one followed by more of a word makes it another file.
   const end = "(?!\\.?[\\w-])";
-  // WHY: `workflows/review.md` points at another file of the same name, while `./review.md` and `$DIR/review.md` do not.
-  const notAnotherFolder = "(?<![\\w.-])(?<!(?:^|[^$\\w])[\\w-]+/)";
+  const whole = `${start}${RegExp.escape(rel)}${end}`;
   // WHY: without an extension the bare name is an ordinary word, so only a path says it means the file.
-  const bare = `${notAnotherFolder}${ext ? "" : "(?<=/)"}${RegExp.escape(base)}${end}`;
-  const whole = `(?<![\\w-])${RegExp.escape(rel.split(path.sep).join("/"))}${end}`;
-  const module = RegExp.escape(name);
-  // WHY: a Python import names its sibling as a module, without the extension.
-  const imported = `^\\s*(?:from\\s+(?:[\\w.]+\\.)?${module}\\b|(?:from\\s+\\S+\\s+)?import\\s+[^#\\n]*\\b${module}\\b)`;
-  return new RegExp([bare, whole, ...(ext === ".py" ? [imported] : [])].join("|"), "m");
+  const bare = `${ext ? "" : "(?<=/)"}${RegExp.escape(base)}${end}`;
+  const sibling = new RegExp(`${start}${bare}|${whole}`, "m");
+  // WHY: `./name` means the folder of the file that writes it.
+  const elsewhere = new RegExp(`${start}(?<!\\./)${bare}|${whole}`, "m");
+  const imported = ext === ".py" && pythonImport(rel);
+  return (other, text) =>
+    (path.dirname(other) === path.dirname(rel) ? sibling : elsewhere).test(text) || (imported && other.endsWith(".py") && imported.test(text));
 }
 
 export default {
@@ -75,8 +92,8 @@ export default {
     for (const [file, code] of unread) report(`could not read ${relative(file)} (${code}), so no name in it was compared`);
     for (const file of files) {
       if (!isBundled(relative(file))) continue;
-      const naming = namingPatterns(relative(file));
-      const named = [...texts].some(([other, text]) => fs.realpathSync(other) !== fs.realpathSync(file) && naming.test(text));
+      const names = naming(relative(file));
+      const named = [...texts].some(([other, text]) => fs.realpathSync(other) !== fs.realpathSync(file) && names(relative(other), text));
       if (!named) report(`${relative(file)} is named by no file of this skill, so an agent never learns it exists: list it in SKILL.md`);
     }
   },
