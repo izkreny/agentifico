@@ -35,7 +35,7 @@ function withoutClosingQuotes(command) {
   return unpaired ? withoutClosingQuotes(command.slice(0, -1)) : command;
 }
 
-// WHY: this rule only warns, and reading shell quoting kept silencing real commands, so a command runs to the next separator and a word past its closing quote is read with it.
+// WHY: this rule only warns, so it parses no shell, and a command runs to the next separator with a word past its closing quote read as part of it.
 function unpinned(text) {
   return [...text.matchAll(RUNNER)]
     .map(([, written, runner]) => ({ runner, command: written.trim() }))
