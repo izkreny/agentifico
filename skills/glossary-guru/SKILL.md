@@ -119,7 +119,9 @@ The `[**/GLOSSARY.md]` section keeps the rule off the glossary, because a glossa
 
 The rule reports a warning, because a common word can still fire on a correct sentence. Add `Glossary.Terms = error` under the `[*.{md,rb}]` section to make a drifted word fail the run.
 
-Vale reads the comments of a source file and never its identifiers or string literals, so a drifted variable name stays for a reader to catch. It has no format for ERB. Read as plain text, a `.erb` file's page text, Ruby and class names all fire, with `place` firing on `place-items-center`. With `erb = html` under `[formats]`, a plain HTML tag's attributes go quiet, and the page text and the Ruby still fire, including a class name inside a helper call. Add `erb` to the `[*.{md,rb}]` section only where the extra `_Except_:` lines are worth it.
+Vale checks a source file's comments, but not its variable names or strings, so a reader still has to catch a drifted name in code.
+
+Leave `.erb` files out of the `[*.{md,rb}]` section. Vale cannot parse them, so it flags their Ruby and CSS class names as well as their page text, and `erb = html` under `[formats]` barely helps.
 
 ## What it does not cover
 
