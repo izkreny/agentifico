@@ -57,3 +57,9 @@ The suite proves the install-forms test still reads the moved sentence. No gate 
 ## Open questions
 
 None.
+
+## Settled
+
+**Should agents-guru move a patch, as the issue first said, or a minor?** A minor, 8.6.0, because the link convention is a rule a review now holds a skill to. The owner settled it on the PR, and the version needs no further move for the section below.
+
+**Does a README owe a credit to what inspired its skill?** Yes. The owner folded it into this branch after the first round: `skills/agents-guru/references/readme.md` (new) requires an `## Inspiration` or `## Sources` section when a skill draws on an outside source, and `skills/agents-guru/README.md` carries one crediting agnix at the tag #308 read.
