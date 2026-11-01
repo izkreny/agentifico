@@ -1529,6 +1529,13 @@ describe("skill-pinned-sources", () => {
     ["a raw copy on a branch", "https://raw.githubusercontent.com/owner/repo/main/SKILL.md"],
     ["a file in a folder named issues", "https://github.com/owner/repo/blob/main/issues/x.md"],
     ["a repository named pull", "https://github.com/owner/pull"],
+    ["a gist by its id alone", "https://gist.github.com/c28c7a7189726dc3d8a89b6db92c1c8d"],
+    ["a raw copy on a branch named issues", "https://raw.githubusercontent.com/owner/repo/issues/SKILL.md"],
+    ["a pull request's changed files", "https://github.com/owner/repo/pull/12/files"],
+    ["a pull request's commit list", "https://github.com/owner/repo/pull/12/commits"],
+    ["a file under a subgroup", "https://gitlab.com/group/sub/repo/-/blob/main/SKILL.md"],
+    ["a branch's history", "https://github.com/owner/repo/commits/main"],
+    ["a bare repository with a query", "https://github.com/owner/repo?tab=readme-ov-file"],
   ];
   for (const [what, url] of unpinned)
     it(`warns on ${what} and leaves the run passing`, () => {
@@ -1550,6 +1557,14 @@ describe("skill-pinned-sources", () => {
     ["a merge request, which has no commit", "https://gitlab.com/owner/repo/-/merge_requests/12"],
     ["an owner's profile, which has no commit", "https://github.com/owner"],
     ["an owner's profile with a slash", "https://github.com/owner/"],
+    ["an issue under a subgroup, which has no commit", "https://gitlab.com/group/sub/repo/-/issues/12"],
+    ["a merge request under a subgroup, which has no commit", "https://gitlab.com/group/sub/repo/-/merge_requests/12"],
+    ["an advisory, which has no commit", "https://github.com/owner/repo/security/advisories/GHSA-aaaa-bbbb-cccc"],
+    ["an organisation's project, which has no commit", "https://github.com/orgs/owner/projects/1"],
+    ["a topic, which has no commit", "https://github.com/topics/foo"],
+    ["a gist owner's profile, which has no commit", "https://gist.github.com/owner"],
+    ["an issue in a repository named blob", "https://github.com/owner/blob/issues/3"],
+    ["a pull request's files at a commit", `https://github.com/owner/repo/pull/12/files/${SHA}`],
     ["a file of the repository", "../sibling/SKILL.md"],
   ];
   for (const [what, url] of pinned)
@@ -1564,7 +1579,7 @@ describe("skill-pinned-sources", () => {
     }
   });
   it("reads an autolink, a bare URL, a reference, a table cell and a deeper heading in the section", () => {
-    const url = "https://github.com/owner/repo";
+    const url = "https://github.com/owner/repo/blob/main";
     const dir = mkSkill(
       "shapes",
       `## Sources\n\n- <${url}/autolink>\n- ${url}/bare\n\n[used][ref]\n\n[ref]: ${url}/definition\n\n| Source |\n|---|\n| [cell](${url}/cell) |\n\n### Deeper\n\n[deeper](${url}/deeper)\n`,
@@ -1578,18 +1593,19 @@ describe("skill-pinned-sources", () => {
     assert.equal(found.length, 5, String(found));
   });
   it("reads a link inside a heading in the section, and leaves one outside it alone", () => {
-    const url = "https://github.com/owner/repo";
+    const url = "https://github.com/owner/repo/blob/main";
     const found = findings(mkSkill("in-heading", `## Sources\n\n### [inside](${url}/inside)\n\nWhat it gave.\n\n## [After](${url}/after)\n\nText.\n`));
     assert.equal(found.length, 1, String(found));
-    assert.match(found[0], /repo\/inside names no commit/);
+    assert.match(found[0], /main\/inside names no commit/);
   });
   it("judges a reference where it is used, wherever its definition sits", () => {
     const url = "https://github.com/owner/repo";
-    const used = `## Sources\n\n[full][Full Label] and [collapsed][] and [shortcut].\n\n## Later\n\nText.\n\n[full  label]: ${url}/full\n[COLLAPSED]: ${url}/collapsed\n[shortcut]: ${url}/shortcut\n`;
+    const file = `${url}/blob/main`;
+    const used = `## Sources\n\n[full][Full Label] and [collapsed][] and [shortcut].\n\n## Later\n\nText.\n\n[full  label]: ${file}/full\n[COLLAPSED]: ${file}/collapsed\n[shortcut]: ${file}/shortcut\n`;
     const found = findings(mkSkill("ref-used", used));
     for (const shape of ["full", "collapsed", "shortcut"])
       assert.ok(
-        found.some((f) => f.includes(`repo/${shape} names no commit`)),
+        found.some((f) => f.includes(`main/${shape} names no commit`)),
         `${shape}: ${found}`,
       );
     assert.equal(found.length, 3, String(found));
@@ -1612,11 +1628,11 @@ describe("skill-pinned-sources", () => {
     assert.deepEqual(findings(dir), []);
   });
   it("a heading no deeper than the section ends it, and a later section still counts", () => {
-    const url = "https://github.com/owner/repo";
+    const url = "https://github.com/owner/repo/blob/main";
     const dir = mkSkill("ends", `### Sources\n\nNone.\n\n## After\n\n[a tool](${url})\n\n## Sources\n\n[a tool](${url}/second)\n`);
     const found = findings(dir);
     assert.equal(found.length, 1, String(found));
-    assert.match(found[0], /repo\/second names no commit/);
+    assert.match(found[0], /main\/second names no commit/);
   });
   it("reads only a README beside a SKILL.md", () => {
     const url = "https://github.com/owner/repo";
