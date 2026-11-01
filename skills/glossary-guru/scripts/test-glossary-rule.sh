@@ -741,16 +741,44 @@ expect_exit "a heading that only starts with the section's name" 0
 expect_rule_lacks "that heading does not reopen the section" "purchase"
 
 count=0
-for line in '_Avoid_ : purchase' '_Avoid:_ purchase' '*Avoid*: purchase' '*Avoid:* purchase' '**Avoid**: purchase' '_avoid_: purchase' '- _Avoid_: purchase' '> _Avoid_: purchase' 'A request. _Avoid_: purchase' 'Avoid: purchase' '*Except:* in the long run'; do
+for line in '_Avoid_ : purchase' '_Avoid:_ purchase' '*Avoid*: purchase' '*Avoid:* purchase' '**Avoid**: purchase' '_avoid_: purchase' '- _Avoid_: purchase' '> _Avoid_: purchase' 'A request. _Avoid_: purchase' 'Avoid: purchase' '*Except:* in the long run' '*Avoid: purchase*'; do
   count=$((count + 1))
   new_project near-miss-$count
   entry_with_line "$line"
   expect_refusal "the line '$line'" "is written _Avoid_: or _Except_: on a line of its own"
 done
 
-new_project plain-prose
-entry_with_line 'Customers avoid this, except at the till.'
-expect_exit "a definition using the word avoid in a sentence" 0
+count=0
+for line in 'Customers avoid this, except at the till.' 'A request to buy, *except* a refund.' 'A request to buy, _except_ a refund.' 'A request to buy, **except** a refund.' 'Customers must *avoid* this one.' 'A request, written `_Avoid_` nowhere.' 'A request. See _except for_ the rest.'; do
+  count=$((count + 1))
+  new_project plain-prose-$count
+  entry_with_line "$line"
+  expect_exit "the definition '$line'" 0
+done
+
+new_project retired-prose
+printf '# Shop\n\n## Retired\n\n- **Voucher**: a prepaid credit, *except* gift ones.\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "an emphasised except outside the Language section" 0
+
+new_project term-closing-hashes
+printf '## Language\n\n### Order ###\n\nA request to buy.\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a term heading with closing hashes" 0
+expect_rule_holds "closing hashes stay out of the term" '"purchase": "Order"'
+
+new_project term-tab
+printf '## Language\n\n###\tOrder\n\nA request to buy.\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a term heading with a tab" 0
+expect_rule_holds "a tab still opens an entry" '"purchase": "Order"'
+
+new_project hand-written-rule
+one_entry
+mkdir -p "$PROJECT/.vale/styles/Glossary"
+printf 'extends: substitution\nmessage: "hand-written"\nswap:\n  fee: Charge\n' >"$PROJECT/.vale/styles/Glossary/Terms.yml"
+cp "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/hand-written"
+expect_exit "a rule file this script did not write" 2
+if grep -qF "did not write" "$PROJECT/stderr"; then pass "that refusal says why"; else fail "that refusal's stderr: $(cat "$PROJECT/stderr")"; fi
+if cmp -s "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/hand-written"; then pass "a hand-written rule stays as it was"; else fail "a hand-written rule was replaced"; fi
+expect_no_file "that refusal writes no config" .vale.ini
 
 new_project fenced
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -803,6 +831,19 @@ expect_exit "a fence holding other fence markers" 0
 expect_rule_holds "only a matching marker closes a fence" '"purchase": "Order"'
 expect_rule_lacks "another character's marker closes no fence" "thing"
 expect_rule_lacks "a shorter marker closes no fence" "other"
+
+new_project backticks-in-prose
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+```order``` is a request.
+
+_Avoid_: purchase
+EOF
+expect_exit "a line opening with backticks that hold a word" 0
+expect_rule_holds "that line opens no fence" '"purchase": "Order"'
 
 new_project sharp-s-term
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'

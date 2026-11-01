@@ -35,11 +35,14 @@ TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "vale.ini.templat
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
 PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ -]|(?<=[^\W_])'(?=[^\W_]| ))+")
 LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
-NEAR_LIST_LINE = re.compile(r"(?:^|\W)[_*]{1,2}(?:avoid|except)(?![^\W_])|^\W*(?:avoid|except)\s*:", re.IGNORECASE)
+NEAR_LIST_LINE = re.compile(r"(?:^|\W)[_*]{1,2}(?:avoid|except)(?:[_*]{1,2}\s*:|\s*:)|^\W*(?:avoid|except)\s*:", re.IGNORECASE)
 SECTION = re.compile(r"##[ \t]+(.+?)(?:[ \t]+#+)?")
-FENCE = re.compile(r"(`{3,}|~{3,})(.*)")
+TERM = re.compile(r"###[ \t]+(.+?)(?:[ \t]+#+)?")
+# WHY: a backtick fence's info string cannot hold a backtick, so a line such as "```order``` is a request." opens no fence.
+FENCE = re.compile(r"(`{3,}(?=[^`]*$)|~{3,})(.*)")
 # WHY: Vale 3.25.1 honours an exception only when it holds a space, so `Pre-Order` in `exceptions` silences nothing.
 NO_SPACE = "holds no space, and Vale skips only a phrase that holds one"
+GENERATED = "# Generated from the project's glossary by the glossary-guru skill. Edit the glossary, not this file."
 PLAIN_CHARACTERS = "letters, digits, spaces, hyphens or a straight apostrophe after a letter"
 
 
@@ -100,7 +103,7 @@ def read_config(path):
     return styles_path, [(heading, dict(parser[heading])) for heading in parser.sections() if heading != ABOVE_SECTIONS]
 
 
-# WHY: only the project knows which of its sections should run the check, and a later matching section replaces an earlier one, so computed lines can take its styles away.
+# WHY: only the project knows which of its sections should run the check, and a later list of styles replaces an earlier one, so computed lines can take its styles away.
 def config_advice(config, styles_path):
     template_styles, template_sections = read_config(TEMPLATE)
     lines = [f"glossary-rule: to check a file, {config} needs Glossary added to the list in the last section covering it that sets BasedOnStyles, because a later list replaces an earlier one, and these lines, with any StylesPath above every section:"]
@@ -110,7 +113,7 @@ def config_advice(config, styles_path):
         for key, value in settings.items():
             if key != "BasedOnStyles":
                 lines += [f"[{heading}]", f"{key} = {value}"]
-    lines.append("glossary-rule: the rule reports a warning, so a MinAlertLevel of error hides it unless that section also sets Glossary.Terms = error")
+    lines.append("glossary-rule: the rule reports a warning, so a MinAlertLevel of error hides it unless the section that sets BasedOnStyles also sets Glossary.Terms = error")
     return lines
 
 
@@ -139,8 +142,9 @@ def parse_language(text):
         if not in_language:
             stray = stray or bool(LIST_LINE.fullmatch(line) or NEAR_LIST_LINE.search(line))
             continue
-        if line.startswith("### "):
-            entries.append((line[4:].strip(), []))
+        heading = TERM.fullmatch(line)
+        if heading:
+            entries.append((heading[1], []))
             continue
         listed = LIST_LINE.fullmatch(line)
         if not listed:
@@ -204,7 +208,7 @@ def terms_holding_drift(entries, swap):
 
 def render(swap, exceptions):
     lines = [
-        "# Generated from the project's glossary by the glossary-guru skill. Edit the glossary, not this file.",
+        GENERATED,
         "# Regenerate from the project's root: python3 <skill-dir>/scripts/glossary-rule.py",
         "extends: substitution",
         'message: "Use \'%s\' instead of \'%s\'."',
@@ -244,6 +248,8 @@ def main():
             print(f"  {problem}", file=sys.stderr)
         return 1
     rule = Path(styles_path or DEFAULT_STYLES) / "Glossary" / "Terms.yml"
+    if rule.exists() and not read_file(rule).startswith(GENERATED):
+        stop(f"glossary-rule: this script did not write {rule}, so it will not replace it; move that file and run this again")
     try:
         rule.parent.mkdir(parents=True, exist_ok=True)
         rule.write_text(render(swap, exceptions), encoding="utf-8")
