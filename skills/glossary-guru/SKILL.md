@@ -93,7 +93,7 @@ Record a settled confusion as one line under `## Flagged ambiguities`, because i
 
 Propose folding or retiring only on evidence of where the concept went. A deleted class or path is not that evidence, because an entry is meant to outlive the code that implemented it.
 
-## The Vale rule
+## Automatic rule check
 
 `scripts/glossary-rule.py` turns the `_Avoid_:` and `_Except_:` lines into one Vale `substitution` rule, so a drifted word is caught by a check as well as by a reader. Run it from the project's root, and again whenever either kind of line changes, because the rule only knows what the glossary said when it was generated:
 
