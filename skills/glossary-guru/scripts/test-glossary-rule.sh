@@ -149,6 +149,56 @@ cp "$RULE" "$WORK/first-run"
 expect_exit "a second run" 0
 if cmp -s "$RULE" "$WORK/first-run"; then pass "a second run is byte-identical"; else fail "a second run differs"; fi
 
+new_project multi-word
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Shopping Cart
+
+What a customer is about to buy.
+
+_Avoid_: cart
+
+### Order Line
+
+One thing on an order.
+
+### Order
+
+A request to buy.
+
+_Avoid_: line
+EOF
+cat >"$PROJECT/.vale.ini" <<'EOF'
+StylesPath = .vale/styles
+
+[doc.md]
+BasedOnStyles = Glossary
+EOF
+cat >"$PROJECT/doc.md" <<'EOF'
+# Probe
+
+A Shopping Cart and an order line here.
+
+A cart stays.
+EOF
+expect_exit "a drift word inside a longer term" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_alert "a drift word alone still fires" "doc.md:5:3:Glossary.Terms:Use 'Shopping Cart' instead of 'cart'."
+expect_no_alert "a term holding a drift word stays quiet" "doc.md:3:"
+
+new_project term-metacharacter
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Shopping Cart (legacy)
+
+What a customer was about to buy.
+
+_Avoid_: cart
+EOF
+expect_refusal "a term holding a drift word and a metacharacter" "must be letters"
+
 new_project root
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 ## Language

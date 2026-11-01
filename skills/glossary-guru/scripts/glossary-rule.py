@@ -91,6 +91,18 @@ def build_swap(entries):
     return swap, problems
 
 
+def terms_holding_drift(entries, swap):
+    """Return each longer term a drift word sits inside, which the rule has to skip, and any it cannot skip."""
+    held, problems = [], []
+    for term, _ in entries:
+        if any(re.search(rf"\b{re.escape(word)}\b", term, re.IGNORECASE) for word in swap):
+            if PLAIN_WORDS.fullmatch(term):
+                held.append(term)
+            else:
+                problems.append(f"{term}: holds a drift word, so the rule must skip it, and it must be letters, digits, spaces, hyphens or apostrophes for that")
+    return held, problems
+
+
 def render(swap, exceptions, styles_arg):
     lines = [
         "# Generated from the project's glossary by the glossary-guru skill. Edit the glossary, not this file.",
@@ -118,7 +130,9 @@ def main():
     glossary = find_glossary()
     entries, exceptions, problems = parse_language(glossary.read_text(encoding="utf-8"))
     swap, swap_problems = build_swap(entries)
-    problems += swap_problems
+    held_terms, held_problems = terms_holding_drift(entries, swap)
+    problems += swap_problems + held_problems
+    exceptions += held_terms
     if problems:
         print(f"glossary-rule: {glossary} cannot become a correct rule:", file=sys.stderr)
         for problem in problems:
