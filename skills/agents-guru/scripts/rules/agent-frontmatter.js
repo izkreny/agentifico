@@ -102,7 +102,7 @@ function agentFilesIn(folder) {
       return;
     }
     for (const entry of entries) {
-      // WHY: the check's own walk leaves a dot-named entry out, and the sub-agents page does not say Claude Code reads one.
+      // WHY: the sub-agents page does not say Claude Code reads a dot-named entry.
       if (entry.name.startsWith(".")) continue;
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) walk(full);
