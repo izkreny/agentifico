@@ -80,6 +80,12 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **One-time reference inside a workflow.** A section read once per repository or once per install, such as setup, a settings table or a playbook for a rare failure, sits in a file loaded on every run. The sign is a section no step of an ordinary run sends the agent to. Move it to a `references/` file and leave one line saying when to read it, per *Material a workflow does not need on every run goes to a reference file* in `workflows/new.md`.
 
+### What a plugin's files grant
+
+**An agent with no `tools` field.** The [sub-agents page](https://code.claude.com/docs/en/sub-agents) says it inherits every tool available to subagents. That is a choice rather than a defect, so ask whether the agent means it, because a read-only job holding every tool can still write once something misleads it.
+
+**A `PermissionRequest` hook under a `.*` or empty matcher.** Read its script and ask whether it approves anything. The [hooks guide](https://code.claude.com/docs/en/hooks-guide) warns that an approving hook under such a matcher "would auto-approve every tool permission prompt".
+
 ## Step 4 - Report
 
 Rank findings by consequence, not by reading order. For each: the file and line, the specific defect, and what it costs when it bites. Propose the fix; apply it only when asked. **Name every skill read, by path**, alongside the files Step 1 asks for rather than instead of them, since the files it names as belonging to no skill are unaccounted for by a skill list.
