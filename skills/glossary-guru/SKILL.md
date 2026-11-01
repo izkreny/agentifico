@@ -51,7 +51,7 @@ A person or organization that places orders.
 
 _Avoid_: client, buyer, account
 
-_Except_: take into account
+_Except_: take into account, on account of
 
 ## Relationships
 
@@ -71,6 +71,8 @@ The sections are `## Language`, `## Relationships`, `## Flagged ambiguities` and
 An entry is the term as a `###` heading, a definition of one or two sentences saying what the term is rather than what it does, and an `_Avoid_:` line naming the words not to use for it. The heading gives the entry a link of its own and a place in the page's outline, and the blank lines keep each part on its own line when the file is rendered. A term no other word competes with has no `_Avoid_:` line, because an invented word would send the next reader looking for drift that never happened.
 
 An `_Except_:` line is optional, and names a phrase of two or more words where a word on the `_Avoid_:` line is correct, such as "take into account" for `account`. A check matches words without reading them, so without this line it would flag that phrase every time. An agent reading the glossary treats it the same way: the phrase is not drift. A term that holds a drift word, such as `Shopping Cart` holding `cart`, needs no such line, because the rule generated from the glossary skips the term by itself. A term with no space that holds one, such as `Pre-Order` holding `order`, is refused when the rule is generated, because Vale can only skip a phrase holding a space.
+
+On an `_Avoid_:` or `_Except_:` line, a comma separates one word or phrase from the next, and a phrase takes no quotes, because the script refuses a quote mark.
 
 An entry stands on its own: it names no file path, class, method, table, config value, date, owner or issue link, so it stays true when the code it describes is renamed. It may lean on another entry, and a project-specific word it leans on needs an entry of its own, unless the word is a property some entry's definition explains.
 
