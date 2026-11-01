@@ -1143,6 +1143,30 @@ describe("skill-bundled-files", () => {
     assert.equal(reports(r.out, "scripts\\/linked\\.sh"), true, r.out);
     assert.equal(reports(r.out, "references\\/real\\.md"), true, r.out);
   });
+  // WHY: directory order decides which path is walked first, so each order is built, with the real folder's name sorting first in one and last in the other.
+  for (const [name, real] of [
+    ["link-first", "a-shared"],
+    ["link-last", "z-shared"],
+  ]) {
+    it(`a linked folder is read beside the folder it points at, as ${name}`, () => {
+      const dir = tree(name, { [`${real}/real.md`]: "# R\n\nbody\n" });
+      fs.symlinkSync(path.join(dir, real), path.join(dir, "references"));
+      assert.equal(reports(run(dir).out, "references\\/real\\.md"), true);
+    });
+  }
+  it("a link to a file is that file, so its own text does not name it", () => {
+    const dir = tree("alias", { "shared/self.sh": "# self.sh\n" });
+    fs.mkdirSync(path.join(dir, "scripts"));
+    fs.symlinkSync(path.join(dir, "shared", "self.sh"), path.join(dir, "scripts", "self.sh"));
+    assert.equal(reports(run(dir).out, "scripts\\/self\\.sh"), true);
+  });
+  it("two links back up the tree end, since each would otherwise double the walk", () => {
+    const dir = tree("cycles", { "scripts/kept.py": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun scripts/kept.py.\n");
+    fs.symlinkSync(dir, path.join(dir, "up-one"));
+    fs.symlinkSync(dir, path.join(dir, "up-two"));
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+  });
   it("a link back up the tree ends, and costs no finding", () => {
     const dir = tree("cycle", { "scripts/kept.py": "x\n" });
     fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun scripts/kept.py.\n");

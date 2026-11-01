@@ -11,7 +11,7 @@ const skipped = (name) => name.startsWith(".") || name === "node_modules";
 function skillFiles(skill) {
   const files = [];
   const unread = [];
-  const seen = new Set();
+  const ancestors = new Set();
   const visit = (full) => {
     try {
       const stat = fs.statSync(full, { throwIfNoEntry: false });
@@ -19,9 +19,11 @@ function skillFiles(skill) {
       if (stat?.isFile()) files.push(full);
       if (!stat?.isDirectory()) return;
       const real = fs.realpathSync(full);
-      if (seen.has(real)) return;
-      seen.add(real);
+      // WHY: only a folder this walk is already inside is a loop, while a second link to a folder is a second path an agent can be told.
+      if (ancestors.has(real)) return;
+      ancestors.add(real);
       for (const name of fs.readdirSync(full).filter((name) => !skipped(name))) visit(path.join(full, name));
+      ancestors.delete(real);
     } catch (error) {
       if (error.code !== "ELOOP") unread.push([full, error.code]);
     }
@@ -60,7 +62,7 @@ export default {
       if (!isBundled(relative(file))) continue;
       // WHY: a period after the name closes a sentence, while one followed by more of a word makes it another file.
       const name = new RegExp(`(?<![\\w.-])${RegExp.escape(path.basename(file))}(?!\\.?[\\w-])`);
-      const named = [...texts].some(([other, text]) => other !== file && name.test(text));
+      const named = [...texts].some(([other, text]) => fs.realpathSync(other) !== fs.realpathSync(file) && name.test(text));
       if (!named) report(`${relative(file)} is named by no file of this skill, so an agent never learns it exists: list it in SKILL.md`);
     }
   },
