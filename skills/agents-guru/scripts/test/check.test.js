@@ -1563,11 +1563,11 @@ describe("skill-pinned-sources", () => {
       assert.equal(findings(dir).length, 1, heading);
     }
   });
-  it("reads an autolink, a bare URL, a reference definition, a table cell and a deeper heading in the section", () => {
+  it("reads an autolink, a bare URL, a reference, a table cell and a deeper heading in the section", () => {
     const url = "https://github.com/owner/repo";
     const dir = mkSkill(
       "shapes",
-      `## Sources\n\n- <${url}/autolink>\n- ${url}/bare\n\n[ref]: ${url}/definition\n\n| Source |\n|---|\n| [cell](${url}/cell) |\n\n### Deeper\n\n[deeper](${url}/deeper)\n`,
+      `## Sources\n\n- <${url}/autolink>\n- ${url}/bare\n\n[used][ref]\n\n[ref]: ${url}/definition\n\n| Source |\n|---|\n| [cell](${url}/cell) |\n\n### Deeper\n\n[deeper](${url}/deeper)\n`,
     );
     const found = findings(dir);
     for (const shape of ["autolink", "bare", "definition", "cell", "deeper"])
@@ -1582,6 +1582,26 @@ describe("skill-pinned-sources", () => {
     const found = findings(mkSkill("in-heading", `## Sources\n\n### [inside](${url}/inside)\n\nWhat it gave.\n\n## [After](${url}/after)\n\nText.\n`));
     assert.equal(found.length, 1, String(found));
     assert.match(found[0], /repo\/inside names no commit/);
+  });
+  it("judges a reference where it is used, wherever its definition sits", () => {
+    const url = "https://github.com/owner/repo";
+    const used = `## Sources\n\n[full][Full Label] and [collapsed][] and [shortcut].\n\n## Later\n\nText.\n\n[full  label]: ${url}/full\n[COLLAPSED]: ${url}/collapsed\n[shortcut]: ${url}/shortcut\n`;
+    const found = findings(mkSkill("ref-used", used));
+    for (const shape of ["full", "collapsed", "shortcut"])
+      assert.ok(
+        found.some((f) => f.includes(`repo/${shape} names no commit`)),
+        `${shape}: ${found}`,
+      );
+    assert.equal(found.length, 3, String(found));
+    assert.match(found[0], /^ {2}README\.md:11 /);
+    const elsewhere = `Validated by [a tool][tool].\n\n## Sources\n\nNone from a git host.\n\n[tool]: ${url}\n`;
+    assert.deepEqual(findings(mkSkill("ref-elsewhere", elsewhere)), []);
+    const pinned = `## Sources\n\n[a][pin]\n\n[pin]: ${url}/blob/${SHA}/SKILL.md\n`;
+    assert.deepEqual(findings(mkSkill("ref-pinned", pinned)), []);
+    const unused = `## Sources\n\nNone from a git host.\n\n[unused]: ${url}\n`;
+    assert.deepEqual(findings(mkSkill("ref-unused", unused)), []);
+    const undefinedRef = "## Sources\n\nA [plain][bracket] pair and [another].\n";
+    assert.deepEqual(findings(mkSkill("ref-undefined", undefinedRef)), []);
   });
   it("leaves the same link alone outside a source section", () => {
     const url = "https://github.com/owner/repo";
