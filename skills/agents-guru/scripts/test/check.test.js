@@ -1061,6 +1061,137 @@ describe("check.js", () => {
 });
 
 // Exercised directly because check.js globs under its target and can never hand the function a path outside it.
+describe("skill-bundled-files", () => {
+  // WHY: each fixture states every file it holds, so a test reads as the tree it judges.
+  const tree = (name, files) => {
+    const dir = path.join(tmp, "bundled", name);
+    mk(dir, block(name));
+    for (const [file, text] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+      fs.writeFileSync(path.join(dir, file), text);
+    }
+    return dir;
+  };
+  const reports = (out, file) => new RegExp(`skill-bundled-files .*${file}\\S* is named by no file`).test(out);
+
+  it("a file nothing names fails the run, under scripts and under references", () => {
+    const r = run(tree("unnamed", { "scripts/lost.py": "x\n", "references/lost.md": "# Lost\n\nbody\n" }));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*scripts\/lost\.py is named by no file/m);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*references\/lost\.md is named by no file/m);
+  });
+  it("a file named in the SKILL.md is clean", () => {
+    const dir = tree("named", { "scripts/kept.py": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun `scripts/kept.py` first.\n");
+    assert.equal(reports(run(dir).out, "kept"), false);
+  });
+  it("any other file of the skill can name it, by its bare name", () => {
+    const r = run(
+      tree("sibling", { "scripts/main.py": "import x\n# runs helper.py\n", "scripts/helper.py": "x\n", "workflows/a.md": "# A\n\nRun `scripts/main.py`.\n" }),
+    );
+    assert.equal(reports(r.out, "helper"), false, r.out);
+    assert.equal(reports(r.out, "main"), false, r.out);
+  });
+  it("a file does not name itself", () => {
+    assert.equal(reports(run(tree("self", { "references/self.md": "# Self\n\nThis is self.md.\n" })).out, "references\\/self\\.md"), true);
+  });
+  it("a longer name holding the name is not the name", () => {
+    const dir = tree("longer", {
+      "references/setup.md": "# Setup\n\nbody\n",
+      "references/other-setup.md": "# Other\n\nbody\n",
+      "references/a-b.md": "# A\n\nSee other-setup.md and setup.md.bak and x.setup.md and setup.md-old.\n",
+    });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead `references/a-b.md`.\n");
+    assert.equal(reports(run(dir).out, "references\\/setup\\.md"), true);
+  });
+  it("a name closing a sentence is the name", () => {
+    const dir = tree("sentence", { "references/setup.md": "# Setup\n\nbody\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead references/setup.md.\n");
+    assert.equal(reports(run(dir).out, "setup"), false);
+  });
+  it("a name's regex characters are taken as written", () => {
+    const dir = tree("literal", { "scripts/a+b.py": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun aab.py and axb.py.\n");
+    assert.equal(reports(run(dir).out, "a\\+b"), true);
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun a+b.py.\n");
+    assert.equal(reports(run(dir).out, "a\\+b"), false);
+  });
+  it("a dot-named file, a file in a subfolder and a file elsewhere are not bundled", () => {
+    const r = run(
+      tree("exempt", {
+        "scripts/.gitignore": "x\n",
+        "scripts/test/deep.js": "x\n",
+        "references/more/deep.md": "# D\n\nbody\n",
+        "assets/free.txt": "x\n",
+        "free.md": "# F\n\nbody\n",
+      }),
+    );
+    assert.doesNotMatch(r.out, /skill-bundled-files/);
+  });
+  it("what names a file in node_modules or a dot-folder does not count", () => {
+    const r = run(
+      tree("skips", { "scripts/lost.py": "x\n", "node_modules/dep/a.md": "lost.py\n", ".cache/a.md": "lost.py\n", "scripts/.hidden": "lost.py\n" }),
+    );
+    assert.equal(reports(r.out, "lost"), true, r.out);
+  });
+  it("a linked file is bundled, and a linked folder is followed", () => {
+    const dir = tree("links", { "shared/real.md": "# R\n\nbody\n" });
+    fs.mkdirSync(path.join(dir, "scripts"));
+    fs.symlinkSync(path.join(dir, "shared", "real.md"), path.join(dir, "scripts", "linked.sh"));
+    fs.symlinkSync(path.join(dir, "shared"), path.join(dir, "references"));
+    const r = run(dir);
+    assert.equal(reports(r.out, "scripts\\/linked\\.sh"), true, r.out);
+    assert.equal(reports(r.out, "references\\/real\\.md"), true, r.out);
+  });
+  it("a link back up the tree ends, and costs no finding", () => {
+    const dir = tree("cycle", { "scripts/kept.py": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun scripts/kept.py.\n");
+    fs.symlinkSync(dir, path.join(dir, "up"));
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+  });
+  it("a link to itself is left to the group that names it", () => {
+    const dir = tree("self-link", {});
+    fs.mkdirSync(path.join(dir, "scripts"));
+    fs.symlinkSync(path.join(dir, "scripts", "loop.sh"), path.join(dir, "scripts", "loop.sh"));
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+  });
+  it("a dangling link is left to the group that names it", () => {
+    const dir = tree("dangling", {});
+    fs.mkdirSync(path.join(dir, "scripts"));
+    fs.symlinkSync(path.join(dir, "gone.md"), path.join(dir, "scripts", "gone.md"));
+    const r = run(dir);
+    assert.doesNotMatch(r.out, /skill-bundled-files/);
+    assert.match(r.out, /scripts\/gone\.md dangling-link/);
+  });
+  it("a file it cannot read is named, and costs the comparison that file alone", () => {
+    const dir = tree("shut-file", { "scripts/shut.py": "x\n", "scripts/kept.py": "x\n", "notes.md": "# N\n\nRun kept.py.\n" });
+    fs.chmodSync(path.join(dir, "scripts", "shut.py"), 0o000);
+    try {
+      const r = run(dir);
+      assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*could not read scripts\/shut\.py \(EACCES\)/m);
+      assert.equal(reports(r.out, "kept"), false, r.out);
+    } finally {
+      fs.chmodSync(path.join(dir, "scripts", "shut.py"), 0o644);
+    }
+  });
+  it("a folder it cannot read is named", () => {
+    const dir = tree("shut-folder", { "shut/inner.txt": "x\n" });
+    fs.chmodSync(path.join(dir, "shut"), 0o000);
+    try {
+      assert.match(run(dir).out, /skill-bundled-files .*could not read shut \(EACCES\)/);
+    } finally {
+      fs.chmodSync(path.join(dir, "shut"), 0o755);
+    }
+  });
+  it("only a SKILL.md starts the read", () => {
+    const dir = path.join(tmp, "bundled", "no-skill");
+    fs.mkdirSync(path.join(dir, "scripts"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "notes.md"), "# N\n\nbody\n");
+    fs.writeFileSync(path.join(dir, "scripts", "lost.py"), "x\n");
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+  });
+});
+
 describe("skill-package-runners, off a tree", () => {
   const dir = () => path.join(tmp, "runners");
   beforeAll(() => {

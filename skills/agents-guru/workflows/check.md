@@ -64,6 +64,12 @@ Each of their failure modes is silent: a truncated description keeps loading wit
 
 A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root, per *Paths must survive any working directory and any machine* in `workflows/new.md`.
 
+## The bundled-file rule
+
+**`skill-bundled-files`**, in `scripts/rules/skill-bundled-files.js`, holds a file directly under a skill's `scripts/` or `references/` folder to being named by another file of that skill, so an agent can learn it exists. It reads the skill's tree from disk, and a dot-named file is neither held to it nor counted as naming one.
+
+**What it cannot decide is whether the file that names it is one an agent reaches.** A name in a file no route loads still counts.
+
 ## The package-runner rule
 
 **`skill-package-runners`**, in `scripts/rules/skill-package-runners.js`, warns on a runner command the using-scripts page lists that names no version, in a code span or a fenced line of a skill's markdown. A partial version counts as one, since the page's own examples pin a major alone. A `README.md` is left alone, since a person reads it. A warning leaves the run passing.
