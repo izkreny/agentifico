@@ -187,6 +187,29 @@ expect_exit "a drift word inside a longer term" 0
 expect_alert "a drift word alone still fires" "doc.md:5:3:Glossary.Terms:Use 'Shopping Cart' instead of 'cart'."
 expect_no_alert "a term holding a drift word stays quiet" "doc.md:3:"
 
+new_project case-pair
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Shopping Cart
+
+What a customer is about to buy.
+
+_Avoid_: cart
+
+_Except_: shopping cart
+EOF
+expect_exit "a term and an Except entry differing only in case" 0
+cp "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/case-pair-rule"
+pair_differs=no
+for seed in 1 2 3 4 5 6 7 8; do
+  (cd "$PROJECT" && PYTHONHASHSEED="$seed" python3 "$SCRIPT" .vale/styles >/dev/null)
+  cmp -s "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/case-pair-rule" || pair_differs=yes
+done
+if [ "$pair_differs" = no ]; then pass "a case-only pair regenerates byte-identically under any hash seed"; else fail "a case-only pair changes with the hash seed"; fi
+pair_count="$(grep -ci '(?i)shopping cart' "$WORK/case-pair-rule" || true)"
+if [ "$pair_count" = 1 ]; then pass "a case-only pair is written once"; else fail "a case-only pair is written $pair_count times"; fi
+
 new_project term-metacharacter
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 ## Language
