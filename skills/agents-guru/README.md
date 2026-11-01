@@ -68,4 +68,4 @@ Behaviour is a different question, and this skill does not answer it. `workflows
 
 ## Where its rules come from
 
-Several of the check's rules were ported from [agnix](https://github.com/agent-sh/agnix), whose catalogue lists the defects agent files can carry. Each one came here only after passing the tests in `references/porting.md`, which hold a rule to the page it cites.
+Several of the check's rules were ported from [agnix](https://github.com/agent-sh/agnix), whose catalogue lists the defects agent files can carry. `references/porting.md` states the tests a rule from such a catalogue has to pass, which hold it to the page it cites.
