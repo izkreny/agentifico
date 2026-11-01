@@ -50,11 +50,9 @@ The version check passes on this branch through #296's bump alone, because its r
 
 ## Open questions
 
-The steps above assume yes to both, since that is what I recommend.
-
-- **Should an entry be able to list phrases the rule skips?** Yes: an optional `_Except_:` line under `_Avoid_:`, whose phrases go into Vale's `exceptions` key. The issue names the case, `account` firing on "take into account", and the probe saw that key silence the phrase while `account` alone still fired. Without it, a project can only accept the false alarm or edit a generated file by hand.
-- **May this branch add the bench's entry to `.agents/gh-solo.md`?** Yes: every other bench is listed under *The benches*, and this file is repository-level, so the edit is yours to grant. It would be that one entry and nothing else.
+None.
 
 ## Settled
 
-None yet.
+- **Should an entry be able to list phrases the rule skips?** Yes, the owner said so in the terminal: an optional `_Except_:` line under `_Avoid_:`, whose phrases go into Vale's `exceptions` key. The issue names the case, `account` firing on "take into account", and the probe saw that key silence the phrase while `account` alone still fired.
+- **May this branch add the bench's entry to `.agents/gh-solo.md`?** Yes, the owner said so in the terminal. The edit is that one entry under *The benches*, and nothing else in the file.
