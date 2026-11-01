@@ -1625,6 +1625,13 @@ describe("skill-pinned-sources", () => {
     assert.equal(found.length, 1, String(found));
     assert.match(found[0], /README\.md:11 .*img\.png names no commit/);
   });
+  it("matches a reference to its definition as the parser does", () => {
+    const url = "https://github.com/owner/repo";
+    const folded = findings(mkSkill("ref-folded", `## Sources\n\n[Straße]\n\n[STRASSE]: ${url}\n`));
+    assert.equal(folded.length, 1, String(folded));
+    const wrapped = findings(mkSkill("ref-wrapped", `## Sources\n\n> [a\n> b]\n\n[a b]: ${url}\n`));
+    assert.equal(wrapped.length, 1, String(wrapped));
+  });
   it("leaves the same link alone outside a source section", () => {
     const url = "https://github.com/owner/repo";
     const dir = mkSkill(

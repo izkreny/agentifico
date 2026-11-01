@@ -43,7 +43,14 @@ function walk(tokens, fn) {
 }
 
 const childOf = (token, type) => token?.children.find((child) => child.type === type);
-const labelKey = (text) => text.trim().replace(/\s+/g, " ").toLowerCase();
+// WHY: this folds a label as the parser does, dropping a wrapped line's quote marker, or a link it resolved would find no definition here.
+const labelKey = (text) =>
+  text
+    .replace(/\n[\s>]*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase()
+    .toUpperCase();
 
 // WHY: a definition can sit anywhere in the file, so it is read where a link uses it rather than where it stands.
 function definitionsIn(tokens) {
