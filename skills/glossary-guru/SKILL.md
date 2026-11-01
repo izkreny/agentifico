@@ -10,7 +10,7 @@ description: |
 
 A project's glossary gives each domain concept one name, because an agent otherwise copies whichever word it last saw and one concept ends up with several. The file holds the vocabulary and nothing else: it is neither a spec nor a place for implementation decisions.
 
-Every path here is in the project being worked on, so each opens with `<repo-root>`.
+A path in the project being worked on opens with `<repo-root>`. A bare path, such as `scripts/glossary-rule.py`, is inside this skill's own directory.
 
 ## Where it lives
 
