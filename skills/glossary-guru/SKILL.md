@@ -39,12 +39,16 @@ Where the word is in code or prose the current work does not touch, mention it a
 
 ## Language
 
-**Order**:
+### Order
+
 A customer's request to buy something, from the moment it is placed.
+
 _Avoid_: purchase, transaction
 
-**Customer**:
+### Customer
+
 A person or organization that places orders.
+
 _Avoid_: client, buyer
 
 ## Relationships
@@ -62,7 +66,7 @@ _Avoid_: client, buyer
 
 The sections are `## Language`, `## Relationships`, `## Flagged ambiguities` and `## Retired`, in that order. Each is present only when it has entries, and `## Relationships` holds only what a reader needs and the entries cannot say alone, such as ownership or cardinality.
 
-An entry is the term in bold, a definition of one or two sentences saying what the term is rather than what it does, and an `_Avoid_:` line naming the words not to use for it. A term no other word competes with has no `_Avoid_:` line, because an invented word would send the next reader looking for drift that never happened.
+An entry is the term as a `###` heading, a definition of one or two sentences saying what the term is rather than what it does, and an `_Avoid_:` line naming the words not to use for it. The heading gives the entry a link of its own and a place in the page's outline, and the blank lines keep each part on its own line when the file is rendered. A term no other word competes with has no `_Avoid_:` line, because an invented word would send the next reader looking for drift that never happened.
 
 An entry stands on its own: it names no file path, class, method, table, config value, date, owner or issue link, so it stays true when the code it describes is renamed. It may lean on another entry, and a project-specific word it leans on needs an entry of its own, unless the word is a property some entry's definition explains.
 
