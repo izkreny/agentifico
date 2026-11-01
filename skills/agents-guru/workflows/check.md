@@ -68,6 +68,8 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **`skill-bundled-files`**, in `scripts/rules/skill-bundled-files.js`, holds a file directly under a skill's `scripts/` or `references/` folder to being named by another file of that skill, so an agent can learn it exists. It reads the skill's tree from disk.
 
+**It fails only when it is sure, so a written path counts when it could mean the file.** The working directory of a command is unknown, so a path counts when it lands on the file from any folder of the skill, unless it lands from the writer's own folder on another file. A Python file also names a Python file by importing it.
+
 **What it cannot decide is whether the file that names it is one an agent reaches.** A name in a file no route loads still counts.
 
 ## The package-runner rule

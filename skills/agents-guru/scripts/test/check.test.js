@@ -1103,10 +1103,15 @@ describe("skill-bundled-files", () => {
     ["variable", "Read $DIR/kept.md."],
     ["braced-variable", `Read \${DIR}/kept.md.`],
     ["substitution", 'Read "$(dirname "$0")/kept.md".'],
+    ["quoted-variable", 'Read "$DIR"/kept.md.'],
+    ["two-variables", "Read $A/$B/kept.md."],
+    ["own-path-after-variable", "Read $DIR/references/kept.md."],
+    ["unknown-working-directory", "Run `cd references && ./kept.md`."],
+    ["up-from-unknown-working-directory", "Run `cd scripts && ../references/kept.md`."],
     ["bare", "Read kept.md."],
   ]) {
     it(`a file is named by ${id}`, () => {
-      const dir = tree(id, { "references/kept.md": "# K\n\nbody\n" });
+      const dir = tree(id, { "references/kept.md": "# K\n\nbody\n", "scripts/a.sh": "x\n" });
       fs.appendFileSync(path.join(dir, "SKILL.md"), `\n${text}\n`);
       assert.equal(reports(run(dir).out, "kept"), false);
     });
@@ -1131,13 +1136,41 @@ describe("skill-bundled-files", () => {
     ["another-skill", "SKILL.md", "\nRead ../other-skill/references/review.md.\n"],
     ["longer-path", "SKILL.md", "\nRead skills/foo/references/review.md.\n"],
     ["own-folder-dot-slash", "workflows/a.md", "./review.md\n"],
+    ["up-to-nothing", "references/a.md", "\nSee ../review.md.\n"],
+    ["home", "SKILL.md", "\nRead ~/review.md.\n"],
+    ["filesystem-root", "SKILL.md", "\nRead /review.md.\n"],
+    ["quoted-filesystem-root", "SKILL.md", '\nRead "/review.md".\n'],
+    ["url", "SKILL.md", "\nRead https://example.com/review.md.\n"],
+    ["variable-then-another-folder", "SKILL.md", "\nRead $DIR/workflows/review.md.\n"],
   ]) {
     it(`a path elsewhere does not name it: ${id}`, () => {
-      const dir = tree(`elsewhere-${id}`, { "references/review.md": "# R\n\nbody\n", "workflows/a.md": "# A\n\nbody\n" });
+      const dir = tree(`elsewhere-${id}`, {
+        "references/review.md": "# R\n\nbody\n",
+        "workflows/a.md": "# A\n\nbody\n",
+        "workflows/review.md": "# W\n\nbody\n",
+      });
       fs.appendFileSync(path.join(dir, file), text);
       assert.equal(reports(run(dir).out, "references\\/review\\.md"), true);
     });
   }
+  it("a path up from a file reaches the file it lands on, and not one of the same name", () => {
+    const dir = tree("up-to-root", {
+      "references/review.md": "# R\n\nbody\n",
+      "references/a.md": "# A\n\nSee ../review.md.\n",
+      "review.md": "# Root\n\nbody\n",
+    });
+    assert.equal(reports(run(dir).out, "references\\/review\\.md"), true);
+    const up = tree("up-a-level", { "references/kept.md": "# K\n\nbody\n", "references/sub/a.md": "# A\n\nSee ../kept.md.\n" });
+    assert.equal(reports(run(up).out, "references\\/kept"), false);
+  });
+  it("a dot slash that lands on no file may mean another working directory", () => {
+    const dir = tree("working-directory", { "scripts/deploy.sh": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\n```bash\ncd scripts && ./deploy.sh\n```\n");
+    assert.equal(reports(run(dir).out, "scripts\\/deploy"), false);
+    const extensionless = tree("working-directory-word", { "scripts/deploy": "x\n" });
+    fs.appendFileSync(path.join(extensionless, "SKILL.md"), "\n```bash\ncd scripts && ./deploy\n```\n");
+    assert.equal(reports(run(extensionless).out, "scripts\\/deploy"), false);
+  });
   it("a dot slash names a file of the same folder", () => {
     const dir = tree("own-folder", { "references/kept.md": "# K\n\nbody\n", "references/a.md": "# A\n\nSee ./kept.md.\n" });
     fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead references/a.md.\n");
@@ -1156,6 +1189,16 @@ describe("skill-bundled-files", () => {
     ["import-own-folder", "import scripts.helper"],
     ["from-dot-list", "from . import os, helper as h"],
     ["from-dot-lines", "from . import (\n    other,\n    helper,\n)"],
+    ["from-dot-comment", "from . import (\n    other,  # first\n    helper,\n)"],
+    ["backslash", "import os, \\\n    helper"],
+    ["from-backslash", "from . import other, \\\n    helper"],
+    ["from-longer-package", "from pkg.scripts import helper"],
+    ["import-longer-package", "import pkg.scripts.helper"],
+    ["from-relative-folder", "from ..scripts import (helper)"],
+    ["from-package-module", "from pkg.scripts.helper import run"],
+    ["indented", "try:\n    import helper\nexcept ImportError:\n    pass"],
+    ["same-line-block", "try: import helper\nexcept ImportError: pass"],
+    ["after-semicolon", "import os; import helper"],
   ]) {
     it(`a Python file is named by an import: ${id}`, () => {
       const r = run(tree(`py-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
@@ -1169,6 +1212,10 @@ describe("skill-bundled-files", () => {
     ["alias", "import json as helper"],
     ["imported-from-longer", "from helper_two import helper"],
     ["comment", "# import helper"],
+    ["from-another-package", "from email.helper import formatdate"],
+    ["from-a-module-of-another-package", "from os.helper import join"],
+    ["import-another-package", "import email.helper"],
+    ["module-beneath-it", "import helper.sub"],
   ]) {
     it(`a Python line does not name it: ${id}`, () => {
       const r = run(tree(`py-not-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
