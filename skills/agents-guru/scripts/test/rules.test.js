@@ -1422,6 +1422,7 @@ describe("skill-package-runners", () => {
     "deno run --allow-read script.ts",
     "npx ./bin/tool",
     "npx ./bin/tool input.txt",
+    'bash -c "npx ./bin/tool" eslint',
     "npx --prefix ./tools ./bin/tool",
     "npx /opt/tool",
     "npx <tool>",
@@ -1466,6 +1467,18 @@ describe("skill-package-runners", () => {
   it("a quote is not part of the command it names", async () => {
     expectDetail(
       await findings("fx/quote/SKILL.md", skillWith('`bash -c "npx eslint ."`'), packageRunners),
+      "skill-package-runners",
+      "npx eslint . names no version",
+    );
+  });
+  it("a quoted command ends at its closing quote", async () => {
+    expectDetail(
+      await findings("fx/inner/SKILL.md", skillWith(`\`sh -c 'npx eslint "$f"'\``), packageRunners),
+      "skill-package-runners",
+      'npx eslint "$f" names no version',
+    );
+    expectDetail(
+      await findings("fx/after/SKILL.md", skillWith('`bash -c "npx eslint ." --norc`'), packageRunners),
       "skill-package-runners",
       "npx eslint . names no version",
     );

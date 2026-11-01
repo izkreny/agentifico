@@ -4,7 +4,7 @@ import { isSkillFile } from "./frontmatter.js";
 import { owningSkill } from "./paths.js";
 
 // WHY: this rule warns when it cannot tell, so whatever stands before a runner leaves it counted, since a wrapper, a prompt or a quoted command leaves it running.
-const RUNNER = /(?:^|[\s;&|(`'"])((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s|$)([^;&|)`]*))/g;
+const RUNNER = /(^|[\s;&|(`'"])((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s|$)([^;&|)`]*))/g;
 // WHY: a leading @ opens a scoped name and `npm:@` opens a scoped specifier, and neither is a version.
 const VERSION = /[^\s'":/]@[^\s/]|[=~<>!]=/;
 // WHY: only a path or a placeholder marks a local file, since npm reads `chart.js` as a registry name and `tools/run.js` as a hosted spec.
@@ -30,8 +30,9 @@ function fetchesPackage(runner, args) {
 
 function unpinned(text) {
   return [...text.matchAll(RUNNER)]
-    .filter(([, , runner, args]) => fetchesPackage(runner.split(/\s+/)[0], args) && !VERSION.test(args))
-    .map(([, command]) => command.trim().replace(/^([^'"]*)['"]$/, "$1"));
+    .map(([, opener, written, runner]) => ({ runner, command: (/['"]/.test(opener) ? written.split(opener)[0] : written).trim() }))
+    .filter(({ runner, command }) => fetchesPackage(runner.split(/\s+/)[0], command.slice(runner.length)) && !VERSION.test(command))
+    .map(({ command }) => command);
 }
 
 function walk(tokens, fn) {
