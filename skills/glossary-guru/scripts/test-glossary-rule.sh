@@ -741,7 +741,7 @@ expect_exit "a heading that only starts with the section's name" 0
 expect_rule_lacks "that heading does not reopen the section" "purchase"
 
 count=0
-for line in '_Avoid_ : purchase' '_Avoid:_ purchase' '*Avoid*: purchase' '*Avoid:* purchase' '**Avoid**: purchase' '_avoid_: purchase' '- _Avoid_: purchase' '> _Avoid_: purchase' 'A request. _Avoid_: purchase' 'Avoid: purchase' '*Except:* in the long run' '*Avoid: purchase*'; do
+for line in '_Avoid_ : purchase' '_Avoid:_ purchase' '*Avoid*: purchase' '*Avoid:* purchase' '**Avoid**: purchase' '_avoid_: purchase' '- _Avoid_: purchase' '> _Avoid_: purchase' 'A request. _Avoid_: purchase' 'Avoid: purchase' '*Except:* in the long run' '*Avoid: purchase*' '_Avoid_ purchase' '*Avoid* purchase, transaction' '**Avoid** purchase' '_Avoid_ - purchase' '_Avoid_= purchase'; do
   count=$((count + 1))
   new_project near-miss-$count
   entry_with_line "$line"
