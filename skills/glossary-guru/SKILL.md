@@ -101,21 +101,9 @@ Propose folding or retiring only on evidence of where the concept went. A delete
 python3 <skill-dir>/scripts/glossary-rule.py
 ```
 
-The rule lands at `<repo-root>/.vale/styles/Glossary/Terms.yml`. Where the project's Vale `StylesPath` is elsewhere, pass that path as the command's argument. Commit the rule, so a Vale run needs neither this skill nor Python, and never edit it by hand, because the next run replaces it.
+The rule lands at `<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none. A project with no config gets a `<repo-root>/.vale.ini` that turns the rule on, and a project with one is told which lines to add. Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it.
 
-These lines in `<repo-root>/.vale.ini` turn it on:
-
-```ini
-StylesPath = .vale/styles
-
-[*.{md,rb}]
-BasedOnStyles = Glossary
-
-[**/GLOSSARY.md]
-Glossary.Terms = NO
-```
-
-The `[**/GLOSSARY.md]` section keeps the rule off the glossary, because a glossary has to name its drift words.
+The lines that turn it on are `BasedOnStyles = Glossary` under `[*.{md,rb}]`, and `Glossary.Terms = NO` under `[**/GLOSSARY.md]`, which keeps the rule off the glossary because a glossary has to name its drift words.
 
 The rule reports a warning, because a common word can still fire on a correct sentence. Add `Glossary.Terms = error` under the `[*.{md,rb}]` section to make a drifted word fail the run.
 

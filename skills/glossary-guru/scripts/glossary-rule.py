@@ -3,26 +3,33 @@
 
 Usage, from the project's root:
 
-    python3 <skill-dir>/scripts/glossary-rule.py [<styles-path>]
+    python3 <skill-dir>/scripts/glossary-rule.py
 
-Writes <styles-path>/Glossary/Terms.yml from the `_Avoid_:` and `_Except_:`
-lines under `## Language`. <styles-path> defaults to .vale/styles.
+Writes Glossary/Terms.yml from the `_Avoid_:` and `_Except_:` lines under
+`## Language`, under the StylesPath in the project's Vale config, or under
+.vale/styles where the config names none. A project with no Vale config gets a
+.vale.ini that turns the rule on; one that has a config is told the lines to add.
 
 Exit 0: the rule was written. A glossary naming no drift word gets a rule that
 swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
 Exit 1: the glossary cannot become a correct rule; each reason is on stderr.
-Exit 2: wrong arguments, or no single glossary to read.
+Exit 2: an argument, no single glossary to read, or more than one Vale config.
 """
 
 import json
-import os
 import re
 import sys
 from pathlib import Path
 from typing import NoReturn
 
 GLOSSARY_PATHS = (Path("docs/GLOSSARY.md"), Path("GLOSSARY.md"))
+# WHY: Vale 3.25.1 finds its config under exactly these names, and a project with one of them must not get a second.
+CONFIG_PATHS = (Path(".vale.ini"), Path("vale.ini"), Path("_vale.ini"), Path(".vale"), Path("_vale"))
 DEFAULT_STYLES = ".vale/styles"
+STYLES_LINE = f"StylesPath = {DEFAULT_STYLES}"
+STYLE_LINES = ["[*.{md,rb}]", "BasedOnStyles = Glossary"]
+# WHY: a rule has no key limiting it by file path, and the glossary has to name its drift words, so only the config can keep the rule off it.
+GLOSSARY_LINES = ["[**/GLOSSARY.md]", "Glossary.Terms = NO"]
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
 PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ '-])+")
 LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
@@ -42,6 +49,34 @@ def find_glossary():
     if found:
         stop(f"glossary-rule: both {found[0]} and {found[1]} exist; the owner decides which one stays")
     stop("glossary-rule: no docs/GLOSSARY.md or GLOSSARY.md here; run this from the project's root")
+
+
+def find_config():
+    found = [path for path in CONFIG_PATHS if path.is_file()]
+    if len(found) > 1:
+        stop(f"glossary-rule: {' and '.join(map(str, found))} exist; the owner decides which one stays")
+    return found[0] if found else None
+
+
+def styles_path_in(config_text):
+    """Return the config's StylesPath, which Vale reads only above every section."""
+    for raw in config_text.splitlines():
+        line = raw.strip()
+        if line.startswith("["):
+            return None
+        match = re.fullmatch(r"StylesPath\s*=\s*(.*)", line)
+        if match:
+            return match[1].strip("\"' ") or None
+    return None
+
+
+def lines_to_add(config_text, styles_path):
+    lines = [] if styles_path else [STYLES_LINE]
+    if not re.search(r"^\s*BasedOnStyles\s*=.*\bGlossary\b", config_text, re.MULTILINE):
+        lines += STYLE_LINES
+    if not re.search(r"^\s*Glossary\.Terms\s*=\s*NO\b", config_text, re.MULTILINE):
+        lines += GLOSSARY_LINES
+    return lines
 
 
 def split_words(text):
@@ -111,10 +146,10 @@ def terms_holding_drift(entries, swap):
     return held, problems
 
 
-def render(swap, exceptions, styles_arg):
+def render(swap, exceptions):
     lines = [
         "# Generated from the project's glossary by the glossary-guru skill. Edit the glossary, not this file.",
-        f"# Regenerate from the project's root: python3 <skill-dir>/scripts/glossary-rule.py {styles_arg}",
+        "# Regenerate from the project's root: python3 <skill-dir>/scripts/glossary-rule.py",
         "extends: substitution",
         'message: "Use \'%s\' instead of \'%s\'."',
         "level: warning",
@@ -135,12 +170,12 @@ def render(swap, exceptions, styles_arg):
 
 
 def main():
-    args = sys.argv[1:]
-    if len(args) > 1 or (args and args[0].startswith("-")):
+    if len(sys.argv) != 1:
         stop(__doc__)
-    # WHY: the path lands in a committed file's comment, so it stays relative however it was typed.
-    styles_arg = os.path.relpath(args[0] if args else DEFAULT_STYLES)
     glossary = find_glossary()
+    config = find_config()
+    config_text = config.read_text(encoding="utf-8") if config else ""
+    styles_path = styles_path_in(config_text)
     entries, exceptions, problems = parse_language(glossary.read_text(encoding="utf-8"))
     swap, swap_problems = build_swap(entries)
     held_terms, held_problems = terms_holding_drift(entries, swap)
@@ -151,10 +186,16 @@ def main():
         for problem in problems:
             print(f"  {problem}", file=sys.stderr)
         return 1
-    rule = Path(styles_arg) / "Glossary" / "Terms.yml"
+    rule = Path(styles_path or DEFAULT_STYLES) / "Glossary" / "Terms.yml"
     rule.parent.mkdir(parents=True, exist_ok=True)
-    rule.write_text(render(swap, exceptions, styles_arg), encoding="utf-8")
+    rule.write_text(render(swap, exceptions), encoding="utf-8")
     print(f"glossary-rule: wrote {rule} with {len(swap)} word(s) from {glossary}")
+    if config is None:
+        CONFIG_PATHS[0].write_text("\n\n".join([STYLES_LINE, "\n".join(STYLE_LINES), "\n".join(GLOSSARY_LINES)]) + "\n", encoding="utf-8")
+        print(f"glossary-rule: wrote {CONFIG_PATHS[0]}, which turns the rule on")
+    elif missing := lines_to_add(config_text, styles_path):
+        print(f"glossary-rule: add these lines to {config} to turn the rule on, with any StylesPath above every section:")
+        print("\n".join(missing))
     return 0
 
 

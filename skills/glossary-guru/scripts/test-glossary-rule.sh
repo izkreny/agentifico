@@ -20,7 +20,7 @@ new_project() {
 }
 
 run_script() {
-  (cd "$PROJECT" && python3 "$SCRIPT" .vale/styles >"$PROJECT/stdout" 2>"$PROJECT/stderr")
+  (cd "$PROJECT" && python3 "$SCRIPT" >"$PROJECT/stdout" 2>"$PROJECT/stderr")
 }
 
 expect_exit() {
@@ -139,7 +139,7 @@ clean_exit=0
 if [ "$clean_exit" = 0 ]; then pass "the override leaves the glossary alone"; else fail "the override made the glossary exit $clean_exit"; fi
 
 first_lines="$(head -n 2 "$RULE")"
-if [[ "$first_lines" == *"Generated"* && "$first_lines" == *"python3 <skill-dir>/scripts/glossary-rule.py .vale/styles"* ]]; then
+if [[ "$first_lines" == *"Generated"* && "$first_lines" == *"python3 <skill-dir>/scripts/glossary-rule.py" ]]; then
   pass "the rule opens by saying it is generated, naming the command"
 else
   fail "the rule's opening lines: $first_lines"
@@ -203,7 +203,7 @@ expect_exit "a term and an Except entry differing only in case" 0
 cp "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/case-pair-rule"
 pair_differs=no
 for seed in 1 2 3 4 5 6 7 8; do
-  (cd "$PROJECT" && PYTHONHASHSEED="$seed" python3 "$SCRIPT" .vale/styles >/dev/null)
+  (cd "$PROJECT" && PYTHONHASHSEED="$seed" python3 "$SCRIPT" >/dev/null)
   cmp -s "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/case-pair-rule" || pair_differs=yes
 done
 if [ "$pair_differs" = no ]; then pass "a case-only pair regenerates byte-identically under any hash seed"; else fail "a case-only pair changes with the hash seed"; fi
@@ -242,8 +242,8 @@ expect_exit "two phrases apart only under full case folding" 0
 expect_no_alert "both phrases folding alike stay quiet" "doc.md:(3|5):"
 expect_alert "a drift word beside them still fires" "doc.md:7:6:Glossary.Terms:Use 'Bestellung' instead of 'strasse'."
 
-new_project default-path
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+one_entry() {
+  cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 ## Language
 
 ### Order
@@ -252,16 +252,106 @@ A request to buy.
 
 _Avoid_: purchase
 EOF
-expect_exit "an explicit styles path" 0
-cp "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/explicit-rule"
-rm "$PROJECT/.vale/styles/Glossary/Terms.yml"
-default_exit=0
-(cd "$PROJECT" && python3 "$SCRIPT" >/dev/null 2>&1) || default_exit=$?
-if [ "$default_exit" = 0 ]; then pass "no argument exits 0"; else fail "no argument exits $default_exit, wanted 0"; fi
-if cmp -s "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/explicit-rule"; then pass "no argument writes the same rule under .vale/styles"; else fail "no argument wrote no matching rule under .vale/styles"; fi
-extra_exit=0
-(cd "$PROJECT" && python3 "$SCRIPT" one two >/dev/null 2>&1) || extra_exit=$?
-if [ "$extra_exit" = 2 ]; then pass "two arguments exit 2"; else fail "two arguments exit $extra_exit, wanted 2"; fi
+}
+
+expect_file() {
+  if [ -f "$PROJECT/$2" ]; then pass "$1"; else fail "$1: $2 is missing"; fi
+}
+
+expect_no_file() {
+  if [ -e "$PROJECT/$2" ]; then fail "$1: $2 exists"; else pass "$1"; fi
+}
+
+expect_stdout() {
+  if grep -qxF "$2" "$PROJECT/stdout"; then pass "$1"; else fail "$1: stdout lacks '$2': $(cat "$PROJECT/stdout")"; fi
+}
+
+expect_no_stdout() {
+  if grep -qF "$2" "$PROJECT/stdout"; then fail "$1: stdout holds '$2': $(cat "$PROJECT/stdout")"; else pass "$1"; fi
+}
+
+new_project no-config
+one_entry
+printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
+expect_exit "a project with no Vale config" 0
+expect_file "no config: the rule lands under .vale/styles" .vale/styles/Glossary/Terms.yml
+expect_file "no config: the script writes .vale.ini" .vale.ini
+(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
+expect_alert "the written config turns the rule on" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
+expect_no_alert "the written config keeps the rule off the glossary" "GLOSSARY.md:"
+cp "$PROJECT/.vale.ini" "$WORK/written-config"
+expect_exit "a second run on the written config" 0
+if cmp -s "$PROJECT/.vale.ini" "$WORK/written-config"; then pass "a second run leaves the written config alone"; else fail "a second run changed the written config"; fi
+expect_no_stdout "a second run asks for nothing" "add"
+
+new_project config-styles-path
+one_entry
+printf 'StylesPath = custom/styles\n\n[*.md]\nBasedOnStyles = Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms = NO\n' >"$PROJECT/.vale.ini"
+cp "$PROJECT/.vale.ini" "$WORK/full-config"
+expect_exit "a config naming a StylesPath" 0
+expect_file "the rule lands under the config's StylesPath" custom/styles/Glossary/Terms.yml
+expect_no_file "the rule stays out of the default path" .vale/styles
+expect_no_stdout "a config that turns the rule on is asked for nothing" "add"
+if cmp -s "$PROJECT/.vale.ini" "$WORK/full-config"; then pass "an existing config stays untouched"; else fail "an existing config changed"; fi
+
+new_project config-quoted-path
+one_entry
+printf 'StylesPath = "quoted"\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_exit "a quoted StylesPath" 0
+expect_file "a quoted StylesPath loses its quotes" quoted/Glossary/Terms.yml
+
+new_project config-other-name
+one_entry
+printf 'StylesPath = styles\n\n[*.md]\nBasedOnStyles = Vale\n' >"$PROJECT/vale.ini"
+cp "$PROJECT/vale.ini" "$WORK/other-config"
+expect_exit "a config under another name Vale reads" 0
+expect_file "the rule lands under that config's StylesPath" styles/Glossary/Terms.yml
+expect_no_file "no second config appears beside it" .vale.ini
+if cmp -s "$PROJECT/vale.ini" "$WORK/other-config"; then pass "that config stays untouched"; else fail "that config changed"; fi
+expect_stdout "the script prints the style line to add" "BasedOnStyles = Glossary"
+expect_stdout "the script prints the glossary line to add" "Glossary.Terms = NO"
+expect_no_stdout "the script does not ask for a StylesPath the config has" "StylesPath ="
+
+new_project config-no-styles-path
+one_entry
+printf '[*.md]\nBasedOnStyles = Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms = NO\n' >"$PROJECT/.vale.ini"
+expect_exit "a config naming no StylesPath" 0
+expect_file "with no StylesPath the rule lands under .vale/styles" .vale/styles/Glossary/Terms.yml
+expect_stdout "the script prints the StylesPath line to add" "StylesPath = .vale/styles"
+
+new_project two-configs
+one_entry
+printf 'StylesPath = a\n' >"$PROJECT/.vale.ini"
+printf 'StylesPath = b\n' >"$PROJECT/vale.ini"
+expect_exit "two configs" 2
+if grep -qF "vale.ini" "$PROJECT/stderr"; then pass "two configs: the refusal names them"; else fail "two configs: stderr: $(cat "$PROJECT/stderr")"; fi
+expect_no_file "two configs: no rule is written" a
+
+new_project refused-no-config
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+_Avoid_: purchase
+
+### Refund
+
+Money returned.
+
+_Avoid_: purchase
+EOF
+expect_refusal "a refused glossary with no config" "no single replacement"
+expect_no_file "a refusal writes no config" .vale.ini
+
+new_project an-argument
+one_entry
+arg_exit=0
+(cd "$PROJECT" && python3 "$SCRIPT" somewhere >/dev/null 2>&1) || arg_exit=$?
+if [ "$arg_exit" = 2 ]; then pass "an argument exits 2"; else fail "an argument exits $arg_exit, wanted 2"; fi
+expect_no_file "an argument writes nothing" somewhere
 
 new_project term-metacharacter
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
