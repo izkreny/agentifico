@@ -98,10 +98,10 @@ Propose folding or retiring only on evidence of where the concept went. A delete
 `scripts/glossary-rule.py` turns the `_Avoid_:` and `_Except_:` lines into one Vale `substitution` rule, so a drifted word is caught by a check as well as by a reader. Run it from the project's root, and again whenever either kind of line changes, because the rule only knows what the glossary said when it was generated:
 
 ```bash
-python3 <skill-dir>/scripts/glossary-rule.py <styles-path>
+python3 <skill-dir>/scripts/glossary-rule.py
 ```
 
-`<styles-path>` is the project's Vale `StylesPath`, and `<repo-root>/.vale/styles` where the project has no Vale setup yet. The rule lands at `<styles-path>/Glossary/Terms.yml`. Commit it, so a Vale run needs neither this skill nor Python, and never edit it by hand, because the next run replaces it.
+The rule lands at `<repo-root>/.vale/styles/Glossary/Terms.yml`. Where the project's Vale `StylesPath` is elsewhere, pass that path as the command's argument. Commit the rule, so a Vale run needs neither this skill nor Python, and never edit it by hand, because the next run replaces it.
 
 These lines in `<repo-root>/.vale.ini` turn it on:
 

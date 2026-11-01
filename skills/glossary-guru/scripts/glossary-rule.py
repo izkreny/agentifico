@@ -3,10 +3,10 @@
 
 Usage, from the project's root:
 
-    python3 <skill-dir>/scripts/glossary-rule.py <styles-path>
+    python3 <skill-dir>/scripts/glossary-rule.py [<styles-path>]
 
 Writes <styles-path>/Glossary/Terms.yml from the `_Avoid_:` and `_Except_:`
-lines under `## Language`.
+lines under `## Language`. <styles-path> defaults to .vale/styles.
 
 Exit 0: the rule was written. A glossary naming no drift word gets a rule that
 swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import NoReturn
 
 GLOSSARY_PATHS = (Path("docs/GLOSSARY.md"), Path("GLOSSARY.md"))
+DEFAULT_STYLES = ".vale/styles"
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
 PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ '-])+")
 LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
@@ -134,10 +135,11 @@ def render(swap, exceptions, styles_arg):
 
 
 def main():
-    if len(sys.argv) != 2 or sys.argv[1].startswith("-"):
+    args = sys.argv[1:]
+    if len(args) > 1 or (args and args[0].startswith("-")):
         stop(__doc__)
     # WHY: the path lands in a committed file's comment, so it stays relative however it was typed.
-    styles_arg = os.path.relpath(sys.argv[1])
+    styles_arg = os.path.relpath(args[0] if args else DEFAULT_STYLES)
     glossary = find_glossary()
     entries, exceptions, problems = parse_language(glossary.read_text(encoding="utf-8"))
     swap, swap_problems = build_swap(entries)

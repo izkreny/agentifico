@@ -242,6 +242,27 @@ expect_exit "two phrases apart only under full case folding" 0
 expect_no_alert "both phrases folding alike stay quiet" "doc.md:(3|5):"
 expect_alert "a drift word beside them still fires" "doc.md:7:6:Glossary.Terms:Use 'Bestellung' instead of 'strasse'."
 
+new_project default-path
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+_Avoid_: purchase
+EOF
+expect_exit "an explicit styles path" 0
+cp "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/explicit-rule"
+rm "$PROJECT/.vale/styles/Glossary/Terms.yml"
+default_exit=0
+(cd "$PROJECT" && python3 "$SCRIPT" >/dev/null 2>&1) || default_exit=$?
+if [ "$default_exit" = 0 ]; then pass "no argument exits 0"; else fail "no argument exits $default_exit, wanted 0"; fi
+if cmp -s "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/explicit-rule"; then pass "no argument writes the same rule under .vale/styles"; else fail "no argument wrote no matching rule under .vale/styles"; fi
+extra_exit=0
+(cd "$PROJECT" && python3 "$SCRIPT" one two >/dev/null 2>&1) || extra_exit=$?
+if [ "$extra_exit" = 2 ]; then pass "two arguments exit 2"; else fail "two arguments exit $extra_exit, wanted 2"; fi
+
 new_project term-metacharacter
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 ## Language
