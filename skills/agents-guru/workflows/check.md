@@ -48,7 +48,7 @@ markdownlint's own rules run at their defaults. A rule that is off is named in `
 
 Each of their failure modes is silent: a truncated description keeps loading with fewer triggers, and a frontmatter parse error makes the skill vanish from the listing with no complaint. `SKILL.md` owns the trap classes, under "YAML eats the description at `#`".
 
-**`skill-description`**, in `scripts/rules/skill-description.js`, reads the frontmatter as raw lines and never parses it.
+**`skill-description`**, in `scripts/rules/skill-description.js`, reads the frontmatter as raw lines and never parses it. A placeholder in angle brackets counts as the XML tag it bars, and square brackets or `argument-hint` carry one instead.
 
 **`skill-frontmatter-parsed`**, in `scripts/rules/skill-frontmatter-parsed.js`, parses the same frontmatter with a real YAML parser and compares each top-level plain scalar against its raw line. Neither replaces the other: the silent class is valid YAML, so a parser returns the corrupted value without complaint.
 

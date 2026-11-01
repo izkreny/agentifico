@@ -96,6 +96,19 @@ describe("skill-description, the raw sweep", () => {
     ["good-blank-then-comment", "name: x\ndescription: Use when doing X,\n  and when doing Y.\n\n  # unsure\ncompatibility: node 22", null],
     ["good-comment-line", "name: x\ndescription: one\n  # c\ncompatibility: node 22", null],
     ["good-quoted-hash-continuation", 'name: x\ndescription: "one\n  # two"', null],
+    ["t-xml-open", "name: x\ndescription: Formats <output> blocks.", "XML tag"],
+    ["t-xml-close", "name: x\ndescription: Formats blocks up to </output>.", "XML tag"],
+    ["t-xml-self-closing", "name: x\ndescription: Formats a <br/> well.", "XML tag"],
+    ["t-xml-attribute", 'name: x\ndescription: |\n  Formats a <a href="x"> link.', "XML tag"],
+    ["t-xml-block", "name: x\ndescription: >-\n  Formats\n  <output> blocks.", "XML tag"],
+    ["t-xml-quoted", 'name: x\ndescription: "Formats <output> blocks."', "XML tag"],
+    ["t-xml-single-quoted", "name: x\ndescription: 'Formats <output> blocks.'", "XML tag"],
+    ["t-xml-folded", "name: x\ndescription: Formats\n  <output> blocks.", "XML tag"],
+    ["t-xml-placeholder", "name: x\ndescription: Reads <branch> names.", "XML tag"],
+    ["good-less-than", "name: x\ndescription: Use when a < b and c > d.", null],
+    ["good-tight-number", "name: x\ndescription: Use when a<5 or b>3.", null],
+    ["good-arrow", "name: x\ndescription: Use for a -> b and c <- d.", null],
+    ["good-tag-in-comment", 'name: x\ndescription: "Plain." # <note>', null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
