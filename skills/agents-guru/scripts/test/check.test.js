@@ -1527,6 +1527,8 @@ describe("skill-pinned-sources", () => {
     ["a sha cut short", `https://github.com/owner/repo/blob/${SHA.slice(0, 7)}/SKILL.md`],
     ["a sha that does not end its segment", `https://github.com/owner/repo/blob/${SHA}x/SKILL.md`],
     ["a raw copy on a branch", "https://raw.githubusercontent.com/owner/repo/main/SKILL.md"],
+    ["a file in a folder named issues", "https://github.com/owner/repo/blob/main/issues/x.md"],
+    ["a repository named pull", "https://github.com/owner/pull"],
   ];
   for (const [what, url] of unpinned)
     it(`warns on ${what} and leaves the run passing`, () => {
@@ -1542,6 +1544,12 @@ describe("skill-pinned-sources", () => {
     ["a gist revision", `https://gist.github.com/owner/c28c7a7189726dc3d8a89b6db92c1c8d/${SHA}`],
     ["a raw copy at a commit", `https://raw.githubusercontent.com/owner/repo/${SHA}/SKILL.md`],
     ["a page on no git host", "https://suchow.io/assets/docs/paper.pdf"],
+    ["an issue, which has no commit", "https://github.com/owner/repo/issues/12"],
+    ["a pull request's conversation, which has no commit", "https://github.com/owner/repo/pull/12"],
+    ["a discussion, which has no commit", "https://github.com/owner/repo/discussions/12"],
+    ["a merge request, which has no commit", "https://gitlab.com/owner/repo/-/merge_requests/12"],
+    ["an owner's profile, which has no commit", "https://github.com/owner"],
+    ["an owner's profile with a slash", "https://github.com/owner/"],
     ["a file of the repository", "../sibling/SKILL.md"],
   ];
   for (const [what, url] of pinned)

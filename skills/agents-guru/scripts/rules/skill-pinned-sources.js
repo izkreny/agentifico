@@ -5,6 +5,8 @@ const SOURCE_SECTION = /^(?:inspiration|sources)$/i;
 const GIT_HOST = /^https?:\/\/(?:www\.)?(?:github\.com|gist\.github\.com|raw\.githubusercontent\.com|gitlab\.com|bitbucket\.org|codeberg\.org)\//i;
 // WHY: a tag or a short sha can come to name another commit later, so only a full sha is a pin.
 const COMMIT = /\/[0-9a-f]{40}(?:[/?#]|$)/;
+// WHY: an owner's profile and an issue, pull request or discussion have no commit, so the advice to link one could never be followed.
+const NO_COMMIT_PAGE = /^https?:\/\/[^/]+\/[^/?#]+(?:\/?(?:[?#]|$)|\/[^/?#]+\/(?:-\/)?(?:issues|pulls?|pull-requests|merge_requests|discussions)(?:[/?#]|$))/i;
 const CARRIES_A_LINK = new Set(["resourceDestinationString", "definitionDestinationString", "autolinkProtocol", "literalAutolinkHttp"]);
 
 function headingOf(token) {
@@ -43,7 +45,7 @@ export default {
       }
       if (sectionLevel === null) continue;
       walk([token], (inner) => {
-        if (!CARRIES_A_LINK.has(inner.type) || !GIT_HOST.test(inner.text) || COMMIT.test(inner.text)) return;
+        if (!CARRIES_A_LINK.has(inner.type) || !GIT_HOST.test(inner.text) || COMMIT.test(inner.text) || NO_COMMIT_PAGE.test(inner.text)) return;
         onError({
           lineNumber: inner.startLine,
           detail: `${inner.text} names no commit, so nobody can compare the skill against what it took: link the commit that was read`,
