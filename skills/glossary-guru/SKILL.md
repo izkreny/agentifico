@@ -76,7 +76,7 @@ Add, change, fold or retire an entry only on the owner's decision: propose the w
 | --- | --- | --- |
 | Add | A term is settled that the file does not hold | A new entry under `## Language` |
 | Change | The meaning moved, or a new drift word appeared | The entry is rewritten, and any new drift word joins its `_Avoid_:` line |
-| Fold | The term is a synonym or a property of another entry | Its meaning moves into the surviving entry, the old word joins that entry's `_Avoid_:` line, and entries pointing at it repoint |
+| Fold | The term is a synonym or a property of another entry | Its meaning moves into the surviving entry and entries pointing at it repoint. A synonym joins that entry's `_Avoid_:` line, and a property's word stays in use, named in that entry's definition |
 | Retire | The concept has left the project, and no entry can carry it | One line under `## Retired` saying what the term meant and what removed it, with the entry itself gone |
 
 Record a settled confusion as one line under `## Flagged ambiguities`, because it is what stops the same argument happening twice.
