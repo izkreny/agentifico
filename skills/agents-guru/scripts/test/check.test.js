@@ -1577,6 +1577,12 @@ describe("skill-pinned-sources", () => {
       );
     assert.equal(found.length, 5, String(found));
   });
+  it("reads a link inside a heading in the section, and leaves one outside it alone", () => {
+    const url = "https://github.com/owner/repo";
+    const found = findings(mkSkill("in-heading", `## Sources\n\n### [inside](${url}/inside)\n\nWhat it gave.\n\n## [After](${url}/after)\n\nText.\n`));
+    assert.equal(found.length, 1, String(found));
+    assert.match(found[0], /repo\/inside names no commit/);
+  });
   it("leaves the same link alone outside a source section", () => {
     const url = "https://github.com/owner/repo";
     const dir = mkSkill(

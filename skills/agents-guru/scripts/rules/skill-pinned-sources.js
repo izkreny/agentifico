@@ -41,7 +41,6 @@ export default {
       const heading = headingOf(token);
       if (heading) {
         if (sectionLevel === null || heading.level <= sectionLevel) sectionLevel = SOURCE_SECTION.test(heading.text) ? heading.level : null;
-        continue;
       }
       if (sectionLevel === null) continue;
       walk([token], (inner) => {
