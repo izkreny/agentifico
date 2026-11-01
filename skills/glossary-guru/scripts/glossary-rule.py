@@ -17,15 +17,21 @@ Exit 2: an argument, no single glossary to read, or more than one Vale config.
 """
 
 import json
+import os
 import re
 import sys
+from configparser import ConfigParser
+from configparser import Error as ConfigParserError
+from fnmatch import fnmatchcase
 from pathlib import Path
 from typing import NoReturn
 
 GLOSSARY_PATHS = (Path("docs/GLOSSARY.md"), Path("GLOSSARY.md"))
 # WHY: Vale 3.25.1 finds its config under exactly these names, and a project with one of them must not get a second.
-CONFIG_PATHS = (Path(".vale.ini"), Path("vale.ini"), Path("_vale.ini"), Path(".vale"), Path("_vale"))
+CONFIG_NAMES = (".vale.ini", "vale.ini", "_vale.ini", ".vale", "_vale")
 DEFAULT_STYLES = ".vale/styles"
+ABOVE_SECTIONS = "glossary-rule: above every section"
+SAMPLE_DOCUMENT = "doc.md"
 # WHY: the name carries `.template` so that a Vale run started in this skill's directory never takes it for a config.
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "vale.ini.template"
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
@@ -50,41 +56,60 @@ def find_glossary():
 
 
 def find_config():
-    found = [path for path in CONFIG_PATHS if path.is_file()]
-    if len(found) > 1:
-        stop(f"glossary-rule: {' and '.join(map(str, found))} exist; the owner decides which one stays")
-    return found[0] if found else None
-
-
-def styles_path_in(config_text):
-    """Return the config's StylesPath, which Vale reads only above every section."""
-    for raw in config_text.splitlines():
-        line = raw.strip()
-        if line.startswith("["):
-            return None
-        match = re.fullmatch(r"StylesPath\s*=\s*(.*)", line)
-        if match:
-            return match[1].strip("\"' ") or None
+    """Find the config Vale would use, looking from here upward as Vale does."""
+    for directory in (Path.cwd(), *Path.cwd().parents):
+        found = [directory / name for name in CONFIG_NAMES if (directory / name).is_file()]
+        if len(found) > 1:
+            stop(f"glossary-rule: {' and '.join(map(str, found))} exist; the owner decides which one stays")
+        if found:
+            return found[0]
     return None
 
 
-def lines_to_add(config_text, styles_path):
-    """Return each setting of the template the config lacks, under its section heading."""
-    lines, section = [], None
-    for raw in TEMPLATE.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if line.startswith("["):
-            section = line
-            continue
-        key, _, value = line.partition(" = ")
-        if key == "StylesPath":
-            present = styles_path
-        else:
-            present = re.search(rf"^\s*{re.escape(key)}\s*=.*\b{re.escape(value)}\b", config_text, re.MULTILINE)
-        if not present:
-            lines += [section, line] if section else [line]
+def read_config(path):
+    """Return a config's StylesPath and its sections, in order, each as a heading and its settings."""
+    parser = ConfigParser(interpolation=None, strict=False, allow_no_value=True, delimiters=("=", ":"), inline_comment_prefixes=("#", ";"))
+    parser.optionxform = str
+    try:
+        # WHY: Vale keeps StylesPath above every section, and configparser reads nothing outside one.
+        parser.read_string(f"[{ABOVE_SECTIONS}]\n" + path.read_text(encoding="utf-8"))
+    except ConfigParserError as error:
+        stop(f"glossary-rule: cannot read {path}: {error}")
+    styles_path = (parser[ABOVE_SECTIONS].get("StylesPath") or "").strip("\"' ") or None
+    return styles_path, [(heading, dict(parser[heading])) for heading in parser.sections() if heading != ABOVE_SECTIONS]
+
+
+def covers(heading, path):
+    """Say whether a Vale section heading covers a path."""
+    braces = re.fullmatch(r"(.*)\{([^{}]*)\}(.*)", heading)
+    if braces:
+        return any(covers(f"{braces[1]}{option}{braces[3]}", path) for option in braces[2].split(","))
+    return fnmatchcase(path, heading) or fnmatchcase(path, heading.removeprefix("**/"))
+
+
+def last_setting(sections, key, path):
+    """Return the heading and value that decide a setting for a path, since a later matching section replaces an earlier one."""
+    decided = None
+    for heading, settings in sections:
+        if key in settings and covers(heading, path):
+            decided = heading, settings[key] or ""
+    return decided
+
+
+def lines_to_set(styles_path, sections, glossary_path):
+    """Return the lines that turn the rule on in a project's config, leaving what its own sections do alone."""
+    template_styles, template_sections = read_config(TEMPLATE)
+    lines = [] if styles_path else [f"StylesPath = {template_styles}"]
+    for heading, settings in template_sections:
+        for key, value in settings.items():
+            path = glossary_path if heading.endswith("GLOSSARY.md") else SAMPLE_DOCUMENT
+            decided = last_setting(sections, key, path)
+            if decided and re.search(rf"\b{re.escape(value)}\b", decided[1]):
+                continue
+            if decided and key == "BasedOnStyles":
+                lines += [f"[{decided[0]}]", f"{key} = {decided[1]}, {value}"]
+            else:
+                lines += [f"[{heading}]", f"{key} = {value}"]
     return lines
 
 
@@ -183,8 +208,7 @@ def main():
         stop(__doc__)
     glossary = find_glossary()
     config = find_config()
-    config_text = config.read_text(encoding="utf-8") if config else ""
-    styles_path = styles_path_in(config_text)
+    styles_path, sections = read_config(config) if config else (None, [])
     entries, exceptions, problems = parse_language(glossary.read_text(encoding="utf-8"))
     swap, swap_problems = build_swap(entries)
     held_terms, held_problems = terms_holding_drift(entries, swap)
@@ -195,16 +219,17 @@ def main():
         for problem in problems:
             print(f"  {problem}", file=sys.stderr)
         return 1
-    rule = Path(styles_path or DEFAULT_STYLES) / "Glossary" / "Terms.yml"
+    root = config.parent if config else Path.cwd()
+    rule = root / (styles_path or DEFAULT_STYLES) / "Glossary" / "Terms.yml"
     rule.parent.mkdir(parents=True, exist_ok=True)
     rule.write_text(render(swap, exceptions), encoding="utf-8")
-    print(f"glossary-rule: wrote {rule} with {len(swap)} word(s) from {glossary}")
+    print(f"glossary-rule: wrote {os.path.relpath(rule)} with {len(swap)} word(s) from {glossary}")
     if config is None:
-        CONFIG_PATHS[0].write_text(TEMPLATE.read_text(encoding="utf-8"), encoding="utf-8")
-        print(f"glossary-rule: wrote {CONFIG_PATHS[0]}, which turns the rule on")
-    elif missing := lines_to_add(config_text, styles_path):
-        print(f"glossary-rule: add these lines to {config} to turn the rule on, with any StylesPath above every section:")
-        print("\n".join(missing))
+        Path(CONFIG_NAMES[0]).write_text(TEMPLATE.read_text(encoding="utf-8"), encoding="utf-8")
+        print(f"glossary-rule: wrote {CONFIG_NAMES[0]}, which turns the rule on")
+    elif lines := lines_to_set(styles_path, sections, os.path.relpath(glossary.resolve(), root)):
+        print(f"glossary-rule: set these lines in {os.path.relpath(config)} to turn the rule on, with any StylesPath above every section:")
+        print("\n".join(lines))
     return 0
 
 
