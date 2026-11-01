@@ -1,5 +1,6 @@
 // A module rather than a config file, so nothing under a target is ever read as configuration.
 import agentFrontmatter, { agentPluginName } from "./rules/agent-frontmatter.js";
+import pluginBodyVariables from "./rules/plugin-body-variables.js";
 import skillArgumentHint from "./rules/skill-argument-hint.js";
 import skillArgumentPlaceholders from "./rules/skill-argument-placeholders.js";
 import skillBashBlocks from "./rules/skill-bash-blocks.js";
@@ -39,6 +40,7 @@ const contractRules = [
   skillArgumentPlaceholders,
   skillInjectedCommands,
   agentFrontmatter,
+  pluginBodyVariables,
 ];
 const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs];
 // A warning rule's findings print in its group but leave the run passing: agent-plugin-name's file still loads, skill-package-runners' command still runs, and skill-hard-wrap is a convention a skill may decline, per workflows/export.md or a caller's --skip.

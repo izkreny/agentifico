@@ -88,6 +88,10 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **What it cannot decide is whether a command in prose was meant to run.** Text such as ``see!`this` `` reads as a command in the wrong place.
 
+## The plugin-variable rule
+
+**`plugin-body-variables`**, in `scripts/rules/plugin-body-variables.js`, reports a bare path variable in the body of a plugin's `SKILL.md` or agent file. A skill counts as a plugin's when a folder above it holds `<plugin-dir>/.claude-plugin/plugin.json`, since a marketplace's root holds a `.claude-plugin` folder too.
+
 ## The name rule
 
 **`skill-name`**, in `scripts/rules/skill-name.js`, holds a skill's frontmatter `name` to its own directory and to what the specification allows a name to be.

@@ -1219,6 +1219,65 @@ describe("skill-package-runners, off a tree", () => {
   });
 });
 
+describe("plugin-body-variables", () => {
+  const plugin = () => path.join(tmp, "body-vars", "plugin");
+  const skillBody = (dir, body) => {
+    mk(dir, block(path.basename(dir)));
+    fs.writeFileSync(path.join(dir, "SKILL.md"), `---\n${block(path.basename(dir))}\n---\n\n${body}\n`);
+  };
+  beforeAll(() => {
+    fs.mkdirSync(path.join(plugin(), ".claude-plugin"), { recursive: true });
+    fs.writeFileSync(path.join(plugin(), ".claude-plugin", "plugin.json"), '{"name":"plugin"}\n');
+    skillBody(
+      path.join(plugin(), "skills", "bare"),
+      "Run `$CLAUDE_PLUGIN_ROOT/scripts/a.sh`.\n\nKeep state in $CLAUDE_PLUGIN_DATA.\n\n```bash\ncd $CLAUDE_PROJECT_DIR\n```",
+    );
+    skillBody(
+      path.join(plugin(), "skills", "braced"),
+      `Run \`"\${CLAUDE_PLUGIN_ROOT}/scripts/a.sh"\`, \${CLAUDE_PLUGIN_DATA} and \${CLAUDE_PROJECT_DIR}.\n\nAnd $CLAUDE_PLUGIN_ROOTS too.`,
+    );
+    fs.mkdirSync(path.join(plugin(), "agents"));
+    fs.writeFileSync(path.join(plugin(), "agents", "bare.md"), "---\nname: bare\ndescription: x\n---\n\nRun $CLAUDE_PLUGIN_ROOT/a.sh.\n");
+    fs.writeFileSync(path.join(plugin(), "agents", "braced.md"), `---\nname: braced\ndescription: x\n---\n\nRun \${CLAUDE_PLUGIN_ROOT}/a.sh.\n`);
+    fs.writeFileSync(path.join(plugin(), "skills", "bare", "notes.md"), "# Notes\n\nA hook reads $CLAUDE_PROJECT_DIR.\n");
+  });
+  it("each bare variable in a plugin's skill fails the run on its own line, and names the braced form", () => {
+    const r = run(plugin());
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_ROOT .*write \$\{CLAUDE_PLUGIN_ROOT\}/m);
+    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_DATA .*write \$\{CLAUDE_PLUGIN_DATA\}/m);
+    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PROJECT_DIR .*write \$\{CLAUDE_PROJECT_DIR\}/m);
+  });
+  it("a plugin's agent is read", () => {
+    assert.match(run(plugin()).out, /^ {2}agents\/bare\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_ROOT/m);
+  });
+  it("the braced form and a longer name are clean", () => {
+    const r = run(plugin());
+    assert.doesNotMatch(r.out, /skills\/braced\/SKILL\.md:\d+ plugin-body-variables/);
+    assert.doesNotMatch(r.out, /agents\/braced\.md:\d+ plugin-body-variables/);
+  });
+  it("a file the plugin never loads as content is not read", () => {
+    assert.doesNotMatch(run(plugin()).out, /notes\.md:\d+ plugin-body-variables/);
+  });
+  it("a skill outside any plugin is not held to it", () => {
+    const dir = path.join(tmp, "body-vars", "standalone");
+    skillBody(dir, "Read $CLAUDE_PROJECT_DIR here.");
+    assert.doesNotMatch(run(dir).out, /plugin-body-variables/);
+  });
+  it("a marketplace's root is not a plugin, so a skill beside it is not held to it", () => {
+    const root = path.join(tmp, "body-vars", "market");
+    fs.mkdirSync(path.join(root, ".claude-plugin"), { recursive: true });
+    fs.writeFileSync(path.join(root, ".claude-plugin", "marketplace.json"), "{}\n");
+    skillBody(path.join(root, "skills", "free"), "Read $CLAUDE_PROJECT_DIR here.");
+    assert.doesNotMatch(run(root).out, /plugin-body-variables/);
+  });
+  it("the frontmatter is not the body", () => {
+    const dir = path.join(plugin(), "skills", "in-fm");
+    mk(dir, "name: in-fm\ndescription: |\n  Reads $CLAUDE_PROJECT_DIR.");
+    assert.doesNotMatch(run(dir).out, /plugin-body-variables/);
+  });
+});
+
 describe("enclosingSkill", () => {
   it("a sibling whose name extends the target's is outside it", () => {
     assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), path.join(tmp, "a")), null);
