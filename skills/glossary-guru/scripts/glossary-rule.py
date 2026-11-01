@@ -13,7 +13,8 @@ Writes Glossary/Terms.yml from the `_Avoid_:` and `_Except_:` lines under
 Exit 0: the rule was written. A glossary naming no drift word gets a rule that
 swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
 Exit 1: the glossary cannot become a correct rule; each reason is on stderr.
-Exit 2: an argument, no single glossary to read, or more than one Vale config.
+Exit 2: an argument, no single glossary to read, no single Vale config to read,
+or nowhere to write the rule.
 """
 
 import json
@@ -35,7 +36,7 @@ SAMPLE_DOCUMENT = "doc.md"
 # WHY: the name carries `.template` so that a Vale run started in this skill's directory never takes it for a config.
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "vale.ini.template"
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
-PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ '-])+")
+PLAIN_WORDS = re.compile(r"(?!')(?:[^\W_]|[ '-])+")
 LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
 # WHY: Vale 3.25.1 honours an exception only when it holds a space, so `Pre-Order` in `exceptions` silences nothing.
 NO_SPACE = "holds no space, and Vale skips only a phrase that holds one"
@@ -140,7 +141,7 @@ def parse_language(text):
         term = entries[-1][0]
         for word in words:
             if not PLAIN_WORDS.fullmatch(word):
-                problems.append(f"{term}, line {number}: '{word}' must be letters, digits, spaces, hyphens or apostrophes")
+                problems.append(f"{term}, line {number}: '{word}' must be letters, digits, spaces, hyphens or apostrophes, and not open with a quote")
             elif kind == "Except" and " " not in word:
                 problems.append(f"{term}, line {number}: '{word}' {NO_SPACE}")
         if kind == "Avoid":
@@ -221,8 +222,11 @@ def main():
         return 1
     root = config.parent if config else Path.cwd()
     rule = root / (styles_path or DEFAULT_STYLES) / "Glossary" / "Terms.yml"
-    rule.parent.mkdir(parents=True, exist_ok=True)
-    rule.write_text(render(swap, exceptions), encoding="utf-8")
+    try:
+        rule.parent.mkdir(parents=True, exist_ok=True)
+        rule.write_text(render(swap, exceptions), encoding="utf-8")
+    except OSError as error:
+        stop(f"glossary-rule: cannot write {os.path.relpath(rule)}: {error}")
     print(f"glossary-rule: wrote {os.path.relpath(rule)} with {len(swap)} word(s) from {glossary}")
     if config is None:
         Path(CONFIG_NAMES[0]).write_text(TEMPLATE.read_text(encoding="utf-8"), encoding="utf-8")

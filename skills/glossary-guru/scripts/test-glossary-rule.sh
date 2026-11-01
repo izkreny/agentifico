@@ -357,6 +357,36 @@ printf 'StylesPath = cmt # the styles\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$
 expect_exit "a StylesPath with an inline comment" 0
 expect_file "the comment is not part of the path" cmt/Glossary/Terms.yml
 
+new_project config-named-vale
+one_entry
+printf '[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale"
+expect_exit "a config file named .vale with no StylesPath" 2
+if grep -qF "cannot write" "$PROJECT/stderr" && ! grep -qF "Traceback" "$PROJECT/stderr"; then pass "that config gets a reason, not a traceback"; else fail "that config's stderr: $(cat "$PROJECT/stderr")"; fi
+
+new_project quoted-word
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+_Avoid_: 'purchase'
+EOF
+expect_refusal "a single-quoted word" "not open with a quote"
+
+new_project possessive-word
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+_Avoid_: customer's purchase
+EOF
+expect_exit "an apostrophe inside a word" 0
+
 new_project config-colon
 one_entry
 printf 'StylesPath: col\n\n[*.md]\nBasedOnStyles: Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms: NO\n' >"$PROJECT/.vale.ini"
