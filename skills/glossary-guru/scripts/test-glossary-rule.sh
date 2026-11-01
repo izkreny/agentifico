@@ -281,6 +281,14 @@ if cmp -s "$PROJECT/.vale.ini" "$TEMPLATE"; then pass "the written config is a c
 (cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
 expect_alert "the written config turns the rule on" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
 expect_no_alert "the written config keeps the rule off the glossary" "GLOSSARY.md:"
+for extension in js ts rs c java go; do
+  printf '// A purchase here.\n' >"$PROJECT/code.$extension"
+done
+printf '/* A purchase here. */\n' >"$PROJECT/code.css"
+(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
+for extension in js ts rs c java go css; do
+  expect_alert "the written config checks .$extension comments" "code.$extension:1:6:Glossary.Terms:Use 'Order' instead of 'purchase'."
+done
 cp "$PROJECT/.vale.ini" "$WORK/written-config"
 expect_exit "a second run on the written config" 0
 if cmp -s "$PROJECT/.vale.ini" "$WORK/written-config"; then pass "a second run leaves the written config alone"; else fail "a second run changed the written config"; fi
