@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const SOURCE_SECTION = /^(?:inspiration|sources)$/i;
-const GIT_HOST = /^https?:\/\/(?:www\.)?(?:github\.com|gist\.github\.com|gitlab\.com|bitbucket\.org|codeberg\.org)\//i;
+const GIT_HOST = /^https?:\/\/(?:www\.)?(?:github\.com|gist\.github\.com|raw\.githubusercontent\.com|gitlab\.com|bitbucket\.org|codeberg\.org)\//i;
 // WHY: a tag or a short sha can come to name another commit later, so only a full sha is a pin.
 const COMMIT = /\/[0-9a-f]{40}(?:[/?#]|$)/;
 const CARRIES_A_LINK = new Set(["resourceDestinationString", "definitionDestinationString", "autolinkProtocol", "literalAutolinkHttp"]);

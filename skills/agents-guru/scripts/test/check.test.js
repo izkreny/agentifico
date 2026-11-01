@@ -1526,6 +1526,7 @@ describe("skill-pinned-sources", () => {
     ["another git host", "https://gitlab.com/owner/repo/-/blob/main/SKILL.md"],
     ["a sha cut short", `https://github.com/owner/repo/blob/${SHA.slice(0, 7)}/SKILL.md`],
     ["a sha that does not end its segment", `https://github.com/owner/repo/blob/${SHA}x/SKILL.md`],
+    ["a raw copy on a branch", "https://raw.githubusercontent.com/owner/repo/main/SKILL.md"],
   ];
   for (const [what, url] of unpinned)
     it(`warns on ${what} and leaves the run passing`, () => {
@@ -1539,6 +1540,7 @@ describe("skill-pinned-sources", () => {
     ["a tree at a commit", `https://github.com/owner/repo/tree/${SHA}`],
     ["a commit with a fragment", `https://github.com/owner/repo/blob/${SHA}#readme`],
     ["a gist revision", `https://gist.github.com/owner/c28c7a7189726dc3d8a89b6db92c1c8d/${SHA}`],
+    ["a raw copy at a commit", `https://raw.githubusercontent.com/owner/repo/${SHA}/SKILL.md`],
     ["a page on no git host", "https://suchow.io/assets/docs/paper.pdf"],
     ["a file of the repository", "../sibling/SKILL.md"],
   ];
