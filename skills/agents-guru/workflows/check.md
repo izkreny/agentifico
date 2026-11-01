@@ -74,7 +74,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **`skill-package-runners`**, in `scripts/rules/skill-package-runners.js`, warns on a runner command the using-scripts page lists that names no version, in a skill's markdown.
 
-**What it cannot decide is what a span of words means.** A span listing runner names reads as a command, and a word after the package can read as a version or as the package.
+**What it cannot decide is what the words after a runner mean.** A word there can read as a version or as the package.
 
 ## The argument-placeholder rule
 

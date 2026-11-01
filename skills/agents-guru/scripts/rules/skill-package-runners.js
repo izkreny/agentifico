@@ -3,14 +3,20 @@ import path from "node:path";
 import { isSkillFile } from "./frontmatter.js";
 import { owningSkill } from "./paths.js";
 
-// WHY: a runner further along a command is only an argument, so it has to open one, after any variable assignments.
-const RUNNER = /(?:^|[;&|(])\s*(?:\w+=\S*\s+)*((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s|$)([^;&|)]*))/g;
+// WHY: a command that only asks about a runner runs nothing, while any other word before one, such as a prompt or a wrapper, leaves it running.
+const RUNNER = /(?:^|[\s;&|(])(?<!(?:^|[\s;&|(])(?:which|type|echo|printf|hash|-v)\s+)((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s|$)([^;&|)]*))/g;
+// WHY: words naming another runner are a list of tools rather than a package to run.
+const ANOTHER_RUNNER = /(?:^|\s)(?:npx|bunx|uvx|pipx|deno|go)(?:\s|$)/;
 // WHY: a leading @ opens a scoped name and `npm:@` opens a scoped specifier, and neither is a version.
 const VERSION = /[^\s'":/]@[^\s/]|[=~<>!]=/;
-// WHY: a path or a script's own name runs a local file, and a scoped name is the one package name holding a slash.
-const ANY_PACKAGE = /^['"]?(?:@[\w-]+\/)?[\w-][\w.-]*(?<!\.(?:py|js|mjs|cjs|ts|sh))['"]?$/;
+// WHY: a script's own extension marks a file these runners run locally, while every other word may be a registry name or a hosted spec.
+const ANY_PACKAGE = /^['"]?[\w@].*(?<!\.(?:py|js|mjs|cjs|ts|sh)['"]?)$/;
 // WHY: go run and deno run also take a local file, and only these shapes fetch a package.
 const PACKAGE = { go: /^[\w-]+(?:\.[\w-]+)+\//, deno: /^(?:npm|jsr):/ };
+// WHY: a quoted string is matched first, so a # inside one is not taken for a comment.
+const QUOTED_OR_COMMENT = /'[^']*'|"(?:[^"\\]|\\.)*"|(?:^|\s)#.*$/g;
+
+const withoutComment = (text) => text.replace(QUOTED_OR_COMMENT, (match) => (/^\s*#/.test(match) ? "" : match));
 
 function unpinned(text) {
   return [...text.matchAll(RUNNER)]
@@ -19,7 +25,7 @@ function unpinned(text) {
       const shape = PACKAGE[runner.split(/\s+/)[0]];
       // WHY: a flag's separate value can sit before the package, and go run and deno run give the package a shape to find it by.
       const fetches = shape ? words.some((word) => shape.test(word)) : ANY_PACKAGE.test(words[0] ?? "");
-      return fetches && !VERSION.test(args);
+      return fetches && !VERSION.test(args) && !ANOTHER_RUNNER.test(args);
     })
     .map(([, command]) => command.trim());
 }
@@ -42,8 +48,7 @@ export default {
     if (!isSkillFile(params.name) && !owningSkill(params.name, params.config.root ?? process.cwd())) return;
     walk(params.parsers.micromark.tokens, (token) => {
       if (token.type !== "codeTextData" && token.type !== "codeFlowValue") return;
-      // WHY: an agent never executes a comment, whether it fills the line or follows a command.
-      for (const command of unpinned(token.text.replace(/(?:^|\s)#.*$/, "")))
+      for (const command of unpinned(withoutComment(token.text)))
         onError({
           lineNumber: token.startLine,
           detail: `${command} names no version, so what it runs changes over time: pin one, as npx eslint@9`,
