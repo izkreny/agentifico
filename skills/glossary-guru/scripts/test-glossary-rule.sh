@@ -275,7 +275,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 A request to buy.
 EOF
 expect_exit "a glossary naming no drift word" 0
-if [ -e "$PROJECT/.vale/styles/Glossary/Terms.yml" ]; then fail "a glossary naming no drift word wrote a rule"; else pass "a glossary naming no drift word writes no rule"; fi
+if grep -qx 'swap: {}' "$PROJECT/.vale/styles/Glossary/Terms.yml" 2>/dev/null; then pass "a glossary naming no drift word writes a rule that swaps nothing"; else fail "a glossary naming no drift word wrote no empty rule"; fi
 
 new_project stale
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -296,7 +296,18 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 A request to buy.
 EOF
 expect_exit "a glossary after its last drift word went" 0
-if [ -e "$PROJECT/.vale/styles/Glossary/Terms.yml" ]; then fail "a rule outlived the glossary's last drift word"; else pass "the rule goes with the glossary's last drift word"; fi
+cat >"$PROJECT/.vale.ini" <<'EOF'
+StylesPath = .vale/styles
+
+[doc.md]
+BasedOnStyles = Glossary
+EOF
+echo 'A purchase here.' >"$PROJECT/doc.md"
+# WHY: git tracks no empty directory, so only a rule file keeps the Glossary style on a fresh checkout's StylesPath.
+if git -C "$PROJECT" init -q && git -C "$PROJECT" add -A && [ -n "$(git -C "$PROJECT" ls-files .vale/styles/Glossary)" ]; then pass "the Glossary style survives a checkout"; else fail "git tracks nothing under the Glossary style"; fi
+stale_exit=0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || stale_exit=$?
+if [ "$stale_exit" = 0 ] && [ ! -s "$PROJECT/alerts" ]; then pass "the rule stops firing with the glossary's last drift word"; else fail "Vale exits $stale_exit after the last drift word went: $(cat "$PROJECT/alerts")"; fi
 
 new_project two-entries
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'

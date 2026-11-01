@@ -8,8 +8,8 @@ Usage, from the project's root:
 Writes <styles-path>/Glossary/Terms.yml from the `_Avoid_:` and `_Except_:`
 lines under `## Language`.
 
-Exit 0: the rule was written, or the glossary names no drift word, which
-removes any earlier rule.
+Exit 0: the rule was written. A glossary naming no drift word gets a rule that
+swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
 Exit 1: the glossary cannot become a correct rule; each reason is on stderr.
 Exit 2: wrong arguments, or no single glossary to read.
 """
@@ -123,7 +123,7 @@ def render(swap, exceptions, styles_arg):
         lines.append("exceptions:")
         # WHY: Vale matches an exception case-sensitively even under ignorecase, so each one carries its own flag.
         lines.extend(f"  - {json.dumps('(?i)' + phrase, ensure_ascii=False)}" for phrase in sorted(set(exceptions), key=str.casefold))
-    lines.append("swap:")
+    lines.append("swap:" if swap else "swap: {}")
     for word in sorted(swap, key=str.casefold):
         lines.append(f"  {json.dumps(word, ensure_ascii=False)}: {json.dumps(swap[word], ensure_ascii=False)}")
     return "\n".join(lines) + "\n"
@@ -146,13 +146,6 @@ def main():
             print(f"  {problem}", file=sys.stderr)
         return 1
     rule = Path(styles_arg) / "Glossary" / "Terms.yml"
-    if not swap:
-        if rule.exists():
-            rule.unlink()
-            print(f"glossary-rule: {glossary} names no drift word, so {rule} is removed")
-        else:
-            print(f"glossary-rule: {glossary} names no drift word, so there is no rule to write")
-        return 0
     rule.parent.mkdir(parents=True, exist_ok=True)
     rule.write_text(render(swap, exceptions, styles_arg), encoding="utf-8")
     print(f"glossary-rule: wrote {rule} with {len(swap)} word(s) from {glossary}")
