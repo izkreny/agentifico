@@ -37,6 +37,21 @@ const isBundled = (rel) => {
   return parts.length === 2 && BUNDLE_FOLDERS.has(parts[0]);
 };
 
+function namingPatterns(rel) {
+  const { base, ext, name } = path.parse(rel);
+  // WHY: a period after a name closes a sentence, while one followed by more of a word makes it another file.
+  const end = "(?!\\.?[\\w-])";
+  // WHY: `workflows/review.md` points at another file of the same name, while `./review.md` and `$DIR/review.md` do not.
+  const notAnotherFolder = "(?<![\\w.-])(?<!(?:^|[^$\\w])[\\w-]+/)";
+  // WHY: without an extension the bare name is an ordinary word, so only a path says it means the file.
+  const bare = `${notAnotherFolder}${ext ? "" : "(?<=/)"}${RegExp.escape(base)}${end}`;
+  const whole = `(?<![\\w-])${RegExp.escape(rel.split(path.sep).join("/"))}${end}`;
+  const module = RegExp.escape(name);
+  // WHY: a Python import names its sibling as a module, without the extension.
+  const imported = `^\\s*(?:from\\s+(?:[\\w.]+\\.)?${module}\\b|(?:from\\s+\\S+\\s+)?import\\s+[^#\\n]*\\b${module}\\b)`;
+  return new RegExp([bare, whole, ...(ext === ".py" ? [imported] : [])].join("|"), "m");
+}
+
 export default {
   names: ["skill-bundled-files"],
   description: "A file under a skill's scripts or references folder is named by another file of the skill",
@@ -60,9 +75,8 @@ export default {
     for (const [file, code] of unread) report(`could not read ${relative(file)} (${code}), so no name in it was compared`);
     for (const file of files) {
       if (!isBundled(relative(file))) continue;
-      // WHY: a period after the name closes a sentence, while one followed by more of a word makes it another file.
-      const name = new RegExp(`(?<![\\w.-])${RegExp.escape(path.basename(file))}(?!\\.?[\\w-])`);
-      const named = [...texts].some(([other, text]) => fs.realpathSync(other) !== fs.realpathSync(file) && name.test(text));
+      const naming = namingPatterns(relative(file));
+      const named = [...texts].some(([other, text]) => fs.realpathSync(other) !== fs.realpathSync(file) && naming.test(text));
       if (!named) report(`${relative(file)} is named by no file of this skill, so an agent never learns it exists: list it in SKILL.md`);
     }
   },

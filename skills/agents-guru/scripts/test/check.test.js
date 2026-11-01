@@ -1085,11 +1085,73 @@ describe("skill-bundled-files", () => {
     assert.equal(reports(run(dir).out, "kept"), false);
   });
   it("any other file of the skill can name it, by its bare name", () => {
-    const r = run(
-      tree("sibling", { "scripts/main.py": "import x\n# runs helper.py\n", "scripts/helper.py": "x\n", "workflows/a.md": "# A\n\nRun `scripts/main.py`.\n" }),
-    );
+    const r = run(tree("sibling", { "scripts/main.sh": "./helper.sh\n", "scripts/helper.sh": "x\n", "workflows/a.md": "# A\n\nRun `scripts/main.sh`.\n" }));
     assert.equal(reports(r.out, "helper"), false, r.out);
     assert.equal(reports(r.out, "main"), false, r.out);
+  });
+  it("a path to another file with the same name is not the name", () => {
+    const dir = tree("same-name", { "references/review.md": "# R\n\nbody\n", "workflows/review.md": "# W\n\nbody\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead workflows/review.md.\n");
+    const r = run(dir);
+    assert.equal(reports(r.out, "references\\/review\\.md"), true, r.out);
+  });
+  // WHY: a skill reaches its own file in each of these spellings, and none of them points elsewhere.
+  for (const [id, text] of [
+    ["own-path", "Read references/kept.md."],
+    ["own-path-relative", "Read ../references/kept.md."],
+    ["own-path-placeholder", "Read <skill-dir>/references/kept.md."],
+    ["dot-slash", "Read ./kept.md."],
+    ["variable", "Read $DIR/kept.md."],
+    ["braced-variable", `Read \${DIR}/kept.md.`],
+    ["substitution", 'Read "$(dirname "$0")/kept.md".'],
+    ["bare", "Read kept.md."],
+  ]) {
+    it(`a file is named by ${id}`, () => {
+      const dir = tree(id, { "references/kept.md": "# K\n\nbody\n" });
+      fs.appendFileSync(path.join(dir, "SKILL.md"), `\n${text}\n`);
+      assert.equal(reports(run(dir).out, "kept"), false);
+    });
+  }
+  it("an extensionless file is not named by the word alone", () => {
+    const dir = tree("word", { "scripts/deploy": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nUse this to deploy the thing.\n");
+    assert.equal(reports(run(dir).out, "scripts\\/deploy"), true);
+  });
+  for (const [id, text] of [
+    ["own path", "Run `scripts/deploy` first."],
+    ["dot slash", "Run `./deploy` first."],
+  ]) {
+    it(`an extensionless file is named by its ${id}`, () => {
+      const dir = tree(`word-${id.replace(" ", "-")}`, { "scripts/deploy": "x\n" });
+      fs.appendFileSync(path.join(dir, "SKILL.md"), `\n${text}\n`);
+      assert.equal(reports(run(dir).out, "scripts\\/deploy"), false);
+    });
+  }
+  for (const [id, line] of [
+    ["plain", "import helper"],
+    ["list", "import os, helper"],
+    ["aliased", "import helper as h"],
+    ["from", "from helper import run"],
+    ["from-package", "from scripts.helper import run"],
+    ["from-dot", "from . import helper"],
+  ]) {
+    it(`a Python file is named by an import: ${id}`, () => {
+      const r = run(tree(`py-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
+      assert.equal(reports(r.out, "scripts\\/helper"), false, r.out);
+    });
+  }
+  it("an import of a longer module name, and a non-Python file's module name, are not the name", () => {
+    const r = run(
+      tree("py-other", {
+        "scripts/main.py": "import helper_two\n",
+        "scripts/helper.py": "x\n",
+        "scripts/tool.sh": "x\n",
+        "scripts/caller.py": "import tool\n",
+        "notes.md": "# N\n\nRun main.py and caller.py.\n",
+      }),
+    );
+    assert.equal(reports(r.out, "scripts\\/helper"), true, r.out);
+    assert.equal(reports(r.out, "scripts\\/tool"), true, r.out);
   });
   it("a file does not name itself", () => {
     assert.equal(reports(run(tree("self", { "references/self.md": "# Self\n\nThis is self.md.\n" })).out, "references\\/self\\.md"), true);
