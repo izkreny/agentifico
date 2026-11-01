@@ -37,7 +37,8 @@ export function defects(fm) {
     if (/:(\s|$)/.test(value)) bad.push("colon inside or ending an unquoted value: parse error");
     if (/^(yes|no|on|off|true|false|null|~)$/i.test(value)) bad.push("becomes boolean or null in some parsers");
   }
-  if (XML_TAG.test(block ? value : scalar(value))) bad.push("an XML tag in the description, which the platform's skills guide bars");
+  if (XML_TAG.test(block ? value : scalar(value)))
+    bad.push("an XML tag in the description, which the platform's skills guide bars: write a placeholder in square brackets or in argument-hint");
   return bad;
 }
 

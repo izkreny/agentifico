@@ -126,6 +126,11 @@ describe("skill-description, the raw sweep", () => {
   it("a file with no frontmatter at all has no description", async () => {
     expectDetail(await findings("fx/bare/SKILL.md", "body\n", description), "skill-description", "no description");
   });
+  it("an XML tag's finding says what carries a placeholder instead", async () => {
+    const found = await findings("fx/xml-remedy/SKILL.md", skill("name: x\ndescription: Reads <branch> names."), description);
+    expectDetail(found, "skill-description", "square brackets");
+    expectDetail(found, "skill-description", "argument-hint");
+  });
   it("a file that is not a SKILL.md is not a skill", async () => {
     expectClean(await findings("fx/x/README.md", skill("name: x"), description), "skill-description");
   });
