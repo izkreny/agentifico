@@ -26,6 +26,12 @@ A form this list does not name goes under such a heading, which passes whatever 
 
 Whether it fires on its own or has to be typed, and for a routing skill every argument it accepts. A small table works, and a diagram of the argument-to-workflow map says the routing faster than prose.
 
+### What inspired it
+
+Required when the skill draws on an outside source, under a heading reading `## Inspiration` or `## Sources`, with one entry per source: its link, then what the skill took from it. A reader can then go to the original, and judge how much of it survived here.
+
+A source on a git host is linked at the commit that was read, because `main` moves and a later version could not be compared against what the skill took.
+
 ## When it links a file
 
 A README links a file it sends the reader to open, because the reader is on the rendered page, where a link is one click and a backticked path is a search.

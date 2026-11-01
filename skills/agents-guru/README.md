@@ -66,6 +66,8 @@ That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) 
 
 Behaviour is a different question, and this skill does not answer it. [`workflows/review.md`](workflows/review.md) says to measure that with whatever eval tooling the agent in use provides, naming Claude Code's built-in `claude plugin eval` as the example.
 
-## Where its rules come from
+## Inspiration
 
-Several of the check's rules were ported from [agnix](https://github.com/agent-sh/agnix), whose catalogue lists the defects agent files can carry. [`references/porting.md`](references/porting.md) states the tests a rule from such a catalogue has to pass, which hold it to the page it cites.
+- [agent-sh/agnix, at `v0.59.3`](https://github.com/agent-sh/agnix/tree/36c6801f79a12fb1c639696d4095182a322362f2): the catalogue of defects agent files can carry, from which several of the check's rules were ported.
+
+[`references/porting.md`](references/porting.md) states the tests a rule from such a catalogue has to pass, which hold it to the page it cites.
