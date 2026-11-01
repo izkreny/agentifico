@@ -1109,6 +1109,12 @@ describe("skill-bundled-files", () => {
     ["placeholder-then-placeholder", "Read <plugin-dir>/skills/<name>/references/kept.md."],
     ["placeholder-then-file", "Read <skill-dir>/<topic>/kept.md."],
     ["variable-then-placeholder", "Read $DIR/<x>/references/kept.md."],
+    ["default-value", `Read \${DIR:-.}/references/kept.md.`],
+    ["glob-folder", "Read skills/*/references/kept.md."],
+    ["glob-any-depth", "Read **/kept.md."],
+    ["backtick-substitution", 'Run `` `dirname "$0"`/references/kept.md ``.'],
+    ["template-expression", `Read \${{ github.workspace }}/references/kept.md.`],
+    ["windows-variable", "Read %DIR%/references/kept.md."],
     ["two-variables", "Read $A/$B/kept.md."],
     ["own-path-after-variable", "Read $DIR/references/kept.md."],
     ["unknown-working-directory", "Run `cd references && ./kept.md`."],
@@ -1156,6 +1162,21 @@ describe("skill-bundled-files", () => {
       });
       fs.appendFileSync(path.join(dir, file), text);
       assert.equal(reports(run(dir).out, "references\\/review\\.md"), true);
+    });
+  }
+  // WHY: a root says nothing about the writer's folder, so a sibling of the same name does not settle what it means.
+  for (const [id, text] of [
+    ["placeholders", "<skill-dir>/<topic>/review.md"],
+    ["variable", "$DIR/review.md"],
+    ["quoted-substitution", '"$(dirname "$0")"/review.md'],
+  ]) {
+    it(`a rooted path is not settled on the writer's sibling: ${id}`, () => {
+      const dir = tree(`rooted-${id}`, {
+        "references/review.md": "# R\n\nbody\n",
+        "workflows/review.md": "# W\n\nbody\n",
+        "workflows/a.md": `# A\n\nRead ${text}.\n`,
+      });
+      assert.equal(reports(run(dir).out, "references\\/review\\.md"), false);
     });
   }
   it("a path up from a file reaches the file it lands on, and not one of the same name", () => {

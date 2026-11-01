@@ -60,35 +60,34 @@ function importsFile(rel, text) {
   });
 }
 
-const PATH_CHARACTERS = "[\\w.$~{}/-]";
-const PATH_PART = `(?:<[\\w-]+>|${PATH_CHARACTERS})`;
-const PLACEHOLDER_ROOT = /^.*(?:\$\{?\w+\}?|<[\w-]+>|\{[\w-]+\})\//;
-// WHY: what closes `$(dirname "$0")` or `"$DIR"` roots the path after it, while a slash after a space or an opening quote is the filesystem's root.
-const CLOSES_A_ROOT = /(?:[)}]|[\w)}]["'])$/;
+const LITERAL = "[\\w.~/-]";
+// WHY: a slash is the filesystem's root only with nothing before it, so whatever else stands there is a root this rule cannot read, and no list of spellings could name them all.
+const NOTHING_BEFORE = /(?:^|[\s([=:,])["'`]?$/;
 
 function writtenPaths(base, ext, text) {
   // WHY: a period after a name closes a sentence, while one followed by more of a word makes it another file.
-  const pattern = `(?<!${PATH_CHARACTERS})(?:${PATH_PART}*/)?${RegExp.escape(base)}(?!\\.?[\\w/-])`;
+  const pattern = `(?<!${LITERAL})(?:${LITERAL}*/)?${RegExp.escape(base)}(?!\\.?[\\w/-])`;
   return (
     [...text.matchAll(new RegExp(pattern, "g"))]
       // WHY: without an extension the bare name is an ordinary word, so only a path says it means the file.
       .filter(([written]) => ext || written !== base)
       .map(({ 0: written, index }) => {
-        const rooted = written.replace(PLACEHOLDER_ROOT, "");
-        return rooted.startsWith("/") && CLOSES_A_ROOT.test(text.slice(Math.max(0, index - 2), index)) ? rooted.slice(1) : rooted;
+        if (text[index - 1] === "$") return { written: written.slice(written.indexOf("/") + 1), rooted: true };
+        if (written.startsWith("/") && !NOTHING_BEFORE.test(text.slice(Math.max(0, index - 2), index))) return { written: written.slice(1), rooted: true };
+        return { written, rooted: false };
       })
   );
 }
 
-// WHY: this rule fails the run, and a shell's working directory is unknown, so a path counts from any folder of the skill unless the writer's own folder settles it on another file.
+// WHY: this rule fails the run, and a shell's working directory is unknown, so a path counts from any folder of the skill, unless it has no root of its own and the writer's folder settles it on another file.
 function naming(rel, skill, files) {
   const { base, ext } = path.parse(rel);
   const target = path.join(skill, rel);
   const folders = [...new Set(files.map((file) => path.dirname(file)))];
   return (other, text) => {
-    const landsOn = (written) => {
+    const landsOn = ({ written, rooted }) => {
       const own = path.resolve(skill, path.dirname(other), written);
-      if (own !== target && files.includes(own)) return false;
+      if (!rooted && own !== target && files.includes(own)) return false;
       return folders.some((folder) => path.resolve(folder, written) === target);
     };
     return writtenPaths(base, ext, text).some(landsOn) || (ext === ".py" && other.endsWith(".py") && importsFile(rel, text));
