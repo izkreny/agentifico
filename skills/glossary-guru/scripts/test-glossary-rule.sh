@@ -90,6 +90,10 @@ We take into account the clients and accounting.
 A coupon and a Refund for a Customer who placed an Order.
 
 The account stays.
+
+Take into account the fee.
+
+TAKE INTO ACCOUNT the fee.
 EOF
 cat >"$PROJECT/code.rb" <<'EOF'
 # The client is held here.
@@ -118,7 +122,7 @@ expect_alert "a drift word fires in any case, naming both words" "doc.md:3:3:Glo
 expect_alert "a phrase on an Avoid line fires across a line break" "doc.md:5:3:Glossary.Terms:Use 'Order' instead of 'shopping basket'."
 expect_alert "a word an exception does not cover still fires" "doc.md:12:5:Glossary.Terms:Use 'Customer' instead of 'account'."
 expect_alert "a code comment fires" "code.rb:1:7:Glossary.Terms:Use 'Customer' instead of 'client'."
-expect_no_alert "an Except phrase, a longer word and the terms stay quiet" "doc.md:(8|10):"
+expect_no_alert "an Except phrase, a longer word and the terms stay quiet" "doc.md:(8|10|14|16):"
 expect_no_alert "a method name and a string stay quiet" "code.rb:[2-9]:"
 expect_no_alert "the glossary itself stays quiet" "GLOSSARY.md:"
 

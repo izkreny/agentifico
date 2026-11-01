@@ -102,7 +102,8 @@ def render(swap, exceptions, styles_arg):
     ]
     if exceptions:
         lines.append("exceptions:")
-        lines.extend(f"  - {json.dumps(phrase, ensure_ascii=False)}" for phrase in sorted(set(exceptions), key=str.casefold))
+        # WHY: Vale matches an exception case-sensitively even under ignorecase, so each one carries its own flag.
+        lines.extend(f"  - {json.dumps('(?i)' + phrase, ensure_ascii=False)}" for phrase in sorted(set(exceptions), key=str.casefold))
     lines.append("swap:")
     for word in sorted(swap, key=str.casefold):
         lines.append(f"  {json.dumps(word, ensure_ascii=False)}: {json.dumps(swap[word], ensure_ascii=False)}")
