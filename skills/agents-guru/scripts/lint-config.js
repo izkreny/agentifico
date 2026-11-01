@@ -10,6 +10,7 @@ import skillDescription from "./rules/skill-description.js";
 import skillFork from "./rules/skill-fork.js";
 import skillFrontmatterParsed from "./rules/skill-frontmatter-parsed.js";
 import skillHardWrap from "./rules/skill-hard-wrap.js";
+import skillInjectedCommands from "./rules/skill-injected-commands.js";
 import skillInvocation from "./rules/skill-invocation.js";
 import skillLayout from "./rules/skill-layout.js";
 import skillName from "./rules/skill-name.js";
@@ -33,6 +34,7 @@ const contractRules = [
   skillArgumentHint,
   skillBashBlocks,
   skillArgumentPlaceholders,
+  skillInjectedCommands,
   agentFrontmatter,
 ];
 const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs];

@@ -70,6 +70,12 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 **What it cannot decide is what a `$N` in prose means.** The placeholder is meant there, so a price such as `$1.00` is the reviewer's to catch.
 
+## The injected-command rule
+
+**`skill-injected-commands`**, in `scripts/rules/skill-injected-commands.js`, reports what stops a `!` command in a `SKILL.md` from running: a `!` that neither opens a line nor follows whitespace, and a raw control character in the command. It reads the parser's tree, so a `!` inside a code span is no command.
+
+**What it cannot decide is whether a command in prose was meant to run.** Text such as ``see!`this` `` reads as a command in the wrong place.
+
 ## The name rule
 
 **`skill-name`**, in `scripts/rules/skill-name.js`, holds a skill's frontmatter `name` to its own directory and to what the specification allows a name to be.

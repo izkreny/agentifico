@@ -15,6 +15,7 @@ import description from "../rules/skill-description.js";
 import fork from "../rules/skill-fork.js";
 import parsed from "../rules/skill-frontmatter-parsed.js";
 import hardWrap from "../rules/skill-hard-wrap.js";
+import injectedCommands from "../rules/skill-injected-commands.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
@@ -38,6 +39,7 @@ const RULES = [
   bashBlocks,
   referencedPaths,
   argumentPlaceholders,
+  injectedCommands,
 ];
 
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
@@ -1264,6 +1266,62 @@ describe("skill-argument-placeholders", () => {
   });
 });
 
+describe("skill-injected-commands", () => {
+  const cases = [
+    ["t-after-equals", "KEY=!`cmd`", "does not run"],
+    ["t-after-word", "see!`cmd`", "does not run"],
+    ["t-after-bold", "**!`cmd`**", "does not run"],
+    ["t-after-paren", "(!`cmd`)", "does not run"],
+    ["good-after-space", "Branch: !`git branch --show-current`", null],
+    ["good-after-tab", "Branch:\t!`git branch --show-current`", null],
+    ["good-line-start", "!`git status`", null],
+    ["good-indented", "  !`git status`", null],
+    ["good-list-item", "- !`git status`", null],
+    // The `!` sits inside the span in both, so nothing here is a command.
+    ["good-bang-span", "A leading `!` eats the first word.", null],
+    ["good-bang-in-span", "Call `step.advance!` here.", null],
+    ["good-escaped", "KEY=\\!`cmd`", null],
+    ["good-no-bang", "KEY=`cmd`", null],
+    ["good-bang-then-space", "Stop! `cmd` here.", null],
+    ["good-image", "![alt `code`](a.png)", null],
+    ["t-bell", "Run !`a\u0007b` now.", "control character"],
+    ["t-escape", "!`a\u001bb`", "control character"],
+    ["t-delete", "!`a\u007fb`", "control character"],
+    ["t-c1", "!`a\u009fb`", "control character"],
+    ["t-nul", "!`a\u0000b`", "control character"],
+    ["good-tab-in-command", "!`a\tb`", null],
+    ["good-newline-in-command", "!`a\nb`", null],
+    ["good-control-outside-command", "Plain `a\u0007b` span and a\u0007b text.", null],
+    ["t-fence-control", "```!\nnode --version\na\u0007b\n```", "control character"],
+    ["good-fence", "```!\nnode --version\ngit status --short\n```", null],
+    ["good-fence-tab", "```!\na\tb\n```", null],
+    ["good-other-fence-control", "```bash\na\u0007b\n```", null],
+    ["good-untagged-fence-control", "```\na\u0007b\n```", null],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill("name: x\ndescription: |\n  x", body), injectedCommands);
+      if (want) expectDetail(found, "skill-injected-commands", want);
+      else expectClean(found, "skill-injected-commands");
+    });
+  }
+  it("a command in the wrong place is reported for its place alone, since it never reaches the tool", async () => {
+    const found = await findings("fx/both/SKILL.md", skill("name: x\ndescription: |\n  x", "KEY=!`a\u0007b`"), injectedCommands);
+    assert.equal(found.length, 1);
+    expectDetail(found, "skill-injected-commands", "does not run");
+  });
+  it("a fence's finding lands on the line holding the character", async () => {
+    const found = await findings("fx/fence-line/SKILL.md", skill("name: x\ndescription: |\n  x", "```!\nok\na\u0007b\n```"), injectedCommands);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [9],
+    );
+  });
+  it("a file that is not a SKILL.md runs no command", async () => {
+    expectClean(await findings("fx/other/workflows/a.md", "KEY=!`cmd`\n", injectedCommands), "skill-injected-commands");
+  });
+});
+
 // check.js prints a finding's context beside its line number, so each case pads the flagged line and wants it back trimmed, and from that line rather than the next.
 describe("a finding's context is its own line, trimmed", () => {
   const bolded = (open) => Array.from({ length: 6 }, (_, i) => `${open}**Lead ${i}** text.${i ? "" : "  "}`).join(open ? "\n" : "\n\n");
@@ -1286,6 +1344,7 @@ describe("a finding's context is its own line, trimmed", () => {
     ["c-referenced", referencedPaths, "", "  See `workflows/gone.md` here.", "See `workflows/gone.md` here."],
     ["c-vale", valeDirective, "", "<!-- vale off -->  \n\nProse.", "<!-- vale off -->"],
     ["c-placeholder", argumentPlaceholders, "", "  Run `echo $1` here.", "Run `echo $1` here."],
+    ["c-injected", injectedCommands, "", "  KEY=!`cmd`", "KEY=!`cmd`"],
   ];
   for (const [id, rule, fm, body, want] of cases) {
     it(id, async () => {
