@@ -58,14 +58,14 @@ The skill is supported on Linux, and on Windows only under WSL. It is untested o
 skills add izkreny/agentifico -g -y -s agents-guru
 ```
 
-That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) installs in one line, `mise use -g npm:skills`. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; `references/setup.md` states both. `references/managing.md` explains the flags, the lock file, and why one manager owns each skill.
+That is the [skills CLI](https://skills.sh), which [mise](https://mise.jdx.dev) installs in one line, `mise use -g npm:skills`. The mechanical checks then need their dependencies installed once, with `npm ci` run in the directory the skill landed in, and Vale on `PATH`, installed by whichever route [its installation page](https://docs.vale.sh/topics/installation) gives for the machine; [`references/setup.md`](references/setup.md) states both. [`references/managing.md`](references/managing.md) explains the flags, the lock file, and why one manager owns each skill.
 
 ## What a YAML parser cannot see
 
-**A validator that reads frontmatter through a YAML parser cannot see the space-and-`#` truncation.** The truncation is valid YAML, so the parser is handed a description that already ends early and has nothing to report. This skill checks the raw line instead, which is what lets it catch a family of traps a parsed read is defined not to reach; `SKILL.md` names each of them under "YAML eats the description at `#`".
+**A validator that reads frontmatter through a YAML parser cannot see the space-and-`#` truncation.** The truncation is valid YAML, so the parser is handed a description that already ends early and has nothing to report. This skill checks the raw line instead, which is what lets it catch a family of traps a parsed read is defined not to reach; [`SKILL.md`](SKILL.md) names each of them under "YAML eats the description at `#`".
 
-Behaviour is a different question, and this skill does not answer it. `workflows/review.md` says to measure that with whatever eval tooling the agent in use provides, naming Claude Code's built-in `claude plugin eval` as the example.
+Behaviour is a different question, and this skill does not answer it. [`workflows/review.md`](workflows/review.md) says to measure that with whatever eval tooling the agent in use provides, naming Claude Code's built-in `claude plugin eval` as the example.
 
 ## Where its rules come from
 
-Several of the check's rules were ported from [agnix](https://github.com/agent-sh/agnix), whose catalogue lists the defects agent files can carry. `references/porting.md` states the tests a rule from such a catalogue has to pass, which hold it to the page it cites.
+Several of the check's rules were ported from [agnix](https://github.com/agent-sh/agnix), whose catalogue lists the defects agent files can carry. [`references/porting.md`](references/porting.md) states the tests a rule from such a catalogue has to pass, which hold it to the page it cites.
