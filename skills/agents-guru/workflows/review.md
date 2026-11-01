@@ -84,7 +84,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **An agent with no `tools` field.** The [sub-agents page](https://code.claude.com/docs/en/sub-agents) says it inherits every tool available to subagents. That is a choice rather than a defect, so ask whether the agent means it, because a read-only job holding every tool can still write once something misleads it.
 
-**A `PermissionRequest` hook under a `.*` or empty matcher.** Read its script and ask whether it approves anything. The [hooks guide](https://code.claude.com/docs/en/hooks-guide) warns that an approving hook under such a matcher "would auto-approve every tool permission prompt".
+**A `PermissionRequest` hook under a `*`, `.*` or empty matcher, or with none.** Each of those matches every tool, so read its script and ask whether it approves anything. The [hooks guide](https://code.claude.com/docs/en/hooks-guide) warns that an approving hook under `.*` or an empty matcher "would auto-approve every tool permission prompt".
 
 ## Step 4 - Report
 
