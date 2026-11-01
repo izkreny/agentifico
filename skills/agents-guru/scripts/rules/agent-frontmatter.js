@@ -71,23 +71,18 @@ function declaredName(fm) {
   if (!fm) return null;
   const doc = parsed(fm);
   if (doc.errors.length) return null;
-  let value;
   try {
-    value = doc.toJS();
+    const name = doc.toJS()?.name;
+    return name === undefined || name === null ? null : String(name);
   } catch {
-    // WHY: toJS throws on a merge key with nothing to merge, which doc.errors does not hold.
+    // WHY: a merge key with nothing to merge and a name with no string form both throw past doc.errors.
     return null;
   }
-  const name = value?.name;
-  return name === undefined || name === null ? null : String(name);
 }
 
 // WHY: markdownlint drops a BOM before the judged file reaches this rule, so a sibling has to lose one too.
-function nameOnDisk(file) {
-  const lines = fs
-    .readFileSync(file, "utf8")
-    .replace(/^\uFEFF/, "")
-    .split(/\r?\n/);
+function nameInText(text) {
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/);
   if (lines[0].trimEnd() !== "---") return null;
   const close = lines.findIndex((line, i) => i > 0 && line.trimEnd() === "---");
   return close < 0 ? null : declaredName(lines.slice(1, close));
@@ -133,11 +128,14 @@ function duplicateNames(file, folder, fm) {
   const { files, unread } = agentFilesIn(folder);
   const others = [];
   for (const other of files.filter((candidate) => candidate !== path.resolve(file))) {
+    let text;
     try {
-      if (nameOnDisk(other) === name) others.push(other);
+      text = fs.readFileSync(other, "utf8");
     } catch (error) {
       unread.push([other, error.code]);
+      continue;
     }
+    if (nameInText(text) === name) others.push(other);
   }
   const relative = (entry) => path.relative(folder, entry) || ".";
   // WHY: a clean run would otherwise claim a comparison that never happened.

@@ -816,6 +816,15 @@ describe("check.js", () => {
       assert.equal(r.code, 0, r.out);
       assert.doesNotMatch(r.out, /could not read|also declared by/);
     });
+    it("a sibling whose name has no string form declares nothing, and was read", () => {
+      const dir = path.join(tmp, "stringless", ".claude", "agents");
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.writeFileSync(path.join(dir, "obj.md"), "---\nname: {toString: 1}\n---\n\nBody.\n");
+      const r = run(path.join(dir, "same.md"));
+      assert.equal(r.code, 0, r.out);
+      assert.doesNotMatch(r.out, /could not read|also declared by/);
+    });
     it("the agents folder itself, when it cannot be listed, is named", () => {
       const dir = path.join(tmp, "unlistable", ".claude", "agents");
       fs.mkdirSync(dir, { recursive: true });
