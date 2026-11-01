@@ -53,10 +53,6 @@ _Avoid_: client, buyer, account
 
 _Except_: take into account, on account of
 
-## Relationships
-
-- A **Customer** places many **Orders**.
-
 ## Flagged ambiguities
 
 - "account" had been used for both Customer and User; these are distinct.
@@ -66,13 +62,13 @@ _Except_: take into account, on account of
 - **Voucher**: a prepaid credit a customer could spend, removed when prepaid credit was dropped.
 ```
 
-The sections are `## Language`, `## Relationships`, `## Flagged ambiguities` and `## Retired`, in that order. Each is present only when it has entries, and `## Relationships` holds only what a reader needs and the entries cannot say alone, such as ownership or cardinality.
+The sections are `## Language`, `## Flagged ambiguities` and `## Retired`, in that order. Each is present only when it has entries.
 
 An entry is the term as a `###` heading, a definition of one or two sentences saying what the term is rather than what it does, and an `_Avoid_:` line naming the words not to use for it. The heading gives the entry a link of its own and a place in the page's outline, and the blank lines keep each part on its own line when the file is rendered. A term no other word competes with has no `_Avoid_:` line, because an invented word would send the next reader looking for drift that never happened.
 
 An `_Except_:` line is optional, and names a phrase of two or more words where a word on the `_Avoid_:` line is correct, such as "take into account" for `account`. A check matches words without reading them, so without this line it would flag that phrase every time. An agent reading the glossary treats it the same way: the phrase is not drift. A term that holds a drift word, such as `Shopping Cart` holding `cart`, needs no such line, because the rule generated from the glossary skips the term by itself. A term with no space that holds one, such as `Pre-Order` holding `order`, is refused when the rule is generated, because Vale can only skip a phrase holding a space.
 
-On an `_Avoid_:` or `_Except_:` line, a comma separates one word or phrase from the next, and a phrase takes no quotes, because the script refuses a quote mark.
+On an `_Avoid_:` or `_Except_:` line, a comma separates one word or phrase from the next, and a phrase takes no quotes, because the script refuses a quote mark. The rule matches a listed word whole, so `client` does not catch `clients`, and a plural the project uses needs listing too.
 
 An entry stands on its own: it names no file path, class, method, table, config value, date, owner or issue link, so it stays true when the code it describes is renamed. It may lean on another entry, and a project-specific word it leans on needs an entry of its own, unless the word is a property some entry's definition explains.
 
@@ -101,11 +97,15 @@ Propose folding or retiring only on evidence of where the concept went. A delete
 python3 <skill-dir>/scripts/glossary-rule.py
 ```
 
-The rule lands at `<repo-root>/<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none. A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it.
+The rule lands at `<repo-root>/<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none.
+
+A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. A `StylesPath` pointing outside the project is the project's own choice, and two projects sharing one get the rule of whichever ran last.
+
+Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it. A file at that path the script did not write is refused rather than replaced.
 
 `assets/vale.ini.template` holds the lines that turn the rule on, and explains in its comments what Vale checks and how to make a drifted word fail the run.
 
-The check supports Latin script only. Vale 3.25.1 did not flag a Chinese, Thai or Japanese word inside a sentence, and the script does not refuse one, so a reader has to catch such a word.
+The check supports Latin script only. Vale 3.25.1 does not flag a word with no space or punctuation around it, as in Chinese, Japanese, Korean or Thai running text, and the script refuses a word holding a combining mark, as many Thai and Hindi words do.
 
 ## What it does not cover
 
