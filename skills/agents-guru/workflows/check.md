@@ -72,9 +72,9 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The package-runner rule
 
-**`skill-package-runners`**, in `scripts/rules/skill-package-runners.js`, warns on a runner command the using-scripts page lists that names no version, in a code span or a fenced line of a skill's markdown. A partial version counts as one, since the page's own examples pin a major alone. A `README.md` is left alone, since a person reads it. A warning leaves the run passing.
+**`skill-package-runners`**, in `scripts/rules/skill-package-runners.js`, warns on a runner command the using-scripts page lists that names no version, in a skill's markdown.
 
-**What it cannot decide is whether a word in the command is a version.** Any `@` or comparison in the command reads as one, and a runner it does not list goes unreported.
+**What it cannot decide is what a span of words means.** A span listing runner names reads as a command, and a word after the package can read as a version or as the package.
 
 ## The argument-placeholder rule
 

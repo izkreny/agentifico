@@ -1343,6 +1343,11 @@ describe("skill-package-runners", () => {
     ["in-substitution", "echo $(npx eslint)"],
     ["pinned-beside-unpinned", "npx a@1; npx b"],
     ["wide-space", "pipx   run   black"],
+    ["indented", "  npx eslint ."],
+    ["with-environment", "CI=1 npx eslint ."],
+    ["two-assignments", "cd x && A=1 B=2 npx eslint ."],
+    ["go-flag-value", "go run -tags foo golang.org/x/tools/cmd/goimports ."],
+    ["deno-flag-value", "deno run --config deno.json npm:eslint"],
   ];
   // Every example on the using-scripts page, so a finding here reports the page's own advice.
   const pinned = [
@@ -1365,6 +1370,8 @@ describe("skill-package-runners", () => {
     "npx -p eslint@9 eslint .",
     "npx --package=eslint@9 eslint .",
     "uvx --from 'ruff>=0.8' ruff check .",
+    "pipx run scripts/extract.py",
+    "go run -tags foo golang.org/x/tools/cmd/goimports@v0.28.0 .",
   ];
   const notPackages = [
     "go run main.go",
@@ -1387,6 +1394,12 @@ describe("skill-package-runners", () => {
     "deno test",
     "mynpx eslint",
     "npx-like eslint",
+    "which npx uvx",
+    "echo npx eslint",
+    "pipx run extract.py",
+    "npx tool.js",
+    "uvx tools/run.py",
+    "ls # npx eslint",
   ];
   const skillWith = (body) => skill("name: x\ndescription: |\n  x", body);
   for (const [id, command] of unpinned) {
@@ -1412,6 +1425,13 @@ describe("skill-package-runners", () => {
   });
   it("an agent never runs a comment", async () => {
     expectClean(await findings("fx/comment/SKILL.md", skillWith("```bash\n  # npx eslint .\n```"), packageRunners), "skill-package-runners");
+  });
+  it("a comment after a command is no version", async () => {
+    expectDetail(
+      await findings("fx/trailing/SKILL.md", skillWith("```bash\nnpx eslint . # needs a@b\n```"), packageRunners),
+      "skill-package-runners",
+      "npx eslint . names",
+    );
   });
   it("prose is not a command", async () => {
     expectClean(await findings("fx/prose/SKILL.md", skillWith("Do not run npx eslint here."), packageRunners), "skill-package-runners");
