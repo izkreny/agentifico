@@ -61,13 +61,14 @@ function importsFile(rel, text) {
 }
 
 const PATH_CHARACTERS = "[\\w.$~{}/-]";
+const PATH_PART = `(?:<[\\w-]+>|${PATH_CHARACTERS})`;
 const PLACEHOLDER_ROOT = /^.*(?:\$\{?\w+\}?|<[\w-]+>|\{[\w-]+\})\//;
 // WHY: what closes `$(dirname "$0")` or `"$DIR"` roots the path after it, while a slash after a space or an opening quote is the filesystem's root.
-const CLOSES_A_ROOT = /(?:[)}]|\w["'])$/;
+const CLOSES_A_ROOT = /(?:[)}]|[\w)}]["'])$/;
 
 function writtenPaths(base, ext, text) {
   // WHY: a period after a name closes a sentence, while one followed by more of a word makes it another file.
-  const pattern = `(?<!${PATH_CHARACTERS})(?:<[\\w-]+>/)?(?:${PATH_CHARACTERS}*/)?${RegExp.escape(base)}(?!\\.?[\\w/-])`;
+  const pattern = `(?<!${PATH_CHARACTERS})(?:${PATH_PART}*/)?${RegExp.escape(base)}(?!\\.?[\\w/-])`;
   return (
     [...text.matchAll(new RegExp(pattern, "g"))]
       // WHY: without an extension the bare name is an ordinary word, so only a path says it means the file.
