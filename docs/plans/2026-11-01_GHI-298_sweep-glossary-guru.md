@@ -14,7 +14,7 @@ A reviewer subagent ran `skills/agents-guru/workflows/review.md` over `skills/gl
 - **SW4.** A line under `## Language` carrying an emphasised `avoid` or `except`, or opening with either and a colon, that does not fit the list line's form exits 1.
 - **SW5.** `<skill-dir>/SKILL.md` names an entry's heading alongside the two kinds of line, and `<skill-dir>/assets/vale.ini.template` says to rerun when the glossary changes.
 - **SW6.** `<skill-dir>/SKILL.md` runs the script when asked for the check, and again where the rule already exists.
-- **SW7.** An `_Avoid_:` word in a script written without spaces is refused, and `<skill-dir>/SKILL.md` says so. Thai is probed first, since the reviewer did not test it.
+- **SW7.** `<skill-dir>/SKILL.md` states that the check supports Latin script only.
 - **SW8.** The parser tracks fence state and skips what a fence holds.
 - **SW9.** `build_swap` keys on `.lower()` at both places.
 - **SW10.** An unreadable glossary or config, and a non-file named `<repo-root>/.vale.ini`, stop with a reason at exit 2 before any rule is written.
@@ -43,7 +43,6 @@ The first round inherited user-level instructions and two of its runs wrote outs
 
 ## Steps
 
-- Probe Thai and Vale's handling of the other scripts for SW7, before writing the refusal.
 - Write each new bench case, and watch it fail against the current script, before its fix.
 - Fix SW1 to SW19, citing each id in its commit.
 - Move `metadata.version` to `1.1.1`.
@@ -72,4 +71,4 @@ None.
 
 ## Settled
 
-None yet.
+**Should the script refuse a word in a script written without spaces, or should `<skill-dir>/SKILL.md` state the limit?** State the limit: the check supports Latin script only. The owner decided this, since a refusal would block the whole rule over one word and needs a list of scripts for a kind of project nobody here has.
