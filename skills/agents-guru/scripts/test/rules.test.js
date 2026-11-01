@@ -6,6 +6,7 @@ import agentFrontmatter, { defects as agentDefects, pluginNameWarnings } from ".
 import { description as descriptionValue, scalar } from "../rules/frontmatter.js";
 import { hooksDefects, manifestDefects, monitorFileDefects } from "../rules/plugin-files.js";
 import argumentHint from "../rules/skill-argument-hint.js";
+import argumentPlaceholders from "../rules/skill-argument-placeholders.js";
 import bashBlocks from "../rules/skill-bash-blocks.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
 import boldedRuns from "../rules/skill-bolded-runs.js";
@@ -36,6 +37,7 @@ const RULES = [
   argumentHint,
   bashBlocks,
   referencedPaths,
+  argumentPlaceholders,
 ];
 
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
@@ -1212,6 +1214,56 @@ describe("skill-hard-wrap", () => {
   });
 });
 
+describe("skill-argument-placeholders", () => {
+  const cases = [
+    ["t-fence", "```bash\nawk '{print $1}' file\n```", "$1 "],
+    ["t-indented", "    awk '{print $1}' file", "$1 "],
+    ["t-span", "Run `awk '{print $2}' file` here.", "$2 "],
+    ["t-other-tag", "```yaml\nrun: echo $0\n```", "$0 "],
+    ["t-two-digits", "`echo $12`", "$12 "],
+    // The page says only a single backslash escapes, and a doubled one leaves the placeholder live.
+    ["t-doubled-backslash", "`echo \\\\$1`", "$1 "],
+    ["t-word-after", "`echo $1abc`", "$1 "],
+    ["good-escaped", "```bash\nawk '{print \\$1}' file\n```", null],
+    ["good-span-escaped", "`awk '{print \\$1}' file`", null],
+    ["good-long-form", "```bash\ngh issue view $ARGUMENTS[0]\n```", null],
+    ["good-arguments", "`$ARGUMENTS`", null],
+    ["good-shell-variable", `\`\`\`bash\necho $HOME \${1} $NF\n\`\`\``, null],
+    // The page's own example, so a finding here fails a correct file.
+    ["good-prose", "Migrate the $0 component from $1 to $2.", null],
+    ["good-price", "It costs $1.00 a month.", null],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill("name: x\ndescription: |\n  x", body), argumentPlaceholders);
+      if (want) expectDetail(found, "skill-argument-placeholders", want);
+      else expectClean(found, "skill-argument-placeholders");
+    });
+  }
+  it("each placeholder gets a finding on its own line", async () => {
+    const found = await findings(
+      "fx/lines/SKILL.md",
+      skill("name: x\ndescription: |\n  x", "```bash\necho $1\necho hi\necho $2 $3\n```"),
+      argumentPlaceholders,
+    );
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [8, 10, 10],
+    );
+  });
+  it("the finding offers both forms", async () => {
+    const found = await findings("fx/forms/SKILL.md", skill("name: x\ndescription: |\n  x", "`echo $1`"), argumentPlaceholders);
+    expectDetail(found, "skill-argument-placeholders", "write \\$1");
+    expectDetail(found, "skill-argument-placeholders", "$ARGUMENTS[1]");
+  });
+  it("a file that is not a SKILL.md gets no substitution", async () => {
+    expectClean(await findings("fx/other/workflows/a.md", "`echo $1`\n", argumentPlaceholders), "skill-argument-placeholders");
+  });
+  it("the frontmatter is not the body", async () => {
+    expectClean(await findings("fx/fm/SKILL.md", skill("name: x\ndescription: |\n  Costs `$1` a month."), argumentPlaceholders), "skill-argument-placeholders");
+  });
+});
+
 // check.js prints a finding's context beside its line number, so each case pads the flagged line and wants it back trimmed, and from that line rather than the next.
 describe("a finding's context is its own line, trimmed", () => {
   const bolded = (open) => Array.from({ length: 6 }, (_, i) => `${open}**Lead ${i}** text.${i ? "" : "  "}`).join(open ? "\n" : "\n\n");
@@ -1233,6 +1285,7 @@ describe("a finding's context is its own line, trimmed", () => {
     ["c-portable", portablePaths, "", "  A span `/home/someone/notes.md` here.", "A span `/home/someone/notes.md` here."],
     ["c-referenced", referencedPaths, "", "  See `workflows/gone.md` here.", "See `workflows/gone.md` here."],
     ["c-vale", valeDirective, "", "<!-- vale off -->  \n\nProse.", "<!-- vale off -->"],
+    ["c-placeholder", argumentPlaceholders, "", "  Run `echo $1` here.", "Run `echo $1` here."],
   ];
   for (const [id, rule, fm, body, want] of cases) {
     it(id, async () => {
