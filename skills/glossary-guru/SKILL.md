@@ -108,11 +108,16 @@ StylesPath = .vale/styles
 
 [*.{md,rb}]
 BasedOnStyles = Glossary
+
+[**/GLOSSARY.md]
+Glossary.Terms = NO
 ```
 
-The rule reports a warning, because a common word can still fire on a correct sentence. Add `Glossary.Terms = error` under that section to make a drifted word fail the run.
+The last section keeps the rule off the glossary, the one file that has to name its drift words.
 
-Vale reads the comments of a source file and never its identifiers or string literals, so a drifted variable name stays for a reader to catch. It has no format for ERB: it reads a `.erb` file whole, whether or not `[formats]` maps it to HTML, so a view's page text fires, and so do its Ruby and its class names, with `place` firing on `place-items-center`. Add `erb` to that section only where the extra `_Except_:` lines are worth it.
+The rule reports a warning, because a common word can still fire on a correct sentence. Add `Glossary.Terms = error` under the `[*.{md,rb}]` section to make a drifted word fail the run.
+
+Vale reads the comments of a source file and never its identifiers or string literals, so a drifted variable name stays for a reader to catch. It has no format for ERB: it reads a `.erb` file whole, whether or not `[formats]` maps it to HTML, so a view's page text fires, and so do its Ruby and its class names, with `place` firing on `place-items-center`. Add `erb` to the `[*.{md,rb}]` section only where the extra `_Except_:` lines are worth it.
 
 ## What it does not cover
 

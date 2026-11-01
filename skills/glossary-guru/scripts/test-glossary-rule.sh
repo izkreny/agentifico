@@ -73,6 +73,9 @@ MinAlertLevel = suggestion
 
 [*.{md,rb}]
 BasedOnStyles = Glossary
+
+[**/GLOSSARY.md]
+Glossary.Terms = NO
 EOF
 cat >"$PROJECT/doc.md" <<'EOF'
 # Probe
@@ -99,7 +102,7 @@ expect_exit "a full glossary" 0
 RULE="$PROJECT/.vale/styles/Glossary/Terms.yml"
 
 # WHY: this one sets aside the exit code, since a warning leaves Vale at zero and the alerts themselves are the evidence.
-(cd "$PROJECT" && vale --no-global --output=line doc.md code.rb >"$PROJECT/alerts" 2>&1) || true
+(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
 
 expect_alert() {
   local name="$1" line="$2"
@@ -117,15 +120,19 @@ expect_alert "a word an exception does not cover still fires" "doc.md:12:5:Gloss
 expect_alert "a code comment fires" "code.rb:1:7:Glossary.Terms:Use 'Customer' instead of 'client'."
 expect_no_alert "an Except phrase, a longer word and the terms stay quiet" "doc.md:(8|10):"
 expect_no_alert "a method name and a string stay quiet" "code.rb:[2-9]:"
+expect_no_alert "the glossary itself stays quiet" "GLOSSARY.md:"
 
 quiet_exit=0
-(cd "$PROJECT" && vale --no-global --output=line doc.md >/dev/null 2>&1) || quiet_exit=$?
+(cd "$PROJECT" && vale --no-global --output=line . >/dev/null 2>&1) || quiet_exit=$?
 if [ "$quiet_exit" = 0 ]; then pass "a warning leaves a Vale run at zero"; else fail "a warning made Vale exit $quiet_exit"; fi
 
-{ cat "$PROJECT/.vale.ini"; echo 'Glossary.Terms = error'; } >"$PROJECT/error.ini"
+sed 's/^BasedOnStyles = Glossary$/&\nGlossary.Terms = error/' "$PROJECT/.vale.ini" >"$PROJECT/error.ini"
 loud_exit=0
 (cd "$PROJECT" && vale --no-global --config=error.ini --output=line doc.md >/dev/null 2>&1) || loud_exit=$?
 if [ "$loud_exit" = 1 ]; then pass "the .vale.ini override makes a drifted word fail the run"; else fail "the .vale.ini override made Vale exit $loud_exit, wanted 1"; fi
+clean_exit=0
+(cd "$PROJECT" && vale --no-global --config=error.ini --output=line docs/GLOSSARY.md >/dev/null 2>&1) || clean_exit=$?
+if [ "$clean_exit" = 0 ]; then pass "the override leaves the glossary alone"; else fail "the override made the glossary exit $clean_exit"; fi
 
 first_lines="$(head -n 2 "$RULE")"
 if [[ "$first_lines" == *"Generated"* && "$first_lines" == *"python3 <skill-dir>/scripts/glossary-rule.py .vale/styles"* ]]; then
