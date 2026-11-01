@@ -99,7 +99,7 @@ Propose folding or retiring only on evidence of where the concept went. A delete
 python3 <skill-dir>/scripts/glossary-rule.py <styles-path>
 ```
 
-`<styles-path>` is the project's Vale `StylesPath`, and `.vale/styles` where the project has no Vale setup yet. The rule lands at `<styles-path>/Glossary/Terms.yml`. Commit it, so a Vale run needs neither this skill nor Python, and never edit it by hand, because the next run replaces it.
+`<styles-path>` is the project's Vale `StylesPath`, and `<repo-root>/.vale/styles` where the project has no Vale setup yet. The rule lands at `<styles-path>/Glossary/Terms.yml`. Commit it, so a Vale run needs neither this skill nor Python, and never edit it by hand, because the next run replaces it.
 
 These lines in `<repo-root>/.vale.ini` turn it on:
 
