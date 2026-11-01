@@ -3,7 +3,7 @@ name: glossary-guru
 metadata:
   version: "1.1.1"
 description: |
-  Load this as soon as a project turns out to hold a docs/GLOSSARY.md or a GLOSSARY.md, before writing code names, docs, commit messages or issue text in its domain, because it says what to do when a word disagrees with the file, which the file alone does not. Owns a project's glossary: its format, challenging a word that sits on an _Avoid_ line or contradicts a definition, adding, changing, folding or retiring a term on the owner's decision, and generating a Vale rule from it. Use when asked to define a term, settle what a word means, start a glossary or rename a domain concept; when two words compete for one concept; and when asked to catch a drifted word with Vale. Not for a skill's own terms, which stay inside that skill, not for ADRs, and not for general programming vocabulary.
+  Load this as soon as a project turns out to hold a docs/GLOSSARY.md or a GLOSSARY.md, before writing code names, docs, commit messages or issue text in its domain, because it says what to do when a word disagrees with the file, which the file alone does not. Owns a project's glossary: its format, challenging a word that sits on an _Avoid_ line or contradicts a definition, adding, changing, folding or removing a term on the owner's decision, and generating a Vale rule from it. Use when asked to define a term, settle what a word means, start a glossary or rename a domain concept; when two words compete for one concept; and when asked to catch a drifted word with Vale. Not for a skill's own terms, which stay inside that skill, not for ADRs, and not for general programming vocabulary.
 ---
 
 # Glossary
@@ -56,13 +56,9 @@ _Except_: take into account, on account of
 ## Flagged ambiguities
 
 - "account" had been used for both Customer and User; these are distinct.
-
-## Retired
-
-- **Voucher**: a prepaid credit a customer could spend, removed when prepaid credit was dropped.
 ```
 
-The sections are `## Language`, `## Flagged ambiguities` and `## Retired`, in that order. Each is present only when it has entries.
+The sections are `## Language` and `## Flagged ambiguities`, in that order. Each is present only when it has entries.
 
 An entry is the term as a `###` heading, a definition of one or two sentences saying what the term is rather than what it does, and an `_Avoid_:` line naming the words not to use for it. The heading gives the entry a link of its own and a place in the page's outline, and the blank lines keep each part on its own line when the file is rendered. A term no other word competes with has no `_Avoid_:` line, because an invented word would send the next reader looking for drift that never happened.
 
@@ -76,18 +72,18 @@ Refuse an entry for a general programming term, such as a timeout, a queue or a 
 
 ## Changing it
 
-Add, change, fold or retire an entry only on the owner's decision: propose the wording, ask, and edit the file as soon as they answer. An entry an agent settled alone is a guess that every later agent then enforces.
+Add, change, fold or remove an entry only on the owner's decision: propose the wording, ask, and edit the file as soon as they answer. An entry an agent settled alone is a guess that every later agent then enforces.
 
 | Move | When | What happens |
 | --- | --- | --- |
 | Add | A term is settled that the file does not hold | A new entry under `## Language` |
 | Change | The meaning moved, or a new drift word appeared | The entry is rewritten, and any new drift word joins its `_Avoid_:` line |
 | Fold | The term is a synonym or a property of another entry | Its meaning moves into the surviving entry and entries pointing at it repoint. A synonym joins that entry's `_Avoid_:` line, and a property's word stays in use, named in that entry's definition |
-| Retire | The concept has left the project, and no entry can carry it | One line under `## Retired` saying what the term meant and what removed it, with the entry itself gone |
+| Remove | The concept has left the project, and no entry can carry it | The entry is deleted, because version history keeps what it said |
 
 Record a settled confusion as one line under `## Flagged ambiguities`, because it is what stops the same argument happening twice.
 
-Propose folding or retiring only on evidence of where the concept went. A deleted class or path is not that evidence, because an entry is meant to outlive the code that implemented it.
+Propose folding or removing only on evidence of where the concept went. A deleted class or path is not that evidence, because an entry is meant to outlive the code that implemented it.
 
 ## Automatic rule check
 
