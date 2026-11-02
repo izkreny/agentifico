@@ -256,6 +256,11 @@ def terms_holding_drift(entries, swap):
     return held, problems
 
 
+# WHY: the glossary allows only a straight apostrophe, and prose often sets a curly one, which a swap key or an exception would otherwise miss.
+def any_apostrophe(words):
+    return words.replace("'", "['’]")
+
+
 def render(swap, exceptions):
     lines = [
         GENERATED,
@@ -272,10 +277,10 @@ def render(swap, exceptions):
         for phrase in sorted(exceptions):
             # WHY: `casefold` makes `ß` equal `ss` and `(?i)` does not, so a phrase dropped on that key would fire as drift.
             unique.setdefault(phrase.lower(), phrase)
-        lines.extend(f"  - {json.dumps('(?i)' + unique[key], ensure_ascii=False)}" for key in sorted(unique))
+        lines.extend(f"  - {json.dumps('(?i)' + any_apostrophe(unique[key]), ensure_ascii=False)}" for key in sorted(unique))
     lines.append("swap:" if swap else "swap: {}")
     for word in sorted(swap, key=str.casefold):
-        lines.append(f"  {json.dumps(word, ensure_ascii=False)}: {json.dumps(swap[word], ensure_ascii=False)}")
+        lines.append(f"  {json.dumps(any_apostrophe(word), ensure_ascii=False)}: {json.dumps(swap[word], ensure_ascii=False)}")
     return "\n".join(lines) + "\n"
 
 

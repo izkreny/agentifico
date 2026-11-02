@@ -826,6 +826,19 @@ expect_exit "a drift phrase holding a term only inside a longer word" 0
 (cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
 expect_alert "that drift phrase fires" "doc.md:3:4:Glossary.Terms:Use 'Line Item' instead of 'inline item'."
 
+new_project curly-in-prose
+terms "[
+  {\"term\": \"Customer\", \"definition\": \"A person who buys.\", \"avoid\": [\"ledger\", \"customer's purchase\"], \"except\": [\"customer's ledger\"]},
+  {\"term\": \"Customers' Book\", \"definition\": \"What a shop keeps on them.\", \"avoid\": [\"book\"]}
+]"
+printf "# Probe\n\nA customer’s purchase here.\n\nA customer's purchase here.\n\nA customer’s ledger here.\n\nA customer's ledger here.\n\nThe customers’ book here.\n\nA ledger here.\n" >"$PROJECT/doc.md"
+expect_exit "a glossary holding apostrophes, checked against curly ones" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_alert "a drift phrase fires with a curly apostrophe" "doc.md:3:3:Glossary.Terms:Use 'Customer' instead of 'customer’s purchase'."
+expect_alert "a drift phrase fires with a straight apostrophe" "doc.md:5:3:Glossary.Terms:Use 'Customer' instead of 'customer's purchase'."
+expect_no_alert "an excepted phrase and a term stay quiet with either apostrophe" "doc.md:(7|9|11):"
+expect_alert "a drift word beside them still fires" "doc.md:13:3:Glossary.Terms:Use 'Customer' instead of 'ledger'."
+
 new_project unbalanced-word
 terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["ticket ("]}]'
 expect_refusal "a word holding an unbalanced metacharacter" "must be letters"
