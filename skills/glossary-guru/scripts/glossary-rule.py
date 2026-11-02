@@ -140,7 +140,7 @@ def load_glossary(text):
         return None, [f"not valid JSON: {error}"]
 
 
-# WHY: a line break in a value could forge a heading in the generated file.
+# WHY: each value renders as one Markdown block and a line break would split it, while markup inside the line stays, so a definition can hold a code span.
 def is_one_line(value):
     return isinstance(value, str) and value.splitlines() == [value] and bool(value.strip()) and not SURROGATE.search(value)
 
