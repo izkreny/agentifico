@@ -20,11 +20,17 @@ That is the [skills CLI](https://skills.sh).
 
 The skill fires on its own in a project that holds a glossary, and when a task defines a term, settles what a word means or renames a domain concept. You can also type `/glossary-guru`. There is no argument to pass.
 
-## Automatic rule check
+## What you edit, and what it writes
 
-`scripts/glossary-rule.py` writes a Vale rule from the glossary, so a project's Vale run flags a drifted word in its prose and code comments. It needs Python to generate the rule and [Vale](https://vale.sh) to run it. It takes no argument, and it writes a `<repo-root>/.vale.ini` for a project that has no Vale config. The check supports Latin script only.
+Edit only the JSON file, which is `<repo-root>/docs/GLOSSARY.json` where the project has `<repo-root>/docs/` and `<repo-root>/GLOSSARY.json` where it does not. After every edit, rerun the script and commit what it writes:
 
-The script only writes the rule. Run the check itself from inside the project, on your machine or in CI, which needs Vale and the committed rule and neither this skill nor Python:
+```bash
+python3 <skill-dir>/scripts/glossary-rule.py
+```
+
+It writes a readable Markdown file of the same name beside the JSON file, and a Vale rule, so a project's Vale run flags a drifted word in its prose and code comments. It needs Python to generate them and [Vale](https://vale.sh) to run the rule. It takes no argument, and it writes a `<repo-root>/.vale.ini` for a project that has no Vale config. The check supports Latin script only.
+
+The script only writes those files. Run the check itself from inside the project, on your machine or in CI, which needs Vale and the committed rule and neither this skill nor Python:
 
 ```bash
 vale <repo-root>

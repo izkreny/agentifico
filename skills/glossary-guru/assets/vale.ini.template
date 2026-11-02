@@ -1,6 +1,6 @@
 # Written by the glossary-guru skill's glossary-rule.py, which never changes this file once it exists.
 # The rule lands at Glossary/Terms.yml under StylesPath.
-# Commit both, and rerun the script when the glossary changes.
+# Commit both, and rerun the script after every edit to GLOSSARY.json.
 StylesPath = .vale/styles
 
 # This heading names the files the check reads, so edit it to fit your project.
@@ -13,6 +13,6 @@ StylesPath = .vale/styles
 # To make a drifted word fail the run, add `Glossary.Terms = error` under this section.
 BasedOnStyles = Glossary
 
-# WHY: a glossary has to name its drift words, and a rule has no key limiting it by file path.
+# WHY: the generated GLOSSARY.md has to name its drift words, and a rule has no key limiting it by file path.
 [**/GLOSSARY.md]
 Glossary.Terms = NO
