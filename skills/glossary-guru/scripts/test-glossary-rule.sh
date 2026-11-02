@@ -843,6 +843,44 @@ new_project combining-mark
 terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["café"]}]'
 expect_refusal "a word holding a combining mark" "no combining mark"
 
+new_project definition-carriage-return
+terms '[{"term": "Order", "definition": "A request.\rForged"}]'
+expect_refusal "a definition holding a carriage return" "Order: the definition must be one line of text"
+
+new_project definition-line-separator
+terms '[{"term": "Order", "definition": "A request.\u2028Forged"}]'
+expect_refusal "a definition holding a line separator" "Order: the definition must be one line of text"
+
+new_project root-named-docs/docs
+mkdir "$PROJECT/docs"
+one_entry
+mv "$PROJECT/GLOSSARY.json" "$PROJECT/docs/GLOSSARY.json"
+expect_exit "a root named docs, holding its own docs directory" 0
+expect_file "that root gets its GLOSSARY.md" docs/GLOSSARY.md
+
+new_project config-single-quoted-path
+one_entry
+printf "StylesPath = 'single'\n\n[*.md]\nBasedOnStyles = Glossary\n" >"$PROJECT/.vale.ini"
+expect_exit "a single-quoted StylesPath" 0
+expect_file "a single-quoted StylesPath loses its quotes" single/Glossary/Terms.yml
+
+new_project config-semicolon-comment
+one_entry
+printf 'StylesPath = semi ; the styles\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_exit "a StylesPath with a semicolon comment" 0
+expect_file "a semicolon comment is not part of the path" semi/Glossary/Terms.yml
+
+new_project term-holding-letters
+terms '[{"term": "Carton", "definition": "A box.", "avoid": ["cart"]}]'
+expect_exit "a term holding a drift word's letters inside a longer word" 0
+
+new_project marker-quoted-in-markdown
+one_entry
+printf '# Shop\n\n%s\n' "$(printf '<!-- Generated from GLOSSARY.json by the glossary-guru skill. Edit GLOSSARY.json, not this file. Regenerate from the project'"'"'s root: python3 <skill-dir>/scripts/glossary-rule.py -->')" >"$PROJECT/GLOSSARY.md"
+cp "$PROJECT/GLOSSARY.md" "$WORK/quoting-markdown"
+expect_exit "a hand-written GLOSSARY.md quoting the marker below its first line" 2
+if cmp -s "$PROJECT/GLOSSARY.md" "$WORK/quoting-markdown"; then pass "that GLOSSARY.md stays as it was"; else fail "that GLOSSARY.md was replaced"; fi
+
 new_project unbalanced-word
 terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["ticket ("]}]'
 expect_refusal "a word holding an unbalanced metacharacter" "must be letters"
