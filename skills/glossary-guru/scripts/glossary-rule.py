@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
-"""Write a Vale substitution rule from a project's glossary.
+"""Write a Vale substitution rule and a readable GLOSSARY.md from a project's GLOSSARY.json.
 
 Usage, from the project's root:
 
     python3 <skill-dir>/scripts/glossary-rule.py
 
-Writes Glossary/Terms.yml from the `**::AVOID::**:` and `**::EXCEPT::**:` lines under
-`## Language`, under the StylesPath in the project's Vale config, or under
+Reads docs/GLOSSARY.json or GLOSSARY.json, and writes GLOSSARY.md beside it and
+Glossary/Terms.yml under the StylesPath in the project's Vale config, or under
 .vale/styles where the config names none. A project with no Vale config gets a
 .vale.ini that turns the rule on; one that has a config is told what it needs.
 
-Exit 0: the rule was written. A glossary naming no drift word gets a rule that
+Exit 0: both files were written. A glossary naming no drift word gets a rule that
 swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
-Exit 1: the glossary cannot become a correct rule; each reason is on stderr.
+Exit 1: the glossary is not valid, or cannot become a correct rule; each reason
+is on stderr, and nothing is written.
 Exit 2: an argument, no single readable glossary, no single readable Vale
-config, a run from below the project's root, or nowhere to write the rule.
+config, a run from below the project's root, a file this script did not write
+where one of its outputs goes, or nowhere to write them.
 """
 
 import json
@@ -26,7 +28,7 @@ from configparser import Error as ConfigParserError
 from pathlib import Path
 from typing import NoReturn
 
-GLOSSARY_PATHS = (Path("docs/GLOSSARY.md"), Path("GLOSSARY.md"))
+GLOSSARY_PATHS = (Path("docs/GLOSSARY.json"), Path("GLOSSARY.json"))
 # WHY: Vale 3.25.1 finds its config under exactly these names, and a project with one of them must not get a second.
 CONFIG_NAMES = (".vale.ini", "vale.ini", "_vale.ini", ".vale", "_vale")
 DEFAULT_STYLES = ".vale/styles"
@@ -35,14 +37,18 @@ ABOVE_SECTIONS = "glossary-rule: above every section"
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "vale.ini.template"
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
 PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ -]|(?<=[^\W_])'(?=[^\W_]| ))+")
-LIST_LINE = re.compile(r"\*\*::(AVOID|EXCEPT)::\*\*:(.*)")
-NEAR_LIST_LINE = re.compile(r"::(?:AVOID|EXCEPT)::", re.IGNORECASE)
-SECTION = re.compile(r"##[ \t]+(.+?)(?:[ \t]+#+)?")
-TERM = re.compile(r"###[ \t]+(.+?)(?:[ \t]+#+)?")
-FENCES = ("```", "~~~")
 # WHY: Vale 3.25.1 honours an exception only when it holds a space, so `Pre-Order` in `exceptions` silences nothing.
 NO_SPACE = "holds no space, and Vale skips only a phrase that holds one"
+REGENERATE = "python3 <skill-dir>/scripts/glossary-rule.py"
 GENERATED = "# Generated from the project's glossary by the glossary-guru skill. Edit the glossary, not this file."
+GENERATED_MARKDOWN = f"<!-- Generated from GLOSSARY.json by the glossary-guru skill. Edit GLOSSARY.json, not this file. Regenerate from the project's root: {REGENERATE} -->"
+TOP_KEYS = ("project", "summary", "terms", "flagged_ambiguities")
+TOP_REQUIRED = ("project", "summary", "terms")
+ENTRY_KEYS = ("term", "definition", "avoid", "except")
+ENTRY_REQUIRED = ("term", "definition")
+ONE_LINE = "must be one line of text with no lone surrogate"
+# WHY: JSON can spell a lone surrogate, which no UTF-8 file can hold, so it would fail at the write after the rule had already landed.
+SURROGATE = re.compile("[\ud800-\udfff]")
 PLAIN_CHARACTERS = "letters, digits, spaces, hyphens or a straight apostrophe after a letter"
 
 
@@ -65,7 +71,7 @@ def find_glossary():
         return found[0]
     if found:
         stop(f"glossary-rule: both {found[0]} and {found[1]} exist; the owner decides which one stays")
-    stop("glossary-rule: no docs/GLOSSARY.md or GLOSSARY.md here; run this from the project's root")
+    stop("glossary-rule: no docs/GLOSSARY.json or GLOSSARY.json here; run this from the project's root")
 
 
 def find_config(glossary):
@@ -117,52 +123,89 @@ def config_advice(config, styles_path):
     return lines
 
 
-def split_words(text):
-    return [word.strip() for word in text.split(",")]
+class JsonObject(dict):
+    repeated = ()
 
 
-def parse_language(text):
-    entries, exceptions, problems = [], [], []
-    in_language = False
-    for number, raw in enumerate(text.splitlines(), 1):
-        line = raw.strip()
-        if line.startswith(FENCES):
-            problems.append(f"line {number}: a glossary holds no code fence")
-            continue
-        section = SECTION.fullmatch(line)
-        if section:
-            in_language = section[1].casefold() == "language"
-        if not in_language:
-            if NEAR_LIST_LINE.search(line):
-                problems.append(f"line {number}: only a list line under ## Language may hold a marker")
-            continue
-        heading = TERM.fullmatch(line)
-        if heading:
-            if not PLAIN_WORDS.fullmatch(heading[1]):
-                problems.append(f"line {number}: the term '{heading[1]}' must be {PLAIN_CHARACTERS}, with more of the term after it")
-            entries.append((heading[1], []))
-            continue
-        listed = LIST_LINE.fullmatch(line)
-        if not listed:
-            if NEAR_LIST_LINE.search(line):
-                problems.append(f"line {number}: '{line}' looks like a list line, which is written **::AVOID::**: or **::EXCEPT::**: on a line of its own")
-            continue
-        kind, words = listed[1], split_words(listed[2])
-        if not entries:
-            problems.append(f"line {number}: a **::{kind}::**: line belongs under an entry's ### heading")
-            continue
-        term = entries[-1][0]
-        for word in words:
-            if not PLAIN_WORDS.fullmatch(word):
-                problems.append(f"{term}, line {number}: '{word}' must be {PLAIN_CHARACTERS}, with more of the phrase after it")
-            elif kind == "EXCEPT" and " " not in word:
-                problems.append(f"{term}, line {number}: '{word}' {NO_SPACE}")
-        plain = [word for word in words if PLAIN_WORDS.fullmatch(word)]
-        if kind == "AVOID":
-            entries[-1][1].extend(plain)
-        else:
-            exceptions.extend(plain)
-    return entries, exceptions, problems
+# WHY: Python's JSON reader keeps the last of two equal keys, so a second `avoid` in one entry would lose every word in the first.
+def note_repeated_keys(pairs):
+    found = JsonObject(pairs)
+    keys = [key for key, _ in pairs]
+    found.repeated = [key for key in found if keys.count(key) > 1]
+    return found
+
+
+def load_glossary(text):
+    try:
+        return json.loads(text, object_pairs_hook=note_repeated_keys), []
+    except ValueError as error:
+        return None, [f"not valid JSON: {error}"]
+
+
+# WHY: each value renders as one Markdown block and a line break would split it, while markup inside the line stays, so a definition can hold a code span.
+def is_one_line(value):
+    return isinstance(value, str) and value.splitlines() == [value] and bool(value.strip()) and not SURROGATE.search(value)
+
+
+# WHY: JSON keeps space at either end of a word, and a swap key carrying it would not match the word on its own.
+def is_plain(word):
+    return isinstance(word, str) and word == word.strip() and bool(PLAIN_WORDS.fullmatch(word))
+
+
+def key_problems(found, allowed, required, where):
+    problems = [f"{where}: the key '{key}' is not in the format, which allows {', '.join(allowed)}" for key in found if key not in allowed]
+    problems += [f"{where}: the key '{key}' is missing" for key in required if key not in found]
+    problems += [f"{where}: the key '{key}' appears twice" for key in found.repeated]
+    return problems
+
+
+def word_problems(entry, key, where):
+    words = entry.get(key, [])
+    if not isinstance(words, list):
+        return [f"{where}: '{key}' must be a list"]
+    problems = []
+    for word in words:
+        if not is_plain(word):
+            problems.append(f"{where}: {json.dumps(word, ensure_ascii=False)} under '{key}' must be {PLAIN_CHARACTERS}, with more of the phrase after it and no space at either end")
+        elif key == "except" and " " not in word:
+            problems.append(f"{where}: '{word}' {NO_SPACE}")
+    return problems
+
+
+def entry_problems(entry, number):
+    if not isinstance(entry, dict):
+        return [f"entry {number}: must be an object"]
+    term = entry.get("term")
+    where = term if is_one_line(term) else f"entry {number}"
+    problems = key_problems(entry, ENTRY_KEYS, ENTRY_REQUIRED, where)
+    if "term" in entry and not is_plain(term):
+        problems.append(f"{where}: the term must be {PLAIN_CHARACTERS}, with more of the term after it and no space at either end")
+    if "definition" in entry and not is_one_line(entry["definition"]):
+        problems.append(f"{where}: the definition {ONE_LINE}")
+    return problems + word_problems(entry, "avoid", where) + word_problems(entry, "except", where)
+
+
+def glossary_problems(glossary):
+    if not isinstance(glossary, dict):
+        return ["top level: must be an object"]
+    problems = key_problems(glossary, TOP_KEYS, TOP_REQUIRED, "top level")
+    for key in ("project", "summary"):
+        if key in glossary and not is_one_line(glossary[key]):
+            problems.append(f"top level: '{key}' {ONE_LINE}")
+    flagged = glossary.get("flagged_ambiguities", [])
+    if not isinstance(flagged, list):
+        problems.append("top level: 'flagged_ambiguities' must be a list")
+    else:
+        problems += [f"top level: {json.dumps(line, ensure_ascii=False)} under 'flagged_ambiguities' {ONE_LINE}" for line in flagged if not is_one_line(line)]
+    terms = glossary.get("terms", [])
+    if not isinstance(terms, list):
+        problems.append("top level: 'terms' must be a list")
+    elif "terms" in glossary and not terms:
+        problems.append("top level: 'terms' holds no entry, and a glossary exists only once a term is settled")
+    else:
+        for number, entry in enumerate(terms, 1):
+            problems += entry_problems(entry, number)
+    return problems
 
 
 def build_swap(entries):
@@ -174,10 +217,19 @@ def build_swap(entries):
             if key in terms:
                 problems.append(f"{term}: '{word}' is also an entry's term, so the rule would flag it where it is correct")
             elif owners.setdefault(key, term) != term:
-                problems.append(f"{term}: '{word}' is also on {owners[key]}'s **::AVOID::**: line, so it has no single replacement")
+                problems.append(f"{term}: '{word}' is also on {owners[key]}'s 'avoid' list, so it has no single replacement")
             else:
                 swap[word] = term
     return swap, problems
+
+
+def repeated_terms(entries):
+    seen, problems = set(), []
+    for term, _ in entries:
+        if term.lower() in seen:
+            problems.append(f"{term}: is on two entries, so one name would hold two definitions")
+        seen.add(term.lower())
+    return problems
 
 
 def holds_drift(text, swap):
@@ -185,7 +237,7 @@ def holds_drift(text, swap):
 
 
 def idle_exceptions(exceptions, swap):
-    return [f"'{phrase}' on an **::EXCEPT::**: line holds no word from any **::AVOID::**: line, so it excuses nothing" for phrase in exceptions if not holds_drift(phrase, swap)]
+    return [f"'{phrase}' under 'except' holds no word from any 'avoid' list, so it excuses nothing" for phrase in exceptions if not holds_drift(phrase, swap)]
 
 
 def terms_holding_drift(entries, swap):
@@ -202,7 +254,7 @@ def terms_holding_drift(entries, swap):
 def render(swap, exceptions):
     lines = [
         GENERATED,
-        "# Regenerate from the project's root: python3 <skill-dir>/scripts/glossary-rule.py",
+        f"# Regenerate from the project's root: {REGENERATE}",
         "extends: substitution",
         'message: "Use \'%s\' instead of \'%s\'."',
         "level: warning",
@@ -222,35 +274,64 @@ def render(swap, exceptions):
     return "\n".join(lines) + "\n"
 
 
+def bullets(items):
+    return "\n".join(f"- {item}" for item in items)
+
+
+def render_markdown(glossary):
+    parts = [GENERATED_MARKDOWN, f"# {glossary['project']}", glossary["summary"], "## Language"]
+    for entry in glossary["terms"]:
+        parts += [f"### {entry['term']}", entry["definition"]]
+        for key, label in (("avoid", "AVOID"), ("except", "EXCEPT")):
+            if entry.get(key):
+                parts += [f"**{label}**:", bullets(entry[key])]
+    if glossary.get("flagged_ambiguities"):
+        parts += ["## Flagged ambiguities", bullets(glossary["flagged_ambiguities"])]
+    return "\n\n".join(parts) + "\n"
+
+
+def refuse_foreign(path, marker):
+    if path.exists() and not read_file(path).startswith(marker):
+        stop(f"glossary-rule: this script did not write {path}, so it will not replace it; move that file and run this again")
+
+
 def main():
     if len(sys.argv) != 1:
         stop(__doc__)
-    glossary = find_glossary()
-    config = find_config(glossary)
+    source = find_glossary()
+    config = find_config(source)
     if config is None and Path(CONFIG_NAMES[0]).exists():
         stop(f"glossary-rule: {CONFIG_NAMES[0]} is not a file, and the config belongs at that path")
     styles_path = read_config(config)[0] if config else None
-    entries, exceptions, problems = parse_language(read_file(glossary))
-    swap, swap_problems = build_swap(entries)
-    held_terms, held_problems = terms_holding_drift(entries, swap)
-    problems += swap_problems + held_problems + idle_exceptions(exceptions, swap)
-    exceptions += held_terms
+    glossary, problems = load_glossary(read_file(source))
+    if not problems:
+        problems = glossary_problems(glossary)
+    if not problems:
+        entries = [(entry["term"], entry.get("avoid", [])) for entry in glossary["terms"]]
+        exceptions = [phrase for entry in glossary["terms"] for phrase in entry.get("except", [])]
+        swap, swap_problems = build_swap(entries)
+        held_terms, held_problems = terms_holding_drift(entries, swap)
+        problems = repeated_terms(entries) + swap_problems + held_problems + idle_exceptions(exceptions, swap)
+        exceptions += held_terms
     if problems:
-        print(f"glossary-rule: {glossary} cannot become a correct rule:", file=sys.stderr)
+        print(f"glossary-rule: {source} is refused:", file=sys.stderr)
         for problem in problems:
             print(f"  {problem}", file=sys.stderr)
         return 1
     rule = Path(styles_path or DEFAULT_STYLES) / "Glossary" / "Terms.yml"
-    if rule.exists() and not read_file(rule).startswith(GENERATED):
-        stop(f"glossary-rule: this script did not write {rule}, so it will not replace it; move that file and run this again")
+    markdown = source.with_suffix(".md")
+    refuse_foreign(rule, GENERATED)
+    refuse_foreign(markdown, GENERATED_MARKDOWN)
     try:
         rule.parent.mkdir(parents=True, exist_ok=True)
         rule.write_text(render(swap, exceptions), encoding="utf-8")
+        markdown.write_text(render_markdown(glossary), encoding="utf-8")
         if config is None:
             Path(CONFIG_NAMES[0]).write_text(read_file(TEMPLATE), encoding="utf-8")
     except OSError as error:
         stop(f"glossary-rule: cannot write: {error}")
-    print(f"glossary-rule: wrote {rule} with {len(swap)} word(s) from {glossary}")
+    print(f"glossary-rule: wrote {rule} with {len(swap)} word(s) from {source}")
+    print(f"glossary-rule: wrote {markdown}")
     if config is None:
         print(f"glossary-rule: wrote {CONFIG_NAMES[0]}, which turns the rule on")
     else:

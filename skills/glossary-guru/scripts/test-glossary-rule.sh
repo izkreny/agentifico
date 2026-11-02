@@ -20,6 +20,15 @@ new_project() {
   mkdir -p "$PROJECT"
 }
 
+# Writes a glossary at the project's root holding the given JSON list of entries.
+terms() {
+  printf '{"project": "Shop", "summary": "A shop.", "terms": %s}\n' "$1" >"$PROJECT/GLOSSARY.json"
+}
+
+one_entry() {
+  terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["purchase"]}]'
+}
+
 run_script() {
   (cd "$PROJECT" && python3 "$SCRIPT" >"$PROJECT/stdout" 2>"$PROJECT/stderr")
 }
@@ -35,32 +44,69 @@ expect_refusal() {
   expect_exit "$name" 1
   if grep -qF "$reason" "$PROJECT/stderr"; then pass "$name: says '$reason'"; else fail "$name: stderr lacks '$reason': $(cat "$PROJECT/stderr")"; fi
   if [ -e "$PROJECT/.vale/styles/Glossary/Terms.yml" ]; then fail "$name: wrote a rule"; else pass "$name: wrote no rule"; fi
+  if [ -e "$PROJECT/GLOSSARY.md" ]; then fail "$name: wrote a GLOSSARY.md"; else pass "$name: wrote no GLOSSARY.md"; fi
+  if [ -e "$PROJECT/.vale.ini" ]; then fail "$name: wrote a config"; else pass "$name: wrote no config"; fi
+}
+
+expect_alert() {
+  local name="$1" line="$2"
+  if grep -qxF "$line" "$PROJECT/alerts"; then pass "$name"; else fail "$name: '$line' not in: $(cat "$PROJECT/alerts")"; fi
+}
+
+expect_no_alert() {
+  local name="$1" pattern="$2"
+  if grep -qiE "$pattern" "$PROJECT/alerts"; then fail "$name: $(grep -iE "$pattern" "$PROJECT/alerts")"; else pass "$name"; fi
+}
+
+expect_file() {
+  if [ -f "$PROJECT/$2" ]; then pass "$1"; else fail "$1: $2 is missing"; fi
+}
+
+expect_no_file() {
+  if [ -e "$PROJECT/$2" ]; then fail "$1: $2 exists"; else pass "$1"; fi
+}
+
+expect_stdout() {
+  if grep -qxF "$2" "$PROJECT/stdout"; then pass "$1"; else fail "$1: stdout lacks '$2': $(cat "$PROJECT/stdout")"; fi
+}
+
+expect_no_stdout() {
+  if grep -qF "$2" "$PROJECT/stdout"; then fail "$1: stdout holds '$2': $(cat "$PROJECT/stdout")"; else pass "$1"; fi
+}
+
+expect_clean_stop() {
+  local name="$1" reason="$2"
+  expect_exit "$name" 2
+  if grep -qF "$reason" "$PROJECT/stderr" && ! grep -qF "Traceback" "$PROJECT/stderr"; then pass "$name: says '$reason'"; else fail "$name: stderr: $(cat "$PROJECT/stderr")"; fi
+  expect_no_file "$name: no rule is written" .vale/styles/Glossary/Terms.yml
+  expect_no_file "$name: no GLOSSARY.md is written" GLOSSARY.md
 }
 
 new_project full
 mkdir -p "$PROJECT/docs"
-cat >"$PROJECT/docs/GLOSSARY.md" <<'EOF'
-# Shop
-
-## Language
-
-### Order
-
-A customer's request to buy something.
-
-**::AVOID::**: purchase, shopping basket
-
-### Customer
-
-A person who places orders.
-
-**::AVOID::**: client, account
-
-**::EXCEPT::**: take into account
-
-### Refund
-
-Money returned to a customer.
+cat >"$PROJECT/docs/GLOSSARY.json" <<'EOF'
+{
+  "project": "Shop",
+  "summary": "What a shop sells, and to whom.",
+  "terms": [
+    {
+      "term": "Order",
+      "definition": "A customer's request to buy something, never a purchase.",
+      "avoid": ["purchase", "shopping basket"]
+    },
+    {
+      "term": "Customer",
+      "definition": "A person who places orders.",
+      "avoid": ["client", "account"],
+      "except": ["take into account"]
+    },
+    {
+      "term": "Refund",
+      "definition": "Money returned to a customer."
+    }
+  ],
+  "flagged_ambiguities": ["\"account\" had been used for both Customer and User; these are distinct."]
+}
 EOF
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
@@ -99,27 +145,59 @@ EOF
 
 expect_exit "a full glossary" 0
 RULE="$PROJECT/.vale/styles/Glossary/Terms.yml"
+MARKDOWN="$PROJECT/docs/GLOSSARY.md"
+
+cat >"$WORK/wanted-markdown" <<'EOF'
+<!-- Generated from GLOSSARY.json by the glossary-guru skill. Edit GLOSSARY.json, not this file. Regenerate from the project's root: python3 <skill-dir>/scripts/glossary-rule.py -->
+
+# Shop
+
+What a shop sells, and to whom.
+
+## Language
+
+### Order
+
+A customer's request to buy something, never a purchase.
+
+**AVOID**:
+
+- purchase
+- shopping basket
+
+### Customer
+
+A person who places orders.
+
+**AVOID**:
+
+- client
+- account
+
+**EXCEPT**:
+
+- take into account
+
+### Refund
+
+Money returned to a customer.
+
+## Flagged ambiguities
+
+- "account" had been used for both Customer and User; these are distinct.
+EOF
+if cmp -s "$MARKDOWN" "$WORK/wanted-markdown"; then pass "GLOSSARY.md lands beside the source in the approved form"; else fail "GLOSSARY.md differs: $(diff "$WORK/wanted-markdown" "$MARKDOWN" || true)"; fi
 
 # WHY: this one sets aside the exit code, since a warning leaves Vale at zero and the alerts themselves are the evidence.
 (cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
 
-expect_alert() {
-  local name="$1" line="$2"
-  if grep -qxF "$line" "$PROJECT/alerts"; then pass "$name"; else fail "$name: '$line' not in: $(cat "$PROJECT/alerts")"; fi
-}
-
-expect_no_alert() {
-  local name="$1" pattern="$2"
-  if grep -qiE "$pattern" "$PROJECT/alerts"; then fail "$name: $(grep -iE "$pattern" "$PROJECT/alerts")"; else pass "$name"; fi
-}
-
 expect_alert "a drift word fires in any case, naming both words" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'PURCHASE'."
-expect_alert "a phrase on an Avoid line fires across a line break" "doc.md:5:3:Glossary.Terms:Use 'Order' instead of 'shopping basket'."
+expect_alert "a phrase in an avoid list fires across a line break" "doc.md:5:3:Glossary.Terms:Use 'Order' instead of 'shopping basket'."
 expect_alert "a word an exception does not cover still fires" "doc.md:12:5:Glossary.Terms:Use 'Customer' instead of 'account'."
 expect_alert "a code comment fires" "code.rb:1:7:Glossary.Terms:Use 'Customer' instead of 'client'."
-expect_no_alert "an Except phrase, a longer word and the terms stay quiet" "doc.md:(8|10|14|16):"
+expect_no_alert "an excepted phrase, a longer word and the terms stay quiet" "doc.md:(8|10|14|16):"
 expect_no_alert "a method name and a string stay quiet" "code.rb:[2-9]:"
-expect_no_alert "the glossary itself stays quiet" "GLOSSARY.md:"
+expect_no_alert "a Vale run reports nothing for the generated GLOSSARY.md or its source" "GLOSSARY\.(md|json):"
 
 quiet_exit=0
 (cd "$PROJECT" && vale --no-global --output=line . >/dev/null 2>&1) || quiet_exit=$?
@@ -131,7 +209,7 @@ loud_exit=0
 if [ "$loud_exit" = 1 ]; then pass "the .vale.ini override makes a drifted word fail the run"; else fail "the .vale.ini override made Vale exit $loud_exit, wanted 1"; fi
 clean_exit=0
 (cd "$PROJECT" && vale --no-global --config=error.ini --output=line docs/GLOSSARY.md >/dev/null 2>&1) || clean_exit=$?
-if [ "$clean_exit" = 0 ]; then pass "the override leaves the glossary alone"; else fail "the override made the glossary exit $clean_exit"; fi
+if [ "$clean_exit" = 0 ]; then pass "the override leaves the generated GLOSSARY.md alone"; else fail "the override made the generated GLOSSARY.md exit $clean_exit"; fi
 
 first_lines="$(head -n 2 "$RULE")"
 if [[ "$first_lines" == *"Generated"* && "$first_lines" == *"python3 <skill-dir>/scripts/glossary-rule.py" ]]; then
@@ -139,31 +217,43 @@ if [[ "$first_lines" == *"Generated"* && "$first_lines" == *"python3 <skill-dir>
 else
   fail "the rule's opening lines: $first_lines"
 fi
+first_line="$(head -n 1 "$MARKDOWN")"
+if [[ "$first_line" == "<!-- Generated"*"python3 <skill-dir>/scripts/glossary-rule.py -->" ]]; then
+  pass "GLOSSARY.md opens with a comment saying it is generated, naming the command"
+else
+  fail "GLOSSARY.md's opening line: $first_line"
+fi
 
 cp "$RULE" "$WORK/first-run"
+cp "$MARKDOWN" "$WORK/first-markdown"
 expect_exit "a second run" 0
-if cmp -s "$RULE" "$WORK/first-run"; then pass "a second run is byte-identical"; else fail "a second run differs"; fi
+if cmp -s "$RULE" "$WORK/first-run"; then pass "a second run leaves the rule byte-identical"; else fail "a second run changes the rule"; fi
+if cmp -s "$MARKDOWN" "$WORK/first-markdown"; then pass "a second run leaves GLOSSARY.md byte-identical"; else fail "a second run changes GLOSSARY.md"; fi
+
+printf 'A stray line.\n' >>"$MARKDOWN"
+expect_exit "a generated GLOSSARY.md edited by hand" 0
+if cmp -s "$MARKDOWN" "$WORK/first-markdown"; then pass "the next run replaces the hand edit"; else fail "the next run kept the hand edit"; fi
+
+new_project no-flagged
+terms '[{"term": "Order", "definition": "A request to buy."}]'
+expect_exit "a glossary with no flagged ambiguities and no lists" 0
+if grep -qE 'Flagged|AVOID|EXCEPT' "$PROJECT/GLOSSARY.md"; then fail "an absent section or list still renders: $(cat "$PROJECT/GLOSSARY.md")"; else pass "an absent section or list renders nothing"; fi
+
+new_project empty-lists
+printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy.", "avoid": [], "except": []}], "flagged_ambiguities": []}\n' >"$PROJECT/GLOSSARY.json"
+expect_exit "a glossary with empty lists" 0
+if grep -qE 'Flagged|AVOID|EXCEPT' "$PROJECT/GLOSSARY.md"; then fail "an empty list still renders: $(cat "$PROJECT/GLOSSARY.md")"; else pass "an empty list renders nothing"; fi
+
+new_project source-bom
+printf '\xef\xbb\xbf{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_exit "a source opening with a BOM" 0
 
 new_project multi-word
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Shopping Cart
-
-What a customer is about to buy.
-
-**::AVOID::**: cart
-
-### Order Line
-
-One thing on an order.
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: line
-EOF
+terms '[
+  {"term": "Shopping Cart", "definition": "What a customer is about to buy.", "avoid": ["cart"]},
+  {"term": "Order Line", "definition": "One thing on an order."},
+  {"term": "Order", "definition": "A request to buy.", "avoid": ["line"]}
+]'
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
 
@@ -183,40 +273,22 @@ expect_alert "a drift word alone still fires" "doc.md:5:3:Glossary.Terms:Use 'Sh
 expect_no_alert "a term holding a drift word stays quiet" "doc.md:3:"
 
 new_project case-pair
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Shopping Cart
-
-What a customer is about to buy.
-
-**::AVOID::**: cart
-
-**::EXCEPT::**: shopping cart
-EOF
-expect_exit "a term and an Except entry differing only in case" 0
+terms '[{"term": "Shopping Cart", "definition": "What a customer is about to buy.", "avoid": ["cart"], "except": ["shopping cart"]}]'
+expect_exit "a term and an excepted phrase differing only in case" 0
 cp "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/case-pair-rule"
+cp "$PROJECT/GLOSSARY.md" "$WORK/case-pair-markdown"
 pair_differs=no
 for seed in 1 2 3 4 5 6 7 8; do
   (cd "$PROJECT" && PYTHONHASHSEED="$seed" python3 "$SCRIPT" >/dev/null)
   cmp -s "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/case-pair-rule" || pair_differs=yes
+  cmp -s "$PROJECT/GLOSSARY.md" "$WORK/case-pair-markdown" || pair_differs=yes
 done
 if [ "$pair_differs" = no ]; then pass "a case-only pair regenerates byte-identically under any hash seed"; else fail "a case-only pair changes with the hash seed"; fi
 pair_count="$(grep -ci '(?i)shopping cart' "$WORK/case-pair-rule" || true)"
 if [ "$pair_count" = 1 ]; then pass "a case-only pair is written once"; else fail "a case-only pair is written $pair_count times"; fi
 
 new_project sharp-s
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Bestellung
-
-Was ein Kunde kauft.
-
-**::AVOID::**: strasse
-
-**::EXCEPT::**: Große Strasse, grosse strasse
-EOF
+terms '[{"term": "Bestellung", "definition": "Was ein Kunde kauft.", "avoid": ["strasse"], "except": ["Große Strasse", "grosse strasse"]}]'
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
 
@@ -237,45 +309,18 @@ expect_exit "two phrases apart only under full case folding" 0
 expect_no_alert "both phrases folding alike stay quiet" "doc.md:(3|5):"
 expect_alert "a drift word beside them still fires" "doc.md:7:6:Glossary.Terms:Use 'Bestellung' instead of 'strasse'."
 
-one_entry() {
-  cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase
-EOF
-}
-
-expect_file() {
-  if [ -f "$PROJECT/$2" ]; then pass "$1"; else fail "$1: $2 is missing"; fi
-}
-
-expect_no_file() {
-  if [ -e "$PROJECT/$2" ]; then fail "$1: $2 exists"; else pass "$1"; fi
-}
-
-expect_stdout() {
-  if grep -qxF "$2" "$PROJECT/stdout"; then pass "$1"; else fail "$1: stdout lacks '$2': $(cat "$PROJECT/stdout")"; fi
-}
-
-expect_no_stdout() {
-  if grep -qF "$2" "$PROJECT/stdout"; then fail "$1: stdout holds '$2': $(cat "$PROJECT/stdout")"; else pass "$1"; fi
-}
-
 new_project no-config
 one_entry
 printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
 expect_exit "a project with no Vale config" 0
 expect_stdout "with no config the script says how to run the check" "glossary-rule: check the project from here with: vale $(cd "$PROJECT" && pwd -P)"
 expect_file "no config: the rule lands under .vale/styles" .vale/styles/Glossary/Terms.yml
+expect_file "no config: GLOSSARY.md lands beside a source at the root" GLOSSARY.md
 expect_file "no config: the script writes .vale.ini" .vale.ini
 if cmp -s "$PROJECT/.vale.ini" "$TEMPLATE"; then pass "the written config is a copy of the template"; else fail "the written config differs from the template"; fi
 (cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
 expect_alert "the written config turns the rule on" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
-expect_no_alert "the written config keeps the rule off the glossary" "GLOSSARY.md:"
+expect_no_alert "the written config keeps the rule off the generated GLOSSARY.md" "GLOSSARY\.(md|json):"
 for extension in js jsx mjs cjs ts tsx mts cts rs c h java go; do
   printf '// A purchase here.\n' >"$PROJECT/code.$extension"
 done
@@ -329,6 +374,7 @@ if cmp -s "$PROJECT/vale.ini" "$WORK/other-config"; then pass "that config stays
 expect_stdout "with a config the script says how to run the check" "glossary-rule: check the project from here with: vale $(cd "$PROJECT" && pwd -P)"
 expect_stdout "the script prints the glossary section" "[**/GLOSSARY.md]"
 expect_stdout "the script prints the glossary line" "Glossary.Terms = NO"
+expect_stdout "the script prints the source's section" "[**/GLOSSARY.json]"
 expect_no_stdout "the script prints no section for the project's own files" "[*."
 expect_no_stdout "the script prints no BasedOnStyles line to clash with the project's" "BasedOnStyles ="
 if grep -qF "the last section covering it that sets BasedOnStyles" "$PROJECT/stdout"; then pass "the script says which section the style goes in"; else fail "the script does not say which section: $(cat "$PROJECT/stdout")"; fi
@@ -346,7 +392,25 @@ printf 'StylesPath = styles\n\n[*.md]\nBasedOnStyles = Other, Glossary\n\n[**/GL
 (cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
 expect_alert "with the printed lines the rule fires" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
 expect_alert "with the printed lines the project's own style still fires" "doc.md:3:18:Other.Fees:Use 'Charge' instead of 'fee'."
-expect_no_alert "with the printed lines the glossary stays quiet" "GLOSSARY.md:"
+expect_no_alert "with the printed lines the generated GLOSSARY.md stays quiet" "GLOSSARY\.(md|json):"
+
+new_project selects-json
+one_entry
+printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
+printf 'StylesPath = .vale/styles\n\n[*]\nBasedOnStyles = Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms = NO\n\n[**/GLOSSARY.json]\nGlossary.Terms = NO\n' >"$PROJECT/.vale.ini"
+expect_exit "a config selecting every file" 0
+(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
+expect_alert "a config selecting every file still flags a drifted word" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
+expect_no_alert "a config selecting every file leaves the source and the generated file alone" "GLOSSARY\.(md|json):"
+
+new_project selects-json-docs
+mkdir -p "$PROJECT/docs"
+one_entry
+mv "$PROJECT/GLOSSARY.json" "$PROJECT/docs/GLOSSARY.json"
+printf 'StylesPath = .vale/styles\n\n[*]\nBasedOnStyles = Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms = NO\n\n[**/GLOSSARY.json]\nGlossary.Terms = NO\n' >"$PROJECT/.vale.ini"
+expect_exit "a config selecting every file, with the source in docs" 0
+(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
+expect_no_alert "that config leaves the source and the generated file in docs alone" "GLOSSARY\.(md|json):"
 
 new_project parent-config/sub
 one_entry
@@ -368,78 +432,34 @@ one_entry
 printf '[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale"
 expect_exit "a config file named .vale with no StylesPath" 2
 if grep -qF "cannot write" "$PROJECT/stderr" && ! grep -qF "Traceback" "$PROJECT/stderr"; then pass "that config gets a reason, not a traceback"; else fail "that config's stderr: $(cat "$PROJECT/stderr")"; fi
+expect_no_file "that config gets no GLOSSARY.md" GLOSSARY.md
 
 new_project quoted-word
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: 'purchase'
-EOF
+terms "[{\"term\": \"Order\", \"definition\": \"A request to buy.\", \"avoid\": [\"'purchase'\"]}]"
 expect_refusal "a single-quoted word" "a straight apostrophe after a letter"
 
 new_project quote-at-the-end
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase'
-EOF
+terms "[{\"term\": \"Order\", \"definition\": \"A request to buy.\", \"avoid\": [\"purchase'\"]}]"
 expect_refusal "a quote mark closing a word" "more of the phrase after it"
 
 new_project quoted-part
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: big 'order'
-EOF
+terms "[{\"term\": \"Order\", \"definition\": \"A request to buy.\", \"avoid\": [\"big 'order'\"]}]"
 expect_refusal "a quoted word inside a phrase" "a straight apostrophe after a letter"
 
 new_project possessive-word
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: customer's purchase
-EOF
+terms "[{\"term\": \"Order\", \"definition\": \"A request to buy.\", \"avoid\": [\"customer's purchase\"]}]"
 expect_exit "an apostrophe inside a word" 0
 
 new_project possessive-phrase
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Customer
-
-A person who buys.
-
-**::AVOID::**: ledger, customers' purchase
-
-**::EXCEPT::**: customers' ledger
-
-### Customers' Book
-
-What a shop keeps on them.
-
-**::AVOID::**: book
-EOF
+terms "[
+  {\"term\": \"Customer\", \"definition\": \"A person who buys.\", \"avoid\": [\"ledger\", \"customers' purchase\"], \"except\": [\"customers' ledger\"]},
+  {\"term\": \"Customers' Book\", \"definition\": \"What a shop keeps on them.\", \"avoid\": [\"book\"]}
+]"
 printf "# Probe\n\nThe customers' purchase here.\n\nThe customers' ledger here.\n\nThe customers' book here.\n" >"$PROJECT/doc.md"
 expect_exit "a plural possessive inside a phrase" 0
 (cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
-expect_alert "a possessive phrase on an Avoid line fires" "doc.md:3:5:Glossary.Terms:Use 'Customer' instead of 'customers' purchase'."
-expect_no_alert "a possessive phrase on an Except line and in a term stays quiet" "doc.md:(5|7):"
+expect_alert "a possessive phrase in an avoid list fires" "doc.md:3:5:Glossary.Terms:Use 'Customer' instead of 'customers' purchase'."
+expect_no_alert "a possessive phrase in an except list and in a term stays quiet" "doc.md:(5|7):"
 
 new_project config-colon
 one_entry
@@ -461,25 +481,14 @@ printf 'StylesPath = b\n' >"$PROJECT/vale.ini"
 expect_exit "two configs" 2
 if grep -qF "vale.ini" "$PROJECT/stderr"; then pass "two configs: the refusal names them"; else fail "two configs: stderr: $(cat "$PROJECT/stderr")"; fi
 expect_no_file "two configs: no rule is written" a
+expect_no_file "two configs: no GLOSSARY.md is written" GLOSSARY.md
 
 new_project refused-no-config
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase
-
-### Refund
-
-Money returned.
-
-**::AVOID::**: purchase
-EOF
+terms '[
+  {"term": "Order", "definition": "A request to buy.", "avoid": ["purchase"]},
+  {"term": "Refund", "definition": "Money returned.", "avoid": ["purchase"]}
+]'
 expect_refusal "a refused glossary with no config" "no single replacement"
-expect_no_file "a refusal writes no config" .vale.ini
 
 new_project an-argument
 one_entry
@@ -487,115 +496,60 @@ arg_exit=0
 (cd "$PROJECT" && python3 "$SCRIPT" somewhere >/dev/null 2>&1) || arg_exit=$?
 if [ "$arg_exit" = 2 ]; then pass "an argument exits 2"; else fail "an argument exits $arg_exit, wanted 2"; fi
 expect_no_file "an argument writes nothing" somewhere
+expect_no_file "an argument writes no GLOSSARY.md" GLOSSARY.md
 
 new_project term-metacharacter
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Shopping Cart (legacy)
-
-What a customer was about to buy.
-
-**::AVOID::**: cart
-EOF
+terms '[{"term": "Shopping Cart (legacy)", "definition": "What a customer was about to buy.", "avoid": ["cart"]}]'
 expect_refusal "a term holding a drift word and a metacharacter" "must be letters"
 
 new_project term-no-space
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Pre-Order
-
-An order placed before release.
-
-### Purchase
-
-A request to buy.
-
-**::AVOID::**: order
-EOF
+terms '[
+  {"term": "Pre-Order", "definition": "An order placed before release."},
+  {"term": "Purchase", "definition": "A request to buy.", "avoid": ["order"]}
+]'
 expect_refusal "a term with no space holding a drift word" "holds no space"
 
 new_project except-no-space
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Purchase
-
-A request to buy.
-
-**::AVOID::**: order
-
-**::EXCEPT::**: pre-order
-EOF
-expect_refusal "an Except entry with no space" "holds no space"
+terms '[{"term": "Purchase", "definition": "A request to buy.", "avoid": ["order"], "except": ["pre-order"]}]'
+expect_refusal "an excepted phrase with no space" "holds no space"
 
 new_project root
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase
-EOF
+one_entry
 expect_exit "a glossary at the root" 0
 if grep -q '"purchase": "Order"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "a glossary at the root is read"; else fail "a glossary at the root is not read"; fi
 
 new_project both
 mkdir -p "$PROJECT/docs"
-echo '## Language' >"$PROJECT/GLOSSARY.md"
-echo '## Language' >"$PROJECT/docs/GLOSSARY.md"
+one_entry
+cp "$PROJECT/GLOSSARY.json" "$PROJECT/docs/GLOSSARY.json"
 expect_exit "a glossary at both paths" 2
+expect_no_file "a glossary at both paths writes no GLOSSARY.md" GLOSSARY.md
 
 new_project none
 expect_exit "no glossary" 2
 
+new_project markdown-only
+printf '# Shop\n\n## Language\n\n### Order\n\nA request to buy.\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a GLOSSARY.md with no GLOSSARY.json" 2
+if grep -qF "GLOSSARY.json" "$PROJECT/stderr"; then pass "that stop names the file it wants"; else fail "that stop's stderr: $(cat "$PROJECT/stderr")"; fi
+expect_no_file "that stop writes no rule" .vale/styles/Glossary/Terms.yml
+
 new_project option
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase
-EOF
+one_entry
 option_exit=0
 (cd "$PROJECT" && python3 "$SCRIPT" --help >/dev/null 2>&1) || option_exit=$?
 if [ "$option_exit" = 2 ]; then pass "an option exits 2"; else fail "an option exits $option_exit, wanted 2"; fi
 if [ -e "$PROJECT/--help" ]; then fail "an option was taken as a styles path"; else pass "an option writes nothing"; fi
 
 new_project quiet
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-EOF
+terms '[{"term": "Order", "definition": "A request to buy."}]'
 expect_exit "a glossary naming no drift word" 0
 if grep -qx 'swap: {}' "$PROJECT/.vale/styles/Glossary/Terms.yml" 2>/dev/null; then pass "a glossary naming no drift word writes a rule that swaps nothing"; else fail "a glossary naming no drift word wrote no empty rule"; fi
 
 new_project stale
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase
-EOF
+one_entry
 expect_exit "a glossary before its last drift word goes" 0
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-EOF
+terms '[{"term": "Order", "definition": "A request to buy."}]'
 expect_exit "a glossary after its last drift word went" 0
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
@@ -611,195 +565,169 @@ stale_exit=0
 if [ "$stale_exit" = 0 ] && [ ! -s "$PROJECT/alerts" ]; then pass "the rule stops firing with the glossary's last drift word"; else fail "Vale exits $stale_exit after the last drift word went: $(cat "$PROJECT/alerts")"; fi
 
 new_project two-entries
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase
-
-### Sale
-
-A completed purchase.
-
-**::AVOID::**: Purchase
-EOF
+terms '[
+  {"term": "Order", "definition": "A request to buy.", "avoid": ["purchase"]},
+  {"term": "Sale", "definition": "A completed purchase.", "avoid": ["Purchase"]}
+]'
 expect_refusal "a word on two entries" "no single replacement"
 
+new_project repeated-term
+terms '[
+  {"term": "Order", "definition": "A request to buy.", "avoid": ["purchase"]},
+  {"term": "Order", "definition": "A completed sale.", "avoid": ["purchase"]}
+]'
+expect_refusal "a term on two entries" "Order: is on two entries"
+
+new_project repeated-term-case
+terms '[
+  {"term": "Order", "definition": "A request to buy."},
+  {"term": "order", "definition": "A completed sale."}
+]'
+expect_refusal "a term on two entries, differing only in case" "order: is on two entries"
+
 new_project a-term
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Member
-
-A user's membership in one group.
-
-**::AVOID::**: user
-
-### User
-
-A person's account.
-EOF
+terms '[
+  {"term": "Member", "definition": "A membership in one group.", "avoid": ["user"]},
+  {"term": "User", "definition": "A person who signed up."}
+]'
 expect_refusal "a word that is another entry's term" "is also an entry's term"
 
 new_project metacharacter
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Issue
-
-A tracked unit of work.
-
-**::AVOID::**: ticket (when quoting)
-EOF
+terms '[{"term": "Issue", "definition": "A tracked unit of work.", "avoid": ["ticket (when quoting)"]}]'
 expect_refusal "a word holding a metacharacter" "must be letters"
 
-new_project trailing-comma
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase,
-EOF
+new_project empty-word
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["purchase", ""]}]'
 expect_refusal "an empty word" "must be letters"
 if grep -qF "holds a drift word" "$PROJECT/stderr"; then fail "a refused word reached a later check: $(cat "$PROJECT/stderr")"; else pass "a refused word reaches no later check"; fi
 
-new_project no-heading
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-**Order**:
-A request to buy.
-**::AVOID::**: purchase
-EOF
-expect_refusal "an Avoid line under no heading" "belongs under an entry's ### heading"
-
-glossary_under() {
-  printf '%b\n\n### Order\n\nA request to buy.\n\n**::AVOID::**: purchase\n' "$1" >"$PROJECT/GLOSSARY.md"
-}
-
-entry_with_line() {
-  printf '## Language\n\n### Order\n\nA request to buy.\n\n%s\n' "$1" >"$PROJECT/GLOSSARY.md"
-}
-
-expect_rule_holds() {
-  if grep -qF "$2" "$PROJECT/.vale/styles/Glossary/Terms.yml" 2>/dev/null; then pass "$1"; else fail "$1: the rule lacks '$2'"; fi
-}
-
-expect_clean_stop() {
-  local name="$1" reason="$2"
-  expect_exit "$name" 2
-  if grep -qF "$reason" "$PROJECT/stderr" && ! grep -qF "Traceback" "$PROJECT/stderr"; then pass "$name: says '$reason'"; else fail "$name: stderr: $(cat "$PROJECT/stderr")"; fi
-  expect_no_file "$name: no rule is written" .vale/styles/Glossary/Terms.yml
-}
-
 count=0
-for heading in '##  Language' '## Language ##' '## language' '##\tLanguage' '\xef\xbb\xbf## Language'; do
+for word in ' purchase' 'purchase ' ' '; do
   count=$((count + 1))
-  new_project heading-$count
-  glossary_under "$heading"
-  expect_exit "the heading '$heading'" 0
-  expect_rule_holds "the heading '$heading' opens the section" '"purchase": "Order"'
+  new_project spaced-word-$count
+  terms "[{\"term\": \"Order\", \"definition\": \"A request to buy.\", \"avoid\": [\"$word\"]}]"
+  expect_refusal "the word '$word'" "no space at either end"
 done
 
-count=0
-for heading in '## Language:' '# Language' 'Language\n--------' '## Terms'; do
-  count=$((count + 1))
-  new_project no-language-$count
-  glossary_under "$heading"
-  expect_refusal "list lines under '$heading'" "only a list line under ## Language may hold a marker"
-done
+new_project spaced-term
+terms '[{"term": " Order", "definition": "A request to buy."}]'
+expect_refusal "a term with a space at one end" "no space at either end"
 
-new_project retired-only
-printf '# Shop\n\n## Retired\n\n- **Voucher**: a prepaid credit.\n' >"$PROJECT/GLOSSARY.md"
-expect_exit "a glossary with no list lines and no Language section" 0
+new_project issue-example
+printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy.", "avod": ["purchase"]}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a misspelled key in an entry" "Order: the key 'avod' is not in the format"
 
-new_project other-heading
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
+new_project top-level-key
+printf '{"project": "Shop", "summary": "A shop.", "term": [], "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a misspelled key at the top level" "top level: the key 'term' is not in the format"
 
-### Order
+new_project repeated-key
+printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy.", "avoid": ["purchase"], "avoid": ["sale"]}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a key appearing twice in an entry" "Order: the key 'avoid' appears twice"
+if grep -qF "not valid JSON" "$PROJECT/stderr"; then fail "a repeated key reads as invalid JSON: $(cat "$PROJECT/stderr")"; else pass "a repeated key does not read as invalid JSON"; fi
 
-A request to buy.
+new_project repeated-top-key
+printf '{"project": "Shop", "project": "Store", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a key appearing twice at the top level" "top level: the key 'project' appears twice"
 
-## Language notes
+new_project repeated-key-and-more
+printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy.", "avoid": ["purchase"], "avoid": ["sale"]}, {"term": "Refund"}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a repeated key beside another problem" "Order: the key 'avoid' appears twice"
+if grep -qF "Refund: the key 'definition' is missing" "$PROJECT/stderr"; then pass "a repeated key leaves the other problem listed"; else fail "a repeated key hides the other problem: $(cat "$PROJECT/stderr")"; fi
 
-**::AVOID::**: purchase
-EOF
-expect_refusal "a list line under a heading that only starts with the section's name" "line 9: only a list line under ## Language may hold a marker"
-
-new_project flagged-list-line
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase
-
-## Flagged ambiguities
-
-### Refund
-
-**::AVOID::**: reimbursement
-EOF
-expect_refusal "a list line appended after the Language section" "line 13: only a list line under ## Language may hold a marker"
-
-new_project flagged-prose
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-**::AVOID::**: purchase
-
-## Flagged ambiguities
-
-- "basket" now sits on the **::AVOID::**: line of Order.
-EOF
-expect_refusal "prose naming a marker outside the Language section" "line 11: only a list line under ## Language may hold a marker"
+new_project invalid-json
+printf '{"project": "Shop",}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "invalid JSON" "not valid JSON: "
 
 count=0
-for line in '::AVOID:: purchase' '**::AVOID::** purchase' '**::AVOID::** : purchase' '*::AVOID::*: purchase' '**::avoid::**: purchase' '- **::AVOID::**: purchase' '> **::AVOID::**: purchase' 'A request. **::AVOID::**: purchase' '**::EXCEPT::** in the long run'; do
+for top in '[]' '"Shop"' 'null'; do
   count=$((count + 1))
-  new_project near-miss-$count
-  entry_with_line "$line"
-  expect_refusal "the line '$line'" "is written **::AVOID::**: or **::EXCEPT::**: on a line of its own"
+  new_project not-an-object-$count
+  printf '%s\n' "$top" >"$PROJECT/GLOSSARY.json"
+  expect_refusal "a glossary that is '$top'" "top level: must be an object"
 done
 
-count=0
-for line in 'Customers avoid this, except at the till.' 'A request to buy, *except* a refund.' 'A request to buy, _except_ a refund.' 'A request to buy, **except** a refund.' 'Customers must *avoid* this one.' 'A request, written `_Avoid_` nowhere.' 'A request. See _except for_ the rest.' '*avoid_this* is a name in the code.' '*Except for refunds*, an order is final.' '*Avoid this word* in invoices.' '*avoid-this* is a name.' '`avoid-list` is a name.' 'Avoid: a word to leave out of the prose.' '*Avoid purchase*' '_Avoid_ purchase'; do
-  count=$((count + 1))
-  new_project plain-prose-$count
-  entry_with_line "$line"
-  expect_exit "the definition '$line'" 0
-done
+new_project no-project
+printf '{"summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a missing project" "top level: the key 'project' is missing"
 
-new_project retired-prose
-printf '# Shop\n\n## Retired\n\n- **Voucher**: a prepaid credit, *except* gift ones.\n' >"$PROJECT/GLOSSARY.md"
-expect_exit "an emphasised except outside the Language section" 0
+new_project no-summary
+printf '{"project": "Shop", "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a missing summary" "top level: the key 'summary' is missing"
 
-new_project retired-phrase
-printf '# Shop\n\n## Notes\n\n*Except for refunds*, an order is final.\n' >"$PROJECT/GLOSSARY.md"
-expect_exit "an emphasised phrase opening a line outside the Language section" 0
+new_project no-terms
+printf '{"project": "Shop", "summary": "A shop."}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "missing terms" "top level: the key 'terms' is missing"
 
-new_project term-closing-hashes
-printf '## Language\n\n### Order ###\n\nA request to buy.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
-expect_exit "a term heading with closing hashes" 0
-expect_rule_holds "closing hashes stay out of the term" '"purchase": "Order"'
+new_project empty-terms
+terms '[]'
+expect_refusal "an empty list of terms" "'terms' holds no entry"
 
-new_project term-tab
-printf '## Language\n\n###\tOrder\n\nA request to buy.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
-expect_exit "a term heading with a tab" 0
-expect_rule_holds "a tab still opens an entry" '"purchase": "Order"'
+new_project string-terms
+terms '"Order"'
+expect_refusal "a string where the terms belong" "top level: 'terms' must be a list"
+
+new_project entry-not-object
+terms '["Order"]'
+expect_refusal "an entry that is a string" "entry 1: must be an object"
+
+new_project no-term
+terms '[{"term": "Order", "definition": "A request to buy."}, {"definition": "Money returned."}]'
+expect_refusal "a missing term" "entry 2: the key 'term' is missing"
+
+new_project no-definition
+terms '[{"term": "Order"}]'
+expect_refusal "a missing definition" "Order: the key 'definition' is missing"
+
+new_project term-not-string
+terms '[{"term": 5, "definition": "A request to buy."}]'
+expect_refusal "a term that is a number" "entry 1: the term must be"
+
+new_project empty-definition
+terms '[{"term": "Order", "definition": "  "}]'
+expect_refusal "an empty definition" "Order: the definition must be one line of text"
+
+new_project definition-lines
+terms '[{"term": "Order", "definition": "A request.\n### Forged"}]'
+expect_refusal "a definition holding a line break" "Order: the definition must be one line of text"
+
+new_project definition-surrogate
+terms '[{"term": "Order", "definition": "A request \ud83d to buy."}]'
+expect_refusal "a definition holding a lone surrogate" "Order: the definition must be one line of text with no lone surrogate"
+if grep -qF "Traceback" "$PROJECT/stderr"; then fail "a lone surrogate gets a traceback: $(cat "$PROJECT/stderr")"; else pass "a lone surrogate gets a reason, not a traceback"; fi
+
+new_project surrogate-word
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["pur\ud83dchase"]}]'
+expect_refusal "a word holding a lone surrogate" "under 'avoid' must be"
+if grep -qF "Traceback" "$PROJECT/stderr"; then fail "a surrogate word gets a traceback: $(cat "$PROJECT/stderr")"; else pass "a surrogate word gets a reason, not a traceback"; fi
+
+new_project project-lines
+printf '{"project": "Shop\\n## Forged", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a project holding a line break" "top level: 'project' must be one line of text"
+
+new_project summary-not-string
+printf '{"project": "Shop", "summary": ["A shop."], "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a list where the summary belongs" "top level: 'summary' must be one line of text"
+
+new_project string-avoid
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": "purchase"}]'
+expect_refusal "a string where the avoid list belongs" "Order: 'avoid' must be a list"
+
+new_project string-except
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["account"], "except": "take into account"}]'
+expect_refusal "a string where the except list belongs" "Order: 'except' must be a list"
+
+new_project number-in-avoid
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": [5]}]'
+expect_refusal "a number in an avoid list" "Order: 5 under 'avoid' must be"
+
+new_project string-flagged
+printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}], "flagged_ambiguities": "one"}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a string where the flagged list belongs" "top level: 'flagged_ambiguities' must be a list"
+
+new_project flagged-lines
+printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}], "flagged_ambiguities": ["one\\ntwo"]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a flagged ambiguity holding a line break" "under 'flagged_ambiguities' must be one line of text"
 
 new_project hand-written-rule
 one_entry
@@ -810,89 +738,66 @@ expect_exit "a rule file this script did not write" 2
 if grep -qF "did not write" "$PROJECT/stderr"; then pass "that refusal says why"; else fail "that refusal's stderr: $(cat "$PROJECT/stderr")"; fi
 if cmp -s "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/hand-written"; then pass "a hand-written rule stays as it was"; else fail "a hand-written rule was replaced"; fi
 expect_no_file "that refusal writes no config" .vale.ini
+expect_no_file "that refusal writes no GLOSSARY.md" GLOSSARY.md
+
+new_project hand-written-markdown
+one_entry
+printf '# Shop\n\nWritten by a person.\n' >"$PROJECT/GLOSSARY.md"
+cp "$PROJECT/GLOSSARY.md" "$WORK/kept-markdown"
+expect_exit "a GLOSSARY.md this script did not write" 2
+if grep -qF "did not write GLOSSARY.md" "$PROJECT/stderr"; then pass "that refusal names the file"; else fail "that refusal's stderr: $(cat "$PROJECT/stderr")"; fi
+if cmp -s "$PROJECT/GLOSSARY.md" "$WORK/kept-markdown"; then pass "a hand-written GLOSSARY.md stays as it was"; else fail "a hand-written GLOSSARY.md was replaced"; fi
+expect_no_file "that refusal writes no rule" .vale/styles/Glossary/Terms.yml
+expect_no_file "that refusal writes no config" .vale.ini
+
+new_project hand-written-docs-markdown
+mkdir -p "$PROJECT/docs"
+printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/docs/GLOSSARY.json"
+printf '# Shop\n' >"$PROJECT/docs/GLOSSARY.md"
+expect_exit "a hand-written GLOSSARY.md beside a source in docs" 2
+if [ "$(cat "$PROJECT/docs/GLOSSARY.md")" = "# Shop" ]; then pass "that GLOSSARY.md stays as it was"; else fail "that GLOSSARY.md was replaced"; fi
 
 count=0
-for fence in '```' '```markdown' '~~~' '    ```' '```order``` is a request.'; do
-  count=$((count + 1))
-  new_project code-fence-$count
-  entry_with_line "$fence"
-  expect_refusal "the line '$fence'" "a glossary holds no code fence"
-done
-
-new_project code-fence-elsewhere
-printf '# Shop\n\n```\n\n## Language\n\n### Order\n\nA request to buy.\n\n_Avoid_ nothing.\n' >"$PROJECT/GLOSSARY.md"
-expect_refusal "a code fence above the section" "a glossary holds no code fence"
-
-count=0
-for term in 'Order (legacy)' '"Order"' "'Order'" 'C#' 'Customer’s Book'; do
+for term in 'Order (legacy)' '\"Order\"' "'Order'" 'C#' 'Customer’s Book'; do
   count=$((count + 1))
   new_project plain-term-$count
-  printf '## Language\n\n### %s\n\nA request to buy.\n' "$term" >"$PROJECT/GLOSSARY.md"
+  terms "[{\"term\": \"$term\", \"definition\": \"A request to buy.\"}]"
   expect_refusal "the term '$term'" "must be letters"
 done
 
 new_project apostrophe-term
-printf "## Language\n\n### Order's Line\n\nOne thing on an order.\n" >"$PROJECT/GLOSSARY.md"
+terms "[{\"term\": \"Order's Line\", \"definition\": \"One thing on an order.\"}]"
 expect_exit "a term holding an apostrophe" 0
 
 new_project quoted-definition
-printf '## Language\n\n### Order\n\nA "request" to buy, written `like this`.\n' >"$PROJECT/GLOSSARY.md"
+terms '[{"term": "Order", "definition": "A \"request\" to buy, written `like this`."}]'
 expect_exit "a definition holding quotes and a code span" 0
 
 new_project sharp-s-term
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Straße
-
-Ein Weg.
-
-**::AVOID::**: Strasse
-EOF
+terms '[{"term": "Straße", "definition": "Ein Weg.", "avoid": ["Strasse"]}]'
 expect_exit "a drift word equal to a term only under full case folding" 0
 
 new_project sharp-s-pair
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Weg
-
-Ein Weg.
-
-**::AVOID::**: Straße
-
-### Pfad
-
-Ein Pfad.
-
-**::AVOID::**: Strasse
-EOF
+terms '[
+  {"term": "Weg", "definition": "Ein Weg.", "avoid": ["Straße"]},
+  {"term": "Pfad", "definition": "Ein Pfad.", "avoid": ["Strasse"]}
+]'
 expect_exit "two drift words equal only under full case folding" 0
 
 new_project curly-apostrophe
-entry_with_line '**::AVOID::**: customer’s purchase'
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["customer’s purchase"]}]'
 expect_refusal "a curly apostrophe" "a straight apostrophe"
 
 new_project except-typo
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Customer
-
-A person who buys.
-
-**::AVOID::**: account
-
-**::EXCEPT::**: on acount of
-EOF
-expect_refusal "an Except phrase holding no drift word" "holds no word from any **::AVOID::**: line"
+terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["account"], "except": ["on acount of"]}]'
+expect_refusal "an excepted phrase holding no drift word" "holds no word from any 'avoid' list"
 
 new_project unbalanced-word
-entry_with_line '**::AVOID::**: ticket ('
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["ticket ("]}]'
 expect_refusal "a word holding an unbalanced metacharacter" "must be letters"
 
 new_project latin1-glossary
-printf '## Language\n\n### Order\n\nA caf\xe9.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
+printf '{"project": "Caf\xe9", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
 expect_clean_stop "a glossary that is not UTF-8" "cannot read"
 
 new_project latin1-config
@@ -900,6 +805,12 @@ one_entry
 printf 'StylesPath = st\n\n# caf\xe9\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
 expect_clean_stop "a config that is not UTF-8" "cannot read"
 expect_no_file "that config gets no rule under its StylesPath" st
+
+new_project latin1-markdown
+one_entry
+printf 'A caf\xe9.\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a GLOSSARY.md that is not UTF-8" 2
+if grep -qF "cannot read" "$PROJECT/stderr" && ! grep -qF "Traceback" "$PROJECT/stderr"; then pass "that GLOSSARY.md gets a reason, not a traceback"; else fail "that GLOSSARY.md's stderr: $(cat "$PROJECT/stderr")"; fi
 
 new_project config-is-directory
 one_entry
