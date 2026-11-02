@@ -1,16 +1,16 @@
 ---
 name: glossary-guru
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 description: |
-  Own a project's glossary: the format of its GLOSSARY.md, reading it before writing names or prose in the project's domain, challenging a word that sits on an _Avoid_ line or contradicts a definition, and adding, changing, folding or retiring a term on the owner's decision. Use whenever a project holds a GLOSSARY.md and the work writes code names, docs, commit messages or issue text in its domain; when asked to define a term, settle what a word means, start a glossary or rename a domain concept; and when two words compete for one concept. Not for a skill's own terms, which stay inside that skill, not for ADRs, and not for general programming vocabulary.
+  Own a project's glossary: the format of its GLOSSARY.md, reading it before writing names or prose in the project's domain, challenging a word that sits on an _Avoid_ line or contradicts a definition, adding, changing, folding or retiring a term on the owner's decision, and generating a Vale rule from it. Use whenever a project holds a GLOSSARY.md and the work writes code names, docs, commit messages or issue text in its domain; when asked to define a term, settle what a word means, start a glossary or rename a domain concept; when two words compete for one concept; and when asked to catch a drifted word with Vale. Not for a skill's own terms, which stay inside that skill, not for ADRs, and not for general programming vocabulary.
 ---
 
 # Glossary
 
 A project's glossary gives each domain concept one name, because an agent otherwise copies whichever word it last saw and one concept ends up with several. The file holds the vocabulary and nothing else: it is neither a spec nor a place for implementation decisions.
 
-Every path here is in the project being worked on, so each opens with `<repo-root>`.
+A path in the project being worked on opens with `<repo-root>`. A bare path, such as `scripts/glossary-rule.py`, is inside this skill's own directory.
 
 ## Where it lives
 
@@ -49,7 +49,9 @@ _Avoid_: purchase, transaction
 
 A person or organization that places orders.
 
-_Avoid_: client, buyer
+_Avoid_: client, buyer, account
+
+_Except_: take into account, on account of
 
 ## Relationships
 
@@ -67,6 +69,10 @@ _Avoid_: client, buyer
 The sections are `## Language`, `## Relationships`, `## Flagged ambiguities` and `## Retired`, in that order. Each is present only when it has entries, and `## Relationships` holds only what a reader needs and the entries cannot say alone, such as ownership or cardinality.
 
 An entry is the term as a `###` heading, a definition of one or two sentences saying what the term is rather than what it does, and an `_Avoid_:` line naming the words not to use for it. The heading gives the entry a link of its own and a place in the page's outline, and the blank lines keep each part on its own line when the file is rendered. A term no other word competes with has no `_Avoid_:` line, because an invented word would send the next reader looking for drift that never happened.
+
+An `_Except_:` line is optional, and names a phrase of two or more words where a word on the `_Avoid_:` line is correct, such as "take into account" for `account`. A check matches words without reading them, so without this line it would flag that phrase every time. An agent reading the glossary treats it the same way: the phrase is not drift. A term that holds a drift word, such as `Shopping Cart` holding `cart`, needs no such line, because the rule generated from the glossary skips the term by itself. A term with no space that holds one, such as `Pre-Order` holding `order`, is refused when the rule is generated, because Vale can only skip a phrase holding a space.
+
+On an `_Avoid_:` or `_Except_:` line, a comma separates one word or phrase from the next, and a phrase takes no quotes, because the script refuses a quote mark.
 
 An entry stands on its own: it names no file path, class, method, table, config value, date, owner or issue link, so it stays true when the code it describes is renamed. It may lean on another entry, and a project-specific word it leans on needs an entry of its own, unless the word is a property some entry's definition explains.
 
@@ -86,6 +92,18 @@ Add, change, fold or retire an entry only on the owner's decision: propose the w
 Record a settled confusion as one line under `## Flagged ambiguities`, because it is what stops the same argument happening twice.
 
 Propose folding or retiring only on evidence of where the concept went. A deleted class or path is not that evidence, because an entry is meant to outlive the code that implemented it.
+
+## Automatic rule check
+
+`scripts/glossary-rule.py` turns the `_Avoid_:` and `_Except_:` lines into one Vale `substitution` rule, so a drifted word is caught by a check as well as by a reader. Run it from the project's root, and again whenever either kind of line changes, because the rule only knows what the glossary said when it was generated:
+
+```bash
+python3 <skill-dir>/scripts/glossary-rule.py
+```
+
+The rule lands at `<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none. A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. Commit what it writes, so a Vale run needs neither this skill nor Python, and never edit the rule by hand, because the next run replaces it.
+
+`assets/vale.ini.template` holds the lines that turn the rule on, and explains in its comments what Vale checks and how to make a drifted word fail the run.
 
 ## What it does not cover
 
