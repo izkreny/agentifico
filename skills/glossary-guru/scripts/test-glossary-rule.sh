@@ -875,7 +875,7 @@ expect_exit "a term holding a drift word's letters inside a longer word" 0
 
 new_project marker-quoted-in-markdown
 one_entry
-printf '# Shop\n\n%s\n' "$(printf '<!-- Generated from GLOSSARY.json by the glossary-guru skill. Edit GLOSSARY.json, not this file. Regenerate from the project'"'"'s root: python3 <skill-dir>/scripts/glossary-rule.py -->')" >"$PROJECT/GLOSSARY.md"
+printf '# Shop\n\n%s\n' "$(head -n 1 "$WORK/wanted-markdown")" >"$PROJECT/GLOSSARY.md"
 cp "$PROJECT/GLOSSARY.md" "$WORK/quoting-markdown"
 expect_exit "a hand-written GLOSSARY.md quoting the marker below its first line" 2
 if cmp -s "$PROJECT/GLOSSARY.md" "$WORK/quoting-markdown"; then pass "that GLOSSARY.md stays as it was"; else fail "that GLOSSARY.md was replaced"; fi
