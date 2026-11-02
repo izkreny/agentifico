@@ -123,7 +123,7 @@ def split_words(text):
 
 def parse_language(text):
     entries, exceptions, problems = [], [], []
-    in_language = saw_language = stray = False
+    in_language = False
     for number, raw in enumerate(text.splitlines(), 1):
         line = raw.strip()
         if line.startswith(FENCES):
@@ -132,9 +132,9 @@ def parse_language(text):
         section = SECTION.fullmatch(line)
         if section:
             in_language = section[1].casefold() == "language"
-            saw_language = saw_language or in_language
         if not in_language:
-            stray = stray or bool(LIST_LINE.fullmatch(line) or NEAR_LIST_LINE.search(line))
+            if NEAR_LIST_LINE.search(line):
+                problems.append(f"line {number}: a list line belongs under ## Language")
             continue
         heading = TERM.fullmatch(line)
         if heading:
@@ -161,8 +161,6 @@ def parse_language(text):
             entries[-1][1].extend(words)
         else:
             exceptions.extend(words)
-    if stray and not saw_language:
-        problems.append("it holds **::AVOID::**: or **::EXCEPT::**: lines and no ## Language heading")
     return entries, exceptions, problems
 
 

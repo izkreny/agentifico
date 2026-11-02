@@ -61,12 +61,6 @@ A person who places orders.
 ### Refund
 
 Money returned to a customer.
-
-## Retired
-
-- **Voucher**: a prepaid credit.
-
-**::AVOID::**: coupon
 EOF
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
@@ -695,10 +689,6 @@ expect_rule_holds() {
   if grep -qF "$2" "$PROJECT/.vale/styles/Glossary/Terms.yml" 2>/dev/null; then pass "$1"; else fail "$1: the rule lacks '$2'"; fi
 }
 
-expect_rule_lacks() {
-  if grep -qF "$2" "$PROJECT/.vale/styles/Glossary/Terms.yml"; then fail "$1: the rule holds '$2'"; else pass "$1"; fi
-}
-
 expect_clean_stop() {
   local name="$1" reason="$2"
   expect_exit "$name" 2
@@ -720,7 +710,7 @@ for heading in '## Language:' '# Language' 'Language\n--------' '## Terms'; do
   count=$((count + 1))
   new_project no-language-$count
   glossary_under "$heading"
-  expect_refusal "list lines under '$heading'" "no ## Language heading"
+  expect_refusal "list lines under '$heading'" "belongs under ## Language"
 done
 
 new_project retired-only
@@ -739,8 +729,25 @@ A request to buy.
 
 **::AVOID::**: purchase
 EOF
-expect_exit "a heading that only starts with the section's name" 0
-expect_rule_lacks "that heading does not reopen the section" "purchase"
+expect_refusal "a list line under a heading that only starts with the section's name" "line 9: a list line belongs under ## Language"
+
+new_project flagged-list-line
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+**::AVOID::**: purchase
+
+## Flagged ambiguities
+
+### Refund
+
+**::AVOID::**: reimbursement
+EOF
+expect_refusal "a list line appended after the Language section" "line 13: a list line belongs under ## Language"
 
 count=0
 for line in '::AVOID:: purchase' '**::AVOID::** purchase' '**::AVOID::** : purchase' '*::AVOID::*: purchase' '**::avoid::**: purchase' '- **::AVOID::**: purchase' '> **::AVOID::**: purchase' 'A request. **::AVOID::**: purchase' '**::EXCEPT::** in the long run'; do
