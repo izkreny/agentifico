@@ -93,6 +93,12 @@ Propose folding or removing only on evidence of where the concept went. A delete
 python3 <skill-dir>/scripts/glossary-rule.py
 ```
 
+That writes the rule and checks nothing. The check is a separate Vale run from the project's root, which a project's CI can run too:
+
+```bash
+vale .
+```
+
 The rule lands at `<repo-root>/<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none.
 
 A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. A `StylesPath` pointing outside the project is the project's own choice, and two projects sharing one get the rule of whichever ran last.
