@@ -2,25 +2,18 @@ import fs from "node:fs";
 import path from "node:path";
 
 const SOURCE_SECTION = /^(?:inspiration|sources)$/i;
-const FORGE_HOST = /^(?:www\.)?(?:github\.com|gitlab\.com|bitbucket\.org|codeberg\.org)$/;
-// WHY: GitHub keeps these first segments for its own pages, so two segments under one are no repository.
-const BARE_REPOSITORY = /^\/(?!(?:orgs|users|topics|sponsors|marketplace|apps)\/)[^/]+\/[^/]+\/?$/;
-// WHY: the lazy segments let a GitLab subgroup sit above the repository, while a repository named blob stays a repository.
-const FILE_OR_HISTORY = /^\/[^/]+\/[^/]+(?:\/[^/]+)*?\/(?:-\/)?(?:blob|tree|raw|src|commits)(?:\/|$)/;
-const PULL_REQUEST_CHANGES = /^\/[^/]+\/[^/]+\/pull\/\d+\/(?:files|commits)(?:\/|$)/;
-const GIST = /^\/(?:[^/]+\/)?[0-9a-f]+\/?$/;
+// WHY: only the domain is read, since a forge's link shapes have no end and the agent reading the warning can judge the page.
+const GIT_DOMAIN = /(?:^|\.)(?:github\.com|githubusercontent\.com|gitlab\.com|bitbucket\.org|codeberg\.org)$/;
+// WHY: a self-hosted forge and SourceHut's git.sr.ht name git at the start of a subdomain, which leaves github.io and digital.example.com out.
+const GIT_SUBDOMAIN = /(?:^|\.)git[^.]*\.[^.]+\.[^.]+$/;
 // WHY: a tag or a short sha can come to name another commit later, so only a full sha is a pin.
 const COMMIT = /\/[0-9a-f]{40}(?:\/|$)/;
 const CARRIES_A_LINK = new Set(["resourceDestinationString", "autolinkProtocol", "literalAutolinkHttp"]);
 
-// WHY: this names the shapes that can name a commit rather than the pages that cannot, since a forge's pages have no end and the rule's advice has to be followable.
 function unpinned(url) {
   if (!URL.canParse(url)) return false;
   const { hostname, pathname } = new URL(url);
-  if (COMMIT.test(pathname)) return false;
-  if (hostname === "raw.githubusercontent.com") return true;
-  if (hostname === "gist.github.com") return GIST.test(pathname);
-  return FORGE_HOST.test(hostname) && (BARE_REPOSITORY.test(pathname) || FILE_OR_HISTORY.test(pathname) || PULL_REQUEST_CHANGES.test(pathname));
+  return (GIT_DOMAIN.test(hostname) || GIT_SUBDOMAIN.test(hostname)) && !COMMIT.test(pathname);
 }
 
 function headingOf(token) {
@@ -43,12 +36,11 @@ function walk(tokens, fn) {
 }
 
 const childOf = (token, type) => token?.children.find((child) => child.type === type);
-// WHY: this folds a label as the parser does, dropping a wrapped line's quote marker, or a link it resolved would find no definition here.
+// WHY: this folds a label as the parser's normalizeIdentifier does, or a link it resolved would find another definition here.
 const labelKey = (text) =>
   text
-    .replace(/\n[\s>]*/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
+    .replace(/[\t\n\r ]+/g, " ")
+    .replace(/^ | $/g, "")
     .toLowerCase()
     .toUpperCase();
 
@@ -95,7 +87,7 @@ export default {
         if (!url || !unpinned(url)) return;
         onError({
           lineNumber: inner.startLine,
-          detail: `${url} names no commit, so nobody can compare the skill against what it took: link the commit that was read`,
+          detail: `${url} names no commit: if it credits a source, link the commit that was read`,
           context: params.lines[inner.startLine - 1].trim(),
         });
       });

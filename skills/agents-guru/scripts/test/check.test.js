@@ -1523,26 +1523,33 @@ describe("skill-pinned-sources", () => {
     ["a bare repository", "https://github.com/owner/repo"],
     ["a tag", "https://github.com/owner/repo/tree/v1.2.3"],
     ["a bare gist", "https://gist.github.com/owner/c28c7a7189726dc3d8a89b6db92c1c8d"],
-    ["another git host", "https://gitlab.com/owner/repo/-/blob/main/SKILL.md"],
-    ["a sha cut short", `https://github.com/owner/repo/blob/${SHA.slice(0, 7)}/SKILL.md`],
+    ["a gist by its id alone", "https://gist.github.com/c28c7a7189726dc3d8a89b6db92c1c8d"],
+    ["GitLab", "https://gitlab.com/group/sub/repo/-/blob/main/SKILL.md"],
+    ["Bitbucket", "https://bitbucket.org/owner/repo/src/main/SKILL.md"],
+    ["Codeberg", "https://codeberg.org/owner/repo/src/branch/main/SKILL.md"],
+    ["SourceHut, by its git subdomain", "https://git.sr.ht/~owner/repo/tree/main/item/SKILL.md"],
+    ["a self-hosted git subdomain", "https://git.kernel.org/pub/scm/git/git.git/tree/README.md"],
+    ["a self-hosted GitLab subdomain", "https://gitlab.gnome.org/GNOME/gtk/-/blob/main/README.md"],
+    ["a sha cut short", `https://github.com/owner/repo/commit/${SHA.slice(0, 7)}`],
     ["a sha that does not end its segment", `https://github.com/owner/repo/blob/${SHA}x/SKILL.md`],
     ["a raw copy on a branch", "https://raw.githubusercontent.com/owner/repo/main/SKILL.md"],
-    ["a file in a folder named issues", "https://github.com/owner/repo/blob/main/issues/x.md"],
-    ["a repository named pull", "https://github.com/owner/pull"],
-    ["a gist by its id alone", "https://gist.github.com/c28c7a7189726dc3d8a89b6db92c1c8d"],
-    ["a raw copy on a branch named issues", "https://raw.githubusercontent.com/owner/repo/issues/SKILL.md"],
-    ["a pull request's changed files", "https://github.com/owner/repo/pull/12/files"],
-    ["a pull request's commit list", "https://github.com/owner/repo/pull/12/commits"],
-    ["a file under a subgroup", "https://gitlab.com/group/sub/repo/-/blob/main/SKILL.md"],
-    ["a branch's history", "https://github.com/owner/repo/commits/main"],
+    ["an issue, since only the domain is read", "https://github.com/owner/repo/issues/12"],
+    ["a site page, since only the domain is read", "https://github.com/features/actions"],
+    ["an owner's profile, since only the domain is read", "https://github.com/owner"],
     ["a bare repository with a query", "https://github.com/owner/repo?tab=readme-ov-file"],
   ];
   for (const [what, url] of unpinned)
     it(`warns on ${what} and leaves the run passing`, () => {
-      const dir = mkSkill(what.replace(/\W+/g, "-"), `## Sources\n\n- [A source](${url}): an idea.\n`);
+      const dir = mkSkill(what.toLowerCase().replace(/\W+/g, "-"), `## Sources\n\n- [A source](${url}): an idea.\n`);
       const r = run(dir);
       assert.equal(r.code, 0, r.out);
-      assert.match(r.out, new RegExp(`^ {2}README\\.md:11 skill-pinned-sources \\(warning\\) .*${url.replaceAll(/[.?]/g, "\\$&")} names no commit`, "m"));
+      assert.match(
+        r.out,
+        new RegExp(
+          `^ {2}README\\.md:11 skill-pinned-sources \\(warning\\) .*${url.replaceAll(/[.?]/g, "\\$&")} names no commit: .*link the commit that was read`,
+          "m",
+        ),
+      );
     });
   const pinned = [
     ["a blob at a commit", `https://github.com/owner/repo/blob/${SHA}/SKILL.md`],
@@ -1550,21 +1557,10 @@ describe("skill-pinned-sources", () => {
     ["a commit with a fragment", `https://github.com/owner/repo/blob/${SHA}#readme`],
     ["a gist revision", `https://gist.github.com/owner/c28c7a7189726dc3d8a89b6db92c1c8d/${SHA}`],
     ["a raw copy at a commit", `https://raw.githubusercontent.com/owner/repo/${SHA}/SKILL.md`],
+    ["a SourceHut commit", `https://git.sr.ht/~owner/repo/tree/${SHA}/item/SKILL.md`],
     ["a page on no git host", "https://suchow.io/assets/docs/paper.pdf"],
-    ["an issue, which has no commit", "https://github.com/owner/repo/issues/12"],
-    ["a pull request's conversation, which has no commit", "https://github.com/owner/repo/pull/12"],
-    ["a discussion, which has no commit", "https://github.com/owner/repo/discussions/12"],
-    ["a merge request, which has no commit", "https://gitlab.com/owner/repo/-/merge_requests/12"],
-    ["an owner's profile, which has no commit", "https://github.com/owner"],
-    ["an owner's profile with a slash", "https://github.com/owner/"],
-    ["an issue under a subgroup, which has no commit", "https://gitlab.com/group/sub/repo/-/issues/12"],
-    ["a merge request under a subgroup, which has no commit", "https://gitlab.com/group/sub/repo/-/merge_requests/12"],
-    ["an advisory, which has no commit", "https://github.com/owner/repo/security/advisories/GHSA-aaaa-bbbb-cccc"],
-    ["an organisation's project, which has no commit", "https://github.com/orgs/owner/projects/1"],
-    ["a topic, which has no commit", "https://github.com/topics/foo"],
-    ["a gist owner's profile, which has no commit", "https://gist.github.com/owner"],
-    ["an issue in a repository named blob", "https://github.com/owner/blob/issues/3"],
-    ["a pull request's files at a commit", `https://github.com/owner/repo/pull/12/files/${SHA}`],
+    ["a word holding git in a subdomain", "https://digital.example.com/paper"],
+    ["a project site on a git host's pages domain", "https://owner.github.io/repo"],
     ["a file of the repository", "../sibling/SKILL.md"],
   ];
   for (const [what, url] of pinned)
@@ -1629,8 +1625,8 @@ describe("skill-pinned-sources", () => {
     const url = "https://github.com/owner/repo";
     const folded = findings(mkSkill("ref-folded", `## Sources\n\n[Straße]\n\n[STRASSE]: ${url}\n`));
     assert.equal(folded.length, 1, String(folded));
-    const wrapped = findings(mkSkill("ref-wrapped", `## Sources\n\n> [a\n> b]\n\n[a b]: ${url}\n`));
-    assert.equal(wrapped.length, 1, String(wrapped));
+    const spaced = findings(mkSkill("ref-spaced", `## Sources\n\n[a  b]\n\n[a\u00a0b]: https://example.com/x\n[a b]: ${url}\n`));
+    assert.equal(spaced.length, 1, String(spaced));
   });
   it("leaves the same link alone outside a source section", () => {
     const url = "https://github.com/owner/repo";

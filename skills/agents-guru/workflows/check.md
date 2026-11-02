@@ -56,7 +56,7 @@ Each of their failure modes is silent: a truncated description keeps loading wit
 
 **`skill-readme`**, in `scripts/rules/skill-readme.js`, holds every skill to a `README.md` that says how it is installed. Which install forms count is `references/readme.md`'s to state, under *How it is installed*.
 
-**`skill-pinned-sources`**, in `scripts/rules/skill-pinned-sources.js`, warns on a git-host link that names no commit, on a page that has one to name, inside a section of a skill's `README.md` headed `Inspiration` or `Sources`, per *What inspired it* in `references/readme.md`. A warning leaves the run passing, because the link still opens, and a commit nobody recorded may not be recoverable. **What it cannot decide is whether the commit named is the one that was read**, nor whether a source is credited at all. It warns only on the link shapes it knows, so a bare repository under a GitLab subgroup passes.
+**`skill-pinned-sources`**, in `scripts/rules/skill-pinned-sources.js`, warns on a link to a git host with no full commit sha in it, inside a section of a skill's `README.md` headed `Inspiration` or `Sources`, per *What inspired it* in `references/readme.md`. A warning leaves the run passing, because the link still opens, and a commit nobody recorded may not be recoverable. **It reads the domain and nothing else, so it cannot tell a source from an issue or a site page, and the agent reading the warning judges each.** It cannot decide whether the commit named is the one that was read, nor whether a source is credited at all, and a reference whose label wraps inside a blockquote is not resolved.
 
 ## The path rules
 
