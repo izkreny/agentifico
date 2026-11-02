@@ -648,6 +648,16 @@ new_project definition-lines
 terms '[{"term": "Order", "definition": "A request.\n### Forged"}]'
 expect_refusal "a definition holding a line break" "Order: the definition must be one line of text"
 
+new_project definition-surrogate
+terms '[{"term": "Order", "definition": "A request \ud83d to buy."}]'
+expect_refusal "a definition holding a lone surrogate" "Order: the definition must be one line of text"
+if grep -qF "Traceback" "$PROJECT/stderr"; then fail "a lone surrogate gets a traceback: $(cat "$PROJECT/stderr")"; else pass "a lone surrogate gets a reason, not a traceback"; fi
+
+new_project surrogate-word
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["pur\ud83dchase"]}]'
+expect_refusal "a word holding a lone surrogate" "under 'avoid' must be"
+if grep -qF "Traceback" "$PROJECT/stderr"; then fail "a surrogate word gets a traceback: $(cat "$PROJECT/stderr")"; else pass "a surrogate word gets a reason, not a traceback"; fi
+
 new_project project-lines
 printf '{"project": "Shop\\n## Forged", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
 expect_refusal "a project holding a line break" "top level: 'project' must be one line of text"

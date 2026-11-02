@@ -47,6 +47,8 @@ TOP_REQUIRED = ("project", "summary", "terms")
 ENTRY_KEYS = ("term", "definition", "avoid", "except")
 ENTRY_REQUIRED = ("term", "definition")
 ONE_LINE = "must be one line of text"
+# WHY: JSON can spell a lone surrogate, which no UTF-8 file can hold, so it would fail at the write after the rule had already landed.
+SURROGATE = re.compile("[\ud800-\udfff]")
 PLAIN_CHARACTERS = "letters, digits, spaces, hyphens or a straight apostrophe after a letter"
 
 
@@ -140,7 +142,7 @@ def load_glossary(text):
 
 # WHY: a line break in a value could forge a heading in the generated file.
 def is_one_line(value):
-    return isinstance(value, str) and value.splitlines() == [value] and bool(value.strip())
+    return isinstance(value, str) and value.splitlines() == [value] and bool(value.strip()) and not SURROGATE.search(value)
 
 
 # WHY: JSON keeps space at either end of a word, and a swap key carrying it would not match the word on its own.
