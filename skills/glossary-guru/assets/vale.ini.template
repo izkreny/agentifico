@@ -1,6 +1,6 @@
 # Written by the glossary-guru skill's glossary-rule.py, which never changes this file once it exists.
-# The rule lands at Glossary/Terms.yml under StylesPath.
-# Commit both, and rerun the script after every edit to GLOSSARY.json.
+# The rule lands at Glossary/Terms.yml under StylesPath, and a generated GLOSSARY.md beside GLOSSARY.json.
+# Commit this file, the rule and GLOSSARY.md, and rerun the script after every edit to GLOSSARY.json.
 StylesPath = .vale/styles
 
 # This heading names the files the check reads, so edit it to fit your project.
