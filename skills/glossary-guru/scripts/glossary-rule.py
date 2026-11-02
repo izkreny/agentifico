@@ -46,7 +46,7 @@ TOP_KEYS = ("project", "summary", "terms", "flagged_ambiguities")
 TOP_REQUIRED = ("project", "summary", "terms")
 ENTRY_KEYS = ("term", "definition", "avoid", "except")
 ENTRY_REQUIRED = ("term", "definition")
-ONE_LINE = "must be one line of text"
+ONE_LINE = "must be one line of text with no lone surrogate"
 # WHY: JSON can spell a lone surrogate, which no UTF-8 file can hold, so it would fail at the write after the rule had already landed.
 SURROGATE = re.compile("[\ud800-\udfff]")
 PLAIN_CHARACTERS = "letters, digits, spaces, hyphens or a straight apostrophe after a letter"

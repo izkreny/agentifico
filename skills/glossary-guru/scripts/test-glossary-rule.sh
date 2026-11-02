@@ -693,7 +693,7 @@ expect_refusal "a definition holding a line break" "Order: the definition must b
 
 new_project definition-surrogate
 terms '[{"term": "Order", "definition": "A request \ud83d to buy."}]'
-expect_refusal "a definition holding a lone surrogate" "Order: the definition must be one line of text"
+expect_refusal "a definition holding a lone surrogate" "Order: the definition must be one line of text with no lone surrogate"
 if grep -qF "Traceback" "$PROJECT/stderr"; then fail "a lone surrogate gets a traceback: $(cat "$PROJECT/stderr")"; else pass "a lone surrogate gets a reason, not a traceback"; fi
 
 new_project surrogate-word
