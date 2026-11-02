@@ -14,6 +14,7 @@ AI agent skills, instructions and gotchas. Each package here is published one of
 | [agents-guru](skills/agents-guru/README.md) | skill | Writing, reviewing, maintaining and exporting agent skills, with checks for the traps a YAML parser cannot see |
 | [socratic-tutor](skills/socratic-tutor/README.md) | skill | A tutor that asks one question at a time until you reach the answer yourself |
 | [action-policy-guru](skills/action-policy-guru/README.md) | skill | Writing, reviewing and testing Action Policy authorization in Ruby and Rails code |
+| [glossary-guru](skills/glossary-guru/README.md) | skill | Keeping a project's domain vocabulary in one glossary file and holding an agent to it |
 
 Each package's own README has its requirements and the full picture.
 
