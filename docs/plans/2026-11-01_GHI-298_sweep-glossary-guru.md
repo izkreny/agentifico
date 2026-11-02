@@ -78,3 +78,5 @@ None.
 **Should the glossary keep `## Retired`?** No. The owner dropped it, since version history already holds a dead term, the rule never read the section, and Fold covers a word a live entry can carry.
 
 **Should the list lines stay `_Avoid_:` and `_Except_:`?** No. The owner changed them to `**::AVOID::**:` and `**::EXCEPT::**:`, since no sentence of prose can be mistaken for those, which ends the guessing at what looks like a list line.
+
+**Should the script track code fences and accept any term?** No. The owner ruled that a glossary holds no code fence and a term is plain words, with `'` only as an apostrophe, and the script refuses anything else, which ends the fence findings by having nothing to parse.
