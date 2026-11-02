@@ -623,7 +623,17 @@ expect_refusal "a misspelled key at the top level" "top level: the key 'term' is
 
 new_project repeated-key
 printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy.", "avoid": ["purchase"], "avoid": ["sale"]}]}\n' >"$PROJECT/GLOSSARY.json"
-expect_refusal "a key appearing twice in an entry" "the key 'avoid' appears twice"
+expect_refusal "a key appearing twice in an entry" "Order: the key 'avoid' appears twice"
+if grep -qF "not valid JSON" "$PROJECT/stderr"; then fail "a repeated key reads as invalid JSON: $(cat "$PROJECT/stderr")"; else pass "a repeated key does not read as invalid JSON"; fi
+
+new_project repeated-top-key
+printf '{"project": "Shop", "project": "Store", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a key appearing twice at the top level" "top level: the key 'project' appears twice"
+
+new_project repeated-key-and-more
+printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy.", "avoid": ["purchase"], "avoid": ["sale"]}, {"term": "Refund"}]}\n' >"$PROJECT/GLOSSARY.json"
+expect_refusal "a repeated key beside another problem" "Order: the key 'avoid' appears twice"
+if grep -qF "Refund: the key 'definition' is missing" "$PROJECT/stderr"; then pass "a repeated key leaves the other problem listed"; else fail "a repeated key hides the other problem: $(cat "$PROJECT/stderr")"; fi
 
 new_project invalid-json
 printf '{"project": "Shop",}\n' >"$PROJECT/GLOSSARY.json"

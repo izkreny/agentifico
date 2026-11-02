@@ -123,19 +123,21 @@ def config_advice(config, styles_path):
     return lines
 
 
+class JsonObject(dict):
+    repeated = ()
+
+
 # WHY: Python's JSON reader keeps the last of two equal keys, so a second `avoid` in one entry would lose every word in the first.
-def refuse_repeated_keys(pairs):
-    found = {}
-    for key, value in pairs:
-        if key in found:
-            raise ValueError(f"the key '{key}' appears twice in one object")
-        found[key] = value
+def note_repeated_keys(pairs):
+    found = JsonObject(pairs)
+    keys = [key for key, _ in pairs]
+    found.repeated = [key for key in found if keys.count(key) > 1]
     return found
 
 
 def load_glossary(text):
     try:
-        return json.loads(text, object_pairs_hook=refuse_repeated_keys), []
+        return json.loads(text, object_pairs_hook=note_repeated_keys), []
     except ValueError as error:
         return None, [f"not valid JSON: {error}"]
 
@@ -153,6 +155,7 @@ def is_plain(word):
 def key_problems(found, allowed, required, where):
     problems = [f"{where}: the key '{key}' is not in the format, which allows {', '.join(allowed)}" for key in found if key not in allowed]
     problems += [f"{where}: the key '{key}' is missing" for key in required if key not in found]
+    problems += [f"{where}: the key '{key}' appears twice" for key in found.repeated]
     return problems
 
 
