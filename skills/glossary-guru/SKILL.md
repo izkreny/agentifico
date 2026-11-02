@@ -96,6 +96,8 @@ That checks nothing. The check is a separate Vale run from inside the project, b
 vale <repo-root>
 ```
 
+In a project's local CI, run the script before Vale, so Vale reads a rule that matches the JSON file.
+
 The rule lands at `<repo-root>/.vale/styles/Glossary/Terms.yml`, or in the same `Glossary` folder under the `StylesPath` in the project's Vale config where it names one.
 
 A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. A `StylesPath` pointing outside the project is the project's own choice, and two projects sharing one get the rule of whichever ran last.
