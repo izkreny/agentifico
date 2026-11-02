@@ -10,7 +10,7 @@ Glossary/Terms.yml under the StylesPath in the project's Vale config, or under
 .vale/styles where the config names none. A project with no Vale config gets a
 .vale.ini that turns the rule on; one that has a config is told what it needs.
 
-Exit 0: both files were written. A glossary naming no drift word gets a rule that
+Exit 0: the rule and GLOSSARY.md were written. A glossary naming no drift word gets a rule that
 swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
 Exit 1: the glossary is not valid, or cannot become a correct rule; each reason
 is on stderr, and nothing is written.
