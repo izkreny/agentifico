@@ -1,6 +1,6 @@
 # Written by the glossary-guru skill's glossary-rule.py, which never changes this file once it exists.
 # The rule lands at Glossary/Terms.yml under StylesPath.
-# Commit both, and rerun the script when an `_Avoid_:` or `_Except_:` line changes.
+# Commit both, and rerun the script when the glossary changes.
 StylesPath = .vale/styles
 
 # This heading names the files the check reads, so edit it to fit your project.

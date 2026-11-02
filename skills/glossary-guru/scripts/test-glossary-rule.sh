@@ -48,25 +48,19 @@ cat >"$PROJECT/docs/GLOSSARY.md" <<'EOF'
 
 A customer's request to buy something.
 
-_Avoid_: purchase, shopping basket
+**::AVOID::**: purchase, shopping basket
 
 ### Customer
 
 A person who places orders.
 
-_Avoid_: client, account
+**::AVOID::**: client, account
 
-_Except_: take into account
+**::EXCEPT::**: take into account
 
 ### Refund
 
 Money returned to a customer.
-
-## Retired
-
-- **Voucher**: a prepaid credit.
-
-_Avoid_: coupon
 EOF
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
@@ -158,7 +152,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 What a customer is about to buy.
 
-_Avoid_: cart
+**::AVOID::**: cart
 
 ### Order Line
 
@@ -168,7 +162,7 @@ One thing on an order.
 
 A request to buy.
 
-_Avoid_: line
+**::AVOID::**: line
 EOF
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
@@ -196,9 +190,9 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 What a customer is about to buy.
 
-_Avoid_: cart
+**::AVOID::**: cart
 
-_Except_: shopping cart
+**::EXCEPT::**: shopping cart
 EOF
 expect_exit "a term and an Except entry differing only in case" 0
 cp "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/case-pair-rule"
@@ -219,9 +213,9 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 Was ein Kunde kauft.
 
-_Avoid_: strasse
+**::AVOID::**: strasse
 
-_Except_: Große Strasse, grosse strasse
+**::EXCEPT::**: Große Strasse, grosse strasse
 EOF
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
@@ -251,7 +245,7 @@ one_entry() {
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 }
 
@@ -275,26 +269,32 @@ new_project no-config
 one_entry
 printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
 expect_exit "a project with no Vale config" 0
+expect_stdout "with no config the script says how to run the check" "glossary-rule: check the project from here with: vale $(cd "$PROJECT" && pwd -P)"
 expect_file "no config: the rule lands under .vale/styles" .vale/styles/Glossary/Terms.yml
 expect_file "no config: the script writes .vale.ini" .vale.ini
 if cmp -s "$PROJECT/.vale.ini" "$TEMPLATE"; then pass "the written config is a copy of the template"; else fail "the written config differs from the template"; fi
 (cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
 expect_alert "the written config turns the rule on" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
 expect_no_alert "the written config keeps the rule off the glossary" "GLOSSARY.md:"
-for extension in js ts rs c java go; do
+for extension in js jsx mjs cjs ts tsx mts cts rs c h java go; do
   printf '// A purchase here.\n' >"$PROJECT/code.$extension"
 done
 printf '/* A purchase here. */\n' >"$PROJECT/code.css"
 (cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
-for extension in js ts rs c java go css; do
+for extension in js jsx mjs cjs ts tsx mts cts rs c h java go css; do
   expect_alert "the written config checks .$extension comments" "code.$extension:1:6:Glossary.Terms:Use 'Order' instead of 'purchase'."
 done
-printf '# A purchase here.\n' >"$PROJECT/code.py"
+for extension in py rb; do
+  printf '# A purchase here.\n' >"$PROJECT/code.$extension"
+done
 (cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
-expect_alert "the written config checks .py comments" "code.py:1:5:Glossary.Terms:Use 'Order' instead of 'purchase'."
+for extension in py rb; do
+  expect_alert "the written config checks .$extension comments" "code.$extension:1:5:Glossary.Terms:Use 'Order' instead of 'purchase'."
+done
 cp "$PROJECT/.vale.ini" "$WORK/written-config"
 expect_exit "a second run on the written config" 0
 if cmp -s "$PROJECT/.vale.ini" "$WORK/written-config"; then pass "a second run leaves the written config alone"; else fail "a second run changed the written config"; fi
+expect_no_stdout "a second run does not ask to add what the written config holds" "added to the list"
 
 new_project template-name
 cp "$TEMPLATE" "$PROJECT/"
@@ -326,11 +326,13 @@ expect_exit "a config under another name Vale reads" 0
 expect_file "the rule lands under that config's StylesPath" styles/Glossary/Terms.yml
 expect_no_file "no second config appears beside it" .vale.ini
 if cmp -s "$PROJECT/vale.ini" "$WORK/other-config"; then pass "that config stays untouched"; else fail "that config changed"; fi
+expect_stdout "with a config the script says how to run the check" "glossary-rule: check the project from here with: vale $(cd "$PROJECT" && pwd -P)"
 expect_stdout "the script prints the glossary section" "[**/GLOSSARY.md]"
 expect_stdout "the script prints the glossary line" "Glossary.Terms = NO"
 expect_no_stdout "the script prints no section for the project's own files" "[*."
 expect_no_stdout "the script prints no BasedOnStyles line to clash with the project's" "BasedOnStyles ="
-if grep -qF "Glossary in the BasedOnStyles of the last section covering it" "$PROJECT/stdout"; then pass "the script says which section the style goes in"; else fail "the script does not say which section: $(cat "$PROJECT/stdout")"; fi
+if grep -qF "the last section covering it that sets BasedOnStyles" "$PROJECT/stdout"; then pass "the script says which section the style goes in"; else fail "the script does not say which section: $(cat "$PROJECT/stdout")"; fi
+if grep -qF "MinAlertLevel" "$PROJECT/stdout" && grep -qF "Glossary.Terms = error" "$PROJECT/stdout"; then pass "the script says what a raised alert level hides"; else fail "the script does not name the alert level: $(cat "$PROJECT/stdout")"; fi
 expect_no_stdout "the script does not ask for a StylesPath the config has" "StylesPath ="
 
 new_project config-own-style
@@ -375,9 +377,9 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: 'purchase'
+**::AVOID::**: 'purchase'
 EOF
-expect_refusal "a single-quoted word" "an apostrophe after a letter"
+expect_refusal "a single-quoted word" "a straight apostrophe after a letter"
 
 new_project quote-at-the-end
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -387,7 +389,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase'
+**::AVOID::**: purchase'
 EOF
 expect_refusal "a quote mark closing a word" "more of the phrase after it"
 
@@ -399,9 +401,9 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: big 'order'
+**::AVOID::**: big 'order'
 EOF
-expect_refusal "a quoted word inside a phrase" "an apostrophe after a letter"
+expect_refusal "a quoted word inside a phrase" "a straight apostrophe after a letter"
 
 new_project possessive-word
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -411,7 +413,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: customer's purchase
+**::AVOID::**: customer's purchase
 EOF
 expect_exit "an apostrophe inside a word" 0
 
@@ -423,15 +425,15 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A person who buys.
 
-_Avoid_: ledger, customers' purchase
+**::AVOID::**: ledger, customers' purchase
 
-_Except_: customers' ledger
+**::EXCEPT::**: customers' ledger
 
 ### Customers' Book
 
 What a shop keeps on them.
 
-_Avoid_: book
+**::AVOID::**: book
 EOF
 printf "# Probe\n\nThe customers' purchase here.\n\nThe customers' ledger here.\n\nThe customers' book here.\n" >"$PROJECT/doc.md"
 expect_exit "a plural possessive inside a phrase" 0
@@ -468,13 +470,13 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 
 ### Refund
 
 Money returned.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_refusal "a refused glossary with no config" "no single replacement"
 expect_no_file "a refusal writes no config" .vale.ini
@@ -494,7 +496,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 What a customer was about to buy.
 
-_Avoid_: cart
+**::AVOID::**: cart
 EOF
 expect_refusal "a term holding a drift word and a metacharacter" "must be letters"
 
@@ -510,7 +512,7 @@ An order placed before release.
 
 A request to buy.
 
-_Avoid_: order
+**::AVOID::**: order
 EOF
 expect_refusal "a term with no space holding a drift word" "holds no space"
 
@@ -522,9 +524,9 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: order
+**::AVOID::**: order
 
-_Except_: pre-order
+**::EXCEPT::**: pre-order
 EOF
 expect_refusal "an Except entry with no space" "holds no space"
 
@@ -536,7 +538,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_exit "a glossary at the root" 0
 if grep -q '"purchase": "Order"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "a glossary at the root is read"; else fail "a glossary at the root is not read"; fi
@@ -558,7 +560,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 option_exit=0
 (cd "$PROJECT" && python3 "$SCRIPT" --help >/dev/null 2>&1) || option_exit=$?
@@ -584,7 +586,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_exit "a glossary before its last drift word goes" 0
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -616,13 +618,13 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 
 ### Sale
 
 A completed purchase.
 
-_Avoid_: Purchase
+**::AVOID::**: Purchase
 EOF
 expect_refusal "a word on two entries" "no single replacement"
 
@@ -634,7 +636,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A user's membership in one group.
 
-_Avoid_: user
+**::AVOID::**: user
 
 ### User
 
@@ -650,7 +652,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A tracked unit of work.
 
-_Avoid_: ticket (when quoting)
+**::AVOID::**: ticket (when quoting)
 EOF
 expect_refusal "a word holding a metacharacter" "must be letters"
 
@@ -662,9 +664,10 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase,
+**::AVOID::**: purchase,
 EOF
 expect_refusal "an empty word" "must be letters"
+if grep -qF "holds a drift word" "$PROJECT/stderr"; then fail "a refused word reached a later check: $(cat "$PROJECT/stderr")"; else pass "a refused word reaches no later check"; fi
 
 new_project no-heading
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -672,9 +675,330 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 **Order**:
 A request to buy.
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_refusal "an Avoid line under no heading" "belongs under an entry's ### heading"
+
+glossary_under() {
+  printf '%b\n\n### Order\n\nA request to buy.\n\n**::AVOID::**: purchase\n' "$1" >"$PROJECT/GLOSSARY.md"
+}
+
+entry_with_line() {
+  printf '## Language\n\n### Order\n\nA request to buy.\n\n%s\n' "$1" >"$PROJECT/GLOSSARY.md"
+}
+
+expect_rule_holds() {
+  if grep -qF "$2" "$PROJECT/.vale/styles/Glossary/Terms.yml" 2>/dev/null; then pass "$1"; else fail "$1: the rule lacks '$2'"; fi
+}
+
+expect_clean_stop() {
+  local name="$1" reason="$2"
+  expect_exit "$name" 2
+  if grep -qF "$reason" "$PROJECT/stderr" && ! grep -qF "Traceback" "$PROJECT/stderr"; then pass "$name: says '$reason'"; else fail "$name: stderr: $(cat "$PROJECT/stderr")"; fi
+  expect_no_file "$name: no rule is written" .vale/styles/Glossary/Terms.yml
+}
+
+count=0
+for heading in '##  Language' '## Language ##' '## language' '##\tLanguage' '\xef\xbb\xbf## Language'; do
+  count=$((count + 1))
+  new_project heading-$count
+  glossary_under "$heading"
+  expect_exit "the heading '$heading'" 0
+  expect_rule_holds "the heading '$heading' opens the section" '"purchase": "Order"'
+done
+
+count=0
+for heading in '## Language:' '# Language' 'Language\n--------' '## Terms'; do
+  count=$((count + 1))
+  new_project no-language-$count
+  glossary_under "$heading"
+  expect_refusal "list lines under '$heading'" "only a list line under ## Language may hold a marker"
+done
+
+new_project retired-only
+printf '# Shop\n\n## Retired\n\n- **Voucher**: a prepaid credit.\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a glossary with no list lines and no Language section" 0
+
+new_project other-heading
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+## Language notes
+
+**::AVOID::**: purchase
+EOF
+expect_refusal "a list line under a heading that only starts with the section's name" "line 9: only a list line under ## Language may hold a marker"
+
+new_project flagged-list-line
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+**::AVOID::**: purchase
+
+## Flagged ambiguities
+
+### Refund
+
+**::AVOID::**: reimbursement
+EOF
+expect_refusal "a list line appended after the Language section" "line 13: only a list line under ## Language may hold a marker"
+
+new_project flagged-prose
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+**::AVOID::**: purchase
+
+## Flagged ambiguities
+
+- "basket" now sits on the **::AVOID::**: line of Order.
+EOF
+expect_refusal "prose naming a marker outside the Language section" "line 11: only a list line under ## Language may hold a marker"
+
+count=0
+for line in '::AVOID:: purchase' '**::AVOID::** purchase' '**::AVOID::** : purchase' '*::AVOID::*: purchase' '**::avoid::**: purchase' '- **::AVOID::**: purchase' '> **::AVOID::**: purchase' 'A request. **::AVOID::**: purchase' '**::EXCEPT::** in the long run'; do
+  count=$((count + 1))
+  new_project near-miss-$count
+  entry_with_line "$line"
+  expect_refusal "the line '$line'" "is written **::AVOID::**: or **::EXCEPT::**: on a line of its own"
+done
+
+count=0
+for line in 'Customers avoid this, except at the till.' 'A request to buy, *except* a refund.' 'A request to buy, _except_ a refund.' 'A request to buy, **except** a refund.' 'Customers must *avoid* this one.' 'A request, written `_Avoid_` nowhere.' 'A request. See _except for_ the rest.' '*avoid_this* is a name in the code.' '*Except for refunds*, an order is final.' '*Avoid this word* in invoices.' '*avoid-this* is a name.' '`avoid-list` is a name.' 'Avoid: a word to leave out of the prose.' '*Avoid purchase*' '_Avoid_ purchase'; do
+  count=$((count + 1))
+  new_project plain-prose-$count
+  entry_with_line "$line"
+  expect_exit "the definition '$line'" 0
+done
+
+new_project retired-prose
+printf '# Shop\n\n## Retired\n\n- **Voucher**: a prepaid credit, *except* gift ones.\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "an emphasised except outside the Language section" 0
+
+new_project retired-phrase
+printf '# Shop\n\n## Notes\n\n*Except for refunds*, an order is final.\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "an emphasised phrase opening a line outside the Language section" 0
+
+new_project term-closing-hashes
+printf '## Language\n\n### Order ###\n\nA request to buy.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a term heading with closing hashes" 0
+expect_rule_holds "closing hashes stay out of the term" '"purchase": "Order"'
+
+new_project term-tab
+printf '## Language\n\n###\tOrder\n\nA request to buy.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a term heading with a tab" 0
+expect_rule_holds "a tab still opens an entry" '"purchase": "Order"'
+
+new_project hand-written-rule
+one_entry
+mkdir -p "$PROJECT/.vale/styles/Glossary"
+printf 'extends: substitution\nmessage: "hand-written"\nswap:\n  fee: Charge\n' >"$PROJECT/.vale/styles/Glossary/Terms.yml"
+cp "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/hand-written"
+expect_exit "a rule file this script did not write" 2
+if grep -qF "did not write" "$PROJECT/stderr"; then pass "that refusal says why"; else fail "that refusal's stderr: $(cat "$PROJECT/stderr")"; fi
+if cmp -s "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/hand-written"; then pass "a hand-written rule stays as it was"; else fail "a hand-written rule was replaced"; fi
+expect_no_file "that refusal writes no config" .vale.ini
+
+count=0
+for fence in '```' '```markdown' '~~~' '    ```' '```order``` is a request.'; do
+  count=$((count + 1))
+  new_project code-fence-$count
+  entry_with_line "$fence"
+  expect_refusal "the line '$fence'" "a glossary holds no code fence"
+done
+
+new_project code-fence-elsewhere
+printf '# Shop\n\n```\n\n## Language\n\n### Order\n\nA request to buy.\n\n_Avoid_ nothing.\n' >"$PROJECT/GLOSSARY.md"
+expect_refusal "a code fence above the section" "a glossary holds no code fence"
+
+count=0
+for term in 'Order (legacy)' '"Order"' "'Order'" 'C#' 'Customer’s Book'; do
+  count=$((count + 1))
+  new_project plain-term-$count
+  printf '## Language\n\n### %s\n\nA request to buy.\n' "$term" >"$PROJECT/GLOSSARY.md"
+  expect_refusal "the term '$term'" "must be letters"
+done
+
+new_project apostrophe-term
+printf "## Language\n\n### Order's Line\n\nOne thing on an order.\n" >"$PROJECT/GLOSSARY.md"
+expect_exit "a term holding an apostrophe" 0
+
+new_project quoted-definition
+printf '## Language\n\n### Order\n\nA "request" to buy, written `like this`.\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a definition holding quotes and a code span" 0
+
+new_project sharp-s-term
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Straße
+
+Ein Weg.
+
+**::AVOID::**: Strasse
+EOF
+expect_exit "a drift word equal to a term only under full case folding" 0
+
+new_project sharp-s-pair
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Weg
+
+Ein Weg.
+
+**::AVOID::**: Straße
+
+### Pfad
+
+Ein Pfad.
+
+**::AVOID::**: Strasse
+EOF
+expect_exit "two drift words equal only under full case folding" 0
+
+new_project curly-apostrophe
+entry_with_line '**::AVOID::**: customer’s purchase'
+expect_refusal "a curly apostrophe" "a straight apostrophe"
+
+new_project except-typo
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Customer
+
+A person who buys.
+
+**::AVOID::**: account
+
+**::EXCEPT::**: on acount of
+EOF
+expect_refusal "an Except phrase holding no drift word" "holds no word from any **::AVOID::**: line"
+
+new_project unbalanced-word
+entry_with_line '**::AVOID::**: ticket ('
+expect_refusal "a word holding an unbalanced metacharacter" "must be letters"
+
+new_project latin1-glossary
+printf '## Language\n\n### Order\n\nA caf\xe9.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
+expect_clean_stop "a glossary that is not UTF-8" "cannot read"
+
+new_project latin1-config
+one_entry
+printf 'StylesPath = st\n\n# caf\xe9\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_clean_stop "a config that is not UTF-8" "cannot read"
+expect_no_file "that config gets no rule under its StylesPath" st
+
+new_project config-is-directory
+one_entry
+mkdir "$PROJECT/.vale.ini"
+expect_clean_stop "a directory named .vale.ini" "is not a file"
+
+new_project config-malformed
+one_entry
+printf '= oops\n' >"$PROJECT/.vale.ini"
+expect_clean_stop "a config configparser cannot read" "cannot read"
+
+new_project config-indented
+one_entry
+printf 'StylesPath = st\n  MinAlertLevel = suggestion\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_exit "an indented key after StylesPath" 0
+expect_file "an indented key stays out of the path" st/Glossary/Terms.yml
+
+new_project config-backslash
+one_entry
+printf 'StylesPath = st\\\nmore\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_clean_stop "a StylesPath ending in a backslash" "backslash"
+
+new_project config-bom
+one_entry
+printf '\xef\xbb\xbfStylesPath = st\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_exit "a config opening with a BOM" 0
+expect_file "a BOM does not hide StylesPath" st/Glossary/Terms.yml
+
+new_project config-duplicate
+one_entry
+printf 'StylesPath = first\nStylesPath = second\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_exit "a config naming StylesPath twice" 0
+expect_file "the last StylesPath wins, as in Vale" second/Glossary/Terms.yml
+
+new_project config-bare-key
+one_entry
+printf 'StylesPath = st\nBareKey\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_exit "a config holding a key with no value" 0
+expect_file "that config's StylesPath is still read" st/Glossary/Terms.yml
+
+for name in _vale.ini _vale; do
+  new_project "config-$name"
+  one_entry
+  printf 'StylesPath = st\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/$name"
+  expect_exit "a config named $name" 0
+  expect_file "$name is read as the config" st/Glossary/Terms.yml
+  expect_no_file "$name gets no second config beside it" .vale.ini
+done
+
+new_project grandparent-config/one/two
+one_entry
+printf 'StylesPath = styles\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/../../.vale.ini"
+expect_exit "a config two directories up" 2
+expect_no_file "a config two directories up gets no second config below it" .vale.ini
+
+new_project root-config
+mkdir "$PROJECT/docs"
+PROJECT="$PROJECT/docs"
+one_entry
+printf 'StylesPath = styles\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/../.vale.ini"
+expect_clean_stop "a run from the docs directory, with the config at the root" "run this from $(dirname "$PROJECT")"
+expect_no_file "that run gets no config in the docs directory" .vale.ini
+
+new_project no-config-root/docs
+one_entry
+expect_clean_stop "a run from a docs directory with no config" "run this from the project's root"
+expect_no_file "that run writes no config" .vale.ini
+
+new_project repo-named-docs/docs
+one_entry
+mkdir "$PROJECT/.git"
+expect_exit "a repository whose root is named docs" 0
+expect_file "that repository gets its config" .vale.ini
+
+new_project docs-with-config/docs
+one_entry
+printf 'StylesPath = st\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_exit "a docs directory holding its own config" 0
+expect_file "that directory counts as the root" st/Glossary/Terms.yml
+
+new_project "path with a space"
+one_entry
+printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
+expect_exit "a project whose path holds a space" 0
+printed_command="$(sed -n 's/^glossary-rule: check the project from here with: //p' "$PROJECT/stdout")"
+# WHY: the printed line is meant to be pasted into a shell, so a shell is what has to read it, and the flags keep the owner's global Vale config out.
+(cd "$PROJECT" && bash -c "${printed_command/vale /vale --no-global --output=line }" >"$PROJECT/alerts" 2>&1) || true
+if grep -qF "doc.md:3:3:Glossary.Terms" "$PROJECT/alerts"; then pass "the printed command finds the drifted word"; else fail "the printed command: $printed_command: $(cat "$PROJECT/alerts")"; fi
+
+new_project raised-alert-level
+one_entry
+printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
+printf 'StylesPath = .vale/styles\nMinAlertLevel = error\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_exit "a config raising the alert level" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_no_alert "a raised alert level hides the rule" "Glossary.Terms"
+printf 'StylesPath = .vale/styles\nMinAlertLevel = error\n\n[*.md]\nBasedOnStyles = Glossary\nGlossary.Terms = error\n' >"$PROJECT/.vale.ini"
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_alert "the printed override shows it again" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
 
 if [ "$fails" -gt 0 ]; then
   echo "test-glossary-rule: $fails failure(s)"

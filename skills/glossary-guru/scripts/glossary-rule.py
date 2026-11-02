@@ -5,7 +5,7 @@ Usage, from the project's root:
 
     python3 <skill-dir>/scripts/glossary-rule.py
 
-Writes Glossary/Terms.yml from the `_Avoid_:` and `_Except_:` lines under
+Writes Glossary/Terms.yml from the `**::AVOID::**:` and `**::EXCEPT::**:` lines under
 `## Language`, under the StylesPath in the project's Vale config, or under
 .vale/styles where the config names none. A project with no Vale config gets a
 .vale.ini that turns the rule on; one that has a config is told what it needs.
@@ -13,12 +13,13 @@ Writes Glossary/Terms.yml from the `_Avoid_:` and `_Except_:` lines under
 Exit 0: the rule was written. A glossary naming no drift word gets a rule that
 swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
 Exit 1: the glossary cannot become a correct rule; each reason is on stderr.
-Exit 2: an argument, no single glossary to read, no single Vale config to read,
-or nowhere to write the rule.
+Exit 2: an argument, no single readable glossary, no single readable Vale
+config, a run from below the project's root, or nowhere to write the rule.
 """
 
 import json
 import re
+import shlex
 import sys
 from configparser import ConfigParser
 from configparser import Error as ConfigParserError
@@ -30,18 +31,32 @@ GLOSSARY_PATHS = (Path("docs/GLOSSARY.md"), Path("GLOSSARY.md"))
 CONFIG_NAMES = (".vale.ini", "vale.ini", "_vale.ini", ".vale", "_vale")
 DEFAULT_STYLES = ".vale/styles"
 ABOVE_SECTIONS = "glossary-rule: above every section"
-# WHY: the name carries `.template` so that a Vale run started in this skill's directory never takes it for a config.
+# WHY: the name carries `.template` so that a Vale run started in `assets/` never takes it for a config.
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "vale.ini.template"
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
 PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ -]|(?<=[^\W_])'(?=[^\W_]| ))+")
-LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
+LIST_LINE = re.compile(r"\*\*::(AVOID|EXCEPT)::\*\*:(.*)")
+NEAR_LIST_LINE = re.compile(r"::(?:AVOID|EXCEPT)::", re.IGNORECASE)
+SECTION = re.compile(r"##[ \t]+(.+?)(?:[ \t]+#+)?")
+TERM = re.compile(r"###[ \t]+(.+?)(?:[ \t]+#+)?")
+FENCES = ("```", "~~~")
 # WHY: Vale 3.25.1 honours an exception only when it holds a space, so `Pre-Order` in `exceptions` silences nothing.
 NO_SPACE = "holds no space, and Vale skips only a phrase that holds one"
+GENERATED = "# Generated from the project's glossary by the glossary-guru skill. Edit the glossary, not this file."
+PLAIN_CHARACTERS = "letters, digits, spaces, hyphens or a straight apostrophe after a letter"
 
 
 def stop(message) -> NoReturn:
     print(message, file=sys.stderr)
     sys.exit(2)
+
+
+# WHY: `utf-8-sig` drops the BOM an editor may add, which would otherwise stick to a file's first line and hide it.
+def read_file(path):
+    try:
+        return path.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeDecodeError) as error:
+        stop(f"glossary-rule: cannot read {path}: {error}")
 
 
 def find_glossary():
@@ -53,7 +68,7 @@ def find_glossary():
     stop("glossary-rule: no docs/GLOSSARY.md or GLOSSARY.md here; run this from the project's root")
 
 
-def find_config():
+def find_config(glossary):
     here = [Path(name) for name in CONFIG_NAMES if Path(name).is_file()]
     if len(here) > 1:
         stop(f"glossary-rule: {' and '.join(map(str, here))} exist; the owner decides which one stays")
@@ -62,8 +77,13 @@ def find_config():
     for directory in Path.cwd().parents:
         for name in CONFIG_NAMES:
             if (directory / name).is_file():
+                if any((directory / path).resolve() == glossary.resolve() for path in GLOSSARY_PATHS):
+                    stop(f"glossary-rule: run this from {directory}, which holds both this glossary and {name}")
                 # WHY: the rule's file name is fixed, so every project beneath a shared config would overwrite the others' rule.
                 stop(f"glossary-rule: Vale here reads {directory / name}, which other projects may share; add a config here, which takes over from it for this directory")
+    # WHY: the config and the rule land in the working directory, so a run from a project's `docs` would put them there.
+    if Path.cwd().name == "docs" and glossary == GLOSSARY_PATHS[1] and not Path(".git").exists():
+        stop("glossary-rule: this looks like a project's docs directory; run this from the project's root, or add a config here if this directory is the root")
     return None
 
 
@@ -71,24 +91,29 @@ def read_config(path):
     parser = ConfigParser(interpolation=None, strict=False, allow_no_value=True, delimiters=("=", ":"), inline_comment_prefixes=("#", ";"))
     parser.optionxform = str
     try:
+        # WHY: Vale reads an indented line as a key of its own, where configparser would read it as more of the last value.
+        lines = [line.strip() for line in read_file(path).splitlines()]
         # WHY: Vale keeps StylesPath above every section, and configparser reads nothing outside one.
-        parser.read_string(f"[{ABOVE_SECTIONS}]\n" + path.read_text(encoding="utf-8"))
+        parser.read_string("\n".join([f"[{ABOVE_SECTIONS}]", *lines]))
     except ConfigParserError as error:
         stop(f"glossary-rule: cannot read {path}: {error}")
     styles_path = (parser[ABOVE_SECTIONS].get("StylesPath") or "").strip("\"' ") or None
+    if styles_path and styles_path.endswith("\\"):
+        stop(f"glossary-rule: the StylesPath in {path} ends in a backslash, which Vale joins to the next line; write it on one line")
     return styles_path, [(heading, dict(parser[heading])) for heading in parser.sections() if heading != ABOVE_SECTIONS]
 
 
-# WHY: only the project knows which of its sections should run the check, and a later matching section replaces an earlier one, so computed lines can take its styles away.
+# WHY: only the project knows which of its sections should run the check, and a later list of styles replaces an earlier one, so computed lines can take its styles away.
 def config_advice(config, styles_path):
     template_styles, template_sections = read_config(TEMPLATE)
-    lines = [f"glossary-rule: to check a file, {config} needs Glossary in the BasedOnStyles of the last section covering it, because a later section replaces an earlier one, and these lines, with any StylesPath above every section:"]
+    lines = [f"glossary-rule: to check a file, {config} must list Glossary in the last section covering it that sets BasedOnStyles, because a later list replaces an earlier one, and must hold these lines, with any StylesPath above every section:"]
     if not styles_path:
         lines.append(f"StylesPath = {template_styles}")
     for heading, settings in template_sections:
         for key, value in settings.items():
             if key != "BasedOnStyles":
                 lines += [f"[{heading}]", f"{key} = {value}"]
+    lines.append("glossary-rule: the rule reports a warning, so a MinAlertLevel of error hides it unless the section that sets BasedOnStyles also sets Glossary.Terms = error")
     return lines
 
 
@@ -101,55 +126,73 @@ def parse_language(text):
     in_language = False
     for number, raw in enumerate(text.splitlines(), 1):
         line = raw.strip()
-        if line.startswith("## "):
-            in_language = line == "## Language"
-        if not in_language:
+        if line.startswith(FENCES):
+            problems.append(f"line {number}: a glossary holds no code fence")
             continue
-        if line.startswith("### "):
-            entries.append((line[4:].strip(), []))
+        section = SECTION.fullmatch(line)
+        if section:
+            in_language = section[1].casefold() == "language"
+        if not in_language:
+            if NEAR_LIST_LINE.search(line):
+                problems.append(f"line {number}: only a list line under ## Language may hold a marker")
+            continue
+        heading = TERM.fullmatch(line)
+        if heading:
+            if not PLAIN_WORDS.fullmatch(heading[1]):
+                problems.append(f"line {number}: the term '{heading[1]}' must be {PLAIN_CHARACTERS}, with more of the term after it")
+            entries.append((heading[1], []))
             continue
         listed = LIST_LINE.fullmatch(line)
         if not listed:
+            if NEAR_LIST_LINE.search(line):
+                problems.append(f"line {number}: '{line}' looks like a list line, which is written **::AVOID::**: or **::EXCEPT::**: on a line of its own")
             continue
         kind, words = listed[1], split_words(listed[2])
         if not entries:
-            problems.append(f"line {number}: an _{kind}_: line belongs under an entry's ### heading")
+            problems.append(f"line {number}: a **::{kind}::**: line belongs under an entry's ### heading")
             continue
         term = entries[-1][0]
         for word in words:
             if not PLAIN_WORDS.fullmatch(word):
-                problems.append(f"{term}, line {number}: '{word}' must be letters, digits, spaces, hyphens or an apostrophe after a letter, with more of the phrase after it")
-            elif kind == "Except" and " " not in word:
+                problems.append(f"{term}, line {number}: '{word}' must be {PLAIN_CHARACTERS}, with more of the phrase after it")
+            elif kind == "EXCEPT" and " " not in word:
                 problems.append(f"{term}, line {number}: '{word}' {NO_SPACE}")
-        if kind == "Avoid":
-            entries[-1][1].extend(words)
+        plain = [word for word in words if PLAIN_WORDS.fullmatch(word)]
+        if kind == "AVOID":
+            entries[-1][1].extend(plain)
         else:
-            exceptions.extend(words)
+            exceptions.extend(plain)
     return entries, exceptions, problems
 
 
 def build_swap(entries):
-    terms = {term.casefold() for term, _ in entries}
+    terms = {term.lower() for term, _ in entries}
     swap, owners, problems = {}, {}, []
     for term, words in entries:
         for word in words:
-            key = word.casefold()
+            key = word.lower()
             if key in terms:
                 problems.append(f"{term}: '{word}' is also an entry's term, so the rule would flag it where it is correct")
             elif owners.setdefault(key, term) != term:
-                problems.append(f"{term}: '{word}' is also on {owners[key]}'s _Avoid_: line, so it has no single replacement")
+                problems.append(f"{term}: '{word}' is also on {owners[key]}'s **::AVOID::**: line, so it has no single replacement")
             else:
                 swap[word] = term
     return swap, problems
 
 
+def holds_drift(text, swap):
+    return any(re.search(rf"\b{re.escape(word)}\b", text, re.IGNORECASE) for word in swap)
+
+
+def idle_exceptions(exceptions, swap):
+    return [f"'{phrase}' on an **::EXCEPT::**: line holds no word from any **::AVOID::**: line, so it excuses nothing" for phrase in exceptions if not holds_drift(phrase, swap)]
+
+
 def terms_holding_drift(entries, swap):
     held, problems = [], []
     for term, _ in entries:
-        if any(re.search(rf"\b{re.escape(word)}\b", term, re.IGNORECASE) for word in swap):
-            if not PLAIN_WORDS.fullmatch(term):
-                problems.append(f"{term}: holds a drift word, so the rule must skip it, and it must be letters, digits, spaces, hyphens or an apostrophe after a letter, with more of the term after it, for that")
-            elif " " not in term:
+        if holds_drift(term, swap):
+            if " " not in term:
                 problems.append(f"{term}: holds a drift word, so the rule must skip it, and it {NO_SPACE}")
             else:
                 held.append(term)
@@ -158,7 +201,7 @@ def terms_holding_drift(entries, swap):
 
 def render(swap, exceptions):
     lines = [
-        "# Generated from the project's glossary by the glossary-guru skill. Edit the glossary, not this file.",
+        GENERATED,
         "# Regenerate from the project's root: python3 <skill-dir>/scripts/glossary-rule.py",
         "extends: substitution",
         'message: "Use \'%s\' instead of \'%s\'."',
@@ -183,12 +226,14 @@ def main():
     if len(sys.argv) != 1:
         stop(__doc__)
     glossary = find_glossary()
-    config = find_config()
+    config = find_config(glossary)
+    if config is None and Path(CONFIG_NAMES[0]).exists():
+        stop(f"glossary-rule: {CONFIG_NAMES[0]} is not a file, and the config belongs at that path")
     styles_path = read_config(config)[0] if config else None
-    entries, exceptions, problems = parse_language(glossary.read_text(encoding="utf-8"))
+    entries, exceptions, problems = parse_language(read_file(glossary))
     swap, swap_problems = build_swap(entries)
     held_terms, held_problems = terms_holding_drift(entries, swap)
-    problems += swap_problems + held_problems
+    problems += swap_problems + held_problems + idle_exceptions(exceptions, swap)
     exceptions += held_terms
     if problems:
         print(f"glossary-rule: {glossary} cannot become a correct rule:", file=sys.stderr)
@@ -196,17 +241,21 @@ def main():
             print(f"  {problem}", file=sys.stderr)
         return 1
     rule = Path(styles_path or DEFAULT_STYLES) / "Glossary" / "Terms.yml"
+    if rule.exists() and not read_file(rule).startswith(GENERATED):
+        stop(f"glossary-rule: this script did not write {rule}, so it will not replace it; move that file and run this again")
     try:
         rule.parent.mkdir(parents=True, exist_ok=True)
         rule.write_text(render(swap, exceptions), encoding="utf-8")
+        if config is None:
+            Path(CONFIG_NAMES[0]).write_text(read_file(TEMPLATE), encoding="utf-8")
     except OSError as error:
-        stop(f"glossary-rule: cannot write {rule}: {error}")
+        stop(f"glossary-rule: cannot write: {error}")
     print(f"glossary-rule: wrote {rule} with {len(swap)} word(s) from {glossary}")
     if config is None:
-        Path(CONFIG_NAMES[0]).write_text(TEMPLATE.read_text(encoding="utf-8"), encoding="utf-8")
         print(f"glossary-rule: wrote {CONFIG_NAMES[0]}, which turns the rule on")
     else:
         print("\n".join(config_advice(config, styles_path)))
+    print(f"glossary-rule: check the project from here with: vale {shlex.quote(str(Path.cwd()))}")
     return 0
 
 

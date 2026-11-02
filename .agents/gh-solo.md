@@ -91,7 +91,7 @@ bash scripts/test-version-check.sh
 bash skills/action-policy-guru/scripts/test-check-upstream.sh
 ```
 
-**The glossary-guru rule script's bench**, after any edit to `skills/glossary-guru/scripts/glossary-rule.py`, needing Vale on `PATH`:
+**The glossary-guru rule script's bench**, after any edit to `skills/glossary-guru/scripts/glossary-rule.py` or `skills/glossary-guru/assets/vale.ini.template`, needing Vale on `PATH`:
 
 ```bash
 bash skills/glossary-guru/scripts/test-glossary-rule.sh
