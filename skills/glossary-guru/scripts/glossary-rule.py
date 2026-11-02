@@ -19,6 +19,7 @@ config, a run from below the project's root, or nowhere to write the rule.
 
 import json
 import re
+import shlex
 import sys
 from configparser import ConfigParser
 from configparser import Error as ConfigParserError
@@ -262,7 +263,7 @@ def main():
         print(f"glossary-rule: wrote {CONFIG_NAMES[0]}, which turns the rule on")
     else:
         print("\n".join(config_advice(config, styles_path)))
-    print("glossary-rule: check the project with: vale .")
+    print(f"glossary-rule: check the project from here with: vale {shlex.quote(str(Path.cwd()))}")
     return 0
 
 

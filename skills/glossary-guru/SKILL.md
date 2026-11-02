@@ -93,10 +93,10 @@ Propose folding or removing only on evidence of where the concept went. A delete
 python3 <skill-dir>/scripts/glossary-rule.py
 ```
 
-That writes the rule and checks nothing. The check is a separate Vale run from the project's root, which a project's CI can run too:
+That writes the rule and checks nothing. The check is a separate Vale run from inside the project, because Vale 3.25.1 looks for its config from the directory it runs in, and a project's CI can run it too:
 
 ```bash
-vale .
+vale <repo-root>
 ```
 
 The rule lands at `<repo-root>/<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none.

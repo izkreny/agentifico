@@ -24,10 +24,10 @@ The skill fires on its own in a project that holds a glossary, and when a task d
 
 `scripts/glossary-rule.py` writes a Vale rule from the glossary, so a project's Vale run flags a drifted word in its prose and code comments. It needs Python to generate the rule and [Vale](https://vale.sh) to run it. It takes no argument, and it writes a `<repo-root>/.vale.ini` for a project that has no Vale config. The check supports Latin script only.
 
-The script only writes the rule. Run the check itself from the project's root, on your machine or in CI, which needs Vale and the committed rule and neither this skill nor Python:
+The script only writes the rule. Run the check itself from inside the project, on your machine or in CI, which needs Vale and the committed rule and neither this skill nor Python:
 
 ```bash
-vale .
+vale <repo-root>
 ```
 
 A drifted word is a warning, which leaves the run at exit 0. To make it fail, add `Glossary.Terms = error`, as the comments in `assets/vale.ini.template` explain.

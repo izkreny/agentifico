@@ -275,7 +275,7 @@ new_project no-config
 one_entry
 printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
 expect_exit "a project with no Vale config" 0
-expect_stdout "with no config the script says how to run the check" "glossary-rule: check the project with: vale ."
+expect_stdout "with no config the script says how to run the check" "glossary-rule: check the project from here with: vale $(cd "$PROJECT" && pwd -P)"
 expect_file "no config: the rule lands under .vale/styles" .vale/styles/Glossary/Terms.yml
 expect_file "no config: the script writes .vale.ini" .vale.ini
 if cmp -s "$PROJECT/.vale.ini" "$TEMPLATE"; then pass "the written config is a copy of the template"; else fail "the written config differs from the template"; fi
@@ -331,7 +331,7 @@ expect_exit "a config under another name Vale reads" 0
 expect_file "the rule lands under that config's StylesPath" styles/Glossary/Terms.yml
 expect_no_file "no second config appears beside it" .vale.ini
 if cmp -s "$PROJECT/vale.ini" "$WORK/other-config"; then pass "that config stays untouched"; else fail "that config changed"; fi
-expect_stdout "with a config the script says how to run the check" "glossary-rule: check the project with: vale ."
+expect_stdout "with a config the script says how to run the check" "glossary-rule: check the project from here with: vale $(cd "$PROJECT" && pwd -P)"
 expect_stdout "the script prints the glossary section" "[**/GLOSSARY.md]"
 expect_stdout "the script prints the glossary line" "Glossary.Terms = NO"
 expect_no_stdout "the script prints no section for the project's own files" "[*."
@@ -987,6 +987,15 @@ one_entry
 printf 'StylesPath = st\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
 expect_exit "a docs directory holding its own config" 0
 expect_file "that directory counts as the root" st/Glossary/Terms.yml
+
+new_project "path with a space"
+one_entry
+printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
+expect_exit "a project whose path holds a space" 0
+printed_command="$(sed -n 's/^glossary-rule: check the project from here with: //p' "$PROJECT/stdout")"
+# WHY: the printed line is meant to be pasted into a shell, so a shell is what has to read it, and the flags keep the owner's global Vale config out.
+(cd "$PROJECT" && bash -c "${printed_command/vale /vale --no-global --output=line }" >"$PROJECT/alerts" 2>&1) || true
+if grep -qF "doc.md:3:3:Glossary.Terms" "$PROJECT/alerts"; then pass "the printed command finds the drifted word"; else fail "the printed command: $printed_command: $(cat "$PROJECT/alerts")"; fi
 
 new_project raised-alert-level
 one_entry
