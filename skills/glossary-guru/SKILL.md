@@ -99,7 +99,7 @@ That writes the rule and checks nothing. The check is a separate Vale run from i
 vale <repo-root>
 ```
 
-The rule lands at `<repo-root>/<styles-path>/Glossary/Terms.yml`, where `<styles-path>` is the `StylesPath` in the project's Vale config, or `<repo-root>/.vale/styles` where the config names none.
+The rule lands at `<repo-root>/.vale/styles/Glossary/Terms.yml`, or in the same `Glossary` folder under the `StylesPath` in the project's Vale config where it names one.
 
 A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. A `StylesPath` pointing outside the project is the project's own choice, and two projects sharing one get the rule of whichever ran last.
 
