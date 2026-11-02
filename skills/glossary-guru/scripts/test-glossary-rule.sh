@@ -834,6 +834,15 @@ expect_rule_holds "only a matching marker closes a fence" '"purchase": "Order"'
 expect_rule_lacks "another character's marker closes no fence" "thing"
 expect_rule_lacks "a shorter marker closes no fence" "other"
 
+new_project fence-left-open
+entry_with_line '```'
+printf '\n### Customer\n\nA person.\n\n_Avoid_: client\n' >>"$PROJECT/GLOSSARY.md"
+expect_refusal "a fence left open under an entry" "never closes"
+
+new_project fence-open-above
+printf '```\n\n## Language\n\n### Order\n\nA request to buy.\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+expect_refusal "a fence left open above the section" "never closes"
+
 new_project backticks-in-prose
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 ## Language

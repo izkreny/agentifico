@@ -125,7 +125,7 @@ def split_words(text):
 def parse_language(text):
     entries, exceptions, problems = [], [], []
     in_language = saw_language = stray = False
-    fence = None
+    fence, fence_line = None, 0
     for number, raw in enumerate(text.splitlines(), 1):
         line = raw.strip()
         fenced = FENCE.fullmatch(line)
@@ -134,7 +134,7 @@ def parse_language(text):
                 fence = None
             continue
         if fenced:
-            fence = fenced[1]
+            fence, fence_line = fenced[1], number
             continue
         section = SECTION.fullmatch(line)
         if section:
@@ -166,6 +166,8 @@ def parse_language(text):
             entries[-1][1].extend(words)
         else:
             exceptions.extend(words)
+    if fence:
+        problems.append(f"line {fence_line}: a code fence opens here and never closes, so the rest of the file would go unread")
     if stray and not saw_language:
         problems.append("it holds _Avoid_: or _Except_: lines and no ## Language heading")
     return entries, exceptions, problems
