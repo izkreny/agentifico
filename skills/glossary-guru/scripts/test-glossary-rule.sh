@@ -20,7 +20,6 @@ new_project() {
   mkdir -p "$PROJECT"
 }
 
-# Writes a glossary at the project's root holding the given JSON list of entries.
 terms() {
   printf '{"project": "Shop", "summary": "A shop.", "terms": %s}\n' "$1" >"$PROJECT/GLOSSARY.json"
 }
