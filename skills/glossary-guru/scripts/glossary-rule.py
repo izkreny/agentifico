@@ -106,7 +106,7 @@ def read_config(path):
 # WHY: only the project knows which of its sections should run the check, and a later list of styles replaces an earlier one, so computed lines can take its styles away.
 def config_advice(config, styles_path):
     template_styles, template_sections = read_config(TEMPLATE)
-    lines = [f"glossary-rule: to check a file, {config} needs Glossary added to the list in the last section covering it that sets BasedOnStyles, because a later list replaces an earlier one, and these lines, with any StylesPath above every section:"]
+    lines = [f"glossary-rule: to check a file, {config} must list Glossary in the last section covering it that sets BasedOnStyles, because a later list replaces an earlier one, and must hold these lines, with any StylesPath above every section:"]
     if not styles_path:
         lines.append(f"StylesPath = {template_styles}")
     for heading, settings in template_sections:

@@ -294,6 +294,7 @@ done
 cp "$PROJECT/.vale.ini" "$WORK/written-config"
 expect_exit "a second run on the written config" 0
 if cmp -s "$PROJECT/.vale.ini" "$WORK/written-config"; then pass "a second run leaves the written config alone"; else fail "a second run changed the written config"; fi
+expect_no_stdout "a second run does not ask to add what the written config holds" "added to the list"
 
 new_project template-name
 cp "$TEMPLATE" "$PROJECT/"
