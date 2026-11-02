@@ -838,6 +838,22 @@ expect_rule_holds "only a matching marker closes a fence" '"purchase": "Order"'
 expect_rule_lacks "another character's marker closes no fence" "thing"
 expect_rule_lacks "a shorter marker closes no fence" "other"
 
+new_project indented-backticks-after
+printf '## Language\n\n### Order\n\nA request to buy.\n\n_Avoid_: purchase\n\n## Notes\n\n    ```\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "three backticks indented four spaces after the section" 0
+expect_rule_holds "those backticks leave the rule whole" '"purchase": "Order"'
+
+new_project indented-backticks-inside
+printf '## Language\n\n### Order\n\nA request to buy.\n\n    ```\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "three backticks indented four spaces inside the section" 0
+expect_rule_holds "those backticks open no fence" '"purchase": "Order"'
+
+new_project shallow-fence
+printf '## Language\n\n### Order\n\nA request to buy.\n\n   ```\n_Avoid_: thing\n   ```\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a fence indented three spaces" 0
+expect_rule_lacks "that fence hides what it holds" "thing"
+expect_rule_holds "that fence closes" '"purchase": "Order"'
+
 new_project fence-left-open
 entry_with_line '```'
 printf '\n### Customer\n\nA person.\n\n_Avoid_: client\n' >>"$PROJECT/GLOSSARY.md"

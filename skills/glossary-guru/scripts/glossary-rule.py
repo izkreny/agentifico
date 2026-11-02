@@ -40,7 +40,7 @@ NEAR_LIST_LINE = re.compile(r"(?:^|\W)[_*`]{1,3}(?:avoid|except)(?:[_*`]{1,3}\s*
 SECTION = re.compile(r"##[ \t]+(.+?)(?:[ \t]+#+)?")
 TERM = re.compile(r"###[ \t]+(.+?)(?:[ \t]+#+)?")
 # WHY: a backtick fence's info string cannot hold a backtick, so a line such as "```order``` is a request." opens no fence.
-FENCE = re.compile(r"(`{3,}(?=[^`]*$)|~{3,})(.*)")
+FENCE = re.compile(r" {0,3}(`{3,}(?=[^`]*$)|~{3,})(.*)")
 # WHY: Vale 3.25.1 honours an exception only when it holds a space, so `Pre-Order` in `exceptions` silences nothing.
 NO_SPACE = "holds no space, and Vale skips only a phrase that holds one"
 GENERATED = "# Generated from the project's glossary by the glossary-guru skill. Edit the glossary, not this file."
@@ -128,7 +128,8 @@ def parse_language(text):
     fence, fence_line = None, 0
     for number, raw in enumerate(text.splitlines(), 1):
         line = raw.strip()
-        fenced = FENCE.fullmatch(line)
+        # WHY: four spaces make an indented code block rather than a fence, so this test reads the line before it is stripped.
+        fenced = FENCE.fullmatch(raw)
         if fence:
             if fenced and fenced[1].startswith(fence) and not fenced[2].strip():
                 fence = None
