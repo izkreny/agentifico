@@ -6,8 +6,8 @@ const SOURCE_SECTION = /^(?:inspiration|sources)$/i;
 const GIT_DOMAIN = /(?:^|\.)(?:github\.com|githubusercontent\.com|gitlab\.com|bitbucket\.org|codeberg\.org)$/;
 // WHY: a self-hosted forge and SourceHut's git.sr.ht name git at the start of a subdomain, which leaves github.io and digital.example.com out.
 const GIT_SUBDOMAIN = /(?:^|\.)git[^.]*\.[^.]+\.[^.]+$/;
-// WHY: a tag or a short sha can come to name another commit later, so only a full sha is a pin.
-const COMMIT = /\/[0-9a-f]{40}(?:\/|$)/;
+// WHY: a tag or a short sha can come to name another commit later, so only a full sha is a pin, and git's SHA-256 format makes that one longer.
+const COMMIT = /\/[0-9a-f]{40}(?:[0-9a-f]{24})?(?:\/|$)/;
 const CARRIES_A_LINK = new Set(["resourceDestinationString", "autolinkProtocol", "literalAutolinkHttp"]);
 
 function unpinned(url) {

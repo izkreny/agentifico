@@ -1531,6 +1531,7 @@ describe("skill-pinned-sources", () => {
     ["a self-hosted git subdomain", "https://git.kernel.org/pub/scm/git/git.git/tree/README.md"],
     ["a self-hosted GitLab subdomain", "https://gitlab.gnome.org/GNOME/gtk/-/blob/main/README.md"],
     ["a sha cut short", `https://github.com/owner/repo/commit/${SHA.slice(0, 7)}`],
+    ["a hash of neither length", `https://github.com/owner/repo/blob/${"a".repeat(50)}/SKILL.md`],
     ["a sha that does not end its segment", `https://github.com/owner/repo/blob/${SHA}x/SKILL.md`],
     ["a raw copy on a branch", "https://raw.githubusercontent.com/owner/repo/main/SKILL.md"],
     ["an issue, since only the domain is read", "https://github.com/owner/repo/issues/12"],
@@ -1553,6 +1554,7 @@ describe("skill-pinned-sources", () => {
     });
   const pinned = [
     ["a blob at a commit", `https://github.com/owner/repo/blob/${SHA}/SKILL.md`],
+    ["a blob at a SHA-256 commit", `https://github.com/owner/repo/blob/${"a".repeat(64)}/SKILL.md`],
     ["a tree at a commit", `https://github.com/owner/repo/tree/${SHA}`],
     ["a commit with a fragment", `https://github.com/owner/repo/blob/${SHA}#readme`],
     ["a gist revision", `https://gist.github.com/owner/c28c7a7189726dc3d8a89b6db92c1c8d/${SHA}`],
