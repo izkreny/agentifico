@@ -712,7 +712,7 @@ for heading in '## Language:' '# Language' 'Language\n--------' '## Terms'; do
   count=$((count + 1))
   new_project no-language-$count
   glossary_under "$heading"
-  expect_refusal "list lines under '$heading'" "belongs under ## Language"
+  expect_refusal "list lines under '$heading'" "only a list line under ## Language may hold a marker"
 done
 
 new_project retired-only
@@ -731,7 +731,7 @@ A request to buy.
 
 **::AVOID::**: purchase
 EOF
-expect_refusal "a list line under a heading that only starts with the section's name" "line 9: a list line belongs under ## Language"
+expect_refusal "a list line under a heading that only starts with the section's name" "line 9: only a list line under ## Language may hold a marker"
 
 new_project flagged-list-line
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -749,7 +749,23 @@ A request to buy.
 
 **::AVOID::**: reimbursement
 EOF
-expect_refusal "a list line appended after the Language section" "line 13: a list line belongs under ## Language"
+expect_refusal "a list line appended after the Language section" "line 13: only a list line under ## Language may hold a marker"
+
+new_project flagged-prose
+cat >"$PROJECT/GLOSSARY.md" <<'EOF'
+## Language
+
+### Order
+
+A request to buy.
+
+**::AVOID::**: purchase
+
+## Flagged ambiguities
+
+- "basket" now sits on the **::AVOID::**: line of Order.
+EOF
+expect_refusal "prose naming a marker outside the Language section" "line 11: only a list line under ## Language may hold a marker"
 
 count=0
 for line in '::AVOID:: purchase' '**::AVOID::** purchase' '**::AVOID::** : purchase' '*::AVOID::*: purchase' '**::avoid::**: purchase' '- **::AVOID::**: purchase' '> **::AVOID::**: purchase' 'A request. **::AVOID::**: purchase' '**::EXCEPT::** in the long run'; do

@@ -134,7 +134,7 @@ def parse_language(text):
             in_language = section[1].casefold() == "language"
         if not in_language:
             if NEAR_LIST_LINE.search(line):
-                problems.append(f"line {number}: a list line belongs under ## Language")
+                problems.append(f"line {number}: only a list line under ## Language may hold a marker")
             continue
         heading = TERM.fullmatch(line)
         if heading:
