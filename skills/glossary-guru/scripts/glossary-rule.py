@@ -232,23 +232,23 @@ def repeated_terms(entries):
     return problems
 
 
-def holds_drift(text, swap):
-    return any(re.search(rf"\b{re.escape(word)}\b", text, re.IGNORECASE) for word in swap)
+def holds_phrase(text, phrases):
+    return any(re.search(rf"\b{re.escape(phrase)}\b", text, re.IGNORECASE) for phrase in phrases)
 
 
 def idle_exceptions(exceptions, swap):
-    return [f"'{phrase}' under 'except' holds no word from any 'avoid' list, so it excuses nothing" for phrase in exceptions if not holds_drift(phrase, swap)]
+    return [f"'{phrase}' under 'except' holds no word from any 'avoid' list, so it excuses nothing" for phrase in exceptions if not holds_phrase(phrase, swap)]
 
 
 # WHY: Vale masks an exception before it matches a swap key, so a swap key holding an exception can never fire.
 def masked_swaps(swap, exceptions):
-    return [f"{swap[word]}: '{word}' holds '{phrase}', which the rule skips, so it would never fire" for word in swap for phrase in exceptions if holds_drift(word, [phrase])]
+    return [f"{swap[word]}: '{word}' holds '{phrase}', which the rule skips, so it would never fire" for word in swap for phrase in exceptions if holds_phrase(word, [phrase])]
 
 
 def terms_holding_drift(entries, swap):
     held, problems = [], []
     for term, _ in entries:
-        if holds_drift(term, swap):
+        if holds_phrase(term, swap):
             if " " not in term:
                 problems.append(f"{term}: holds a drift word, so the rule must skip it, and it {NO_SPACE}")
             else:
