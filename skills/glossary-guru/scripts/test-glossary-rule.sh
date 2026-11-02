@@ -839,6 +839,10 @@ expect_alert "a drift phrase fires with a straight apostrophe" "doc.md:5:3:Gloss
 expect_no_alert "an excepted phrase and a term stay quiet with either apostrophe" "doc.md:(7|9|11):"
 expect_alert "a drift word beside them still fires" "doc.md:13:3:Glossary.Terms:Use 'Customer' instead of 'ledger'."
 
+new_project combining-mark
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["café"]}]'
+expect_refusal "a word holding a combining mark" "no combining mark"
+
 new_project unbalanced-word
 terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["ticket ("]}]'
 expect_refusal "a word holding an unbalanced metacharacter" "must be letters"
