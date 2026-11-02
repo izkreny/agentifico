@@ -38,5 +38,5 @@ Adapted from these sources, keeping only the glossary half of each. Each is MIT 
 
 | Source | What it gave | Licence |
 | --- | --- | --- |
-| mattpocock/skills _[domain-modeling](https://github.com/mattpocock/skills/tree/d80fa0f4ebe0c5714af0adf8670336065233ecc6/skills/engineering/domain-modeling)_ | An entry's definition and `_Avoid_` lines, creating the file only when a term is settled, and challenging a word as it is used | [MIT](assets/LICENSE-mattpocock-skills.txt) |
+| mattpocock/skills _[domain-modeling](https://github.com/mattpocock/skills/tree/d80fa0f4ebe0c5714af0adf8670336065233ecc6/skills/engineering/domain-modeling)_ | An entry's definition and its list of words to avoid, creating the file only when a term is settled, and challenging a word as it is used | [MIT](assets/LICENSE-mattpocock-skills.txt) |
 | EveryInc/compound-engineering-plugin, [the vocabulary rules](https://github.com/EveryInc/compound-engineering-plugin/blob/c4a643b1e4b87507782293367e7f3110daceea16/skills/ce-compound/references/concepts-vocabulary.md) | An entry's `###` heading, the rule that an entry stands on its own, `## Flagged ambiguities`, and folding a term into the entry that carries its meaning | [MIT](assets/LICENSE-compound-engineering-plugin.txt) |

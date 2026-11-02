@@ -48,15 +48,15 @@ cat >"$PROJECT/docs/GLOSSARY.md" <<'EOF'
 
 A customer's request to buy something.
 
-_Avoid_: purchase, shopping basket
+**::AVOID::**: purchase, shopping basket
 
 ### Customer
 
 A person who places orders.
 
-_Avoid_: client, account
+**::AVOID::**: client, account
 
-_Except_: take into account
+**::EXCEPT::**: take into account
 
 ### Refund
 
@@ -66,7 +66,7 @@ Money returned to a customer.
 
 - **Voucher**: a prepaid credit.
 
-_Avoid_: coupon
+**::AVOID::**: coupon
 EOF
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
@@ -158,7 +158,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 What a customer is about to buy.
 
-_Avoid_: cart
+**::AVOID::**: cart
 
 ### Order Line
 
@@ -168,7 +168,7 @@ One thing on an order.
 
 A request to buy.
 
-_Avoid_: line
+**::AVOID::**: line
 EOF
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
@@ -196,9 +196,9 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 What a customer is about to buy.
 
-_Avoid_: cart
+**::AVOID::**: cart
 
-_Except_: shopping cart
+**::EXCEPT::**: shopping cart
 EOF
 expect_exit "a term and an Except entry differing only in case" 0
 cp "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/case-pair-rule"
@@ -219,9 +219,9 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 Was ein Kunde kauft.
 
-_Avoid_: strasse
+**::AVOID::**: strasse
 
-_Except_: Große Strasse, grosse strasse
+**::EXCEPT::**: Große Strasse, grosse strasse
 EOF
 cat >"$PROJECT/.vale.ini" <<'EOF'
 StylesPath = .vale/styles
@@ -251,7 +251,7 @@ one_entry() {
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 }
 
@@ -382,7 +382,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: 'purchase'
+**::AVOID::**: 'purchase'
 EOF
 expect_refusal "a single-quoted word" "a straight apostrophe after a letter"
 
@@ -394,7 +394,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase'
+**::AVOID::**: purchase'
 EOF
 expect_refusal "a quote mark closing a word" "more of the phrase after it"
 
@@ -406,7 +406,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: big 'order'
+**::AVOID::**: big 'order'
 EOF
 expect_refusal "a quoted word inside a phrase" "a straight apostrophe after a letter"
 
@@ -418,7 +418,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: customer's purchase
+**::AVOID::**: customer's purchase
 EOF
 expect_exit "an apostrophe inside a word" 0
 
@@ -430,15 +430,15 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A person who buys.
 
-_Avoid_: ledger, customers' purchase
+**::AVOID::**: ledger, customers' purchase
 
-_Except_: customers' ledger
+**::EXCEPT::**: customers' ledger
 
 ### Customers' Book
 
 What a shop keeps on them.
 
-_Avoid_: book
+**::AVOID::**: book
 EOF
 printf "# Probe\n\nThe customers' purchase here.\n\nThe customers' ledger here.\n\nThe customers' book here.\n" >"$PROJECT/doc.md"
 expect_exit "a plural possessive inside a phrase" 0
@@ -475,13 +475,13 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 
 ### Refund
 
 Money returned.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_refusal "a refused glossary with no config" "no single replacement"
 expect_no_file "a refusal writes no config" .vale.ini
@@ -501,7 +501,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 What a customer was about to buy.
 
-_Avoid_: cart
+**::AVOID::**: cart
 EOF
 expect_refusal "a term holding a drift word and a metacharacter" "must be letters"
 
@@ -517,7 +517,7 @@ An order placed before release.
 
 A request to buy.
 
-_Avoid_: order
+**::AVOID::**: order
 EOF
 expect_refusal "a term with no space holding a drift word" "holds no space"
 
@@ -529,9 +529,9 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: order
+**::AVOID::**: order
 
-_Except_: pre-order
+**::EXCEPT::**: pre-order
 EOF
 expect_refusal "an Except entry with no space" "holds no space"
 
@@ -543,7 +543,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_exit "a glossary at the root" 0
 if grep -q '"purchase": "Order"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "a glossary at the root is read"; else fail "a glossary at the root is not read"; fi
@@ -565,7 +565,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 option_exit=0
 (cd "$PROJECT" && python3 "$SCRIPT" --help >/dev/null 2>&1) || option_exit=$?
@@ -591,7 +591,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_exit "a glossary before its last drift word goes" 0
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'
@@ -623,13 +623,13 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 
 ### Sale
 
 A completed purchase.
 
-_Avoid_: Purchase
+**::AVOID::**: Purchase
 EOF
 expect_refusal "a word on two entries" "no single replacement"
 
@@ -641,7 +641,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A user's membership in one group.
 
-_Avoid_: user
+**::AVOID::**: user
 
 ### User
 
@@ -657,7 +657,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A tracked unit of work.
 
-_Avoid_: ticket (when quoting)
+**::AVOID::**: ticket (when quoting)
 EOF
 expect_refusal "a word holding a metacharacter" "must be letters"
 
@@ -669,7 +669,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A request to buy.
 
-_Avoid_: purchase,
+**::AVOID::**: purchase,
 EOF
 expect_refusal "an empty word" "must be letters"
 
@@ -679,12 +679,12 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 **Order**:
 A request to buy.
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_refusal "an Avoid line under no heading" "belongs under an entry's ### heading"
 
 glossary_under() {
-  printf '%b\n\n### Order\n\nA request to buy.\n\n_Avoid_: purchase\n' "$1" >"$PROJECT/GLOSSARY.md"
+  printf '%b\n\n### Order\n\nA request to buy.\n\n**::AVOID::**: purchase\n' "$1" >"$PROJECT/GLOSSARY.md"
 }
 
 entry_with_line() {
@@ -737,21 +737,21 @@ A request to buy.
 
 ## Language notes
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_exit "a heading that only starts with the section's name" 0
 expect_rule_lacks "that heading does not reopen the section" "purchase"
 
 count=0
-for line in '_Avoid_ : purchase' '_Avoid:_ purchase' '*Avoid*: purchase' '*Avoid:* purchase' '**Avoid**: purchase' '_avoid_: purchase' '- _Avoid_: purchase' '> _Avoid_: purchase' 'A request. _Avoid_: purchase' 'Avoid: purchase' '*Except:* in the long run' '*Avoid: purchase*' '_Avoid_ purchase' '*Avoid* purchase, transaction' '**Avoid** purchase' '_Avoid_ - purchase' '_Avoid_= purchase' '_Avoid_, purchase' '_Avoid_. purchase' '___Avoid___: purchase' '***Avoid***: purchase' '`Avoid`: purchase' '`_Avoid_`: purchase' '`Avoid` purchase'; do
+for line in '::AVOID:: purchase' '**::AVOID::** purchase' '**::AVOID::** : purchase' '*::AVOID::*: purchase' '**::avoid::**: purchase' '- **::AVOID::**: purchase' '> **::AVOID::**: purchase' 'A request. **::AVOID::**: purchase' '**::EXCEPT::** in the long run'; do
   count=$((count + 1))
   new_project near-miss-$count
   entry_with_line "$line"
-  expect_refusal "the line '$line'" "is written _Avoid_: or _Except_: on a line of its own"
+  expect_refusal "the line '$line'" "is written **::AVOID::**: or **::EXCEPT::**: on a line of its own"
 done
 
 count=0
-for line in 'Customers avoid this, except at the till.' 'A request to buy, *except* a refund.' 'A request to buy, _except_ a refund.' 'A request to buy, **except** a refund.' 'Customers must *avoid* this one.' 'A request, written `_Avoid_` nowhere.' 'A request. See _except for_ the rest.' '*avoid_this* is a name in the code.' '*Except for refunds*, an order is final.' '*Avoid this word* in invoices.' '*avoid-this* is a name.' '`avoid-list` is a name.'; do
+for line in 'Customers avoid this, except at the till.' 'A request to buy, *except* a refund.' 'A request to buy, _except_ a refund.' 'A request to buy, **except** a refund.' 'Customers must *avoid* this one.' 'A request, written `_Avoid_` nowhere.' 'A request. See _except for_ the rest.' '*avoid_this* is a name in the code.' '*Except for refunds*, an order is final.' '*Avoid this word* in invoices.' '*avoid-this* is a name.' '`avoid-list` is a name.' 'Avoid: a word to leave out of the prose.' '*Avoid purchase*' '_Avoid_ purchase'; do
   count=$((count + 1))
   new_project plain-prose-$count
   entry_with_line "$line"
@@ -767,12 +767,12 @@ printf '# Shop\n\n## Notes\n\n*Except for refunds*, an order is final.\n' >"$PRO
 expect_exit "an emphasised phrase opening a line outside the Language section" 0
 
 new_project term-closing-hashes
-printf '## Language\n\n### Order ###\n\nA request to buy.\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+printf '## Language\n\n### Order ###\n\nA request to buy.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
 expect_exit "a term heading with closing hashes" 0
 expect_rule_holds "closing hashes stay out of the term" '"purchase": "Order"'
 
 new_project term-tab
-printf '## Language\n\n###\tOrder\n\nA request to buy.\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+printf '## Language\n\n###\tOrder\n\nA request to buy.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
 expect_exit "a term heading with a tab" 0
 expect_rule_holds "a tab still opens an entry" '"purchase": "Order"'
 
@@ -797,10 +797,10 @@ A request to buy.
 ```markdown
 ### Not a term
 
-_Avoid_: thing
+**::AVOID::**: thing
 ```
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 
 ## Retired
 
@@ -808,7 +808,7 @@ _Avoid_: purchase
 ## Language
 ~~~
 
-_Avoid_: coupon
+**::AVOID::**: coupon
 EOF
 expect_exit "a glossary holding code fences" 0
 expect_rule_holds "a word after a fence belongs to the entry before it" '"purchase": "Order"'
@@ -826,12 +826,12 @@ A request to buy.
 
 ````markdown
 ~~~
-_Avoid_: thing
+**::AVOID::**: thing
 ```
-_Avoid_: other
+**::AVOID::**: other
 ````
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_exit "a fence holding other fence markers" 0
 expect_rule_holds "only a matching marker closes a fence" '"purchase": "Order"'
@@ -839,28 +839,28 @@ expect_rule_lacks "another character's marker closes no fence" "thing"
 expect_rule_lacks "a shorter marker closes no fence" "other"
 
 new_project indented-backticks-after
-printf '## Language\n\n### Order\n\nA request to buy.\n\n_Avoid_: purchase\n\n## Notes\n\n    ```\n' >"$PROJECT/GLOSSARY.md"
+printf '## Language\n\n### Order\n\nA request to buy.\n\n**::AVOID::**: purchase\n\n## Notes\n\n    ```\n' >"$PROJECT/GLOSSARY.md"
 expect_exit "three backticks indented four spaces after the section" 0
 expect_rule_holds "those backticks leave the rule whole" '"purchase": "Order"'
 
 new_project indented-backticks-inside
-printf '## Language\n\n### Order\n\nA request to buy.\n\n    ```\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+printf '## Language\n\n### Order\n\nA request to buy.\n\n    ```\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
 expect_exit "three backticks indented four spaces inside the section" 0
 expect_rule_holds "those backticks open no fence" '"purchase": "Order"'
 
 new_project shallow-fence
-printf '## Language\n\n### Order\n\nA request to buy.\n\n   ```\n_Avoid_: thing\n   ```\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+printf '## Language\n\n### Order\n\nA request to buy.\n\n   ```\n**::AVOID::**: thing\n   ```\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
 expect_exit "a fence indented three spaces" 0
 expect_rule_lacks "that fence hides what it holds" "thing"
 expect_rule_holds "that fence closes" '"purchase": "Order"'
 
 new_project fence-left-open
 entry_with_line '```'
-printf '\n### Customer\n\nA person.\n\n_Avoid_: client\n' >>"$PROJECT/GLOSSARY.md"
+printf '\n### Customer\n\nA person.\n\n**::AVOID::**: client\n' >>"$PROJECT/GLOSSARY.md"
 expect_refusal "a fence left open under an entry" "never closes"
 
 new_project fence-open-above
-printf '```\n\n## Language\n\n### Order\n\nA request to buy.\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+printf '```\n\n## Language\n\n### Order\n\nA request to buy.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
 expect_refusal "a fence left open above the section" "never closes"
 
 new_project backticks-in-prose
@@ -871,7 +871,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 ```order``` is a request.
 
-_Avoid_: purchase
+**::AVOID::**: purchase
 EOF
 expect_exit "a line opening with backticks that hold a word" 0
 expect_rule_holds "that line opens no fence" '"purchase": "Order"'
@@ -884,7 +884,7 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 Ein Weg.
 
-_Avoid_: Strasse
+**::AVOID::**: Strasse
 EOF
 expect_exit "a drift word equal to a term only under full case folding" 0
 
@@ -896,18 +896,18 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 Ein Weg.
 
-_Avoid_: Straße
+**::AVOID::**: Straße
 
 ### Pfad
 
 Ein Pfad.
 
-_Avoid_: Strasse
+**::AVOID::**: Strasse
 EOF
 expect_exit "two drift words equal only under full case folding" 0
 
 new_project curly-apostrophe
-entry_with_line '_Avoid_: customer’s purchase'
+entry_with_line '**::AVOID::**: customer’s purchase'
 expect_refusal "a curly apostrophe" "a straight apostrophe"
 
 new_project except-typo
@@ -918,18 +918,18 @@ cat >"$PROJECT/GLOSSARY.md" <<'EOF'
 
 A person who buys.
 
-_Avoid_: account
+**::AVOID::**: account
 
-_Except_: on acount of
+**::EXCEPT::**: on acount of
 EOF
-expect_refusal "an Except phrase holding no drift word" "holds no word from any _Avoid_: line"
+expect_refusal "an Except phrase holding no drift word" "holds no word from any **::AVOID::**: line"
 
 new_project unbalanced-word
-entry_with_line '_Avoid_: ticket ('
+entry_with_line '**::AVOID::**: ticket ('
 expect_refusal "a word holding an unbalanced metacharacter" "must be letters"
 
 new_project latin1-glossary
-printf '## Language\n\n### Order\n\nA caf\xe9.\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
+printf '## Language\n\n### Order\n\nA caf\xe9.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
 expect_clean_stop "a glossary that is not UTF-8" "cannot read"
 
 new_project latin1-config

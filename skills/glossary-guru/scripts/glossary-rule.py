@@ -5,7 +5,7 @@ Usage, from the project's root:
 
     python3 <skill-dir>/scripts/glossary-rule.py
 
-Writes Glossary/Terms.yml from the `_Avoid_:` and `_Except_:` lines under
+Writes Glossary/Terms.yml from the `**::AVOID::**:` and `**::EXCEPT::**:` lines under
 `## Language`, under the StylesPath in the project's Vale config, or under
 .vale/styles where the config names none. A project with no Vale config gets a
 .vale.ini that turns the rule on; one that has a config is told what it needs.
@@ -35,8 +35,8 @@ ABOVE_SECTIONS = "glossary-rule: above every section"
 TEMPLATE = Path(__file__).resolve().parent.parent / "assets" / "vale.ini.template"
 # WHY: Vale reads a swap key and an exception as a regular expression, so only text with no metacharacter is safe to pass through.
 PLAIN_WORDS = re.compile(r"(?:[^\W_]|[ -]|(?<=[^\W_])'(?=[^\W_]| ))+")
-LIST_LINE = re.compile(r"_(Avoid|Except)_:(.*)")
-NEAR_LIST_LINE = re.compile(r"(?:^|\W)[_*`]{1,3}(?:avoid|except)(?:[_*`]{1,3}\s*:|\s*:)|^[\W_]*(?:avoid|except)[_*`]*\s*:|^[\W_]*[_*`]+(?:avoid|except)[_*`]+(?![^\W_])", re.IGNORECASE)
+LIST_LINE = re.compile(r"\*\*::(AVOID|EXCEPT)::\*\*:(.*)")
+NEAR_LIST_LINE = re.compile(r"::(?:AVOID|EXCEPT)::", re.IGNORECASE)
 SECTION = re.compile(r"##[ \t]+(.+?)(?:[ \t]+#+)?")
 TERM = re.compile(r"###[ \t]+(.+?)(?:[ \t]+#+)?")
 # WHY: a backtick fence's info string cannot hold a backtick, so a line such as "```order``` is a request." opens no fence.
@@ -151,26 +151,26 @@ def parse_language(text):
         listed = LIST_LINE.fullmatch(line)
         if not listed:
             if NEAR_LIST_LINE.search(line):
-                problems.append(f"line {number}: '{line}' looks like a list line, which is written _Avoid_: or _Except_: on a line of its own")
+                problems.append(f"line {number}: '{line}' looks like a list line, which is written **::AVOID::**: or **::EXCEPT::**: on a line of its own")
             continue
         kind, words = listed[1], split_words(listed[2])
         if not entries:
-            problems.append(f"line {number}: an _{kind}_: line belongs under an entry's ### heading")
+            problems.append(f"line {number}: a **::{kind}::**: line belongs under an entry's ### heading")
             continue
         term = entries[-1][0]
         for word in words:
             if not PLAIN_WORDS.fullmatch(word):
                 problems.append(f"{term}, line {number}: '{word}' must be {PLAIN_CHARACTERS}, with more of the phrase after it")
-            elif kind == "Except" and " " not in word:
+            elif kind == "EXCEPT" and " " not in word:
                 problems.append(f"{term}, line {number}: '{word}' {NO_SPACE}")
-        if kind == "Avoid":
+        if kind == "AVOID":
             entries[-1][1].extend(words)
         else:
             exceptions.extend(words)
     if fence:
         problems.append(f"line {fence_line}: a code fence opens here and never closes, so the rest of the file would go unread")
     if stray and not saw_language:
-        problems.append("it holds _Avoid_: or _Except_: lines and no ## Language heading")
+        problems.append("it holds **::AVOID::**: or **::EXCEPT::**: lines and no ## Language heading")
     return entries, exceptions, problems
 
 
@@ -183,7 +183,7 @@ def build_swap(entries):
             if key in terms:
                 problems.append(f"{term}: '{word}' is also an entry's term, so the rule would flag it where it is correct")
             elif owners.setdefault(key, term) != term:
-                problems.append(f"{term}: '{word}' is also on {owners[key]}'s _Avoid_: line, so it has no single replacement")
+                problems.append(f"{term}: '{word}' is also on {owners[key]}'s **::AVOID::**: line, so it has no single replacement")
             else:
                 swap[word] = term
     return swap, problems
@@ -194,7 +194,7 @@ def holds_drift(text, swap):
 
 
 def idle_exceptions(exceptions, swap):
-    return [f"'{phrase}' on an _Except_: line holds no word from any _Avoid_: line, so it excuses nothing" for phrase in exceptions if PLAIN_WORDS.fullmatch(phrase) and not holds_drift(phrase, swap)]
+    return [f"'{phrase}' on an **::EXCEPT::**: line holds no word from any **::AVOID::**: line, so it excuses nothing" for phrase in exceptions if PLAIN_WORDS.fullmatch(phrase) and not holds_drift(phrase, swap)]
 
 
 def terms_holding_drift(entries, swap):
