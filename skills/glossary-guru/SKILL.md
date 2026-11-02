@@ -100,7 +100,7 @@ The rule lands at `<repo-root>/.vale/styles/Glossary/Terms.yml`, or in the same 
 
 A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. A `StylesPath` pointing outside the project is the project's own choice, and two projects sharing one get the rule of whichever ran last.
 
-With those files committed, a Vale run needs neither this skill nor Python and a person can read the glossary rendered. The next run replaces both, and refuses a file at either path that the script did not write.
+With the rule and the Markdown file committed, a Vale run needs neither this skill nor Python and a person can read the glossary rendered. The next run replaces each of them, and refuses one the script did not write.
 
 `assets/vale.ini.template` holds the lines that turn the rule on, and explains in its comments what Vale checks and how to make a drifted word fail the run.
 
