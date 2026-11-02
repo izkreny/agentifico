@@ -786,95 +786,33 @@ if grep -qF "did not write" "$PROJECT/stderr"; then pass "that refusal says why"
 if cmp -s "$PROJECT/.vale/styles/Glossary/Terms.yml" "$WORK/hand-written"; then pass "a hand-written rule stays as it was"; else fail "a hand-written rule was replaced"; fi
 expect_no_file "that refusal writes no config" .vale.ini
 
-new_project fenced
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
+count=0
+for fence in '```' '```markdown' '~~~' '    ```' '```order``` is a request.'; do
+  count=$((count + 1))
+  new_project code-fence-$count
+  entry_with_line "$fence"
+  expect_refusal "the line '$fence'" "a glossary holds no code fence"
+done
 
-### Order
+new_project code-fence-elsewhere
+printf '# Shop\n\n```\n\n## Language\n\n### Order\n\nA request to buy.\n\n_Avoid_ nothing.\n' >"$PROJECT/GLOSSARY.md"
+expect_refusal "a code fence above the section" "a glossary holds no code fence"
 
-A request to buy.
+count=0
+for term in 'Order (legacy)' '"Order"' "'Order'" 'C#' 'Customer’s Book'; do
+  count=$((count + 1))
+  new_project plain-term-$count
+  printf '## Language\n\n### %s\n\nA request to buy.\n' "$term" >"$PROJECT/GLOSSARY.md"
+  expect_refusal "the term '$term'" "must be letters"
+done
 
-```markdown
-### Not a term
+new_project apostrophe-term
+printf "## Language\n\n### Order's Line\n\nOne thing on an order.\n" >"$PROJECT/GLOSSARY.md"
+expect_exit "a term holding an apostrophe" 0
 
-**::AVOID::**: thing
-```
-
-**::AVOID::**: purchase
-
-## Retired
-
-~~~
-## Language
-~~~
-
-**::AVOID::**: coupon
-EOF
-expect_exit "a glossary holding code fences" 0
-expect_rule_holds "a word after a fence belongs to the entry before it" '"purchase": "Order"'
-expect_rule_lacks "a fenced heading is no term" "Not a term"
-expect_rule_lacks "a fenced list line is no drift word" "thing"
-expect_rule_lacks "a fenced heading reopens no section" "coupon"
-
-new_project fence-closers
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-A request to buy.
-
-````markdown
-~~~
-**::AVOID::**: thing
-```
-**::AVOID::**: other
-````
-
-**::AVOID::**: purchase
-EOF
-expect_exit "a fence holding other fence markers" 0
-expect_rule_holds "only a matching marker closes a fence" '"purchase": "Order"'
-expect_rule_lacks "another character's marker closes no fence" "thing"
-expect_rule_lacks "a shorter marker closes no fence" "other"
-
-new_project indented-backticks-after
-printf '## Language\n\n### Order\n\nA request to buy.\n\n**::AVOID::**: purchase\n\n## Notes\n\n    ```\n' >"$PROJECT/GLOSSARY.md"
-expect_exit "three backticks indented four spaces after the section" 0
-expect_rule_holds "those backticks leave the rule whole" '"purchase": "Order"'
-
-new_project indented-backticks-inside
-printf '## Language\n\n### Order\n\nA request to buy.\n\n    ```\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
-expect_exit "three backticks indented four spaces inside the section" 0
-expect_rule_holds "those backticks open no fence" '"purchase": "Order"'
-
-new_project shallow-fence
-printf '## Language\n\n### Order\n\nA request to buy.\n\n   ```\n**::AVOID::**: thing\n   ```\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
-expect_exit "a fence indented three spaces" 0
-expect_rule_lacks "that fence hides what it holds" "thing"
-expect_rule_holds "that fence closes" '"purchase": "Order"'
-
-new_project fence-left-open
-entry_with_line '```'
-printf '\n### Customer\n\nA person.\n\n**::AVOID::**: client\n' >>"$PROJECT/GLOSSARY.md"
-expect_refusal "a fence left open under an entry" "never closes"
-
-new_project fence-open-above
-printf '```\n\n## Language\n\n### Order\n\nA request to buy.\n\n**::AVOID::**: purchase\n' >"$PROJECT/GLOSSARY.md"
-expect_refusal "a fence left open above the section" "never closes"
-
-new_project backticks-in-prose
-cat >"$PROJECT/GLOSSARY.md" <<'EOF'
-## Language
-
-### Order
-
-```order``` is a request.
-
-**::AVOID::**: purchase
-EOF
-expect_exit "a line opening with backticks that hold a word" 0
-expect_rule_holds "that line opens no fence" '"purchase": "Order"'
+new_project quoted-definition
+printf '## Language\n\n### Order\n\nA "request" to buy, written `like this`.\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "a definition holding quotes and a code span" 0
 
 new_project sharp-s-term
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'

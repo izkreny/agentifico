@@ -39,8 +39,7 @@ LIST_LINE = re.compile(r"\*\*::(AVOID|EXCEPT)::\*\*:(.*)")
 NEAR_LIST_LINE = re.compile(r"::(?:AVOID|EXCEPT)::", re.IGNORECASE)
 SECTION = re.compile(r"##[ \t]+(.+?)(?:[ \t]+#+)?")
 TERM = re.compile(r"###[ \t]+(.+?)(?:[ \t]+#+)?")
-# WHY: a backtick fence's info string cannot hold a backtick, so a line such as "```order``` is a request." opens no fence.
-FENCE = re.compile(r" {0,3}(`{3,}(?=[^`]*$)|~{3,})(.*)")
+FENCES = ("```", "~~~")
 # WHY: Vale 3.25.1 honours an exception only when it holds a space, so `Pre-Order` in `exceptions` silences nothing.
 NO_SPACE = "holds no space, and Vale skips only a phrase that holds one"
 GENERATED = "# Generated from the project's glossary by the glossary-guru skill. Edit the glossary, not this file."
@@ -125,17 +124,10 @@ def split_words(text):
 def parse_language(text):
     entries, exceptions, problems = [], [], []
     in_language = saw_language = stray = False
-    fence, fence_line = None, 0
     for number, raw in enumerate(text.splitlines(), 1):
         line = raw.strip()
-        # WHY: four spaces make an indented code block rather than a fence, so this test reads the line before it is stripped.
-        fenced = FENCE.fullmatch(raw)
-        if fence:
-            if fenced and fenced[1].startswith(fence) and not fenced[2].strip():
-                fence = None
-            continue
-        if fenced:
-            fence, fence_line = fenced[1], number
+        if line.startswith(FENCES):
+            problems.append(f"line {number}: a glossary holds no code fence")
             continue
         section = SECTION.fullmatch(line)
         if section:
@@ -146,6 +138,8 @@ def parse_language(text):
             continue
         heading = TERM.fullmatch(line)
         if heading:
+            if not PLAIN_WORDS.fullmatch(heading[1]):
+                problems.append(f"line {number}: the term '{heading[1]}' must be {PLAIN_CHARACTERS}, with more of the term after it")
             entries.append((heading[1], []))
             continue
         listed = LIST_LINE.fullmatch(line)
@@ -167,8 +161,6 @@ def parse_language(text):
             entries[-1][1].extend(words)
         else:
             exceptions.extend(words)
-    if fence:
-        problems.append(f"line {fence_line}: a code fence opens here and never closes, so the rest of the file would go unread")
     if stray and not saw_language:
         problems.append("it holds **::AVOID::**: or **::EXCEPT::**: lines and no ## Language heading")
     return entries, exceptions, problems
@@ -201,9 +193,7 @@ def terms_holding_drift(entries, swap):
     held, problems = [], []
     for term, _ in entries:
         if holds_drift(term, swap):
-            if not PLAIN_WORDS.fullmatch(term):
-                problems.append(f"{term}: holds a drift word, so the rule must skip it, and it must be {PLAIN_CHARACTERS}, with more of the term after it, for that")
-            elif " " not in term:
+            if " " not in term:
                 problems.append(f"{term}: holds a drift word, so the rule must skip it, and it {NO_SPACE}")
             else:
                 held.append(term)
