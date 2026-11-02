@@ -262,6 +262,7 @@ def main():
         print(f"glossary-rule: wrote {CONFIG_NAMES[0]}, which turns the rule on")
     else:
         print("\n".join(config_advice(config, styles_path)))
+    print("glossary-rule: check the project with: vale .")
     return 0
 
 

@@ -275,6 +275,7 @@ new_project no-config
 one_entry
 printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
 expect_exit "a project with no Vale config" 0
+expect_stdout "with no config the script says how to run the check" "glossary-rule: check the project with: vale ."
 expect_file "no config: the rule lands under .vale/styles" .vale/styles/Glossary/Terms.yml
 expect_file "no config: the script writes .vale.ini" .vale.ini
 if cmp -s "$PROJECT/.vale.ini" "$TEMPLATE"; then pass "the written config is a copy of the template"; else fail "the written config differs from the template"; fi
@@ -330,6 +331,7 @@ expect_exit "a config under another name Vale reads" 0
 expect_file "the rule lands under that config's StylesPath" styles/Glossary/Terms.yml
 expect_no_file "no second config appears beside it" .vale.ini
 if cmp -s "$PROJECT/vale.ini" "$WORK/other-config"; then pass "that config stays untouched"; else fail "that config changed"; fi
+expect_stdout "with a config the script says how to run the check" "glossary-rule: check the project with: vale ."
 expect_stdout "the script prints the glossary section" "[**/GLOSSARY.md]"
 expect_stdout "the script prints the glossary line" "Glossary.Terms = NO"
 expect_no_stdout "the script prints no section for the project's own files" "[*."
