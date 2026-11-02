@@ -220,6 +220,15 @@ def build_swap(entries):
     return swap, problems
 
 
+def repeated_terms(entries):
+    seen, problems = set(), []
+    for term, _ in entries:
+        if term.lower() in seen:
+            problems.append(f"{term}: is on two entries, so one name would hold two definitions")
+        seen.add(term.lower())
+    return problems
+
+
 def holds_drift(text, swap):
     return any(re.search(rf"\b{re.escape(word)}\b", text, re.IGNORECASE) for word in swap)
 
@@ -299,7 +308,7 @@ def main():
         exceptions = [phrase for entry in glossary["terms"] for phrase in entry.get("except", [])]
         swap, swap_problems = build_swap(entries)
         held_terms, held_problems = terms_holding_drift(entries, swap)
-        problems = swap_problems + held_problems + idle_exceptions(exceptions, swap)
+        problems = repeated_terms(entries) + swap_problems + held_problems + idle_exceptions(exceptions, swap)
         exceptions += held_terms
     if problems:
         print(f"glossary-rule: {source} is refused:", file=sys.stderr)

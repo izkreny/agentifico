@@ -571,6 +571,20 @@ terms '[
 ]'
 expect_refusal "a word on two entries" "no single replacement"
 
+new_project repeated-term
+terms '[
+  {"term": "Order", "definition": "A request to buy.", "avoid": ["purchase"]},
+  {"term": "Order", "definition": "A completed sale.", "avoid": ["purchase"]}
+]'
+expect_refusal "a term on two entries" "Order: is on two entries"
+
+new_project repeated-term-case
+terms '[
+  {"term": "Order", "definition": "A request to buy."},
+  {"term": "order", "definition": "A completed sale."}
+]'
+expect_refusal "a term on two entries, differing only in case" "order: is on two entries"
+
 new_project a-term
 terms '[
   {"term": "Member", "definition": "A membership in one group.", "avoid": ["user"]},
