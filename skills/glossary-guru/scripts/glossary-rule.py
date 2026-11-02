@@ -240,6 +240,11 @@ def idle_exceptions(exceptions, swap):
     return [f"'{phrase}' under 'except' holds no word from any 'avoid' list, so it excuses nothing" for phrase in exceptions if not holds_drift(phrase, swap)]
 
 
+# WHY: Vale masks an exception before it matches a swap key, so a swap key holding an exception can never fire.
+def masked_swaps(swap, exceptions):
+    return [f"{swap[word]}: '{word}' holds '{phrase}', which the rule skips, so it would never fire" for word in swap for phrase in exceptions if holds_drift(word, [phrase])]
+
+
 def terms_holding_drift(entries, swap):
     held, problems = [], []
     for term, _ in entries:
@@ -313,6 +318,7 @@ def main():
         held_terms, held_problems = terms_holding_drift(entries, swap)
         problems = repeated_terms(entries) + swap_problems + held_problems + idle_exceptions(exceptions, swap)
         exceptions += held_terms
+        problems += masked_swaps(swap, exceptions)
     if problems:
         print(f"glossary-rule: {source} is refused:", file=sys.stderr)
         for problem in problems:

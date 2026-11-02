@@ -792,6 +792,40 @@ new_project except-typo
 terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["account"], "except": ["on acount of"]}]'
 expect_refusal "an excepted phrase holding no drift word" "holds no word from any 'avoid' list"
 
+new_project masked-by-term
+terms '[{"term": "Line Item", "definition": "One thing on an order.", "avoid": ["line", "order line item"]}]'
+expect_refusal "a drift phrase holding a term the rule skips" "Line Item: 'order line item' holds 'Line Item'"
+
+new_project masked-by-other-term
+terms '[
+  {"term": "Shopping Cart", "definition": "What a customer is about to buy.", "avoid": ["cart"]},
+  {"term": "Order", "definition": "A request to buy.", "avoid": ["shopping cart order"]}
+]'
+expect_refusal "a drift phrase holding another entry's term" "Order: 'shopping cart order' holds 'Shopping Cart'"
+
+new_project masked-by-except
+terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["account", "account holder name"], "except": ["account holder"]}]'
+expect_refusal "a drift phrase holding an excepted phrase" "Customer: 'account holder name' holds 'account holder'"
+
+new_project masked-by-itself
+terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["take into account"], "except": ["take into account"]}]'
+expect_refusal "an excepted phrase equal to a drift phrase" "Customer: 'take into account' holds 'take into account'"
+
+new_project except-over-phrase
+terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["account holder"], "except": ["joint account holder"]}]'
+printf '# Probe\n\nA joint account holder here.\n\nAn account holder there.\n' >"$PROJECT/doc.md"
+expect_exit "an excepted phrase holding a drift phrase" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_no_alert "that excepted phrase stays quiet" "doc.md:3:"
+expect_alert "that drift phrase alone still fires" "doc.md:5:4:Glossary.Terms:Use 'Customer' instead of 'account holder'."
+
+new_project phrase-inside-longer-word
+terms '[{"term": "Line Item", "definition": "One thing on an order.", "avoid": ["line", "inline item"]}]'
+printf '# Probe\n\nAn inline item here.\n' >"$PROJECT/doc.md"
+expect_exit "a drift phrase holding a term only inside a longer word" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_alert "that drift phrase fires" "doc.md:3:4:Glossary.Terms:Use 'Line Item' instead of 'inline item'."
+
 new_project unbalanced-word
 terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["ticket ("]}]'
 expect_refusal "a word holding an unbalanced metacharacter" "must be letters"
