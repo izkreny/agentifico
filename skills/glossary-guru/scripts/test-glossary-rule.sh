@@ -751,7 +751,7 @@ for line in '_Avoid_ : purchase' '_Avoid:_ purchase' '*Avoid*: purchase' '*Avoid
 done
 
 count=0
-for line in 'Customers avoid this, except at the till.' 'A request to buy, *except* a refund.' 'A request to buy, _except_ a refund.' 'A request to buy, **except** a refund.' 'Customers must *avoid* this one.' 'A request, written `_Avoid_` nowhere.' 'A request. See _except for_ the rest.' '*avoid_this* is a name in the code.'; do
+for line in 'Customers avoid this, except at the till.' 'A request to buy, *except* a refund.' 'A request to buy, _except_ a refund.' 'A request to buy, **except** a refund.' 'Customers must *avoid* this one.' 'A request, written `_Avoid_` nowhere.' 'A request. See _except for_ the rest.' '*avoid_this* is a name in the code.' '*Except for refunds*, an order is final.' '*Avoid this word* in invoices.' '*avoid-this* is a name.' '`avoid-list` is a name.'; do
   count=$((count + 1))
   new_project plain-prose-$count
   entry_with_line "$line"
@@ -761,6 +761,10 @@ done
 new_project retired-prose
 printf '# Shop\n\n## Retired\n\n- **Voucher**: a prepaid credit, *except* gift ones.\n' >"$PROJECT/GLOSSARY.md"
 expect_exit "an emphasised except outside the Language section" 0
+
+new_project retired-phrase
+printf '# Shop\n\n## Notes\n\n*Except for refunds*, an order is final.\n' >"$PROJECT/GLOSSARY.md"
+expect_exit "an emphasised phrase opening a line outside the Language section" 0
 
 new_project term-closing-hashes
 printf '## Language\n\n### Order ###\n\nA request to buy.\n\n_Avoid_: purchase\n' >"$PROJECT/GLOSSARY.md"
