@@ -666,6 +666,7 @@ A request to buy.
 **::AVOID::**: purchase,
 EOF
 expect_refusal "an empty word" "must be letters"
+if grep -qF "holds a drift word" "$PROJECT/stderr"; then fail "a refused word reached a later check: $(cat "$PROJECT/stderr")"; else pass "a refused word reaches no later check"; fi
 
 new_project no-heading
 cat >"$PROJECT/GLOSSARY.md" <<'EOF'

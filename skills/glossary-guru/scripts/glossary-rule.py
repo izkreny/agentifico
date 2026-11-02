@@ -157,10 +157,11 @@ def parse_language(text):
                 problems.append(f"{term}, line {number}: '{word}' must be {PLAIN_CHARACTERS}, with more of the phrase after it")
             elif kind == "EXCEPT" and " " not in word:
                 problems.append(f"{term}, line {number}: '{word}' {NO_SPACE}")
+        plain = [word for word in words if PLAIN_WORDS.fullmatch(word)]
         if kind == "AVOID":
-            entries[-1][1].extend(words)
+            entries[-1][1].extend(plain)
         else:
-            exceptions.extend(words)
+            exceptions.extend(plain)
     return entries, exceptions, problems
 
 
@@ -184,7 +185,7 @@ def holds_drift(text, swap):
 
 
 def idle_exceptions(exceptions, swap):
-    return [f"'{phrase}' on an **::EXCEPT::**: line holds no word from any **::AVOID::**: line, so it excuses nothing" for phrase in exceptions if PLAIN_WORDS.fullmatch(phrase) and not holds_drift(phrase, swap)]
+    return [f"'{phrase}' on an **::EXCEPT::**: line holds no word from any **::AVOID::**: line, so it excuses nothing" for phrase in exceptions if not holds_drift(phrase, swap)]
 
 
 def terms_holding_drift(entries, swap):
