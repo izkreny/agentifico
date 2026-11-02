@@ -374,6 +374,7 @@ if cmp -s "$PROJECT/vale.ini" "$WORK/other-config"; then pass "that config stays
 expect_stdout "with a config the script says how to run the check" "glossary-rule: check the project from here with: vale $(cd "$PROJECT" && pwd -P)"
 expect_stdout "the script prints the glossary section" "[**/GLOSSARY.md]"
 expect_stdout "the script prints the glossary line" "Glossary.Terms = NO"
+expect_stdout "the script prints the source's section" "[**/GLOSSARY.json]"
 expect_no_stdout "the script prints no section for the project's own files" "[*."
 expect_no_stdout "the script prints no BasedOnStyles line to clash with the project's" "BasedOnStyles ="
 if grep -qF "the last section covering it that sets BasedOnStyles" "$PROJECT/stdout"; then pass "the script says which section the style goes in"; else fail "the script does not say which section: $(cat "$PROJECT/stdout")"; fi
@@ -392,6 +393,24 @@ printf 'StylesPath = styles\n\n[*.md]\nBasedOnStyles = Other, Glossary\n\n[**/GL
 expect_alert "with the printed lines the rule fires" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
 expect_alert "with the printed lines the project's own style still fires" "doc.md:3:18:Other.Fees:Use 'Charge' instead of 'fee'."
 expect_no_alert "with the printed lines the generated GLOSSARY.md stays quiet" "GLOSSARY\.(md|json):"
+
+new_project selects-json
+one_entry
+printf '# Probe\n\nA purchase here.\n' >"$PROJECT/doc.md"
+printf 'StylesPath = .vale/styles\n\n[*]\nBasedOnStyles = Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms = NO\n\n[**/GLOSSARY.json]\nGlossary.Terms = NO\n' >"$PROJECT/.vale.ini"
+expect_exit "a config selecting every file" 0
+(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
+expect_alert "a config selecting every file still flags a drifted word" "doc.md:3:3:Glossary.Terms:Use 'Order' instead of 'purchase'."
+expect_no_alert "a config selecting every file leaves the source and the generated file alone" "GLOSSARY\.(md|json):"
+
+new_project selects-json-docs
+mkdir -p "$PROJECT/docs"
+one_entry
+mv "$PROJECT/GLOSSARY.json" "$PROJECT/docs/GLOSSARY.json"
+printf 'StylesPath = .vale/styles\n\n[*]\nBasedOnStyles = Glossary\n\n[**/GLOSSARY.md]\nGlossary.Terms = NO\n\n[**/GLOSSARY.json]\nGlossary.Terms = NO\n' >"$PROJECT/.vale.ini"
+expect_exit "a config selecting every file, with the source in docs" 0
+(cd "$PROJECT" && vale --no-global --output=line . >"$PROJECT/alerts" 2>&1) || true
+expect_no_alert "that config leaves the source and the generated file in docs alone" "GLOSSARY\.(md|json):"
 
 new_project parent-config/sub
 one_entry

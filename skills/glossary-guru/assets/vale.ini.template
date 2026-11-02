@@ -13,6 +13,9 @@ StylesPath = .vale/styles
 # To make a drifted word fail the run, add `Glossary.Terms = error` under this section.
 BasedOnStyles = Glossary
 
-# WHY: the generated GLOSSARY.md has to name its drift words, and a rule has no key limiting it by file path.
+# WHY: GLOSSARY.json and the generated GLOSSARY.md both name the drift words, and a rule has no key limiting it by file path.
 [**/GLOSSARY.md]
+Glossary.Terms = NO
+
+[**/GLOSSARY.json]
 Glossary.Terms = NO
