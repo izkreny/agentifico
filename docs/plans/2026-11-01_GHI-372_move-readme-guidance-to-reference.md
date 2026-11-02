@@ -65,3 +65,5 @@ None.
 **Does a README owe a credit to what inspired its skill?** Yes. The owner folded it into this branch after the first round: `skills/agents-guru/references/readme.md` (new) requires an `## Inspiration` or `## Sources` section when a skill draws on an outside source, and `skills/agents-guru/README.md` carries one crediting agnix at the tag #308 read.
 
 **Does #400 land on this branch?** Yes, the owner folded it in, so the pull request closes both issues. `skills/agents-guru/scripts/rules/skill-pinned-sources.js` (new) reports a git-host link with no commit inside a source section. It warns rather than fails, because `skills/review-text` and `skills/socratic-tutor` still carry such links until #398 and #399 pin them, and both packages owe a check that exits zero here.
+
+**How much of a link should the rule read?** The domain, and whether a full sha is in the path. The owner settled it on the PR after a review round kept finding link shapes: the warning tells the agent reading it to link the commit, and that agent judges the page.
