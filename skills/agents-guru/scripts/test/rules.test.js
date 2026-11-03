@@ -722,6 +722,18 @@ describe("skill-argument-hint", () => {
       "Routing\n-------\n\n- If it starts with `new` → read a.\n\nSupporting files\n----------------\n\n- If it starts with `check` → read b.",
       null,
     ],
+    // A word that is not a bare lowercase word all the way through is a placeholder or a target, not a verb.
+    ["h-capital-word", "[Fix | new]", routing("If it starts with `new` → read a."), null],
+    ["h-path-word", "[new | check/x]", routing("If it starts with `new` → read a."), null],
+    // Only an item's lead paragraph states its route, so a continuation's arrow routes nothing.
+    ["h-continuation", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n\n  Then `check` → b.", null],
+    // A definition opening an item's lead block leaves the paragraph after it to be read.
+    [
+      "h-definition-lead",
+      "[new | check]",
+      "## Routing\n\n- [d]: https://example.com\n  If it starts with `new` → read a.\n- If it starts with `check` → read b.",
+      null,
+    ],
   ];
   for (const [id, hint, body, want] of cases) {
     it(id, async () => {
@@ -731,6 +743,12 @@ describe("skill-argument-hint", () => {
       else expectClean(found, "skill-argument-hint");
     });
   }
+  it("reads no hint from frontmatter that is missing, does not parse, or loads as no mapping", async () => {
+    const body = routing("If it starts with `new` → read a.");
+    expectClean(await findings("fx/h-none/SKILL.md", `${body}\n`, argumentHint), "skill-argument-hint");
+    expectClean(await findings("fx/h-unparsed/SKILL.md", skill('argument-hint: "[new | check]"\nother: [1, 2', body), argumentHint), "skill-argument-hint");
+    expectClean(await findings("fx/h-comment/SKILL.md", skill("# only a comment", body), argumentHint), "skill-argument-hint");
+  });
   it("leaves a file other than SKILL.md alone", async () => {
     const body = routing("If it starts with `new` → read a.");
     expectClean(await findings("fx/h/workflows/w.md", skill('argument-hint: "[check]"', body), argumentHint), "skill-argument-hint");
