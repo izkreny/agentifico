@@ -1,7 +1,7 @@
 ---
 name: glossary-guru
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
 description: |
   Load this as soon as a project turns out to hold a docs/GLOSSARY.json or a GLOSSARY.json, before writing code names, docs, commit messages or issue text in its domain, because it says what to do when a word disagrees with the file, which the file alone does not. Owns a project's glossary: its format, challenging a word that sits on an avoid list or contradicts a definition, adding, changing, folding or removing a term on the owner's decision, and generating a Vale rule and a readable GLOSSARY.md from it. Use when asked to define a term, settle what a word means, start a glossary or rename a domain concept; when two words compete for one concept; and when asked to catch a drifted word with Vale. Not for a skill's own terms, which stay inside that skill, not for ADRs, and not for general programming vocabulary.
 ---
@@ -59,7 +59,7 @@ An entry holds the term, a definition of one or two sentences saying what the te
 
 An `except` list is optional, and names a phrase of two or more words where a word on an `avoid` list is correct, such as "take into account" for `account`. A check matches words without reading them, so without this list it would flag that phrase every time. An agent reading the glossary treats it the same way: the phrase is not drift. A term that holds a drift word, such as `Shopping Cart` holding `cart`, needs no such list, because the rule generated from the glossary skips the term by itself. A term with no space that holds one, such as `Pre-Order` holding `order`, is refused when the rule is generated, because Vale can only skip a phrase holding a space.
 
-A term, and each word or phrase on an `avoid` or `except` list, is plain words only: letters, digits, spaces, hyphens, and `'` only as an apostrophe. The project name, the summary, a definition and a flagged ambiguity are one line each. `scripts/glossary-rule.py` refuses a file that breaks any of this, or that holds a key the format does not allow, because a misspelled key would otherwise lose its words silently. The rule matches a listed word whole, so `client` does not catch `clients`, and a plural the project uses needs listing too.
+A term, and each word or phrase on an `avoid` or `except` list, is plain words only: letters, digits, spaces, hyphens, and `'` only as an apostrophe. The script reads a run of spaces in one as a single space and drops a space at either end, and names each such word, so fix it in the JSON file. The project name, the summary, a definition and a flagged ambiguity are one line each. `scripts/glossary-rule.py` refuses a file that breaks any of this, or that holds a key the format does not allow, because a misspelled key would otherwise lose its words silently. The rule matches a listed word whole, so `client` does not catch `clients`, and a plural the project uses needs listing too.
 
 An entry stands on its own: it names no file path, class, method, table, config value, date, owner or issue link, so it stays true when the code it describes is renamed. It may lean on another entry, and a project-specific word it leans on needs an entry of its own, unless the word is a property some entry's definition explains.
 
@@ -96,15 +96,17 @@ That checks nothing. The check is a separate Vale run from inside the project, b
 vale <repo-root>
 ```
 
+Where a project runs its checks on a developer's own machine, run the script before Vale, so Vale always reads a rule that matches the JSON file.
+
 The rule lands at `<repo-root>/.vale/styles/Glossary/Terms.yml`, or in the same `Glossary` folder under the `StylesPath` in the project's Vale config where it names one.
 
 A project with no config gets `assets/vale.ini.template` copied to `<repo-root>/.vale.ini`, and a project with one is told what it needs, because only the project knows which of its sections should run the check. A project under a config in a parent directory is refused, because every project beneath that config would share one rule file. A `StylesPath` pointing outside the project is the project's own choice, and two projects sharing one get the rule of whichever ran last.
 
-With the rule and the Markdown file committed, a Vale run needs neither this skill nor Python and a person can read the glossary rendered. The next run replaces each of them, and refuses one the script did not write.
+With the rule and the Markdown file committed, a Vale run needs neither this skill nor Python and a person can read the glossary rendered. The next run replaces each of them.
 
 `assets/vale.ini.template` holds the lines that turn the rule on, and explains in its comments what Vale checks and how to make a drifted word fail the run.
 
-The check supports Latin script only. Vale 3.25.1 does not flag a word with no space or punctuation around it, as in Chinese, Japanese, Korean or Thai running text, and the script refuses a word holding a combining mark, as many Thai and Hindi words do.
+Vale 3.25.1 flags a word only where a space or punctuation sets it apart, so it misses words in Chinese, Japanese, Korean or Thai running text. The script also refuses a word holding a combining mark, as many Thai and Hindi words do.
 
 ## What it does not cover
 

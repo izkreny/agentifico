@@ -10,8 +10,9 @@ Glossary/Terms.yml under the StylesPath in the project's Vale config, or under
 .vale/styles where the config names none. A project with no Vale config gets a
 .vale.ini that turns the rule on; one that has a config is told what it needs.
 
-Exit 0: both files were written. A glossary naming no drift word gets a rule that
+Exit 0: the rule and GLOSSARY.md were written. A glossary naming no drift word gets a rule that
 swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
+A word with stray spaces is read tidied, and each one is named on stderr.
 Exit 1: the glossary is not valid, or cannot become a correct rule; each reason
 is on stderr, and nothing is written.
 Exit 2: an argument, no single readable glossary, no single readable Vale
@@ -49,7 +50,7 @@ ENTRY_REQUIRED = ("term", "definition")
 ONE_LINE = "must be one line of text with no lone surrogate"
 # WHY: JSON can spell a lone surrogate, which no UTF-8 file can hold, so it would fail at the write after the rule had already landed.
 SURROGATE = re.compile("[\ud800-\udfff]")
-PLAIN_CHARACTERS = "letters, digits, spaces, hyphens or a straight apostrophe after a letter"
+PLAIN_CHARACTERS = "letters with no combining mark, digits, spaces, hyphens or a straight apostrophe after a letter"
 
 
 def stop(message) -> NoReturn:
@@ -147,9 +148,8 @@ def is_one_line(value):
     return isinstance(value, str) and value.splitlines() == [value] and bool(value.strip()) and not SURROGATE.search(value)
 
 
-# WHY: JSON keeps space at either end of a word, and a swap key carrying it would not match the word on its own.
 def is_plain(word):
-    return isinstance(word, str) and word == word.strip() and bool(PLAIN_WORDS.fullmatch(word))
+    return isinstance(word, str) and bool(PLAIN_WORDS.fullmatch(word))
 
 
 def key_problems(found, allowed, required, where):
@@ -166,7 +166,7 @@ def word_problems(entry, key, where):
     problems = []
     for word in words:
         if not is_plain(word):
-            problems.append(f"{where}: {json.dumps(word, ensure_ascii=False)} under '{key}' must be {PLAIN_CHARACTERS}, with more of the phrase after it and no space at either end")
+            problems.append(f"{where}: {json.dumps(word, ensure_ascii=False)} under '{key}' must be {PLAIN_CHARACTERS}, with more of the phrase after it")
         elif key == "except" and " " not in word:
             problems.append(f"{where}: '{word}' {NO_SPACE}")
     return problems
@@ -179,7 +179,7 @@ def entry_problems(entry, number):
     where = term if is_one_line(term) else f"entry {number}"
     problems = key_problems(entry, ENTRY_KEYS, ENTRY_REQUIRED, where)
     if "term" in entry and not is_plain(term):
-        problems.append(f"{where}: the term must be {PLAIN_CHARACTERS}, with more of the term after it and no space at either end")
+        problems.append(f"{where}: the term must be {PLAIN_CHARACTERS}, with more of the term after it")
     if "definition" in entry and not is_one_line(entry["definition"]):
         problems.append(f"{where}: the definition {ONE_LINE}")
     return problems + word_problems(entry, "avoid", where) + word_problems(entry, "except", where)
@@ -232,23 +232,57 @@ def repeated_terms(entries):
     return problems
 
 
-def holds_drift(text, swap):
-    return any(re.search(rf"\b{re.escape(word)}\b", text, re.IGNORECASE) for word in swap)
+def tidy(word):
+    return re.sub(" +", " ", word).strip(" ") if isinstance(word, str) else word
+
+
+# WHY: Vale reads a run of spaces as one and a swap key with a space at either end matches no word, so both are typos to tidy rather than refuse.
+def tidy_spaces(glossary):
+    tidied = []
+
+    def note(word):
+        if isinstance(word, str) and tidy(word) != word:
+            tidied.append(f"{json.dumps(word, ensure_ascii=False)} is read as {json.dumps(tidy(word), ensure_ascii=False)}")
+        return tidy(word)
+
+    terms = glossary.get("terms") if isinstance(glossary, dict) else None
+    for entry in terms if isinstance(terms, list) else []:
+        if isinstance(entry, dict):
+            if "term" in entry:
+                entry["term"] = note(entry["term"])
+            for key in ("avoid", "except"):
+                if isinstance(entry.get(key), list):
+                    entry[key] = [note(word) for word in entry[key]]
+    return tidied
+
+
+def holds_phrase(text, phrases):
+    return any(re.search(rf"\b{re.escape(phrase)}\b", text, re.IGNORECASE) for phrase in phrases)
 
 
 def idle_exceptions(exceptions, swap):
-    return [f"'{phrase}' under 'except' holds no word from any 'avoid' list, so it excuses nothing" for phrase in exceptions if not holds_drift(phrase, swap)]
+    return [f"'{phrase}' under 'except' holds no word from any 'avoid' list, so it excuses nothing" for phrase in exceptions if not holds_phrase(phrase, swap)]
+
+
+# WHY: Vale masks an exception before it matches a swap key, so a swap key holding an exception can never fire.
+def masked_swaps(swap, exceptions):
+    return [f"{swap[word]}: '{word}' holds '{phrase}', which the rule skips, so it would never fire" for word in swap for phrase in exceptions if holds_phrase(word, [phrase])]
 
 
 def terms_holding_drift(entries, swap):
     held, problems = [], []
     for term, _ in entries:
-        if holds_drift(term, swap):
+        if holds_phrase(term, swap):
             if " " not in term:
                 problems.append(f"{term}: holds a drift word, so the rule must skip it, and it {NO_SPACE}")
             else:
                 held.append(term)
     return held, problems
+
+
+# WHY: the glossary allows only a straight apostrophe, and prose often sets a curly one, which a swap key or an exception would otherwise miss.
+def any_apostrophe(words):
+    return words.replace("'", "['’]")
 
 
 def render(swap, exceptions):
@@ -262,15 +296,15 @@ def render(swap, exceptions):
     ]
     if exceptions:
         lines.append("exceptions:")
-        # WHY: Vale matches an exception case-sensitively even under ignorecase, so each one carries its own flag.
         unique = {}
         for phrase in sorted(exceptions):
             # WHY: `casefold` makes `ß` equal `ss` and `(?i)` does not, so a phrase dropped on that key would fire as drift.
             unique.setdefault(phrase.lower(), phrase)
-        lines.extend(f"  - {json.dumps('(?i)' + unique[key], ensure_ascii=False)}" for key in sorted(unique))
+        # WHY: Vale matches an exception case-sensitively even under ignorecase, so each one carries its own flag.
+        lines.extend(f"  - {json.dumps('(?i)' + any_apostrophe(unique[key]), ensure_ascii=False)}" for key in sorted(unique))
     lines.append("swap:" if swap else "swap: {}")
     for word in sorted(swap, key=str.casefold):
-        lines.append(f"  {json.dumps(word, ensure_ascii=False)}: {json.dumps(swap[word], ensure_ascii=False)}")
+        lines.append(f"  {json.dumps(any_apostrophe(word), ensure_ascii=False)}: {json.dumps(swap[word], ensure_ascii=False)}")
     return "\n".join(lines) + "\n"
 
 
@@ -305,6 +339,11 @@ def main():
     styles_path = read_config(config)[0] if config else None
     glossary, problems = load_glossary(read_file(source))
     if not problems:
+        tidied = tidy_spaces(glossary)
+        if tidied:
+            print(f"glossary-rule: {source} holds stray spaces, read as below; fix them in {source}:", file=sys.stderr)
+            for line in tidied:
+                print(f"  {line}", file=sys.stderr)
         problems = glossary_problems(glossary)
     if not problems:
         entries = [(entry["term"], entry.get("avoid", [])) for entry in glossary["terms"]]
@@ -313,6 +352,7 @@ def main():
         held_terms, held_problems = terms_holding_drift(entries, swap)
         problems = repeated_terms(entries) + swap_problems + held_problems + idle_exceptions(exceptions, swap)
         exceptions += held_terms
+        problems += masked_swaps(swap, exceptions)
     if problems:
         print(f"glossary-rule: {source} is refused:", file=sys.stderr)
         for problem in problems:

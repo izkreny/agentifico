@@ -20,7 +20,6 @@ new_project() {
   mkdir -p "$PROJECT"
 }
 
-# Writes a glossary at the project's root holding the given JSON list of entries.
 terms() {
   printf '{"project": "Shop", "summary": "A shop.", "terms": %s}\n' "$1" >"$PROJECT/GLOSSARY.json"
 }
@@ -144,6 +143,7 @@ end
 EOF
 
 expect_exit "a full glossary" 0
+if [ -s "$PROJECT/stderr" ]; then fail "a tidy glossary prints a warning: $(cat "$PROJECT/stderr")"; else pass "a tidy glossary prints no warning"; fi
 RULE="$PROJECT/.vale/styles/Glossary/Terms.yml"
 MARKDOWN="$PROJECT/docs/GLOSSARY.md"
 
@@ -539,7 +539,7 @@ one_entry
 option_exit=0
 (cd "$PROJECT" && python3 "$SCRIPT" --help >/dev/null 2>&1) || option_exit=$?
 if [ "$option_exit" = 2 ]; then pass "an option exits 2"; else fail "an option exits $option_exit, wanted 2"; fi
-if [ -e "$PROJECT/--help" ]; then fail "an option was taken as a styles path"; else pass "an option writes nothing"; fi
+if [ -e "$PROJECT/--help" ]; then fail "an option wrote a file"; else pass "an option writes nothing"; fi
 
 new_project quiet
 terms '[{"term": "Order", "definition": "A request to buy."}]'
@@ -602,16 +602,23 @@ expect_refusal "an empty word" "must be letters"
 if grep -qF "holds a drift word" "$PROJECT/stderr"; then fail "a refused word reached a later check: $(cat "$PROJECT/stderr")"; else pass "a refused word reaches no later check"; fi
 
 count=0
-for word in ' purchase' 'purchase ' ' '; do
+for word in ' purchase' 'purchase ' '  purchase  '; do
   count=$((count + 1))
   new_project spaced-word-$count
   terms "[{\"term\": \"Order\", \"definition\": \"A request to buy.\", \"avoid\": [\"$word\"]}]"
-  expect_refusal "the word '$word'" "no space at either end"
+  expect_exit "the word '$word'" 0
+  if grep -qF '"purchase": "Order"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "the word '$word' loses the space at its ends"; else fail "the word '$word' keeps a space at an end: $(cat "$PROJECT/.vale/styles/Glossary/Terms.yml")"; fi
 done
 
+new_project spaced-only
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["  "]}]'
+expect_refusal "a word that is only spaces" "must be letters"
+
 new_project spaced-term
-terms '[{"term": " Order", "definition": "A request to buy."}]'
-expect_refusal "a term with a space at one end" "no space at either end"
+terms '[{"term": " Order ", "definition": "A request to buy.", "avoid": ["purchase"]}]'
+expect_exit "a term with a space at either end" 0
+if grep -qxF '### Order' "$PROJECT/GLOSSARY.md" && grep -qF '"purchase": "Order"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "the term loses the space at its ends"; else fail "the term keeps a space at an end: $(cat "$PROJECT/GLOSSARY.md")"; fi
+if grep -qF '" Order " is read as "Order"' "$PROJECT/stderr"; then pass "a stripped term is named"; else fail "a stripped term goes unnamed: $(cat "$PROJECT/stderr")"; fi
 
 new_project issue-example
 printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy.", "avod": ["purchase"]}]}\n' >"$PROJECT/GLOSSARY.json"
@@ -721,6 +728,11 @@ new_project number-in-avoid
 terms '[{"term": "Order", "definition": "A request to buy.", "avoid": [5]}]'
 expect_refusal "a number in an avoid list" "Order: 5 under 'avoid' must be"
 
+new_project nan-in-avoid
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": [NaN]}]'
+expect_refusal "a NaN in an avoid list" "Order: NaN under 'avoid' must be"
+if grep -qF "stray spaces" "$PROJECT/stderr"; then fail "a NaN reads as a stray space: $(cat "$PROJECT/stderr")"; else pass "a NaN does not read as a stray space"; fi
+
 new_project string-flagged
 printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}], "flagged_ambiguities": "one"}\n' >"$PROJECT/GLOSSARY.json"
 expect_refusal "a string where the flagged list belongs" "top level: 'flagged_ambiguities' must be a list"
@@ -791,6 +803,110 @@ expect_refusal "a curly apostrophe" "a straight apostrophe"
 new_project except-typo
 terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["account"], "except": ["on acount of"]}]'
 expect_refusal "an excepted phrase holding no drift word" "holds no word from any 'avoid' list"
+
+new_project doubled-space-in-phrase
+terms '[{"term": "Line Item", "definition": "One thing on an order.", "avoid": ["line", "order line  item"]}]'
+expect_refusal "a drift phrase holding a term behind a doubled space" "Line Item: 'order line item' holds 'Line Item'"
+
+new_project doubled-space-in-term
+terms '[{"term": "Line  Item", "definition": "One thing on an order.", "avoid": ["line", "order line item"]}]'
+expect_refusal "a term with a doubled space inside a drift phrase" "Line Item: 'order line item' holds 'Line Item'"
+
+new_project doubled-space-rendered
+terms '[{"term": "Shopping  Cart", "definition": "What a customer is about to buy.", "avoid": ["shopping   basket"], "except": ["take  into account"]}, {"term": "Customer", "definition": "A person who buys.", "avoid": ["account"]}]'
+expect_exit "a glossary holding doubled spaces" 0
+if grep -qF '### Shopping Cart' "$PROJECT/GLOSSARY.md" && grep -qxF -- '- shopping basket' "$PROJECT/GLOSSARY.md" && grep -qxF -- '- take into account' "$PROJECT/GLOSSARY.md"; then pass "GLOSSARY.md shows each one single-spaced"; else fail "GLOSSARY.md keeps a doubled space: $(cat "$PROJECT/GLOSSARY.md")"; fi
+if grep -qF '"shopping basket": "Shopping Cart"' "$PROJECT/.vale/styles/Glossary/Terms.yml" && grep -qF '"(?i)take into account"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "the rule holds each one single-spaced"; else fail "the rule keeps a doubled space: $(cat "$PROJECT/.vale/styles/Glossary/Terms.yml")"; fi
+if grep -qF '"shopping   basket" is read as "shopping basket"' "$PROJECT/stderr" && grep -qF '"Shopping  Cart" is read as "Shopping Cart"' "$PROJECT/stderr" && grep -qF 'fix them in GLOSSARY.json' "$PROJECT/stderr"; then pass "each tidied word is named, with the file to fix"; else fail "a tidied word goes unnamed: $(cat "$PROJECT/stderr")"; fi
+
+new_project masked-by-term
+terms '[{"term": "Line Item", "definition": "One thing on an order.", "avoid": ["line", "order line item"]}]'
+expect_refusal "a drift phrase holding a term the rule skips" "Line Item: 'order line item' holds 'Line Item'"
+
+new_project masked-by-other-term
+terms '[
+  {"term": "Shopping Cart", "definition": "What a customer is about to buy.", "avoid": ["cart"]},
+  {"term": "Order", "definition": "A request to buy.", "avoid": ["shopping cart order"]}
+]'
+expect_refusal "a drift phrase holding another entry's term" "Order: 'shopping cart order' holds 'Shopping Cart'"
+
+new_project masked-by-except
+terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["account", "account holder name"], "except": ["account holder"]}]'
+expect_refusal "a drift phrase holding an excepted phrase" "Customer: 'account holder name' holds 'account holder'"
+
+new_project masked-by-itself
+terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["take into account"], "except": ["take into account"]}]'
+expect_refusal "an excepted phrase equal to a drift phrase" "Customer: 'take into account' holds 'take into account'"
+
+new_project except-over-phrase
+terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["account holder"], "except": ["joint account holder"]}]'
+printf '# Probe\n\nA joint account holder here.\n\nAn account holder there.\n' >"$PROJECT/doc.md"
+expect_exit "an excepted phrase holding a drift phrase" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_no_alert "that excepted phrase stays quiet" "doc.md:3:"
+expect_alert "that drift phrase alone still fires" "doc.md:5:4:Glossary.Terms:Use 'Customer' instead of 'account holder'."
+
+new_project phrase-inside-longer-word
+terms '[{"term": "Line Item", "definition": "One thing on an order.", "avoid": ["line", "inline item"]}]'
+printf '# Probe\n\nAn inline item here.\n' >"$PROJECT/doc.md"
+expect_exit "a drift phrase holding a term only inside a longer word" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_alert "that drift phrase fires" "doc.md:3:4:Glossary.Terms:Use 'Line Item' instead of 'inline item'."
+
+new_project curly-in-prose
+terms "[
+  {\"term\": \"Customer\", \"definition\": \"A person who buys.\", \"avoid\": [\"ledger\", \"customer's purchase\"], \"except\": [\"customer's ledger\"]},
+  {\"term\": \"Customers' Book\", \"definition\": \"What a shop keeps on them.\", \"avoid\": [\"book\"]}
+]"
+printf "# Probe\n\nA customer’s purchase here.\n\nA customer's purchase here.\n\nA customer’s ledger here.\n\nA customer's ledger here.\n\nThe customers’ book here.\n\nA ledger here.\n" >"$PROJECT/doc.md"
+expect_exit "a glossary holding apostrophes, checked against curly ones" 0
+(cd "$PROJECT" && vale --no-global --output=line doc.md >"$PROJECT/alerts" 2>&1) || true
+expect_alert "a drift phrase fires with a curly apostrophe" "doc.md:3:3:Glossary.Terms:Use 'Customer' instead of 'customer’s purchase'."
+expect_alert "a drift phrase fires with a straight apostrophe" "doc.md:5:3:Glossary.Terms:Use 'Customer' instead of 'customer's purchase'."
+expect_no_alert "an excepted phrase and a term stay quiet with either apostrophe" "doc.md:(7|9|11):"
+expect_alert "a drift word beside them still fires" "doc.md:13:3:Glossary.Terms:Use 'Customer' instead of 'ledger'."
+
+new_project combining-mark
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["café"]}]'
+expect_refusal "a word holding a combining mark" "no combining mark"
+
+new_project definition-carriage-return
+terms '[{"term": "Order", "definition": "A request.\rForged"}]'
+expect_refusal "a definition holding a carriage return" "Order: the definition must be one line of text"
+
+new_project definition-line-separator
+terms '[{"term": "Order", "definition": "A request.\u2028Forged"}]'
+expect_refusal "a definition holding a line separator" "Order: the definition must be one line of text"
+
+new_project root-named-docs/docs
+mkdir "$PROJECT/docs"
+one_entry
+mv "$PROJECT/GLOSSARY.json" "$PROJECT/docs/GLOSSARY.json"
+expect_exit "a root named docs, holding its own docs directory" 0
+expect_file "that root gets its GLOSSARY.md" docs/GLOSSARY.md
+
+new_project config-single-quoted-path
+one_entry
+printf "StylesPath = 'single'\n\n[*.md]\nBasedOnStyles = Glossary\n" >"$PROJECT/.vale.ini"
+expect_exit "a single-quoted StylesPath" 0
+expect_file "a single-quoted StylesPath loses its quotes" single/Glossary/Terms.yml
+
+new_project config-semicolon-comment
+one_entry
+printf 'StylesPath = semi ; the styles\n\n[*.md]\nBasedOnStyles = Glossary\n' >"$PROJECT/.vale.ini"
+expect_exit "a StylesPath with a semicolon comment" 0
+expect_file "a semicolon comment is not part of the path" semi/Glossary/Terms.yml
+
+new_project term-holding-letters
+terms '[{"term": "Carton", "definition": "A box.", "avoid": ["cart"]}]'
+expect_exit "a term holding a drift word's letters inside a longer word" 0
+
+new_project marker-quoted-in-markdown
+one_entry
+printf '# Shop\n\n%s\n' "$(head -n 1 "$WORK/wanted-markdown")" >"$PROJECT/GLOSSARY.md"
+cp "$PROJECT/GLOSSARY.md" "$WORK/quoting-markdown"
+expect_exit "a hand-written GLOSSARY.md quoting the marker below its first line" 2
+if cmp -s "$PROJECT/GLOSSARY.md" "$WORK/quoting-markdown"; then pass "that GLOSSARY.md stays as it was"; else fail "that GLOSSARY.md was replaced"; fi
 
 new_project unbalanced-word
 terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["ticket ("]}]'

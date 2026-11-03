@@ -28,13 +28,15 @@ Edit only the JSON file, which is `<repo-root>/docs/GLOSSARY.json` where the pro
 python3 <skill-dir>/scripts/glossary-rule.py
 ```
 
-It writes a readable Markdown file of the same name beside the JSON file, and a Vale rule, so a project's Vale run flags a drifted word in its prose and code comments. It needs Python to generate them and [Vale](https://vale.sh) to run the rule. It takes no argument, and it writes a `<repo-root>/.vale.ini` for a project that has no Vale config. The check supports Latin script only.
+It writes a readable Markdown file of the same name beside the JSON file, and a Vale rule, so a project's Vale run flags a drifted word in its prose and code comments. It needs Python to generate them and [Vale](https://vale.sh) to run the rule. It takes no argument, and it writes a `<repo-root>/.vale.ini` for a project that has no Vale config. The check needs words set apart by spaces or punctuation.
 
 The script only writes those files. Run the check itself from inside the project, on your machine or in CI, which needs Vale and the committed rule and neither this skill nor Python:
 
 ```bash
 vale <repo-root>
 ```
+
+Where your project runs its checks on your own machine, run the script before Vale there, so Vale always reads a rule that matches the JSON file.
 
 A drifted word is a warning, which leaves the run at exit 0. To make it fail, add `Glossary.Terms = error`, as the comments in `assets/vale.ini.template` explain.
 
