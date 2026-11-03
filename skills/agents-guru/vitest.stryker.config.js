@@ -5,7 +5,7 @@ export default defineConfig({
     include: ["scripts/test/**/*.test.js"],
     // WHY: vale.test.js spawns Vale to test .vale.ini, prose config Stryker cannot mutate, so it kills no mutant and only lengthens every run.
     exclude: [...configDefaults.exclude, "scripts/test/vale.test.js"],
-    // WHY: Stryker reads any failing test as a kill, so Vitest's fixed limits turned a slow stretch under load into false kills; zero turns them off and leaves Stryker's own limit, which scales with each mutant's measured time and reports a runaway mutant as Timeout.
+    // WHY: a fixed per-test limit fails a slow test under load, which Stryker reads as a kill; Stryker's own limit scales with each mutant's measured time instead.
     testTimeout: 0,
     hookTimeout: 0,
   },
