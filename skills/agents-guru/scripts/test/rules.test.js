@@ -370,6 +370,9 @@ describe("skill-continuations", () => {
     ["c-quoted", "> -\n>   **lead.** its text starts on the line after the marker\n>\n>   the one continuation\n", []],
     ["c-footnote", "text[^1]\n\n[^1]: -\n      **lead.** its text starts on the line after the marker\n", []],
     ["c-markeralone", "-\n  **lead.** its text starts on the line after the marker\n\n  the one continuation\n", []],
+    ["c-quoted-two", "> - **lead.** first line\n>\n>   the reason\n>\n>   a second paragraph\n", [`2 ${cap}`]],
+    // A link definition is no paragraph, so it is not a continuation.
+    ["c-definition", "- **lead.** first line\n\n  the reason\n\n  [x]: https://example.com\n", []],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
@@ -726,6 +729,21 @@ describe("skill-bash-blocks", () => {
     // Bash ends a heredoc only on its exact terminator line, stripping leading tabs for `<<-` alone.
     ["good-indented-terminator", "```bash\ncat <<EOF\nok\n  EOF\nset files (ls)\nEOF\n```", null],
     ["b-tab-terminator", "```bash\ncat <<-EOF\n\tok\n\tEOF\nmake; and true\n```", "; and"],
+    ["b-set-after-command", "```bash\ntrue; set files (ls)\n```", "set <name> ("],
+    ["b-set-wide-name", "```bash\nset  files (ls)\n```", "set <name> ("],
+    ["b-set-wide-paren", "```bash\nset files  (ls)\n```", "set <name> ("],
+    ["b-or-unspaced", "```bash\nmake;or true\n```", "; or"],
+    ["b-and-unspaced", "```bash\nmake;and true\n```", "; and"],
+    ["good-double-quoted-heredoc", '```bash\ncat <<"EOF"\nfixed; and pushed\nEOF\n```', null],
+    ["b-after-backslash-terminator", "```bash\ncat <<\\EOF\nok\nEOF\nmake; and true\n```", "; and"],
+    // A comment after code on the same line leaves that line's code to be read.
+    ["b-trailing-comment", "```bash\nmake; and true # then deploy\n```", "; and"],
+    ["good-indented-comment", "```bash\n  # build; and then test\n```", null],
+    // A quoted string touching the next word is replaced by a quote pair, so the word is not read as opening the line.
+    ["good-quote-before-set", '```bash\necho "x"set files (ls)\n```', null],
+    // The opening fence carries words after its tag, which are no command.
+    ["good-fence-meta", "```bash title; and more\necho hi\n```", null],
+    ["b-in-list-item", "- a step\n\n  ```fish\n  echo hi\n  ```", "tagged fish"],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
@@ -736,6 +754,13 @@ describe("skill-bash-blocks", () => {
   }
   it("a workflow file is read, not only SKILL.md", async () => {
     expectDetail(await findings("fx/b/workflows/w.md", "```fish\necho hi\n```\n", bashBlocks), "skill-bash-blocks", "tagged fish");
+  });
+  it("says what to write instead", async () => {
+    const found = await findings("fx/b-advice/SKILL.md", skill("name: b-advice", "```fish\necho hi\n```"), bashBlocks);
+    assert.deepEqual(
+      found.map((f) => f.detail),
+      ["a fenced block tagged fish: write it in Bash, the shell an agent runs commands through"],
+    );
   });
   it("names the fence's line for a tag and the command's line for a phrase", async () => {
     const body = "```fish\necho hi\n```\n\n```bash\necho one\nmake; or true\n```";
