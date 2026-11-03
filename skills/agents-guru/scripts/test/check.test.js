@@ -1324,6 +1324,7 @@ describe("skill-bundled-files", () => {
     ["same-line-block", "try: import helper\nexcept ImportError: pass"],
     ["after-semicolon", "import os; import helper"],
     ["from-wide", "from scripts  import helper"],
+    ["from-wide-before", "from  scripts import helper"],
     ["from-dot-lines-wide", "from . import  (\n    other,\n    helper,\n)"],
     ["backslash-touching", "import\\\n    helper"],
   ]) {
@@ -1697,6 +1698,7 @@ describe("skill-pinned-sources", () => {
   for (const [what, url] of pinned)
     it(`passes ${what}`, () => {
       const dir = mkSkill(`ok-${what.replace(/\W+/g, "-")}`, `## Inspiration\n\n- [A source](${url}): an idea.\n`);
+      assert.notEqual(run(dir).linted, null, what);
       assert.deepEqual(findings(dir), []);
     });
   it("reads each section heading whatever its level or case", () => {
