@@ -115,6 +115,17 @@ describe("skill-description, the raw sweep", () => {
     ["good-tight-number", "name: x\ndescription: Use when a<5 or b>3.", null],
     ["good-arrow", "name: x\ndescription: Use for a -> b and c <- d.", null],
     ["good-tag-in-comment", 'name: x\ndescription: "Plain." # <note>', null],
+    ["good-quoted-wide-comment", 'name: x\ndescription: "Plain."  # two spaces before the note', null],
+    ["good-inner-curly", "name: x\ndescription: Use for the repository’s own skills.", null],
+    ["good-inner-ampersand", "name: x\ndescription: Fix bugs & ship", null],
+    ["good-ends-in-no", "name: x\ndescription: Say no", null],
+    ["good-strip-block", "name: x\ndescription: |-\n  Use when reviewing X: safe & sound", null],
+    ["good-block-wide-comment", "name: x\ndescription: |  # two spaces before the note\n  Use when reviewing X: safe & sound", null],
+    // Only a header can follow the indicator, so text after it is a plain scalar with its traps.
+    ["t-indicator-then-text", "name: x\ndescription: >bad: value", "colon inside"],
+    ["good-apostrophe-then-comment-line", "name: x\ndescription: it's one\n  # c\ncompatibility: node 22", null],
+    ["t-spaced-blank-fold-comment", "name: x\ndescription: one\n  two\n  \n  three #x", "TRUNCATED"],
+    ["t-one-space-fold-comment", "name: x\ndescription: one\n two #x", "TRUNCATED"],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -125,6 +136,13 @@ describe("skill-description, the raw sweep", () => {
   }
   it("a file with no frontmatter at all has no description", async () => {
     expectDetail(await findings("fx/bare/SKILL.md", "body\n", description), "skill-description", "no description");
+  });
+  it("a truncation says how many characters it loses", async () => {
+    expectDetail(
+      await findings("fx/t-count/SKILL.md", skill("name: x\ndescription: review PR #N and more"), description),
+      "skill-description",
+      "loses 12 chars",
+    );
   });
   it("an XML tag's finding says what carries a placeholder instead", async () => {
     const found = await findings("fx/xml-remedy/SKILL.md", skill("name: x\ndescription: Reads <branch> names."), description);
@@ -185,6 +203,12 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["good-blank-then-key", "name: x\ndescription: one\n  two\n\ncompatibility: c", null],
     ["good-blank-then-comment", "name: x\ndescription: Use when doing X,\n  and when doing Y.\n\n  # unsure\ncompatibility: node 22", null],
     ["good-comment-line", "name: x\ndescription: one\n  # c\ncompatibility: node 22", null],
+    // A nested key is no top-level key, though its name is one.
+    ["good-nested-shadow", "name: x\nmetadata:\n  description: other\ndescription: real", null],
+    ["t-strip-over-cap", `name: x\ndescription: |-\n  ${"a".repeat(512)}\n  ${"b".repeat(512)}`, "1025 characters"],
+    ["t-scalar", "just a scalar", "not a mapping"],
+    ["t-comment-only", "# only a comment", "not a mapping"],
+    ["t-apostrophe-truncated", "name: x\ndescription: |\n  d\ncompatibility: node's 22 #c", "SILENTLY MUTATED"],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -193,6 +217,28 @@ describe("skill-frontmatter-parsed, the differential", () => {
       else expectClean(found, "skill-frontmatter-parsed");
     });
   }
+  it("an absent or bare description is never called the wrong type", async () => {
+    for (const fm of ["name: x", "name: x\ndescription:"]) {
+      const found = await findings("fx/x/SKILL.md", skill(fm), parsed);
+      assert.ok(!has(found, "skill-frontmatter-parsed", "not a string"), JSON.stringify(found));
+    }
+  });
+  it("a duplicate key is compared once, against the value that wins", async () => {
+    const found = await findings("fx/x/SKILL.md", skill("name: x\ndescription: |\n  d\ncompatibility: one\ncompatibility: two #c"), parsed);
+    assert.deepEqual(
+      found.map((f) => f.detail),
+      ['compatibility SILENTLY MUTATED: raw line says "one" but parses as "two"'],
+    );
+  });
+  it("a file with no frontmatter has nothing to parse", async () => {
+    expectClean(await findings("fx/x/SKILL.md", "body\n", parsed), "skill-frontmatter-parsed");
+  });
+  it("a closing delimiter with trailing spaces still closes", async () => {
+    expectClean(await findings("fx/x/SKILL.md", "---\nname: x\ndescription: |\n  Fine.\n---  \n\nbody\n", parsed), "skill-frontmatter-parsed");
+  });
+  it("a whitespace-only line after the closing delimiter is not part of the frontmatter", async () => {
+    expectClean(await findings("fx/x/SKILL.md", "---\nname: x\ndescription: |\n  Fine.\n---\n   \n\nbody\n", parsed), "skill-frontmatter-parsed");
+  });
   it("a blank line after the closing delimiter is not part of the frontmatter", async () => {
     // Without the trailing-blank strip the closing `---` is parsed as a second document and every real skill file reports a parse error.
     expectClean(await findings("fx/x/SKILL.md", skill('name: x\ndescription: |\n  Fine.\nmetadata:\n  version: "1.0"'), parsed), "skill-frontmatter-parsed");
@@ -338,6 +384,12 @@ describe("description(), the value a caller reads", () => {
     it(`a single-quoted scalar: ${raw}`, () => assert.equal(scalar(raw), want));
   }
   it("frontmatter holding only a comment has no description", () => assert.equal(descriptionValue(["# only a comment"]), ""));
+  it("an apostrophe inside a plain scalar opens no quote", () => assert.equal(scalar("it's fine # a note"), "it's fine"));
+  it("a scalar that is only a comment is empty", () => assert.equal(scalar(" # only a note"), ""));
+  it("the fallback ends a block at the first line with no indent", () => {
+    assert.equal(descriptionValue(["description: |", "  text", "other: [1, 2"]), "  text");
+    assert.equal(descriptionValue(["description: |", "  text", "other: [1, 2", "  more"]), "  text");
+  });
   it("the fallback reads a description on the first line", () => assert.equal(descriptionValue(["description: |", "  text", "other: [1, 2"]), "  text"));
   it("the fallback reads a plain description", () => assert.equal(descriptionValue(["name: x", "description: plain text", "other: [1, 2"]), "plain text"));
   it("an escaped quote inside a double-quoted scalar is the quote", () => assert.equal(scalar('"say \\"hi\\""'), 'say "hi"'));

@@ -10,7 +10,7 @@ export function frontmatter(params) {
   const body = lines.slice(1);
   // The default frontmatter pattern lets the closing delimiter swallow a blank line after it, so trailing blanks go before the delimiter does.
   while (body.length && body.at(-1).trim() === "") body.pop();
-  // Stryker disable next-line StringLiteral: the lines after the opening delimiter always hold the closing one, so body is never empty here.
+  // Stryker disable next-line StringLiteral,ConditionalExpression,Regex: the lines after the opening delimiter always end on the closing one, so the test always holds.
   if (/^---\s*$/.test(body.at(-1) ?? "")) body.pop();
   return body;
 }
@@ -49,6 +49,7 @@ export function scalar(raw) {
     if (m) return m[1].replace(/\\(.)/g, "$1");
   }
   if (raw.startsWith("'")) {
+    // Stryker disable next-line Regex: the pattern matches from the start whenever it matches at all, so its anchor changes nothing.
     const m = raw.slice(1).match(/^((?:[^']|'')*)'/);
     if (m) return m[1].replace(/''/g, "'");
   }
@@ -81,6 +82,7 @@ function rough(fm) {
   if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar ends at the first non-empty line with no indent.
+  // Stryker disable next-line EqualityOperator: the line past the end is undefined, which is neither empty nor indented, so the loop stops there anyway.
   for (let j = i + 1; j < fm.length && (fm[j] === "" || /^\s/.test(fm[j])); j++) body.push(fm[j]);
   return body.join("\n");
 }

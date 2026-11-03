@@ -21,6 +21,7 @@ export function defects(fm) {
   if (typeof c === "string" && authored(c).length > 500) bad.push(`compatibility is ${authored(c).length} characters, over the spec's 500`);
   // Truncation at ` #` drops the tail of whatever key it lands in, not only the description's.
   const seen = new Set();
+  // Stryker disable next-line EqualityOperator: the line past the end is undefined, which TOP_LEVEL never matches.
   for (let i = 0; i < fm.length; i++) {
     const m = TOP_LEVEL.exec(fm[i]);
     if (!m) continue;

@@ -11,9 +11,11 @@ export function defects(fm) {
   if (!dl.length) bad.push("no description: never advertised");
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
   // The last `description:` line is swept because that is the one a last-wins parser loads, and sweeping the first would report the duplicate and call the winning value clean.
+  // Stryker disable next-line StringLiteral: with no description line, raw meets only the tests for an opening quote, which this fallback never opens with.
   const raw = (dl.at(-1) || "").slice(12).trim();
   const block = dl.length && BLOCK_SCALAR.test(raw);
   // The value is joined the way YAML folds continuation lines because a continuation can carry the same traps as the first line and a legal fold is not a defect.
+  // Stryker disable next-line StringLiteral: with no description line, the value meets only the XML tag test, which text holding no tag passes.
   const value = dl.length ? folded(fm, fm.lastIndexOf(dl.at(-1))) : "";
   // Only a value opening with a curly quote is pretending to be quoted, since an apostrophe inside a value is harmless and a block scalar is immune.
   if (!block && /^[“”‘’]/.test(raw)) bad.push("curly quotes are not YAML quotes");
@@ -30,8 +32,10 @@ export function defects(fm) {
   } else if (raw.startsWith("'")) {
     const m = value.slice(1).match(/^((?:[^']|'')*)'(.*)$/);
     if (!m || !TRAILING.test(m[2])) bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
+    // Stryker disable next-line ConditionalExpression: with no description line the value is empty, and an empty value passes every plain-scalar test.
   } else if (dl.length) {
     const cut = value.search(/\s#/);
+    // Stryker disable next-line EqualityOperator: a value opens on a non-space character or on a folded line that cannot open with #, so a cut is never at 0.
     if (cut >= 0) bad.push(`TRUNCATED at ' #', silently loses ${value.length - cut} chars`);
     if (/^[&*![{%@]/.test(raw)) bad.push(`leading ${raw[0]} changes meaning or is a parse error`);
     if (/:(\s|$)/.test(value)) bad.push("colon inside or ending an unquoted value: parse error");
