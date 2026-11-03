@@ -1694,6 +1694,21 @@ describe("carriesInstallForm", () => {
   it("an install command in prose is not a fenced block", () => assert.equal(carriesInstallForm("# A skill\n\nnpm install -g thing, one day.\n"), false));
   it("a README with neither carries no install form", () => assert.equal(carriesInstallForm("# A skill\n\nWhat it does.\n"), false));
   it("the word install inside a sentence is not a heading", () => assert.equal(carriesInstallForm("# A skill\n\nYou install it somehow.\n"), false));
+  it("a heading's marks inside a sentence open no heading", () => assert.equal(carriesInstallForm("# A skill\n\nSee ## Install below.\n"), false));
+  it("a heading with two spaces after its marks counts", () => assert.ok(carriesInstallForm("# A skill\n\n##  Install\n\ntext\n")));
+  it("a command later in a fenced line is not the line's command", () =>
+    assert.equal(carriesInstallForm("# A skill\n\n```bash\necho then npm install x\n```\n"), false));
+  it("an indented command in an indented fence counts", () => assert.ok(carriesInstallForm("# A skill\n\n  ```bash\n  npm install x\n  ```\n")));
+  it("a command on a fence's second line counts", () => assert.ok(carriesInstallForm("# A skill\n\n```bash\necho hi\nnpm install x\n```\n")));
+  it("backticks inside a sentence open no fence", () => assert.ok(carriesInstallForm("# A skill\n\nWrite ``` to open a fence.\n\n## Install\n")));
+  it("a line opening with one backtick or one tilde opens no fence", () => {
+    assert.ok(carriesInstallForm("# A skill\n\n`skills add` is how.\n\n## Install\n"));
+    assert.ok(carriesInstallForm("# A skill\n\n~ marks a home folder.\n\n## Install\n"));
+  });
+  it("a heading after a closed fence is prose again", () => assert.ok(carriesInstallForm("# A skill\n\n```text\nx\n```\n\n## Install\n")));
+  it("a shorter fence inside a longer one closes nothing", () =>
+    assert.ok(carriesInstallForm("# A skill\n\n````markdown\n```bash\nnpm install x\n```\n````\n")));
+  it("a tilde fence inside a backtick fence closes nothing", () => assert.ok(carriesInstallForm("# A skill\n\n```markdown\n~~~\nnpm install x\n```\n")));
 });
 
 describe("skill-referenced-paths", () => {

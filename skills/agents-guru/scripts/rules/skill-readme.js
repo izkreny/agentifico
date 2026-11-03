@@ -9,7 +9,9 @@ const INSTALL_COMMAND = /^[^\S\n]*(?:skills add|npm install|npm ci|mise use|clau
 
 // The scan keeps the opening fence's own length so a shorter fence nested inside a longer one cannot close it early.
 function fencedAndProse(readme) {
+  // Stryker disable next-line ArrayDeclaration: the lists are read only through the install patterns, which a seeded line holding no # and no command never matches.
   const fenced = [];
+  // Stryker disable next-line ArrayDeclaration: the lists are read only through the install patterns, which a seeded line holding no # and no command never matches.
   const prose = [];
   let open = null;
   for (const line of readme.split("\n")) {
