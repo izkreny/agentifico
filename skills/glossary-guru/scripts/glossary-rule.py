@@ -12,6 +12,7 @@ Glossary/Terms.yml under the StylesPath in the project's Vale config, or under
 
 Exit 0: the rule and GLOSSARY.md were written. A glossary naming no drift word gets a rule that
 swaps nothing, since `BasedOnStyles = Glossary` fails a Vale run with no style.
+A word with stray spaces is read tidied, and each one is named on stderr.
 Exit 1: the glossary is not valid, or cannot become a correct rule; each reason
 is on stderr, and nothing is written.
 Exit 2: an argument, no single readable glossary, no single readable Vale
@@ -237,14 +238,22 @@ def tidy(word):
 
 # WHY: Vale reads a run of spaces as one and a swap key with a space at either end matches no word, so both are typos to tidy rather than refuse.
 def tidy_spaces(glossary):
+    tidied = []
+
+    def note(word):
+        if tidy(word) != word:
+            tidied.append(f"{json.dumps(word, ensure_ascii=False)} is read as {json.dumps(tidy(word), ensure_ascii=False)}")
+        return tidy(word)
+
     terms = glossary.get("terms") if isinstance(glossary, dict) else None
     for entry in terms if isinstance(terms, list) else []:
         if isinstance(entry, dict):
             if "term" in entry:
-                entry["term"] = tidy(entry["term"])
+                entry["term"] = note(entry["term"])
             for key in ("avoid", "except"):
                 if isinstance(entry.get(key), list):
-                    entry[key] = [tidy(word) for word in entry[key]]
+                    entry[key] = [note(word) for word in entry[key]]
+    return tidied
 
 
 def holds_phrase(text, phrases):
@@ -330,7 +339,11 @@ def main():
     styles_path = read_config(config)[0] if config else None
     glossary, problems = load_glossary(read_file(source))
     if not problems:
-        tidy_spaces(glossary)
+        tidied = tidy_spaces(glossary)
+        if tidied:
+            print(f"glossary-rule: {source} holds stray spaces, read as below; fix them in {source}:", file=sys.stderr)
+            for line in tidied:
+                print(f"  {line}", file=sys.stderr)
         problems = glossary_problems(glossary)
     if not problems:
         entries = [(entry["term"], entry.get("avoid", [])) for entry in glossary["terms"]]

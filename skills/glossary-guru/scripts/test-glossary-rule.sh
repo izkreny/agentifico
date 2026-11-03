@@ -143,6 +143,7 @@ end
 EOF
 
 expect_exit "a full glossary" 0
+if [ -s "$PROJECT/stderr" ]; then fail "a tidy glossary prints a warning: $(cat "$PROJECT/stderr")"; else pass "a tidy glossary prints no warning"; fi
 RULE="$PROJECT/.vale/styles/Glossary/Terms.yml"
 MARKDOWN="$PROJECT/docs/GLOSSARY.md"
 
@@ -617,6 +618,7 @@ new_project spaced-term
 terms '[{"term": " Order ", "definition": "A request to buy.", "avoid": ["purchase"]}]'
 expect_exit "a term with a space at either end" 0
 if grep -qxF '### Order' "$PROJECT/GLOSSARY.md" && grep -qF '"purchase": "Order"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "the term loses the space at its ends"; else fail "the term keeps a space at an end: $(cat "$PROJECT/GLOSSARY.md")"; fi
+if grep -qF '" Order " is read as "Order"' "$PROJECT/stderr"; then pass "a stripped term is named"; else fail "a stripped term goes unnamed: $(cat "$PROJECT/stderr")"; fi
 
 new_project issue-example
 printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy.", "avod": ["purchase"]}]}\n' >"$PROJECT/GLOSSARY.json"
@@ -810,6 +812,7 @@ terms '[{"term": "Shopping  Cart", "definition": "What a customer is about to bu
 expect_exit "a glossary holding doubled spaces" 0
 if grep -qF '### Shopping Cart' "$PROJECT/GLOSSARY.md" && grep -qxF -- '- shopping basket' "$PROJECT/GLOSSARY.md" && grep -qxF -- '- take into account' "$PROJECT/GLOSSARY.md"; then pass "GLOSSARY.md shows each one single-spaced"; else fail "GLOSSARY.md keeps a doubled space: $(cat "$PROJECT/GLOSSARY.md")"; fi
 if grep -qF '"shopping basket": "Shopping Cart"' "$PROJECT/.vale/styles/Glossary/Terms.yml" && grep -qF '"(?i)take into account"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "the rule holds each one single-spaced"; else fail "the rule keeps a doubled space: $(cat "$PROJECT/.vale/styles/Glossary/Terms.yml")"; fi
+if grep -qF '"shopping   basket" is read as "shopping basket"' "$PROJECT/stderr" && grep -qF '"Shopping  Cart" is read as "Shopping Cart"' "$PROJECT/stderr" && grep -qF 'fix them in GLOSSARY.json' "$PROJECT/stderr"; then pass "each tidied word is named, with the file to fix"; else fail "a tidied word goes unnamed: $(cat "$PROJECT/stderr")"; fi
 
 new_project masked-by-term
 terms '[{"term": "Line Item", "definition": "One thing on an order.", "avoid": ["line", "order line item"]}]'
