@@ -601,16 +601,22 @@ expect_refusal "an empty word" "must be letters"
 if grep -qF "holds a drift word" "$PROJECT/stderr"; then fail "a refused word reached a later check: $(cat "$PROJECT/stderr")"; else pass "a refused word reaches no later check"; fi
 
 count=0
-for word in ' purchase' 'purchase ' ' '; do
+for word in ' purchase' 'purchase ' '  purchase  '; do
   count=$((count + 1))
   new_project spaced-word-$count
   terms "[{\"term\": \"Order\", \"definition\": \"A request to buy.\", \"avoid\": [\"$word\"]}]"
-  expect_refusal "the word '$word'" "no space at either end"
+  expect_exit "the word '$word'" 0
+  if grep -qF '"purchase": "Order"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "the word '$word' loses the space at its ends"; else fail "the word '$word' keeps a space at an end: $(cat "$PROJECT/.vale/styles/Glossary/Terms.yml")"; fi
 done
 
+new_project spaced-only
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": ["  "]}]'
+expect_refusal "a word that is only spaces" "must be letters"
+
 new_project spaced-term
-terms '[{"term": " Order", "definition": "A request to buy."}]'
-expect_refusal "a term with a space at one end" "no space at either end"
+terms '[{"term": " Order ", "definition": "A request to buy.", "avoid": ["purchase"]}]'
+expect_exit "a term with a space at either end" 0
+if grep -qxF '### Order' "$PROJECT/GLOSSARY.md" && grep -qF '"purchase": "Order"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "the term loses the space at its ends"; else fail "the term keeps a space at an end: $(cat "$PROJECT/GLOSSARY.md")"; fi
 
 new_project issue-example
 printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy.", "avod": ["purchase"]}]}\n' >"$PROJECT/GLOSSARY.json"

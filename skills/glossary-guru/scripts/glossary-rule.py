@@ -147,9 +147,8 @@ def is_one_line(value):
     return isinstance(value, str) and value.splitlines() == [value] and bool(value.strip()) and not SURROGATE.search(value)
 
 
-# WHY: JSON keeps space at either end of a word, and a swap key carrying it would not match the word on its own.
 def is_plain(word):
-    return isinstance(word, str) and word == word.strip() and bool(PLAIN_WORDS.fullmatch(word))
+    return isinstance(word, str) and bool(PLAIN_WORDS.fullmatch(word))
 
 
 def key_problems(found, allowed, required, where):
@@ -166,7 +165,7 @@ def word_problems(entry, key, where):
     problems = []
     for word in words:
         if not is_plain(word):
-            problems.append(f"{where}: {json.dumps(word, ensure_ascii=False)} under '{key}' must be {PLAIN_CHARACTERS}, with more of the phrase after it and no space at either end")
+            problems.append(f"{where}: {json.dumps(word, ensure_ascii=False)} under '{key}' must be {PLAIN_CHARACTERS}, with more of the phrase after it")
         elif key == "except" and " " not in word:
             problems.append(f"{where}: '{word}' {NO_SPACE}")
     return problems
@@ -179,7 +178,7 @@ def entry_problems(entry, number):
     where = term if is_one_line(term) else f"entry {number}"
     problems = key_problems(entry, ENTRY_KEYS, ENTRY_REQUIRED, where)
     if "term" in entry and not is_plain(term):
-        problems.append(f"{where}: the term must be {PLAIN_CHARACTERS}, with more of the term after it and no space at either end")
+        problems.append(f"{where}: the term must be {PLAIN_CHARACTERS}, with more of the term after it")
     if "definition" in entry and not is_one_line(entry["definition"]):
         problems.append(f"{where}: the definition {ONE_LINE}")
     return problems + word_problems(entry, "avoid", where) + word_problems(entry, "except", where)
@@ -232,12 +231,20 @@ def repeated_terms(entries):
     return problems
 
 
-# WHY: Vale reads a run of spaces as one, so a doubled space typed into a phrase would slip past every check that compares phrases.
-def single_spaced(entry):
-    for key in ("avoid", "except"):
-        if key in entry:
-            entry[key] = [re.sub(" +", " ", word) for word in entry[key]]
-    entry["term"] = re.sub(" +", " ", entry["term"])
+def tidy(word):
+    return re.sub(" +", " ", word).strip(" ") if isinstance(word, str) else word
+
+
+# WHY: Vale reads a run of spaces as one and a swap key with a space at either end matches no word, so both are typos to tidy rather than refuse.
+def tidy_spaces(glossary):
+    terms = glossary.get("terms") if isinstance(glossary, dict) else None
+    for entry in terms if isinstance(terms, list) else []:
+        if isinstance(entry, dict):
+            if "term" in entry:
+                entry["term"] = tidy(entry["term"])
+            for key in ("avoid", "except"):
+                if isinstance(entry.get(key), list):
+                    entry[key] = [tidy(word) for word in entry[key]]
 
 
 def holds_phrase(text, phrases):
@@ -323,10 +330,9 @@ def main():
     styles_path = read_config(config)[0] if config else None
     glossary, problems = load_glossary(read_file(source))
     if not problems:
+        tidy_spaces(glossary)
         problems = glossary_problems(glossary)
     if not problems:
-        for entry in glossary["terms"]:
-            single_spaced(entry)
         entries = [(entry["term"], entry.get("avoid", [])) for entry in glossary["terms"]]
         exceptions = [phrase for entry in glossary["terms"] for phrase in entry.get("except", [])]
         swap, swap_problems = build_swap(entries)
