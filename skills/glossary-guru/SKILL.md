@@ -1,7 +1,7 @@
 ---
 name: glossary-guru
 metadata:
-  version: "2.0.1"
+  version: "2.1.0"
 description: |
   Load this as soon as a project turns out to hold a docs/GLOSSARY.json or a GLOSSARY.json, before writing code names, docs, commit messages or issue text in its domain, because it says what to do when a word disagrees with the file, which the file alone does not. Owns a project's glossary: its format, challenging a word that sits on an avoid list or contradicts a definition, adding, changing, folding or removing a term on the owner's decision, and generating a Vale rule and a readable GLOSSARY.md from it. Use when asked to define a term, settle what a word means, start a glossary or rename a domain concept; when two words compete for one concept; and when asked to catch a drifted word with Vale. Not for a skill's own terms, which stay inside that skill, not for ADRs, and not for general programming vocabulary.
 ---
