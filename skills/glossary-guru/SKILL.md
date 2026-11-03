@@ -96,7 +96,7 @@ That checks nothing. The check is a separate Vale run from inside the project, b
 vale <repo-root>
 ```
 
-In a project's local CI, run the script before Vale, so Vale reads a rule that matches the JSON file.
+In a project's local CI, run the script before Vale, so Vale always reads a rule that matches the JSON file.
 
 The rule lands at `<repo-root>/.vale/styles/Glossary/Terms.yml`, or in the same `Glossary` folder under the `StylesPath` in the project's Vale config where it names one.
 
