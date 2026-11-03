@@ -1926,3 +1926,122 @@ describe("paths.js", () => {
     assert.equal(owningSkill(path.join(tmp, "good-too", "SKILL.md"), path.join(tmp, "good")), null);
   });
 });
+
+describe("check.js, the run's own bookkeeping", () => {
+  const write = (file, text) => {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, text);
+  };
+  const stubVale = (name, version, lint = "{}") => {
+    const bin = path.join(tmp, "vale-stubs", name);
+    write(path.join(bin, "vale"), `#!/bin/sh\nif [ "$1" = --version ]; then echo "vale version ${version}"; else printf '%s\\n' '${lint}'; fi\n`);
+    fs.chmodSync(path.join(bin, "vale"), 0o755);
+    return { ...process.env, PATH: bin };
+  };
+  const stopMatcher = JSON.stringify({ hooks: { Stop: [{ matcher: "x", hooks: [{ type: "command", command: "true" }] }] } }, null, 2);
+  const plugin = (dir, name) => {
+    write(path.join(dir, ".claude-plugin", "plugin.json"), JSON.stringify({ name }));
+    write(path.join(dir, "hooks", "hooks.json"), stopMatcher);
+  };
+
+  it("counts each kind of file once, by the extension that ends its name", () => {
+    const dir = path.join(tmp, "kinds");
+    mk(dir, block("kinds"));
+    for (const [file, text] of [
+      ["notes.js.md", "# Notes\n\nbody\n"],
+      ["notes.yml.md", "# Notes\n\nbody\n"],
+      ["scripts/a.js", "// A comment.\n"],
+      ["scripts/b.py", "# A comment.\n"],
+      ["c.yml", "key: value\n"],
+    ])
+      write(path.join(dir, file), text);
+    assert.match(run(dir).out, /^7 files checked, /m);
+  });
+  it("a target holding code and no markdown checks nothing", () => {
+    const dir = path.join(tmp, "code-only");
+    write(path.join(dir, "a.js"), "// A comment.\n");
+    assert.match(run(dir).out, /no markdown file found under .*code-only: nothing was checked/);
+  });
+  it("a file two targets reach keeps the root of the first", () => {
+    const refs = path.join(tmp, "refs");
+    const r = run([refs, path.join(refs, "skills", "inner", "workflows", "deep", "only-root.md")], process.env, tmp);
+    assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/, r.out);
+  });
+  it("each root's files are linted under that root alone", () => {
+    const r = run([path.join(tmp, "refs"), path.join(tmp, "good", "SKILL.md")], process.env, tmp);
+    assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/, r.out);
+  });
+  it("names the skills found in sorted order", () => {
+    const dir = path.join(tmp, "skill-order");
+    mk(path.join(dir, "a-b"), block("a-b"));
+    mk(path.join(dir, "a"), block("a"));
+    assert.match(run(dir).out, /skill\(s\) found under .*\n {2}a\n {2}a-b\n/);
+  });
+  it("names dangling links in sorted order, whatever order they were made in", () => {
+    for (const order of [
+      ["b.md", "a.md"],
+      ["a.md", "b.md"],
+    ]) {
+      const dir = path.join(tmp, `dangling-${order.join("-")}`);
+      mk(dir, block(path.basename(dir)));
+      for (const file of order) fs.symlinkSync("nowhere.md", path.join(dir, file));
+      assert.match(run(dir).out, /^dangling links: 2\n {2}a\.md dangling-link .*\n {2}b\.md dangling-link /m, order.join());
+    }
+  });
+  it("a YAML file that does not parse adds to the issues", () => {
+    const dir = path.join(tmp, "yaml-bad");
+    mk(dir, block("yaml-bad"));
+    write(path.join(dir, "bad.yml"), "key: [1\n");
+    assert.match(run(dir).out, /^\d+ files checked, 1 issues, 0 warnings$/m);
+  });
+  it("a plugin's issues and warnings reach the run's totals", () => {
+    assert.match(run(path.join(tmp, "plugins", "plug")).out, /^\d+ files checked, 3 issues, 0 warnings$/m);
+    assert.match(run(path.join(tmp, "plugins", "partial")).out, /^\d+ files checked, 0 issues, 1 warnings$/m);
+  });
+  it("a plugin inside node_modules is not read", () => {
+    const dir = path.join(tmp, "vendored");
+    mk(dir, block("vendored"));
+    plugin(path.join(dir, "node_modules", "dep"), "dep");
+    assert.match(run(dir).out, /^plugin files: none$/m);
+  });
+  it("a plugin reached through a linked folder is read", () => {
+    const dir = path.join(tmp, "linked-plugin");
+    mk(dir, block("linked-plugin"));
+    plugin(path.join(tmp, "linked-plugin-real"), "real");
+    fs.symlinkSync(path.join(tmp, "linked-plugin-real"), path.join(dir, "real"));
+    assert.match(run(dir).out, /^ {2}real\/hooks\/hooks\.json:\d+ plugin-hooks /m);
+  });
+  it("a .claude-plugin that is a file marks no plugin", () => {
+    const dir = path.join(tmp, "marker-file");
+    mk(dir, block("marker-file"));
+    write(path.join(dir, "fake", ".claude-plugin"), "not a folder\n");
+    write(path.join(dir, "fake", "hooks", "hooks.json"), stopMatcher);
+    assert.match(run(dir).out, /^plugin files: none$/m);
+  });
+  it("reads plugins in sorted order, whatever order they were made in", () => {
+    for (const order of [
+      ["b", "a"],
+      ["a", "b"],
+    ]) {
+      const dir = path.join(tmp, `plugin-order-${order.join("-")}`);
+      mk(dir, block(path.basename(dir)));
+      for (const name of order) plugin(path.join(dir, name), name);
+      assert.match(run(dir).out, /^ {2}a\/hooks\/hooks\.json:\d+ .*\n {2}b\/hooks\/hooks\.json:\d+ /m, order.join());
+    }
+  });
+  it("reads Vale's version whatever the width of each part", () => {
+    const later = run(path.join(tmp, "good"), stubVale("13.0.0", "13.0.0")).out;
+    assert.doesNotMatch(later, /prose rules not run/, later);
+    const wide = run(path.join(tmp, "good"), stubVale("3.24.10", "3.24.10")).out;
+    assert.match(wide, /vale 3\.24\.10 is older than 3\.25/, wide);
+  });
+  it("refuses an older major whatever its minor, and passes a newer major whatever its minor", () => {
+    assert.match(run(path.join(tmp, "good"), stubVale("2.30.0", "2.30.0")).out, /vale 2\.30\.0 is older than 3\.25/);
+    assert.doesNotMatch(run(path.join(tmp, "good"), stubVale("4.0.0", "4.0.0")).out, /prose rules not run/);
+  });
+  it("Vale printing only whitespace has found nothing", () => {
+    const r = run(path.join(tmp, "good"), stubVale("blank", "3.25.0", " "));
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^prose rules: none$/m);
+  });
+});

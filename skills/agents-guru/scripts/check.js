@@ -153,7 +153,9 @@ for (const file of files) {
   // Stryker disable next-line ArrayDeclaration: markdownlint returns an entry for every file it is handed, so the fallback is never read.
   for (const e of results[file] ?? []) {
     if (withholds(e.ruleNames)) continue;
+    // Stryker disable next-line MethodExpression: every custom rule carries one name and no built-in rule's names are in the set, so some and every agree.
     const warning = e.ruleNames.some((name) => warningRuleNames.has(name));
+    // Stryker disable next-line MethodExpression: every custom rule carries one name and no built-in rule's names are in the set, so some and every agree.
     const proseShape = e.ruleNames.some((name) => proseShapeRuleNames.has(name));
     if (!warning) issues++;
     else if (proseShape) proseShapeWarnings++;
@@ -161,6 +163,7 @@ for (const file of files) {
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
     const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")}${warning ? " (warning)" : ""} ${e.ruleDescription}${detail}${context}`;
+    // Stryker disable next-line MethodExpression: every custom rule carries one name and no built-in rule's names are in the set, so some and every agree.
     const bucket = e.ruleNames.some((name) => contractRuleNames.has(name)) ? contractFindings : proseShape ? proseShapeFindings : generalFindings;
     bucket.push(line);
   }
@@ -179,6 +182,7 @@ const commentsOf = (source) => {
   const lines = new YAML.LineCounter();
   const found = [];
   const walk = (node) => {
+    // Stryker disable next-line ConditionalExpression: an array walked as an object reaches the same items through Object.values.
     if (Array.isArray(node)) node.forEach(walk);
     else if (node && typeof node === "object") {
       if (node.type === "comment") found.push({ ...lines.linePos(node.offset), text: node.source });
@@ -223,6 +227,7 @@ report("yaml files", yamlFindings, yamlWarnings ? `${yamlFindings.length - yamlW
 
 // The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 const pluginDirs = new Set();
+// Stryker disable next-line MethodExpression: a glob whose folder is a file yields nothing, so a file target adds no plugin either way.
 for (const target of targets.filter((target) => fs.statSync(target).isDirectory()))
   for await (const marker of glob("**/.claude-plugin", { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }))
     pluginDirs.add(path.dirname(path.join(target, marker)));
@@ -273,6 +278,7 @@ if (!valeVersion && versionRun.status === 0)
   proseNotRun(
     `could not read Vale's version from "${versionRun.stdout.trim()}": the prose rules did not run. Install Vale ${minVale} or later, per references/setup.md, and run the check again.`,
   );
+// Stryker disable next-line ArrayDeclaration: with no version read, major and minor are read only behind a test of valeVersion.
 const [major, minor] = valeVersion ? [Number(valeVersion[1]), Number(valeVersion[2])] : [];
 if (valeVersion && (major < MIN_VALE[0] || (major === MIN_VALE[0] && minor < MIN_VALE[1])))
   proseNotRun(
@@ -283,6 +289,7 @@ if (valeVersion && (major < MIN_VALE[0] || (major === MIN_VALE[0] && minor < MIN
 const valeFiles = [...files, ...codeFiles];
 const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...valeFiles], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 // A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
+// Stryker disable next-line ConditionalExpression,StringLiteral: a missing binary also sets vale.error, which the last test catches.
 if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error)
   proseNotRun(
     vale.error?.code === "ENOENT"
@@ -298,6 +305,7 @@ const proseFindings = [];
 for (const file of valeFiles) {
   const rel = path.relative(base, file);
   for (const a of alerts[file] ?? []) {
+    // Stryker disable next-line ConditionalExpression,ArrayDeclaration: a Vale check is named Style.Rule, and no skippable rule's name holds a dot.
     if (withholds([a.Check])) continue;
     if (a.Severity === "error") {
       issues++;
