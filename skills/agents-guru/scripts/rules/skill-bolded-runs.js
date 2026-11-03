@@ -6,6 +6,7 @@ export const CAP = 5;
 function walk(tokens, fn) {
   for (const t of tokens) {
     fn(t);
+    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
     if (t.children) walk(t.children, fn);
   }
 }
@@ -17,6 +18,7 @@ export default {
   parser: "micromark",
   function(params, onError) {
     walk(params.parsers.micromark.tokens, (list) => {
+      // Stryker disable next-line ConditionalExpression: items finds no item in a token that is not a list, so the guard only saves the search.
       if (!isList(list)) return;
       let run = [];
       const flush = () => {

@@ -18,6 +18,7 @@ const ARITHMETIC = /\(\(.*?\)\)/g;
 function heredocTerminator(text) {
   const spans = [...text.matchAll(QUOTED), ...text.matchAll(ARITHMETIC)].map((m) => [m.index, m.index + m[0].length]);
   for (const m of text.matchAll(HEREDOC)) {
+    // Stryker disable next-line EqualityOperator: a quoted or arithmetic span opens on a quote or a parenthesis, never on the < a heredoc starts at.
     if (!spans.some(([start, end]) => m.index >= start && m.index < end)) return { word: m[2] ?? m[3] ?? m[4] ?? m[5], tabs: m[1] === "-" };
   }
   return null;
@@ -28,12 +29,14 @@ const ADVICE = "write it in Bash, the shell an agent runs commands through";
 function walk(tokens, fn) {
   for (const token of tokens) {
     fn(token);
+    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
     if (token.children) walk(token.children, fn);
   }
 }
 
 export const infoOf = (fenced) => {
   const info = fenced.children[0].children.find((c) => c.type === "codeFencedFenceInfo");
+  // Stryker disable next-line MethodExpression,Regex: micromark's info token is the first word alone, so it carries no space to trim or split on.
   return info ? info.text.trim().split(/\s+/)[0] : "";
 };
 

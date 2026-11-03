@@ -6,6 +6,7 @@ const IS_PROSE_SPAN = (token) => token.type === "codeTextData";
 function walk(tokens, fn) {
   for (const token of tokens) {
     fn(token);
+    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
     if (token.children) walk(token.children, fn);
   }
 }
