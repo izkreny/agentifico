@@ -28,6 +28,7 @@ export default {
       onError({
         lineNumber: token.startLine,
         detail: `${span} does not resolve against this skill, this file's directory or the target`,
+        // Stryker disable next-line OptionalChaining: a token's start line is always one of the file's lines.
         context: params.lines[token.startLine - 1]?.trim(),
       });
     });

@@ -215,6 +215,7 @@ describe("skill-name", () => {
     ["trailing-hyphen-", "name: trailing-hyphen-\ndescription: |\n  x", "hyphen"],
     // The name is all lowercase letters, so only the length clause can decide it.
     [`${"a".repeat(65)}`, `name: ${"a".repeat(65)}\ndescription: |\n  x`, "over the spec's 64"],
+    [`${"a".repeat(64)}`, `name: ${"a".repeat(64)}\ndescription: |\n  x`, null],
   ];
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {
@@ -298,6 +299,10 @@ describe("skill-fork", () => {
   }
   it("leaves a file other than SKILL.md alone", async () => {
     expectClean(await findings("fx/f/workflows/w.md", skill("agent: Explore"), fork), "skill-fork");
+  });
+  it("frontmatter that loads as no mapping holds no agent", async () => {
+    expectClean(await findings("fx/f-comment/SKILL.md", skill("# only a comment"), fork), "skill-fork");
+    expectClean(await findings("fx/f-scalar/SKILL.md", skill("just a scalar"), fork), "skill-fork");
   });
 });
 
@@ -1329,6 +1334,10 @@ describe("skill-injected-commands", () => {
     ["good-fence-tab", "```!\na\tb\n```", null],
     ["good-other-fence-control", "```bash\na\u0007b\n```", null],
     ["good-untagged-fence-control", "```\na\u0007b\n```", null],
+    // The fence's own line is no command, so a control character in its meta stops nothing.
+    ["good-fence-meta-control", "```! a\u0007b\nnode --version\n```", null],
+    ["good-bang-before-bold", "Wow!**bold** text.", null],
+    ["good-span-opens-paragraph", "`ls` opens the paragraph.", null],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {

@@ -98,7 +98,7 @@ beforeAll(() => {
   fs.writeFileSync(path.join(inner, "workflows", "deep", "only-root.md"), "Reaches the target root alone: `top.md`.\n");
   fs.appendFileSync(
     path.join(inner, "SKILL.md"),
-    "\nA span `workflows/new.md` resolves and `workflows/gone.md` does not.\n\nNot paths: `feat/GHI-50_login-form`, `github/gh-stack`, `/usr/bin/env`, `~/.agents/skills/x/SKILL.md`, `docs/*.md`, `E:/work/notes.md`.\n\nThe example-path case, quoted so the rule never sees it: 'workflows/deliberately-absent.md'.\n\nA path the served repository holds, named by its root: `<repo-root>/.agents/gh-solo.md`.\n\n```bash\ncat workflows/also-gone.md\n```\n",
+    "\nA span `workflows/new.md` resolves and `workflows/gone.md` does not.\n\nNot paths: `feat/GHI-50_login-form`, `github/gh-stack`, `/usr/bin/env`, `~/.agents/skills/x/SKILL.md`, `docs/*.md`, `E:/work/notes.md`.\n\nThe example-path case, quoted so the rule never sees it: 'workflows/deliberately-absent.md'.\n\nA path the served repository holds, named by its root: `<repo-root>/.agents/gh-solo.md`.\n\n```bash\ncat workflows/also-gone.md\n```\n\nA fence holding the path alone:\n\n```text\nworkflows/fenced-gone.md\n```\n",
   );
 
   mk(path.join(tmp, "no-readme"), block("no-readme"), null);
@@ -1482,6 +1482,15 @@ describe("enclosingSkill", () => {
     // path.sep appended to "/" is "//", which no resolved path opens with.
     assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), "/"), path.join(tmp, "ab"));
   });
+  it("a skill that is the target itself still encloses one inside it", () => {
+    assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "SKILL.md"), path.join(tmp, "ab")), path.join(tmp, "ab"));
+  });
+  it("the search climbs past a directory that holds no skill", () => {
+    assert.equal(enclosingSkill(path.join(tmp, "ab", "x", "y", "z", "SKILL.md"), tmp), path.join(tmp, "ab", "x"));
+  });
+  it("the search ends at the filesystem root when no skill encloses the file", () => {
+    assert.equal(enclosingSkill(path.join(tmp, "no-skill-here", "x", "SKILL.md"), "/"), null);
+  });
 });
 
 describe("skill-readme", () => {
@@ -1697,6 +1706,7 @@ describe("skill-referenced-paths", () => {
   it("reads no fenced content, so a missing path inside a fence passes", () => {
     const r = run(path.join(tmp, "refs"));
     assert.doesNotMatch(r.out, /also-gone\.md/);
+    assert.doesNotMatch(r.out, /fenced-gone\.md/);
   });
   it("each resolution base is reached by a span that reaches no other", () => {
     const r = run(path.join(tmp, "refs"));
