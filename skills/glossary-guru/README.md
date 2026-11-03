@@ -36,6 +36,8 @@ The script only writes those files. Run the check itself from inside the project
 vale <repo-root>
 ```
 
+Where your project runs its checks on your own machine, run the script before Vale there, so Vale always reads a rule that matches the JSON file.
+
 A drifted word is a warning, which leaves the run at exit 0. To make it fail, add `Glossary.Terms = error`, as the comments in `assets/vale.ini.template` explain.
 
 ## Sources
