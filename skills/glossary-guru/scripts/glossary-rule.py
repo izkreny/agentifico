@@ -241,7 +241,7 @@ def tidy_spaces(glossary):
     tidied = []
 
     def note(word):
-        if tidy(word) != word:
+        if isinstance(word, str) and tidy(word) != word:
             tidied.append(f"{json.dumps(word, ensure_ascii=False)} is read as {json.dumps(tidy(word), ensure_ascii=False)}")
         return tidy(word)
 

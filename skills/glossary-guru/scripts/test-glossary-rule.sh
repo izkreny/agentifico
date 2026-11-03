@@ -728,6 +728,11 @@ new_project number-in-avoid
 terms '[{"term": "Order", "definition": "A request to buy.", "avoid": [5]}]'
 expect_refusal "a number in an avoid list" "Order: 5 under 'avoid' must be"
 
+new_project nan-in-avoid
+terms '[{"term": "Order", "definition": "A request to buy.", "avoid": [NaN]}]'
+expect_refusal "a NaN in an avoid list" "Order: NaN under 'avoid' must be"
+if grep -qF "stray spaces" "$PROJECT/stderr"; then fail "a NaN reads as a stray space: $(cat "$PROJECT/stderr")"; else pass "a NaN does not read as a stray space"; fi
+
 new_project string-flagged
 printf '{"project": "Shop", "summary": "A shop.", "terms": [{"term": "Order", "definition": "A request to buy."}], "flagged_ambiguities": "one"}\n' >"$PROJECT/GLOSSARY.json"
 expect_refusal "a string where the flagged list belongs" "top level: 'flagged_ambiguities' must be a list"
