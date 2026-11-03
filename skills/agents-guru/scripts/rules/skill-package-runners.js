@@ -19,6 +19,7 @@ const QUOTED_OR_COMMENT = /'[^']*'|"(?:[^"\\]|\\.)*"|(?:^|\s)#.*$/g;
 const withoutComment = (text) => text.replace(QUOTED_OR_COMMENT, (match) => (/^\s*#/.test(match) ? "" : match));
 
 function fetchesPackage(runner, args) {
+  // Stryker disable next-line Regex: the empty words a single-space split leaves are filtered out, so it splits the same.
   const tokens = args.split(/\s+/).filter(Boolean);
   const words = tokens.filter((word) => !word.startsWith("-"));
   const shape = PACKAGE[runner];
@@ -37,10 +38,13 @@ function withoutClosingQuotes(command) {
 
 // WHY: this rule only warns, so it parses no shell, and a command runs to the next separator with a word past its closing quote read as part of it.
 function unpinned(text) {
-  return [...text.matchAll(RUNNER)]
-    .map(([, written, runner]) => ({ runner, command: written.trim() }))
-    .filter(({ runner, command }) => fetchesPackage(runner.split(/\s+/)[0], command.slice(runner.length)) && !VERSION.test(command))
-    .map(({ command }) => withoutClosingQuotes(command));
+  return (
+    [...text.matchAll(RUNNER)]
+      .map(([, written, runner]) => ({ runner, command: written.trim() }))
+      // Stryker disable next-line Regex: only the first word is read, and a single-space split leaves it the same.
+      .filter(({ runner, command }) => fetchesPackage(runner.split(/\s+/)[0], command.slice(runner.length)) && !VERSION.test(command))
+      .map(({ command }) => withoutClosingQuotes(command))
+  );
 }
 
 function walk(tokens, fn) {

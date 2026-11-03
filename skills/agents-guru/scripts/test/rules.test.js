@@ -1477,6 +1477,12 @@ describe("skill-package-runners", () => {
     ["cannot-tell-echo", "echo npx eslint"],
     ["cannot-tell-grep", "grep npx package.json"],
     ["cannot-tell-commit", 'git commit -m "use npx eslint here"'],
+    ["deno-wide-space", "deno  run npm:eslint"],
+    ["go-wide-space", "go  run golang.org/x/tools/cmd/goimports ."],
+    ["go-two-dots", "go run go.uber.org/tools/cmd/x ."],
+    // A word that only opens with a dot is no path.
+    ["dot-name", "npx .tool"],
+    ["pipx-not-py", "pipx run tool.pyz"],
   ];
   // Every example on the using-scripts page, so a finding here reports the page's own advice.
   const pinned = [
@@ -1501,6 +1507,8 @@ describe("skill-package-runners", () => {
     "uvx --from 'ruff>=0.8' ruff check .",
     "pipx run scripts/extract.py",
     "go run -tags foo golang.org/x/tools/cmd/goimports@v0.28.0 .",
+    // A # inside a quoted string is no comment, so the pin after it is read.
+    "uvx --from 'ruff>=0.8 # pinned' ruff check .",
   ];
   const notPackages = [
     "go run main.go",
@@ -1531,6 +1539,13 @@ describe("skill-package-runners", () => {
     "pipx run extract.py",
     "pipx run scripts/extract.py input.txt",
     "ls # npx eslint",
+    "# npx eslint .",
+    "npx ../bin/tool",
+    "npx .",
+    'npx "."',
+    "pipx run 'extract.py'",
+    "go run ./cmd.v2/x",
+    "deno run ./my-npm:task.ts",
   ];
   const skillWith = (body) => skill("name: x\ndescription: |\n  x", body);
   for (const [id, command] of unpinned) {
@@ -1553,6 +1568,9 @@ describe("skill-package-runners", () => {
     const found = await findings("fx/name/SKILL.md", skillWith("`npx a@1; npx b --flag`"), packageRunners);
     assert.equal(found.length, 1);
     expectDetail(found, "skill-package-runners", "npx b --flag names no version");
+  });
+  it("a space before a separator is not part of the command it names", async () => {
+    expectDetail(await findings("fx/space/SKILL.md", skillWith("`npx b ; ls`"), packageRunners), "skill-package-runners", "npx b names no version");
   });
   it("a quote is not part of the command it names", async () => {
     expectDetail(
