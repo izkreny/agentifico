@@ -18,10 +18,13 @@ function unpinned(url) {
 
 function headingOf(token) {
   if (token.type === "atxHeading") {
+    // Stryker disable next-line StringLiteral: a heading with no text is no source section, whatever text stands in for it.
     const text = token.children.find((child) => child.type === "atxHeadingText")?.text ?? "";
+    // Stryker disable next-line ConditionalExpression: an ATX heading opens with its sequence, so the first child is the one sought.
     return { text, level: token.children.find((child) => child.type === "atxHeadingSequence").text.length };
   }
   if (token.type === "setextHeading") {
+    // Stryker disable next-line ConditionalExpression: a setext heading opens with its text, so the first child is the one sought.
     const text = token.children.find((child) => child.type === "setextHeadingText").text;
     return { text, level: token.text.trimEnd().endsWith("=") ? 1 : 2 };
   }

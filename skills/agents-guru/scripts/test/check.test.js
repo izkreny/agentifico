@@ -1577,6 +1577,7 @@ describe("skill-pinned-sources", () => {
     ["a word holding git in a subdomain", "https://digital.example.com/paper"],
     ["a project site on a git host's pages domain", "https://owner.github.io/repo"],
     ["a file of the repository", "../sibling/SKILL.md"],
+    ["a host that only opens with a forge's name", "https://codeberg.org.example.net/owner/repo"],
   ];
   for (const [what, url] of pinned)
     it(`passes ${what}`, () => {
@@ -1658,6 +1659,51 @@ describe("skill-pinned-sources", () => {
     assert.equal(found.length, 1, String(found));
     assert.match(found[0], /main\/second names no commit/);
   });
+  it("a heading only ending in the word opens no section", () => {
+    assert.deepEqual(findings(mkSkill("other-sources", "## Other sources\n\n[a tool](https://github.com/owner/repo)\n")), []);
+  });
+  it("an empty heading ends a section and opens none", () => {
+    const url = "https://github.com/owner/repo/blob/main";
+    const found = findings(mkSkill("empty-heading", `## Sources\n\n[a](${url}/in)\n\n##\n\n[b](${url}/after)\n`));
+    assert.equal(found.length, 1, String(found));
+  });
+  it("a level-1 setext section holds a level-2 heading, underline spaces and all", () => {
+    const url = "https://github.com/owner/repo/blob/main";
+    for (const underline of ["===========", "===========  "]) {
+      const found = findings(mkSkill(`setext-one-${underline.length}`, `Inspiration\n${underline}\n\n## Deeper\n\n[a](${url}/deeper)\n`));
+      assert.equal(found.length, 1, `${JSON.stringify(underline)}: ${found}`);
+    }
+  });
+  it("a level-2 setext section ends at the next level-2 heading", () => {
+    const url = "https://github.com/owner/repo/blob/main";
+    assert.deepEqual(findings(mkSkill("setext-two", `Sources\n-------\n\nNone.\n\n## After\n\n[a](${url}/after)\n`)), []);
+  });
+  it("folds a label's case and spacing as the parser does", () => {
+    const url = "https://github.com/owner/repo";
+    const kelvin = findings(mkSkill("ref-kelvin", `## Sources\n\n[\u212Aelvin]\n\n[kelvin]: ${url}\n`));
+    assert.equal(kelvin.length, 1, String(kelvin));
+    const inner = findings(mkSkill("ref-inner-space", `## Sources\n\n[a b]\n\n[ab]: ${url}/blob/${SHA}/x\n[a b]: ${url}\n`));
+    assert.equal(inner.length, 1, String(inner));
+    const edges = findings(mkSkill("ref-edge-space", `## Sources\n\n[ x ]\n\n[x]: ${url}\n`));
+    assert.equal(edges.length, 1, String(edges));
+  });
+  it("reads a definition's destination and not its title", () => {
+    const found = findings(mkSkill("ref-title", '## Sources\n\n[a][ref]\n\n[ref]: https://github.com/owner/repo "A title"\n'));
+    assert.equal(found.length, 1, String(found));
+  });
+  it("the first of two definitions with one label is the one used", () => {
+    const url = "https://github.com/owner/repo";
+    const found = findings(mkSkill("ref-first", `## Sources\n\n[a][ref]\n\n[ref]: ${url}\n[ref]: ${url}/blob/${SHA}/x\n`));
+    assert.equal(found.length, 1, String(found));
+  });
+  it("an inline link is judged by its own destination, not by a definition sharing its text", () => {
+    const url = "https://github.com/owner/repo";
+    assert.deepEqual(findings(mkSkill("inline-shadow", `## Sources\n\n[x](${url}/blob/${SHA}/f)\n\n[x]: ${url}\n`)), []);
+  });
+  it("names the link's line, trimmed", () => {
+    const out = run(mkSkill("context", "## Sources\n\n- an item\n  - [a](https://github.com/owner/repo)\n")).out;
+    assert.match(out, /skill-pinned-sources .*\[Context: "- \[a\]/);
+  });
   it("reads only a README beside a SKILL.md", () => {
     const url = "https://github.com/owner/repo";
     const dir = mkSkill("others", "Nothing here.\n");
@@ -1667,6 +1713,9 @@ describe("skill-pinned-sources", () => {
     const elsewhere = path.join(tmp, "pinned-no-skill");
     fs.mkdirSync(elsewhere);
     fs.writeFileSync(path.join(elsewhere, "README.md"), `# R\n\n## Sources\n\n[a](${url})\n`);
+    const beside = mkSkill("beside", "Nothing here.\n");
+    fs.writeFileSync(path.join(beside, "notes.md"), `# R\n\n## Sources\n\n[a](${url})\n`);
+    assert.doesNotMatch(run(beside).out, /skill-pinned-sources/);
     assert.doesNotMatch(run(dir).out, /skill-pinned-sources/);
     assert.doesNotMatch(run(elsewhere).out, /skill-pinned-sources/);
   });
