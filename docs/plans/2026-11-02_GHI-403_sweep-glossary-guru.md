@@ -64,3 +64,5 @@ None.
 ## Settled
 
 **Should the package add a `--check` mode, so a stale rule fails before Vale?** No. The owner chose to run the script before Vale in local CI, since that always gives Vale a fresh rule and needs no new code.
+
+**Should the script refuse a stray space in a term or phrase, or tidy it?** Tidy it. The owner chose to read a run of spaces as one and to drop a space at either end, since these typos are common, and to name each tidied word on stderr, since the JSON file is the source and stays wrong until someone fixes it there. That is new behaviour, so `metadata.version` moves to `2.1.0` instead of `2.0.1`.
