@@ -1120,11 +1120,14 @@ describe("skill-bundled-files", () => {
     ["unknown-working-directory", "Run `cd references && ./kept.md`."],
     ["up-from-unknown-working-directory", "Run `cd scripts && ../references/kept.md`."],
     ["bare", "Read kept.md."],
+    ["braces", "Read {references/kept.md}."],
   ]) {
     it(`a file is named by ${id}`, () => {
       const dir = tree(id, { "references/kept.md": "# K\n\nbody\n", "scripts/a.sh": "x\n" });
       fs.appendFileSync(path.join(dir, "SKILL.md"), `\n${text}\n`);
-      assert.equal(reports(run(dir).out, "kept"), false);
+      const r = run(dir);
+      assert.notEqual(r.linted, null, r.out);
+      assert.equal(reports(r.out, "kept"), false);
     });
   }
   it("an extensionless file is not named by the word alone", () => {
@@ -1197,6 +1200,14 @@ describe("skill-bundled-files", () => {
     fs.appendFileSync(path.join(extensionless, "SKILL.md"), "\n```bash\ncd scripts && ./deploy\n```\n");
     assert.equal(reports(run(extensionless).out, "scripts\\/deploy"), false);
   });
+  it("a slash opening a file is the filesystem's root", () => {
+    const dir = tree("root-at-start", { "references/kept.md": "# K\n\nbody\n", "workflows/a.md": "/references/kept.md\n" });
+    assert.equal(reports(run(dir).out, "references\\/kept"), true);
+  });
+  it("a slash after a file's one opening character is a root this rule cannot read", () => {
+    const dir = tree("root-after-one", { "references/kept.md": "# K\n\nbody\n", "workflows/a.md": "*/references/kept.md\n" });
+    assert.equal(reports(run(dir).out, "references\\/kept"), false);
+  });
   it("a dot slash names a file of the same folder", () => {
     const dir = tree("own-folder", { "references/kept.md": "# K\n\nbody\n", "references/a.md": "# A\n\nSee ./kept.md.\n" });
     fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead references/a.md.\n");
@@ -1225,6 +1236,9 @@ describe("skill-bundled-files", () => {
     ["indented", "try:\n    import helper\nexcept ImportError:\n    pass"],
     ["same-line-block", "try: import helper\nexcept ImportError: pass"],
     ["after-semicolon", "import os; import helper"],
+    ["from-wide", "from scripts  import helper"],
+    ["from-dot-lines-wide", "from . import  (\n    other,\n    helper,\n)"],
+    ["backslash-touching", "import\\\n    helper"],
   ]) {
     it(`a Python file is named by an import: ${id}`, () => {
       const r = run(tree(`py-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
@@ -1242,6 +1256,7 @@ describe("skill-bundled-files", () => {
     ["from-a-module-of-another-package", "from os.helper import join"],
     ["import-another-package", "import email.helper"],
     ["module-beneath-it", "import helper.sub"],
+    ["inside-a-string", 's = "to import helper or not"'],
   ]) {
     it(`a Python line does not name it: ${id}`, () => {
       const r = run(tree(`py-not-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
@@ -1366,6 +1381,15 @@ describe("skill-bundled-files", () => {
       fs.chmodSync(path.join(dir, "scripts", "shut.py"), 0o644);
     }
   });
+  it("the skill's own folder, when it cannot be listed, is named as .", () => {
+    const dir = tree("shut-skill", {});
+    fs.chmodSync(dir, 0o311);
+    try {
+      assert.match(run(path.join(dir, "SKILL.md")).out, /skill-bundled-files .*could not read \. \(EACCES\)/);
+    } finally {
+      fs.chmodSync(dir, 0o755);
+    }
+  });
   it("a folder it cannot read is named", () => {
     const dir = tree("shut-folder", { "shut/inner.txt": "x\n" });
     fs.chmodSync(path.join(dir, "shut"), 0o000);
@@ -1447,6 +1471,10 @@ describe("plugin-body-variables", () => {
     const r = run(plugin());
     assert.doesNotMatch(r.out, /skills\/braced\/SKILL\.md:\d+ plugin-body-variables/);
     assert.doesNotMatch(r.out, /agents\/braced\.md:\d+ plugin-body-variables/);
+  });
+  it("names the line holding a bare variable, trimmed", () => {
+    fs.writeFileSync(path.join(plugin(), "agents", "indented.md"), "---\nname: indented\ndescription: x\n---\n\n- A list:\n  - run $CLAUDE_PLUGIN_ROOT/a.sh\n");
+    assert.match(run(plugin()).out, /agents\/indented\.md:\d+ plugin-body-variables .*\[Context: "- run \$CLAUDE_PLUGIN_ROOT/);
   });
   it("a file the plugin never loads as content is not read", () => {
     assert.doesNotMatch(run(plugin()).out, /notes\.md:\d+ plugin-body-variables/);
