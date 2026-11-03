@@ -106,7 +106,7 @@ With the rule and the Markdown file committed, a Vale run needs neither this ski
 
 `assets/vale.ini.template` holds the lines that turn the rule on, and explains in its comments what Vale checks and how to make a drifted word fail the run.
 
-Vale 3.25.1 does not flag a word with no space or punctuation around it, as in Chinese, Japanese, Korean or Thai running text, and the script refuses a word holding a combining mark, as many Thai and Hindi words do.
+Vale 3.25.1 flags a word only where a space or punctuation sets it apart, so it misses words in Chinese, Japanese, Korean or Thai running text. The script also refuses a word holding a combining mark, as many Thai and Hindi words do.
 
 ## What it does not cover
 
