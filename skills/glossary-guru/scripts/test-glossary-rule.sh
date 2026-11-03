@@ -791,6 +791,20 @@ new_project except-typo
 terms '[{"term": "Customer", "definition": "A person who buys.", "avoid": ["account"], "except": ["on acount of"]}]'
 expect_refusal "an excepted phrase holding no drift word" "holds no word from any 'avoid' list"
 
+new_project doubled-space-in-phrase
+terms '[{"term": "Line Item", "definition": "One thing on an order.", "avoid": ["line", "order line  item"]}]'
+expect_refusal "a drift phrase holding a term behind a doubled space" "Line Item: 'order line item' holds 'Line Item'"
+
+new_project doubled-space-in-term
+terms '[{"term": "Line  Item", "definition": "One thing on an order.", "avoid": ["line", "order line item"]}]'
+expect_refusal "a term with a doubled space inside a drift phrase" "Line Item: 'order line item' holds 'Line Item'"
+
+new_project doubled-space-rendered
+terms '[{"term": "Shopping  Cart", "definition": "What a customer is about to buy.", "avoid": ["shopping   basket"], "except": ["take  into account"]}, {"term": "Customer", "definition": "A person who buys.", "avoid": ["account"]}]'
+expect_exit "a glossary holding doubled spaces" 0
+if grep -qF '### Shopping Cart' "$PROJECT/GLOSSARY.md" && grep -qxF -- '- shopping basket' "$PROJECT/GLOSSARY.md" && grep -qxF -- '- take into account' "$PROJECT/GLOSSARY.md"; then pass "GLOSSARY.md shows each one single-spaced"; else fail "GLOSSARY.md keeps a doubled space: $(cat "$PROJECT/GLOSSARY.md")"; fi
+if grep -qF '"shopping basket": "Shopping Cart"' "$PROJECT/.vale/styles/Glossary/Terms.yml" && grep -qF '"(?i)take into account"' "$PROJECT/.vale/styles/Glossary/Terms.yml"; then pass "the rule holds each one single-spaced"; else fail "the rule keeps a doubled space: $(cat "$PROJECT/.vale/styles/Glossary/Terms.yml")"; fi
+
 new_project masked-by-term
 terms '[{"term": "Line Item", "definition": "One thing on an order.", "avoid": ["line", "order line item"]}]'
 expect_refusal "a drift phrase holding a term the rule skips" "Line Item: 'order line item' holds 'Line Item'"

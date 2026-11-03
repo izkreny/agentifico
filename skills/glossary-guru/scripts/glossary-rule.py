@@ -232,6 +232,14 @@ def repeated_terms(entries):
     return problems
 
 
+# WHY: Vale reads a run of spaces as one, so a doubled space typed into a phrase would slip past every check that compares phrases.
+def single_spaced(entry):
+    for key in ("avoid", "except"):
+        if key in entry:
+            entry[key] = [re.sub(" +", " ", word) for word in entry[key]]
+    entry["term"] = re.sub(" +", " ", entry["term"])
+
+
 def holds_phrase(text, phrases):
     return any(re.search(rf"\b{re.escape(phrase)}\b", text, re.IGNORECASE) for phrase in phrases)
 
@@ -317,6 +325,8 @@ def main():
     if not problems:
         problems = glossary_problems(glossary)
     if not problems:
+        for entry in glossary["terms"]:
+            single_spaced(entry)
         entries = [(entry["term"], entry.get("avoid", [])) for entry in glossary["terms"]]
         exceptions = [phrase for entry in glossary["terms"] for phrase in entry.get("except", [])]
         swap, swap_problems = build_swap(entries)
