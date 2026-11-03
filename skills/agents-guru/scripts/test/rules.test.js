@@ -868,6 +868,7 @@ describe("agent-frontmatter", () => {
     ],
     // WHY: a comma inside the parentheses separates nothing, so the entry prints whole.
     ["specifier-with-comma", "name: r\ndescription: Reviews code.\ndisallowedTools: Agent(a, b), Edit", 'entry "Agent(a, b)" removes the whole tool'],
+    ["specifier-unclosed", "name: r\ndescription: Reviews code.\ndisallowedTools: Write, Bash(git", 'entry "Bash(git" removes the whole tool'],
     ["whole-tools", "name: r\ndescription: Reviews code.\ndisallowedTools: Write, Edit", null],
     ["whole-tools-list", "name: r\ndescription: Reviews code.\ndisallowedTools: [Write, Edit]", null],
     ["whole-server", "name: r\ndescription: Reviews code.\ndisallowedTools: mcp__github, mcp__jira__*", null],

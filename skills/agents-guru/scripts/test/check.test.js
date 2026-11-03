@@ -787,6 +787,76 @@ describe("check.js", () => {
       assert.match(r.out, /also declared by other\.md:/);
       assert.match(r.out, /could not read loop\.md \(ELOOP\)/);
     });
+    const agents = (name, files) => {
+      const dir = path.join(tmp, "agent-names", name, ".claude", "agents");
+      fs.mkdirSync(dir, { recursive: true });
+      for (const [file, text] of files) {
+        fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+        fs.writeFileSync(path.join(dir, file), text);
+      }
+      return dir;
+    };
+    it("agents declaring no name, a bare name or a name that cannot load share no name", () => {
+      for (const [id, fm] of [
+        ["nameless", "description: x"],
+        ["bare-name", "name:\ndescription: x"],
+        ["throws", "<<: 1"],
+      ]) {
+        const dir = agents(id, [
+          ["a.md", `---\n${fm}\n---\n\nBody.\n`],
+          ["b.md", `---\n${fm}\n---\n\nBody.\n`],
+        ]);
+        assert.doesNotMatch(run(path.join(dir, "a.md")).out, /also declared by/, id);
+      }
+    });
+    it("a sibling's byte order mark is dropped only where it opens the file", () => {
+      const dir = agents("bom-inside", [
+        ["a.md", "---\nname: ab\n---\n\nBody.\n"],
+        ["b.md", "---\nname: a\uFEFFb\n---\n\nBody.\n"],
+      ]);
+      assert.doesNotMatch(run(path.join(dir, "a.md")).out, /also declared by/);
+    });
+    it("a sibling's delimiters may carry trailing spaces", () => {
+      const dir = agents("spaced-delimiters", [
+        ["a.md", "---\nname: same\n---\n\nBody.\n"],
+        ["b.md", "---  \nname: same\n---  \n\nBody.\n"],
+      ]);
+      assert.match(run(path.join(dir, "a.md")).out, /also declared by b\.md:/);
+    });
+    it("names every sibling sharing the name in sorted order, whatever order they were written in", () => {
+      for (const order of [
+        ["b.md", "c.md"],
+        ["c.md", "b.md"],
+      ]) {
+        const dir = agents(`order-${order.join("-")}`, [
+          ["a.md", "---\nname: same\n---\n\nBody.\n"],
+          ...order.map((f) => [f, "---\nname: same\n---\n\nBody.\n"]),
+        ]);
+        assert.match(run(path.join(dir, "a.md")).out, /also declared by b\.md, c\.md:/, order.join());
+      }
+    });
+    it("names what it cannot read in sorted order, a file it read after a folder it walked", () => {
+      const dir = agents("unread-order", [
+        ["same.md", "---\nname: same\n---\n\nBody.\n"],
+        ["a.md", "---\nname: same\n---\n\nBody.\n"],
+        ["z/inner.md", "---\nname: same\n---\n\nBody.\n"],
+      ]);
+      fs.chmodSync(path.join(dir, "a.md"), 0o000);
+      fs.chmodSync(path.join(dir, "z"), 0o000);
+      try {
+        const out = run(path.join(dir, "same.md")).out;
+        assert.match(out, /could not read a\.md \(EACCES\)[\s\S]*could not read z \(EACCES\)/, out);
+      } finally {
+        fs.chmodSync(path.join(dir, "a.md"), 0o644);
+        fs.chmodSync(path.join(dir, "z"), 0o755);
+      }
+    });
+    it("a standalone agent's long name is the standalone rule's finding alone", () => {
+      const dir = agents("long-standalone", [["a.md", `---\nname: ${"a".repeat(257)}\ndescription: x\n---\n\nBody.\n`]]);
+      const out = run(path.join(dir, "a.md")).out;
+      assert.match(out, /agent-frontmatter .*257 characters/, out);
+      assert.doesNotMatch(out, /agent-plugin-name/);
+    });
     it("a link to a file declares what the file declares, and a dangling one declares nothing", () => {
       const dir = path.join(tmp, "linked", ".claude", "agents");
       fs.mkdirSync(dir, { recursive: true });
@@ -899,6 +969,23 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "plugins", "linked"));
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /plugin-manifest \(error\) agents replaces the default agents\//);
+  });
+  it("outputStyles, workflows and experimental.themes each replace their own default folder", () => {
+    const dir = path.join(tmp, "replacing", "styled");
+    for (const file of ["output-styles/a.md", "workflows/a.md", "themes/a.json"]) {
+      fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+      fs.writeFileSync(path.join(dir, file), file.endsWith(".json") ? "{}\n" : "# A\n\nbody\n");
+    }
+    fs.mkdirSync(path.join(dir, ".claude-plugin"));
+    const manifest = { name: "styled", outputStyles: "./custom/", workflows: "./custom/", experimental: { themes: "./custom/" } };
+    fs.writeFileSync(path.join(dir, ".claude-plugin", "plugin.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+    const out = run(dir).out;
+    for (const [key, folder] of [
+      ["outputStyles", "output-styles"],
+      ["workflows", "workflows"],
+      ["experimental\\.themes", "themes"],
+    ])
+      assert.match(out, new RegExp(`plugin-manifest \\(error\\) ${key} replaces the default ${folder}/, which still holds files`), out);
   });
   it("an empty default folder is not shadowed", () => {
     assert.doesNotMatch(run(path.join(tmp, "plugins", "hollow")).out, /plugin-manifest/);
