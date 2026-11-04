@@ -48,8 +48,11 @@ function importedModules(text) {
     const names = items
       .replace(/[()]/g, "")
       .split(",")
-      // Stryker disable next-line Regex: the item is trimmed first, so a single-space split leaves its first word the same.
-      .map((item) => item.trim().split(/\s+/)[0])
+      .map(
+        (item) =>
+          // Stryker disable next-line Regex: the item is trimmed first, so a single-space split leaves its first word the same.
+          item.trim().split(/\s+/)[0],
+      )
       .filter(Boolean);
     return from === undefined ? names : [from, ...names.map((name) => `${from}${from.endsWith(".") ? "" : "."}${name}`)];
   });

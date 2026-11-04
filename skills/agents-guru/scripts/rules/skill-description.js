@@ -32,8 +32,10 @@ export function defects(fm) {
   } else if (raw.startsWith("'")) {
     const m = value.slice(1).match(/^((?:[^']|'')*)'(.*)$/);
     if (!m || !TRAILING.test(m[2])) bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
+  } else if (
     // Stryker disable next-line ConditionalExpression: with no description line the value is empty, and an empty value passes every plain-scalar test.
-  } else if (dl.length) {
+    dl.length
+  ) {
     const cut = value.search(/\s#/);
     // Stryker disable next-line EqualityOperator: a value opens on a non-space character or on a folded line that cannot open with #, so a cut is never at 0.
     if (cut >= 0) bad.push(`TRUNCATED at ' #', silently loses ${value.length - cut} chars`);

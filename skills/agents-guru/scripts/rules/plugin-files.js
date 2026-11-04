@@ -76,8 +76,7 @@ const jsonIn = (pluginDir, file) => {
   try {
     // Stryker disable next-line StringLiteral: JSON.parse reads the buffer an empty encoding returns just the same.
     return JSON.parse(fs.readFileSync(path.resolve(pluginDir, file), "utf8"));
-    // Stryker disable next-line BlockStatement: every caller reads the result through ?. or ??, which take undefined as they take null.
-  } catch {
+  } catch /* Stryker disable next-line BlockStatement: every caller reads the result through ?. or ??, which take undefined as they take null. */ {
     return null;
   }
 };

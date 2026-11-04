@@ -114,8 +114,10 @@ function agentFilesIn(folder) {
       if (entry.isDirectory()) walk(full);
       else if (!entry.name.endsWith(".md")) continue;
       else if (entry.isFile()) files.push(full);
-      // Stryker disable next-line ConditionalExpression: any other entry ending in .md, such as a pipe, stats as no file, so it is skipped either way.
-      else if (entry.isSymbolicLink()) {
+      else if (
+        // Stryker disable next-line ConditionalExpression: any other entry ending in .md, such as a pipe, stats as no file, so it is skipped either way.
+        entry.isSymbolicLink()
+      ) {
         try {
           if (fs.statSync(full, { throwIfNoEntry: false })?.isFile()) files.push(full);
         } catch (error) {
