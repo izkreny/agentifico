@@ -823,17 +823,14 @@ describe("check.js", () => {
       ]);
       assert.match(run(path.join(dir, "a.md")).out, /also declared by b\.md:/);
     });
-    it("names every sibling sharing the name in sorted order, whatever order they were written in", () => {
-      for (const order of [
-        ["b.md", "c.md"],
-        ["c.md", "b.md"],
-      ]) {
-        const dir = agents(`order-${order.join("-")}`, [
-          ["a.md", "---\nname: same\n---\n\nBody.\n"],
-          ...order.map((f) => [f, "---\nname: same\n---\n\nBody.\n"]),
-        ]);
-        assert.match(run(path.join(dir, "a.md")).out, /also declared by b\.md, c\.md:/, order.join());
-      }
+    // WHY: a folder is listed in sorted order, so only the walk into a subfolder can read a later path first.
+    it("names every sibling sharing the name in sorted order, across folders", () => {
+      const dir = agents("order", [
+        ["a.md", "---\nname: same\n---\n\nBody.\n"],
+        ["c/x.md", "---\nname: same\n---\n\nBody.\n"],
+        ["c-d.md", "---\nname: same\n---\n\nBody.\n"],
+      ]);
+      assert.match(run(path.join(dir, "a.md")).out, /also declared by c-d\.md, c\/x\.md:/);
     });
     it("names what it cannot read in sorted order, a file it read after a folder it walked", () => {
       const dir = agents("unread-order", [
@@ -1326,7 +1323,7 @@ describe("skill-bundled-files", () => {
     ["from-wide", "from scripts  import helper"],
     ["from-wide-before", "from  scripts import helper"],
     ["from-dot-lines-wide", "from . import  (\n    other,\n    helper,\n)"],
-    ["backslash-touching", "import\\\n    helper"],
+    ["backslash-touching", "import\\\nhelper"],
   ]) {
     it(`a Python file is named by an import: ${id}`, () => {
       const r = run(tree(`py-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
@@ -1969,8 +1966,11 @@ describe("check.js, the run's own bookkeeping", () => {
     const r = run([refs, path.join(refs, "skills", "inner", "workflows", "deep", "only-root.md")], process.env, tmp);
     assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/, r.out);
   });
+  // WHY: roots are linted in the order of their files' paths and a later run's results replace an earlier one's, so only a root sorting after refs could overwrite refs' verdict.
   it("each root's files are linted under that root alone", () => {
-    const r = run([path.join(tmp, "refs"), path.join(tmp, "good", "SKILL.md")], process.env, tmp);
+    mk(path.join(tmp, "z-root"), block("z-root"));
+    const r = run([path.join(tmp, "refs"), path.join(tmp, "z-root", "SKILL.md")], process.env, tmp);
+    assert.notEqual(r.linted, null, r.out);
     assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/, r.out);
   });
   it("names the skills found in sorted order", () => {
@@ -1979,16 +1979,25 @@ describe("check.js, the run's own bookkeeping", () => {
     mk(path.join(dir, "a"), block("a"));
     assert.match(run(dir).out, /skill\(s\) found under .*\n {2}a\n {2}a-b\n/);
   });
-  it("names dangling links in sorted order, whatever order they were made in", () => {
-    for (const order of [
-      ["b.md", "a.md"],
-      ["a.md", "b.md"],
-    ]) {
-      const dir = path.join(tmp, `dangling-${order.join("-")}`);
-      mk(dir, block(path.basename(dir)));
-      for (const file of order) fs.symlinkSync("nowhere.md", path.join(dir, file));
-      assert.match(run(dir).out, /^dangling links: 2\n {2}a\.md dangling-link .*\n {2}b\.md dangling-link /m, order.join());
-    }
+  // WHY: the glob lists a folder's own entries in sorted order before a subfolder's, so only a subfolder can put a later path first.
+  it("names dangling links in sorted order, across folders", () => {
+    const dir = path.join(tmp, "dangling-folders");
+    mk(dir, block("dangling-folders"));
+    fs.mkdirSync(path.join(dir, "a"));
+    fs.symlinkSync("nowhere.md", path.join(dir, "b.md"));
+    fs.symlinkSync("nowhere.md", path.join(dir, "a", "c.md"));
+    assert.match(run(dir).out, /^dangling links: 2\n {2}a\/c\.md dangling-link .*\n {2}b\.md dangling-link /m);
+  });
+  it("prints each kind's findings in sorted order, across folders", () => {
+    const dir = path.join(tmp, "finding-order");
+    mk(dir, block("finding-order"));
+    for (const file of ["b.md", "a/c.md", "b.js", "a/c.js"]) write(path.join(dir, file), file.endsWith(".md") ? "# Notes\n\nbody\n" : "// A comment.\n");
+    for (const file of ["b.yml", "a/c.yml"]) write(path.join(dir, file), "key: [1\n");
+    const alert = [{ Line: 1, Check: "Stub.Order", Severity: "warning", Message: "m" }];
+    const lint = JSON.stringify(Object.fromEntries(["b.md", "a/c.md", "b.js", "a/c.js"].map((file) => [path.join(dir, file), alert])));
+    const out = run(dir, stubVale("order", "3.25.1", lint)).out;
+    assert.match(out, /^ {2}a\/c\.md:1 Stub\.Order[^\n]*\n {2}b\.md:1 Stub\.Order[^\n]*\n {2}a\/c\.js:1 Stub\.Order[^\n]*\n {2}b\.js:1 Stub\.Order/m, out);
+    assert.match(out, /^ {2}a\/c\.yml:\d+ yaml-parse [^\n]*\n {2}b\.yml:\d+ yaml-parse /m, out);
   });
   it("a YAML file that does not parse adds to the issues", () => {
     const dir = path.join(tmp, "yaml-bad");

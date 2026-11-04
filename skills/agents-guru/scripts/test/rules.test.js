@@ -734,6 +734,13 @@ describe("skill-argument-hint", () => {
       "## Routing\n\n- [d]: https://example.com\n  If it starts with `new` → read a.\n- If it starts with `check` → read b.",
       null,
     ],
+    // A fence opening an item holds no paragraph, so the paragraph after it is the item's lead.
+    [
+      "h-fence-lead",
+      "[new]",
+      "## Routing\n\n- If it starts with `new` → read a.\n- ```\n  x\n  ```\n\n  If it starts with `check` → read b.",
+      unadvertised("check"),
+    ],
   ];
   for (const [id, hint, body, want] of cases) {
     it(id, async () => {
