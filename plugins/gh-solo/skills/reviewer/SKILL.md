@@ -92,7 +92,7 @@ JSON, one object, written to the harness scratchpad. Name the file so a later re
       "line": 42,
       "side": "RIGHT",
       "failure_scenario": "A group created with no owner reaches `#settle` and raises NoMethodError on nil.",
-      "finding": "The issue's AC3 requires every group to have an owner at creation. This diff sets it after the record is saved, so a group exists without one for the duration of the transaction and any callback in between sees nil.",
+      "finding": "AC3 reads \"Every group has an owner at creation\". This diff sets it after the record is saved, so a group exists without one for the duration of the transaction and any callback in between sees nil.",
       "needs_owner": false
     }
   ]
