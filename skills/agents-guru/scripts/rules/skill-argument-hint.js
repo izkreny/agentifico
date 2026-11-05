@@ -1,4 +1,4 @@
-import { FRONTMATTER_LINE, frontmatter, isSkillFile, parsed } from "./frontmatter.js";
+import { built, FRONTMATTER_LINE, frontmatter, isSkillFile, parsed } from "./frontmatter.js";
 import { isList } from "./skill-continuations.js";
 
 // A first word that is not a bare lowercase word, such as `<pr-number>` or a path, is a placeholder or a target rather than a verb.
@@ -127,7 +127,7 @@ export default {
     const doc = parsed(fm);
     // Frontmatter that does not parse is `skill-frontmatter-parsed`'s, which reports it already.
     if (doc.errors.length) return;
-    const hint = doc.toJS()?.["argument-hint"];
+    const hint = built(doc).value?.["argument-hint"];
     if (typeof hint !== "string") return;
     const routed = routes(params.parsers.micromark.tokens);
     if (!routed) return;

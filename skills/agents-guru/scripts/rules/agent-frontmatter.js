@@ -1,7 +1,7 @@
 // Each limit is the sub-agents page's or the plugin components page's, at https://code.claude.com/docs/en/sub-agents and https://code.claude.com/docs/en/plugins/components.
 import fs from "node:fs";
 import path from "node:path";
-import { FRONTMATTER_LINE, frontmatter, parsed } from "./frontmatter.js";
+import { built, FRONTMATTER_LINE, frontmatter, parsed, unbuilt } from "./frontmatter.js";
 import { isPluginRoot } from "./plugin-files.js";
 
 const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
@@ -46,7 +46,8 @@ export function defects(fm, inPlugin, lines = []) {
   const doc = parsed(fm);
   // Frontmatter that does not parse is left to claude plugin validate, which reports it.
   if (doc.errors.length) return [];
-  const value = doc.toJS();
+  const { value, error } = built(doc);
+  if (error) return [unbuilt(error)];
   // Empty frontmatter parses to null, and it sets no name just as a mapping without one does.
   // Stryker disable next-line ConditionalExpression: a string, number or boolean holds none of the keys read off the mapping, just as {} does
   const mapping = value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -60,6 +61,7 @@ export function defects(fm, inPlugin, lines = []) {
     ];
   const bad = [...specifiers];
   if (mapping.name === undefined || mapping.name === null) bad.push("no name: Claude Code skips the file as documentation kept beside the agents");
+  else if (typeof mapping.name === "object") bad.push("name must be a string, not a mapping or a list: claude plugin validate rejects it");
   else {
     const name = String(mapping.name);
     if (name.includes(":")) bad.push(`name ${JSON.stringify(name)} contains ":", which is reserved for plugin-scoped names, so Claude Code skips the file`);
@@ -75,14 +77,9 @@ function declaredName(fm) {
   if (!fm) return null;
   const doc = parsed(fm);
   if (doc.errors.length) return null;
-  try {
-    // Stryker disable next-line OptionalChaining: reading a name off null throws into declaredName's own catch, which returns null as the chain does.
-    const name = doc.toJS()?.name;
-    return name === undefined || name === null ? null : String(name);
-  } catch {
-    // WHY: a merge key with nothing to merge and a name with no string form both throw past doc.errors.
-    return null;
-  }
+  const name = built(doc).value?.name;
+  // WHY: defects rejects a mapping or a list as a name, so neither declares one, and typeof null is object too.
+  return name === undefined || typeof name === "object" ? null : String(name);
 }
 
 // WHY: markdownlint drops a BOM before the judged file reaches this rule, so a sibling has to lose one too.

@@ -806,7 +806,9 @@ describe("check.js", () => {
           ["a.md", `---\n${fm}\n---\n\nBody.\n`],
           ["b.md", `---\n${fm}\n---\n\nBody.\n`],
         ]);
-        assert.doesNotMatch(run(path.join(dir, "a.md")).out, /also declared by/, id);
+        const r = run(path.join(dir, "a.md"));
+        assert.notEqual(r.linted, null, `${id}: ${r.out}`);
+        assert.doesNotMatch(r.out, /also declared by/, id);
       }
     });
     it("a sibling's byte order mark is dropped only where it opens the file", () => {
@@ -910,6 +912,38 @@ describe("check.js", () => {
     });
     it("a judged file opening with a BOM is compared like any other", () => {
       assert.match(run(path.join(tmp, "bom", ".claude", "agents", "marked.md")).out, /also declared by same\.md:/);
+    });
+  });
+  // WHY: a throw inside a rule ends the whole run, so each case proves the other file's finding still prints.
+  describe("frontmatter the parser builds no value from costs one finding", () => {
+    const finished = (r) => {
+      assert.equal(r.code, 1, r.out);
+      assert.notEqual(r.linted, null, r.out);
+      assert.doesNotMatch(r.out, /\n\s+at \S/, r.out);
+    };
+    for (const [id, fm, want] of [
+      ["merge-key", "name: a\n<<: 1", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Merge sources must be maps or map aliases\)/m],
+      ["unresolved-alias", "name: a\nx: *nope", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Unresolved alias/m],
+      ["stringless-name", "name: {toString: 1}", /^ {2}a\.md:\d+ agent-frontmatter .*name must be a string, not a mapping or a list/m],
+    ])
+      it(`an agent: ${id}`, () => {
+        const dir = path.join(tmp, `unbuilt-${id}`, ".claude", "agents");
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, "a.md"), `---\n${fm}\n---\n\nBody.\n`);
+        fs.writeFileSync(path.join(dir, "c.md"), "---\nname: c:d\n---\n\nBody.\n");
+        const r = run(dir);
+        finished(r);
+        assert.match(r.out, want);
+        assert.match(r.out, /^ {2}c\.md:\d+ agent-frontmatter .*contains ":"/m);
+      });
+    it("a skill", () => {
+      const dir = path.join(tmp, "unbuilt-skill");
+      mk(path.join(dir, "merge"), `${block("merge")}\n<<: 1`);
+      mk(path.join(dir, "empty"), "name: empty\ndescription:");
+      const r = run(dir);
+      finished(r);
+      assert.match(r.out, /^ {2}merge\/SKILL\.md:\d+ skill-frontmatter-parsed .*cannot be built \(Merge sources must be maps or map aliases\)/m);
+      assert.match(r.out, /^ {2}empty\/SKILL\.md:\d+ skill-frontmatter-parsed .*empty description/m);
     });
   });
   it("a plugin's hooks file and manifest are read by their fixed paths", () => {
