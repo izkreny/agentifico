@@ -15,10 +15,11 @@ export const paragraphOf = (t) => {
   return t.children.find((c) => c.type === "paragraph");
 };
 
-// Stryker disable next-line OptionalChaining: a paragraph always holds at least one token, so only the first ?. is ever needed.
+// Stryker disable next-line OptionalChaining: a paragraph always holds at least one token, so only the first optional chain is ever needed.
 export const opensBold = (p) => p?.children?.[0]?.type === "strong";
 
 // A container's own prefix or indent sits between a marker and text that starts on the next line, so whitespace is matched by token family rather than by name.
+
 // Stryker disable next-line Regex: no token type a list holds names these words anywhere but where the pattern anchors them.
 const isSpace = (t) => /^lineEnding|Prefix$|Indent$/.test(t.type);
 

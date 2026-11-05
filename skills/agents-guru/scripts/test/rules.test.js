@@ -821,7 +821,7 @@ describe("skill-bash-blocks", () => {
     // A comment after code on the same line leaves that line's code to be read.
     ["b-trailing-comment", "```bash\nmake; and true # then deploy\n```", "; and"],
     ["good-indented-comment", "```bash\n  # build; and then test\n```", null],
-    // A quoted string touching the next word is replaced by a quote pair, so the word is not read as opening the line.
+    // A quoted string touching the next word shrinks to an empty quote pair, so the word is not read as opening the line.
     ["good-quote-before-set", '```bash\necho "x"set files (ls)\n```', null],
     // The opening fence carries words after its tag, which are no command.
     ["good-fence-meta", "```bash title; and more\necho hi\n```", null],

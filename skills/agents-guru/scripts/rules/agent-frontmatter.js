@@ -48,6 +48,7 @@ export function defects(fm, inPlugin, lines = []) {
   if (doc.errors.length) return [];
   const value = doc.toJS();
   // Empty frontmatter parses to null, and it sets no name just as a mapping without one does.
+
   // Stryker disable next-line ConditionalExpression: a string, number or boolean holds none of the keys read off the mapping, just as {} does.
   const mapping = value && typeof value === "object" && !Array.isArray(value) ? value : {};
   const specifiers = specifierDefects(mapping.disallowedTools);
@@ -76,7 +77,7 @@ function declaredName(fm) {
   const doc = parsed(fm);
   if (doc.errors.length) return null;
   try {
-    // Stryker disable next-line OptionalChaining: reading a name off null throws into the catch below, which returns null as the chain does.
+    // Stryker disable next-line OptionalChaining: reading a name off null throws into declaredName's own catch, which returns null as the chain does.
     const name = doc.toJS()?.name;
     return name === undefined || name === null ? null : String(name);
   } catch {
