@@ -138,7 +138,7 @@ This is the part that survives every tracker, and it is worth more than the whol
 
 **Every criterion on an issue carries a key, issued as `::AC{n}::` right after its checkbox and named in prose as `AC{n}`**, as in `- [ ] ::AC1:: User sees a validation error when email is blank`. The key is how every later reader addresses the criterion: the implementing agent ticks it, the merge gate reports it unticked, and a reviewer's spec finding names it. Wording changes between edits and a key does not, so a match on the key cannot miss a reworded criterion.
 
-**Keys start at `AC1` and follow the list's order when the criteria are first written.** A criterion added later takes the next free number, even when the list then reads out of order. **No key is ever renumbered, and a removed criterion's number is never reused**, for the reason `RF{n}` is not, per *Ids* in `../pr-flow/references/review-protocol.md`: a reference written against `AC3` has to mean the same criterion for the life of the issue.
+**An issue's first list of criteria is keyed from `AC1`, in list order.** A criterion added later takes the next free number, even when the list then reads out of order. **No key is ever renumbered, and a removed criterion's number is never reused**, for the reason `RF{n}` is not, per *Ids* in `../pr-flow/references/review-protocol.md`: a reference written against `AC3` has to mean the same criterion for the life of the issue.
 
 ---
 
