@@ -1,6 +1,6 @@
 # What an issue looks like
 
-How work is divided into issues, and how each one is titled and bodied. The other halves of the standards are `references/tracker-fields.md`, for the fields GitHub carries, and `references/formats.md`, for the names that encode an issue number.
+How work is divided into issues, and how each one is titled and bodied. The other halves of the standards are `references/tracker-fields.md`, for the fields GitHub carries, and `references/formats.md`, for the names that encode an issue number and the keys on an item.
 
 ## Hierarchy
 
@@ -123,7 +123,7 @@ Anything past the cap belongs in `## Technical notes`, or a comment on the issue
 
 **There is no `## Done when` on an issue**, though team templates always carry one. Every box it usually holds is a copy of a fact that lives elsewhere or a box nothing can tick: "criteria met" restates `## Acceptance criteria`, "tests pass" is the plan's `## Verification` and the PR's copy of it, "code reviewed" is the review record the `pr-flow` merge gate refuses to land without, and "merged to main" is made true by the very event that closes the issue - the box would sit empty for the issue's whole open life and the progress counter would never reach full. Done, for an issue, is the close reason GitHub records anyway. The epic and spike templates keep their `## Done when` because those close by hand, and a close checklist is real work at a real moment.
 
-And acceptance criteria are written as **checkboxes**, not bullets, because on GitHub they render as a progress counter on the issue and in every list that shows it, which is free tracking a solo dev actually benefits from.
+And acceptance criteria are written as **checkboxes**, not bullets, because on GitHub they render as a progress counter on the issue and in every list that shows it, which is free tracking a solo dev actually benefits from. A removed criterion is not: it stays as a plain line, per *Keys* in `references/formats.md`, so the counter stops counting it.
 
 ### Writing good acceptance criteria
 

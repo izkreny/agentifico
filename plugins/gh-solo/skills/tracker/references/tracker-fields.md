@@ -1,6 +1,6 @@
 # The fields GitHub carries
 
-Labels, dependencies, milestones, state and issue types. What an issue *says* is `references/issue-shape.md`; the names that encode an issue number are `references/formats.md`.
+Labels, dependencies, milestones, state and issue types. What an issue *says* is `references/issue-shape.md`; the names that encode an issue number, and the keys on an item, are `references/formats.md`.
 
 ## Labels
 
