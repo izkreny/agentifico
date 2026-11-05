@@ -31,7 +31,7 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 | Parent | Attached to an epic, unless the issue is genuinely standalone |
 | Body sections | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when |
 | Summary is capped | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement |
-| Criteria are checkboxes | `- [ ]`, so GitHub counts them |
+| Criteria are checkboxes | `- [ ]`, so GitHub counts them. A removed criterion's plain line is the exception, per *Keys* in `references/formats.md` |
 | Items are keyed | Every criterion, technical note and `## Done when` item carries its key, per *Keys* in `references/formats.md`. An item without one is a fail, named by its wording |
 | Keys are unique | No key appears on two items. A repeated key is a fail, naming the key and every item that carries it |
 | Criteria are testable | Each one observable; a reader can say pass or fail |
