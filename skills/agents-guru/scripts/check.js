@@ -209,7 +209,7 @@ const proseNotRun = (why) => {
 const MIN_VALE = [3, 25];
 const minVale = MIN_VALE.join(".");
 
-// A Vale before 3.23 loads a rule naming a scope from config/scopes and matches nothing, so its run would pass with rules quietly off, and the floor stays at 3.25 because lowering it would undo this major release's breaking change.
+// A Vale before 3.23 loads a rule naming a scope from config/scopes and matches nothing, so its run would pass with rules quietly off.
 const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
 // Stryker disable next-line StringLiteral: stdout is null only when Vale did not start, and no fallback text holds a version.
 const valeVersion = /(\d+)\.(\d+)\.\d+/.exec(versionRun.stdout ?? "");
