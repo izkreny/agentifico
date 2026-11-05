@@ -2,6 +2,7 @@
 const CARRIES_A_COMMENT = new Set(["htmlFlow", "htmlText"]);
 
 // Case is not optional: <!-- VALE OFF --> silences nothing, so an insensitive match would report a file that was never silenced.
+// WHY: markdownlint reads the comments inside an HTML block again as inline tokens, so an unanchored match would report the block and the comment both.
 const OPENS_WITH_VALE = /^<!--\s*vale(?![\w-])/;
 
 function walk(tokens, fn) {

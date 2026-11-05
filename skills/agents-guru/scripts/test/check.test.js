@@ -1696,6 +1696,9 @@ describe("skill-pinned-sources", () => {
     ["a site page, since only the domain is read", "https://github.com/features/actions"],
     ["an owner's profile, since only the domain is read", "https://github.com/owner"],
     ["a bare repository with a query", "https://github.com/owner/repo?tab=readme-ov-file"],
+    // A trailing dot names the same host, and new URL() keeps it in the hostname.
+    ["a forge's host written with a trailing dot", "https://github.com./owner/repo"],
+    ["a git subdomain written with a trailing dot", "https://git.example.com./owner/repo"],
   ];
   for (const [what, url] of unpinned)
     it(`warns on ${what} and leaves the run passing`, () => {

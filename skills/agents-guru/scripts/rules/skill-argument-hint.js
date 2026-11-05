@@ -64,8 +64,9 @@ function conditionVerbs(paragraph) {
     if (c.type === "codeText") {
       const word = firstWord(
         c.children
-          .filter((d) => d.type === "codeTextData")
-          .map((d) => d.text)
+          .filter((d) => d.type === "codeTextData" || d.type === "lineEnding")
+          // WHY: CommonMark reads a line ending inside a code span as a space.
+          .map((d) => (d.type === "lineEnding" ? " " : d.text))
           .join(""),
       );
       if (word) verbs.push(word);
