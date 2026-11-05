@@ -64,9 +64,9 @@ function conditionVerbs(paragraph) {
     if (c.type === "codeText") {
       const word = firstWord(
         c.children
+          // WHY: CommonMark reads a line ending inside a code span as a space, and firstWord splits on any whitespace, so the line ending's own text keeps the words apart.
           .filter((d) => d.type === "codeTextData" || d.type === "lineEnding")
-          // WHY: CommonMark reads a line ending inside a code span as a space.
-          .map((d) => (d.type === "lineEnding" ? " " : d.text))
+          .map((d) => d.text)
           .join(""),
       );
       if (word) verbs.push(word);
