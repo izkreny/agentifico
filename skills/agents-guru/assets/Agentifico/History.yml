@@ -81,8 +81,8 @@ tokens:
   - 'is #\d+''s to (?:document|state|add|decide|settle|fix|write|say)'
   # "so one folder target prints exactly what it always has" #290 RF2, de22a7e: a code comment measuring the code against its own earlier behaviour.
   - 'what it always has'
-  # "the skill's own `apply_scope` example once used the `:relation` scope type" #374 RF3, d6d08ec. A comma after it is kept out, since "Once used, the token expires" is a procedure.
-  - 'once used(?!,)'
+  # "the skill's own `apply_scope` example once used the `:relation` scope type" #374 RF3, d6d08ec. It takes an object, as the record's past tense does, since "Once used, the token expires" and "A token once used is spent" are procedures.
+  - 'once used (?:the|a|an|its|this|that)'
   # "Dot-directories are left out by default, which is what the walk did" ae0fd10 on #135: a comment naming what code the file no longer carries did. Literal.
   - 'which is what the walk did'
 tests:
@@ -209,7 +209,7 @@ tests:
       58:1:Agentifico.History:Never write the file's own history: 'The older one-condition version' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       59:24:Agentifico.History:Never write the file's own history: 'was enough only while' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       60:27:Agentifico.History:Never write the file's own history: 'what it always has' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
-      61:13:Agentifico.History:Never write the file's own history: 'once used' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      61:13:Agentifico.History:Never write the file's own history: 'once used the' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       62:31:Agentifico.History:Never write the file's own history: 'which is what the walk did' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
   - name: leaves imperatives and state alone
     input: |
@@ -228,4 +228,6 @@ tests:
       The protocol exists because fixes were pushed mid-read and threads went outdated.
       A skill always has a name, and what it has is read.
       Once used, the token expires.
+      Once used by a round, the token expires.
+      A token once used is spent.
     want: ""
