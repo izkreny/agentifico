@@ -28,8 +28,7 @@ Each cell of the table states its own rule, prohibitions included, so a row read
 ### Ids
 
 - **`RF{n}` ids are assigned by the orchestrator**, not the reviewer, which emits its own local index and nothing else. Continuing an id sequence needs the PR's existing threads, and that is state the reviewer needs for nothing else.
-- **Ids never restart for the life of the PR.** Before numbering, read the existing threads for the highest `RF{n}` already posted and continue from it. `RF3` must mean one thing on this PR forever, including in the fix-plan and fix-result replies that reuse it.
-- **An id is *issued* as `::RF{n}::` and named in prose as `RF{n}`.**
+- **Ids follow the numbering rule under *Keys* in `../tracker/references/formats.md`**, which also owns how one is issued and named. Before numbering, read the existing threads for the highest `RF{n}` already posted and continue from it, because the threads are where every id a round has issued is recorded.
 
 ### Severity and scenario
 

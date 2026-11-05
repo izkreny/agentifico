@@ -81,7 +81,9 @@ GitHub renders **GitHub Flavored Markdown** everywhere. Write bodies to a file a
 
 ## Technical notes
 
-[Approach, endpoints, component names, data shapes]
+::N1:: [Approach, endpoints, component names, data shapes]
+
+::N2:: [One note per paragraph or bullet]
 
 ## Dependencies
 
@@ -103,14 +105,14 @@ Every body written by an agent opens with the AI disclaimer line, above everythi
 
 ## Acceptance criteria
 
-- [ ] Criterion 1
-- [ ] Criterion 2
+- [ ] ::AC1:: Criterion 1
+- [ ] ::AC2:: Criterion 2
 
 ## Done when
 
-- [ ] Every sub-issue closed
-- [ ] Tests passing
-- [ ] Documentation updated
+- [ ] ::D1:: Every sub-issue closed
+- [ ] ::D2:: Tests passing
+- [ ] ::D3:: Documentation updated
 ```
 
 **The opening section is the summary, and it is capped at five sentences or bullets.** `## Overview` on an issue, `## What this delivers` on an epic, `## Question` on a spike: whichever it is, it answers "what is this" for someone who has forgotten the conversation, and it is the only section that has to be read. Five is a ceiling and not a target; two sentences that say it are better than five that circle it.
@@ -134,13 +136,7 @@ This is the part that survives every tracker, and it is worth more than the whol
 
 **Who ticks them: the agent implementing the issue**, criterion by criterion as each becomes verifiably true, with the gates that prove it green. A tick is the claim "implemented and verified", never acceptance - the owner accepts by merging the PR, after reading the diff. It follows that a read workflow never ticks one in passing, and nobody ticks one to make an issue look closable; `workflows/state.md` refuses that outright.
 
-#### The criterion key
-
-**Every criterion on an issue carries a key, issued as `::AC{n}::` right after its checkbox and named in prose as `AC{n}`**, as in `- [ ] ::AC1:: User sees a validation error when email is blank`. The key is how every later reader addresses the criterion: the implementing agent ticks it, the merge gate reports it unticked, and a reviewer's spec finding names it. Wording changes between edits and a key does not, so a match on the key cannot miss a reworded criterion.
-
-**An epic's criteria carry no key.** Nothing ticks, audits or reviews them by key: the merge gate reads the issue a pull request closes, and no pull request closes an epic.
-
-**An issue's first list of criteria is keyed from `AC1`, in list order.** A criterion added later takes the next free number, even when the list then reads out of order. **No key is ever renumbered, and a removed criterion's number is never reused**, for the reason `RF{n}` is not, per *Ids* in `../pr-flow/references/review-protocol.md`: a reference written against `AC3` has to mean the same criterion for the life of the issue.
+**Every criterion carries an `AC{n}` key, every technical note an `N{n}` and every `## Done when` item a `D{n}`**, as the templates show. *Keys* in `references/formats.md` owns how they are written and numbered.
 
 ---
 
@@ -181,9 +177,9 @@ The `spike -` opener is not a layer prefix and stays. It is part of the sentence
 
 ## Done when
 
-- [ ] Question answered
-- [ ] Findings written down somewhere durable
-- [ ] Recommendation made
+- [ ] ::D1:: Question answered
+- [ ] ::D2:: Findings written down somewhere durable
+- [ ] ::D3:: Recommendation made
 ```
 
 The time box is the point. A spike that runs over its box has answered a different question than the one asked, and the honest move is to close it with what was learned and open a new one.
