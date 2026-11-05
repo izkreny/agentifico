@@ -1,6 +1,6 @@
 # The formats the tracker shares
 
-Branch names, commit subjects, pull request titles and plan filenames. They live with the tracker because every one of them encodes an issue key, and `pr-flow` and `implement` point here rather than restating them. The keys on an item, under *Keys*, live here for the same reason: the tracker issues them, and `pr-flow` and `implement` read them.
+Branch names, commit subjects, pull request titles and plan filenames. They live with the tracker because every one of them encodes an issue key, and `pr-flow` and `implement` point here rather than restating them. The keys on an item, under *Keys*, live here too, because every skill in the flow writes or reads them.
 
 ## Quick reference
 
@@ -61,4 +61,4 @@ The separator does the parsing, not the prefix. `{type}/GHI-{issue-number}_{slug
 
 **Every key in the table follows one numbering rule.** The first list a key labels is numbered from `1`, in list order. An item added later takes the next free number, even when the list then reads out of order. No key is ever renumbered, and a removed item's number is never reused: a reference written against `AC3` has to mean the same item for the life of the issue or pull request that carries it. Each key numbers on its own, so `AC3` and `D3` on one epic are different items.
 
-**Whoever writes an item issues its key**: `workflows/create.md` when it writes the body, and any later edit that adds an item.
+**Whoever writes an item issues its key**, whether that is the body's first writer or a later edit that adds an item.

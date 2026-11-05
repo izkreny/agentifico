@@ -176,7 +176,7 @@ Either way the post is never attempted, and a re-spawn against the new head resu
 
 #### 2. Find the highest `RF{n}` already on the PR
 
-Ids never restart, so the number comes from what the pull request already carries:
+The number comes from what the pull request already carries, per *Ids* in `references/review-protocol.md`:
 
 ```bash
 gh api --paginate "repos/{owner}/{repo}/pulls/<pr-number>/comments" > <listing-file>
