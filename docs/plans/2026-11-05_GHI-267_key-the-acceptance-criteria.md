@@ -48,3 +48,7 @@ Both greps were watched failing on the tree as it stands. The second is scoped t
 ## Open questions
 
 None.
+
+## Settled
+
+**What else gets a key, beyond an issue's acceptance criteria?** Settled by the owner in the session, after the first review round. An epic's criteria are keyed `AC`, a technical note is keyed `N`, one paragraph or bullet each, and a `## Done when` item is keyed `D`, with no section renamed. Every key is one letter except `AC` and `RF`. The numbering rule is written once, under *Keys* in `plugins/gh-solo/skills/tracker/references/formats.md`, and every other file points at it. The plan's and the pull request's keys, `S`, `V` and a `Q` that a question keeps when it moves to `## Settled`, stay with #268.
