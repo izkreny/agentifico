@@ -43,7 +43,7 @@ Then compare the lockfile against the branch below it by version: no package sho
 
 **A package's floor rises only when the package needs a newer version, on that package's own branch.** A floor is the `MIN_VALE` in a package's check script, or the Node its `engines` field asks for, and a newer release alone moves neither. Raising a floor refuses every installer on an older version, so it is a breaking change and moves that package's major version.
 
-**A round runs each package's checks once under each of its floors**, such as `mise exec vale@3.23.0 -- bash plugins/gh-solo/skills/pr-flow/scripts/test-plan-check.sh` or `mise exec node@26.1.0 -- npm --prefix skills/agents-guru test`. Every other run uses the latest version, so this run is the only test a floor gets. A floor's version is a machine-wide install, which the owner runs before the round needs it.
+**A round runs each package's checks once under each of its floors**, with that floor's own install first on `PATH`, such as `d=$(mise where vale@3.23.0) && PATH="$d:$PATH" bash plugins/gh-solo/skills/pr-flow/scripts/test-plan-check.sh` or `d=$(mise where node@26.1.0) && PATH="$d/bin:$PATH" npm --prefix skills/agents-guru test`. `mise where` fails on a version that is not installed and installs nothing, while `mise exec` installs a missing version on its own. Every other run uses the latest version, so this run is the only test a floor gets. A floor's version is a machine-wide install, which the owner runs before the round needs it.
 
 **No mise configuration in the repository pins a version for the checks.** A pin at the latest version tests no floor, and it is one more file to keep in step.
 
