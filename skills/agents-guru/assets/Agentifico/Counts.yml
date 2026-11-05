@@ -50,8 +50,8 @@ tokens:
   - '^both(?=,)'
   # "The prose class is printed from two places" #163 RF7, ea116fe: a third print site makes it false. Literal, since a bare "two places" is a live idiom.
   - 'printed from two places'
-  # "Both observed on 0.7.7." 7b4352d on #380, the fix for #379 SW3, counting the two behaviours the sentences before it named.
-  - 'both observed'
+  # "Both observed on 0.7.7." 7b4352d on #380, the fix for #379 SW3, counting the two behaviours the sentences before it named. "and" after it is kept out, since "both observed and expected" names its members.
+  - 'both observed(?! and)'
   # "The next run replaces both." #404 RF10, counting the files a sentence before it named, false once a third file was generated.
   - 'replaces both(?=[,.;])'
 tests:
@@ -131,4 +131,5 @@ tests:
       The check states each ceiling in its entry, and the rule binds each entrance.
       Use `_` between the axis and the value, and `-` inside either half.
       The next run replaces both the rule and the file.
+      The report prints both observed and expected output.
     want: ""
