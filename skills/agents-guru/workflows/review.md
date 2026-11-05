@@ -62,7 +62,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 ### What the skill tells a project to write
 
-**A format the skill prescribes.** A skill that tells a project to write a file in a set shape, such as required sections or a template, puts that shape under review too. Ask whether each part makes the project store history, which *Never write the file's own history* in `workflows/new.md` forbids, or copy a fact another file owns, which *One fact, one place* forbids. A glossary format is the case, raised on [agentifico#298](https://github.com/izkreny/agentifico/issues/298): a `## Relationships` section copies what the project's schema and specs already own, and a `## Retired` section stores what version history already holds.
+**A format the skill prescribes.** A skill that tells a project to write a file in a set shape, such as required sections or a template, puts that shape under review too. Ask whether each part makes the project store history, which *Never write the file's own history* in `workflows/new.md` forbids, or copy a fact another file owns, which *One fact, one place* forbids.
 
 ### Prose that copies the code
 
