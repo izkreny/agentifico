@@ -48,8 +48,7 @@ export function defects(fm, inPlugin, lines = []) {
   if (doc.errors.length) return [];
   const value = doc.toJS();
   // Empty frontmatter parses to null, and it sets no name just as a mapping without one does.
-
-  // Stryker disable next-line ConditionalExpression: a string, number or boolean holds none of the keys read off the mapping, just as {} does.
+  // Stryker disable next-line ConditionalExpression: a string, number or boolean holds none of the keys read off the mapping, just as {} does
   const mapping = value && typeof value === "object" && !Array.isArray(value) ? value : {};
   const specifiers = specifierDefects(mapping.disallowedTools);
   if (inPlugin)

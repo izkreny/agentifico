@@ -19,8 +19,7 @@ export const paragraphOf = (t) => {
 export const opensBold = (p) => p?.children?.[0]?.type === "strong";
 
 // A container's own prefix or indent sits between a marker and text that starts on the next line, so whitespace is matched by token family rather than by name.
-
-// Stryker disable next-line Regex: no token type a list holds names these words anywhere but where the pattern anchors them.
+// Stryker disable next-line Regex: no list token type names these words except where anchored
 const isSpace = (t) => /^lineEnding|Prefix$|Indent$/.test(t.type);
 
 // The lead is whatever block opens an item, paragraph or not, so a paragraph after it is a continuation whatever the item began with.

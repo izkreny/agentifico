@@ -11,13 +11,11 @@ export function defects(fm) {
   if (!dl.length) bad.push("no description: never advertised");
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
   // The last `description:` line is swept because that is the one a last-wins parser loads, and sweeping the first would report the duplicate and call the winning value clean.
-
-  // Stryker disable next-line StringLiteral: with no description line, raw meets only the tests for an opening quote, which this fallback never opens with.
+  // Stryker disable next-line StringLiteral: with no description line, no fallback opens with a quote
   const raw = (dl.at(-1) || "").slice(12).trim();
   const block = dl.length && BLOCK_SCALAR.test(raw);
   // The value is joined the way YAML folds continuation lines because a continuation can carry the same traps as the first line and a legal fold is not a defect.
-
-  // Stryker disable next-line StringLiteral: with no description line, the value meets only the XML tag test, which text holding no tag passes.
+  // Stryker disable next-line StringLiteral: with no description line, no fallback holds an XML tag
   const value = dl.length ? folded(fm, fm.lastIndexOf(dl.at(-1))) : "";
   // Only a value opening with a curly quote is pretending to be quoted, since an apostrophe inside a value is harmless and a block scalar is immune.
   if (!block && /^[“”‘’]/.test(raw)) bad.push("curly quotes are not YAML quotes");

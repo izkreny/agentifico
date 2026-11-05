@@ -289,8 +289,7 @@ if (valeVersion && (major < MIN_VALE[0] || (major === MIN_VALE[0] && minor < MIN
 const valeFiles = [...files, ...codeFiles];
 const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...valeFiles], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 // A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
-
-// Stryker disable next-line ConditionalExpression,StringLiteral: a missing binary also sets vale.error, which the last test catches.
+// Stryker disable next-line ConditionalExpression,StringLiteral: a missing binary also sets vale.error, which the last test catches
 if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error)
   proseNotRun(
     vale.error?.code === "ENOENT"
