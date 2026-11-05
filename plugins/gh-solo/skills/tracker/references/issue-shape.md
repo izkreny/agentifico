@@ -76,8 +76,8 @@ GitHub renders **GitHub Flavored Markdown** everywhere. Write bodies to a file a
 
 ## Acceptance criteria
 
-- [ ] Criterion 1 (observable, testable)
-- [ ] Criterion 2
+- [ ] ::AC1:: Criterion 1 (observable, testable)
+- [ ] ::AC2:: Criterion 2
 
 ## Technical notes
 
@@ -133,6 +133,12 @@ This is the part that survives every tracker, and it is worth more than the whol
 - One idea per bullet.
 
 **Who ticks them: the agent implementing the issue**, criterion by criterion as each becomes verifiably true, with the gates that prove it green. A tick is the claim "implemented and verified", never acceptance - the owner accepts by merging the PR, after reading the diff. It follows that a read workflow never ticks one in passing, and nobody ticks one to make an issue look closable; `workflows/state.md` refuses that outright.
+
+#### The criterion key
+
+**Every criterion on an issue carries a key, issued as `::AC{n}::` right after its checkbox and named in prose as `AC{n}`**, as in `- [ ] ::AC1:: User sees a validation error when email is blank`. The key is how every later reader addresses the criterion: the implementing agent ticks it, the merge gate reports it unticked, and a reviewer's spec finding names it. Wording changes between edits and a key does not, so a match on the key cannot miss a reworded criterion.
+
+**Keys start at `AC1` and follow the list's order when the criteria are first written.** A criterion added later takes the next free number, even when the list then reads out of order. **No key is ever renumbered, and a removed criterion's number is never reused**, for the reason `RF{n}` is not, per *Ids* in `../pr-flow/references/review-protocol.md`: a reference written against `AC3` has to mean the same criterion for the life of the issue.
 
 ---
 
