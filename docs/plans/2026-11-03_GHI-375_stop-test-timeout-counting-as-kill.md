@@ -10,7 +10,7 @@ Issue [#375](https://github.com/izkreny/agentifico/issues/375), a child of epic 
 
 ## The change
 
-**Mutation runs read `skills/agents-guru/vitest.stryker.config.js`, and it gets `testTimeout: 0` and `hookTimeout: 0`.** Vitest 5.0.5 skips its timeout wrapper for a limit of zero or less, in `withTimeout` in `skills/agents-guru/node_modules/vitest/dist/chunks/run.BPv-BBRv.js`. The Stryker Vitest runner 10.1.1 sets neither option, so the config file is the only place they come from. `skills/agents-guru/scripts/test/check.test.js` uses hooks, so the hook limit goes too, or a slow hook would fail the same way.
+**Mutation runs read `skills/agents-guru/vitest.stryker.config.js`, and it gets `testTimeout: 0` and `hookTimeout: 0`.** Vitest 5.0.5 skips its timeout wrapper for a limit of zero or less, in `withTimeout` in `skills/agents-guru/node_modules/vitest/dist/chunks/run.*.js`. The Stryker Vitest runner 10.1.1 sets neither option, so the config file is the only place they come from. `skills/agents-guru/scripts/test/check.test.js` uses hooks, so the hook limit goes too, or a slow hook would fail the same way.
 
 **Stryker's own limit is what remains, and it already reports a runaway mutant as Timeout.** It scales with each mutant's measured test time, per `timeoutFactor` in `skills/agents-guru/stryker.config.mjs`. A comment beside the new options says why they are zero.
 
