@@ -15,7 +15,7 @@ Read this before opening or working an update issue, bumping any package, editin
 Each entry is what to compare and the commands that read both sides:
 
 - **The npm packages**: `npm outdated`, `npm outdated --all` and `npm audit`, each after `npm ci`. `npm outdated` covers the direct dependencies. `npm outdated --all` adds the transitive ones, and a row whose current version is below its wanted version is one `npm update` moves. An audit finding is in scope even where nothing is outdated.
-- **Node**: the `engines` field in each `<package-dir>/package.json` against `mise latest node`. `engines` is a floor, which moves only as *Floors* says.
+- **Node**: `node --version` against `mise latest node`, and the `engines` field in each `<package-dir>/package.json` against what the package needs, per *Floors*.
 - **Vale**: `vale --version` against `mise latest vale`, and each `MIN_VALE` against what the package needs, per *Floors*. A package that runs Vale names its floor as `MIN_VALE` in its own check script.
 
 **Rehearse the npm moves on a copy before writing the issue.** Copy the `<package-dir>/package.json` and `<package-dir>/package-lock.json` into a scratch directory, and run each move there with `--package-lock-only --ignore-scripts`. Comparing the copy's lockfile against the original shows every version that moves, which is what the issue names.
