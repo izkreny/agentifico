@@ -94,7 +94,6 @@ function rough(fm) {
   if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar ends at the first non-empty line with no indent.
-  // Stryker disable next-line EqualityOperator: past the end the line is undefined, neither empty nor indented, so the loop stops anyway
-  for (let j = i + 1; j < fm.length && (fm[j] === "" || /^\s/.test(fm[j])); j++) body.push(fm[j]);
+  for (let j = i + 1; fm[j] === "" || /^\s/.test(fm[j]); j++) body.push(fm[j]);
   return body.join("\n");
 }
