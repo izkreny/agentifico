@@ -2,7 +2,7 @@
 
 What an update round is, how each dependency in it moves, and what holds some of them where they are. This file wins on any conflict about dependency work. The GitHub conventions around the pull request that carries a round live in [`gh-solo.md`](gh-solo.md), which also owns every check command named here.
 
-Read this before opening or working an update issue, bumping any package, editing a `<package-dir>/package.json` or a `<package-dir>/package-lock.json`, or moving a Vale floor.
+Read this before opening or working an update issue, bumping any package, editing a `<package-dir>/package.json` or a `<package-dir>/package-lock.json`, or moving a floor.
 
 ## An update round
 
@@ -15,8 +15,8 @@ Read this before opening or working an update issue, bumping any package, editin
 Each entry is what to compare and the commands that read both sides:
 
 - **The npm packages**: `npm outdated`, `npm outdated --all` and `npm audit`, each after `npm ci`. `npm outdated` covers the direct dependencies. `npm outdated --all` adds the transitive ones, and a row whose current version is below its wanted version is one `npm update` moves. An audit finding is in scope even where nothing is outdated.
-- **Node**: the `engines` field in each `<package-dir>/package.json` against `mise latest node`. `engines` is a floor, so a newer Node moves nothing unless the floor has to rise.
-- **Vale**: `vale --version` against `mise latest vale`, and each `MIN_VALE` against the version the round installs. A package that runs Vale names its floor as `MIN_VALE` in its own check script.
+- **Node**: the `engines` field in each `<package-dir>/package.json` against `mise latest node`. `engines` is a floor, which moves only as *Floors* says.
+- **Vale**: `vale --version` against `mise latest vale`, and each `MIN_VALE` against what the package needs, per *Floors*. A package that runs Vale names its floor as `MIN_VALE` in its own check script.
 
 **Rehearse the npm moves on a copy before writing the issue.** Copy the `<package-dir>/package.json` and `<package-dir>/package-lock.json` into a scratch directory, and run each move there with `--package-lock-only --ignore-scripts`. Comparing the copy's lockfile against the original shows every version that moves, which is what the issue names.
 
@@ -31,7 +31,7 @@ Vale moves before any npm package does, so the round's checks judge every later 
 
 **A fix that lowers a version is a decision for the issue, not a step.** The next `npm update` usually raises the version straight back, and the advisory with it. The issue names the advisory as left open, and what would let it close.
 
-Then compare the lockfile against the branch below it by version: no package should sit lower than it did.
+Then compare the lockfile against the branch below it by version: no package should sit lower than it did. Last, run each package's checks under each of its floors, per *Floors*.
 
 ## What an update round may fix
 
@@ -41,6 +41,10 @@ Then compare the lockfile against the branch below it by version: no package sho
 
 ## Floors
 
-**A Vale floor moves with the round, on the branch of the package that owns it.** A run on an older Vale can report fewer alerts than one on the latest, and a lower count is a silent pass. Raising a floor refuses every installer on an older Vale, so it is a breaking change and moves that package's major version.
+**A package's floor rises only when the package needs a newer version, on that package's own branch.** A floor is the `MIN_VALE` in a package's check script, or the Node its `engines` field asks for, and a newer release alone moves neither. Raising a floor refuses every installer on an older version, so it is a breaking change and moves that package's major version.
+
+**A round runs each package's checks once under each of its floors**, such as `mise exec vale@3.23.0 -- bash plugins/gh-solo/skills/pr-flow/scripts/test-plan-check.sh` or `mise exec node@26.1.0 -- npm --prefix skills/agents-guru test`. Every other run uses the latest version, so this run is the only test a floor gets. A floor's version is a machine-wide install, which the owner runs before the round needs it.
+
+**No mise configuration in the repository pins a version for the checks.** A pin at the latest version tests no floor, and it is one more file to keep in step.
 
 **A round that reaches another package's files splits that work into an issue of its own.** An epic covers one package, per *A package epic's last child is that package's sweep issue, and its branch is the stack's top branch* in [`AGENTS.md`](../AGENTS.md), so each package's floor moves on that package's own branch.
