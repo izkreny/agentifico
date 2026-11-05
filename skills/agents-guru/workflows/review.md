@@ -60,6 +60,10 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **A count of adjacent content, or a position claim.** *Write sentences that survive change* in `workflows/new.md` owns the rule and its cap-or-count test, and `Counts` and `Position` under `assets/` report the phrasings they know. Reading catches the rest, such as "the two facts below", "the only copy" or "the newest section" worded in a shape no token matches.
 
+### What the skill tells a project to write
+
+**A format the skill prescribes.** A skill that tells a project to write a file in a set shape, such as required sections or a template, puts that shape under review too. Hold each part it asks for to the rules the skill's own text is held to. Ask whether it makes the project store history, which *Never write the file's own history* in `workflows/new.md` forbids, or copy a fact another file owns, which *One fact, one place* forbids. A glossary format is the case: a `## Relationships` section copies what the project's schema and specs already own, and a `## Retired` section stores what version history already holds. No rule reads a prescribed format, so ask what each part is for.
+
 ### Prose that copies the code
 
 **A document restating the code it describes.** A workflow or a reference walks through a script or a rule file: every defect it reports, every case it leaves alone, every message, every figure. Grep the document for a message's wording or a figure the code defines, and ask whether the sentence says anything the file cannot. *Point at the code that owns a detail, never restate it* in `workflows/new.md` owns the rule and what a document keeps.
