@@ -17,7 +17,7 @@ Issue [#355](https://github.com/izkreny/agentifico/issues/355), a child of epic 
 - **The order**: Vale first, since it is a machine-wide install the owner runs. Then each direct pin with `npm install --save-exact`, a major in a commit of its own. Then `npm update` for the lockfile.
 - **`npm audit fix`** runs only after its `--dry-run --json` shows no lowered version. A fix that lowers one is a decision for the issue. groupifico's file lacks this rule.
 - **What a round may fix**: groupifico's size rule, unchanged.
-- **Floors**: a linter's floor moves with the round, since an older Vale can report fewer alerts. A round that reaches another package's files splits that work into an issue of its own, since an epic covers one package.
+- **Floors**: a package's floor, its `MIN_VALE` or the Node its `engines` field asks for, rises only when the package needs a newer version, and the raise is breaking. A round runs each package's checks once under each of its floors, since nothing else tests one. A round that reaches another package's files splits that work into an issue of its own, since an epic covers one package.
 
 `AGENTS.md` names the file in its layout table and among the files held to the `agents-guru` skill. The owner granted this repository-level edit on this branch.
 
@@ -29,9 +29,17 @@ The 3.25.1 changes #356 lists are what the suite is read for: phrases matching a
 
 `plugins/gh-solo` keeps its own 3.23 floor. Its plan-check bench is run under 3.25.1 to show nothing there breaks.
 
+## The second round, on 2026-11-05
+
+Vale 3.26.0 is out, and the owner has installed it, with Node 26.1.0 beside the latest Node. While planning #369 the owner agreed a new floor rule, recorded on #355: a floor rises only when the package needs it. The round writes that rule into *Floors* in `.agents/dependencies.md` for both kinds of floor, and adds the run under each floor to the round.
+
+Measured on this branch with `MIN_VALE` set back to 3.23, the suite passes under Vale 3.23.0, 3.25.1 and 3.26.0, apart from the threshold test that encodes 3.25. So the rule alone would put the floor back at 3.23. It stays at 3.25, and the version at 8.0.0: the raise is the epic's only breaking change, so undoing it would move the version of every branch above this one in stack #359. The owner chose that on 2026-11-05.
+
+The floors the round runs under are Vale 3.25.1 for agents-guru, Vale 3.23.0 for gh-solo's plan-check bench, and Node 26.1.0 for agents-guru.
+
 ## npm
 
-Biome moves to 2.6.3 with `npm install --save-exact @biomejs/biome@2.6.3`, and the `$schema` URL in `skills/agents-guru/biome.json` moves with it. Then `npm update` moves the transitive packages the issue names. A rehearsal on a copy of the lockfile showed exactly those moves and no lowered version.
+Biome moves to 2.6.3 with `npm install --save-exact @biomejs/biome@2.6.3`, and the `$schema` URL in `skills/agents-guru/biome.json` moves with it. The second round moves Biome to 2.6.5 and Vitest to 5.1.0 the same way, with Vitest's changelog read first since it is a minor. Then `npm update` moves the transitive packages the issue names. A rehearsal on a copy of the lockfile showed exactly those moves and no lowered version.
 
 `npm audit fix` is not run: both fixes it offers here lower a version, as the issue records.
 
@@ -43,16 +51,22 @@ Biome moves to 2.6.3 with `npm install --save-exact @biomejs/biome@2.6.3`, and t
 - Move `MIN_VALE` to 3.25 and the threshold stubs with it, adapt any rule or case 3.25.1 breaks, and move agents-guru's version a major, in a commit marked breaking.
 - Read Biome 2.6.3's changelog, then pin Biome at 2.6.3 and move the `$schema` URL, in a commit of their own.
 - Run `npm update` in `skills/agents-guru`, in a commit of its own.
+- Rewrite *Floors* in `.agents/dependencies.md` for both kinds of floor, and add the run under each floor to the inventory and the update order.
+- Read Biome 2.6.5's and Vitest 5.1.0's changelogs, then pin Biome at 2.6.5 and Vitest at 5.1.0 and move the `$schema` URL, in a commit of their own.
+- Run `npm update` in `skills/agents-guru` again, in a commit of its own.
+- Restack the branches above this one onto it.
 
 ## Verification
 
 - `python3 plugins/gh-solo/skills/pr-flow/scripts/plan-check.py $(git diff --name-only origin/main...HEAD -- docs/plans)`
 - `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md .agents/dependencies.md AGENTS.md $(git diff --name-only origin/main...HEAD -- docs/plans) --plans docs/plans`
 - `python3 scripts/version-check.py`
+- `npm --prefix skills/agents-guru test`, with Vale 3.26.0 on `PATH`
 - `npm --prefix skills/agents-guru test`, with Vale 3.25.1 on `PATH`
+- `npm --prefix skills/agents-guru test`, under Node 26.1.0
 - `npm --prefix skills/agents-guru run lint`
-- `node skills/agents-guru/scripts/check.js <package-dir>` exits zero on each of `plugins/gh-solo`, `skills/review-text`, `skills/agents-guru` and `skills/socratic-tutor`, with Vale 3.25.1 on `PATH`
-- `bash plugins/gh-solo/skills/pr-flow/scripts/test-plan-check.sh`, with Vale 3.25.1 on `PATH`
+- `node skills/agents-guru/scripts/check.js <package-dir>` exits zero on each of `plugins/gh-solo`, `skills/review-text`, `skills/agents-guru` and `skills/socratic-tutor`, with Vale 3.26.0 on `PATH`, again with Vale 3.25.1, and again under Node 26.1.0
+- `bash plugins/gh-solo/skills/pr-flow/scripts/test-plan-check.sh`, with Vale 3.26.0 on `PATH`, and again with Vale 3.23.0
 - `npm --prefix skills/agents-guru outdated` exits zero
 - `npm --prefix skills/agents-guru update` then `git diff --exit-code -- skills/agents-guru/package-lock.json` exits zero
 - `python3 -c 'import json,re,subprocess,sys; k=lambda v: [int(x) for x in re.findall(r"\d+", v.split("-")[0])]; old=json.loads(subprocess.check_output(["git","show","origin/docs/GHI-308_new-agnix-rules-for-the-check:skills/agents-guru/package-lock.json"]))["packages"]; new=json.load(open("skills/agents-guru/package-lock.json"))["packages"]; down=[p for p in new if p in old and "version" in new[p] and k(new[p]["version"])<k(old[p]["version"])]; print(*down, sep="\n"); sys.exit(bool(down))'` exits zero, having been seen to exit 1 on the lockfile `npm audit fix` writes
@@ -66,3 +80,5 @@ None.
 ## Settled
 
 **Does Vale move in this round, or in #356?** In this round, with #356's criteria, under the size rule. The owner chose it in the terminal on 2026-10-28; #356 closes when this pull request merges.
+
+**Does agents-guru's Vale floor go back to 3.23, now that its rules need nothing newer?** No, it stays at 3.25, and the version at 8.0.0. Undoing the epic's only breaking change would move the version of every branch above this one. The owner chose it in the terminal on 2026-11-05.
