@@ -48,6 +48,12 @@ tokens:
   - 'both needing'
   # "Both, like every validator that parses frontmatter" 783e1a9, counting the two neighbours the paragraph before it enumerated.
   - '^both(?=,)'
+  # "The prose class is printed from two places" #163 RF7, ea116fe: a third print site makes it false. Literal, since a bare "two places" is a live idiom.
+  - 'printed from two places'
+  # "Both observed on 0.7.7." 7b4352d on #380, the fix for #379 SW3, counting the two behaviours the sentences before it named.
+  - 'both observed'
+  # "The next run replaces both." #404 RF10, counting the files a sentence before it named, false once a third file was generated.
+  - 'replaces both(?=[,.;])'
 tests:
   - name: fires on each recorded shape, once per line
     input: |
@@ -77,6 +83,9 @@ tests:
       It holds for a moved head. Two causes remain, and the report names them.
       It routes the three `Reviewer` lines to the review skill.
       On any error, report which half of the cleanup is still owed.
+      The prose class is printed from two places at runtime.
+      Both observed on the gem's last release.
+      The next run replaces both.
     want: |
       3:11:Agentifico.Counts:Write sentences that survive change: 'all three' counts adjacent content, and the list is the authority on its own length.
       4:7:Agentifico.Counts:Write sentences that survive change: 'the two caps' counts adjacent content, and the list is the authority on its own length.
@@ -102,6 +111,9 @@ tests:
       24:28:Agentifico.Counts:Write sentences that survive change: 'Two causes' counts adjacent content, and the list is the authority on its own length.
       25:11:Agentifico.Counts:Write sentences that survive change: 'the three ******** lines' counts adjacent content, and the list is the authority on its own length.
       26:22:Agentifico.Counts:Write sentences that survive change: 'which half of' counts adjacent content, and the list is the authority on its own length.
+      27:20:Agentifico.Counts:Write sentences that survive change: 'printed from two places' counts adjacent content, and the list is the authority on its own length.
+      28:1:Agentifico.Counts:Write sentences that survive change: 'Both observed' counts adjacent content, and the list is the authority on its own length.
+      29:14:Agentifico.Counts:Write sentences that survive change: 'replaces both' counts adjacent content, and the list is the authority on its own length.
   - name: leaves caps, a bare both and code alone
     input: |
       # Title
@@ -118,4 +130,5 @@ tests:
       A file carries at most one exception to the cap.
       The check states each ceiling in its entry, and the rule binds each entrance.
       Use `_` between the axis and the value, and `-` inside either half.
+      The next run replaces both the rule and the file.
     want: ""

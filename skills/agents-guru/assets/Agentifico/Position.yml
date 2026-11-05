@@ -31,8 +31,8 @@ tokens:
   - 'and nothing (?:later|earlier)'
   # A bare "above." or "below," closing a clause: "per *Who this is for* above." 187f851.
   - '(?:above|below)(?=[,.;:)]|$)'
-  # A uniqueness claim: "the only one in this table" PR 37, "the one place a body section's cap is stated" PR 46, "the one statement of what follows" PR 82, "the one exception" PR 87, "the only read in this workflow" PR 73. "the only plan still being written" PR 155 RF4, false on a stacked branch, adds "plan"; "the only one in this table" adds "one".
-  - 'the (?:only|one|single|sole) (?:place|thing|way|copy|exception|exclusion|entrance|statement|read|workflow|site|home|rule|shape|state|point|reason|file|check|command|source|entry|surface|finding|kind|plan|one)'
+  # A uniqueness claim: "the only one in this table" PR 37, "the one place a body section's cap is stated" PR 46, "the one statement of what follows" PR 82, "the one exception" PR 87, "the only read in this workflow" PR 73. "the only plan still being written" PR 155 RF4, false on a stacked branch, adds "plan"; "the only one in this table" adds "one"; "the one heading named from more than its own call site" #163 RF8, 9508f7c, adds "heading".
+  - 'the (?:only|one|single|sole) (?:place|thing|way|copy|exception|exclusion|entrance|statement|read|workflow|site|home|rule|shape|state|point|reason|file|check|command|source|entry|surface|finding|kind|plan|one|heading)'
   # "the trap is visible to it alone" 783e1a9: a uniqueness claim postposed after the pronoun, which the determiner shapes cannot reach.
   - '(?:to|for) it alone'
   # "This is the one that works" .agents/gh-solo.md; "the one whose absence" AGENTS.md.
@@ -45,6 +45,8 @@ tokens:
   - 'every other plugin file'
   # "When a workflow below says" #229 SW10, 00b5217: an article no determiner shape reaches, pointing at workflows in other files.
   - 'a workflow below'
+  # "Every path here is in the project being worked on" #389 RF5, e06cb78: false from the first path the file names inside its own directory.
+  - 'every path here'
   # "every other site points there rather than carrying its own copy" and "the sites that mention a merge follows point here rather than carrying their own copy of the command", PR 82 RF3 and RF4 on second attempts.
   - '(?:site|sites|copy|copies|file|files|workflow|workflows) (?:[a-z]+ ){0,6}?points? (?:here|there) rather than'
   - 'exactly those'
@@ -105,6 +107,8 @@ tests:
       A detached trunk is what the first case tolerates.
       It reads every other plugin file.
       When a workflow below says it, resolve it.
+      The prose class is the one heading the index names.
+      Every path here opens with a placeholder.
     want: |
       3:5:Agentifico.Position:Write sentences that survive change: 'the escape above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       4:1:Agentifico.Position:Write sentences that survive change: 'The row below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
@@ -142,6 +146,8 @@ tests:
       36:26:Agentifico.Position:Write sentences that survive change: 'the first case' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       37:10:Agentifico.Position:Write sentences that survive change: 'every other plugin file' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       38:6:Agentifico.Position:Write sentences that survive change: 'a workflow below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      39:20:Agentifico.Position:Write sentences that survive change: 'the one heading' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      40:1:Agentifico.Position:Write sentences that survive change: 'Every path here' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
   - name: leaves the sanctioned forms alone
     input: |
       # Title
@@ -160,4 +166,6 @@ tests:
       Everything after it is discarded with no parse error.
       The vocabulary is under *Branch and commit type* in the same file, and the word buys a further one.
       Write the last edge case as a test of its own.
+      Every file here is written to the agent, and every command here starts with gh.
+      Every path this file names opens with a placeholder.
     want: ""
