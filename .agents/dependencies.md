@@ -31,7 +31,7 @@ Vale moves before any npm package does, so the round's checks judge every later 
 
 **A fix that lowers a version is a decision for the issue, not a step.** The next `npm update` usually raises the version straight back, and the advisory with it. The issue names the advisory as left open, and what would let it close.
 
-Then compare the lockfile against the branch below it by version: no package should sit lower than it did. Last, run each package's checks under each of its floors, per *Floors*.
+Then compare the lockfile against the one on the pull request's base branch, by version: no package should sit lower than it did. Last, run each package's checks under each of its floors, per *Floors*.
 
 ## What an update round may fix
 
