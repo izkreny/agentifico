@@ -18,7 +18,9 @@
       "preset": "recommended",
       "complexity": {
         "noUselessUndefined": "error",
-        "useSimplifiedLogicExpression": "error"
+        "useSimplifiedLogicExpression": "error",
+        "noExcessiveLinesPerFunction": "error",
+        "noExcessiveCognitiveComplexity": "warn"
       },
       "correctness": {
         "noUnresolvedImports": "error"
@@ -33,7 +35,8 @@
         "noNestedTernary": "error",
         "useCollapsedIf": "error",
         "noNegationElse": "error",
-        "noParameterAssign": "error"
+        "noParameterAssign": "error",
+        "noExcessiveLinesPerFile": "warn"
       },
       "suspicious": {
         "noVar": "error",
@@ -45,6 +48,21 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": ["scripts/test/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off"
+          },
+          "style": {
+            "noExcessiveLinesPerFile": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "double",
