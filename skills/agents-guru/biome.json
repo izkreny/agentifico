@@ -27,7 +27,8 @@
         "noProcessGlobal": "error"
       },
       "performance": {
-        "noAwaitInLoops": "error"
+        "noAwaitInLoops": "error",
+        "noNamespaceImport": "error"
       },
       "style": {
         "noCommonJs": "error",

@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, it } from "vitest";
-import * as YAML from "yaml";
+import { parseDocument, parse as parseYaml, stringify as stringifyYaml } from "yaml";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const pkg = path.resolve(here, "..", "..");
@@ -138,7 +138,7 @@ describe("per-token coverage", () => {
     const unreached = [];
     for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
       const rule = file.replace(/\.yml$/u, "");
-      const { tests, ...source } = YAML.parse(fs.readFileSync(path.join(styleDir, file), "utf8"));
+      const { tests, ...source } = parseYaml(fs.readFileSync(path.join(styleDir, file), "utf8"));
       const entries = Array.isArray(source.tokens)
         ? source.tokens.map((token) => [token, { tokens: [token] }])
         : Object.entries(source.swap ?? {}).map(([key, word]) => [key, { swap: { [key]: word } }]);
@@ -148,7 +148,7 @@ describe("per-token coverage", () => {
       const fixture = path.join(tokDir, `${rule.toLowerCase()}.md`);
       fs.writeFileSync(fixture, trip.input);
       for (const [token, alone] of entries) {
-        fs.writeFileSync(path.join(tokDir, "T", `${rule}.yml`), YAML.stringify({ ...source, ...alone }));
+        fs.writeFileSync(path.join(tokDir, "T", `${rule}.yml`), stringifyYaml({ ...source, ...alone }));
         if (vale(tokIni, fixture).length === 0) unreached.push(`${rule}: ${token}`);
       }
     }
@@ -159,12 +159,12 @@ describe("per-token coverage", () => {
 describe("word classes", () => {
   // A group holding a word from no class is left alone, so a pronoun beside the determiners does not force a token apart.
   it("every group of one class's words is that class's list, or its source comment says why it narrows", () => {
-    const classes = YAML.parse(fs.readFileSync(path.join(styles, "word-classes.yml"), "utf8"));
+    const classes = parseYaml(fs.readFileSync(path.join(styles, "word-classes.yml"), "utf8"));
     const classOf = (alts) => Object.keys(classes).find((c) => alts.every((a) => classes[c].includes(a)));
     const drifted = [];
     for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
       const rule = file.replace(/\.yml$/u, "");
-      const tokens = YAML.parseDocument(fs.readFileSync(path.join(styleDir, file), "utf8")).get("tokens", true);
+      const tokens = parseDocument(fs.readFileSync(path.join(styleDir, file), "utf8")).get("tokens", true);
       if (!tokens) continue;
       for (const [i, item] of tokens.items.entries()) {
         // The first token's comment is parsed onto the sequence rather than the item.
@@ -181,8 +181,8 @@ describe("word classes", () => {
     assert.deepEqual(drifted, [], `a group narrows its class with no "Narrows <class>: <reason>" in its comment:\n${drifted.join("\n")}`);
   });
   it("Digits swaps each digit from two to twenty for its word in the numbers list", () => {
-    const { numbers } = YAML.parse(fs.readFileSync(path.join(styles, "word-classes.yml"), "utf8"));
-    const { swap } = YAML.parse(fs.readFileSync(path.join(styleDir, "Digits.yml"), "utf8"));
+    const { numbers } = parseYaml(fs.readFileSync(path.join(styles, "word-classes.yml"), "utf8"));
+    const { swap } = parseYaml(fs.readFileSync(path.join(styleDir, "Digits.yml"), "utf8"));
     // A key opens on lookbehinds and closes on lookaheads, so its digit is the number standing between a closing and an opening parenthesis.
     const swapped = Object.entries(swap).map(([key, word]) => [Number(key.match(/\)(\d+)\(/u)[1]), word]);
     assert.deepEqual(
@@ -203,7 +203,7 @@ describe("rule messages", () => {
   it("reads the headings from workflows/new.md and the rule files from assets/", () => assert.ok(headings.length > 0 && rules.length > 0));
   for (const file of rules) {
     it(`${file} opens its message on a heading of workflows/new.md`, () => {
-      const { message } = YAML.parse(fs.readFileSync(path.join(styleDir, file), "utf8"));
+      const { message } = parseYaml(fs.readFileSync(path.join(styleDir, file), "utf8"));
       assert.equal(typeof message, "string", `${file} carries no message`);
       // The text before the first colon may shorten its heading but never reword it, which is how Banner names its own.
       const opening = message.split(":")[0];

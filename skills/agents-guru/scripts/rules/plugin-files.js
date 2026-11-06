@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import semver from "semver";
-import * as YAML from "yaml";
+import { isMap, isSeq, LineCounter, parseDocument } from "yaml";
 
 // Only the events without matcher support are listed, because a stale copy of this list then misses a warning where a list of the supported events would flag a correct file on a new event.
 const NO_MATCHER = new Set([
@@ -59,16 +59,16 @@ function read(source) {
   } catch {
     return null;
   }
-  const lineCounter = new YAML.LineCounter();
+  const lineCounter = new LineCounter();
   // Stryker disable next-line BooleanLiteral: read() never consults the parser's errors, and a duplicate key leaves the same pairs either way.
-  const doc = YAML.parseDocument(source, { lineCounter, uniqueKeys: false });
+  const doc = parseDocument(source, { lineCounter, uniqueKeys: false });
   return { root: doc.contents, lineOf: (node) => lineCounter.linePos(node.range[0]).line };
 }
 
 // Stryker disable next-line OptionalChaining: read() admits only JSON, whose every key is a scalar.
-const pairOf = (map, key) => (YAML.isMap(map) ? map.items.find((pair) => pair.key?.value === key) : undefined);
+const pairOf = (map, key) => (isMap(map) ? map.items.find((pair) => pair.key?.value === key) : undefined);
 // Stryker disable next-line ArrayDeclaration: an item that is no map is skipped wherever items are read, so a stray one changes nothing.
-const itemsOf = (node) => (YAML.isSeq(node) || YAML.isMap(node) ? node.items : []);
+const itemsOf = (node) => (isSeq(node) || isMap(node) ? node.items : []);
 
 const namesUserConfig = (pair) => String(pair?.value.value).includes(`\${user_config.`);
 
@@ -166,12 +166,12 @@ export function hooksDefects(source, own = new Set()) {
   const found = [];
   const report = (pair, detail) => found.push({ line: file.lineOf(pair.key), detail });
   const events = pairOf(file.root, "hooks")?.value;
-  if (!YAML.isMap(events)) return found;
+  if (!isMap(events)) return found;
   for (const { key, value: groups } of events.items) {
     for (const group of itemsOf(groups)) {
       matcherRules(pairOf(group, "matcher"), key.value, own, report);
       for (const hook of itemsOf(pairOf(group, "hooks")?.value)) {
-        if (!YAML.isMap(hook)) continue;
+        if (!isMap(hook)) continue;
         fieldRules(hook, key.value, report);
         commandRules(hook, report);
         serverRule(hook, own, report);

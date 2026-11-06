@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { lint } from "markdownlint/promise";
-import * as YAML from "yaml";
+import { LineCounter, Parser, parseAllDocuments, parseDocument } from "yaml";
 import { config, contractRuleNames, proseShapeRuleNames, rules, skippableRuleNames, warningRuleNames } from "./lint-config.js";
 import { isSkillFile } from "./rules/frontmatter.js";
 import { byCodeUnit } from "./rules/order.js";
@@ -193,7 +193,7 @@ report("general lint", generalFindings);
 
 // A comment is read off the parser's tree, because a "#" inside a block scalar is text and a raw-line scan would read it as a comment.
 const commentsOf = (source) => {
-  const lines = new YAML.LineCounter();
+  const lines = new LineCounter();
   const comments = [];
   const walk = (node) => {
     // Stryker disable next-line ConditionalExpression: an array walked as an object reaches the same items through Object.values.
@@ -203,7 +203,7 @@ const commentsOf = (source) => {
       else Object.values(node).forEach(walk);
     }
   };
-  for (const token of new YAML.Parser(lines.addNewLine).parse(source)) walk(token);
+  for (const token of new Parser(lines.addNewLine).parse(source)) walk(token);
   // Stryker disable next-line all: the parser's tokens already arrive in source order, so the sort guards an order nothing produces.
   return comments.sort((a, b) => a.line - b.line);
 };
@@ -213,9 +213,9 @@ let yamlWarnings = 0;
 for (const file of yamlFiles) {
   const rel = path.relative(base, file);
   const source = fs.readFileSync(file, "utf8");
-  const docs = YAML.parseAllDocuments(source);
+  const docs = parseAllDocuments(source);
   // A stream holding no document comes back empty and raises nothing, so a file of directives alone is parsed again as one document, which reports what is missing.
-  const errors = docs.length > 0 ? docs.flatMap((doc) => doc.errors) : YAML.parseDocument(source).errors;
+  const errors = docs.length > 0 ? docs.flatMap((doc) => doc.errors) : parseDocument(source).errors;
   for (const e of errors) {
     const rule = e.code === "DUPLICATE_KEY" ? "yaml-duplicate-key" : "yaml-parse";
     // Stryker disable next-line OptionalChaining: yaml leaves an error unplaced only at offset -1, which neither parse call here passes, so linePos is always set.
