@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(gh:*)` for `gh pr view`, `gh issue view`, `gh pr checks` and `gh pr ready`, `Bash(git:*)` for branch state and Step 4's search. **Read-only apart from the flag** — no `gh pr edit`, and nothing here runs a project command.
+> **Tools used:** `Bash(gh:*)` for `gh pr view`, `gh issue view`, `gh pr checks` and `gh pr ready`, `Bash(git:*)` for branch state, `Bash(python3:*)` for `scripts/criteria-check.py` in Step 4. **Read-only apart from the flag** — no `gh pr edit`, and nothing here runs a project command.
 
 Move a draft PR into the review loop, once the plan is implemented.
 
@@ -55,28 +55,15 @@ Same posture: read, report, do not edit.
 
 **A keyed criterion is proven by a test that names it**, per *Writing good acceptance criteria* in `../tracker/references/issue-shape.md`, which owns the rule. This step checks only that such a test exists. Whether it passes is the job of the check commands in `## Verification`, so a skipped test still passes here.
 
-**The repository turns the gate on with `Test files: <test-files-glob>` in its config file.** The glob is a git pathspec glob. Without the line the gate is off: say so in the verdict, and this step ends there.
-
-Read the criterion keys off the issue the body's `Closes #{issue-number}` line names:
+**The repository turns the gate on with `Test files: <test-files-glob>` in its config file.** The glob is a git pathspec glob. Without the line the gate is off.
 
 ```bash
-gh issue view <issue-number> --json body --jq '[.body | scan("(?m)^- \\[[ xX]\\] ::(AC[0-9]+)::(READ::)?") | select(.[1] == null) | .[0]]'
+python3 <skill-dir>/scripts/criteria-check.py <pr-number>
 ```
 
-It takes every criterion line with a checkbox, ticked or not. It skips a removed criterion, which has no checkbox, and one marked `READ`. An empty list passes, and the verdict says no criterion carries a key, so a pass on nothing is never silent.
+The script reads the glob, the criterion keys of the issue the body's `Closes #{issue-number}` line names, and the PR's own head, then searches that head once per key. It skips a removed criterion and one marked `READ`. It prints each key beside the `file:line` naming it, and says so when the gate is off or no criterion carries a key, so a pass on nothing is never silent. Pass `--remote <remote>` where the repository has several remotes and the trunk tracks none of them. `scripts/test-criteria-check.sh` is its bench.
 
-Then read the PR's head and search it, once per key:
-
-```bash
-gh pr view <pr-number> --json headRefName --jq .headRefName
-git fetch <remote> <branch> --quiet
-git rev-parse FETCH_HEAD
-git grep -n -w -F -e GHI-<issue-number> --and -e <key> <head-sha> -- ':(glob)<test-files-glob>'
-```
-
-`<branch>` is the PR's own `headRefName`, never the branch the session has checked out. The head's sha is read as `workflows/review.md` Step 1 reads it, and never through `gh pr view --json headRefOid`, for the lag reason stated there. `-w` makes both whole tokens, and `--and` keeps them on one line. Exit 0 prints each line naming the key; exit 1 means no test names it.
-
-**Any key with no match refuses the flip**, listing every such key: `⛔ REFUSED - no test names {keys}`. Otherwise the verdict lists each key beside the `file:line` that names it, so the mapping reads from the console.
+**Exit 1 refuses the flip**: `⛔ REFUSED - no test names {keys}`, the keys being the ones its last line lists. **Any other non-zero exit refuses too**, because the check could not run, and the refusal quotes what the script printed. Exit 0 passes, and the verdict carries the script's output.
 
 ## Step 5 - Mark it ready
 

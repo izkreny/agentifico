@@ -123,6 +123,12 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-post-review.sh
 bash plugins/gh-solo/skills/pr-flow/scripts/test-watch.sh
 ```
 
+**The criteria check's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/criteria-check.py`:
+
+```bash
+bash plugins/gh-solo/skills/pr-flow/scripts/test-criteria-check.sh
+```
+
 **The trunk-push hook's bench**, after any edit to `plugins/gh-solo/hooks/ask-before-trunk-push.py`:
 
 ```bash
