@@ -39,7 +39,8 @@
         "noParameterAssign": "error",
         "noExcessiveLinesPerFile": "warn",
         "useExplicitLengthCheck": "error",
-        "useUnicodeRegex": "error"
+        "useUnicodeRegex": "error",
+        "useDefaultParameterLast": "error"
       },
       "suspicious": {
         "noVar": "error",
