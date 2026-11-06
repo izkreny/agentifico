@@ -56,8 +56,8 @@ function advertised(hint) {
 }
 
 const headingLevel = (t) => {
-  // Stryker disable next-line ConditionalExpression: an ATX heading opens with its sequence, so the first child is the one sought.
   if (t.type === "atxHeading") {
+    // Stryker disable next-line ConditionalExpression: an ATX heading opens with its sequence, so the first child is the one sought.
     return t.children.find((c) => c.type === "atxHeadingSequence").text.length;
   }
   if (t.type === "setextHeading") {
