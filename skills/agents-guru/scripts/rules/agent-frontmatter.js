@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { built, FRONTMATTER_LINE, frontmatter, parsed, unbuilt } from "./frontmatter.js";
+import { byCodeUnit } from "./order.js";
 import { isPluginRoot } from "./plugin-files.js";
 
 const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
@@ -154,11 +155,11 @@ function duplicateNames(file, folder, fm) {
   // WHY: a clean run would otherwise claim a comparison that never happened.
   const details = unread
     .map(([entry, code]) => [relative(entry), code])
-    .sort()
+    .sort(byCodeUnit)
     .map(([entry, code]) => `could not read ${entry} (${code}), so the name ${JSON.stringify(name)} was not compared with it`);
   if (others.length)
     details.unshift(
-      `name ${JSON.stringify(name)} is also declared by ${others.map(relative).sort().join(", ")}: Claude Code loads only one of them from this .claude/agents folder, by read order`,
+      `name ${JSON.stringify(name)} is also declared by ${others.map(relative).sort(byCodeUnit).join(", ")}: Claude Code loads only one of them from this .claude/agents folder, by read order`,
     );
   return details;
 }

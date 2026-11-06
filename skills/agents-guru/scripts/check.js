@@ -7,6 +7,7 @@ import { lint } from "markdownlint/promise";
 import YAML from "yaml";
 import { config, contractRuleNames, proseShapeRuleNames, rules, skippableRuleNames, warningRuleNames } from "./lint-config.js";
 import { isSkillFile } from "./rules/frontmatter.js";
+import { byCodeUnit } from "./rules/order.js";
 import { hooksDefects, isPluginRoot, manifestDefects, monitorFileDefects, monitorsFile, ownServers } from "./rules/plugin-files.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -78,17 +79,17 @@ const base = folders.reduce((shared, folder) => {
 });
 
 const found = [...rootOf.keys()];
-const files = found.filter((file) => file.endsWith(".md")).sort();
+const files = found.filter((file) => file.endsWith(".md")).sort(byCodeUnit);
 // A code file reaches Vale alone, which reads it as its comments and docstrings, and never markdownlint.
-const codeFiles = found.filter((file) => /\.(js|py)$/.test(file)).sort();
+const codeFiles = found.filter((file) => /\.(js|py)$/.test(file)).sort(byCodeUnit);
 // A YAML file is read by this script alone, since Vale leaves it out for the reason workflows/check.md gives.
-const yamlFiles = found.filter((file) => /\.ya?ml$/.test(file)).sort();
+const yamlFiles = found.filter((file) => /\.ya?ml$/.test(file)).sort(byCodeUnit);
 
 // The skills found are named because a file count alone cannot tell a sweep that covered one skill of a package from one that covered all of them.
 const skills = files
   .filter(isSkillFile)
   .map((file) => path.relative(base, path.dirname(file)) || ".")
-  .sort();
+  .sort(byCodeUnit);
 console.log(skills.length ? `${skills.length} skill(s) found under ${base}` : `no skill found under ${base}`);
 for (const skill of skills) console.log(`  ${skill}`);
 
@@ -102,7 +103,7 @@ const report = (label, lines, summary = lines.length || "none") => {
 };
 
 // One filter by rule name serves markdownlint's findings, the YAML reader's and Vale's, so a rule joining the skippable set needs no stream of its own.
-const withheld = new Map([...skip].sort().map((name) => [name, 0]));
+const withheld = new Map([...skip].sort(byCodeUnit).map((name) => [name, 0]));
 const withholds = (names) => {
   const name = names.find((n) => skip.has(n));
   if (name) withheld.set(name, withheld.get(name) + 1);
@@ -138,7 +139,7 @@ let issues = dangling.size;
 report(
   "dangling links",
   [...dangling.keys()]
-    .sort()
+    .sort(byCodeUnit)
     .map((file) => `${path.relative(base, file)} dangling-link cannot be resolved (${dangling.get(file)}), so nothing was read from it`),
 );
 // A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
@@ -235,7 +236,7 @@ const pluginFiles = [];
 const pluginFindings = [];
 let pluginIssues = 0;
 let pluginWarnings = 0;
-for (const dir of [...pluginDirs].filter(isPluginRoot).sort()) {
+for (const dir of [...pluginDirs].filter(isPluginRoot).sort(byCodeUnit)) {
   const readers = [
     ["hooks/hooks.json", "plugin-hooks", (source) => hooksDefects(source, ownServers(dir))],
     [".claude-plugin/plugin.json", "plugin-manifest", (source) => manifestDefects(source, dir)],
