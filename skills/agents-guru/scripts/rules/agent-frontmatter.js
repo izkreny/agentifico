@@ -70,9 +70,12 @@ function agentFilesIn(folder) {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         walk(full);
-      } else if (!entry.name.endsWith(".md")) {
         continue;
-      } else if (entry.isFile()) {
+      }
+      if (!entry.name.endsWith(".md")) {
+        continue;
+      }
+      if (entry.isFile()) {
         files.push(full);
       } else if (
         // Stryker disable next-line ConditionalExpression: any other entry ending in .md, such as a pipe, stats as no file, so it is skipped either way.
