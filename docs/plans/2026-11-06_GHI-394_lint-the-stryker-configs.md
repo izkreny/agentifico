@@ -49,3 +49,7 @@ No gate keeps the configs in the lint. A later edit to `files.includes` could dr
 ## Open questions
 
 - **May this branch update the quote of the `lint` command in `.agents/gh-solo.md`?** That file says `skills/agents-guru/package.json` declares `biome check scripts/`, which is false once this lands. It is a repository-level file, so this package branch asks first. Recommendation: yes, here, as one line, so the quote never disagrees with the manifest.
+
+## Settled
+
+- **May this branch update the quote of the `lint` command in `.agents/gh-solo.md`?** Yes, the owner said in the session on 2026-11-06, after the review round. The quote moves to `biome check .` on this branch.
