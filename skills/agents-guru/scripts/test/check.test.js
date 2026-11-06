@@ -157,7 +157,7 @@ beforeAll(() => {
   fs.symlinkSync(path.join(pkg, "skills", "beta"), path.join(tmp, "linked", "beta"));
   fs.symlinkSync(path.join(tmp, "good"), path.join(tmp, "linked", "good"));
 
-  const long = Array.from({ length: 41 }, (_, i) => Array.from({ length: 50 }, (_, j) => `word${i}x${j}`).join(" ")).join("\n\n");
+  const long = Array.from({ length: 41 }, (_line, i) => Array.from({ length: 50 }, (_word, j) => `word${i}x${j}`).join(" ")).join("\n\n");
   mk(path.join(tmp, "long"), block("long", "A long skill."));
   fs.appendFileSync(path.join(tmp, "long", "SKILL.md"), `\n${long}\n`);
   // A wrapped paragraph alone, so the run's exit code says whether a hard-wrap warning fails it.
@@ -1794,8 +1794,8 @@ describe("skill-pinned-sources", () => {
     assert.match(found[0], /^ {2}README\.md:11 /);
     const elsewhere = `Validated by [a tool][tool].\n\n## Sources\n\nNone from a git host.\n\n[tool]: ${url}\n`;
     assert.deepEqual(findings(mkSkill("ref-elsewhere", elsewhere)), []);
-    const pinned = `## Sources\n\n[a][pin]\n\n[pin]: ${url}/blob/${SHA}/SKILL.md\n`;
-    assert.deepEqual(findings(mkSkill("ref-pinned", pinned)), []);
+    const pinnedRef = `## Sources\n\n[a][pin]\n\n[pin]: ${url}/blob/${SHA}/SKILL.md\n`;
+    assert.deepEqual(findings(mkSkill("ref-pinned", pinnedRef)), []);
     const unused = `## Sources\n\nNone from a git host.\n\n[unused]: ${url}\n`;
     assert.deepEqual(findings(mkSkill("ref-unused", unused)), []);
     const undefinedRef = "## Sources\n\nA [plain][bracket] pair and [another].\n";

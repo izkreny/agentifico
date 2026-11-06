@@ -22,7 +22,7 @@ function skillFiles(skill) {
       // WHY: only a folder this walk is already inside is a loop, while a second link to a folder is a second path an agent can be told.
       if (ancestors.has(real)) return;
       ancestors.add(real);
-      for (const name of fs.readdirSync(full).filter((name) => !skipped(name))) visit(path.join(full, name));
+      for (const name of fs.readdirSync(full).filter((entry) => !skipped(entry))) visit(path.join(full, name));
       ancestors.delete(real);
     } catch (error) {
       if (error.code !== "ELOOP") unread.push([full, error.code]);

@@ -27,8 +27,8 @@ beforeAll(() => {
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
 // Vale's exit code is not read because it is non-zero only for an error, and a fixture that trips a warning is a pass here too.
-function vale(config, file) {
-  const r = spawnSync("vale", ["--config", config, "--no-global", "--output=JSON", file], { encoding: "utf8" });
+function vale(configFile, file) {
+  const r = spawnSync("vale", ["--config", configFile, "--no-global", "--output=JSON", file], { encoding: "utf8" });
   assert.equal(r.error, undefined, `vale did not run: ${r.error}`);
   assert.notEqual(r.status, 2, `vale refused the configuration: ${r.stderr || r.stdout}`);
   return (r.stdout.trim() ? JSON.parse(r.stdout)[file] : []) ?? [];

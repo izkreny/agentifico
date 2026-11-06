@@ -1109,11 +1109,11 @@ describe("plugin-hooks", () => {
   });
   describe("a placeholder PowerShell never expands", () => {
     const powershell = (held, extra = {}) => hooksFile("PreToolUse", { hooks: [command({ shell: "powershell", command: held, ...extra })] });
-    for (const name of ["CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_PLUGIN_DATA"]) {
-      it(`a bare $${name}`, () => expectHook(powershell(`& "$${name}\\check.ps1"`), `bare $${name}`));
-      it(`\${${name}} in single quotes`, () => expectHook(powershell(`& '\${${name}}\\check.ps1'`), `\${${name}}`));
-      it(`\${${name}} in double quotes`, () => expectNoHook(powershell(`& "\${${name}}\\check.ps1"`)));
-      it(`$env:${name}`, () => expectNoHook(powershell(`& "$env:${name}\\check.ps1"`)));
+    for (const variable of ["CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_PLUGIN_DATA"]) {
+      it(`a bare $${variable}`, () => expectHook(powershell(`& "$${variable}\\check.ps1"`), `bare $${variable}`));
+      it(`\${${variable}} in single quotes`, () => expectHook(powershell(`& '\${${variable}}\\check.ps1'`), `\${${variable}}`));
+      it(`\${${variable}} in double quotes`, () => expectNoHook(powershell(`& "\${${variable}}\\check.ps1"`)));
+      it(`$env:${variable}`, () => expectNoHook(powershell(`& "$env:${variable}\\check.ps1"`)));
     }
     it("a double quote inside the single quotes", () => expectHook(powershell(`'a "b" \${CLAUDE_PROJECT_DIR}'`), `\${CLAUDE_PROJECT_DIR}`));
     it("a single quote each side, inside double quotes", () => expectNoHook(powershell(`"it's \${CLAUDE_PROJECT_DIR}/it's"`)));
