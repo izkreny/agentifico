@@ -1,6 +1,6 @@
-> **Tools used:** `Bash(git:*)` to read the fix commits locally, which are unpushed, `Read` / `Grep` / `Glob` for the repository's standards and the code around a hunk, `Write` for the findings file this pass ends by writing.
+> **Tools used:** `Bash(git:*)` to read the fix commits locally, which are unpushed, `Bash(gh:*)` for the one body item a key names, `Read` / `Grep` / `Glob` for the repository's standards and the code around a hunk, `Write` for the findings file this pass ends by writing.
 
-The scoped re-review. You came in by `rescope <pr-number>`, and your prompt handed you the commit range the fixes landed in, the findings they answer with their `RF{n}` ids, and which commit claims which id.
+The scoped re-review. You came in by `rescope <pr-number>`, and your prompt handed you the commit range the fixes landed in, the findings they answer with their `RF{n}` ids, and which commit or body item key claims which id.
 
 Everything about the finding shape, the findings file, your report and the standing prohibitions is in `SKILL.md`, which sent you here. This file owns what this pass reads, the questions it answers, and the verdicts it adds.
 
@@ -12,9 +12,17 @@ Everything about the finding shape, the findings file, your report and the stand
 
 **Read the code around a hunk when the hunk alone cannot settle a question**, exactly as a full pass does.
 
+**Read the one body item a key names, and no other part of the pull request.** A finding claimed by an `S{n}` or `V{n}` key was answered by a body edit, so its answer is the line that carries the key. Read it with this command, `<key>` being the key you were given, as `V3`:
+
+```bash
+gh pr view <pr-number> --json body --jq '[.body | splits("\n") | select(contains("::<key>::"))] | if length == 1 then .[0] else error("<key>: \(length) lines carry it") end'
+```
+
+The filter prints that one line, so the rest of the body never reaches you. A non-zero exit means no line or more than one carries the key, and that finding's verdict is `closed: false`, saying which.
+
 ## You answer exactly two questions, and no others
 
-1. **For each finding claimed closed: does this diff close it?** Answer against the finding's own failure scenario. A fix that changes the code without making that scenario impossible has not closed it, however reasonable it looks.
+1. **For each finding claimed closed: does this diff, or the item its key names, close it?** Answer against the finding's own failure scenario. A fix that changes the code without making that scenario impossible has not closed it, however reasonable it looks. A finding claimed by a commit and a key is judged on the two together. An item yields its finding's verdict and nothing else: it has no file and line to anchor a new finding on, so a flaw in it is why that verdict reads `closed: false`.
 2. **Did any fix introduce a new defect?** A new defect on a line the pull request's own diff contains is an ordinary finding, in the shape *What every finding must carry* defines in `SKILL.md`, with its own anchor and severity.
 
    A new defect on a line that exists only in the fix commits goes in the findings file like any other, with its `line` counted in the file as the fix commits leave it. Those commits are unpushed - reading them is why you were given a range - so nothing can resolve an anchor to such a line yet. **That is handled after you and not by you**: whatever reads your file reads those same commits, and decides from them which findings can be anchored now and which have to wait for the push. **A finding you leave out is not deferred, it is lost**, because everything downstream selects from what your file carries and nothing selects from what it does not. Name it in your report too, as you do every finding. This is the commonest shape a re-review finds, not an edge case: the fixes are the object under review.
@@ -23,7 +31,7 @@ Everything about the finding shape, the findings file, your report and the stand
 
 **Each thing a full pass reads and this one does not is skipped on purpose, and each skip is what keeps the scope scoped. Under no circumstances read any of these:**
 
-- **The pull request** - its title, body and file list describe the branch, and neither question is about the branch.
+- **The pull request** - its title, body and file list describe the branch, and neither question is about the branch. The one exception is the keyed line, read by its command above, never the body around it.
 - **The whole-branch diff** - the commit range you were given is the object under review, and reading the rest is how a scoped pass turns into a second full one.
 - **The issue** - its acceptance criteria are the spec axis's subject, and judging fixes against them re-opens the whole branch's spec, which is the re-judging this entrance exists to cut.
 - **The plan file** - it records intent frozen at plan time, so it answers neither question, and reading it is where plan-staleness findings come from.
