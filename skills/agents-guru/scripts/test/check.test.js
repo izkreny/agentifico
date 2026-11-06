@@ -22,22 +22,30 @@ const README = "# A skill\n\n## Install\n\n```bash\nskills add owner/repo\n```\n
 function mk(dir, fm, readme = README) {
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "SKILL.md"), `---\n${fm}\n---\n\nbody\n`);
-  if (readme !== null) fs.writeFileSync(path.join(dir, "README.md"), readme);
+  if (readme !== null) {
+    fs.writeFileSync(path.join(dir, "README.md"), readme);
+  }
 }
 const block = (name, text = "Fine.") => `name: ${name}\ndescription: |\n  ${text}`;
 
 // WHY: Stryker's Vitest runner activates a mutant and collects coverage in this process only, and the spawned check reaches most of what it mutates.
 function underStryker(args, env) {
   const ns = globalThis.__stryker__;
-  if (ns?.activeMutant !== undefined) return { args, env: { ...env, __STRYKER_ACTIVE_MUTANT__: ns.activeMutant }, absorb: () => undefined };
-  if (ns?.currentTestId === undefined) return { args, env, absorb: () => undefined };
+  if (ns?.activeMutant !== undefined) {
+    return { args, env: { ...env, __STRYKER_ACTIVE_MUTANT__: ns.activeMutant }, absorb: () => undefined };
+  }
+  if (ns?.currentTestId === undefined) {
+    return { args, env, absorb: () => undefined };
+  }
   const dump = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "stryker-child-")), "coverage.json");
   const absorb = () => {
     if (fs.existsSync(dump)) {
       ns.mutantCoverage ??= { static: {}, perTest: {} };
       ns.mutantCoverage.perTest[ns.currentTestId] ??= {};
       const into = ns.mutantCoverage.perTest[ns.currentTestId];
-      for (const [id, hits] of Object.entries(JSON.parse(fs.readFileSync(dump, "utf8")).static)) into[id] = (into[id] ?? 0) + hits;
+      for (const [id, hits] of Object.entries(JSON.parse(fs.readFileSync(dump, "utf8")).static)) {
+        into[id] = (into[id] ?? 0) + hits;
+      }
     }
     fs.rmSync(path.dirname(dump), { recursive: true });
   };
@@ -246,7 +254,9 @@ beforeAll(() => {
   agent(path.join(dupes, "review", "deep.md"), "same");
   agent(path.join(dupes, "alone.md"), "alone");
   const three = path.join(tmp, "three", ".claude", "agents");
-  for (const name of ["a", "b", "c"]) agent(path.join(three, `${name}.md`), "same");
+  for (const name of ["a", "b", "c"]) {
+    agent(path.join(three, `${name}.md`), "same");
+  }
   // WHY: nested project folders follow an order the page documents, so the same name in each is no duplicate.
   agent(path.join(tmp, "nested", ".claude", "agents", "same.md"), "same");
   agent(path.join(tmp, "nested", "sub", ".claude", "agents", "same.md"), "same");
@@ -281,7 +291,9 @@ beforeAll(() => {
   const mkPlugin = (name, manifest, files = {}) => {
     put(path.join(plugins, name, ".claude-plugin", "plugin.json"), manifest);
     put(path.join(plugins, name, "README.md"), `# ${name}\n\nbody\n`);
-    for (const [file, text] of Object.entries(files)) put(path.join(plugins, name, file), text);
+    for (const [file, text] of Object.entries(files)) {
+      put(path.join(plugins, name, file), text);
+    }
   };
   const stopMatcher = JSON.stringify({ hooks: { Stop: [{ matcher: "x", hooks: [{ type: "command", command: "true" }] }] } }, null, 2);
   mkPlugin("plug", JSON.stringify({ name: "plug", commands: "./extra/", experimental: { monitors: [] } }, null, 2), {
@@ -753,7 +765,9 @@ describe("check.js", () => {
     it("a sibling the rule cannot read fails the run, naming it, and the rest are still compared", () => {
       const dir = path.join(tmp, "locked-file", ".claude", "agents");
       fs.mkdirSync(dir, { recursive: true });
-      for (const name of ["same", "other", "shut"]) fs.writeFileSync(path.join(dir, `${name}.md`), "---\nname: same\n---\n\nBody.\n");
+      for (const name of ["same", "other", "shut"]) {
+        fs.writeFileSync(path.join(dir, `${name}.md`), "---\nname: same\n---\n\nBody.\n");
+      }
       fs.chmodSync(path.join(dir, "shut.md"), 0o000);
       try {
         const r = run(path.join(dir, "same.md"));
@@ -768,7 +782,9 @@ describe("check.js", () => {
     it("a folder the rule cannot list fails the run, naming it, and the rest are still compared", () => {
       const dir = path.join(tmp, "locked-tree", ".claude", "agents");
       fs.mkdirSync(path.join(dir, "shut"), { recursive: true });
-      for (const name of ["same", "other"]) fs.writeFileSync(path.join(dir, `${name}.md`), "---\nname: same\n---\n\nBody.\n");
+      for (const name of ["same", "other"]) {
+        fs.writeFileSync(path.join(dir, `${name}.md`), "---\nname: same\n---\n\nBody.\n");
+      }
       fs.chmodSync(path.join(dir, "shut"), 0o000);
       try {
         const r = run(path.join(dir, "same.md"));
@@ -783,7 +799,9 @@ describe("check.js", () => {
     it("a link that loops fails the run, naming it, and the rest are still compared", () => {
       const dir = path.join(tmp, "looped", ".claude", "agents");
       fs.mkdirSync(dir, { recursive: true });
-      for (const name of ["same", "other"]) fs.writeFileSync(path.join(dir, `${name}.md`), "---\nname: same\n---\n\nBody.\n");
+      for (const name of ["same", "other"]) {
+        fs.writeFileSync(path.join(dir, `${name}.md`), "---\nname: same\n---\n\nBody.\n");
+      }
       fs.symlinkSync("loop.md", path.join(dir, "loop.md"));
       const r = run(path.join(dir, "same.md"));
       assert.equal(r.code, 1, r.out);
@@ -938,7 +956,7 @@ describe("check.js", () => {
       ["merge-key", "name: a\n<<: 1", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Merge sources must be maps or map aliases\)/mu, true],
       ["unresolved-alias", "name: a\nx: *nope", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Unresolved alias/mu, true],
       ["stringless-name", "name: {toString: 1}", /^ {2}a\.md:\d+ agent-frontmatter .*name must be a string, not a mapping or a list/mu, false],
-    ])
+    ]) {
       it(`an agent: ${id}`, () => {
         const dir = path.join(tmp, `unbuilt-${id}`, ".claude", "agents");
         fs.mkdirSync(dir, { recursive: true });
@@ -951,6 +969,7 @@ describe("check.js", () => {
         assert.match(r.out, /^ {2}c\.md:\d+ Agentifico\.ClosingRecap /mu);
         assert.equal(/^ {2}a\.md:1 vale-unread \(error\) /mu.test(r.out), unread, r.out);
       });
+    }
     it("a skill", () => {
       const dir = path.join(tmp, "unbuilt-skill");
       mk(path.join(dir, "merge"), `${block("merge")}\n<<: 1`);
@@ -1037,8 +1056,9 @@ describe("check.js", () => {
       ["outputStyles", "output-styles"],
       ["workflows", "workflows"],
       ["experimental\\.themes", "themes"],
-    ])
+    ]) {
       assert.match(out, new RegExp(`plugin-manifest \\(error\\) ${key} replaces the default ${folder}/, which still holds files`, "u"), out);
+    }
   });
   it("an empty default folder is not shadowed", () => {
     assert.doesNotMatch(run(path.join(tmp, "plugins", "hollow")).out, /plugin-manifest/u);
@@ -1722,7 +1742,7 @@ describe("skill-pinned-sources", () => {
     ["a forge's host written with a trailing dot", "https://github.com./owner/repo"],
     ["a git subdomain written with a trailing dot", "https://git.example.com./owner/repo"],
   ];
-  for (const [what, url] of unpinned)
+  for (const [what, url] of unpinned) {
     it(`warns on ${what} and leaves the run passing`, () => {
       const dir = mkSkill(what.toLowerCase().replace(/\W+/gu, "-"), `## Sources\n\n- [A source](${url}): an idea.\n`);
       const r = run(dir);
@@ -1735,6 +1755,7 @@ describe("skill-pinned-sources", () => {
         ),
       );
     });
+  }
   const pinned = [
     ["a blob at a commit", `https://github.com/owner/repo/blob/${SHA}/SKILL.md`],
     ["a blob at a SHA-256 commit", `https://github.com/owner/repo/blob/${"a".repeat(64)}/SKILL.md`],
@@ -1751,12 +1772,13 @@ describe("skill-pinned-sources", () => {
     ["a file of the repository", "../sibling/SKILL.md"],
     ["a host that only opens with a forge's name", "https://codeberg.org.example.net/owner/repo"],
   ];
-  for (const [what, url] of pinned)
+  for (const [what, url] of pinned) {
     it(`passes ${what}`, () => {
       const dir = mkSkill(`ok-${what.replace(/\W+/gu, "-")}`, `## Inspiration\n\n- [A source](${url}): an idea.\n`);
       assert.notEqual(run(dir).linted, null, what);
       assert.deepEqual(findings(dir), []);
     });
+  }
   it("reads each section heading whatever its level or case", () => {
     for (const heading of ["## Inspiration", "### SOURCES", "Sources\n-------", "Inspiration\n==========="]) {
       const dir = mkSkill(`level-${heading.replace(/\W+/gu, "-")}`, `${heading}\n\n[A source](https://github.com/owner/repo)\n`);
@@ -1770,11 +1792,12 @@ describe("skill-pinned-sources", () => {
       `## Sources\n\n- <${url}/autolink>\n- ${url}/bare\n\n[used][ref]\n\n[ref]: ${url}/definition\n\n| Source |\n|---|\n| [cell](${url}/cell) |\n\n### Deeper\n\n[deeper](${url}/deeper)\n`,
     );
     const found = findings(dir);
-    for (const shape of ["autolink", "bare", "definition", "cell", "deeper"])
+    for (const shape of ["autolink", "bare", "definition", "cell", "deeper"]) {
       assert.ok(
         found.some((f) => f.includes(`${url}/${shape} names no commit`)),
         `${shape}: ${found}`,
       );
+    }
     assert.equal(found.length, 5, String(found));
   });
   it("reads a link inside a heading in the section, and leaves one outside it alone", () => {
@@ -1788,11 +1811,12 @@ describe("skill-pinned-sources", () => {
     const file = `${url}/blob/main`;
     const used = `## Sources\n\n[full][Full Label] and [collapsed][] and [shortcut].\n\n## Later\n\nText.\n\n[full  label]: ${file}/full\n[COLLAPSED]: ${file}/collapsed\n[shortcut]: ${file}/shortcut\n`;
     const found = findings(mkSkill("ref-used", used));
-    for (const shape of ["full", "collapsed", "shortcut"])
+    for (const shape of ["full", "collapsed", "shortcut"]) {
       assert.ok(
         found.some((f) => f.includes(`main/${shape} names no commit`)),
         `${shape}: ${found}`,
       );
+    }
     assert.equal(found.length, 3, String(found));
     assert.match(found[0], /^ {2}README\.md:11 /u);
     const elsewhere = `Validated by [a tool][tool].\n\n## Sources\n\nNone from a git host.\n\n[tool]: ${url}\n`;
@@ -1910,7 +1934,9 @@ describe("carriesInstallForm", () => {
       it(`heading ${level} ${capitalised(h)}`, () => assert.ok(carriesInstallForm(`# A skill\n\n${level} ${capitalised(h)}\n\ntext\n`)));
     }
   }
-  for (const c of commands) it(`command ${c}`, () => assert.ok(carriesInstallForm(`# A skill\n\n\`\`\`bash\n${c} x\n\`\`\`\n`)));
+  for (const c of commands) {
+    it(`command ${c}`, () => assert.ok(carriesInstallForm(`# A skill\n\n\`\`\`bash\n${c} x\n\`\`\`\n`)));
+  }
   it("a heading opening with the word counts, without standing bare", () => assert.ok(carriesInstallForm("# A skill\n\n## Installing\n\ntext\n")));
   it("a heading quoted inside a fence is not a heading", () => assert.equal(carriesInstallForm("# A skill\n\n```markdown\n## Install\n```\n"), false));
   it("an install command in prose is not a fenced block", () => assert.equal(carriesInstallForm("# A skill\n\nnpm install -g thing, one day.\n"), false));
@@ -1961,8 +1987,9 @@ describe("skill-referenced-paths", () => {
   });
   it("a branch name, a repo slug, an absolute path, a ~/ path and a glob are not paths", () => {
     const r = run(path.join(tmp, "refs"));
-    for (const span of ["GHI-50_login-form", "gh-stack", "\\/usr\\/bin\\/env", "\\.agents\\/skills", "docs\\/\\*", "E:\\/work"])
+    for (const span of ["GHI-50_login-form", "gh-stack", "\\/usr\\/bin\\/env", "\\.agents\\/skills", "docs\\/\\*", "E:\\/work"]) {
       assert.doesNotMatch(r.out, new RegExp(`${span}.*does not resolve`, "u"));
+    }
   });
 });
 
@@ -1974,7 +2001,9 @@ describe("paths.js", () => {
     assert.equal(resolves("SKILL.md//", path.join(pkg, "SKILL.md"), pkg), true);
   });
   it("a span opening with a slash, a dash, a hash or an at sign is no path", () => {
-    for (const span of ["/etc/notes.md", "-x.md", "#x.md", "@x.md"]) assert.equal(looksLikePath(span), false, span);
+    for (const span of ["/etc/notes.md", "-x.md", "#x.md", "@x.md"]) {
+      assert.equal(looksLikePath(span), false, span);
+    }
   });
   it("a file in the root's own folder belongs to the root's skill", () => {
     assert.equal(owningSkill(path.join(tmp, "good", "SKILL.md"), path.join(tmp, "good")), path.join(tmp, "good"));
@@ -2011,8 +2040,9 @@ describe("check.js, the run's own bookkeeping", () => {
       ["scripts/a.js", "// A comment.\n"],
       ["scripts/b.py", "# A comment.\n"],
       ["c.yml", "key: value\n"],
-    ])
+    ]) {
       write(path.join(dir, file), text);
+    }
     assert.match(run(dir).out, /^7 files checked, /mu);
   });
   it("a target holding code and no markdown checks nothing", () => {
@@ -2050,8 +2080,12 @@ describe("check.js, the run's own bookkeeping", () => {
   it("prints each kind's findings in sorted order, across folders", () => {
     const dir = path.join(tmp, "finding-order");
     mk(dir, block("finding-order"));
-    for (const file of ["b.md", "a/c.md", "b.js", "a/c.js"]) write(path.join(dir, file), file.endsWith(".md") ? "# Notes\n\nbody\n" : "// A comment.\n");
-    for (const file of ["b.yml", "a/c.yml"]) write(path.join(dir, file), "key: [1\n");
+    for (const file of ["b.md", "a/c.md", "b.js", "a/c.js"]) {
+      write(path.join(dir, file), file.endsWith(".md") ? "# Notes\n\nbody\n" : "// A comment.\n");
+    }
+    for (const file of ["b.yml", "a/c.yml"]) {
+      write(path.join(dir, file), "key: [1\n");
+    }
     const alert = [{ Line: 1, Check: "Stub.Order", Severity: "warning", Message: "m" }];
     const lint = JSON.stringify(Object.fromEntries(["b.md", "a/c.md", "b.js", "a/c.js"].map((file) => [path.join(dir, file), alert])));
     const { out } = run(dir, stubVale("order", "3.25.1", lint));
@@ -2095,7 +2129,9 @@ describe("check.js, the run's own bookkeeping", () => {
     ]) {
       const dir = path.join(tmp, `plugin-order-${order.join("-")}`);
       mk(dir, block(path.basename(dir)));
-      for (const name of order) plugin(path.join(dir, name), name);
+      for (const name of order) {
+        plugin(path.join(dir, name), name);
+      }
       assert.match(run(dir).out, /^ {2}a\/hooks\/hooks\.json:\d+ .*\n {2}b\/hooks\/hooks\.json:\d+ /mu, order.join());
     }
   });

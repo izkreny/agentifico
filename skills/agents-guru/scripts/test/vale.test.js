@@ -142,14 +142,18 @@ describe("per-token coverage", () => {
       const entries = Array.isArray(source.tokens)
         ? source.tokens.map((token) => [token, { tokens: [token] }])
         : Object.entries(source.swap ?? {}).map(([key, word]) => [key, { swap: { [key]: word } }]);
-      if (entries.length === 0) continue;
+      if (entries.length === 0) {
+        continue;
+      }
       const trip = tests?.find((c) => c.name === TRIP_CASE);
       assert.ok(trip, `${rule} has tokens and no "${TRIP_CASE}" case`);
       const fixture = path.join(tokDir, `${rule.toLowerCase()}.md`);
       fs.writeFileSync(fixture, trip.input);
       for (const [token, alone] of entries) {
         fs.writeFileSync(path.join(tokDir, "T", `${rule}.yml`), stringifyYaml({ ...source, ...alone }));
-        if (vale(tokIni, fixture).length === 0) unreached.push(`${rule}: ${token}`);
+        if (vale(tokIni, fixture).length === 0) {
+          unreached.push(`${rule}: ${token}`);
+        }
       }
     }
     assert.deepEqual(unreached, [], `no trip line trips:\n${unreached.join("\n")}`);
@@ -165,7 +169,9 @@ describe("word classes", () => {
     for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
       const rule = file.replace(/\.yml$/u, "");
       const tokens = parseDocument(fs.readFileSync(path.join(styleDir, file), "utf8")).get("tokens", true);
-      if (!tokens) continue;
+      if (!tokens) {
+        continue;
+      }
       for (const [i, item] of tokens.items.entries()) {
         // The first token's comment is parsed onto the sequence rather than the item.
         const comment = ((i === 0 ? tokens.commentBefore : item.commentBefore) ?? "").replace(/\s+/gu, " ");
@@ -173,10 +179,16 @@ describe("word classes", () => {
           groups: { group },
         } of item.value.matchAll(/\(\?:(?<group>[^()]*)\)/gu)) {
           const alts = group.split("|").map((a) => a.trim());
-          if (alts.some((a) => !/^[a-z]+$/u.test(a))) continue;
+          if (alts.some((a) => !/^[a-z]+$/u.test(a))) {
+            continue;
+          }
           const cls = classOf(alts);
-          if (!cls || classes[cls].every((w) => alts.includes(w))) continue;
-          if (!new RegExp(`Narrows ${cls}: \\S`, "u").test(comment)) drifted.push(`${rule}: ${item.value} narrows ${cls}`);
+          if (!cls || classes[cls].every((w) => alts.includes(w))) {
+            continue;
+          }
+          if (!new RegExp(`Narrows ${cls}: \\S`, "u").test(comment)) {
+            drifted.push(`${rule}: ${item.value} narrows ${cls}`);
+          }
         }
       }
     }

@@ -46,7 +46,8 @@
         "useExportsLast": "error",
         "noIncrementDecrement": "error",
         "noMagicNumbers": "error",
-        "useNamedCaptureGroup": "error"
+        "useNamedCaptureGroup": "error",
+        "useBlockStatements": "error"
       },
       "suspicious": {
         "noVar": "error",

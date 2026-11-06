@@ -47,7 +47,9 @@ const RULES = [
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
 async function findings(path, content, ...only) {
   const config = { default: false };
-  for (const r of only) config[r.names[0]] = true;
+  for (const r of only) {
+    config[r.names[0]] = true;
+  }
   const results = await lint({ strings: { [path]: content }, customRules: RULES, config, noInlineConfig: true });
   return results[path].map((e) => ({ rule: e.ruleNames[0], line: e.lineNumber, detail: e.errorDetail ?? "", context: e.errorContext }));
 }
@@ -130,8 +132,11 @@ describe("skill-description, the raw sweep", () => {
   for (const [id, fm, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(fm), description);
-      if (want) expectDetail(found, "skill-description", want);
-      else expectClean(found, "skill-description");
+      if (want) {
+        expectDetail(found, "skill-description", want);
+      } else {
+        expectClean(found, "skill-description");
+      }
     });
   }
   it("a file with no frontmatter at all has no description", async () => {
@@ -213,13 +218,18 @@ describe("skill-frontmatter-parsed, the differential", () => {
   for (const [id, fm, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(fm), parsed);
-      if (want) expectDetail(found, "skill-frontmatter-parsed", want);
-      else expectClean(found, "skill-frontmatter-parsed");
+      if (want) {
+        expectDetail(found, "skill-frontmatter-parsed", want);
+      } else {
+        expectClean(found, "skill-frontmatter-parsed");
+      }
     });
   }
   it("an absent or bare description is never called the wrong type", async () => {
     const results = await Promise.all(["name: x", "name: x\ndescription:"].map((fm) => findings("fx/x/SKILL.md", skill(fm), parsed)));
-    for (const found of results) assert.ok(!has(found, "skill-frontmatter-parsed", "not a string"), JSON.stringify(found));
+    for (const found of results) {
+      assert.ok(!has(found, "skill-frontmatter-parsed", "not a string"), JSON.stringify(found));
+    }
   });
   it("a duplicate key is compared once, against the value that wins", async () => {
     const found = await findings("fx/x/SKILL.md", skill("name: x\ndescription: |\n  d\ncompatibility: one\ncompatibility: two #c"), parsed);
@@ -264,8 +274,11 @@ describe("skill-name", () => {
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {
       const found = await findings(`fx/${dir}/SKILL.md`, skill(fm), name);
-      if (want) expectDetail(found, "skill-name", want);
-      else expectClean(found, "skill-name");
+      if (want) {
+        expectDetail(found, "skill-name", want);
+      } else {
+        expectClean(found, "skill-name");
+      }
     });
   }
   it("a markdown file beside a skill is not held to the skill's name", async () => {
@@ -307,8 +320,11 @@ describe("skill-invocation", () => {
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {
       const found = await findings(`fx/${dir}/SKILL.md`, skill(`name: ${dir}\n${fm}`), invocation);
-      if (want) expectDetail(found, "skill-invocation", want);
-      else expectClean(found, "skill-invocation");
+      if (want) {
+        expectDetail(found, "skill-invocation", want);
+      } else {
+        expectClean(found, "skill-invocation");
+      }
     });
   }
 });
@@ -337,8 +353,11 @@ describe("skill-fork", () => {
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {
       const found = await findings(`fx/${dir}/SKILL.md`, skill(`name: ${dir}\n${fm}`), fork);
-      if (want) expectDetail(found, "skill-fork", want);
-      else expectClean(found, "skill-fork");
+      if (want) {
+        expectDetail(found, "skill-fork", want);
+      } else {
+        expectClean(found, "skill-fork");
+      }
     });
   }
   it("leaves a file other than SKILL.md alone", async () => {
@@ -432,8 +451,12 @@ describe("skill-continuations", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), continuations);
-      for (const w of want) expectDetail(found, "skill-continuations", w);
-      if (want.length === 0) expectClean(found, "skill-continuations");
+      for (const w of want) {
+        expectDetail(found, "skill-continuations", w);
+      }
+      if (want.length === 0) {
+        expectClean(found, "skill-continuations");
+      }
     });
   }
   it("frontmatter is not body: its sequence item claims nothing below", async () => {
@@ -478,8 +501,12 @@ describe("skill-bolded-runs", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), boldedRuns);
-      for (const w of want) expectDetail(found, "skill-bolded-runs", w);
-      if (want.length === 0) expectClean(found, "skill-bolded-runs");
+      for (const w of want) {
+        expectDetail(found, "skill-bolded-runs", w);
+      }
+      if (want.length === 0) {
+        expectClean(found, "skill-bolded-runs");
+      }
     });
   }
   it("a workflow file is read, not only SKILL.md", async () => {
@@ -516,8 +543,12 @@ describe("skill-bolded-paragraphs", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), boldedParagraphs);
-      for (const w of want) expectDetail(found, "skill-bolded-paragraphs", w);
-      if (want.length === 0) expectClean(found, "skill-bolded-paragraphs");
+      for (const w of want) {
+        expectDetail(found, "skill-bolded-paragraphs", w);
+      }
+      if (want.length === 0) {
+        expectClean(found, "skill-bolded-paragraphs");
+      }
     });
   }
   it("a workflow file is read, not only SKILL.md", async () => {
@@ -567,8 +598,11 @@ describe("skill-portable-paths", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), portablePaths);
-      if (want) expectDetail(found, "skill-portable-paths", want);
-      else expectClean(found, "skill-portable-paths");
+      if (want) {
+        expectDetail(found, "skill-portable-paths", want);
+      } else {
+        expectClean(found, "skill-portable-paths");
+      }
     });
   }
   it("names the line the path sits on, not the block's first line", async () => {
@@ -604,8 +638,11 @@ describe("skill-vale-directive", () => {
   for (const [id, body, trips] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), valeDirective);
-      if (trips) expectDetail(found, "skill-vale-directive", "exceptions key");
-      else expectClean(found, "skill-vale-directive");
+      if (trips) {
+        expectDetail(found, "skill-vale-directive", "exceptions key");
+      } else {
+        expectClean(found, "skill-vale-directive");
+      }
     });
   }
   // Nothing else here would notice the rule reporting a constant line.
@@ -758,8 +795,11 @@ describe("skill-argument-hint", () => {
     it(id, async () => {
       const fm = hint === null ? `name: ${id}` : `name: ${id}\nargument-hint: "${hint}"`;
       const found = await findings(`fx/${id}/SKILL.md`, skill(fm, body), argumentHint);
-      if (want) expectDetail(found, "skill-argument-hint", want);
-      else expectClean(found, "skill-argument-hint");
+      if (want) {
+        expectDetail(found, "skill-argument-hint", want);
+      } else {
+        expectClean(found, "skill-argument-hint");
+      }
     });
   }
   it("reads no hint from frontmatter that is missing, does not parse, or loads as no mapping", async () => {
@@ -842,8 +882,11 @@ describe("skill-bash-blocks", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}`, body), bashBlocks);
-      if (want) expectDetail(found, "skill-bash-blocks", want);
-      else expectClean(found, "skill-bash-blocks");
+      if (want) {
+        expectDetail(found, "skill-bash-blocks", want);
+      } else {
+        expectClean(found, "skill-bash-blocks");
+      }
     });
   }
   it("a workflow file is read, not only SKILL.md", async () => {
@@ -909,8 +952,11 @@ describe("agent-frontmatter", () => {
   for (const [id, fm, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/.claude/agents/${id}.md`, skill(fm), agentFrontmatter);
-      if (want) expectDetail(found, "agent-frontmatter", want);
-      else expectClean(found, "agent-frontmatter");
+      if (want) {
+        expectDetail(found, "agent-frontmatter", want);
+      } else {
+        expectClean(found, "agent-frontmatter");
+      }
     });
   }
   it("an opening --- after a blank line is not frontmatter", async () => {
@@ -1327,8 +1373,11 @@ describe("skill-hard-wrap", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/w.md`, `${body}\n`, hardWrap);
-      if (want) expectDetail(found, "skill-hard-wrap", want);
-      else expectClean(found, "skill-hard-wrap");
+      if (want) {
+        expectDetail(found, "skill-hard-wrap", want);
+      } else {
+        expectClean(found, "skill-hard-wrap");
+      }
     });
   }
   it("frontmatter is not read", async () => {
@@ -1372,8 +1421,11 @@ describe("skill-argument-placeholders", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill("name: x\ndescription: |\n  x", body), argumentPlaceholders);
-      if (want) expectDetail(found, "skill-argument-placeholders", want);
-      else expectClean(found, "skill-argument-placeholders");
+      if (want) {
+        expectDetail(found, "skill-argument-placeholders", want);
+      } else {
+        expectClean(found, "skill-argument-placeholders");
+      }
     });
   }
   it("each placeholder gets a finding on its own line", async () => {
@@ -1439,8 +1491,11 @@ describe("skill-injected-commands", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill("name: x\ndescription: |\n  x", body), injectedCommands);
-      if (want) expectDetail(found, "skill-injected-commands", want);
-      else expectClean(found, "skill-injected-commands");
+      if (want) {
+        expectDetail(found, "skill-injected-commands", want);
+      } else {
+        expectClean(found, "skill-injected-commands");
+      }
     });
   }
   it("a command in the wrong place is reported for its place alone, since it never reaches the tool", async () => {
@@ -1634,7 +1689,9 @@ describe("skill-package-runners", () => {
       ['out="$(npx eslint "$f")"', 'npx eslint "$f" names no version'],
     ];
     const results = await Promise.all(names.map(([command]) => findings("fx/inner/SKILL.md", skillWith(`\`${command}\``), packageRunners)));
-    for (const [i, [, detail]] of names.entries()) expectDetail(results[i], "skill-package-runners", detail);
+    for (const [i, [, detail]] of names.entries()) {
+      expectDetail(results[i], "skill-package-runners", detail);
+    }
   });
   it("a pin inside a quoted command counts", async () => {
     expectClean(await findings("fx/esc-pin/SKILL.md", skillWith('`bash -c "npx \\"eslint@9\\""`'), packageRunners), "skill-package-runners");
@@ -1707,7 +1764,9 @@ describe("a finding's context is its own line, trimmed", () => {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x${fm ? `\n${fm}` : ""}`, body), rule);
       assert.ok(found.length, `wanted a finding, got none`);
-      for (const f of found) assert.equal(f.context, want);
+      for (const f of found) {
+        assert.equal(f.context, want);
+      }
     });
   }
 });

@@ -11,7 +11,9 @@ const COMMIT = /[/=][0-9a-f]{40}(?:[0-9a-f]{24})?(?:[/&]|$)/u;
 const CARRIES_A_LINK = new Set(["resourceDestinationString", "autolinkProtocol", "literalAutolinkHttp"]);
 
 function unpinned(url) {
-  if (!URL.canParse(url)) return false;
+  if (!URL.canParse(url)) {
+    return false;
+  }
   const { hostname: written, pathname, search } = new URL(url);
   // WHY: a trailing dot names the same host, and stripping it rather than loosening GIT_DOMAIN's $ keeps github.com.evil.org out.
   const hostname = written.replace(/\.$/u, "");
@@ -53,19 +55,27 @@ const labelKey = (text) =>
 function definitionsIn(tokens) {
   const definitions = new Map();
   walk(tokens, (token) => {
-    if (token.type !== "definition") return;
+    if (token.type !== "definition") {
+      return;
+    }
     const label = labelKey(childOf(childOf(token, "definitionLabel"), "definitionLabelString").text);
     let destination = null;
     walk(token.children, (inner) => {
-      if (inner.type === "definitionDestinationString") destination = inner.text;
+      if (inner.type === "definitionDestinationString") {
+        destination = inner.text;
+      }
     });
-    if (!definitions.has(label)) definitions.set(label, destination);
+    if (!definitions.has(label)) {
+      definitions.set(label, destination);
+    }
   });
   return definitions;
 }
 
 function referenceLabel(link) {
-  if (childOf(link, "resource")) return null;
+  if (childOf(link, "resource")) {
+    return null;
+  }
   const reference = childOf(childOf(link, "reference"), "referenceString");
   return labelKey((reference ?? childOf(childOf(link, "label"), "labelText")).text);
 }
@@ -76,19 +86,32 @@ export default {
   tags: ["agents-guru"],
   parser: "micromark",
   function(params, onError) {
-    if (path.basename(params.name) !== "README.md") return;
-    if (!fs.existsSync(path.join(path.dirname(path.resolve(params.name)), "SKILL.md"))) return;
+    if (path.basename(params.name) !== "README.md") {
+      return;
+    }
+    if (!fs.existsSync(path.join(path.dirname(path.resolve(params.name)), "SKILL.md"))) {
+      return;
+    }
     const definitions = definitionsIn(params.parsers.micromark.tokens);
     let sectionLevel = null;
     for (const token of params.parsers.micromark.tokens) {
       const heading = headingOf(token);
-      if (heading && (sectionLevel === null || heading.level <= sectionLevel)) sectionLevel = SOURCE_SECTION.test(heading.text) ? heading.level : null;
-      if (sectionLevel === null) continue;
+      if (heading && (sectionLevel === null || heading.level <= sectionLevel)) {
+        sectionLevel = SOURCE_SECTION.test(heading.text) ? heading.level : null;
+      }
+      if (sectionLevel === null) {
+        continue;
+      }
       walk([token], (inner) => {
         let url;
-        if (inner.type === "link" || inner.type === "image") url = definitions.get(referenceLabel(inner));
-        else if (CARRIES_A_LINK.has(inner.type)) url = inner.text;
-        if (!(url && unpinned(url))) return;
+        if (inner.type === "link" || inner.type === "image") {
+          url = definitions.get(referenceLabel(inner));
+        } else if (CARRIES_A_LINK.has(inner.type)) {
+          url = inner.text;
+        }
+        if (!(url && unpinned(url))) {
+          return;
+        }
         onError({
           lineNumber: inner.startLine,
           detail: `${url} names no commit: if it credits a source, link the commit that was read`,

@@ -9,39 +9,61 @@ const authored = (v) => v.replace(/\n$/u, "");
 
 export function defects(fm) {
   const doc = parsed(fm);
-  if (doc.errors.length > 0) return [`PARSE ERROR, skill will not load: ${doc.errors[0].message.split("\n")[0]}`];
+  if (doc.errors.length > 0) {
+    return [`PARSE ERROR, skill will not load: ${doc.errors[0].message.split("\n")[0]}`];
+  }
   const { value: mapping, error } = built(doc);
-  if (error) return [unbuilt(error)];
-  if (mapping === null || typeof mapping !== "object") return ["frontmatter is not a mapping"];
+  if (error) {
+    return [unbuilt(error)];
+  }
+  if (mapping === null || typeof mapping !== "object") {
+    return ["frontmatter is not a mapping"];
+  }
   const bad = [];
   const d = mapping.description;
-  if (d !== undefined && d !== null && typeof d !== "string") bad.push(`description is ${typeof d}, not a string`);
+  if (d !== undefined && d !== null && typeof d !== "string") {
+    bad.push(`description is ${typeof d}, not a string`);
+  }
   // A bare key parses to null and a bodiless block scalar to the empty string, so both shapes of present-but-empty are tested.
-  if (d === null || (typeof d === "string" && d.trim() === "")) bad.push("empty description: never advertised");
+  if (d === null || (typeof d === "string" && d.trim() === "")) {
+    bad.push("empty description: never advertised");
+  }
   // The ceiling is measured on the value rather than the line so the quote characters and a trailing comment are not counted.
-  else if (typeof d === "string" && authored(d).length > DESCRIPTION_LIMIT)
+  else if (typeof d === "string" && authored(d).length > DESCRIPTION_LIMIT) {
     bad.push(`description is ${authored(d).length} characters, over the spec's ${DESCRIPTION_LIMIT}`);
+  }
   const c = mapping.compatibility;
-  if (typeof c === "string" && authored(c).length > COMPATIBILITY_LIMIT)
+  if (typeof c === "string" && authored(c).length > COMPATIBILITY_LIMIT) {
     bad.push(`compatibility is ${authored(c).length} characters, over the spec's ${COMPATIBILITY_LIMIT}`);
+  }
   // Truncation at ` #` drops the tail of whatever key it lands in, not only the description's.
   const seen = new Set();
   // Stryker disable next-line EqualityOperator: the line past the end is undefined, which TOP_LEVEL never matches.
   for (let i = 0; i < fm.length; i += 1) {
     const m = TOP_LEVEL.exec(fm[i]);
-    if (!m) continue;
+    if (!m) {
+      continue;
+    }
     const { key } = m.groups;
     // A duplicate key later is what a last-wins parser reads instead of the first line a reader believes, and that difference is the finding.
-    if (seen.has(key)) continue;
+    if (seen.has(key)) {
+      continue;
+    }
     seen.add(key);
     const raw = fm[i].slice(key.length + 1).trim();
     // A quoted or block value is immune to the family, and an empty one begins on the following line with nothing on its own line to compare.
-    if (raw === "" || /^[|>"']/u.test(raw)) continue;
+    if (raw === "" || /^[|>"']/u.test(raw)) {
+      continue;
+    }
     const value = mapping[key];
     // A non-string value is `skill-invocation`'s, since a silent mutation is by definition a change to text.
-    if (typeof value !== "string") continue;
+    if (typeof value !== "string") {
+      continue;
+    }
     const plain = folded(fm, i);
-    if (value !== plain) bad.push(`${key} SILENTLY MUTATED: raw line says ${JSON.stringify(plain)} but parses as ${JSON.stringify(value)}`);
+    if (value !== plain) {
+      bad.push(`${key} SILENTLY MUTATED: raw line says ${JSON.stringify(plain)} but parses as ${JSON.stringify(value)}`);
+    }
   }
   return bad;
 }
@@ -53,9 +75,15 @@ export default {
   tags: ["agents-guru"],
   parser: "none",
   function(params, onError) {
-    if (!isSkillFile(params.name)) return;
+    if (!isSkillFile(params.name)) {
+      return;
+    }
     const fm = frontmatter(params);
-    if (!fm) return;
-    for (const detail of defects(fm)) onError({ lineNumber: FRONTMATTER_LINE, detail });
+    if (!fm) {
+      return;
+    }
+    for (const detail of defects(fm)) {
+      onError({ lineNumber: FRONTMATTER_LINE, detail });
+    }
   },
 };

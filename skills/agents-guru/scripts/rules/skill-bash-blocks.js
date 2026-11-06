@@ -19,8 +19,9 @@ function heredocTerminator(text) {
   const spans = [...text.matchAll(QUOTED), ...text.matchAll(ARITHMETIC)].map((m) => [m.index, m.index + m[0].length]);
   for (const { index, groups } of text.matchAll(HEREDOC)) {
     // Stryker disable next-line EqualityOperator: a quoted or arithmetic span opens on a quote or a parenthesis, never on the < a heredoc starts at.
-    if (!spans.some(([start, end]) => index >= start && index < end))
+    if (!spans.some(([start, end]) => index >= start && index < end)) {
       return { word: groups.single ?? groups.double ?? groups.escaped ?? groups.bare, tabs: groups.dash === "-" };
+    }
   }
   return null;
 }
@@ -31,7 +32,9 @@ function walk(tokens, fn) {
   for (const token of tokens) {
     fn(token);
     // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) walk(token.children, fn);
+    if (token.children) {
+      walk(token.children, fn);
+    }
   }
 }
 
@@ -48,27 +51,38 @@ export default {
   parser: "micromark",
   function(params, onError) {
     walk(params.parsers.micromark.tokens, (token) => {
-      if (token.type !== "codeFenced") return;
+      if (token.type !== "codeFenced") {
+        return;
+      }
       const tag = infoOf(token);
       if (OTHER_SHELLS.has(tag)) {
         onError({ lineNumber: token.startLine, detail: `a fenced block tagged ${tag}: ${ADVICE}`, context: params.lines[token.startLine - 1].trim() });
         return;
       }
-      if (!BASH_TAGS.has(tag)) return;
+      if (!BASH_TAGS.has(tag)) {
+        return;
+      }
       let terminator = null;
       for (const line of token.children) {
-        if (line.type !== "codeFlowValue") continue;
+        if (line.type !== "codeFlowValue") {
+          continue;
+        }
         if (terminator) {
-          if ((terminator.tabs ? line.text.replace(/^\t+/u, "") : line.text) === terminator.word) terminator = null;
+          if ((terminator.tabs ? line.text.replace(/^\t+/u, "") : line.text) === terminator.word) {
+            terminator = null;
+          }
           continue;
         }
         // An agent never executes a comment, so prose in one is free to say "; and".
-        if (/^\s*#/u.test(line.text)) continue;
+        if (/^\s*#/u.test(line.text)) {
+          continue;
+        }
         const code = line.text.replace(QUOTED, "''");
         terminator = heredocTerminator(line.text);
         for (const [phrase, pattern] of FISH) {
-          if (pattern.test(code))
+          if (pattern.test(code)) {
             onError({ lineNumber: line.startLine, detail: `Fish syntax "${phrase}" in a Bash block: ${ADVICE}`, context: line.text.trim() });
+          }
         }
       }
     });

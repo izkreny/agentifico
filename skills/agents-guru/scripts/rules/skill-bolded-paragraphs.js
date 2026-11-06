@@ -12,18 +12,22 @@ export default {
   function(params, onError) {
     let run = [];
     const flush = () => {
-      if (run.length > CAP)
+      if (run.length > CAP) {
         onError({
           lineNumber: run[0].startLine,
           detail: `${run.length} bolded-lead paragraphs in a row, cap is ${CAP}`,
           context: params.lines[run[0].startLine - 1].trim(),
         });
+      }
       run = [];
     };
     for (const t of params.parsers.micromark.tokens) {
       const p = paragraphOf(t);
-      if (opensBold(p)) run.push(p);
-      else if (p || isHeading(t)) flush();
+      if (opensBold(p)) {
+        run.push(p);
+      } else if (p || isHeading(t)) {
+        flush();
+      }
     }
     flush();
   },

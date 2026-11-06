@@ -16,16 +16,26 @@ function skillFiles(skill) {
     try {
       const stat = fs.statSync(full, { throwIfNoEntry: false });
       // WHY: a link that resolves to nothing names nothing, and scripts/check.js reports one under its own group.
-      if (stat?.isFile()) files.push(full);
-      if (!stat?.isDirectory()) return;
+      if (stat?.isFile()) {
+        files.push(full);
+      }
+      if (!stat?.isDirectory()) {
+        return;
+      }
       const real = fs.realpathSync(full);
       // WHY: only a folder this walk is already inside is a loop, while a second link to a folder is a second path an agent can be told.
-      if (ancestors.has(real)) return;
+      if (ancestors.has(real)) {
+        return;
+      }
       ancestors.add(real);
-      for (const name of fs.readdirSync(full).filter((entry) => !skipped(entry))) visit(path.join(full, name));
+      for (const name of fs.readdirSync(full).filter((entry) => !skipped(entry))) {
+        visit(path.join(full, name));
+      }
       ancestors.delete(real);
     } catch (error) {
-      if (error.code !== "ELOOP") unread.push([full, error.code]);
+      if (error.code !== "ELOOP") {
+        unread.push([full, error.code]);
+      }
     }
   };
   visit(skill);
@@ -78,8 +88,12 @@ function writtenPaths(base, ext, text) {
       // WHY: without an extension the bare name is an ordinary word, so only a path says it means the file.
       .filter(([written]) => ext || written !== base)
       .map(({ 0: written, index }) => {
-        if (text[index - 1] === "$") return { written: written.slice(written.indexOf("/") + 1), rooted: true };
-        if (written.startsWith("/") && !NOTHING_BEFORE.test(text.slice(Math.max(0, index - 2), index))) return { written: written.slice(1), rooted: true };
+        if (text[index - 1] === "$") {
+          return { written: written.slice(written.indexOf("/") + 1), rooted: true };
+        }
+        if (written.startsWith("/") && !NOTHING_BEFORE.test(text.slice(Math.max(0, index - 2), index))) {
+          return { written: written.slice(1), rooted: true };
+        }
         return { written, rooted: false };
       })
   );
@@ -93,7 +107,9 @@ function naming(rel, skill, files) {
   return (other, text) => {
     const landsOn = ({ written, rooted }) => {
       const own = path.resolve(skill, path.dirname(other), written);
-      if (!rooted && own !== target && files.includes(own)) return false;
+      if (!rooted && own !== target && files.includes(own)) {
+        return false;
+      }
       return folders.some((folder) => path.resolve(folder, written) === target);
     };
     return writtenPaths(base, ext, text).some(landsOn) || (ext === ".py" && other.endsWith(".py") && importsFile(rel, text));
@@ -106,7 +122,9 @@ export default {
   tags: ["agents-guru"],
   parser: "none",
   function(params, onError) {
-    if (!isSkillFile(params.name)) return;
+    if (!isSkillFile(params.name)) {
+      return;
+    }
     const skill = path.dirname(path.resolve(params.name));
     const { files, unread } = skillFiles(skill);
     const texts = new Map();
@@ -120,12 +138,18 @@ export default {
     const report = (detail) => onError({ lineNumber: FRONTMATTER_LINE, detail });
     const relative = (file) => path.relative(skill, file) || ".";
     // WHY: a clean run would otherwise claim a comparison that never happened.
-    for (const [file, code] of unread) report(`could not read ${relative(file)} (${code}), so no name in it was compared`);
+    for (const [file, code] of unread) {
+      report(`could not read ${relative(file)} (${code}), so no name in it was compared`);
+    }
     for (const file of files) {
-      if (!isBundled(relative(file))) continue;
+      if (!isBundled(relative(file))) {
+        continue;
+      }
       const names = naming(relative(file), skill, files);
       const named = [...texts].some(([other, text]) => fs.realpathSync(other) !== fs.realpathSync(file) && names(relative(other), text));
-      if (!named) report(`${relative(file)} is named by no file of this skill, so an agent never learns it exists: list it in SKILL.md`);
+      if (!named) {
+        report(`${relative(file)} is named by no file of this skill, so an agent never learns it exists: list it in SKILL.md`);
+      }
     }
   },
 };

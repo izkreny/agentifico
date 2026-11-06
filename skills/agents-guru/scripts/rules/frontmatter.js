@@ -5,12 +5,18 @@ import { parseDocument } from "yaml";
 // Reached when the parser rejects the frontmatter or reads a non-string description, so it only has to hand `statesPolicy` something to match a word and a slash token in.
 function rough(fm) {
   const i = fm.findIndex((l) => l.startsWith("description:"));
-  if (i < 0) return "";
+  if (i < 0) {
+    return "";
+  }
   const raw = fm[i].slice("description:".length).trim();
-  if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
+  if (!BLOCK_SCALAR.test(raw)) {
+    return folded(fm, i);
+  }
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar ends at the first non-empty line with no indent.
-  for (let j = i + 1; fm[j] === "" || /^\s/u.test(fm[j]); j += 1) body.push(fm[j]);
+  for (let j = i + 1; fm[j] === "" || /^\s/u.test(fm[j]); j += 1) {
+    body.push(fm[j]);
+  }
   return body.join("\n");
 }
 
@@ -18,12 +24,18 @@ export const isSkillFile = (name) => path.basename(name) === "SKILL.md";
 
 export function frontmatter(params) {
   const lines = params.frontMatterLines;
-  if (lines.length === 0) return null;
+  if (lines.length === 0) {
+    return null;
+  }
   const body = lines.slice(1);
   // The default frontmatter pattern lets the closing delimiter swallow a blank line after it, so trailing blanks go before the delimiter does.
-  while (body.length > 0 && body.at(-1).trim() === "") body.pop();
+  while (body.length > 0 && body.at(-1).trim() === "") {
+    body.pop();
+  }
   // Stryker disable next-line StringLiteral,ConditionalExpression,Regex: the lines after the opening delimiter always end on the closing one, so the test always holds.
-  if (/^---\s*$/u.test(body.at(-1) ?? "")) body.pop();
+  if (/^---\s*$/u.test(body.at(-1) ?? "")) {
+    body.pop();
+  }
   return body;
 }
 
@@ -46,8 +58,12 @@ export function folded(fm, i) {
       blanks += 1;
       continue;
     }
-    if (!/^\s+\S/u.test(fm[j])) break;
-    if (!quoted && fm[j].trim().startsWith("#")) break;
+    if (!/^\s+\S/u.test(fm[j])) {
+      break;
+    }
+    if (!quoted && fm[j].trim().startsWith("#")) {
+      break;
+    }
     parts.push(blanks > 0 ? "\n".repeat(blanks) : " ", fm[j].trim());
     blanks = 0;
   }
@@ -58,12 +74,16 @@ export function folded(fm, i) {
 export function scalar(raw) {
   if (raw.startsWith('"')) {
     const m = raw.slice(1).match(/^(?<body>(?:[^"\\]|\\.)*)"/u);
-    if (m) return m.groups.body.replace(/\\(?<escaped>.)/gu, "$<escaped>");
+    if (m) {
+      return m.groups.body.replace(/\\(?<escaped>.)/gu, "$<escaped>");
+    }
   }
   if (raw.startsWith("'")) {
     // Stryker disable next-line Regex: the pattern matches from the start whenever it matches at all, so its anchor changes nothing.
     const m = raw.slice(1).match(/^(?<body>(?:[^']|'')*)'/u);
-    if (m) return m.groups.body.replace(/''/gu, "'");
+    if (m) {
+      return m.groups.body.replace(/''/gu, "'");
+    }
   }
   // YAML strips the space before ` #` however much there is, so the cut is trimmed rather than sliced raw.
   const cut = raw.search(/\s#/u);
@@ -93,7 +113,9 @@ export function description(fm) {
   const doc = parsed(fm);
   if (doc.errors.length === 0) {
     const value = built(doc).value?.description;
-    if (typeof value === "string") return value;
+    if (typeof value === "string") {
+      return value;
+    }
   }
   return rough(fm);
 }

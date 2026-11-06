@@ -24,7 +24,9 @@ function fetchesPackage(runner, args) {
   const tokens = args.split(/\s+/u).filter(Boolean);
   const words = tokens.filter((word) => !word.startsWith("-"));
   const shape = PACKAGE[runner];
-  if (shape) return words.some((word) => shape.test(word));
+  if (shape) {
+    return words.some((word) => shape.test(word));
+  }
   const local = (word) => LOCAL.test(word) || (runner === "pipx" && PIPX_SCRIPT.test(word));
   // WHY: a flag's separate value can sit before the package, so behind a flag any word may be the package.
   return tokens[0]?.startsWith("-") ? words.some((word) => !local(word)) : words.length > 0 && !local(words[0]);
@@ -53,7 +55,9 @@ function walk(tokens, fn) {
   for (const token of tokens) {
     fn(token);
     // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) walk(token.children, fn);
+    if (token.children) {
+      walk(token.children, fn);
+    }
   }
 }
 
@@ -64,16 +68,23 @@ export default {
   parser: "micromark",
   function(params, onError) {
     // WHY: a README is written for a person, per references/readme.md, so its install line is no instruction to an agent.
-    if (path.basename(params.name) === "README.md") return;
-    if (!(isSkillFile(params.name) || owningSkill(params.name, params.config.root ?? process.cwd()))) return;
+    if (path.basename(params.name) === "README.md") {
+      return;
+    }
+    if (!(isSkillFile(params.name) || owningSkill(params.name, params.config.root ?? process.cwd()))) {
+      return;
+    }
     walk(params.parsers.micromark.tokens, (token) => {
-      if (token.type !== "codeTextData" && token.type !== "codeFlowValue") return;
-      for (const command of unpinned(withoutComment(token.text)))
+      if (token.type !== "codeTextData" && token.type !== "codeFlowValue") {
+        return;
+      }
+      for (const command of unpinned(withoutComment(token.text))) {
         onError({
           lineNumber: token.startLine,
           detail: `${command} names no version, so what it runs changes over time: pin one, as npx eslint@9`,
           context: params.lines[token.startLine - 1].trim(),
         });
+      }
     });
   },
 };

@@ -44,11 +44,19 @@ export const ABSOLUTE_TO_ONE_MACHINE = /(?<![A-Za-z0-9._~-])(?:\/home\/|\/Users\
 
 // The leading-slash reject is docs-check.py's deliberate blind spot, which is why skill-portable-paths matches on its own regex rather than asking this predicate.
 export function looksLikePath(span) {
-  if (NOT_A_PATH.some((bad) => span.includes(bad))) return false;
-  if (/^[-#@/]/u.test(span)) return false;
+  if (NOT_A_PATH.some((bad) => span.includes(bad))) {
+    return false;
+  }
+  if (/^[-#@/]/u.test(span)) {
+    return false;
+  }
   // Unlike docs-check.py, a drive letter is rejected, since it is an absolute path wearing another shape and skill-portable-paths' to report.
-  if (/^[A-Za-z]:[\\/]/u.test(span)) return false;
-  if (span.endsWith("/")) return true;
+  if (/^[A-Za-z]:[\\/]/u.test(span)) {
+    return false;
+  }
+  if (span.endsWith("/")) {
+    return true;
+  }
   return PATHY_SUFFIXES.some((suffix) => span.endsWith(suffix));
 }
 
@@ -58,9 +66,13 @@ export function owningSkill(file, root) {
   const prefix = stop.endsWith(path.sep) ? stop : stop + path.sep;
   let dir = path.dirname(path.resolve(file));
   while (dir === stop || dir.startsWith(prefix)) {
-    if (fs.existsSync(path.join(dir, "SKILL.md"))) return dir;
+    if (fs.existsSync(path.join(dir, "SKILL.md"))) {
+      return dir;
+    }
     const up = path.dirname(dir);
-    if (up === dir) break;
+    if (up === dir) {
+      break;
+    }
     dir = up;
   }
   return null;

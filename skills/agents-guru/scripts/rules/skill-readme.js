@@ -17,8 +17,11 @@ function fencedAndProse(readme) {
   for (const line of readme.split("\n")) {
     const marker = /^\s*(?<fence>`{3,}|~{3,})/u.exec(line)?.groups.fence;
     if (marker) {
-      if (open === null) open = marker;
-      else if (marker.length >= open.length && marker[0] === open[0]) open = null;
+      if (open === null) {
+        open = marker;
+      } else if (marker.length >= open.length && marker[0] === open[0]) {
+        open = null;
+      }
       continue;
     }
     (open === null ? prose : fenced).push(line);
@@ -37,7 +40,9 @@ export default {
   tags: ["agents-guru"],
   parser: "none",
   function(params, onError) {
-    if (!isSkillFile(params.name)) return;
+    if (!isSkillFile(params.name)) {
+      return;
+    }
     const readme = path.join(path.dirname(path.resolve(params.name)), "README.md");
     if (!fs.existsSync(readme)) {
       onError({ lineNumber: FRONTMATTER_LINE, detail: "no README.md beside this SKILL.md: a reader deciding whether to trust the skill has nothing to read" });
@@ -50,7 +55,8 @@ export default {
       onError({ lineNumber: FRONTMATTER_LINE, detail: `README.md cannot be read (${error.code}): ${readme}` });
       return;
     }
-    if (!carriesInstallForm(content))
+    if (!carriesInstallForm(content)) {
       onError({ lineNumber: FRONTMATTER_LINE, detail: "README.md carries no install form: a reader who cannot install the skill cannot use it" });
+    }
   },
 };

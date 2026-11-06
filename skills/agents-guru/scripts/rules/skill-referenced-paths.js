@@ -8,7 +8,9 @@ function walk(tokens, fn) {
   for (const token of tokens) {
     fn(token);
     // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) walk(token.children, fn);
+    if (token.children) {
+      walk(token.children, fn);
+    }
   }
 }
 
@@ -20,12 +22,20 @@ export default {
   function(params, onError) {
     const root = params.config.root ?? process.cwd();
     walk(params.parsers.micromark.tokens, (token) => {
-      if (!IS_PROSE_SPAN(token)) return;
+      if (!IS_PROSE_SPAN(token)) {
+        return;
+      }
       // Stryker disable next-line StringLiteral: markdownlint gives every token its text, so the fallback is never read.
       const span = String(token.text ?? "");
-      if (isHomeRelative(span)) return;
-      if (!looksLikePath(span)) return;
-      if (resolves(span, params.name, root)) return;
+      if (isHomeRelative(span)) {
+        return;
+      }
+      if (!looksLikePath(span)) {
+        return;
+      }
+      if (resolves(span, params.name, root)) {
+        return;
+      }
       onError({
         lineNumber: token.startLine,
         detail: `${span} does not resolve against this skill, this file's directory or the target`,

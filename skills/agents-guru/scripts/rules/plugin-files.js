@@ -80,85 +80,118 @@ const jsonIn = (pluginDir, file) => {
 };
 
 function matcherRules(matcher, event, own, report) {
-  if (matcher && NO_MATCHER.has(event)) report(matcher, `matcher on ${event} is silently ignored: the event has no matcher support`);
+  if (matcher && NO_MATCHER.has(event)) {
+    report(matcher, `matcher on ${event} is silently ignored: the event has no matcher support`);
+  }
   const matched = matcher?.value.value;
-  if (!TOOL_EVENTS.has(event) || typeof matched !== "string") return;
+  if (!TOOL_EVENTS.has(event) || typeof matched !== "string") {
+    return;
+  }
   const parts = matched.split(/[|,]/u).map((part) => part.trim());
-  if (EXACT_MATCHER.test(matched))
-    for (const part of parts.filter((each) => SERVER_PREFIX_ONLY.test(each)))
+  if (EXACT_MATCHER.test(matched)) {
+    for (const part of parts.filter((each) => SERVER_PREFIX_ONLY.test(each))) {
       report(matcher, `matcher part ${part} is compared as an exact tool name, so it matches no tool: add the .* a server prefix needs`);
-  for (const part of parts)
-    for (const server of own)
-      if (namesServer(part, server))
+    }
+  }
+  for (const part of parts) {
+    for (const server of own) {
+      if (namesServer(part, server)) {
         report(
           matcher,
           `matcher names the plugin's own MCP server ${server} by its bare key, so it never fires: write mcp__plugin_<plugin-name>_${toolSpelling(server)}__`,
         );
+      }
+    }
+  }
 }
 
 function fieldRules(hook, event, report) {
   const type = hook.get("type");
   const async = pairOf(hook, "async");
-  if (async && type !== "command") report(async, `async on a ${type} hook is ignored: it is available on command hooks only`);
+  if (async && type !== "command") {
+    report(async, `async on a ${type} hook is ignored: it is available on command hooks only`);
+  }
   const onFailure = pairOf(hook, "onFailure");
-  if (onFailure && NO_ON_FAILURE.has(event))
+  if (onFailure && NO_ON_FAILURE.has(event)) {
     report(onFailure, `onFailure on ${event} has no effect: exit code 2 there sends Claude back to work, and Claude can't repair a hook that won't run`);
+  }
   const background = ["async", "asyncRewake"].find((field) => hook.get(field) === true);
-  if (onFailure && type === "command" && background)
+  if (onFailure && type === "command" && background) {
     report(onFailure, `onFailure on a command hook that sets ${background} has no effect: it runs in the background`);
+  }
   const once = pairOf(hook, "once");
-  if (once) report(once, "once is ignored in a plugin's hooks file: Claude Code honours it only in a skill's frontmatter");
+  if (once) {
+    report(once, "once is ignored in a plugin's hooks file: Claude Code honours it only in a skill's frontmatter");
+  }
   const headers = pairOf(hook, "headers");
   // Stryker disable next-line BooleanLiteral: get() returns a sequence as its node either way, and a scalar holds no items either way.
   const allowed = new Set(itemsOf(hook.get("allowedEnvVars", true)).map((item) => item.value));
   for (const header of itemsOf(headers?.value)) {
-    if (typeof header.value?.value !== "string") continue;
+    if (typeof header.value?.value !== "string") {
+      continue;
+    }
     for (const {
       groups: { braced, bare },
-    } of header.value.value.matchAll(HEADER_VARIABLE))
-      if (!allowed.has(braced ?? bare))
+    } of header.value.value.matchAll(HEADER_VARIABLE)) {
+      if (!allowed.has(braced ?? bare)) {
         report(header, `header ${header.key.value} names ${braced ?? bare}, which allowedEnvVars does not list, so it is sent empty`);
+      }
+    }
   }
 }
 
 function commandRules(hook, report) {
-  if (hook.get("type") !== "command") return;
+  if (hook.get("type") !== "command") {
+    return;
+  }
   const command = pairOf(hook, "command");
   const execForm = pairOf(hook, "args");
   const text = String(command?.value.value);
   if (execForm) {
-    if (PROGRAM_THEN_MORE.test(text))
+    if (PROGRAM_THEN_MORE.test(text)) {
       report(command, "command holds more than the program while args is set, so the spawn fails: move the extra words into args");
+    }
     return;
   }
-  if (namesUserConfig(command))
+  if (namesUserConfig(command)) {
     report(command, `command names \${user_config.*} in shell form, so the hook fails instead of running: set args, or read $CLAUDE_PLUGIN_OPTION_<KEY>`);
-  if (hook.get("shell") !== "powershell") return;
+  }
+  if (hook.get("shell") !== "powershell") {
+    return;
+  }
   for (const {
     groups: { name },
-  } of text.matchAll(POWERSHELL_BARE))
+  } of text.matchAll(POWERSHELL_BARE)) {
     report(
       command,
       `command names a bare $${name}, which Claude Code does not rewrite, so PowerShell resolves it to $null unless it is escaped or single-quoted: write \${${name}} or $env:${name}`,
     );
+  }
   for (const {
     groups: { singleQuoted },
   } of text.matchAll(POWERSHELL_STRING)) {
     const placeholder = singleQuoted?.match(POWERSHELL_BRACED);
-    if (placeholder) report(command, `command holds ${placeholder[0]} inside single quotes, where PowerShell never expands it: use double quotes`);
+    if (placeholder) {
+      report(command, `command holds ${placeholder[0]} inside single quotes, where PowerShell never expands it: use double quotes`);
+    }
   }
 }
 
 function serverRule(hook, own, report) {
   const server = pairOf(hook, "server");
-  if (hook.get("type") === "mcp_tool" && own.has(server?.value.value))
+  if (hook.get("type") === "mcp_tool" && own.has(server?.value.value)) {
     report(server, `server ${server.value.value} names the plugin's own MCP server by its bare key: write plugin:<plugin-name>:${server.value.value}`);
+  }
 }
 
 const filesIn = (location) => {
   const stat = fs.statSync(location, { throwIfNoEntry: false });
-  if (!stat) return [];
-  if (stat.isFile()) return [location];
+  if (!stat) {
+    return [];
+  }
+  if (stat.isFile()) {
+    return [location];
+  }
   // A symlink is stated through, because a Dirent reports the link rather than the file it points at.
   const isFile = (entry) =>
     entry.isFile() || (entry.isSymbolicLink() && fs.statSync(path.join(entry.parentPath, entry.name), { throwIfNoEntry: false })?.isFile());
@@ -177,8 +210,12 @@ const filesIn = (location) => {
 
 // A commands object maps each name to a source, so its paths are the sources rather than the names.
 const pathsOf = (value) => {
-  if (typeof value === "string") return [value];
-  if (Array.isArray(value)) return value.filter((item) => typeof item === "string");
+  if (typeof value === "string") {
+    return [value];
+  }
+  if (Array.isArray(value)) {
+    return value.filter((item) => typeof item === "string");
+  }
   // Stryker disable next-line ConditionalExpression: Object.values gives a number or a boolean no entries.
   if (value && typeof value === "object") {
     // Stryker disable next-line ArrayDeclaration: a listed path holding no file loads nothing, so a stray one leaves the ignored files the same.
@@ -210,16 +247,22 @@ export function ownServers(pluginDir) {
 
 export function hooksDefects(source, own = new Set()) {
   const file = read(source);
-  if (!file) return [];
+  if (!file) {
+    return [];
+  }
   const found = [];
   const report = (pair, detail) => found.push({ line: file.lineOf(pair.key), detail });
   const events = pairOf(file.root, "hooks")?.value;
-  if (!isMap(events)) return found;
+  if (!isMap(events)) {
+    return found;
+  }
   for (const { key, value: groups } of events.items) {
     for (const group of itemsOf(groups)) {
       matcherRules(pairOf(group, "matcher"), key.value, own, report);
       for (const hook of itemsOf(pairOf(group, "hooks")?.value)) {
-        if (!isMap(hook)) continue;
+        if (!isMap(hook)) {
+          continue;
+        }
         fieldRules(hook, key.value, report);
         commandRules(hook, report);
         serverRule(hook, own, report);
@@ -243,19 +286,25 @@ export function monitorsFile(pluginDir) {
 
 export function manifestDefects(source, pluginDir) {
   const file = read(source);
-  if (!file) return [];
+  if (!file) {
+    return [];
+  }
   const found = [];
   for (const [key, folder] of REPLACES) {
     const segments = key.split(".");
     const pair = pairOf(segments.length > 1 ? pairOf(file.root, segments[0])?.value : file.root, segments.at(-1));
-    if (!pair) continue;
+    if (!pair) {
+      continue;
+    }
     const location = path.resolve(pluginDir, folder);
     // Stryker disable next-line OptionalChaining: read() admits only JSON, where a key always has a value node.
     const listed = pathsOf(pair.value?.toJSON()).map((p) => path.resolve(pluginDir, p));
     const loaded = (entry) => listed.some((p) => entry === p || entry.startsWith(p + path.sep));
     const held = filesIn(location);
     const ignored = held.filter((entry) => !loaded(entry));
-    if (ignored.length === 0) continue;
+    if (ignored.length === 0) {
+      continue;
+    }
     // A folder dropped whole is an error, because no plugin means to lose every file in it, while a file left beside a listed one is a warning, since a plugin may leave it out on purpose.
     if (ignored.length === held.length) {
       found.push({
@@ -268,17 +317,19 @@ export function manifestDefects(source, pluginDir) {
       continue;
     }
     // Each file is named even where a listed path inside the folder silences Claude Code's own warning, because that file still never loads.
-    for (const each of ignored)
+    for (const each of ignored) {
       found.push({
         line: file.lineOf(pair.key),
         severity: "warning",
         detail: `${key} replaces the default ${folder}/, so Claude Code ignores ${path.relative(pluginDir, each)}`,
       });
+    }
   }
   for (const entry of itemsOf(pairOf(file.root, "dependencies")?.value)) {
     const version = pairOf(entry, "version");
-    if (version && !semver.validRange(version.value.value))
+    if (version && !semver.validRange(version.value.value)) {
       found.push({ line: file.lineOf(version.key), detail: `dependency version ${String(version.value)} is not a node-semver range such as ~2.1.0` });
+    }
   }
   const monitors = pairOf(pairOf(file.root, "experimental")?.value, "monitors") ?? pairOf(file.root, "monitors");
   found.push(...monitorDefects(monitors?.value, file.lineOf));

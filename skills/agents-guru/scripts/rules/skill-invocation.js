@@ -14,8 +14,12 @@ export function defects(fm, name) {
   const bad = [];
   for (const [key, dflt] of Object.entries(FIELDS)) {
     const dl = keyLines(fm, key);
-    if (dl.length === 0) continue;
-    if (dl.length > 1) bad.push(`duplicate ${key} key: last silently wins`);
+    if (dl.length === 0) {
+      continue;
+    }
+    if (dl.length > 1) {
+      bad.push(`duplicate ${key} key: last silently wins`);
+    }
     const raw = dl
       .at(-1)
       .slice(key.length + 1)
@@ -43,9 +47,13 @@ export default {
   tags: ["agents-guru"],
   parser: "none",
   function(params, onError) {
-    if (!isSkillFile(params.name)) return;
+    if (!isSkillFile(params.name)) {
+      return;
+    }
     const name = path.basename(path.dirname(path.resolve(params.name)));
     // Stryker disable next-line ArrayDeclaration: defects reads keys off the lines, and a line naming no key reads exactly as no lines.
-    for (const detail of defects(frontmatter(params) ?? [], name)) onError({ lineNumber: FRONTMATTER_LINE, detail });
+    for (const detail of defects(frontmatter(params) ?? [], name)) {
+      onError({ lineNumber: FRONTMATTER_LINE, detail });
+    }
   },
 };

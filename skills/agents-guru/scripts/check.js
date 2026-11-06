@@ -29,8 +29,9 @@ for (let i = 2; i < process.argv.length; i += 1) {
   }
   i += 1;
   const name = process.argv[i];
-  if (!skippableRuleNames.has(name))
+  if (!skippableRuleNames.has(name)) {
     nothingChecked(`${name === undefined ? "--skip names no rule" : `--skip ${name}`}: only ${[...skippableRuleNames].join(", ")} can be skipped`);
+  }
   skip.add(name);
 }
 // Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
@@ -53,7 +54,9 @@ const walks = await Promise.all(
 );
 for (const [i, target] of targets.entries()) {
   const stat = fs.statSync(target, { throwIfNoEntry: false });
-  if (!stat) nothingChecked(`no such file or folder: ${target}`);
+  if (!stat) {
+    nothingChecked(`no such file or folder: ${target}`);
+  }
   let reached = [target];
   if (stat.isDirectory()) {
     const lost = [];
@@ -64,25 +67,39 @@ for (const [i, target] of targets.entries()) {
           return fs.statSync(file).isFile();
         } catch (error) {
           // A plain file that cannot be stat'ed is no link, so it stops the run rather than being named as one.
-          if (!fs.lstatSync(file).isSymbolicLink()) throw error;
+          if (!fs.lstatSync(file).isSymbolicLink()) {
+            throw error;
+          }
           lost.push([file, error.code]);
           return false;
         }
       });
-    for (const [file, code] of lost) dangling.set(file, code);
+    for (const [file, code] of lost) {
+      dangling.set(file, code);
+    }
     // A dangling link counts as markdown found, so a target holding nothing else reaches the group that names it.
-    if (![...reached, ...lost.map(([file]) => file)].some((file) => file.endsWith(".md"))) nothingChecked(`no markdown file found under ${target}`);
-  } else if (!/\.(?:md|js|py|ya?ml)$/u.test(target)) nothingChecked(`no reader takes ${target}`);
+    if (![...reached, ...lost.map(([file]) => file)].some((file) => file.endsWith(".md"))) {
+      nothingChecked(`no markdown file found under ${target}`);
+    }
+  } else if (!/\.(?:md|js|py|ya?ml)$/u.test(target)) {
+    nothingChecked(`no reader takes ${target}`);
+  }
   // A file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
   const root = stat.isDirectory() ? target : process.cwd();
-  for (const file of reached) if (!rootOf.has(file)) rootOf.set(file, root);
+  for (const file of reached) {
+    if (!rootOf.has(file)) {
+      rootOf.set(file, root);
+    }
+  }
   folders.push(stat.isDirectory() ? target : path.dirname(target));
 }
 
 // Paths print from the folder every target shares, so no printed path repeats the part common to all of them.
 const base = folders.reduce((sharedSoFar, folder) => {
   let shared = sharedSoFar;
-  while (shared !== folder && !folder.startsWith(shared.endsWith(path.sep) ? shared : shared + path.sep)) shared = path.dirname(shared);
+  while (shared !== folder && !folder.startsWith(shared.endsWith(path.sep) ? shared : shared + path.sep)) {
+    shared = path.dirname(shared);
+  }
   return shared;
 });
 
@@ -99,7 +116,9 @@ const skills = files
   .map((file) => path.relative(base, path.dirname(file)) || ".")
   .sort(byCodeUnit);
 console.log(skills.length > 0 ? `${skills.length} skill(s) found under ${base}` : `no skill found under ${base}`);
-for (const skill of skills) console.log(`  ${skill}`);
+for (const skill of skills) {
+  console.log(`  ${skill}`);
+}
 
 // A constant because the branch reporting a Vale that could not start prints this heading too, and a rename reaching one site and not the other would put a heading no other run uses on the run whose reader most needs to recognise it.
 const PROSE_RULES = "prose rules";
@@ -107,19 +126,25 @@ const PROSE_RULES = "prose rules";
 // A count of zero prints too, because a reader who has to infer from silence that the class this skill exists to catch found nothing is the reader this grouping is for.
 const report = (label, lines, summary = lines.length || "none") => {
   console.log(`${label}: ${summary}`);
-  for (const line of lines) console.log(`  ${line}`);
+  for (const line of lines) {
+    console.log(`  ${line}`);
+  }
 };
 
 // One filter by rule name serves markdownlint's findings, the YAML reader's and Vale's, so a rule joining the skippable set needs no stream of its own.
 const withheld = new Map([...skip].sort(byCodeUnit).map((name) => [name, 0]));
 const withholds = (names) => {
   const name = names.find((n) => skip.has(n));
-  if (name) withheld.set(name, withheld.get(name) + 1);
+  if (name) {
+    withheld.set(name, withheld.get(name) + 1);
+  }
   return Boolean(name);
 };
 // Nothing prints when nothing was skipped, so a plain run shows no group for a switch its caller never used.
 const reportSkipped = () => {
-  if (skip.size === 0) return "";
+  if (skip.size === 0) {
+    return "";
+  }
   report(
     "skipped rules",
     [...withheld].map(([name, count]) => `${name}: ${count} findings withheld`),
@@ -140,7 +165,9 @@ const perRoot = await Promise.all(
   ),
 );
 const results = {};
-for (const rootResults of perRoot) Object.assign(results, rootResults);
+for (const rootResults of perRoot) {
+  Object.assign(results, rootResults);
+}
 
 // Every markdownlint class prints before Vale runs, so a structural finding is never withheld by a prose linter that cannot start.
 let issues = dangling.size;
@@ -161,22 +188,32 @@ for (const file of files) {
   const rel = path.relative(base, file);
   // Stryker disable next-line ArrayDeclaration: markdownlint returns an entry for every file it is handed, so the fallback is never read.
   for (const e of results[file] ?? []) {
-    if (withholds(e.ruleNames)) continue;
+    if (withholds(e.ruleNames)) {
+      continue;
+    }
     // Stryker disable next-line MethodExpression: every custom rule carries one name and no built-in rule's names are in the set, so some and every agree.
     const warning = e.ruleNames.some((name) => warningRuleNames.has(name));
     // Stryker disable next-line MethodExpression: every custom rule carries one name and no built-in rule's names are in the set, so some and every agree.
     const proseShape = e.ruleNames.some((name) => proseShapeRuleNames.has(name));
-    if (!warning) issues += 1;
-    else if (proseShape) proseShapeWarnings += 1;
-    else contractWarnings += 1;
+    if (!warning) {
+      issues += 1;
+    } else if (proseShape) {
+      proseShapeWarnings += 1;
+    } else {
+      contractWarnings += 1;
+    }
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
     const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")}${warning ? " (warning)" : ""} ${e.ruleDescription}${detail}${context}`;
     // Stryker disable next-line MethodExpression: every custom rule carries one name and no built-in rule's names are in the set, so some and every agree.
     const contract = e.ruleNames.some((name) => contractRuleNames.has(name));
-    if (contract) contractFindings.push(line);
-    else if (proseShape) proseShapeFindings.push(line);
-    else generalFindings.push(line);
+    if (contract) {
+      contractFindings.push(line);
+    } else if (proseShape) {
+      proseShapeFindings.push(line);
+    } else {
+      generalFindings.push(line);
+    }
   }
 }
 warnings += contractWarnings + proseShapeWarnings;
@@ -198,13 +235,19 @@ const commentsOf = (source) => {
   const comments = [];
   const walk = (node) => {
     // Stryker disable next-line ConditionalExpression: an array walked as an object reaches the same items through Object.values.
-    if (Array.isArray(node)) node.forEach(walk);
-    else if (node && typeof node === "object") {
-      if (node.type === "comment") comments.push({ ...lines.linePos(node.offset), text: node.source });
-      else Object.values(node).forEach(walk);
+    if (Array.isArray(node)) {
+      node.forEach(walk);
+    } else if (node && typeof node === "object") {
+      if (node.type === "comment") {
+        comments.push({ ...lines.linePos(node.offset), text: node.source });
+      } else {
+        Object.values(node).forEach(walk);
+      }
     }
   };
-  for (const token of new Parser(lines.addNewLine).parse(source)) walk(token);
+  for (const token of new Parser(lines.addNewLine).parse(source)) {
+    walk(token);
+  }
   // Stryker disable next-line all: the parser's tokens already arrive in source order, so the sort guards an order nothing produces.
   return comments.sort((a, b) => a.line - b.line);
 };
@@ -259,11 +302,16 @@ for (const dir of [...pluginDirs].filter(isPluginRoot).sort(byCodeUnit)) {
   ];
   for (const [name, rule, defects] of readers.filter(([entry]) => entry)) {
     const file = path.join(dir, name);
-    if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) continue;
+    if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) {
+      continue;
+    }
     pluginFiles.push(file);
     for (const { line, detail, severity = "error" } of defects(fs.readFileSync(file, "utf8"))) {
-      if (severity === "error") pluginIssues += 1;
-      else pluginWarnings += 1;
+      if (severity === "error") {
+        pluginIssues += 1;
+      } else {
+        pluginWarnings += 1;
+      }
       pluginFindings.push(`${path.relative(base, file)}:${line} ${rule} (${severity}) ${detail}`);
     }
   }
@@ -291,16 +339,18 @@ const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
 // Stryker disable next-line StringLiteral: stdout is null only when Vale did not start, and no fallback text holds a version.
 const valeVersion = /(?<major>\d+)\.(?<minor>\d+)\.\d+/u.exec(versionRun.stdout ?? "");
 // An unreadable version is refused like an old one, while a Vale that failed to start is left to the lint run, which names its failure.
-if (!valeVersion && versionRun.status === 0)
+if (!valeVersion && versionRun.status === 0) {
   proseNotRun(
     `could not read Vale's version from "${versionRun.stdout.trim()}": the prose rules did not run. Install Vale ${minVale} or later, per references/setup.md, and run the check again.`,
   );
+}
 // Stryker disable next-line ArrayDeclaration: with no version read, major and minor are read only behind a test of valeVersion.
 const [major, minor] = valeVersion ? [Number(valeVersion.groups.major), Number(valeVersion.groups.minor)] : [];
-if (valeVersion && (major < MIN_VALE_MAJOR || (major === MIN_VALE_MAJOR && minor < MIN_VALE_MINOR)))
+if (valeVersion && (major < MIN_VALE_MAJOR || (major === MIN_VALE_MAJOR && minor < MIN_VALE_MINOR))) {
   proseNotRun(
     `vale ${valeVersion[0]} is older than ${minVale}: the prose rules did not run. Install Vale ${minVale} or later, per references/setup.md, and run the check again.`,
   );
+}
 
 // --no-global drops the user's own configuration and default styles directory, where a style of the same name would shadow this one.
 const valeFiles = [...files, ...codeFiles];
@@ -310,7 +360,9 @@ const runVale = (batch) =>
   spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...batch], { encoding: "utf8", maxBuffer: VALE_OUTPUT_MEBIBYTES * MEBIBYTE });
 // WHY: Vale refuses the whole run over one file whose frontmatter it cannot read, naming every such file at once on stderr, so those files are set aside as findings and the rest are read again.
 const refusedFiles = (run) => {
-  if (run.status !== 2) return [];
+  if (run.status !== 2) {
+    return [];
+  }
   try {
     return run.stderr
       .split(/^(?=\{)/mu)
@@ -324,15 +376,18 @@ let vale = runVale(valeFiles);
 const unreadable = refusedFiles(vale);
 const readable = valeFiles.filter((file) => !unreadable.some((e) => e.Path === file));
 // WHY: Vale handed no file prints its usage rather than JSON.
-if (unreadable.length > 0) vale = readable.length > 0 ? runVale(readable) : { status: 0, stdout: "" };
+if (unreadable.length > 0) {
+  vale = readable.length > 0 ? runVale(readable) : { status: 0, stdout: "" };
+}
 // A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
 // Stryker disable next-line ConditionalExpression,StringLiteral: a missing binary also sets vale.error, which the last test catches
-if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error)
+if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error) {
   proseNotRun(
     vale.error?.code === "ENOENT"
       ? `vale is not on PATH: the prose rules did not run. Install Vale ${minVale} or later, per references/setup.md, and run the check again.`
       : `vale could not run: ${(vale.stderr || vale.stdout || String(vale.error)).trim()}`,
   );
+}
 // Vale's exit code is not read because it is non-zero only for an error-level alert and the JSON carries every alert.
 const alerts = vale.stdout.trim() ? JSON.parse(vale.stdout) : {};
 
@@ -346,11 +401,15 @@ for (const file of valeFiles) {
   const rel = path.relative(base, file);
   for (const a of alerts[file] ?? []) {
     // Stryker disable next-line ConditionalExpression,ArrayDeclaration: a Vale check is named Style.Rule, and no skippable rule's name holds a dot.
-    if (withholds([a.Check])) continue;
+    if (withholds([a.Check])) {
+      continue;
+    }
     if (a.Severity === "error") {
       issues += 1;
       proseIssues += 1;
-    } else proseWarnings += 1;
+    } else {
+      proseWarnings += 1;
+    }
     proseFindings.push(`${rel}:${a.Line} ${a.Check} (${a.Severity}) ${a.Message}`);
   }
 }
