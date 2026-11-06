@@ -7,7 +7,7 @@ const authored = (v) => v.replace(/\n$/, "");
 
 export function defects(fm) {
   const doc = parsed(fm);
-  if (doc.errors.length) return [`PARSE ERROR, skill will not load: ${doc.errors[0].message.split("\n")[0]}`];
+  if (doc.errors.length > 0) return [`PARSE ERROR, skill will not load: ${doc.errors[0].message.split("\n")[0]}`];
   const { value: mapping, error } = built(doc);
   if (error) return [unbuilt(error)];
   if (mapping === null || typeof mapping !== "object") return ["frontmatter is not a mapping"];

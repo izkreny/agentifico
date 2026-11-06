@@ -433,7 +433,7 @@ describe("skill-continuations", () => {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), continuations);
       for (const w of want) expectDetail(found, "skill-continuations", w);
-      if (!want.length) expectClean(found, "skill-continuations");
+      if (want.length === 0) expectClean(found, "skill-continuations");
     });
   }
   it("frontmatter is not body: its sequence item claims nothing below", async () => {
@@ -479,7 +479,7 @@ describe("skill-bolded-runs", () => {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), boldedRuns);
       for (const w of want) expectDetail(found, "skill-bolded-runs", w);
-      if (!want.length) expectClean(found, "skill-bolded-runs");
+      if (want.length === 0) expectClean(found, "skill-bolded-runs");
     });
   }
   it("a workflow file is read, not only SKILL.md", async () => {
@@ -517,7 +517,7 @@ describe("skill-bolded-paragraphs", () => {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), boldedParagraphs);
       for (const w of want) expectDetail(found, "skill-bolded-paragraphs", w);
-      if (!want.length) expectClean(found, "skill-bolded-paragraphs");
+      if (want.length === 0) expectClean(found, "skill-bolded-paragraphs");
     });
   }
   it("a workflow file is read, not only SKILL.md", async () => {

@@ -52,7 +52,7 @@ export function defects(fm, inPlugin, lines = []) {
   }
   const doc = parsed(fm, UNTIMED);
   // Frontmatter that does not parse is left to claude plugin validate, which reports it.
-  if (doc.errors.length) return [];
+  if (doc.errors.length > 0) return [];
   const { value, error } = built(doc);
   if (error) return [unbuilt(error)];
   // Empty frontmatter parses to null, and it sets no name just as a mapping without one does.
@@ -85,7 +85,7 @@ export function defects(fm, inPlugin, lines = []) {
 function declaredName(fm) {
   if (!fm) return null;
   const doc = parsed(fm, UNTIMED);
-  if (doc.errors.length) return null;
+  if (doc.errors.length > 0) return null;
   const name = built(doc).value?.name;
   return name === undefined || name === null ? null : nameText(name);
 }
@@ -157,7 +157,7 @@ function duplicateNames(file, folder, fm) {
     .map(([entry, code]) => [relative(entry), code])
     .sort(byCodeUnit)
     .map(([entry, code]) => `could not read ${entry} (${code}), so the name ${JSON.stringify(name)} was not compared with it`);
-  if (others.length)
+  if (others.length > 0)
     details.unshift(
       `name ${JSON.stringify(name)} is also declared by ${others.map(relative).sort(byCodeUnit).join(", ")}: Claude Code loads only one of them from this .claude/agents folder, by read order`,
     );

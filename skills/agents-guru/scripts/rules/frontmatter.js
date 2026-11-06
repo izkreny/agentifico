@@ -6,10 +6,10 @@ export const isSkillFile = (name) => path.basename(name) === "SKILL.md";
 
 export function frontmatter(params) {
   const lines = params.frontMatterLines;
-  if (!lines.length) return null;
+  if (lines.length === 0) return null;
   const body = lines.slice(1);
   // The default frontmatter pattern lets the closing delimiter swallow a blank line after it, so trailing blanks go before the delimiter does.
-  while (body.length && body.at(-1).trim() === "") body.pop();
+  while (body.length > 0 && body.at(-1).trim() === "") body.pop();
   // Stryker disable next-line StringLiteral,ConditionalExpression,Regex: the lines after the opening delimiter always end on the closing one, so the test always holds.
   if (/^---\s*$/.test(body.at(-1) ?? "")) body.pop();
   return body;
@@ -79,7 +79,7 @@ export const unbuilt = (message) => `frontmatter parses but its value cannot be 
 // The parser's value rather than the lines', because chomping, folding, the indentation indicator and the last-wins duplicate key are the parser's to decide and a reimplementation agreed with it on `|-` alone.
 export function description(fm) {
   const doc = parsed(fm);
-  if (!doc.errors.length) {
+  if (doc.errors.length === 0) {
     const value = built(doc).value?.description;
     if (typeof value === "string") return value;
   }

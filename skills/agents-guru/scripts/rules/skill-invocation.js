@@ -14,7 +14,7 @@ export function defects(fm, name) {
   const bad = [];
   for (const [key, dflt] of Object.entries(FIELDS)) {
     const dl = keyLines(fm, key);
-    if (!dl.length) continue;
+    if (dl.length === 0) continue;
     if (dl.length > 1) bad.push(`duplicate ${key} key: last silently wins`);
     const raw = dl
       .at(-1)

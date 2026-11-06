@@ -249,7 +249,7 @@ export function manifestDefects(source, pluginDir) {
     const loaded = (entry) => listed.some((p) => entry === p || entry.startsWith(p + path.sep));
     const held = filesIn(location);
     const ignored = held.filter((entry) => !loaded(entry));
-    if (!ignored.length) continue;
+    if (ignored.length === 0) continue;
     // A folder dropped whole is an error, because no plugin means to lose every file in it, while a file left beside a listed one is a warning, since a plugin may leave it out on purpose.
     if (ignored.length === held.length) {
       found.push({

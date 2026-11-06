@@ -37,7 +37,8 @@
         "useCollapsedIf": "error",
         "noNegationElse": "error",
         "noParameterAssign": "error",
-        "noExcessiveLinesPerFile": "warn"
+        "noExcessiveLinesPerFile": "warn",
+        "useExplicitLengthCheck": "error"
       },
       "suspicious": {
         "noVar": "error",

@@ -33,7 +33,7 @@ for (let i = 2; i < process.argv.length; i++) {
   skip.add(name);
 }
 // Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
-const targets = (paths.length ? paths : ["."]).map((arg) => path.resolve(arg));
+const targets = (paths.length > 0 ? paths : ["."]).map((arg) => path.resolve(arg));
 
 // Each file keeps the root of the first target reaching it, so a file two targets reach is read once.
 const rootOf = new Map();
@@ -97,7 +97,7 @@ const skills = files
   .filter(isSkillFile)
   .map((file) => path.relative(base, path.dirname(file)) || ".")
   .sort(byCodeUnit);
-console.log(skills.length ? `${skills.length} skill(s) found under ${base}` : `no skill found under ${base}`);
+console.log(skills.length > 0 ? `${skills.length} skill(s) found under ${base}` : `no skill found under ${base}`);
 for (const skill of skills) console.log(`  ${skill}`);
 
 // A constant because the branch reporting a Vale that could not start prints this heading too, and a rename reaching one site and not the other would put a heading no other run uses on the run whose reader most needs to recognise it.
@@ -118,7 +118,7 @@ const withholds = (names) => {
 };
 // Nothing prints when nothing was skipped, so a plain run shows no group for a switch its caller never used.
 const reportSkipped = () => {
-  if (!skip.size) return "";
+  if (skip.size === 0) return "";
   report(
     "skipped rules",
     [...withheld].map(([name, count]) => `${name}: ${count} findings withheld`),
@@ -215,7 +215,7 @@ for (const file of yamlFiles) {
   const source = fs.readFileSync(file, "utf8");
   const docs = YAML.parseAllDocuments(source);
   // A stream holding no document comes back empty and raises nothing, so a file of directives alone is parsed again as one document, which reports what is missing.
-  const errors = docs.length ? docs.flatMap((doc) => doc.errors) : YAML.parseDocument(source).errors;
+  const errors = docs.length > 0 ? docs.flatMap((doc) => doc.errors) : YAML.parseDocument(source).errors;
   for (const e of errors) {
     const rule = e.code === "DUPLICATE_KEY" ? "yaml-duplicate-key" : "yaml-parse";
     // Stryker disable next-line OptionalChaining: yaml leaves an error unplaced only at offset -1, which neither parse call here passes, so linePos is always set.
@@ -269,7 +269,7 @@ for (const dir of [...pluginDirs].filter(isPluginRoot).sort(byCodeUnit)) {
 }
 issues += pluginIssues;
 warnings += pluginWarnings;
-report("plugin files", pluginFindings, pluginFindings.length ? `${pluginIssues} issues, ${pluginWarnings} warnings` : "none");
+report("plugin files", pluginFindings, pluginFindings.length > 0 ? `${pluginIssues} issues, ${pluginWarnings} warnings` : "none");
 
 const proseNotRun = (why) => {
   report(PROSE_RULES, [], "not run");
@@ -320,7 +320,7 @@ let vale = runVale(valeFiles);
 const unreadable = refusedFiles(vale);
 const readable = valeFiles.filter((file) => !unreadable.some((e) => e.Path === file));
 // WHY: Vale handed no file prints its usage rather than JSON.
-if (unreadable.length) vale = readable.length ? runVale(readable) : { status: 0, stdout: "" };
+if (unreadable.length > 0) vale = readable.length > 0 ? runVale(readable) : { status: 0, stdout: "" };
 // A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
 // Stryker disable next-line ConditionalExpression,StringLiteral: a missing binary also sets vale.error, which the last test catches
 if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error)
@@ -351,7 +351,7 @@ for (const file of valeFiles) {
   }
 }
 warnings += proseWarnings;
-report(PROSE_RULES, proseFindings, proseFindings.length ? `${proseIssues} issues, ${proseWarnings} warnings` : "none");
+report(PROSE_RULES, proseFindings, proseFindings.length > 0 ? `${proseIssues} issues, ${proseWarnings} warnings` : "none");
 const skipped = reportSkipped();
 console.log(`${valeFiles.length + yamlFiles.length + pluginFiles.length} files checked, ${issues} issues, ${warnings} warnings${skipped}`);
 process.exit(issues ? 1 : 0);

@@ -113,7 +113,7 @@ function routes(tokens) {
     if (section && isList(t)) readList(t, out);
   }
   // A routing section yielding no route is a shape the rule cannot read, such as a table, and not proof that nothing routes.
-  return found && out.length ? out : null;
+  return found && out.length > 0 ? out : null;
 }
 
 export default {
@@ -127,7 +127,7 @@ export default {
     if (!fm) return;
     const doc = parsed(fm);
     // Frontmatter that does not parse is `skill-frontmatter-parsed`'s, which reports it already.
-    if (doc.errors.length) return;
+    if (doc.errors.length > 0) return;
     const hint = built(doc).value?.["argument-hint"];
     if (typeof hint !== "string") return;
     const routed = routes(params.parsers.micromark.tokens);

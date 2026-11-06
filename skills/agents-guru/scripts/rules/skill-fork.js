@@ -4,7 +4,7 @@ import { built, FRONTMATTER_LINE, frontmatter, isSkillFile, parsed } from "./fro
 export function defects(fm) {
   const doc = parsed(fm);
   // Frontmatter that does not parse is `skill-frontmatter-parsed`'s, which reports it already.
-  if (doc.errors.length) return [];
+  if (doc.errors.length > 0) return [];
   const mapping = built(doc).value;
   if (mapping === null || typeof mapping !== "object" || !("agent" in mapping) || mapping.context === "fork") return [];
   return ["agent does nothing without context: fork, so the skill runs inline"];
