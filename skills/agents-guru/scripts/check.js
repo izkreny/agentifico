@@ -63,7 +63,11 @@ const walks = await Promise.all(
   ),
 );
 for (const [i, target] of targets.entries()) {
-  const stat = fs.statSync(target);
+  // WHY: a target can vanish while the walks are awaited, and it is refused in the script's own words rather than by a stack trace.
+  const stat = fs.statSync(target, { throwIfNoEntry: false });
+  if (!stat) {
+    nothingChecked(`no such file or folder: ${target}`);
+  }
   let reached = [target];
   if (stat.isDirectory()) {
     const lost = [];

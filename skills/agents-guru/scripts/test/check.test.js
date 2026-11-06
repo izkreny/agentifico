@@ -1147,6 +1147,20 @@ describe("check.js", () => {
     assert.match(r.out, /no such file or folder: .*nope\.md/u);
     assert.doesNotMatch(r.out, /a folder was walked/u);
   });
+  it("a target that vanishes while the folders are walked fails, naming it", () => {
+    const victim = path.join(tmp, "vanishing");
+    fs.mkdirSync(victim);
+    fs.writeFileSync(path.join(victim, "a.md"), "# A\n");
+    // WHY: the preload deletes the second target as the first walk starts, which is the window a real deletion would have to land in.
+    const vanish = path.join(tmp, "vanish.js");
+    fs.writeFileSync(
+      vanish,
+      'import fs from "node:fs";\nimport fsp from "node:fs/promises";\nimport { syncBuiltinESMExports } from "node:module";\nconst { glob } = fsp;\nfsp.glob = (...args) => {\n  fs.rmSync(process.env.VANISH, { recursive: true, force: true });\n  return glob(...args);\n};\nsyncBuiltinESMExports();\n',
+    );
+    const r = run([path.join(tmp, "good"), victim], { ...process.env, NODE_OPTIONS: `--import=${vanish}`, VANISH: victim });
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /no such file or folder: .*vanishing: nothing was checked/u);
+  });
   it("a file no reader takes fails, naming it", () => {
     const r = run(path.join(tmp, "notes", "notes.txt"));
     assert.equal(r.code, 1, r.out);
