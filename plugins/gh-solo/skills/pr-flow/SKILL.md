@@ -67,7 +67,7 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 
   Every post is made with the owner's credentials, so the disclaimer alone says only that *an* agent wrote it - an implementer's record, a divergence note and a review finding on one PR are otherwise indistinguishable. `references/post-caps.md` carries the forms in use, and names the PR body as the surface that takes the disclaimer alone.
 
-- **Repository-specific conventions live in the repository**, in its agent config file (`<repo-root>/.agents/gh-solo.md`, or `<repo-root>/.claude/gh-solo.md` where that is what the repo uses). Read it when present and let it override the defaults here; nothing repo-specific belongs in this skill. Among its keys are the ones that name a reviewer other than the bundled agent and the model a round asks the spawn for - `references/reviewer-appointment.md` owns what each means and what it is validated against.
+- **Repository-specific conventions live in the repository**, in its agent config file (`<repo-root>/.agents/gh-solo.md`, or `<repo-root>/.claude/gh-solo.md` where that is what the repo uses). Read it when present and let it override the defaults here; nothing repo-specific belongs in this skill. Among its keys are the ones that name a reviewer other than the bundled agent and the model a round asks the spawn for - `references/reviewer-appointment.md` owns what each means and what it is validated against. A `Test files:` line names the glob of the repository's tests, and Step 4 of `workflows/ready.md` owns the gate it turns on.
 
 ### Post caps
 
