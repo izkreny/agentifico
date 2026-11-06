@@ -1,7 +1,7 @@
 // WHY: what is replaced and what escapes it are the skills page's, at https://code.claude.com/docs/en/skills.
 import { isSkillFile } from "./frontmatter.js";
 
-const PLACEHOLDER = /(\\*)\$(\d+)/g;
+const PLACEHOLDER = /(\\*)\$(\d+)/gu;
 
 function walk(tokens, fn) {
   for (const token of tokens) {

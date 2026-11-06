@@ -1,9 +1,9 @@
 import { built, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, parsed, unbuilt } from "./frontmatter.js";
 
-const TOP_LEVEL = /^([^\s:#][^:]*):/;
+const TOP_LEVEL = /^([^\s:#][^:]*):/u;
 
 // A clipped block scalar keeps one trailing newline the style adds rather than the author, so a ceiling measured raw would depend on which style carries the text.
-const authored = (v) => v.replace(/\n$/, "");
+const authored = (v) => v.replace(/\n$/u, "");
 
 export function defects(fm) {
   const doc = parsed(fm);
@@ -32,7 +32,7 @@ export function defects(fm) {
     seen.add(key);
     const raw = fm[i].slice(key.length + 1).trim();
     // A quoted or block value is immune to the family, and an empty one begins on the following line with nothing on its own line to compare.
-    if (raw === "" || /^[|>"']/.test(raw)) continue;
+    if (raw === "" || /^[|>"']/u.test(raw)) continue;
     const value = mapping[key];
     // A non-string value is `skill-invocation`'s, since a silent mutation is by definition a change to text.
     if (typeof value !== "string") continue;

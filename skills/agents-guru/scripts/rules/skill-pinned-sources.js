@@ -1,20 +1,20 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const SOURCE_SECTION = /^(?:inspiration|sources)$/i;
+const SOURCE_SECTION = /^(?:inspiration|sources)$/iu;
 // WHY: only the domain is read, since a forge's link shapes have no end and the agent reading the warning can judge the page.
-const GIT_DOMAIN = /(?:^|\.)(?:github\.com|githubusercontent\.com|gitlab\.com|bitbucket\.org|codeberg\.org)$/;
+const GIT_DOMAIN = /(?:^|\.)(?:github\.com|githubusercontent\.com|gitlab\.com|bitbucket\.org|codeberg\.org)$/u;
 // WHY: a self-hosted forge and SourceHut's git.sr.ht name git at the start of a subdomain, which leaves digital.example.com out, and the agent judges a project site whose owner's name opens the same way.
-const GIT_SUBDOMAIN = /(?:^|\.)git[^.]*\.[^.]+\./;
+const GIT_SUBDOMAIN = /(?:^|\.)git[^.]*\.[^.]+\./u;
 // WHY: a tag or a short sha can come to name another commit later, so only a full sha is a pin, and git's SHA-256 format makes that one longer.
-const COMMIT = /[/=][0-9a-f]{40}(?:[0-9a-f]{24})?(?:[/&]|$)/;
+const COMMIT = /[/=][0-9a-f]{40}(?:[0-9a-f]{24})?(?:[/&]|$)/u;
 const CARRIES_A_LINK = new Set(["resourceDestinationString", "autolinkProtocol", "literalAutolinkHttp"]);
 
 function unpinned(url) {
   if (!URL.canParse(url)) return false;
   const { hostname: written, pathname, search } = new URL(url);
   // WHY: a trailing dot names the same host, and stripping it rather than loosening GIT_DOMAIN's $ keeps github.com.evil.org out.
-  const hostname = written.replace(/\.$/, "");
+  const hostname = written.replace(/\.$/u, "");
   return (GIT_DOMAIN.test(hostname) || GIT_SUBDOMAIN.test(hostname)) && !COMMIT.test(pathname + search);
 }
 
@@ -44,8 +44,8 @@ const childOf = (token, type) => token?.children.find((child) => child.type === 
 // WHY: this folds a label as the parser's normalizeIdentifier does, or a link it resolved would find another definition here.
 const labelKey = (text) =>
   text
-    .replace(/[\t\n\r ]+/g, " ")
-    .replace(/^ | $/g, "")
+    .replace(/[\t\n\r ]+/gu, " ")
+    .replace(/^ | $/gu, "")
     .toLowerCase()
     .toUpperCase();
 

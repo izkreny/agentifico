@@ -22,7 +22,7 @@ const shipped = fs.readFileSync(config, "utf8");
 beforeAll(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), "agents-guru-vale-"));
   ini = path.join(tmp, ".vale.ini");
-  fs.writeFileSync(ini, shipped.replace(/^StylesPath = .*$/m, `StylesPath = ${styles}`));
+  fs.writeFileSync(ini, shipped.replace(/^StylesPath = .*$/mu, `StylesPath = ${styles}`));
 });
 afterAll(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
@@ -137,7 +137,7 @@ describe("per-token coverage", () => {
     // The rules come from the style directory, so a tokens-based rule added without a trip case fails here.
     const unreached = [];
     for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
-      const rule = file.replace(/\.yml$/, "");
+      const rule = file.replace(/\.yml$/u, "");
       const { tests, ...source } = YAML.parse(fs.readFileSync(path.join(styleDir, file), "utf8"));
       const entries = Array.isArray(source.tokens)
         ? source.tokens.map((token) => [token, { tokens: [token] }])
@@ -163,18 +163,18 @@ describe("word classes", () => {
     const classOf = (alts) => Object.keys(classes).find((c) => alts.every((a) => classes[c].includes(a)));
     const drifted = [];
     for (const file of fs.readdirSync(styleDir).filter((f) => f.endsWith(".yml"))) {
-      const rule = file.replace(/\.yml$/, "");
+      const rule = file.replace(/\.yml$/u, "");
       const tokens = YAML.parseDocument(fs.readFileSync(path.join(styleDir, file), "utf8")).get("tokens", true);
       if (!tokens) continue;
       for (const [i, item] of tokens.items.entries()) {
         // The first token's comment is parsed onto the sequence rather than the item.
-        const comment = ((i === 0 ? tokens.commentBefore : item.commentBefore) ?? "").replace(/\s+/g, " ");
-        for (const [, group] of item.value.matchAll(/\(\?:([^()]*)\)/g)) {
+        const comment = ((i === 0 ? tokens.commentBefore : item.commentBefore) ?? "").replace(/\s+/gu, " ");
+        for (const [, group] of item.value.matchAll(/\(\?:([^()]*)\)/gu)) {
           const alts = group.split("|").map((a) => a.trim());
-          if (alts.some((a) => !/^[a-z]+$/.test(a))) continue;
+          if (alts.some((a) => !/^[a-z]+$/u.test(a))) continue;
           const cls = classOf(alts);
           if (!cls || classes[cls].every((w) => alts.includes(w))) continue;
-          if (!new RegExp(`Narrows ${cls}: \\S`).test(comment)) drifted.push(`${rule}: ${item.value} narrows ${cls}`);
+          if (!new RegExp(`Narrows ${cls}: \\S`, "u").test(comment)) drifted.push(`${rule}: ${item.value} narrows ${cls}`);
         }
       }
     }
@@ -184,7 +184,7 @@ describe("word classes", () => {
     const { numbers } = YAML.parse(fs.readFileSync(path.join(styles, "word-classes.yml"), "utf8"));
     const { swap } = YAML.parse(fs.readFileSync(path.join(styleDir, "Digits.yml"), "utf8"));
     // A key opens on lookbehinds and closes on lookaheads, so its digit is the number standing between a closing and an opening parenthesis.
-    const swapped = Object.entries(swap).map(([key, word]) => [Number(key.match(/\)(\d+)\(/)[1]), word]);
+    const swapped = Object.entries(swap).map(([key, word]) => [Number(key.match(/\)(\d+)\(/u)[1]), word]);
     assert.deepEqual(
       swapped,
       numbers.map((word, i) => [i + 2, word]),

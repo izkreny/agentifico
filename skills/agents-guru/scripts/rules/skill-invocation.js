@@ -6,8 +6,8 @@ const FIELDS = { "disable-model-invocation": "false", "user-invocable": "true" }
 
 // The name is bounded before and after by something no skill name contains, so another skill's command that this name only ends or only opens does not count.
 export function statesPolicy(text, name) {
-  const slash = new RegExp(`/(?:[\\w.-]+:)?${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?![\\w-])`);
-  return /invo[ck]|spawn/i.test(text) || slash.test(text);
+  const slash = new RegExp(`/(?:[\\w.-]+:)?${name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}(?![\\w-])`, "u");
+  return /invo[ck]|spawn/iu.test(text) || slash.test(text);
 }
 
 export function defects(fm, name) {
@@ -22,7 +22,7 @@ export function defects(fm, name) {
       .trim();
     const value = scalar(raw);
     // `yes`, `on` and `True` are booleans in some parsers and strings in others, while a quoted value is a string in every parser.
-    if (/^["']/.test(raw)) {
+    if (/^["']/u.test(raw)) {
       bad.push(`${key} is quoted, so it is the string ${JSON.stringify(value)} rather than a boolean`);
       continue;
     }

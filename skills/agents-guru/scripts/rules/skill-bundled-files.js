@@ -37,21 +37,21 @@ const isBundled = (rel) => {
   return parts.length === 2 && BUNDLE_FOLDERS.has(parts[0]);
 };
 
-const IMPORT = /(?:^|[;:])[ \t]*(?:from[ \t]+([\w.]+)[ \t]+)?import[ \t]+(\([^)]*\)|[^;\n]*)/gm;
+const IMPORT = /(?:^|[;:])[ \t]*(?:from[ \t]+([\w.]+)[ \t]+)?import[ \t]+(\([^)]*\)|[^;\n]*)/gmu;
 
 // WHY: a statement can span lines through a bracket or a backslash and hold a comment, so a pattern over raw lines keeps missing forms of one import.
 function importedModules(text) {
   // Stryker disable next-line Regex: a dot stops at a line break, so the comment pattern ends at the line's end with or without its anchor.
-  const code = text.replace(/#.*$/gm, "").replace(/\\\r?\n/g, " ");
+  const code = text.replace(/#.*$/gmu, "").replace(/\\\r?\n/gu, " ");
   return [...code.matchAll(IMPORT)].flatMap(([, from, items]) => {
     // Stryker disable next-line MethodExpression: an empty name names no file, so filtering it out changes nothing.
     const names = items
-      .replace(/[()]/g, "")
+      .replace(/[()]/gu, "")
       .split(",")
       .map(
         (item) =>
           // Stryker disable next-line Regex: the item is trimmed first, so a single-space split leaves its first word the same.
-          item.trim().split(/\s+/)[0],
+          item.trim().split(/\s+/u)[0],
       )
       .filter(Boolean);
     return from === undefined ? names : [from, ...names.map((name) => `${from}${from.endsWith(".") ? "" : "."}${name}`)];
@@ -61,20 +61,20 @@ function importedModules(text) {
 function importsFile(rel, text) {
   const { dir, name } = path.parse(rel);
   return importedModules(text).some((module) => {
-    const parts = module.replace(/^\.+/, "").split(".");
+    const parts = module.replace(/^\.+/u, "").split(".");
     return parts.at(-1) === name && (parts.length === 1 || parts.at(-2) === dir);
   });
 }
 
 const LITERAL = "[\\w.~/-]";
 // WHY: a slash is the filesystem's root only with nothing before it, so whatever else stands there is a root this rule cannot read, and no list of spellings could name them all.
-const NOTHING_BEFORE = /(?:^|[\s([=:,])["'`]?$/;
+const NOTHING_BEFORE = /(?:^|[\s([=:,])["'`]?$/u;
 
 function writtenPaths(base, ext, text) {
   // WHY: a period after a name closes a sentence, while one followed by more of a word makes it another file.
   const pattern = `(?<!${LITERAL})(?:${LITERAL}*/)?${RegExp.escape(base)}(?!\\.?[\\w/-])`;
   return (
-    [...text.matchAll(new RegExp(pattern, "g"))]
+    [...text.matchAll(new RegExp(pattern, "gu"))]
       // WHY: without an extension the bare name is an ordinary word, so only a path says it means the file.
       .filter(([written]) => ext || written !== base)
       .map(({ 0: written, index }) => {

@@ -29,7 +29,7 @@ export default {
       // WHY: the tree is read because a raw scan for the pair also finds a span that merely ends in the character.
       if (token.type !== "codeText" || before?.type !== "data" || !before.text.endsWith("!")) return;
       const preceding = params.lines[before.endLine - 1][before.endColumn - 3];
-      if (preceding && !/\s/.test(preceding))
+      if (preceding && !/\s/u.test(preceding))
         report(token.startLine, "a ! command that does not open a line or follow whitespace stays literal text and does not run: put a space before the !");
       else if (CONTROL.test(token.text)) report(token.startLine, stopped);
     });

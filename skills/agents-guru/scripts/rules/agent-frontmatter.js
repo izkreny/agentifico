@@ -22,7 +22,7 @@ export function agentFolder(file) {
 }
 
 // WHY: a specifier can hold a comma, as in Agent(a, b), so entries are matched in the text rather than split on commas.
-const SPECIFIED = /[^\s,()]+\([^)]*\)?/g;
+const SPECIFIED = /[^\s,()]+\([^)]*\)?/gu;
 
 const specifierDefects = (value) =>
   [value]
@@ -44,9 +44,9 @@ export function defects(fm, inPlugin, lines = []) {
     // markdownlint hands a rule no frontmatter both when anything precedes the opening delimiter and when nothing closes it, so the line the delimiter sits on is what says which happened.
     const at = lines.findIndex((l) => l.trim() !== "");
     // Stryker disable next-line ConditionalExpression: when the first line that is not blank is not line 0, line 0 is blank and is no delimiter.
-    if (at === 0 && /^---\s*$/.test(lines[0])) return ["the opening --- is never closed, so the file has no frontmatter and no name"];
+    if (at === 0 && /^---\s*$/u.test(lines[0])) return ["the opening --- is never closed, so the file has no frontmatter and no name"];
     // Stryker disable next-line ConditionalExpression,EqualityOperator: line 0 holding a delimiter has already returned, and with no line that is not blank there is no line at to test.
-    if (at > 0 && /^---\s*$/.test(lines[at]))
+    if (at > 0 && /^---\s*$/u.test(lines[at]))
       return ["the opening --- is not the first line: Claude Code reads no frontmatter and skips the file as documentation"];
     return ["no name: Claude Code skips the file as documentation kept beside the agents"];
   }
@@ -92,7 +92,7 @@ function declaredName(fm) {
 
 // WHY: markdownlint drops a BOM before the judged file reaches this rule, so a sibling has to lose one too.
 function nameInText(text) {
-  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/);
+  const lines = text.replace(/^\uFEFF/u, "").split(/\r?\n/u);
   if (lines[0].trimEnd() !== "---") return null;
   const close = lines.findIndex((line, i) => i > 0 && line.trimEnd() === "---");
   // Stryker disable next-line EqualityOperator: the search starts past line 0, so close is never 0.

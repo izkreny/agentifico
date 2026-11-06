@@ -941,7 +941,7 @@ describe("agent-frontmatter", () => {
   // Exercised directly because a plugin is told apart by a folder on disk, which a string fixture has none of.
   const lines = (fm) => fm.split("\n");
   it("a plugin's agent loses the whole tool to a specifier too", () => {
-    assert.match(agentDefects(lines("description: Reviews code.\ndisallowedTools: Bash(git push *)"), true).join("\n"), /removes the whole tool/);
+    assert.match(agentDefects(lines("description: Reviews code.\ndisallowedTools: Bash(git push *)"), true).join("\n"), /removes the whole tool/u);
   });
   it("each entry with a specifier is its own finding", () => {
     const found = agentDefects(lines("name: r\ndisallowedTools: Bash(git push *), Read(./secrets/**)"), false);
@@ -951,7 +951,7 @@ describe("agent-frontmatter", () => {
     assert.deepEqual(agentDefects(lines("description: Reviews code."), true), []);
   });
   it("an agent whose name is null has no name", () => {
-    assert.match(agentDefects(["name:", "description: Reviews code."], false).join("\n"), /^no name/m);
+    assert.match(agentDefects(["name:", "description: Reviews code."], false).join("\n"), /^no name/mu);
   });
   it("a plugin's agent whose frontmatter does not parse is not measured", () => {
     assert.deepEqual(pluginNameWarnings([`name: ${"x".repeat(300)}`, "other: [1, 2"]), []);
@@ -975,7 +975,7 @@ describe("agent-frontmatter", () => {
     it(`no frontmatter: ${label}`, () => {
       const found = agentDefects(null, false, given);
       assert.equal(found.length, 1, JSON.stringify(found));
-      assert.match(found[0], new RegExp(want));
+      assert.match(found[0], new RegExp(want, "u"));
     });
   }
   for (const key of ["permissionMode", "hooks", "mcpServers", "initialPrompt"]) {
@@ -1085,7 +1085,7 @@ describe("plugin-hooks", () => {
     it("async on an http hook leaves its onFailure working", () => {
       const details = hooksDefects(hooksFile("PreToolUse", { hooks: [http({ onFailure: "block", async: true })] })).map((d) => d.detail);
       assert.equal(details.length, 1, JSON.stringify(details));
-      assert.match(details[0], /^async on a http hook/);
+      assert.match(details[0], /^async on a http hook/u);
     });
     it("names the line onFailure sits on", () => {
       const source = hooksFile("Stop", { hooks: [command({ onFailure: "block" })] });
@@ -1253,7 +1253,7 @@ describe("plugin-manifest", () => {
       it(`the version ${JSON.stringify(version)}`, () => {
         const found = depending({ name: "x", version });
         assert.equal(found.length, 1, JSON.stringify(found));
-        assert.match(found[0].detail, /is not a node-semver range/);
+        assert.match(found[0].detail, /is not a node-semver range/u);
       });
     }
     for (const version of ["~2.1.0", "^2.0", ">=1.4", "=2.1.0", "^2.0.0-0", "*"]) {
@@ -1274,8 +1274,8 @@ describe("plugin-manifest", () => {
     const monitor = (command) => ({ name: "m", command, description: "d" });
     const held = `tail \${user_config.path}`;
     it("inline under experimental", () =>
-      assert.match(defects({ experimental: { monitors: [monitor(held)] } })[0].detail, /monitor command names \$\{user_config/));
-    it("inline under the top-level key", () => assert.match(defects({ monitors: [monitor(held)] })[0].detail, /monitor command names \$\{user_config/));
+      assert.match(defects({ experimental: { monitors: [monitor(held)] } })[0].detail, /monitor command names \$\{user_config/u));
+    it("inline under the top-level key", () => assert.match(defects({ monitors: [monitor(held)] })[0].detail, /monitor command names \$\{user_config/u));
     it("names the line the command sits on", () => {
       const source = JSON.stringify({ name: "p", experimental: { monitors: [monitor(held)] } }, null, 2);
       assert.deepEqual(

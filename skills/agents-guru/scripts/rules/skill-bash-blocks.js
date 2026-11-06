@@ -4,16 +4,16 @@ const BASH_TAGS = new Set(["bash", "sh", ""]);
 
 // Matched as written rather than parsed, since catching the common Fish forms needs no Fish grammar.
 const FISH = [
-  ["set <name> (", /(?:^|[\s;&|])set\s+[A-Za-z_]\w*\s+\(/],
-  ["; or", /;\s*or\b/],
-  ["; and", /;\s*and\b/],
+  ["set <name> (", /(?:^|[\s;&|])set\s+[A-Za-z_]\w*\s+\(/u],
+  ["; or", /;\s*or\b/u],
+  ["; and", /;\s*and\b/u],
 ];
 
 // A heredoc body and a quoted string are data the command carries, so neither is matched as syntax.
-const HEREDOC = /(?<!<)<<(?!<)(-?)\s*(?:'([^']+)'|"([^"]+)"|\\([\w-]+)|([\w-]+))/g;
-const QUOTED = /'[^']*'|"(?:[^"\\]|\\.)*"/g;
+const HEREDOC = /(?<!<)<<(?!<)(-?)\s*(?:'([^']+)'|"([^"]+)"|\\([\w-]+)|([\w-]+))/gu;
+const QUOTED = /'[^']*'|"(?:[^"\\]|\\.)*"/gu;
 // A `<<` inside quotes or inside `(( ))` arithmetic is text or a shift, never a heredoc.
-const ARITHMETIC = /\(\(.*?\)\)/g;
+const ARITHMETIC = /\(\(.*?\)\)/gu;
 
 function heredocTerminator(text) {
   const spans = [...text.matchAll(QUOTED), ...text.matchAll(ARITHMETIC)].map((m) => [m.index, m.index + m[0].length]);
@@ -37,7 +37,7 @@ function walk(tokens, fn) {
 export const infoOf = (fenced) => {
   const info = fenced.children[0].children.find((c) => c.type === "codeFencedFenceInfo");
   // Stryker disable next-line MethodExpression,Regex: micromark's info token is the first word alone, so it carries no space to trim or split on.
-  return info ? info.text.trim().split(/\s+/)[0] : "";
+  return info ? info.text.trim().split(/\s+/u)[0] : "";
 };
 
 export default {
@@ -58,11 +58,11 @@ export default {
       for (const line of token.children) {
         if (line.type !== "codeFlowValue") continue;
         if (terminator) {
-          if ((terminator.tabs ? line.text.replace(/^\t+/, "") : line.text) === terminator.word) terminator = null;
+          if ((terminator.tabs ? line.text.replace(/^\t+/u, "") : line.text) === terminator.word) terminator = null;
           continue;
         }
         // An agent never executes a comment, so prose in one is free to say "; and".
-        if (/^\s*#/.test(line.text)) continue;
+        if (/^\s*#/u.test(line.text)) continue;
         const code = line.text.replace(QUOTED, "''");
         terminator = heredocTerminator(line.text);
         for (const [phrase, pattern] of FISH) {

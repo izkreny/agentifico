@@ -48,7 +48,7 @@ function run(targets, env = process.env, cwd) {
   const spawn = underStryker([check, ...[targets].flat()], env);
   const r = spawnSync(process.execPath, spawn.args, { encoding: "utf8", env: spawn.env, cwd });
   spawn.absorb();
-  const linted = /^(\d+) files checked/m.exec(r.stdout);
+  const linted = /^(\d+) files checked/mu.exec(r.stdout);
   return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
 }
 
@@ -371,80 +371,80 @@ describe("check.js", () => {
   it("a single bad skill fails with the rule named", () => {
     const r = run(path.join(tmp, "bad"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /skill-description/);
-    assert.match(r.out, /TRUNCATED/);
+    assert.match(r.out, /skill-description/u);
+    assert.match(r.out, /TRUNCATED/u);
   });
   it("a long SKILL.md gets the split warning, counted apart and not failing", () => {
     const r = run(path.join(tmp, "long"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /SKILL\.md:1 Agentifico\.SkillSplit \(warning\)/);
-    assert.match(r.out, /^prose rules: 0 issues, 1 warnings$/m);
-    assert.match(r.out, /2 files checked, 0 issues, 1 warnings/);
+    assert.match(r.out, /SKILL\.md:1 Agentifico\.SkillSplit \(warning\)/u);
+    assert.match(r.out, /^prose rules: 0 issues, 1 warnings$/mu);
+    assert.match(r.out, /2 files checked, 0 issues, 1 warnings/u);
   });
   it("a hard-wrapped paragraph is a warning, counted apart and not failing", () => {
     const r = run(path.join(tmp, "wrapped"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-hard-wrap \(warning\) .*paragraph spans 2 lines/m);
-    assert.match(r.out, /^prose shape: 0 issues, 1 warnings$/m);
-    assert.match(r.out, /2 files checked, 0 issues, 1 warnings/);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-hard-wrap \(warning\) .*paragraph spans 2 lines/mu);
+    assert.match(r.out, /^prose shape: 0 issues, 1 warnings$/mu);
+    assert.match(r.out, /2 files checked, 0 issues, 1 warnings/u);
   });
   it("without vale the structural findings are still printed, and the run fails", () => {
     // PATH holds one empty directory so vale is not found whatever bin directory this machine keeps it in, while the check is spawned by absolute path.
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "empty") });
     assert.equal(r.code, 1);
-    assert.match(r.out, /skill-description/);
-    assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
-    assert.match(r.out, /vale is not on PATH/);
+    assert.match(r.out, /skill-description/u);
+    assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/u);
+    assert.match(r.out, /vale is not on PATH/u);
     const code = run(path.join(tmp, "code"), { ...process.env, PATH: path.join(tmp, "empty") });
-    assert.match(code.out, /2 files checked, \d+ issues, prose rules not run/);
+    assert.match(code.out, /2 files checked, \d+ issues, prose rules not run/u);
   });
   it("a vale that refuses its configuration fails the run, and says so", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "refuses-bin") });
     assert.equal(r.code, 1);
-    assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
-    assert.match(r.out, /vale could not run/);
-    assert.match(r.out, /cannot parse config/);
+    assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/u);
+    assert.match(r.out, /vale could not run/u);
+    assert.match(r.out, /cannot parse config/u);
     assert.ok(r.out.endsWith("vale could not run: E100 [core] cannot parse config: bad line\n"), r.out);
   });
   it("a vale older than 3.25 fails the run, and says so", () => {
     for (const version of ["3.23.0", "3.24.0"]) {
       const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, `stub-bin-${version}`) });
       assert.equal(r.code, 1, version);
-      assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
-      assert.match(r.out, new RegExp(`vale ${version.replaceAll(".", "\\.")} is older than 3\\.25`));
+      assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/u);
+      assert.match(r.out, new RegExp(`vale ${version.replaceAll(".", "\\.")} is older than 3\\.25`, "u"));
     }
   });
   it("a vale at 3.25 is not refused for its version", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "stub-bin-3.25.0") });
-    assert.match(r.out, /2 files checked, \d+ issues/);
-    assert.doesNotMatch(r.out, /prose rules not run/);
+    assert.match(r.out, /2 files checked, \d+ issues/u);
+    assert.doesNotMatch(r.out, /prose rules not run/u);
   });
   it("a vale whose version cannot be read fails the run, and says so", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "unversioned-bin") });
     assert.equal(r.code, 1);
-    assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
-    assert.match(r.out, /could not read Vale's version from "vale version master"/);
+    assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/u);
+    assert.match(r.out, /could not read Vale's version from "vale version master"/u);
   });
   it("a target with nothing under it fails rather than passing silently", () => {
     const r = run(path.join(tmp, "empty"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /nothing was checked/);
+    assert.match(r.out, /nothing was checked/u);
   });
   it("a non-markdown file is not prose the rules reach", () => {
     const r = run(path.join(tmp, "notes"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /nothing was checked/);
+    assert.match(r.out, /nothing was checked/u);
   });
   it("a package root: the skills under it, the files beside them, and not a dot-directory", () => {
     const r = run(path.join(tmp, "pkg"));
     assert.equal(r.linted, 8, r.out);
-    assert.doesNotMatch(r.out, /hidden/);
+    assert.doesNotMatch(r.out, /hidden/u);
   });
   it("a SKILL.md inside another skill is a layout finding, naming the enclosing skill", () => {
     const r = run(path.join(tmp, "pkg"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /references\/SKILL\.md.*skill-layout.*inside the skill at .*alpha/);
-    assert.doesNotMatch(r.out, /skills\/alpha\/SKILL\.md.*skill-layout/);
+    assert.match(r.out, /references\/SKILL\.md.*skill-layout.*inside the skill at .*alpha/u);
+    assert.doesNotMatch(r.out, /skills\/alpha\/SKILL\.md.*skill-layout/u);
   });
   it("the layout search stops at the target", () => {
     const r = run(path.join(tmp, "pkg", "skills", "alpha", "references"));
@@ -454,20 +454,20 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "many"));
     assert.equal(r.code, 1);
     assert.equal(r.linted, 4);
-    assert.match(r.out, /one\/skills\/review\/SKILL\.md:\d+ skill-description/);
-    assert.match(r.out, /two\/skills\/review\/SKILL\.md:\d+ skill-description/);
+    assert.match(r.out, /one\/skills\/review\/SKILL\.md:\d+ skill-description/u);
+    assert.match(r.out, /two\/skills\/review\/SKILL\.md:\d+ skill-description/u);
   });
   it("configuration under the target changes nothing", () => {
     const r = run(path.join(tmp, "configured"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /TRUNCATED/);
-    assert.match(r.out, /MD009/);
+    assert.match(r.out, /TRUNCATED/u);
+    assert.match(r.out, /MD009/u);
   });
   it("an inline markdownlint comment under the target changes nothing", () => {
     for (const dir of ["inline-disabled", "inline-disabled-rule", "inline-configured"]) {
       const r = run(path.join(tmp, dir));
       assert.equal(r.code, 1, `${dir}: ${r.out}`);
-      assert.match(r.out, /skill-vale-directive/, dir);
+      assert.match(r.out, /skill-vale-directive/u, dir);
     }
   });
   it("a package with its own cli2 configuration under the target is linted, never imported", () => {
@@ -488,15 +488,15 @@ describe("check.js", () => {
   it("each class of finding prints under its own heading", () => {
     const r = run(path.join(tmp, "classes"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /^skill rules: 2$/m);
-    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-description .*TRUNCATED/m);
-    assert.match(r.out, /^prose shape: 2$/m);
-    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-continuations .*cap is 1/m);
-    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bolded-runs .*cap is 5/m);
-    assert.match(r.out, /^general lint: 1$/m);
-    assert.match(r.out, /^ {2}SKILL\.md:\d+ MD009/m);
-    assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/m);
-    assert.match(r.out, /^ {2}SKILL\.md:\d+ Agentifico\.Position \(error\)/m);
+    assert.match(r.out, /^skill rules: 2$/mu);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-description .*TRUNCATED/mu);
+    assert.match(r.out, /^prose shape: 2$/mu);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-continuations .*cap is 1/mu);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bolded-runs .*cap is 5/mu);
+    assert.match(r.out, /^general lint: 1$/mu);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ MD009/mu);
+    assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/mu);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ Agentifico\.Position \(error\)/mu);
   });
   it("the class this skill exists to catch prints first, and the prose shape apart from it", () => {
     const r = run(path.join(tmp, "classes"));
@@ -512,60 +512,60 @@ describe("check.js", () => {
   it("a clean run states each class rather than leaving it silent", () => {
     const r = run(path.join(tmp, "good"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^skill rules: none$/m);
-    assert.match(r.out, /^prose shape: none$/m);
-    assert.match(r.out, /^general lint: none$/m);
-    assert.match(r.out, /^yaml files: none$/m);
-    assert.match(r.out, /^prose rules: none$/m);
+    assert.match(r.out, /^skill rules: none$/mu);
+    assert.match(r.out, /^prose shape: none$/mu);
+    assert.match(r.out, /^general lint: none$/mu);
+    assert.match(r.out, /^yaml files: none$/mu);
+    assert.match(r.out, /^prose rules: none$/mu);
   });
   it("without vale the prose heading says so rather than going missing", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "empty") });
     assert.equal(r.code, 1);
-    assert.match(r.out, /^prose rules: not run\n\d+ files checked, /m);
+    assert.match(r.out, /^prose rules: not run\n\d+ files checked, /mu);
   });
   it("a single skill is named, as the target itself", () => {
     const r = run(path.join(tmp, "good"));
-    assert.match(r.out, /^1 skill\(s\) found under .*good$/m);
-    assert.match(r.out, /^ {2}\.$/m);
+    assert.match(r.out, /^1 skill\(s\) found under .*good$/mu);
+    assert.match(r.out, /^ {2}\.$/mu);
   });
   it("a code file under the target reaches the prose rules, and one under node_modules does not", () => {
     const r = run(path.join(tmp, "code"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /^ {2}scripts\/run\.js:1 Agentifico\.CommentSentences \(error\)/m);
-    assert.doesNotMatch(r.out, /node_modules/);
+    assert.match(r.out, /^ {2}scripts\/run\.js:1 Agentifico\.CommentSentences \(error\)/mu);
+    assert.doesNotMatch(r.out, /node_modules/u);
     assert.equal(r.linted, 3);
   });
   it("a YAML file that does not parse fails, naming the file and the line", () => {
     const r = run(path.join(tmp, "yaml-broken"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^yaml files: 1$/m);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-parse /m);
+    assert.match(r.out, /^yaml files: 1$/mu);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-parse /mu);
   });
   it("a stream of directives with no document fails as a file that does not parse", () => {
     const r = run(path.join(tmp, "yaml-directive"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-parse /m);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-parse /mu);
   });
   it("a duplicate key fails, naming the file and the line", () => {
     const r = run(path.join(tmp, "yaml-duplicate"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key Map keys must be unique at line 2, column 1:$/m);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key Map keys must be unique at line 2, column 1:$/mu);
   });
   it("a comment line continuing a sentence is a warning, naming the line that continues it and not failing", () => {
     const r = run(path.join(tmp, "yaml-wrapped"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /m);
-    assert.match(r.out, /^yaml files: 0 issues, 1 warnings$/m);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /mu);
+    assert.match(r.out, /^yaml files: 0 issues, 1 warnings$/mu);
   });
   it("a sentence ending inside a comment line does not end the line", () => {
     const r = run(path.join(tmp, "yaml-mid-stop"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /m);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-comment-wrap \(warning\) /mu);
   });
   it("an indented comment block is read as whole lines", () => {
     const r = run(path.join(tmp, "yaml-indented"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:3 yaml-comment-wrap \(warning\) /m);
+    assert.match(r.out, /^ {2}rule\.yml:3 yaml-comment-wrap \(warning\) /mu);
   });
   for (const [dir, why] of [
     ["yaml-blank-hash", "a # line holding only spaces separates paragraphs"],
@@ -575,55 +575,55 @@ describe("check.js", () => {
     it(why, () => {
       const r = run(path.join(tmp, dir));
       assert.equal(r.code, 0, r.out);
-      assert.match(r.out, /^yaml files: none$/m);
+      assert.match(r.out, /^yaml files: none$/mu);
     });
   }
   it("separate one-line comments in a row pass, and a block scalar's text is not a comment", () => {
     const r = run(path.join(tmp, "yaml-separate"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^yaml files: none$/m);
+    assert.match(r.out, /^yaml files: none$/mu);
     assert.equal(r.linted, 4);
   });
   it("a package root names every skill under it, by its own path", () => {
     const r = run(path.join(tmp, "pkg"));
-    assert.match(r.out, /^3 skill\(s\) found under /m);
-    assert.match(r.out, /^ {2}skills\/alpha$/m);
-    assert.match(r.out, /^ {2}skills\/alpha\/references$/m);
-    assert.match(r.out, /^ {2}skills\/beta$/m);
+    assert.match(r.out, /^3 skill\(s\) found under /mu);
+    assert.match(r.out, /^ {2}skills\/alpha$/mu);
+    assert.match(r.out, /^ {2}skills\/alpha\/references$/mu);
+    assert.match(r.out, /^ {2}skills\/beta$/mu);
   });
   it("markdown under a target with no skill is read and reported as such", () => {
     const r = run(path.join(tmp, "prose-only"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /^no skill found under .*prose-only$/m);
-    assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/m);
-    assert.match(r.out, /1 files checked, 1 issues, 0 warnings/);
+    assert.match(r.out, /^no skill found under .*prose-only$/mu);
+    assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/mu);
+    assert.match(r.out, /1 files checked, 1 issues, 0 warnings/u);
   });
   it("a folder named like a markdown file is walked into, and its own file is still read", () => {
     const r = run(path.join(tmp, "md-folder"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}notes\.md\/inner\.md:3 MD047\//m);
+    assert.match(r.out, /^ {2}notes\.md\/inner\.md:3 MD047\//mu);
     assert.equal(r.linted, 3, r.out);
   });
   it("a dangling link is named as an issue, and every other file is still read", () => {
     const r = run(path.join(tmp, "dangling-md"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link cannot be resolved \(ENOENT\), so nothing was read from it$/m);
-    assert.match(r.out, /^2 files checked, 1 issues, /m);
+    assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link cannot be resolved \(ENOENT\), so nothing was read from it$/mu);
+    assert.match(r.out, /^2 files checked, 1 issues, /mu);
   });
   it("a target whose only markdown is a dangling link names it rather than refusing", () => {
     const r = run(path.join(tmp, "dangling-only"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link /m);
-    assert.doesNotMatch(r.out, /no markdown file found/);
+    assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link /mu);
+    assert.doesNotMatch(r.out, /no markdown file found/u);
   });
   it("a link to itself is named as a dangling link, and every other file is still read", () => {
     const r = run(path.join(tmp, "looped-md"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^dangling links: 1\n {2}loop\.md dangling-link cannot be resolved \(ELOOP\), so nothing was read from it$/m);
-    assert.match(r.out, /^2 files checked, 1 issues, /m);
+    assert.match(r.out, /^dangling links: 1\n {2}loop\.md dangling-link cannot be resolved \(ELOOP\), so nothing was read from it$/mu);
+    assert.match(r.out, /^2 files checked, 1 issues, /mu);
   });
   it("dangling links print in path order", () => {
-    assert.match(run(path.join(tmp, "dangling-order")).out, /^dangling links: 2\n {2}a\.md dangling-link .*\n {2}a\.md \(1\)\.md dangling-link /m);
+    assert.match(run(path.join(tmp, "dangling-order")).out, /^dangling links: 2\n {2}a\.md dangling-link .*\n {2}a\.md \(1\)\.md dangling-link /mu);
   });
   it("a plain file the walk cannot stat is never named as a dangling link", () => {
     const dir = path.join(tmp, "locked");
@@ -635,20 +635,20 @@ describe("check.js", () => {
     try {
       const r = run(dir);
       assert.notEqual(r.code, 0, r.out);
-      assert.doesNotMatch(r.out, /dangling-link/);
+      assert.doesNotMatch(r.out, /dangling-link/u);
     } finally {
       fs.chmodSync(path.join(dir, "sub"), 0o755);
     }
   });
   it("a dangling link two targets reach is named once", () => {
-    assert.match(run([path.join(tmp, "dangling-md"), path.join(tmp, "dangling-md")]).out, /^dangling links: 1$/m);
+    assert.match(run([path.join(tmp, "dangling-md"), path.join(tmp, "dangling-md")]).out, /^dangling links: 1$/mu);
   });
   it("a dangling link counts as an issue when Vale did not run", () => {
     const r = run(path.join(tmp, "dangling-md"), { ...process.env, PATH: path.join(tmp, "empty") });
-    assert.match(r.out, /^2 files checked, 1 issues, prose rules not run$/m);
+    assert.match(r.out, /^2 files checked, 1 issues, prose rules not run$/mu);
   });
   it("a run with no dangling link says so", () => {
-    assert.match(run(path.join(tmp, "good")).out, /^dangling links: none$/m);
+    assert.match(run(path.join(tmp, "good")).out, /^dangling links: none$/mu);
   });
   it("a relative target resolves against the working directory", () => {
     const r = run("good", process.env, tmp);
@@ -658,84 +658,84 @@ describe("check.js", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "bad")]);
     assert.equal(r.code, 1, r.out);
     assert.equal(r.linted, 4, r.out);
-    assert.match(r.out, /^ {2}bad\/SKILL\.md:\d+ skill-description/m);
-    assert.match(r.out, /^2 skill\(s\) found under /m);
-    assert.match(r.out, /^ {2}good$/m);
+    assert.match(r.out, /^ {2}bad\/SKILL\.md:\d+ skill-description/mu);
+    assert.match(r.out, /^2 skill\(s\) found under /mu);
+    assert.match(r.out, /^ {2}good$/mu);
   });
   it("one folder named twice prints from that folder", () => {
-    assert.match(run([path.join(tmp, "good"), path.join(tmp, "good")]).out, /^ {2}\.$/m);
+    assert.match(run([path.join(tmp, "good"), path.join(tmp, "good")]).out, /^ {2}\.$/mu);
   });
   it("two sibling targets, one name extending the other, print from their parent", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "good-too")]);
-    assert.match(r.out, /^ {2}good$/m);
-    assert.match(r.out, /^ {2}good-too$/m);
+    assert.match(r.out, /^ {2}good$/mu);
+    assert.match(r.out, /^ {2}good-too$/mu);
   });
   it("the summary counts markdown, YAML and plugin files, with Vale and without", () => {
     const target = path.join(tmp, "plugins", "counted");
-    assert.match(run(target).out, /^3 files checked, /m);
-    assert.match(run(target, { ...process.env, PATH: path.join(tmp, "empty") }).out, /^3 files checked, \d+ issues, prose rules not run$/m);
+    assert.match(run(target).out, /^3 files checked, /mu);
+    assert.match(run(target, { ...process.env, PATH: path.join(tmp, "empty") }).out, /^3 files checked, \d+ issues, prose rules not run$/mu);
   });
   it("a wrong target among right ones fails the run, naming it", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "empty")]);
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /no markdown file found under .*empty: nothing was checked/);
+    assert.match(r.out, /no markdown file found under .*empty: nothing was checked/u);
   });
   it("a single file is checked, and printed by its own name", () => {
     const r = run(path.join(tmp, "prose-only", "notes.md"));
     assert.equal(r.code, 1, r.out);
     assert.equal(r.linted, 1, r.out);
-    assert.match(r.out, /^ {2}notes\.md:\d+ Agentifico\.Position \(error\)/m);
+    assert.match(r.out, /^ {2}notes\.md:\d+ Agentifico\.Position \(error\)/mu);
   });
   it("a file named inside a dot-folder is read, where a walk skips it", () => {
     const r = run(path.join(tmp, "dotted", ".hidden", "w.md"));
     assert.equal(r.code, 1, r.out);
     assert.equal(r.linted, 1, r.out);
-    assert.match(r.out, /^ {2}w\.md:\d+ skill-continuations/m);
+    assert.match(r.out, /^ {2}w\.md:\d+ skill-continuations/mu);
   });
   it("a file not named SKILL.md gets no skill-only rule", () => {
     // Run from tmp, so the skill around the file is inside the root the layout search stops at.
     const r = run(path.join("not-a-skill", "nested", "agents.md"), process.env, tmp);
     assert.equal(r.linted, 1, r.out);
-    assert.match(r.out, /^skill rules: none$/m);
+    assert.match(r.out, /^skill rules: none$/mu);
   });
   it("a plugin's agent is held to the fields a plugin agent ignores, in a subfolder too, and not to a name", () => {
     const r = run(path.join(tmp, "plugin"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}agents\/tooled\.md:\d+ agent-frontmatter .*mcpServers is ignored/m);
-    assert.match(r.out, /^ {2}agents\/review\/nameless\.md:\d+ agent-frontmatter .*initialPrompt is ignored/m);
-    assert.doesNotMatch(r.out, /no name/);
+    assert.match(r.out, /^ {2}agents\/tooled\.md:\d+ agent-frontmatter .*mcpServers is ignored/mu);
+    assert.match(r.out, /^ {2}agents\/review\/nameless\.md:\d+ agent-frontmatter .*initialPrompt is ignored/mu);
+    assert.doesNotMatch(r.out, /no name/u);
   });
   it("a plugin's agent named past 256 characters is a warning, which leaves the run passing", () => {
     const r = run(path.join(tmp, "long-name"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^ {2}agents\/long\.md:\d+ agent-plugin-name \(warning\) .*300 characters/m);
-    assert.match(r.out, /^skill rules: 0 issues, 1 warnings$/m);
+    assert.match(r.out, /^ {2}agents\/long\.md:\d+ agent-plugin-name \(warning\) .*300 characters/mu);
+    assert.match(r.out, /^skill rules: 0 issues, 1 warnings$/mu);
   });
   it("an agent named inside a .claude folder is held to a name", () => {
     const r = run(path.join(tmp, "project", ".claude", "agents", "nameless.md"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}nameless\.md:\d+ agent-frontmatter .*no name/m);
+    assert.match(r.out, /^ {2}nameless\.md:\d+ agent-frontmatter .*no name/mu);
   });
   describe("two agents declaring one name", () => {
-    const duplicate = /agent-frontmatter .*also declared by/;
+    const duplicate = /agent-frontmatter .*also declared by/u;
     it("each file of the pair names the other, across a subfolder", () => {
       const r = run(path.join(tmp, "dupes", ".claude"));
       assert.equal(r.code, 1, r.out);
-      assert.match(r.out, /^ {2}agents\/same\.md:\d+ agent-frontmatter .*name "same" is also declared by review\/deep\.md/m);
-      assert.match(r.out, /^ {2}agents\/review\/deep\.md:\d+ agent-frontmatter .*name "same" is also declared by same\.md/m);
-      assert.doesNotMatch(r.out, /agents\/alone\.md:\d+ agent-frontmatter/);
+      assert.match(r.out, /^ {2}agents\/same\.md:\d+ agent-frontmatter .*name "same" is also declared by review\/deep\.md/mu);
+      assert.match(r.out, /^ {2}agents\/review\/deep\.md:\d+ agent-frontmatter .*name "same" is also declared by same\.md/mu);
+      assert.doesNotMatch(r.out, /agents\/alone\.md:\d+ agent-frontmatter/u);
     });
     it("a file target is compared with the tree it sits in, not only with what the run reads", () => {
       const r = run(path.join(tmp, "dupes", ".claude", "agents", "same.md"));
       assert.equal(r.code, 1, r.out);
       assert.equal(r.linted, 1, r.out);
-      assert.match(r.out, /also declared by review\/deep\.md/);
+      assert.match(r.out, /also declared by review\/deep\.md/u);
     });
     it("a file with a name of its own is clean beside the pair", () => {
       assert.doesNotMatch(run(path.join(tmp, "dupes", ".claude", "agents", "alone.md")).out, duplicate);
     });
     it("every other file declaring the name is listed, in order", () => {
-      assert.match(run(path.join(tmp, "three", ".claude", "agents", "b.md")).out, /also declared by a\.md, c\.md:/);
+      assert.match(run(path.join(tmp, "three", ".claude", "agents", "b.md")).out, /also declared by a\.md, c\.md:/u);
     });
     it("agents in different trees are not duplicates", () => {
       const r = run([path.join(tmp, "nested", ".claude"), path.join(tmp, "nested", "sub", ".claude")]);
@@ -748,7 +748,7 @@ describe("check.js", () => {
       assert.doesNotMatch(run(path.join(tmp, "decoys", ".claude", "agents", "same.md")).out, duplicate);
     });
     it("a sibling with CRLF line endings declares its name", () => {
-      assert.match(run(path.join(tmp, "crlf", ".claude", "agents", "same.md")).out, /also declared by windows\.md/);
+      assert.match(run(path.join(tmp, "crlf", ".claude", "agents", "same.md")).out, /also declared by windows\.md/u);
     });
     it("a sibling the rule cannot read fails the run, naming it, and the rest are still compared", () => {
       const dir = path.join(tmp, "locked-file", ".claude", "agents");
@@ -759,8 +759,8 @@ describe("check.js", () => {
         const r = run(path.join(dir, "same.md"));
         assert.equal(r.code, 1, r.out);
         assert.equal(r.linted, 1, r.out);
-        assert.match(r.out, /also declared by other\.md:/);
-        assert.match(r.out, /could not read shut\.md \(EACCES\)/);
+        assert.match(r.out, /also declared by other\.md:/u);
+        assert.match(r.out, /could not read shut\.md \(EACCES\)/u);
       } finally {
         fs.chmodSync(path.join(dir, "shut.md"), 0o644);
       }
@@ -774,8 +774,8 @@ describe("check.js", () => {
         const r = run(path.join(dir, "same.md"));
         assert.equal(r.code, 1, r.out);
         assert.equal(r.linted, 1, r.out);
-        assert.match(r.out, /also declared by other\.md:/);
-        assert.match(r.out, /could not read shut \(EACCES\)/);
+        assert.match(r.out, /also declared by other\.md:/u);
+        assert.match(r.out, /could not read shut \(EACCES\)/u);
       } finally {
         fs.chmodSync(path.join(dir, "shut"), 0o755);
       }
@@ -787,8 +787,8 @@ describe("check.js", () => {
       fs.symlinkSync("loop.md", path.join(dir, "loop.md"));
       const r = run(path.join(dir, "same.md"));
       assert.equal(r.code, 1, r.out);
-      assert.match(r.out, /also declared by other\.md:/);
-      assert.match(r.out, /could not read loop\.md \(ELOOP\)/);
+      assert.match(r.out, /also declared by other\.md:/u);
+      assert.match(r.out, /could not read loop\.md \(ELOOP\)/u);
     });
     const agents = (name, files) => {
       const dir = path.join(tmp, "agent-names", name, ".claude", "agents");
@@ -811,7 +811,7 @@ describe("check.js", () => {
         ]);
         const r = run(path.join(dir, "a.md"));
         assert.notEqual(r.linted, null, `${id}: ${r.out}`);
-        assert.doesNotMatch(r.out, /also declared by/, id);
+        assert.doesNotMatch(r.out, /also declared by/u, id);
       }
     });
     it("a timestamp name is compared by the text written, as validate reads it", () => {
@@ -819,21 +819,21 @@ describe("check.js", () => {
         ["a.md", "---\nname: 2026-11-06\n---\n\nBody.\n"],
         ["b.md", '---\nname: "2026-11-06"\n---\n\nBody.\n'],
       ]);
-      assert.match(run(path.join(dir, "a.md")).out, /name "2026-11-06" is also declared by b\.md:/);
+      assert.match(run(path.join(dir, "a.md")).out, /name "2026-11-06" is also declared by b\.md:/u);
     });
     it("a sibling's byte order mark is dropped only where it opens the file", () => {
       const dir = agents("bom-inside", [
         ["a.md", "---\nname: ab\n---\n\nBody.\n"],
         ["b.md", "---\nname: a\uFEFFb\n---\n\nBody.\n"],
       ]);
-      assert.doesNotMatch(run(path.join(dir, "a.md")).out, /also declared by/);
+      assert.doesNotMatch(run(path.join(dir, "a.md")).out, /also declared by/u);
     });
     it("a sibling's delimiters may carry trailing spaces", () => {
       const dir = agents("spaced-delimiters", [
         ["a.md", "---\nname: same\n---\n\nBody.\n"],
         ["b.md", "---  \nname: same\n---  \n\nBody.\n"],
       ]);
-      assert.match(run(path.join(dir, "a.md")).out, /also declared by b\.md:/);
+      assert.match(run(path.join(dir, "a.md")).out, /also declared by b\.md:/u);
     });
     // WHY: a folder is listed in sorted order, so only the walk into a subfolder can read a later path first.
     it("names every sibling sharing the name in sorted order, across folders", () => {
@@ -842,7 +842,7 @@ describe("check.js", () => {
         ["c/x.md", "---\nname: same\n---\n\nBody.\n"],
         ["c-d.md", "---\nname: same\n---\n\nBody.\n"],
       ]);
-      assert.match(run(path.join(dir, "a.md")).out, /also declared by c-d\.md, c\/x\.md:/);
+      assert.match(run(path.join(dir, "a.md")).out, /also declared by c-d\.md, c\/x\.md:/u);
     });
     it("names what it cannot read in sorted order, a file it read after a folder it walked", () => {
       const dir = agents("unread-order", [
@@ -854,7 +854,7 @@ describe("check.js", () => {
       fs.chmodSync(path.join(dir, "z"), 0o000);
       try {
         const out = run(path.join(dir, "same.md")).out;
-        assert.match(out, /could not read a\.md \(EACCES\)[\s\S]*could not read z \(EACCES\)/, out);
+        assert.match(out, /could not read a\.md \(EACCES\)[\s\S]*could not read z \(EACCES\)/u, out);
       } finally {
         fs.chmodSync(path.join(dir, "a.md"), 0o644);
         fs.chmodSync(path.join(dir, "z"), 0o755);
@@ -863,8 +863,8 @@ describe("check.js", () => {
     it("a standalone agent's long name is the standalone rule's finding alone", () => {
       const dir = agents("long-standalone", [["a.md", `---\nname: ${"a".repeat(257)}\ndescription: x\n---\n\nBody.\n`]]);
       const out = run(path.join(dir, "a.md")).out;
-      assert.match(out, /agent-frontmatter .*257 characters/, out);
-      assert.doesNotMatch(out, /agent-plugin-name/);
+      assert.match(out, /agent-frontmatter .*257 characters/u, out);
+      assert.doesNotMatch(out, /agent-plugin-name/u);
     });
     it("a link to a file declares what the file declares, and a dangling one declares nothing", () => {
       const dir = path.join(tmp, "linked", ".claude", "agents");
@@ -874,8 +874,8 @@ describe("check.js", () => {
       fs.symlinkSync(path.join(tmp, "linked", "elsewhere.md"), path.join(dir, "link.md"));
       fs.symlinkSync("gone.md", path.join(dir, "dangling.md"));
       const r = run(path.join(dir, "same.md"));
-      assert.match(r.out, /also declared by link\.md:/);
-      assert.doesNotMatch(r.out, /could not read|dangling\.md/);
+      assert.match(r.out, /also declared by link\.md:/u);
+      assert.doesNotMatch(r.out, /could not read|dangling\.md/u);
     });
     it("a link the rule would never compare fails nothing", () => {
       const dir = path.join(tmp, "looped-text", ".claude", "agents");
@@ -884,7 +884,7 @@ describe("check.js", () => {
       fs.symlinkSync("notes.txt", path.join(dir, "notes.txt"));
       const r = run(path.join(dir, "same.md"));
       assert.equal(r.code, 0, r.out);
-      assert.doesNotMatch(r.out, /could not read/);
+      assert.doesNotMatch(r.out, /could not read/u);
     });
     it("a sibling whose frontmatter the parser throws on declares nothing, and was read", () => {
       const dir = path.join(tmp, "merge-key", ".claude", "agents");
@@ -893,7 +893,7 @@ describe("check.js", () => {
       fs.writeFileSync(path.join(dir, "bad.md"), "---\nname: same\n<<: 1\n---\n\nBody.\n");
       const r = run(path.join(dir, "same.md"));
       assert.equal(r.code, 0, r.out);
-      assert.doesNotMatch(r.out, /could not read|also declared by/);
+      assert.doesNotMatch(r.out, /could not read|also declared by/u);
     });
     it("a sibling whose name has no string form declares nothing, and was read", () => {
       const dir = path.join(tmp, "stringless", ".claude", "agents");
@@ -902,7 +902,7 @@ describe("check.js", () => {
       fs.writeFileSync(path.join(dir, "obj.md"), "---\nname: {toString: 1}\n---\n\nBody.\n");
       const r = run(path.join(dir, "same.md"));
       assert.equal(r.code, 0, r.out);
-      assert.doesNotMatch(r.out, /could not read|also declared by/);
+      assert.doesNotMatch(r.out, /could not read|also declared by/u);
     });
     it("the agents folder itself, when it cannot be listed, is named", () => {
       const dir = path.join(tmp, "unlistable", ".claude", "agents");
@@ -912,16 +912,16 @@ describe("check.js", () => {
       try {
         const r = run(path.join(dir, "same.md"));
         assert.equal(r.code, 1, r.out);
-        assert.match(r.out, /could not read \. \(EACCES\)/);
+        assert.match(r.out, /could not read \. \(EACCES\)/u);
       } finally {
         fs.chmodSync(dir, 0o755);
       }
     });
     it("a sibling opening with a BOM declares its name", () => {
-      assert.match(run(path.join(tmp, "bom", ".claude", "agents", "same.md")).out, /also declared by marked\.md:/);
+      assert.match(run(path.join(tmp, "bom", ".claude", "agents", "same.md")).out, /also declared by marked\.md:/u);
     });
     it("a judged file opening with a BOM is compared like any other", () => {
-      assert.match(run(path.join(tmp, "bom", ".claude", "agents", "marked.md")).out, /also declared by same\.md:/);
+      assert.match(run(path.join(tmp, "bom", ".claude", "agents", "marked.md")).out, /also declared by same\.md:/u);
     });
   });
   // WHY: a throw inside a rule ends the whole run, and Vale refusing one file's frontmatter ends the prose rules, so each case proves the other file's findings of both kinds still print.
@@ -930,14 +930,14 @@ describe("check.js", () => {
     const finished = (r) => {
       assert.equal(r.code, 1, r.out);
       assert.notEqual(r.linted, null, r.out);
-      assert.doesNotMatch(r.out, /\n\s+at \S/, r.out);
-      assert.doesNotMatch(r.out, /prose rules: not run/, r.out);
+      assert.doesNotMatch(r.out, /\n\s+at \S/u, r.out);
+      assert.doesNotMatch(r.out, /prose rules: not run/u, r.out);
     };
     // WHY: Vale reads a name with no string form without complaint, so only the other two cost a prose finding of their own.
     for (const [id, fm, want, unread] of [
-      ["merge-key", "name: a\n<<: 1", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Merge sources must be maps or map aliases\)/m, true],
-      ["unresolved-alias", "name: a\nx: *nope", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Unresolved alias/m, true],
-      ["stringless-name", "name: {toString: 1}", /^ {2}a\.md:\d+ agent-frontmatter .*name must be a string, not a mapping or a list/m, false],
+      ["merge-key", "name: a\n<<: 1", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Merge sources must be maps or map aliases\)/mu, true],
+      ["unresolved-alias", "name: a\nx: *nope", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Unresolved alias/mu, true],
+      ["stringless-name", "name: {toString: 1}", /^ {2}a\.md:\d+ agent-frontmatter .*name must be a string, not a mapping or a list/mu, false],
     ])
       it(`an agent: ${id}`, () => {
         const dir = path.join(tmp, `unbuilt-${id}`, ".claude", "agents");
@@ -947,9 +947,9 @@ describe("check.js", () => {
         const r = run(dir);
         finished(r);
         assert.match(r.out, want);
-        assert.match(r.out, /^ {2}c\.md:\d+ agent-frontmatter .*contains ":"/m);
-        assert.match(r.out, /^ {2}c\.md:\d+ Agentifico\.ClosingRecap /m);
-        assert.equal(/^ {2}a\.md:1 vale-unread \(error\) /m.test(r.out), unread, r.out);
+        assert.match(r.out, /^ {2}c\.md:\d+ agent-frontmatter .*contains ":"/mu);
+        assert.match(r.out, /^ {2}c\.md:\d+ Agentifico\.ClosingRecap /mu);
+        assert.equal(/^ {2}a\.md:1 vale-unread \(error\) /mu.test(r.out), unread, r.out);
       });
     it("a skill", () => {
       const dir = path.join(tmp, "unbuilt-skill");
@@ -959,69 +959,69 @@ describe("check.js", () => {
       fs.writeFileSync(path.join(dir, "recap", "SKILL.md"), `---\n${block("recap")}\n---\n\n${RECAP}`);
       const r = run(dir);
       finished(r);
-      assert.match(r.out, /^ {2}recap\/SKILL\.md:\d+ Agentifico\.ClosingRecap /m);
-      assert.match(r.out, /^ {2}merge\/SKILL\.md:1 vale-unread \(error\) Vale could not read this file \(yaml: map merge/m);
+      assert.match(r.out, /^ {2}recap\/SKILL\.md:\d+ Agentifico\.ClosingRecap /mu);
+      assert.match(r.out, /^ {2}merge\/SKILL\.md:1 vale-unread \(error\) Vale could not read this file \(yaml: map merge/mu);
       assert.match(
         r.out,
-        /^ {2}merge\/SKILL\.md:\d+ skill-frontmatter-parsed .*cannot be built \(Merge sources must be maps or map aliases\), so this rule checked no field in it\]/m,
+        /^ {2}merge\/SKILL\.md:\d+ skill-frontmatter-parsed .*cannot be built \(Merge sources must be maps or map aliases\), so this rule checked no field in it\]/mu,
       );
-      assert.match(r.out, /^ {2}empty\/SKILL\.md:\d+ skill-frontmatter-parsed .*empty description/m);
+      assert.match(r.out, /^ {2}empty\/SKILL\.md:\d+ skill-frontmatter-parsed .*empty description/mu);
     });
   });
   it("a plugin's hooks file and manifest are read by their fixed paths", () => {
     const r = run(path.join(tmp, "plugins", "plug"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^plugin files: 3 issues, 0 warnings$/m);
-    assert.match(r.out, /^ {2}hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/m);
-    assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) commands replaces the default commands\/, which still holds files/m);
+    assert.match(r.out, /^plugin files: 3 issues, 0 warnings$/mu);
+    assert.match(r.out, /^ {2}hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/mu);
+    assert.match(r.out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) commands replaces the default commands\/, which still holds files/mu);
     assert.match(
       r.out,
-      /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) experimental\.monitors replaces the default monitors\/monitors\.json, which Claude Code now ignores$/m,
+      /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) experimental\.monitors replaces the default monitors\/monitors\.json, which Claude Code now ignores$/mu,
     );
     // Both markdown files and both JSON files, so a JSON file read is a file checked.
     assert.equal(r.linted, 4, r.out);
   });
   it("a commands map's sources are the paths it loads", () => {
-    assert.doesNotMatch(run(path.join(tmp, "plugins", "mapped")).out, /plugin-manifest/);
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "mapped")).out, /plugin-manifest/u);
   });
   it("a replaced folder's nested files are what Claude Code ignores", () => {
-    assert.match(run(path.join(tmp, "plugins", "deep")).out, /plugin-manifest \(error\) commands replaces the default commands\//);
+    assert.match(run(path.join(tmp, "plugins", "deep")).out, /plugin-manifest \(error\) commands replaces the default commands\//u);
   });
   it("a commands path naming the default folder loads everything in it", () => {
-    assert.doesNotMatch(run(path.join(tmp, "plugins", "self")).out, /plugin-manifest/);
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "self")).out, /plugin-manifest/u);
   });
   it("a replaced folder that does not exist holds nothing Claude Code ignores", () => {
-    assert.doesNotMatch(run(path.join(tmp, "plugins", "folderless")).out, /plugin-manifest/);
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "folderless")).out, /plugin-manifest/u);
   });
   it("a dangling link in a replaced folder is no file", () => {
     const r = run(path.join(tmp, "plugins", "dangling"));
-    assert.doesNotMatch(r.out, /plugin-manifest|TypeError/);
-    assert.match(r.out, /^ {2}agents\/gone\.md dangling-link /m);
+    assert.doesNotMatch(r.out, /plugin-manifest|TypeError/u);
+    assert.match(r.out, /^ {2}agents\/gone\.md dangling-link /mu);
   });
   it("a plugin under a package target is found", () => {
-    assert.match(run(path.join(tmp, "plugins")).out, /^ {2}plug\/hooks\/hooks\.json:\d+ plugin-hooks /m);
+    assert.match(run(path.join(tmp, "plugins")).out, /^ {2}plug\/hooks\/hooks\.json:\d+ plugin-hooks /mu);
   });
   it("a plugin holding no markdown is found under a package target", () => {
-    assert.match(run(path.join(tmp, "plugins")).out, /^ {2}hookonly\/hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/m);
+    assert.match(run(path.join(tmp, "plugins")).out, /^ {2}hookonly\/hooks\/hooks\.json:\d+ plugin-hooks .*matcher on Stop/mu);
   });
   it("a key that lists its own default folder, or a path inside it, in a list or an object map, shadows nothing", () => {
     const r = run(path.join(tmp, "plugins"));
-    assert.doesNotMatch(r.out, /^ {2}(listed|inside|mapped)\/.*plugin-manifest/m);
+    assert.doesNotMatch(r.out, /^ {2}(listed|inside|mapped)\/.*plugin-manifest/mu);
   });
   it("each file a key leaves out of its default folder is a warning, even beside a listed one", () => {
     const r = run(path.join(tmp, "plugins", "partial"));
     assert.equal(r.code, 0, r.out);
     assert.match(
       r.out,
-      /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(warning\) commands replaces the default commands\/, so Claude Code ignores commands\/rollback\.md$/m,
+      /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(warning\) commands replaces the default commands\/, so Claude Code ignores commands\/rollback\.md$/mu,
     );
-    assert.doesNotMatch(r.out, /ignores commands\/(deploy\.md|\.gitkeep|\.drafts)/);
-    assert.match(r.out, /^plugin files: 0 issues, 1 warnings$/m);
+    assert.doesNotMatch(r.out, /ignores commands\/(deploy\.md|\.gitkeep|\.drafts)/u);
+    assert.match(r.out, /^plugin files: 0 issues, 1 warnings$/mu);
   });
   it("a default folder dropped whole fails the run, and one holding only a symlink still holds files", () => {
     const r = run(path.join(tmp, "plugins", "linked"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /plugin-manifest \(error\) agents replaces the default agents\//);
+    assert.match(r.out, /plugin-manifest \(error\) agents replaces the default agents\//u);
   });
   it("outputStyles, workflows and experimental.themes each replace their own default folder", () => {
     const dir = path.join(tmp, "replacing", "styled");
@@ -1038,55 +1038,55 @@ describe("check.js", () => {
       ["workflows", "workflows"],
       ["experimental\\.themes", "themes"],
     ])
-      assert.match(out, new RegExp(`plugin-manifest \\(error\\) ${key} replaces the default ${folder}/, which still holds files`), out);
+      assert.match(out, new RegExp(`plugin-manifest \\(error\\) ${key} replaces the default ${folder}/, which still holds files`, "u"), out);
   });
   it("an empty default folder is not shadowed", () => {
-    assert.doesNotMatch(run(path.join(tmp, "plugins", "hollow")).out, /plugin-manifest/);
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "hollow")).out, /plugin-manifest/u);
   });
   it("a file that is not valid JSON is left to the validator", () => {
     const r = run(path.join(tmp, "plugins", "broken"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^plugin files: none$/m);
+    assert.match(r.out, /^plugin files: none$/mu);
   });
   for (const name of ["own-wrapped", "own-flat", "own-inline", "own-file", "own-list"]) {
     it(`${name}: the hooks file is held to the plugin's own server names`, () => {
       const r = run(path.join(tmp, "plugins", name));
       assert.equal(r.code, 1, r.out);
-      assert.match(r.out, /^ {2}hooks\/hooks\.json:\d+ plugin-hooks \(error\) matcher names the plugin's own MCP server db by its bare key/m);
+      assert.match(r.out, /^ {2}hooks\/hooks\.json:\d+ plugin-hooks \(error\) matcher names the plugin's own MCP server db by its bare key/mu);
     });
   }
   it("a server key is matched in the form its tool names take", () => {
-    assert.match(run(path.join(tmp, "plugins", "own-dotted")).out, /plugin-hooks \(error\) matcher names the plugin's own MCP server my_db/);
+    assert.match(run(path.join(tmp, "plugins", "own-dotted")).out, /plugin-hooks \(error\) matcher names the plugin's own MCP server my_db/u);
   });
   it("a server the plugin does not declare is no bare key of its own", () => {
-    assert.doesNotMatch(run(path.join(tmp, "plugins", "own-other")).out, /plugin-hooks/);
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "own-other")).out, /plugin-hooks/u);
   });
   it("an MCP file that cannot be read declares nothing", () => {
-    assert.doesNotMatch(run(path.join(tmp, "plugins", "own-unreadable")).out, /plugin-hooks|TypeError/);
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "own-unreadable")).out, /plugin-hooks|TypeError/u);
   });
   it("a plugin with no manifest declares no server and reads the default monitors path", () => {
     const r = run(path.join(tmp, "plugins", "manifestless"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^plugin files: none$/m);
+    assert.match(r.out, /^plugin files: none$/mu);
   });
   it("a monitors file is reported under its own path", () => {
     const r = run(path.join(tmp, "plugins", "monitor-default"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}monitors\/monitors\.json:\d+ plugin-manifest \(error\) monitor command names \$\{user_config/m);
+    assert.match(r.out, /^ {2}monitors\/monitors\.json:\d+ plugin-manifest \(error\) monitor command names \$\{user_config/mu);
   });
   it("a monitors file the manifest names is read in place of the default", () => {
-    assert.match(run(path.join(tmp, "plugins", "monitor-named")).out, /^ {2}watch\/m\.json:\d+ plugin-manifest \(error\) monitor command/m);
+    assert.match(run(path.join(tmp, "plugins", "monitor-named")).out, /^ {2}watch\/m\.json:\d+ plugin-manifest \(error\) monitor command/mu);
   });
   it("a monitors file the top-level key names is read", () => {
-    assert.match(run(path.join(tmp, "plugins", "monitor-top")).out, /^ {2}watch\/m\.json:\d+ plugin-manifest \(error\) monitor command/m);
+    assert.match(run(path.join(tmp, "plugins", "monitor-top")).out, /^ {2}watch\/m\.json:\d+ plugin-manifest \(error\) monitor command/mu);
   });
   it("inline monitors are reported in the manifest", () => {
-    assert.match(run(path.join(tmp, "plugins", "monitor-inline")).out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) monitor command/m);
+    assert.match(run(path.join(tmp, "plugins", "monitor-inline")).out, /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(error\) monitor command/mu);
   });
   it("a named monitors file that does not exist is left to the validator", () => {
     const r = run(path.join(tmp, "plugins", "monitor-gone"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^plugin files: none$/m);
+    assert.match(r.out, /^plugin files: none$/mu);
   });
   it("a monitors file read is a file checked", () => {
     const r = run(path.join(tmp, "plugins", "monitor-clean"));
@@ -1094,16 +1094,16 @@ describe("check.js", () => {
     assert.equal(r.linted, 3, r.out);
   });
   it("a hooks file with no .claude-plugin beside it is not a plugin's", () => {
-    assert.doesNotMatch(run(path.join(tmp, "plugins", "unmarked")).out, /plugin-hooks/);
+    assert.doesNotMatch(run(path.join(tmp, "plugins", "unmarked")).out, /plugin-hooks/u);
   });
   it("an agents folder with no .claude-plugin beside it is not a plugin's", () => {
-    assert.doesNotMatch(run(path.join(tmp, "loose")).out, /agent-frontmatter/);
+    assert.doesNotMatch(run(path.join(tmp, "loose")).out, /agent-frontmatter/u);
   });
   it("a YAML file named alone is read by the YAML rules", () => {
     const r = run(path.join(tmp, "yaml-duplicate", "rule.yml"));
     assert.equal(r.code, 1, r.out);
     assert.equal(r.linted, 1, r.out);
-    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key /m);
+    assert.match(r.out, /^ {2}rule\.yml:2 yaml-duplicate-key /mu);
   });
   it("a file two targets reach is checked once", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "good", "SKILL.md")]);
@@ -1113,76 +1113,76 @@ describe("check.js", () => {
   it("a path that does not exist fails, naming it", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "nope.md")]);
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /no such file or folder: .*nope\.md/);
+    assert.match(r.out, /no such file or folder: .*nope\.md/u);
   });
   it("a file no reader takes fails, naming it", () => {
     const r = run(path.join(tmp, "notes", "notes.txt"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /no reader takes .*notes\.txt: nothing was checked/);
+    assert.match(r.out, /no reader takes .*notes\.txt: nothing was checked/u);
   });
   it("a finding with no detail prints none", () => {
-    assert.match(run(path.join(tmp, "detail-less")).out, /^ {2}notes\.md:3 MD047\/single-trailing-newline Files should end with a single newline character$/m);
+    assert.match(run(path.join(tmp, "detail-less")).out, /^ {2}notes\.md:3 MD047\/single-trailing-newline Files should end with a single newline character$/mu);
   });
   it("a reader's extension inside a longer one is not that reader's", () => {
     fs.writeFileSync(path.join(tmp, "notes", "data.json"), "{}\n");
     const r = run(path.join(tmp, "notes", "data.json"));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /no reader takes .*data\.json: nothing was checked/);
+    assert.match(r.out, /no reader takes .*data\.json: nothing was checked/u);
   });
   it("a file target's paths resolve against the working directory", () => {
     const file = path.join("skills", "inner", "workflows", "deep", "only-root.md");
     const inside = run(file, process.env, path.join(tmp, "refs"));
-    assert.doesNotMatch(inside.out, /skill-referenced-paths/);
+    assert.doesNotMatch(inside.out, /skill-referenced-paths/u);
     assert.equal(inside.linted, 1, inside.out);
     const outside = run(path.join(tmp, "refs", file), process.env, tmp);
-    assert.match(outside.out, /only-root\.md:\d+ skill-referenced-paths .*top\.md/);
+    assert.match(outside.out, /only-root\.md:\d+ skill-referenced-paths .*top\.md/u);
   });
   it("the default target is the working directory", () => {
     const r = run([], process.env, path.join(tmp, "bad"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /TRUNCATED/);
+    assert.match(r.out, /TRUNCATED/u);
   });
   it("a skipped hard wrap is withheld, named and counted", () => {
     const r = run(["--skip", "skill-hard-wrap", path.join(tmp, "wrapped")]);
     assert.equal(r.code, 0, r.out);
-    assert.doesNotMatch(r.out, /SKILL\.md:\d+ skill-hard-wrap/);
-    assert.match(r.out, /^prose shape: none$/m);
-    assert.match(r.out, /^skipped rules: 1\n {2}skill-hard-wrap: 1 findings withheld\n2 files checked, 0 issues, 0 warnings, 1 rule\(s\) skipped\n$/m);
+    assert.doesNotMatch(r.out, /SKILL\.md:\d+ skill-hard-wrap/u);
+    assert.match(r.out, /^prose shape: none$/mu);
+    assert.match(r.out, /^skipped rules: 1\n {2}skill-hard-wrap: 1 findings withheld\n2 files checked, 0 issues, 0 warnings, 1 rule\(s\) skipped\n$/mu);
   });
   it("a skipped YAML comment wrap is withheld, named and counted", () => {
     const r = run(["--skip", "yaml-comment-wrap", path.join(tmp, "yaml-wrapped")]);
     assert.equal(r.code, 0, r.out);
-    assert.doesNotMatch(r.out, /rule\.yml:\d+ yaml-comment-wrap/);
-    assert.match(r.out, /^yaml files: none$/m);
-    assert.match(r.out, /^ {2}yaml-comment-wrap: 1 findings withheld$/m);
-    assert.match(r.out, /^3 files checked, 0 issues, 0 warnings, 1 rule\(s\) skipped$/m);
+    assert.doesNotMatch(r.out, /rule\.yml:\d+ yaml-comment-wrap/u);
+    assert.match(r.out, /^yaml files: none$/mu);
+    assert.match(r.out, /^ {2}yaml-comment-wrap: 1 findings withheld$/mu);
+    assert.match(r.out, /^3 files checked, 0 issues, 0 warnings, 1 rule\(s\) skipped$/mu);
   });
   it("--skip repeats, and a rule named twice is skipped once", () => {
     const targets = [path.join(tmp, "wrapped"), path.join(tmp, "yaml-wrapped")];
     const both = run(["--skip", "yaml-comment-wrap", "--skip", "skill-hard-wrap", ...targets]);
     assert.equal(both.code, 0, both.out);
-    assert.match(both.out, /^skipped rules: 2\n {2}skill-hard-wrap: 1 findings withheld\n {2}yaml-comment-wrap: 1 findings withheld$/m);
-    assert.match(both.out, /, 0 warnings, 2 rule\(s\) skipped$/m);
+    assert.match(both.out, /^skipped rules: 2\n {2}skill-hard-wrap: 1 findings withheld\n {2}yaml-comment-wrap: 1 findings withheld$/mu);
+    assert.match(both.out, /, 0 warnings, 2 rule\(s\) skipped$/mu);
     const twice = run(["--skip", "skill-hard-wrap", "--skip", "skill-hard-wrap", ...targets]);
-    assert.match(twice.out, /^skipped rules: 1$/m);
-    assert.match(twice.out, /, 0 issues, 1 warnings, 1 rule\(s\) skipped$/m);
+    assert.match(twice.out, /^skipped rules: 1$/mu);
+    assert.match(twice.out, /, 0 issues, 1 warnings, 1 rule\(s\) skipped$/mu);
   });
   it("skipping a convention rule leaves a contract issue failing the run", () => {
     const r = run(["--skip", "skill-hard-wrap", path.join(tmp, "bad")]);
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /TRUNCATED/);
-    assert.match(r.out, /^ {2}skill-hard-wrap: 0 findings withheld$/m);
+    assert.match(r.out, /TRUNCATED/u);
+    assert.match(r.out, /^ {2}skill-hard-wrap: 0 findings withheld$/mu);
   });
   it("--skip with no path checks the working directory", () => {
     const r = run(["--skip", "skill-hard-wrap"], process.env, path.join(tmp, "wrapped"));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^ {2}skill-hard-wrap: 1 findings withheld$/m);
+    assert.match(r.out, /^ {2}skill-hard-wrap: 1 findings withheld$/mu);
   });
   it("without vale the skipped rules are still named and counted", () => {
     const r = run(["--skip", "skill-hard-wrap", path.join(tmp, "wrapped")], { ...process.env, PATH: path.join(tmp, "empty") });
     assert.equal(r.code, 1);
-    assert.match(r.out, /^ {2}skill-hard-wrap: 1 findings withheld$/m);
-    assert.match(r.out, /^2 files checked, 0 issues, prose rules not run, 1 rule\(s\) skipped$/m);
+    assert.match(r.out, /^ {2}skill-hard-wrap: 1 findings withheld$/mu);
+    assert.match(r.out, /^2 files checked, 0 issues, prose rules not run, 1 rule\(s\) skipped$/mu);
   });
   it("a --skip naming a contract rule, no rule, or nothing refuses the run and names the skippable rules", () => {
     const good = path.join(tmp, "good");
@@ -1195,7 +1195,7 @@ describe("check.js", () => {
       const r = run(args, process.env, good);
       assert.equal(r.code, 1, named);
       assert.ok(r.out.startsWith(`${named}: only skill-hard-wrap, yaml-comment-wrap can be skipped: nothing was checked\n`), r.out);
-      assert.doesNotMatch(r.out, /found under/, named);
+      assert.doesNotMatch(r.out, /found under/u, named);
     }
   });
 });
@@ -1211,13 +1211,13 @@ describe("skill-bundled-files", () => {
     }
     return dir;
   };
-  const reports = (out, file) => new RegExp(`skill-bundled-files .*${file}\\S* is named by no file`).test(out);
+  const reports = (out, file) => new RegExp(`skill-bundled-files .*${file}\\S* is named by no file`, "u").test(out);
 
   it("a file nothing names fails the run, under scripts and under references", () => {
     const r = run(tree("unnamed", { "scripts/lost.py": "x\n", "references/lost.md": "# Lost\n\nbody\n" }));
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*scripts\/lost\.py is named by no file/m);
-    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*references\/lost\.md is named by no file/m);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*scripts\/lost\.py is named by no file/mu);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*references\/lost\.md is named by no file/mu);
   });
   it("a file named in the SKILL.md is clean", () => {
     const dir = tree("named", { "scripts/kept.py": "x\n" });
@@ -1450,7 +1450,7 @@ describe("skill-bundled-files", () => {
         "free.md": "# F\n\nbody\n",
       }),
     );
-    assert.doesNotMatch(r.out, /skill-bundled-files/);
+    assert.doesNotMatch(r.out, /skill-bundled-files/u);
   });
   it("what names a file in node_modules or a dot-folder does not count", () => {
     const r = run(
@@ -1489,34 +1489,34 @@ describe("skill-bundled-files", () => {
     fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun scripts/kept.py.\n");
     fs.symlinkSync(dir, path.join(dir, "up-one"));
     fs.symlinkSync(dir, path.join(dir, "up-two"));
-    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/u);
   });
   it("a link back up the tree ends, and costs no finding", () => {
     const dir = tree("cycle", { "scripts/kept.py": "x\n" });
     fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun scripts/kept.py.\n");
     fs.symlinkSync(dir, path.join(dir, "up"));
-    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/u);
   });
   it("a link to itself is left to the group that names it", () => {
     const dir = tree("self-link", {});
     fs.mkdirSync(path.join(dir, "scripts"));
     fs.symlinkSync(path.join(dir, "scripts", "loop.sh"), path.join(dir, "scripts", "loop.sh"));
-    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/u);
   });
   it("a dangling link is left to the group that names it", () => {
     const dir = tree("dangling", {});
     fs.mkdirSync(path.join(dir, "scripts"));
     fs.symlinkSync(path.join(dir, "gone.md"), path.join(dir, "scripts", "gone.md"));
     const r = run(dir);
-    assert.doesNotMatch(r.out, /skill-bundled-files/);
-    assert.match(r.out, /scripts\/gone\.md dangling-link/);
+    assert.doesNotMatch(r.out, /skill-bundled-files/u);
+    assert.match(r.out, /scripts\/gone\.md dangling-link/u);
   });
   it("a file it cannot read is named, and costs the comparison that file alone", () => {
     const dir = tree("shut-file", { "scripts/shut.py": "x\n", "scripts/kept.py": "x\n", "notes.md": "# N\n\nRun kept.py.\n" });
     fs.chmodSync(path.join(dir, "scripts", "shut.py"), 0o000);
     try {
       const r = run(dir);
-      assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*could not read scripts\/shut\.py \(EACCES\)/m);
+      assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*could not read scripts\/shut\.py \(EACCES\)/mu);
       assert.equal(reports(r.out, "kept"), false, r.out);
     } finally {
       fs.chmodSync(path.join(dir, "scripts", "shut.py"), 0o644);
@@ -1526,7 +1526,7 @@ describe("skill-bundled-files", () => {
     const dir = tree("shut-skill", {});
     fs.chmodSync(dir, 0o311);
     try {
-      assert.match(run(path.join(dir, "SKILL.md")).out, /skill-bundled-files .*could not read \. \(EACCES\)/);
+      assert.match(run(path.join(dir, "SKILL.md")).out, /skill-bundled-files .*could not read \. \(EACCES\)/u);
     } finally {
       fs.chmodSync(dir, 0o755);
     }
@@ -1535,7 +1535,7 @@ describe("skill-bundled-files", () => {
     const dir = tree("shut-folder", { "shut/inner.txt": "x\n" });
     fs.chmodSync(path.join(dir, "shut"), 0o000);
     try {
-      assert.match(run(dir).out, /skill-bundled-files .*could not read shut \(EACCES\)/);
+      assert.match(run(dir).out, /skill-bundled-files .*could not read shut \(EACCES\)/u);
     } finally {
       fs.chmodSync(path.join(dir, "shut"), 0o755);
     }
@@ -1545,7 +1545,7 @@ describe("skill-bundled-files", () => {
     fs.mkdirSync(path.join(dir, "scripts"), { recursive: true });
     fs.writeFileSync(path.join(dir, "notes.md"), "# N\n\nbody\n");
     fs.writeFileSync(path.join(dir, "scripts", "lost.py"), "x\n");
-    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/u);
   });
 });
 
@@ -1559,20 +1559,20 @@ describe("skill-package-runners, off a tree", () => {
   it("a workflow of the skill is read, and a warning leaves the run passing", () => {
     const r = run(dir());
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^ {2}workflows\/run\.md:3 skill-package-runners \(warning\) .*npx eslint \. names no version/m);
+    assert.match(r.out, /^ {2}workflows\/run\.md:3 skill-package-runners \(warning\) .*npx eslint \. names no version/mu);
   });
   it("a README is for a person, so its install line raises nothing", () => {
-    assert.doesNotMatch(run(dir()).out, /README\.md:\d+ skill-package-runners/);
+    assert.doesNotMatch(run(dir()).out, /README\.md:\d+ skill-package-runners/u);
   });
   it("a markdown file outside any skill is not read", () => {
     const outside = path.join(tmp, "runners-outside");
     fs.mkdirSync(outside);
     fs.writeFileSync(path.join(outside, "notes.md"), "# Notes\n\nRun `npx eslint .` first.\n");
-    assert.doesNotMatch(run(outside).out, /skill-package-runners/);
+    assert.doesNotMatch(run(outside).out, /skill-package-runners/u);
   });
   it("a file target resolves against the folder the command runs in", () => {
-    assert.match(run(path.join(dir(), "workflows", "run.md"), process.env, dir()).out, /skill-package-runners/);
-    assert.doesNotMatch(run(path.join(dir(), "workflows", "run.md"), process.env, path.join(dir(), "workflows")).out, /skill-package-runners/);
+    assert.match(run(path.join(dir(), "workflows", "run.md"), process.env, dir()).out, /skill-package-runners/u);
+    assert.doesNotMatch(run(path.join(dir(), "workflows", "run.md"), process.env, path.join(dir(), "workflows")).out, /skill-package-runners/u);
   });
 });
 
@@ -1601,41 +1601,41 @@ describe("plugin-body-variables", () => {
   it("each bare variable in a plugin's skill fails the run on its own line, and names the braced form", () => {
     const r = run(plugin());
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_ROOT .*write \$\{CLAUDE_PLUGIN_ROOT\}/m);
-    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_DATA .*write \$\{CLAUDE_PLUGIN_DATA\}/m);
-    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PROJECT_DIR .*write \$\{CLAUDE_PROJECT_DIR\}/m);
+    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_ROOT .*write \$\{CLAUDE_PLUGIN_ROOT\}/mu);
+    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_DATA .*write \$\{CLAUDE_PLUGIN_DATA\}/mu);
+    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PROJECT_DIR .*write \$\{CLAUDE_PROJECT_DIR\}/mu);
   });
   it("a plugin's agent is read", () => {
-    assert.match(run(plugin()).out, /^ {2}agents\/bare\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_ROOT/m);
+    assert.match(run(plugin()).out, /^ {2}agents\/bare\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_ROOT/mu);
   });
   it("the braced form and a longer name are clean", () => {
     const r = run(plugin());
-    assert.doesNotMatch(r.out, /skills\/braced\/SKILL\.md:\d+ plugin-body-variables/);
-    assert.doesNotMatch(r.out, /agents\/braced\.md:\d+ plugin-body-variables/);
+    assert.doesNotMatch(r.out, /skills\/braced\/SKILL\.md:\d+ plugin-body-variables/u);
+    assert.doesNotMatch(r.out, /agents\/braced\.md:\d+ plugin-body-variables/u);
   });
   it("names the line holding a bare variable, trimmed", () => {
     fs.writeFileSync(path.join(plugin(), "agents", "indented.md"), "---\nname: indented\ndescription: x\n---\n\n- A list:\n  - run $CLAUDE_PLUGIN_ROOT/a.sh\n");
-    assert.match(run(plugin()).out, /agents\/indented\.md:\d+ plugin-body-variables .*\[Context: "- run \$CLAUDE_PLUGIN_ROOT/);
+    assert.match(run(plugin()).out, /agents\/indented\.md:\d+ plugin-body-variables .*\[Context: "- run \$CLAUDE_PLUGIN_ROOT/u);
   });
   it("a file the plugin never loads as content is not read", () => {
-    assert.doesNotMatch(run(plugin()).out, /notes\.md:\d+ plugin-body-variables/);
+    assert.doesNotMatch(run(plugin()).out, /notes\.md:\d+ plugin-body-variables/u);
   });
   it("a skill outside any plugin is not held to it", () => {
     const dir = path.join(tmp, "body-vars", "standalone");
     skillBody(dir, "Read $CLAUDE_PROJECT_DIR here.");
-    assert.doesNotMatch(run(dir).out, /plugin-body-variables/);
+    assert.doesNotMatch(run(dir).out, /plugin-body-variables/u);
   });
   it("a marketplace's root is not a plugin, so a skill beside it is not held to it", () => {
     const root = path.join(tmp, "body-vars", "market");
     fs.mkdirSync(path.join(root, ".claude-plugin"), { recursive: true });
     fs.writeFileSync(path.join(root, ".claude-plugin", "marketplace.json"), "{}\n");
     skillBody(path.join(root, "skills", "free"), "Read $CLAUDE_PROJECT_DIR here.");
-    assert.doesNotMatch(run(root).out, /plugin-body-variables/);
+    assert.doesNotMatch(run(root).out, /plugin-body-variables/u);
   });
   it("the frontmatter is not the body", () => {
     const dir = path.join(plugin(), "skills", "in-fm");
     mk(dir, "name: in-fm\ndescription: |\n  Reads $CLAUDE_PROJECT_DIR.");
-    assert.doesNotMatch(run(dir).out, /plugin-body-variables/);
+    assert.doesNotMatch(run(dir).out, /plugin-body-variables/u);
   });
 });
 
@@ -1666,20 +1666,20 @@ describe("skill-readme", () => {
   it("reports a SKILL.md with no README.md beside it", () => {
     const r = run(path.join(tmp, "no-readme"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /SKILL\.md:\d+ skill-readme .*no README\.md beside this SKILL\.md/);
+    assert.match(r.out, /SKILL\.md:\d+ skill-readme .*no README\.md beside this SKILL\.md/u);
   });
   it("reports a README that names no way to install the skill", () => {
     const r = run(path.join(tmp, "readme-no-install"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /skill-readme .*carries no install form/);
+    assert.match(r.out, /skill-readme .*carries no install form/u);
   });
   it("reports a README.md that is a folder as unreadable, and the run still finishes", () => {
     const r = run(path.join(tmp, "readme-folder"));
     assert.equal(r.code, 1, r.out);
-    const findings = r.out.match(/skill-readme .*/g) ?? [];
+    const findings = r.out.match(/skill-readme .*/gu) ?? [];
     assert.equal(findings.length, 1, r.out);
-    assert.match(findings[0], /README\.md cannot be read \(EISDIR\): .*readme-folder\/README\.md\]$/);
-    assert.match(r.out, /^\d+ files checked, /m);
+    assert.match(findings[0], /README\.md cannot be read \(EISDIR\): .*readme-folder\/README\.md\]$/u);
+    assert.match(r.out, /^\d+ files checked, /mu);
   });
   it("a fenced install command counts, with no install heading", () => {
     const r = run(path.join(tmp, "readme-fenced-install"));
@@ -1695,7 +1695,7 @@ describe("skill-pinned-sources", () => {
     mk(dir, block(`pinned-${name}`), `${INSTALL}\n${readme}`);
     return dir;
   };
-  const findings = (dir) => run(dir).out.match(/^ {2}README\.md:\d+ skill-pinned-sources .*/gm) ?? [];
+  const findings = (dir) => run(dir).out.match(/^ {2}README\.md:\d+ skill-pinned-sources .*/gmu) ?? [];
   const unpinned = [
     ["a branch", "https://github.com/owner/repo/blob/main/SKILL.md"],
     ["a bare repository", "https://github.com/owner/repo"],
@@ -1724,14 +1724,14 @@ describe("skill-pinned-sources", () => {
   ];
   for (const [what, url] of unpinned)
     it(`warns on ${what} and leaves the run passing`, () => {
-      const dir = mkSkill(what.toLowerCase().replace(/\W+/g, "-"), `## Sources\n\n- [A source](${url}): an idea.\n`);
+      const dir = mkSkill(what.toLowerCase().replace(/\W+/gu, "-"), `## Sources\n\n- [A source](${url}): an idea.\n`);
       const r = run(dir);
       assert.equal(r.code, 0, r.out);
       assert.match(
         r.out,
         new RegExp(
-          `^ {2}README\\.md:11 skill-pinned-sources \\(warning\\) .*${url.replaceAll(/[.?]/g, "\\$&")} names no commit: .*link the commit that was read`,
-          "m",
+          `^ {2}README\\.md:11 skill-pinned-sources \\(warning\\) .*${url.replaceAll(/[.?]/gu, "\\$&")} names no commit: .*link the commit that was read`,
+          "mu",
         ),
       );
     });
@@ -1753,13 +1753,13 @@ describe("skill-pinned-sources", () => {
   ];
   for (const [what, url] of pinned)
     it(`passes ${what}`, () => {
-      const dir = mkSkill(`ok-${what.replace(/\W+/g, "-")}`, `## Inspiration\n\n- [A source](${url}): an idea.\n`);
+      const dir = mkSkill(`ok-${what.replace(/\W+/gu, "-")}`, `## Inspiration\n\n- [A source](${url}): an idea.\n`);
       assert.notEqual(run(dir).linted, null, what);
       assert.deepEqual(findings(dir), []);
     });
   it("reads each section heading whatever its level or case", () => {
     for (const heading of ["## Inspiration", "### SOURCES", "Sources\n-------", "Inspiration\n==========="]) {
-      const dir = mkSkill(`level-${heading.replace(/\W+/g, "-")}`, `${heading}\n\n[A source](https://github.com/owner/repo)\n`);
+      const dir = mkSkill(`level-${heading.replace(/\W+/gu, "-")}`, `${heading}\n\n[A source](https://github.com/owner/repo)\n`);
       assert.equal(findings(dir).length, 1, heading);
     }
   });
@@ -1781,7 +1781,7 @@ describe("skill-pinned-sources", () => {
     const url = "https://github.com/owner/repo/blob/main";
     const found = findings(mkSkill("in-heading", `## Sources\n\n### [inside](${url}/inside)\n\nWhat it gave.\n\n## [After](${url}/after)\n\nText.\n`));
     assert.equal(found.length, 1, String(found));
-    assert.match(found[0], /main\/inside names no commit/);
+    assert.match(found[0], /main\/inside names no commit/u);
   });
   it("judges a reference where it is used, wherever its definition sits", () => {
     const url = "https://github.com/owner/repo";
@@ -1794,7 +1794,7 @@ describe("skill-pinned-sources", () => {
         `${shape}: ${found}`,
       );
     assert.equal(found.length, 3, String(found));
-    assert.match(found[0], /^ {2}README\.md:11 /);
+    assert.match(found[0], /^ {2}README\.md:11 /u);
     const elsewhere = `Validated by [a tool][tool].\n\n## Sources\n\nNone from a git host.\n\n[tool]: ${url}\n`;
     assert.deepEqual(findings(mkSkill("ref-elsewhere", elsewhere)), []);
     const pinnedRef = `## Sources\n\n[a][pin]\n\n[pin]: ${url}/blob/${SHA}/SKILL.md\n`;
@@ -1808,7 +1808,7 @@ describe("skill-pinned-sources", () => {
     const url = "https://github.com/owner/repo";
     const found = findings(mkSkill("ref-image", `## Sources\n\n![badge][img]\n\n[img]: ${url}/blob/main/img.png\n`));
     assert.equal(found.length, 1, String(found));
-    assert.match(found[0], /README\.md:11 .*img\.png names no commit/);
+    assert.match(found[0], /README\.md:11 .*img\.png names no commit/u);
   });
   it("matches a reference to its definition as the parser does", () => {
     const url = "https://github.com/owner/repo";
@@ -1830,7 +1830,7 @@ describe("skill-pinned-sources", () => {
     const dir = mkSkill("ends", `### Sources\n\nNone.\n\n## After\n\n[a tool](${url})\n\n## Sources\n\n[a tool](${url}/second)\n`);
     const found = findings(dir);
     assert.equal(found.length, 1, String(found));
-    assert.match(found[0], /main\/second names no commit/);
+    assert.match(found[0], /main\/second names no commit/u);
   });
   it("a heading only ending in the word opens no section", () => {
     assert.deepEqual(findings(mkSkill("other-sources", "## Other sources\n\n[a tool](https://github.com/owner/repo)\n")), []);
@@ -1875,7 +1875,7 @@ describe("skill-pinned-sources", () => {
   });
   it("names the link's line, trimmed", () => {
     const out = run(mkSkill("context", "## Sources\n\n- an item\n  - [a](https://github.com/owner/repo)\n")).out;
-    assert.match(out, /skill-pinned-sources .*\[Context: "- \[a\]/);
+    assert.match(out, /skill-pinned-sources .*\[Context: "- \[a\]/u);
   });
   it("reads only a README beside a SKILL.md", () => {
     const url = "https://github.com/owner/repo";
@@ -1888,9 +1888,9 @@ describe("skill-pinned-sources", () => {
     fs.writeFileSync(path.join(elsewhere, "README.md"), `# R\n\n## Sources\n\n[a](${url})\n`);
     const beside = mkSkill("beside", "Nothing here.\n");
     fs.writeFileSync(path.join(beside, "notes.md"), `# R\n\n## Sources\n\n[a](${url})\n`);
-    assert.doesNotMatch(run(beside).out, /skill-pinned-sources/);
-    assert.doesNotMatch(run(dir).out, /skill-pinned-sources/);
-    assert.doesNotMatch(run(elsewhere).out, /skill-pinned-sources/);
+    assert.doesNotMatch(run(beside).out, /skill-pinned-sources/u);
+    assert.doesNotMatch(run(dir).out, /skill-pinned-sources/u);
+    assert.doesNotMatch(run(elsewhere).out, /skill-pinned-sources/u);
   });
 });
 
@@ -1899,7 +1899,7 @@ describe("carriesInstallForm", () => {
   const readmeMd = fs.readFileSync(path.resolve(path.dirname(check), "..", "references", "readme.md"), "utf8");
   const listed = readmeMd.split("\n").find((l) => l.startsWith("Give the section a heading opening with")) ?? "";
   const [headingPart = "", commandPart = ""] = listed.split("or put the command in a fenced block");
-  const spans = (s) => [...s.matchAll(/`([^`]+)`/g)].map((m) => m[1]);
+  const spans = (s) => [...s.matchAll(/`([^`]+)`/gu)].map((m) => m[1]);
   const headings = spans(headingPart);
   const commands = spans(commandPart);
   it("reads a heading list and a command list from references/readme.md", () => assert.ok(headings.length > 0 && commands.length > 0));
@@ -1937,32 +1937,32 @@ describe("skill-referenced-paths", () => {
   it("reports a span naming a file that was never written, and passes one that resolves", () => {
     const r = run(path.join(tmp, "refs"));
     assert.equal(r.code, 1);
-    assert.match(r.out, /SKILL\.md:\d+ skill-referenced-paths .*workflows\/gone\.md does not resolve/);
-    assert.doesNotMatch(r.out, /workflows\/new\.md does not resolve/);
+    assert.match(r.out, /SKILL\.md:\d+ skill-referenced-paths .*workflows\/gone\.md does not resolve/u);
+    assert.doesNotMatch(r.out, /workflows\/new\.md does not resolve/u);
   });
   it("reads no fenced content, so a missing path inside a fence passes", () => {
     const r = run(path.join(tmp, "refs"));
-    assert.doesNotMatch(r.out, /also-gone\.md/);
-    assert.doesNotMatch(r.out, /fenced-gone\.md/);
+    assert.doesNotMatch(r.out, /also-gone\.md/u);
+    assert.doesNotMatch(r.out, /fenced-gone\.md/u);
   });
   it("each resolution base is reached by a span that reaches no other", () => {
     const r = run(path.join(tmp, "refs"));
-    assert.doesNotMatch(r.out, /only-skill\.md:\d+ skill-referenced-paths/);
-    assert.doesNotMatch(r.out, /only-own-dir\.md:\d+ skill-referenced-paths/);
-    assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/);
+    assert.doesNotMatch(r.out, /only-skill\.md:\d+ skill-referenced-paths/u);
+    assert.doesNotMatch(r.out, /only-own-dir\.md:\d+ skill-referenced-paths/u);
+    assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/u);
   });
   it("a path quoted as a deliberate example is invisible to the rule", () => {
     const r = run(path.join(tmp, "refs"));
-    assert.doesNotMatch(r.out, /deliberately-absent/);
+    assert.doesNotMatch(r.out, /deliberately-absent/u);
   });
   it("a backticked path opening with a root placeholder is not reported", () => {
     const r = run(path.join(tmp, "refs"));
-    assert.doesNotMatch(r.out, /<repo-root>\/\.agents\/gh-solo\.md.*does not resolve/);
+    assert.doesNotMatch(r.out, /<repo-root>\/\.agents\/gh-solo\.md.*does not resolve/u);
   });
   it("a branch name, a repo slug, an absolute path, a ~/ path and a glob are not paths", () => {
     const r = run(path.join(tmp, "refs"));
     for (const span of ["GHI-50_login-form", "gh-stack", "\\/usr\\/bin\\/env", "\\.agents\\/skills", "docs\\/\\*", "E:\\/work"])
-      assert.doesNotMatch(r.out, new RegExp(`${span}.*does not resolve`));
+      assert.doesNotMatch(r.out, new RegExp(`${span}.*does not resolve`, "u"));
   });
 });
 
@@ -2013,30 +2013,30 @@ describe("check.js, the run's own bookkeeping", () => {
       ["c.yml", "key: value\n"],
     ])
       write(path.join(dir, file), text);
-    assert.match(run(dir).out, /^7 files checked, /m);
+    assert.match(run(dir).out, /^7 files checked, /mu);
   });
   it("a target holding code and no markdown checks nothing", () => {
     const dir = path.join(tmp, "code-only");
     write(path.join(dir, "a.js"), "// A comment.\n");
-    assert.match(run(dir).out, /no markdown file found under .*code-only: nothing was checked/);
+    assert.match(run(dir).out, /no markdown file found under .*code-only: nothing was checked/u);
   });
   it("a file two targets reach keeps the root of the first", () => {
     const refs = path.join(tmp, "refs");
     const r = run([refs, path.join(refs, "skills", "inner", "workflows", "deep", "only-root.md")], process.env, tmp);
-    assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/, r.out);
+    assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/u, r.out);
   });
   // WHY: roots are linted in the order of their files' paths and a later run's results replace an earlier one's, so only a root sorting after refs could overwrite refs' verdict.
   it("each root's files are linted under that root alone", () => {
     mk(path.join(tmp, "z-root"), block("z-root"));
     const r = run([path.join(tmp, "refs"), path.join(tmp, "z-root", "SKILL.md")], process.env, tmp);
     assert.notEqual(r.linted, null, r.out);
-    assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/, r.out);
+    assert.doesNotMatch(r.out, /only-root\.md:\d+ skill-referenced-paths/u, r.out);
   });
   it("names the skills found in sorted order", () => {
     const dir = path.join(tmp, "skill-order");
     mk(path.join(dir, "a-b"), block("a-b"));
     mk(path.join(dir, "a"), block("a"));
-    assert.match(run(dir).out, /skill\(s\) found under .*\n {2}a\n {2}a-b\n/);
+    assert.match(run(dir).out, /skill\(s\) found under .*\n {2}a\n {2}a-b\n/u);
   });
   // WHY: the glob lists a folder's own entries in sorted order before a subfolder's, so only a subfolder can put a later path first.
   it("names dangling links in sorted order, across folders", () => {
@@ -2045,7 +2045,7 @@ describe("check.js, the run's own bookkeeping", () => {
     fs.mkdirSync(path.join(dir, "a"));
     fs.symlinkSync("nowhere.md", path.join(dir, "b.md"));
     fs.symlinkSync("nowhere.md", path.join(dir, "a", "c.md"));
-    assert.match(run(dir).out, /^dangling links: 2\n {2}a\/c\.md dangling-link .*\n {2}b\.md dangling-link /m);
+    assert.match(run(dir).out, /^dangling links: 2\n {2}a\/c\.md dangling-link .*\n {2}b\.md dangling-link /mu);
   });
   it("prints each kind's findings in sorted order, across folders", () => {
     const dir = path.join(tmp, "finding-order");
@@ -2055,38 +2055,38 @@ describe("check.js, the run's own bookkeeping", () => {
     const alert = [{ Line: 1, Check: "Stub.Order", Severity: "warning", Message: "m" }];
     const lint = JSON.stringify(Object.fromEntries(["b.md", "a/c.md", "b.js", "a/c.js"].map((file) => [path.join(dir, file), alert])));
     const out = run(dir, stubVale("order", "3.25.1", lint)).out;
-    assert.match(out, /^ {2}a\/c\.md:1 Stub\.Order[^\n]*\n {2}b\.md:1 Stub\.Order[^\n]*\n {2}a\/c\.js:1 Stub\.Order[^\n]*\n {2}b\.js:1 Stub\.Order/m, out);
-    assert.match(out, /^ {2}a\/c\.yml:\d+ yaml-parse [^\n]*\n {2}b\.yml:\d+ yaml-parse /m, out);
+    assert.match(out, /^ {2}a\/c\.md:1 Stub\.Order[^\n]*\n {2}b\.md:1 Stub\.Order[^\n]*\n {2}a\/c\.js:1 Stub\.Order[^\n]*\n {2}b\.js:1 Stub\.Order/mu, out);
+    assert.match(out, /^ {2}a\/c\.yml:\d+ yaml-parse [^\n]*\n {2}b\.yml:\d+ yaml-parse /mu, out);
   });
   it("a YAML file that does not parse adds to the issues", () => {
     const dir = path.join(tmp, "yaml-bad");
     mk(dir, block("yaml-bad"));
     write(path.join(dir, "bad.yml"), "key: [1\n");
-    assert.match(run(dir).out, /^\d+ files checked, 1 issues, 0 warnings$/m);
+    assert.match(run(dir).out, /^\d+ files checked, 1 issues, 0 warnings$/mu);
   });
   it("a plugin's issues and warnings reach the run's totals", () => {
-    assert.match(run(path.join(tmp, "plugins", "plug")).out, /^\d+ files checked, 3 issues, 0 warnings$/m);
-    assert.match(run(path.join(tmp, "plugins", "partial")).out, /^\d+ files checked, 0 issues, 1 warnings$/m);
+    assert.match(run(path.join(tmp, "plugins", "plug")).out, /^\d+ files checked, 3 issues, 0 warnings$/mu);
+    assert.match(run(path.join(tmp, "plugins", "partial")).out, /^\d+ files checked, 0 issues, 1 warnings$/mu);
   });
   it("a plugin inside node_modules is not read", () => {
     const dir = path.join(tmp, "vendored");
     mk(dir, block("vendored"));
     plugin(path.join(dir, "node_modules", "dep"), "dep");
-    assert.match(run(dir).out, /^plugin files: none$/m);
+    assert.match(run(dir).out, /^plugin files: none$/mu);
   });
   it("a plugin reached through a linked folder is read", () => {
     const dir = path.join(tmp, "linked-plugin");
     mk(dir, block("linked-plugin"));
     plugin(path.join(tmp, "linked-plugin-real"), "real");
     fs.symlinkSync(path.join(tmp, "linked-plugin-real"), path.join(dir, "real"));
-    assert.match(run(dir).out, /^ {2}real\/hooks\/hooks\.json:\d+ plugin-hooks /m);
+    assert.match(run(dir).out, /^ {2}real\/hooks\/hooks\.json:\d+ plugin-hooks /mu);
   });
   it("a .claude-plugin that is a file marks no plugin", () => {
     const dir = path.join(tmp, "marker-file");
     mk(dir, block("marker-file"));
     write(path.join(dir, "fake", ".claude-plugin"), "not a folder\n");
     write(path.join(dir, "fake", "hooks", "hooks.json"), stopMatcher);
-    assert.match(run(dir).out, /^plugin files: none$/m);
+    assert.match(run(dir).out, /^plugin files: none$/mu);
   });
   it("reads plugins in sorted order, whatever order they were made in", () => {
     for (const order of [
@@ -2096,22 +2096,22 @@ describe("check.js, the run's own bookkeeping", () => {
       const dir = path.join(tmp, `plugin-order-${order.join("-")}`);
       mk(dir, block(path.basename(dir)));
       for (const name of order) plugin(path.join(dir, name), name);
-      assert.match(run(dir).out, /^ {2}a\/hooks\/hooks\.json:\d+ .*\n {2}b\/hooks\/hooks\.json:\d+ /m, order.join());
+      assert.match(run(dir).out, /^ {2}a\/hooks\/hooks\.json:\d+ .*\n {2}b\/hooks\/hooks\.json:\d+ /mu, order.join());
     }
   });
   it("reads Vale's version whatever the width of each part", () => {
     const later = run(path.join(tmp, "good"), stubVale("13.0.0", "13.0.0")).out;
-    assert.doesNotMatch(later, /prose rules not run/, later);
+    assert.doesNotMatch(later, /prose rules not run/u, later);
     const wide = run(path.join(tmp, "good"), stubVale("3.24.10", "3.24.10")).out;
-    assert.match(wide, /vale 3\.24\.10 is older than 3\.25/, wide);
+    assert.match(wide, /vale 3\.24\.10 is older than 3\.25/u, wide);
   });
   it("refuses an older major whatever its minor, and passes a newer major whatever its minor", () => {
-    assert.match(run(path.join(tmp, "good"), stubVale("2.30.0", "2.30.0")).out, /vale 2\.30\.0 is older than 3\.25/);
-    assert.doesNotMatch(run(path.join(tmp, "good"), stubVale("4.0.0", "4.0.0")).out, /prose rules not run/);
+    assert.match(run(path.join(tmp, "good"), stubVale("2.30.0", "2.30.0")).out, /vale 2\.30\.0 is older than 3\.25/u);
+    assert.doesNotMatch(run(path.join(tmp, "good"), stubVale("4.0.0", "4.0.0")).out, /prose rules not run/u);
   });
   it("Vale printing only whitespace has found nothing", () => {
     const r = run(path.join(tmp, "good"), stubVale("blank", "3.25.0", " "));
     assert.equal(r.code, 0, r.out);
-    assert.match(r.out, /^prose rules: none$/m);
+    assert.match(r.out, /^prose rules: none$/mu);
   });
 });

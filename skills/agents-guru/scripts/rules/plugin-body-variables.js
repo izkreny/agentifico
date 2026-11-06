@@ -4,7 +4,7 @@ import path from "node:path";
 import { agentFolder } from "./agent-frontmatter.js";
 import { isSkillFile } from "./frontmatter.js";
 
-const BARE = /\$(CLAUDE_PLUGIN_ROOT|CLAUDE_PLUGIN_DATA|CLAUDE_PROJECT_DIR)\b/g;
+const BARE = /\$(CLAUDE_PLUGIN_ROOT|CLAUDE_PLUGIN_DATA|CLAUDE_PROJECT_DIR)\b/gu;
 
 // WHY: the manifest is asked for by name because a marketplace's root holds a .claude-plugin folder too, above skills that belong to no plugin.
 function inPlugin(file) {

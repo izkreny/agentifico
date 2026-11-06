@@ -71,7 +71,7 @@ for (const [i, target] of targets.entries()) {
     for (const [file, code] of lost) dangling.set(file, code);
     // A dangling link counts as markdown found, so a target holding nothing else reaches the group that names it.
     if (![...reached, ...lost.map(([file]) => file)].some((file) => file.endsWith(".md"))) nothingChecked(`no markdown file found under ${target}`);
-  } else if (!/\.(md|js|py|ya?ml)$/.test(target)) nothingChecked(`no reader takes ${target}`);
+  } else if (!/\.(md|js|py|ya?ml)$/u.test(target)) nothingChecked(`no reader takes ${target}`);
   // A file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
   const root = stat.isDirectory() ? target : process.cwd();
   for (const file of reached) if (!rootOf.has(file)) rootOf.set(file, root);
@@ -88,9 +88,9 @@ const base = folders.reduce((sharedSoFar, folder) => {
 const found = [...rootOf.keys()];
 const files = found.filter((file) => file.endsWith(".md")).sort(byCodeUnit);
 // A code file reaches Vale alone, which reads it as its comments and docstrings, and never markdownlint.
-const codeFiles = found.filter((file) => /\.(js|py)$/.test(file)).sort(byCodeUnit);
+const codeFiles = found.filter((file) => /\.(js|py)$/u.test(file)).sort(byCodeUnit);
 // A YAML file is read by this script alone, since Vale leaves it out for the reason workflows/check.md gives.
-const yamlFiles = found.filter((file) => /\.ya?ml$/.test(file)).sort(byCodeUnit);
+const yamlFiles = found.filter((file) => /\.ya?ml$/u.test(file)).sort(byCodeUnit);
 
 // The skills found are named because a file count alone cannot tell a sweep that covered one skill of a package from one that covered all of them.
 const skills = files
@@ -227,7 +227,7 @@ for (const file of yamlFiles) {
   for (const [i, c] of whole.entries()) {
     const before = whole[i - 1];
     // A colon is no sentence end, since a wrapped comment breaks after one mid-sentence as often as after a word.
-    if (before?.line === c.line - 1 && !/[.!?]["')\]`*_]*$/.test(before.text.trimEnd()) && !withholds(["yaml-comment-wrap"])) {
+    if (before?.line === c.line - 1 && !/[.!?]["')\]`*_]*$/u.test(before.text.trimEnd()) && !withholds(["yaml-comment-wrap"])) {
       yamlFindings.push(
         `${rel}:${c.line} yaml-comment-wrap (warning) continues the sentence on the line before: write each paragraph of a comment on one line`,
       );
@@ -287,7 +287,7 @@ const minVale = MIN_VALE.join(".");
 // A Vale before 3.23 loads a rule naming a scope from config/scopes and matches nothing, so its run would pass with rules quietly off.
 const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
 // Stryker disable next-line StringLiteral: stdout is null only when Vale did not start, and no fallback text holds a version.
-const valeVersion = /(\d+)\.(\d+)\.\d+/.exec(versionRun.stdout ?? "");
+const valeVersion = /(\d+)\.(\d+)\.\d+/u.exec(versionRun.stdout ?? "");
 // An unreadable version is refused like an old one, while a Vale that failed to start is left to the lint run, which names its failure.
 if (!valeVersion && versionRun.status === 0)
   proseNotRun(
@@ -309,7 +309,7 @@ const refusedFiles = (run) => {
   if (run.status !== 2) return [];
   try {
     return run.stderr
-      .split(/^(?=\{)/m)
+      .split(/^(?=\{)/mu)
       .map((part) => JSON.parse(part))
       .filter((e) => e.Code === "E201" && valeFiles.includes(e.Path));
   } catch {

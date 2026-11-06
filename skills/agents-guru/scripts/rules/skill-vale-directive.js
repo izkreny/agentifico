@@ -2,7 +2,7 @@
 const CARRIES_A_COMMENT = new Set(["htmlFlow", "htmlText"]);
 
 // WHY: <!-- VALE OFF --> silences nothing, so the match keeps its case, and markdownlint reads the comments inside an HTML block again as inline tokens, so an unanchored match would report the block and the comment both.
-const OPENS_WITH_VALE = /^<!--\s*vale(?![\w-])/;
+const OPENS_WITH_VALE = /^<!--\s*vale(?![\w-])/u;
 
 function walk(tokens, fn) {
   for (const token of tokens) {

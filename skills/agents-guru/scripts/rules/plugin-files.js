@@ -33,22 +33,22 @@ const REPLACES = [
   ["experimental.monitors", "monitors/monitors.json"],
 ];
 
-const HEADER_VARIABLE = /\$\{([A-Za-z_]\w*)\}|\$([A-Za-z_]\w*)/g;
+const HEADER_VARIABLE = /\$\{([A-Za-z_]\w*)\}|\$([A-Za-z_]\w*)/gu;
 
 // WHY: a command's first word holding no path separator is the program, so what follows it is arguments, where a path with spaces has its separator before the first space.
-const PROGRAM_THEN_MORE = /^[^\s/\\]+\s/;
+const PROGRAM_THEN_MORE = /^[^\s/\\]+\s/u;
 
-const POWERSHELL_BARE = /\$(CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA))\b/g;
-const POWERSHELL_BRACED = /\$\{CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA)\}/;
+const POWERSHELL_BARE = /\$(CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA))\b/gu;
+const POWERSHELL_BRACED = /\$\{CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA)\}/u;
 // WHY: strings are walked in order rather than searched for quotes, because a single quote inside a double-quoted string opens nothing.
-const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'([^']*)'/g;
+const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'([^']*)'/gu;
 
-const EXACT_MATCHER = /^[\w\- ,|]*$/;
-const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/;
+const EXACT_MATCHER = /^[\w\- ,|]*$/u;
+const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/u;
 // WHY: each key is tested whole rather than a segment captured, because a key may hold a dot or a space, and a wildcard may follow it only at the end of the part or a longer name would read as the key.
-const namesServer = (part, server) => new RegExp(`^(?:\\^|\\(\\?:|\\()*mcp__${RegExp.escape(server)}(?:__|(?:\\.[*+])?[)$]*$)`).test(part);
+const namesServer = (part, server) => new RegExp(`^(?:\\^|\\(\\?:|\\()*mcp__${RegExp.escape(server)}(?:__|(?:\\.[*+])?[)$]*$)`, "u").test(part);
 // WHY: a tool name turns any other character in the key into an underscore, so a matcher written for the tool carries that form.
-const toolSpelling = (name) => name.replace(/[^\w-]/g, "_");
+const toolSpelling = (name) => name.replace(/[^\w-]/gu, "_");
 
 export const isPluginRoot = (dir) => fs.statSync(path.join(dir, ".claude-plugin"), { throwIfNoEntry: false })?.isDirectory() ?? false;
 
@@ -94,7 +94,7 @@ function matcherRules(matcher, event, own, report) {
   if (matcher && NO_MATCHER.has(event)) report(matcher, `matcher on ${event} is silently ignored: the event has no matcher support`);
   const matched = matcher?.value.value;
   if (!TOOL_EVENTS.has(event) || typeof matched !== "string") return;
-  const parts = matched.split(/[|,]/).map((part) => part.trim());
+  const parts = matched.split(/[|,]/u).map((part) => part.trim());
   if (EXACT_MATCHER.test(matched))
     for (const part of parts.filter((each) => SERVER_PREFIX_ONLY.test(each)))
       report(matcher, `matcher part ${part} is compared as an exact tool name, so it matches no tool: add the .* a server prefix needs`);

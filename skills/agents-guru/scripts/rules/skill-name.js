@@ -7,7 +7,7 @@ export function defects(fm, dir) {
   if (line === undefined) return ["no name: nothing can match it"];
   const declared = scalar(line.slice(5).trim());
   const bad = [];
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(declared)) bad.push(`name ${JSON.stringify(declared)} is not lowercase alphanumerics joined by single hyphens`);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(declared)) bad.push(`name ${JSON.stringify(declared)} is not lowercase alphanumerics joined by single hyphens`);
   if (declared.length > 64) bad.push(`name is ${declared.length} characters, over the spec's 64`);
   if (declared !== dir) bad.push(`name is ${JSON.stringify(declared)}, directory is ${JSON.stringify(dir)}`);
   return bad;

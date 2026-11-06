@@ -2,10 +2,10 @@ import { built, FRONTMATTER_LINE, frontmatter, isSkillFile, parsed } from "./fro
 import { isList } from "./skill-continuations.js";
 
 // A first word that is not a bare lowercase word, such as `<pr-number>` or a path, is a placeholder or a target rather than a verb.
-const VERB = /^[a-z][a-z0-9-]*$/;
+const VERB = /^[a-z][a-z0-9-]*$/u;
 const firstWord = (text) => {
   // Stryker disable next-line Regex: the text is trimmed first, so a single-space split leaves the first word the same.
-  const word = text.trim().split(/\s+/)[0];
+  const word = text.trim().split(/\s+/u)[0];
   return VERB.test(word) ? word : null;
 };
 
@@ -104,7 +104,7 @@ function routes(tokens) {
     const level = headingLevel(t);
     if (level) {
       if (section && level <= section) section = 0;
-      if (!section && /routing/i.test(t.text)) {
+      if (!section && /routing/iu.test(t.text)) {
         section = level;
         found = true;
       }

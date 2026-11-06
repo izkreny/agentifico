@@ -11,7 +11,7 @@ export function frontmatter(params) {
   // The default frontmatter pattern lets the closing delimiter swallow a blank line after it, so trailing blanks go before the delimiter does.
   while (body.length > 0 && body.at(-1).trim() === "") body.pop();
   // Stryker disable next-line StringLiteral,ConditionalExpression,Regex: the lines after the opening delimiter always end on the closing one, so the test always holds.
-  if (/^---\s*$/.test(body.at(-1) ?? "")) body.pop();
+  if (/^---\s*$/u.test(body.at(-1) ?? "")) body.pop();
   return body;
 }
 
@@ -26,7 +26,7 @@ export function folded(fm, i) {
   const first = fm[i].slice(fm[i].indexOf(":") + 1).trim();
   const parts = [first];
   // A comment line ends a plain scalar and is ordinary text inside a quoted one, so the guard has to know which style it is reading.
-  const quoted = /^["']/.test(first);
+  const quoted = /^["']/u.test(first);
   // Empty lines are crossed rather than ended on because empty lines with no content line after them belong to no value.
   let blanks = 0;
   for (let j = i + 1; j < fm.length; j++) {
@@ -34,7 +34,7 @@ export function folded(fm, i) {
       blanks++;
       continue;
     }
-    if (!/^\s+\S/.test(fm[j])) break;
+    if (!/^\s+\S/u.test(fm[j])) break;
     if (!quoted && fm[j].trim().startsWith("#")) break;
     parts.push(blanks > 0 ? "\n".repeat(blanks) : " ", fm[j].trim());
     blanks = 0;
@@ -45,21 +45,21 @@ export function folded(fm, i) {
 // A quoted value and a value carrying a trailing comment are compared by what they parse to rather than by their punctuation.
 export function scalar(raw) {
   if (raw.startsWith('"')) {
-    const m = raw.slice(1).match(/^((?:[^"\\]|\\.)*)"/);
-    if (m) return m[1].replace(/\\(.)/g, "$1");
+    const m = raw.slice(1).match(/^((?:[^"\\]|\\.)*)"/u);
+    if (m) return m[1].replace(/\\(.)/gu, "$1");
   }
   if (raw.startsWith("'")) {
     // Stryker disable next-line Regex: the pattern matches from the start whenever it matches at all, so its anchor changes nothing.
-    const m = raw.slice(1).match(/^((?:[^']|'')*)'/);
-    if (m) return m[1].replace(/''/g, "'");
+    const m = raw.slice(1).match(/^((?:[^']|'')*)'/u);
+    if (m) return m[1].replace(/''/gu, "'");
   }
   // YAML strips the space before ` #` however much there is, so the cut is trimmed rather than sliced raw.
-  const cut = raw.search(/\s#/);
+  const cut = raw.search(/\s#/u);
   return (cut >= 0 ? raw.slice(0, cut) : raw).trim();
 }
 
 // YAML allows a chomping indicator and an indentation indicator in either order after the `|` or `>`, plus a comment, and a header this misses is read as a plain scalar and libelled with its traps.
-export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/;
+export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/u;
 
 // Version 1.1 is the reading under which `yes` becomes a boolean, and duplicate keys are allowed so the document parses the way the last-wins parsers an agent runs read it.
 export const parsed = (fm, options = {}) => parseDocument(fm.join("\n"), { version: "1.1", uniqueKeys: false, ...options });
@@ -94,6 +94,6 @@ function rough(fm) {
   if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar ends at the first non-empty line with no indent.
-  for (let j = i + 1; fm[j] === "" || /^\s/.test(fm[j]); j++) body.push(fm[j]);
+  for (let j = i + 1; fm[j] === "" || /^\s/u.test(fm[j]); j++) body.push(fm[j]);
   return body.join("\n");
 }
