@@ -55,7 +55,7 @@ The separator does the parsing, not the prefix. `{type}/GHI-{issue-number}_{slug
 | Key | Labels | Carried by | Written as |
 | --- | --- | --- | --- |
 | `AC` | an acceptance criterion | the issue and epic body templates in `references/issue-shape.md` | `- [ ] ::AC1:: …` |
-| `N` | a technical note, one paragraph or one bullet | the issue body template | `::N1:: …` or `- ::N1:: …` |
+| `N` | a technical note, one bullet | the issue body template | `- ::N1:: …` |
 | `D` | a `## Done when` item | the epic and spike body templates | `- [ ] ::D1:: …` |
 | `RF` | a review finding | the review threads on a pull request, per *Ids* in `../pr-flow/references/review-protocol.md` | `::RF1:: …` |
 
