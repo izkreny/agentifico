@@ -61,13 +61,9 @@ The separator does the parsing, not the prefix. `{type}/GHI-{issue-number}_{slug
 | `S` | a plan step | a plan's `## Steps` and its pull request body's, per Step 2 and Step 4 of `../pr-flow/workflows/open.md` | `- ::S1:: …` in the plan, `- [ ] ::S1:: …` in the body |
 | `V` | a verification gate | a plan's `## Verification` and its pull request body's | `- ::V1:: …` in the plan, `- [ ] ::V1:: …` in the body |
 | `Q` | an open question | a plan's and its pull request body's `## Open questions` and `## Settled` | `- ::Q1:: …` |
-| `::RF{n}::CLOSED::` | a marker, not a key: the re-review's verdict that `RF{n}` is closed | the verdict reply in that finding's thread, per *Each verdict as a reply in its finding's thread* in `../pr-flow/workflows/review.md` | `::RF1::CLOSED:: …` |
+| `::RF{n}::CLOSED::` | a marker, not a key: the re-review's verdict that `RF{n}` is closed, issuing no number of its own | the verdict reply in that finding's thread, per *Each verdict as a reply in its finding's thread* in `../pr-flow/workflows/review.md` | `::RF1::CLOSED:: …` |
 
-**The marker issues no number.** It names an `RF` id that is already issued, so the numbering rule below does not reach it.
-
-**A plan and its pull request body share their keys.** `S3` in the plan is the step as intended, and `S3` in the body is its progress, so a gap between the two is a comparison by key rather than by wording.
-
-**One `Q` sequence covers `## Open questions` and `## Settled`.** A question keeps its `Q{n}` when it moves from one to the other, in the body or in the plan file, since a move is not a new item.
+A plan and its pull request body share their keys: `S3` in the plan is the step as intended, and `S3` in the body is its progress, so a gap between plan and body is a comparison by key rather than by wording. One `Q` sequence covers `## Open questions` and `## Settled`, and a question keeps its `Q{n}` when it moves from one to the other, in the body or in the plan file, since a move is not a new item.
 
 **Every key in the table follows one numbering rule.** The first list a key labels is numbered from `1`, in list order. An item added later takes the next free number, even when the list then reads out of order. No key is ever renumbered, and a removed item's number is never reused: a reference written against `AC3` has to mean the same item for the life of the issue or pull request that carries it. Each key numbers on its own, so `AC3` and `D3` on one epic are different items.
 
