@@ -38,7 +38,7 @@ export default {
       if (token.type !== "codeText" || before?.type !== "data" || !before.text.endsWith("!")) {
         return;
       }
-      // WHY: endColumn is 1-based and points past the token, so the token's closing ! sits two places back in the 0-based line.
+      // WHY: endColumn is 1-based and points past the token, so the token's closing bang sits two places back in the 0-based line.
       const bang = before.endColumn - 2;
       const preceding = params.lines[before.endLine - 1][bang - 1];
       if (preceding && !/\s/u.test(preceding)) {
