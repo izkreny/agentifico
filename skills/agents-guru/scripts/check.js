@@ -229,9 +229,9 @@ warnings += yamlWarnings;
 // biome-ignore lint/suspicious/noUnnecessaryConditions: Biome types the counter by its initial 0 and misses the increments in the loop above.
 report("yaml files", yamlFindings, yamlWarnings ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
-// The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 // Stryker disable next-line MethodExpression: a glob whose folder is a file yields nothing, so a file target adds no plugin either way.
 const searched = targets.filter((dir) => fs.statSync(dir).isDirectory());
+// The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 const markersPerDir = await Promise.all(
   searched.map((dir) => Array.fromAsync(glob("**/.claude-plugin", { cwd: dir, exclude: ["**/node_modules/**"], followSymlinks: true }))),
 );
