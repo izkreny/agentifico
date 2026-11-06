@@ -17,6 +17,7 @@ export function defects(fm) {
   // The last `description:` line is swept because that is the one a last-wins parser loads, and sweeping the first would report the duplicate and call the winning value clean.
   // Stryker disable next-line StringLiteral: with no description line, no fallback opens with a quote
   const raw = (dl.at(-1) || "").slice("description:".length).trim();
+  // Stryker disable next-line ConditionalExpression,EqualityOperator: with no description line raw is empty, which BLOCK_SCALAR does not match.
   const block = dl.length > 0 && BLOCK_SCALAR.test(raw);
   // The value is joined the way YAML folds continuation lines because a continuation can carry the same traps as the first line and a legal fold is not a defect.
   // Stryker disable next-line StringLiteral: with no description line, no fallback holds an XML tag
@@ -46,7 +47,7 @@ export function defects(fm) {
       bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
     }
   } else if (
-    // Stryker disable next-line ConditionalExpression: with no description line the value is empty, and an empty value passes every plain-scalar test.
+    // Stryker disable next-line ConditionalExpression,EqualityOperator: with no description line the value is empty, and an empty value passes every plain-scalar test.
     dl.length > 0
   ) {
     const cut = value.search(/\s#/u);

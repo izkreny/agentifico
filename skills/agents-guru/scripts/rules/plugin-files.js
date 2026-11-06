@@ -46,7 +46,12 @@ const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'(?<singleQuoted>[^']*)'/gu;
 const EXACT_MATCHER = /^[\w\- ,|]*$/u;
 const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/u;
 // WHY: each key is tested whole rather than a segment captured, because a key may hold a dot or a space, and a wildcard may follow it only at the end of the part or a longer name would read as the key.
-const namesServer = (part, server) => new RegExp(`^(?:\\^|\\(\\?:|\\()*mcp__${RegExp.escape(server)}(?:__|(?:\\.[*+])?[)$]*$)`, "u").test(part);
+const namesServer = (part, server) =>
+  new RegExp(
+    `^(?:\\^|\\(\\?:|\\()*mcp__${RegExp.escape(server)}(?:__|(?:\\.[*+])?[)$]*$)`,
+    // Stryker disable next-line StringLiteral: RegExp.escape writes escapes either mode reads alike, and the pattern holds no class a code point would split, so the u flag changes no match.
+    "u",
+  ).test(part);
 // WHY: a tool name turns any other character in the key into an underscore, so a matcher written for the tool carries that form.
 const toolSpelling = (name) => name.replace(/[^\w-]/gu, "_");
 

@@ -33,7 +33,7 @@ function declaredName(fm) {
     return null;
   }
   const name = built(doc).value?.name;
-  return name === undefined || name === null ? null : nameText(name);
+  return name === undefined ? null : nameText(name);
 }
 
 // WHY: markdownlint drops a BOM before the judged file reaches this rule, so a sibling has to lose one too.

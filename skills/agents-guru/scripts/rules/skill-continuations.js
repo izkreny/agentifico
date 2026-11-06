@@ -16,7 +16,7 @@ const isSpace = (t) => /^lineEnding|Prefix$|Indent$/u.test(t.type);
 export const isList = (t) => t.type === "listOrdered" || t.type === "listUnordered";
 
 export const paragraphOf = (t) => {
-  // Stryker disable next-line ConditionalExpression: only a content token holds a paragraph as a direct child, so the type test only saves a search.
+  // Stryker disable next-line ConditionalExpression,BlockStatement: only a content token holds a paragraph as a direct child, so the type test only saves a search.
   if (t.type !== "content") {
     return;
   }
@@ -62,7 +62,7 @@ export default {
   parser: "micromark",
   function(params, onError) {
     walk(params.parsers.micromark.tokens, (list) => {
-      // Stryker disable next-line ConditionalExpression: items finds no item in a token that is not a list, so the guard only saves the search.
+      // Stryker disable next-line ConditionalExpression,BlockStatement: items finds no item in a token that is not a list, so the guard only saves the search.
       if (!isList(list)) {
         return;
       }

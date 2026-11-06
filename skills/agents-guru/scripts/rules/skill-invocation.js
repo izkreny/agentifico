@@ -6,7 +6,11 @@ const FIELDS = { "disable-model-invocation": "false", "user-invocable": "true" }
 
 // The name is bounded before and after by something no skill name contains, so another skill's command that this name only ends or only opens does not count.
 export function statesPolicy(text, name) {
-  const slash = new RegExp(`/(?:[\\w.-]+:)?${name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}(?![\\w-])`, "u");
+  const slash = new RegExp(
+    `/(?:[\\w.-]+:)?${name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")}(?![\\w-])`,
+    // Stryker disable next-line StringLiteral: the pattern escapes every syntax character and holds only ASCII classes, which read alike with or without the u flag.
+    "u",
+  );
   return /invo[ck]|spawn/iu.test(text) || slash.test(text);
 }
 
