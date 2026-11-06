@@ -267,7 +267,7 @@ Then post what it returns:
 
 The same endpoint as step 3, via `pr-flow` review, re-review verdict, under the same post cap.
 
-**A verdict that closes its finding opens with `::RF{n}::CLOSED::`**, right below the disclaimer and the `via` line, per *Keys* in `../tracker/references/formats.md`. A verdict that leaves it open carries no marker. The closing reply from the fix never carries it either: that reply is the fixer's claim, and the verdict is the re-review's own reading of it, so the marker is what tells a reader the thread is closed.
+**A verdict that closes its finding opens with `::RF{n}::CLOSED::`**, per *Keys* in `../tracker/references/formats.md`.
 
 #### Re-read the head before building this payload
 
@@ -297,7 +297,7 @@ Every finding in a file the unpushed commits touch is held: the id is assigned f
 
 **The line is brought forward at release, never replayed.** A held finding's `line` counts lines as they stood at `--anchored-at`, and the round goes on committing after the hold, so `release` shifts the number through `git diff <that head>..HEAD` before it anchors anything. A line the fixes rewrote is anchored on the line that replaced it. One they deleted outright is named for the owner rather than posted at a guess, per Step 6 of `workflows/resolve.md`.
 
-**A held finding's fix plan, fix result and verdict go into a follow-up Review, one entry each.** None of them exists when the record Review is posted, and this flow never rewrites a posted Review. At the end of the round, write them as a JSON array of `{rf, kind, text}` - `kind` being `plan`, `result` or `verdict` - and post the Review the script builds from it. A `verdict` entry that closes its finding opens its `text` with `::RF{n}::CLOSED::`, as *Each verdict as a reply in its finding's thread* states for a threaded one:
+**A held finding's fix plan, fix result and verdict go into a follow-up Review, one entry each.** None of them exists when the record Review is posted, and this flow never rewrites a posted Review. At the end of the round, write them as a JSON array of `{rf, kind, text}` - `kind` being `plan`, `result` or `verdict` - and post the Review the script builds from it. A closing `verdict` entry follows *Each verdict as a reply in its finding's thread*:
 
 ```bash
 python3 <skill-dir>/scripts/post-review.py followup --entries <entries-file> --disclaimer-file <disclaimer-file> --out <followup-file>

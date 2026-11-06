@@ -54,7 +54,7 @@ Everything else is the planner's call. Planning mode already knows how to write 
 
 **A backticked path the branch will create or delete carries a tag**: one space after the closing backtick, then `(new)` or `(delete)`, lowercase, as in `` `lib/login.py` (new) ``. Every mention of such a file carries it, not only the one that says what happens, because an untagged mention fails the docs check whenever the file is absent. A file the branch only changes takes no tag. The docs check never reads a `(new)` path, so a wrong one is the review round's to catch.
 
-**Every step, every gate and every open question carries its key from the moment it is written**: `- ::S1:: …` under `## Steps`, `- ::V1:: …` under `## Verification` and `- ::Q1:: …` under `## Open questions`, per *Keys* in `../tracker/references/formats.md`, which owns how they are numbered. The PR body carries the same keys, so `S3` names one step in both.
+**Every step, gate and open question carries its key from the moment it is written**, per *Keys* in `../tracker/references/formats.md`.
 
 **Every required section is written as plain bullets in the plan, never checkboxes.** Each such list is the plan's *intent*, frozen at plan time and reviewed as a diff — it is what the draft PR exists for the owner to argue with. The same list appears in the PR body as `- [ ]`, where it carries *progress*. Two jobs, not two copies of one fact: a checkbox inside a committed file can only be ticked by another commit, and the intent should not change every time a box does.
 
