@@ -65,15 +65,15 @@ gh issue view <issue-number> --json body --jq '[.body | scan("(?m)^- \\[[ xX]\\]
 
 It takes every criterion line with a checkbox, ticked or not. It skips a removed criterion, which has no checkbox, and one marked `READ`. An empty list passes, and the verdict says no criterion carries a key, so a pass on nothing is never silent.
 
-Then search the PR's head commit, once per key:
+Then read the PR's head and search it, once per key:
 
 ```bash
-gh pr view <pr-number> --json headRefOid --jq .headRefOid
-git fetch <remote> --quiet
+git fetch <remote> <branch> --quiet
+git rev-parse FETCH_HEAD
 git grep -n -w -F -e GHI-<issue-number> --and -e <key> <head-sha> -- ':(glob)<glob>'
 ```
 
-`-w` makes both whole tokens, and `--and` keeps them on one line. Exit 0 prints each line naming the key; exit 1 means no test names it.
+The head is read as `workflows/review.md` Step 1 reads it, and never through `gh pr view`, for the lag reason stated there. `-w` makes both whole tokens, and `--and` keeps them on one line. Exit 0 prints each line naming the key; exit 1 means no test names it.
 
 **Any key with no match refuses the flip**, listing every such key: `⛔ REFUSED - no test names {keys}`. Otherwise Step 6 lists each key beside the `file:line` that names it, so the mapping reads from the console.
 
