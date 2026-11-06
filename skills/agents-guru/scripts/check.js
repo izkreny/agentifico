@@ -42,6 +42,16 @@ const rootOf = new Map();
 const folders = [];
 // The walk matches names rather than files, so a folder named notes.md arrives beside the files inside it, and a link statSync cannot resolve arrives as a file nothing can read.
 const dangling = new Map();
+// WHY: every target is stat'ed before any folder is walked, so a mistyped one refuses at once rather than after the walks of the targets beside it.
+for (const target of targets) {
+  const stat = fs.statSync(target, { throwIfNoEntry: false });
+  if (!stat) {
+    nothingChecked(`no such file or folder: ${target}`);
+  }
+  if (!(stat.isDirectory() || /\.(?:md|js|py|ya?ml)$/u.test(target))) {
+    nothingChecked(`no reader takes ${target}`);
+  }
+}
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const walks = await Promise.all(
   targets.map((target) =>
@@ -53,10 +63,7 @@ const walks = await Promise.all(
   ),
 );
 for (const [i, target] of targets.entries()) {
-  const stat = fs.statSync(target, { throwIfNoEntry: false });
-  if (!stat) {
-    nothingChecked(`no such file or folder: ${target}`);
-  }
+  const stat = fs.statSync(target);
   let reached = [target];
   if (stat.isDirectory()) {
     const lost = [];
@@ -81,8 +88,6 @@ for (const [i, target] of targets.entries()) {
     if (![...reached, ...lost.map(([file]) => file)].some((file) => file.endsWith(".md"))) {
       nothingChecked(`no markdown file found under ${target}`);
     }
-  } else if (!/\.(?:md|js|py|ya?ml)$/u.test(target)) {
-    nothingChecked(`no reader takes ${target}`);
   }
   // A file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
   const root = stat.isDirectory() ? target : process.cwd();

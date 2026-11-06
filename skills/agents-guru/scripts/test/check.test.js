@@ -1135,6 +1135,11 @@ describe("check.js", () => {
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /no such file or folder: .*nope\.md/u);
   });
+  it("a path that does not exist fails before any folder is walked", () => {
+    const r = run([path.join(tmp, "empty"), path.join(tmp, "nope.md")]);
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /no such file or folder: .*nope\.md/u);
+  });
   it("a file no reader takes fails, naming it", () => {
     const r = run(path.join(tmp, "notes", "notes.txt"));
     assert.equal(r.code, 1, r.out);
