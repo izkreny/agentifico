@@ -120,19 +120,19 @@ const reportSkipped = () => {
 };
 
 // One run per root, passed to the layout, referenced-path and package-runner rules so none reads a tree nobody asked it to read.
-const results = {};
-for (const root of new Set(files.map((file) => rootOf.get(file)))) {
-  Object.assign(
-    results,
-    await lint({
+const perRoot = await Promise.all(
+  [...new Set(files.map((file) => rootOf.get(file)))].map((root) =>
+    lint({
       files: files.filter((file) => rootOf.get(file) === root),
       customRules: rules,
       config: { ...config, "skill-layout": { root }, "skill-referenced-paths": { root }, "skill-package-runners": { root } },
       // Without this a <!-- markdownlint-disable --> in the target would switch off every rule, skill-vale-directive included.
       noInlineConfig: true,
     }),
-  );
-}
+  ),
+);
+const results = {};
+for (const rootResults of perRoot) Object.assign(results, rootResults);
 
 // Every markdownlint class prints before Vale runs, so a structural finding is never withheld by a prose linter that cannot start.
 let issues = dangling.size;
@@ -227,11 +227,12 @@ warnings += yamlWarnings;
 report("yaml files", yamlFindings, yamlWarnings ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
 // The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
-const pluginDirs = new Set();
 // Stryker disable next-line MethodExpression: a glob whose folder is a file yields nothing, so a file target adds no plugin either way.
-for (const target of targets.filter((target) => fs.statSync(target).isDirectory()))
-  for await (const marker of glob("**/.claude-plugin", { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }))
-    pluginDirs.add(path.dirname(path.join(target, marker)));
+const searched = targets.filter((dir) => fs.statSync(dir).isDirectory());
+const markersPerDir = await Promise.all(
+  searched.map((dir) => Array.fromAsync(glob("**/.claude-plugin", { cwd: dir, exclude: ["**/node_modules/**"], followSymlinks: true }))),
+);
+const pluginDirs = new Set(searched.flatMap((dir, i) => markersPerDir[i].map((marker) => path.dirname(path.join(dir, marker)))));
 const pluginFiles = [];
 const pluginFindings = [];
 let pluginIssues = 0;

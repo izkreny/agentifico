@@ -218,10 +218,8 @@ describe("skill-frontmatter-parsed, the differential", () => {
     });
   }
   it("an absent or bare description is never called the wrong type", async () => {
-    for (const fm of ["name: x", "name: x\ndescription:"]) {
-      const found = await findings("fx/x/SKILL.md", skill(fm), parsed);
-      assert.ok(!has(found, "skill-frontmatter-parsed", "not a string"), JSON.stringify(found));
-    }
+    const results = await Promise.all(["name: x", "name: x\ndescription:"].map((fm) => findings("fx/x/SKILL.md", skill(fm), parsed)));
+    for (const found of results) assert.ok(!has(found, "skill-frontmatter-parsed", "not a string"), JSON.stringify(found));
   });
   it("a duplicate key is compared once, against the value that wins", async () => {
     const found = await findings("fx/x/SKILL.md", skill("name: x\ndescription: |\n  d\ncompatibility: one\ncompatibility: two #c"), parsed);
@@ -1635,8 +1633,8 @@ describe("skill-package-runners", () => {
       [`bash -c 'sh -c "npx eslint ."'`, "npx eslint . names no version"],
       ['out="$(npx eslint "$f")"', 'npx eslint "$f" names no version'],
     ];
-    for (const [command, detail] of names)
-      expectDetail(await findings("fx/inner/SKILL.md", skillWith(`\`${command}\``), packageRunners), "skill-package-runners", detail);
+    const results = await Promise.all(names.map(([command]) => findings("fx/inner/SKILL.md", skillWith(`\`${command}\``), packageRunners)));
+    for (const [i, [, detail]] of names.entries()) expectDetail(results[i], "skill-package-runners", detail);
   });
   it("a pin inside a quoted command counts", async () => {
     expectClean(await findings("fx/esc-pin/SKILL.md", skillWith('`bash -c "npx \\"eslint@9\\""`'), packageRunners), "skill-package-runners");
