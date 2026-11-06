@@ -55,7 +55,7 @@ Same posture: read, report, do not edit.
 
 **A keyed criterion is proven by a test that names it**, per *Writing good acceptance criteria* in `../tracker/references/issue-shape.md`, which owns the rule. This step checks only that such a test exists. Whether it passes is the job of the check commands in `## Verification`, so a skipped test still passes here.
 
-**The repository turns the gate on with a `Test files:` line in its config file**, naming a glob of its test files, as in `Test files: spec/**/*_spec.rb`. The glob is a git pathspec glob, so `**` crosses directories. Without the line the gate is off: say so in the verdict, and this step ends there.
+**The repository turns the gate on with `Test files: <test-files-glob>` in its config file.** The glob is a git pathspec glob. Without the line the gate is off: say so in the verdict, and this step ends there.
 
 Read the criterion keys off the issue the body's `Closes #{issue-number}` line names:
 
@@ -71,7 +71,7 @@ Then read the PR's head and search it, once per key:
 gh pr view <pr-number> --json headRefName --jq .headRefName
 git fetch <remote> <branch> --quiet
 git rev-parse FETCH_HEAD
-git grep -n -w -F -e GHI-<issue-number> --and -e <key> <head-sha> -- ':(glob)<glob>'
+git grep -n -w -F -e GHI-<issue-number> --and -e <key> <head-sha> -- ':(glob)<test-files-glob>'
 ```
 
 `<branch>` is the PR's own `headRefName`, never the branch the session has checked out. The head's sha is read as `workflows/review.md` Step 1 reads it, and never through `gh pr view --json headRefOid`, for the lag reason stated there. `-w` makes both whole tokens, and `--and` keeps them on one line. Exit 0 prints each line naming the key; exit 1 means no test names it.
