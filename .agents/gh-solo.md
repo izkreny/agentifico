@@ -68,6 +68,8 @@ npm --prefix skills/agents-guru run lint
 
 **A package that declares a `lint` script in its own manifest owes that run beside its suite.** The rule is the manifest rather than the command, so a package that later ships a linter is already covered and owes this file no edit. What `skills/agents-guru/package.json` declares today is `biome check .`, which neither its suite nor its own check invokes, so a branch that skips it leaves that package's JavaScript unlinted and nothing else catches it.
 
+A lint finding is fixed in the code, never suppressed, unless the owner approves that one suppression. This covers a `biome-ignore` comment and any other linter's suppression directive. Before writing one, ask the owner on the branch, naming the line and why no fix works, and record the approval in the pull request's `## Settled`. A suppression carries only a stated reason, and no gate checks that the reason is true.
+
 **The agents-guru package's mutation run is a step of that package's sweep, never a branch's `## Verification` entry.** It sets no break threshold, so no score fails it and its exit code proves only that it finished. What it yields is the score and the surviving mutants, each of which the sweep triages. It needs the same `npm ci` and Vale as the suite. Its incremental file is ignored rather than committed, so a run reruns every mutant on a tree that holds none:
 
 ```bash
