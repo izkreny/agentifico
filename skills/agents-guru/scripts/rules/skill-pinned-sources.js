@@ -82,14 +82,13 @@ export default {
     let sectionLevel = null;
     for (const token of params.parsers.micromark.tokens) {
       const heading = headingOf(token);
-      if (heading) {
-        if (sectionLevel === null || heading.level <= sectionLevel) sectionLevel = SOURCE_SECTION.test(heading.text) ? heading.level : null;
-      }
+      if (heading && (sectionLevel === null || heading.level <= sectionLevel)) sectionLevel = SOURCE_SECTION.test(heading.text) ? heading.level : null;
       if (sectionLevel === null) continue;
       walk([token], (inner) => {
-        const url =
-          inner.type === "link" || inner.type === "image" ? definitions.get(referenceLabel(inner)) : CARRIES_A_LINK.has(inner.type) ? inner.text : undefined;
-        if (!url || !unpinned(url)) return;
+        let url;
+        if (inner.type === "link" || inner.type === "image") url = definitions.get(referenceLabel(inner));
+        else if (CARRIES_A_LINK.has(inner.type)) url = inner.text;
+        if (!(url && unpinned(url))) return;
         onError({
           lineNumber: inner.startLine,
           detail: `${url} names no commit: if it credits a source, link the commit that was read`,

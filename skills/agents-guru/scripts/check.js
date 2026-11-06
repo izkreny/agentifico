@@ -78,7 +78,8 @@ for (const [i, target] of targets.entries()) {
 }
 
 // Paths print from the folder every target shares, so no printed path repeats the part common to all of them.
-const base = folders.reduce((shared, folder) => {
+const base = folders.reduce((sharedSoFar, folder) => {
+  let shared = sharedSoFar;
   while (shared !== folder && !folder.startsWith(shared.endsWith(path.sep) ? shared : shared + path.sep)) shared = path.dirname(shared);
   return shared;
 });
@@ -170,8 +171,10 @@ for (const file of files) {
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
     const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")}${warning ? " (warning)" : ""} ${e.ruleDescription}${detail}${context}`;
     // Stryker disable next-line MethodExpression: every custom rule carries one name and no built-in rule's names are in the set, so some and every agree.
-    const bucket = e.ruleNames.some((name) => contractRuleNames.has(name)) ? contractFindings : proseShape ? proseShapeFindings : generalFindings;
-    bucket.push(line);
+    const contract = e.ruleNames.some((name) => contractRuleNames.has(name));
+    if (contract) contractFindings.push(line);
+    else if (proseShape) proseShapeFindings.push(line);
+    else generalFindings.push(line);
   }
 }
 warnings += contractWarnings + proseShapeWarnings;

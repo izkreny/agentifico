@@ -11,7 +11,7 @@ function walk(tokens, fn) {
 
 export const paragraphOf = (t) => {
   // Stryker disable next-line ConditionalExpression: only a content token holds a paragraph as a direct child, so the type test only saves a search.
-  if (t.type !== "content") return undefined;
+  if (t.type !== "content") return;
   return t.children.find((c) => c.type === "paragraph");
 };
 

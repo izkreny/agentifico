@@ -43,7 +43,7 @@ function underStryker(args, env) {
   return { args: ["--import", strykerChild, ...args], env: { ...env, STRYKER_CHILD_COVERAGE: dump }, absorb };
 }
 
-function run(targets, env = process.env, cwd = undefined) {
+function run(targets, env = process.env, cwd) {
   const spawn = underStryker([check, ...[targets].flat()], env);
   const r = spawnSync(process.execPath, spawn.args, { encoding: "utf8", env: spawn.env, cwd });
   spawn.absorb();

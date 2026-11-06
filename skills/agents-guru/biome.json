@@ -16,13 +16,21 @@
   "linter": {
     "rules": {
       "preset": "recommended",
+      "complexity": {
+        "noUselessUndefined": "error",
+        "useSimplifiedLogicExpression": "error"
+      },
       "performance": {
         "noAwaitInLoops": "error"
       },
       "style": {
         "noCommonJs": "error",
         "useForOf": "error",
-        "useObjectSpread": "error"
+        "useObjectSpread": "error",
+        "noNestedTernary": "error",
+        "useCollapsedIf": "error",
+        "noNegationElse": "error",
+        "noParameterAssign": "error"
       },
       "suspicious": {
         "noVar": "error",

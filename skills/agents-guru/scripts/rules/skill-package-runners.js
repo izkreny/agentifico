@@ -64,7 +64,7 @@ export default {
   function(params, onError) {
     // WHY: a README is written for a person, per references/readme.md, so its install line is no instruction to an agent.
     if (path.basename(params.name) === "README.md") return;
-    if (!isSkillFile(params.name) && !owningSkill(params.name, params.config.root ?? process.cwd())) return;
+    if (!(isSkillFile(params.name) || owningSkill(params.name, params.config.root ?? process.cwd()))) return;
     walk(params.parsers.micromark.tokens, (token) => {
       if (token.type !== "codeTextData" && token.type !== "codeFlowValue") return;
       for (const command of unpinned(withoutComment(token.text)))

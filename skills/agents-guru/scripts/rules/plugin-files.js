@@ -202,17 +202,17 @@ const filesIn = (location) => {
 };
 
 // A commands object maps each name to a source, so its paths are the sources rather than the names.
-const pathsOf = (value) =>
-  typeof value === "string"
-    ? [value]
-    : Array.isArray(value)
-      ? value.filter((item) => typeof item === "string")
-      : // Stryker disable next-line ConditionalExpression: Object.values gives a number or a boolean no entries.
-        value && typeof value === "object"
-        ? // Stryker disable next-line ArrayDeclaration: a listed path holding no file loads nothing, so a stray one leaves the ignored files the same.
-          Object.values(value).flatMap((entry) => (typeof entry?.source === "string" ? [entry.source] : []))
-        : // Stryker disable next-line ArrayDeclaration: a listed path holding no file loads nothing, so a stray one leaves the ignored files the same.
-          [];
+const pathsOf = (value) => {
+  if (typeof value === "string") return [value];
+  if (Array.isArray(value)) return value.filter((item) => typeof item === "string");
+  // Stryker disable next-line ConditionalExpression: Object.values gives a number or a boolean no entries.
+  if (value && typeof value === "object") {
+    // Stryker disable next-line ArrayDeclaration: a listed path holding no file loads nothing, so a stray one leaves the ignored files the same.
+    return Object.values(value).flatMap((entry) => (typeof entry?.source === "string" ? [entry.source] : []));
+  }
+  // Stryker disable next-line ArrayDeclaration: a listed path holding no file loads nothing, so a stray one leaves the ignored files the same.
+  return [];
+};
 
 const monitorDefects = (monitors, lineOf) =>
   itemsOf(monitors)

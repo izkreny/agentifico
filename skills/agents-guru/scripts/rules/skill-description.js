@@ -24,14 +24,13 @@ export function defects(fm) {
   } else if (raw.startsWith('"')) {
     // Anything after the closing quote but a comment is a parse error, and an unescaped inner quote is the usual way that happens.
     const m = value.slice(1).match(/^((?:[^"\\]|\\.)*)"(.*)$/);
-    if (!m) bad.push("unclosed double quote: parse error");
-    else {
+    if (m) {
       if (/\\(?![\\"nt])/.test(m[1])) bad.push("risky backslash escape in double quotes");
       if (!TRAILING.test(m[2])) bad.push("text after the closing double quote, an unescaped inner double quote: parse error");
-    }
+    } else bad.push("unclosed double quote: parse error");
   } else if (raw.startsWith("'")) {
     const m = value.slice(1).match(/^((?:[^']|'')*)'(.*)$/);
-    if (!m || !TRAILING.test(m[2])) bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
+    if (!(m && TRAILING.test(m[2]))) bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
   } else if (
     // Stryker disable next-line ConditionalExpression: with no description line the value is empty, and an empty value passes every plain-scalar test.
     dl.length
