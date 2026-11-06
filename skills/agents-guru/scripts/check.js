@@ -55,12 +55,8 @@ for (const target of targets) {
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const walks = await Promise.all(
   targets.map((target) =>
-    fs.statSync(target, { throwIfNoEntry: false })?.isDirectory()
-      ? Array.fromAsync(
-          glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
-        )
-      : // Stryker disable next-line ArrayDeclaration: a target that was no folder at the walk is read as a file, so its walk is never read.
-        [],
+    // WHY: a glob whose folder is a file or is missing yields nothing, so every target is walked and a target that changes type mid-run leaves its walk empty.
+    Array.fromAsync(glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true })),
   ),
 );
 for (const [i, target] of targets.entries()) {
