@@ -131,6 +131,9 @@ check "an unkeyed gate" 1 "$NAME" "${GOOD/'- ::V1:: `npm test`'/'- `npm test`'}"
 check "an unkeyed question" 1 "$NAME" "${GOOD/'None.'/'- Which form?'}"
 check "a step keyed as a gate" 1 "$NAME" "${GOOD/'- ::S1::'/'- ::V2::'}"
 check "a numbered step with no key" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'1. Write the form.'}"
+check "an unkeyed step under a ### subheading" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'### The form
+
+- Write the form.'}"
 check "an unkeyed step one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/' - Write the form.'}"
 check "an unkeyed sibling one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
  - Style it.'}"
@@ -159,6 +162,21 @@ then style it.
 check "an unkeyed bullet nested after an indented paragraph" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
 
   Then style it.
+
+  - a detail of it'}"
+check "a keyed step under a ### subheading" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'### The form
+
+- ::S1:: Write the form.'}"
+check "an unkeyed bullet nested after a tab-indented paragraph" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+	Then style it.
+
+  - a detail of it'}"
+check "an unkeyed bullet nested after a tab-indented fence" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+	```text
+	a block
+	```
 
   - a detail of it'}"
 check "an unkeyed item inside a fence" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
