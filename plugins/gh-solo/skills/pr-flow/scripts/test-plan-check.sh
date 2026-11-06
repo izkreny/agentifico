@@ -111,8 +111,8 @@ check "a list item after a nested fence" 0 "$NAME" "$NESTED"
 check "a nested fence and no list item" 1 "$NAME" "${NESTED/'- ::V1:: `npm test`'/'Run it.'}"
 
 echo "a checkbox fails in any section:"
-check "in ## Steps" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- [ ] Write the form.'}"
-check "in ## Verification" 1 "$NAME" "${GOOD/'- ::V1:: `npm test`'/'- [x] `npm test`'}"
+check "in ## Steps" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- [ ] ::S1:: Write the form.'}"
+check "in ## Verification" 1 "$NAME" "${GOOD/'- ::V1:: `npm test`'/'- [x] ::V1:: `npm test`'}"
 check "in another section" 1 "$NAME" "${GOOD/'None.'/'* [ ] ::Q1:: None.'}"
 check "inside a blockquote" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'> - [ ] Write the form.'}"
 
@@ -185,7 +185,7 @@ check "an uppercase slug" 1 "2026-08-16_GHI-50_Login-form.md" "$GOOD"
 
 echo "a path Vale rewrites still reports:"
 rm -f "$PLANS"/*
-printf '%s\n' "${GOOD/'- ::S1:: Write the form.'/'- [ ] Write the form.'}" > "$PLANS/$NAME"
+printf '%s\n' "${GOOD/'- ::S1:: Write the form.'/'- [ ] ::S1:: Write the form.'}" > "$PLANS/$NAME"
 got=0
 python3 "$SCRIPT" "$TREE/docs/../docs/plans/$NAME" > /dev/null 2>&1 || got=$?
 if [[ "$got" == 1 ]]; then echo "  ok   a/../b"; else echo "  FAIL a/../b: exit $got, want 1"; fails=$((fails + 1)); fi
@@ -194,7 +194,7 @@ echo "the served repository's own Vale config is never read:"
 printf 'StylesPath = nowhere\n[*.md]\nBasedOnStyles = Nope\n' > "$TREE/.vale.ini"
 for want in 0 1; do
     rm -f "$PLANS"/*
-    [[ "$want" == 0 ]] && content="$GOOD" || content="${GOOD/'- ::S1:: Write the form.'/'- [ ] Write the form.'}"
+    [[ "$want" == 0 ]] && content="$GOOD" || content="${GOOD/'- ::S1:: Write the form.'/'- [ ] ::S1:: Write the form.'}"
     printf '%s\n' "$content" > "$PLANS/$NAME"
     got=0
     (cd "$TREE" && python3 "$SCRIPT" "docs/plans/$NAME") > /dev/null 2>&1 || got=$?
