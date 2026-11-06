@@ -33,8 +33,6 @@ export function defects(fm) {
     if (!(m && TRAILING.test(m.groups.rest))) bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
   } else if (
     // Stryker disable next-line ConditionalExpression: with no description line the value is empty, and an empty value passes every plain-scalar test.
-
-    // Stryker disable next-line ConditionalExpression: with no description line the value is empty, and an empty value passes every plain-scalar test.
     dl.length > 0
   ) {
     const cut = value.search(/\s#/u);
