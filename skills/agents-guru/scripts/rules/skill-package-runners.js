@@ -1,5 +1,6 @@
 // WHY: the runners and what counts as a version are the using-scripts page's, at https://agentskills.io/skill-creation/using-scripts.
 import path from "node:path";
+import process from "node:process";
 import { isSkillFile } from "./frontmatter.js";
 import { owningSkill } from "./paths.js";
 

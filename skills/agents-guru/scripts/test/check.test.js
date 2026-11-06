@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, it } from "vitest";
 import { looksLikePath, owningSkill, resolves } from "../rules/paths.js";

@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import { glob } from "node:fs/promises";
 import path from "node:path";
+import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { lint } from "markdownlint/promise";
 import * as YAML from "yaml";

@@ -23,7 +23,8 @@
         "noExcessiveCognitiveComplexity": "warn"
       },
       "correctness": {
-        "noUnresolvedImports": "error"
+        "noUnresolvedImports": "error",
+        "noProcessGlobal": "error"
       },
       "performance": {
         "noAwaitInLoops": "error"

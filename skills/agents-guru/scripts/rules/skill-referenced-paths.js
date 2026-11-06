@@ -1,3 +1,4 @@
+import process from "node:process";
 import { isHomeRelative, looksLikePath, resolves } from "./paths.js";
 
 // A fenced block is a command to run rather than a reference to a file in this tree, so only code spans in prose are read.
