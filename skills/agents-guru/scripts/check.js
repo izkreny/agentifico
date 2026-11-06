@@ -375,14 +375,15 @@ const refusedFiles = (run) => {
   if (run.status !== 2) {
     return [];
   }
+  // Stryker disable next-line ConditionalExpression,LogicalOperator: any other refusal fails the rerun the same way, so the run stops as not run with or without the filter.
+  const isFileRefusal = (e) => e.Code === "E201" && valeFiles.includes(e.Path);
   try {
     return (
       // Stryker disable next-line MethodExpression: any other refusal fails the rerun the same way, so the run stops as not run with or without the filter.
       run.stderr
         .split(/^(?=\{)/mu)
         .map((part) => JSON.parse(part))
-        // Stryker disable next-line ConditionalExpression,LogicalOperator: any other refusal fails the rerun the same way, so the run stops as not run with or without the filter.
-        .filter((e) => e.Code === "E201" && valeFiles.includes(e.Path))
+        .filter(isFileRefusal)
     );
   } catch {
     // Stryker disable next-line ArrayDeclaration: stderr that does not parse comes with a refusal status the rerun repeats, so the run stops as not run before the list is read.

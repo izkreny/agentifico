@@ -29,20 +29,20 @@ function advertised(hint) {
     }
     if (ch === "]") {
       depth -= 1;
-    }
-    if (ch === "]" && depth === 0) {
-      close();
-      const words = group.map(firstWord).filter(Boolean);
-      for (const word of words) {
-        all.add(word);
-      }
-      if (group.length > 1) {
+      if (depth === 0) {
+        close();
+        const words = group.map(firstWord).filter(Boolean);
         for (const word of words) {
-          menu.add(word);
+          all.add(word);
         }
+        if (group.length > 1) {
+          for (const word of words) {
+            menu.add(word);
+          }
+        }
+        group = [];
+        continue;
       }
-      group = [];
-      continue;
     }
     if (ch === "|" && depth === 1) {
       close();
