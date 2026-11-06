@@ -37,7 +37,7 @@ Sort every unresolved thread into its pile, per the protocol's account of what a
 
 One Conversation comment, posted first, so that no thread is ever resolved before the evidence for resolving it exists.
 
-**A batch that covers no thread posts no comment**, since a marker naming no id authorises nothing. Step 4 then resolves nothing, and Step 5 onwards runs as written. That is the ordinary case after *Resolving only the closed threads* has cleared every thread.
+**A batch that covers no thread posts no comment**, since a marker naming no id authorises nothing, and Step 4 then resolves nothing. That is the ordinary case for `:rp` after *Resolving only the closed threads* has cleared every thread.
 
 ```bash
 gh pr comment <pr-number> --body-file <body-file>
