@@ -55,7 +55,7 @@ Same posture: read, report, do not edit.
 
 **A keyed criterion is proven by a test that names it**, per *Writing good acceptance criteria* in `../tracker/references/issue-shape.md`, which owns the rule. This step checks only that such a test exists. Whether it passes is the job of the check commands in `## Verification`, so a skipped test still passes here.
 
-**The repository turns the gate on with a `Test files:` line in its config file**, naming a glob of its test files, as in `Test files: spec/**/*_spec.rb`. The glob is a git pathspec glob, so `**` crosses directories. Without the line the gate is off: say so in the verdict and go to Step 5.
+**The repository turns the gate on with a `Test files:` line in its config file**, naming a glob of its test files, as in `Test files: spec/**/*_spec.rb`. The glob is a git pathspec glob, so `**` crosses directories. Without the line the gate is off: say so in the verdict, and this step ends there.
 
 Read the criterion keys off the issue the body's `Closes #{issue-number}` line names:
 
@@ -75,7 +75,7 @@ git grep -n -w -F -e GHI-<issue-number> --and -e <key> <head-sha> -- ':(glob)<gl
 
 The head is read as `workflows/review.md` Step 1 reads it, and never through `gh pr view`, for the lag reason stated there. `-w` makes both whole tokens, and `--and` keeps them on one line. Exit 0 prints each line naming the key; exit 1 means no test names it.
 
-**Any key with no match refuses the flip**, listing every such key: `⛔ REFUSED - no test names {keys}`. Otherwise Step 6 lists each key beside the `file:line` that names it, so the mapping reads from the console.
+**Any key with no match refuses the flip**, listing every such key: `⛔ REFUSED - no test names {keys}`. Otherwise the verdict lists each key beside the `file:line` that names it, so the mapping reads from the console.
 
 ## Step 5 - Mark it ready
 
