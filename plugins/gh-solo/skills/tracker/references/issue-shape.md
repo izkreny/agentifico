@@ -81,9 +81,8 @@ GitHub renders **GitHub Flavored Markdown** everywhere. Write bodies to a file a
 
 ## Technical notes
 
-::N1:: [Approach, endpoints, component names, data shapes]
-
-::N2:: [One note per paragraph or bullet]
+- ::N1:: [Approach, endpoints, component names, data shapes]
+- ::N2:: [One note per bullet]
 
 ## Dependencies
 
