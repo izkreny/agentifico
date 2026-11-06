@@ -10,16 +10,17 @@ const FISH = [
 ];
 
 // A heredoc body and a quoted string are data the command carries, so neither is matched as syntax.
-const HEREDOC = /(?<!<)<<(?!<)(-?)\s*(?:'([^']+)'|"([^"]+)"|\\([\w-]+)|([\w-]+))/gu;
+const HEREDOC = /(?<!<)<<(?!<)(?<dash>-?)\s*(?:'(?<single>[^']+)'|"(?<double>[^"]+)"|\\(?<escaped>[\w-]+)|(?<bare>[\w-]+))/gu;
 const QUOTED = /'[^']*'|"(?:[^"\\]|\\.)*"/gu;
 // A `<<` inside quotes or inside `(( ))` arithmetic is text or a shift, never a heredoc.
 const ARITHMETIC = /\(\(.*?\)\)/gu;
 
 function heredocTerminator(text) {
   const spans = [...text.matchAll(QUOTED), ...text.matchAll(ARITHMETIC)].map((m) => [m.index, m.index + m[0].length]);
-  for (const m of text.matchAll(HEREDOC)) {
+  for (const { index, groups } of text.matchAll(HEREDOC)) {
     // Stryker disable next-line EqualityOperator: a quoted or arithmetic span opens on a quote or a parenthesis, never on the < a heredoc starts at.
-    if (!spans.some(([start, end]) => m.index >= start && m.index < end)) return { word: m[2] ?? m[3] ?? m[4] ?? m[5], tabs: m[1] === "-" };
+    if (!spans.some(([start, end]) => index >= start && index < end))
+      return { word: groups.single ?? groups.double ?? groups.escaped ?? groups.bare, tabs: groups.dash === "-" };
   }
   return null;
 }

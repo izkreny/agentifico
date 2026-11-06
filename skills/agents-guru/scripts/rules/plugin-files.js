@@ -33,15 +33,15 @@ const REPLACES = [
   ["experimental.monitors", "monitors/monitors.json"],
 ];
 
-const HEADER_VARIABLE = /\$\{([A-Za-z_]\w*)\}|\$([A-Za-z_]\w*)/gu;
+const HEADER_VARIABLE = /\$\{(?<braced>[A-Za-z_]\w*)\}|\$(?<bare>[A-Za-z_]\w*)/gu;
 
 // WHY: a command's first word holding no path separator is the program, so what follows it is arguments, where a path with spaces has its separator before the first space.
 const PROGRAM_THEN_MORE = /^[^\s/\\]+\s/u;
 
-const POWERSHELL_BARE = /\$(CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA))\b/gu;
+const POWERSHELL_BARE = /\$(?<name>CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA))\b/gu;
 const POWERSHELL_BRACED = /\$\{CLAUDE_(?:PROJECT_DIR|PLUGIN_ROOT|PLUGIN_DATA)\}/u;
 // WHY: strings are walked in order rather than searched for quotes, because a single quote inside a double-quoted string opens nothing.
-const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'([^']*)'/gu;
+const POWERSHELL_STRING = /"(?:`.|[^"`])*"|'(?<singleQuoted>[^']*)'/gu;
 
 const EXACT_MATCHER = /^[\w\- ,|]*$/u;
 const SERVER_PREFIX_ONLY = /^mcp__(?:(?!__).)*(?:__)?$/u;
@@ -113,7 +113,9 @@ function fieldRules(hook, event, report) {
   const allowed = new Set(itemsOf(hook.get("allowedEnvVars", true)).map((item) => item.value));
   for (const header of itemsOf(headers?.value)) {
     if (typeof header.value?.value !== "string") continue;
-    for (const [, braced, bare] of header.value.value.matchAll(HEADER_VARIABLE))
+    for (const {
+      groups: { braced, bare },
+    } of header.value.value.matchAll(HEADER_VARIABLE))
       if (!allowed.has(braced ?? bare))
         report(header, `header ${header.key.value} names ${braced ?? bare}, which allowedEnvVars does not list, so it is sent empty`);
   }
@@ -132,12 +134,16 @@ function commandRules(hook, report) {
   if (namesUserConfig(command))
     report(command, `command names \${user_config.*} in shell form, so the hook fails instead of running: set args, or read $CLAUDE_PLUGIN_OPTION_<KEY>`);
   if (hook.get("shell") !== "powershell") return;
-  for (const [, name] of text.matchAll(POWERSHELL_BARE))
+  for (const {
+    groups: { name },
+  } of text.matchAll(POWERSHELL_BARE))
     report(
       command,
       `command names a bare $${name}, which Claude Code does not rewrite, so PowerShell resolves it to $null unless it is escaped or single-quoted: write \${${name}} or $env:${name}`,
     );
-  for (const [, singleQuoted] of text.matchAll(POWERSHELL_STRING)) {
+  for (const {
+    groups: { singleQuoted },
+  } of text.matchAll(POWERSHELL_STRING)) {
     const placeholder = singleQuoted?.match(POWERSHELL_BRACED);
     if (placeholder) report(command, `command holds ${placeholder[0]} inside single quotes, where PowerShell never expands it: use double quotes`);
   }

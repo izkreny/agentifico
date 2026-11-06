@@ -28,7 +28,7 @@ export default {
       }
       if (token.type === "codeTextData") {
         for (const match of text.matchAll(TILDE_PATH)) {
-          report(`${match[1]} is a ~/ path in prose: write it as <home-dir>/`);
+          report(`${match[0]} is a ~/ path in prose: write it as <home-dir>/`);
         }
       }
       if (token.type === "codeFlowValue") {

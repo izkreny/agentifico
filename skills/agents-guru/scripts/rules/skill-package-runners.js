@@ -5,7 +5,7 @@ import { isSkillFile } from "./frontmatter.js";
 import { owningSkill } from "./paths.js";
 
 // WHY: this rule warns when it cannot tell, so whatever stands before a runner leaves it counted, since a wrapper, a prompt or a quoted command leaves it running.
-const RUNNER = /(?:^|[\s;&|(`'"])((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s)([^;&|)`]*))/gu;
+const RUNNER = /(?:^|[\s;&|(`'"])(?<written>(?<runner>npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s)[^;&|)`]*)/gu;
 // WHY: a leading @ opens a scoped name and `npm:@` opens a scoped specifier, and neither is a version.
 const VERSION = /[^\s'":/]@[^\s/]|[=~<>!]=/u;
 // WHY: only a path or a placeholder marks a local file, since npm reads `chart.js` as a registry name and `tools/run.js` as a hosted spec.
@@ -40,7 +40,7 @@ function withoutClosingQuotes(command) {
 // WHY: this rule only warns, so it parses no shell, and a command runs to the next separator with a word past its closing quote read as part of it.
 function unpinned(text) {
   return [...text.matchAll(RUNNER)]
-    .map(([, written, runner]) => ({ runner, command: written.trim() }))
+    .map(({ groups: { written, runner } }) => ({ runner, command: written.trim() }))
     .filter(
       ({ runner, command }) =>
         // Stryker disable next-line Regex: only the first word is read, and a single-space split leaves it the same.

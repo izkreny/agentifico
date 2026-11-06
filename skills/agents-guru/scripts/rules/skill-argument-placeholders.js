@@ -1,7 +1,7 @@
 // WHY: what is replaced and what escapes it are the skills page's, at https://code.claude.com/docs/en/skills.
 import { isSkillFile } from "./frontmatter.js";
 
-const PLACEHOLDER = /(\\*)\$(\d+)/gu;
+const PLACEHOLDER = /(?<backslashes>\\*)\$(?<index>\d+)/gu;
 
 function walk(tokens, fn) {
   for (const token of tokens) {
@@ -21,7 +21,9 @@ export default {
     walk(params.parsers.micromark.tokens, (token) => {
       // WHY: a $N in prose is the feature the page documents, so only code is read.
       if (token.type !== "codeTextData" && token.type !== "codeFlowValue") return;
-      for (const [, backslashes, index] of token.text.matchAll(PLACEHOLDER)) {
+      for (const {
+        groups: { backslashes, index },
+      } of token.text.matchAll(PLACEHOLDER)) {
         // WHY: the page says only a single backslash escapes, and a doubled one leaves the placeholder live.
         if (backslashes.length === 1) continue;
         onError({

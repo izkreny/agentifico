@@ -4,7 +4,7 @@ import path from "node:path";
 import { agentFolder } from "./agent-frontmatter.js";
 import { isSkillFile } from "./frontmatter.js";
 
-const BARE = /\$(CLAUDE_PLUGIN_ROOT|CLAUDE_PLUGIN_DATA|CLAUDE_PROJECT_DIR)\b/gu;
+const BARE = /\$(?<name>CLAUDE_PLUGIN_ROOT|CLAUDE_PLUGIN_DATA|CLAUDE_PROJECT_DIR)\b/gu;
 
 // WHY: the manifest is asked for by name because a marketplace's root holds a .claude-plugin folder too, above skills that belong to no plugin.
 function inPlugin(file) {
@@ -22,7 +22,10 @@ export default {
   function(params, onError) {
     if (isSkillFile(params.name) ? !inPlugin(params.name) : agentFolder(params.name)?.kind !== "plugin") return;
     params.lines.forEach((line, i) => {
-      for (const [bare, name] of line.matchAll(BARE))
+      for (const {
+        0: bare,
+        groups: { name },
+      } of line.matchAll(BARE))
         onError({
           lineNumber: i + 1,
           detail: `${bare} is not substituted here, and the Bash tool's environment lacks it: write \${${name}}`,

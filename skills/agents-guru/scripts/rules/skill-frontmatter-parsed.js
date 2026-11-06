@@ -1,6 +1,6 @@
 import { built, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, parsed, unbuilt } from "./frontmatter.js";
 
-const TOP_LEVEL = /^([^\s:#][^:]*):/u;
+const TOP_LEVEL = /^(?<key>[^\s:#][^:]*):/u;
 const DESCRIPTION_LIMIT = 1024;
 const COMPATIBILITY_LIMIT = 500;
 
@@ -30,7 +30,7 @@ export function defects(fm) {
   for (let i = 0; i < fm.length; i += 1) {
     const m = TOP_LEVEL.exec(fm[i]);
     if (!m) continue;
-    const [, key] = m;
+    const { key } = m.groups;
     // A duplicate key later is what a last-wins parser reads instead of the first line a reader believes, and that difference is the finding.
     if (seen.has(key)) continue;
     seen.add(key);

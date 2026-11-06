@@ -1,7 +1,7 @@
 import { BLOCK_SCALAR, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines, scalar } from "./frontmatter.js";
 
 // A comment after the closing quote sits outside the value, so it is not a defect, and anything else there is a parse error.
-const TRAILING = /^(\s+#.*)?$/u;
+const TRAILING = /^(?:\s+#.*)?$/u;
 // WHY: the platform's skills guide bars an XML tag from a description, at https://platform.claude.com/docs/en/build-with-claude/skills-guide.
 const XML_TAG = /<\/?[A-Za-z][^<>]*>/u;
 
@@ -23,14 +23,14 @@ export function defects(fm) {
     // A block scalar has no quotes to close and no plain-scalar comment to be cut at, so it reaches none of the style branches.
   } else if (raw.startsWith('"')) {
     // Anything after the closing quote but a comment is a parse error, and an unescaped inner quote is the usual way that happens.
-    const m = value.slice(1).match(/^((?:[^"\\]|\\.)*)"(.*)$/u);
+    const m = value.slice(1).match(/^(?<inner>(?:[^"\\]|\\.)*)"(?<rest>.*)$/u);
     if (m) {
-      if (/\\(?![\\"nt])/u.test(m[1])) bad.push("risky backslash escape in double quotes");
-      if (!TRAILING.test(m[2])) bad.push("text after the closing double quote, an unescaped inner double quote: parse error");
+      if (/\\(?![\\"nt])/u.test(m.groups.inner)) bad.push("risky backslash escape in double quotes");
+      if (!TRAILING.test(m.groups.rest)) bad.push("text after the closing double quote, an unescaped inner double quote: parse error");
     } else bad.push("unclosed double quote: parse error");
   } else if (raw.startsWith("'")) {
-    const m = value.slice(1).match(/^((?:[^']|'')*)'(.*)$/u);
-    if (!(m && TRAILING.test(m[2]))) bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
+    const m = value.slice(1).match(/^(?:[^']|'')*'(?<rest>.*)$/u);
+    if (!(m && TRAILING.test(m.groups.rest))) bad.push("stray apostrophe in single quotes, which must be doubled: parse error");
   } else if (
     // Stryker disable next-line ConditionalExpression: with no description line the value is empty, and an empty value passes every plain-scalar test.
 
@@ -41,8 +41,8 @@ export function defects(fm) {
     // Stryker disable next-line EqualityOperator: a value opens on a non-space character or on a folded line that cannot open with #, so a cut is never at 0.
     if (cut >= 0) bad.push(`TRUNCATED at ' #', silently loses ${value.length - cut} chars`);
     if (/^[&*![{%@]/u.test(raw)) bad.push(`leading ${raw[0]} changes meaning or is a parse error`);
-    if (/:(\s|$)/u.test(value)) bad.push("colon inside or ending an unquoted value: parse error");
-    if (/^(yes|no|on|off|true|false|null|~)$/iu.test(value)) bad.push("becomes boolean or null in some parsers");
+    if (/:(?:\s|$)/u.test(value)) bad.push("colon inside or ending an unquoted value: parse error");
+    if (/^(?:yes|no|on|off|true|false|null|~)$/iu.test(value)) bad.push("becomes boolean or null in some parsers");
   }
   if (XML_TAG.test(block ? value : scalar(value)))
     bad.push("an XML tag in the description, which the platform's skills guide bars: write a placeholder in square brackets or in argument-hint");

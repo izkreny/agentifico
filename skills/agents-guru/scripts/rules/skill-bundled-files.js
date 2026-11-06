@@ -37,13 +37,13 @@ const isBundled = (rel) => {
   return parts.length === 2 && BUNDLE_FOLDERS.has(parts[0]);
 };
 
-const IMPORT = /(?:^|[;:])[ \t]*(?:from[ \t]+([\w.]+)[ \t]+)?import[ \t]+(\([^)]*\)|[^;\n]*)/gmu;
+const IMPORT = /(?:^|[;:])[ \t]*(?:from[ \t]+(?<from>[\w.]+)[ \t]+)?import[ \t]+(?<items>\([^)]*\)|[^;\n]*)/gmu;
 
 // WHY: a statement can span lines through a bracket or a backslash and hold a comment, so a pattern over raw lines keeps missing forms of one import.
 function importedModules(text) {
   // Stryker disable next-line Regex: a dot stops at a line break, so the comment pattern ends at the line's end with or without its anchor.
   const code = text.replace(/#.*$/gmu, "").replace(/\\\r?\n/gu, " ");
-  return [...code.matchAll(IMPORT)].flatMap(([, from, items]) => {
+  return [...code.matchAll(IMPORT)].flatMap(({ groups: { from, items } }) => {
     // Stryker disable next-line MethodExpression: an empty name names no file, so filtering it out changes nothing.
     const names = items
       .replace(/[()]/gu, "")

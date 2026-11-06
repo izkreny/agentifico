@@ -48,8 +48,8 @@ function run(targets, env = process.env, cwd = process.cwd()) {
   const spawn = underStryker([check, ...[targets].flat()], env);
   const r = spawnSync(process.execPath, spawn.args, { encoding: "utf8", env: spawn.env, cwd });
   spawn.absorb();
-  const linted = /^(\d+) files checked/mu.exec(r.stdout);
-  return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
+  const linted = /^(?<count>\d+) files checked/mu.exec(r.stdout);
+  return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted.groups.count) : null };
 }
 
 beforeAll(() => {
@@ -1006,7 +1006,7 @@ describe("check.js", () => {
   });
   it("a key that lists its own default folder, or a path inside it, in a list or an object map, shadows nothing", () => {
     const r = run(path.join(tmp, "plugins"));
-    assert.doesNotMatch(r.out, /^ {2}(listed|inside|mapped)\/.*plugin-manifest/mu);
+    assert.doesNotMatch(r.out, /^ {2}(?:listed|inside|mapped)\/.*plugin-manifest/mu);
   });
   it("each file a key leaves out of its default folder is a warning, even beside a listed one", () => {
     const r = run(path.join(tmp, "plugins", "partial"));
@@ -1015,7 +1015,7 @@ describe("check.js", () => {
       r.out,
       /^ {2}\.claude-plugin\/plugin\.json:\d+ plugin-manifest \(warning\) commands replaces the default commands\/, so Claude Code ignores commands\/rollback\.md$/mu,
     );
-    assert.doesNotMatch(r.out, /ignores commands\/(deploy\.md|\.gitkeep|\.drafts)/u);
+    assert.doesNotMatch(r.out, /ignores commands\/(?:deploy\.md|\.gitkeep|\.drafts)/u);
     assert.match(r.out, /^plugin files: 0 issues, 1 warnings$/mu);
   });
   it("a default folder dropped whole fails the run, and one holding only a symlink still holds files", () => {
@@ -1899,7 +1899,7 @@ describe("carriesInstallForm", () => {
   const readmeMd = fs.readFileSync(path.resolve(path.dirname(check), "..", "references", "readme.md"), "utf8");
   const listed = readmeMd.split("\n").find((l) => l.startsWith("Give the section a heading opening with")) ?? "";
   const [headingPart = "", commandPart = ""] = listed.split("or put the command in a fenced block");
-  const spans = (s) => [...s.matchAll(/`([^`]+)`/gu)].map((m) => m[1]);
+  const spans = (s) => [...s.matchAll(/`(?<span>[^`]+)`/gu)].map((m) => m.groups.span);
   const headings = spans(headingPart);
   const commands = spans(commandPart);
   it("reads a heading list and a command list from references/readme.md", () => assert.ok(headings.length > 0 && commands.length > 0));

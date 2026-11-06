@@ -169,7 +169,9 @@ describe("word classes", () => {
       for (const [i, item] of tokens.items.entries()) {
         // The first token's comment is parsed onto the sequence rather than the item.
         const comment = ((i === 0 ? tokens.commentBefore : item.commentBefore) ?? "").replace(/\s+/gu, " ");
-        for (const [, group] of item.value.matchAll(/\(\?:([^()]*)\)/gu)) {
+        for (const {
+          groups: { group },
+        } of item.value.matchAll(/\(\?:(?<group>[^()]*)\)/gu)) {
           const alts = group.split("|").map((a) => a.trim());
           if (alts.some((a) => !/^[a-z]+$/u.test(a))) continue;
           const cls = classOf(alts);
@@ -184,7 +186,7 @@ describe("word classes", () => {
     const { numbers } = parseYaml(fs.readFileSync(path.join(styles, "word-classes.yml"), "utf8"));
     const { swap } = parseYaml(fs.readFileSync(path.join(styleDir, "Digits.yml"), "utf8"));
     // A key opens on lookbehinds and closes on lookaheads, so its digit is the number standing between a closing and an opening parenthesis.
-    const swapped = Object.entries(swap).map(([key, word]) => [Number(key.match(/\)(\d+)\(/u)[1]), word]);
+    const swapped = Object.entries(swap).map(([key, word]) => [Number(key.match(/\)(?<digit>\d+)\(/u).groups.digit), word]);
     assert.deepEqual(
       swapped,
       numbers.map((word, i) => [i + 2, word]),

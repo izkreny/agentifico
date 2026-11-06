@@ -72,7 +72,7 @@ for (const [i, target] of targets.entries()) {
     for (const [file, code] of lost) dangling.set(file, code);
     // A dangling link counts as markdown found, so a target holding nothing else reaches the group that names it.
     if (![...reached, ...lost.map(([file]) => file)].some((file) => file.endsWith(".md"))) nothingChecked(`no markdown file found under ${target}`);
-  } else if (!/\.(md|js|py|ya?ml)$/u.test(target)) nothingChecked(`no reader takes ${target}`);
+  } else if (!/\.(?:md|js|py|ya?ml)$/u.test(target)) nothingChecked(`no reader takes ${target}`);
   // A file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
   const root = stat.isDirectory() ? target : process.cwd();
   for (const file of reached) if (!rootOf.has(file)) rootOf.set(file, root);
@@ -89,7 +89,7 @@ const base = folders.reduce((sharedSoFar, folder) => {
 const found = [...rootOf.keys()];
 const files = found.filter((file) => file.endsWith(".md")).sort(byCodeUnit);
 // A code file reaches Vale alone, which reads it as its comments and docstrings, and never markdownlint.
-const codeFiles = found.filter((file) => /\.(js|py)$/u.test(file)).sort(byCodeUnit);
+const codeFiles = found.filter((file) => /\.(?:js|py)$/u.test(file)).sort(byCodeUnit);
 // A YAML file is read by this script alone, since Vale leaves it out for the reason workflows/check.md gives.
 const yamlFiles = found.filter((file) => /\.ya?ml$/u.test(file)).sort(byCodeUnit);
 
@@ -289,14 +289,14 @@ const minVale = `${MIN_VALE_MAJOR}.${MIN_VALE_MINOR}`;
 // A Vale before 3.23 loads a rule naming a scope from config/scopes and matches nothing, so its run would pass with rules quietly off.
 const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
 // Stryker disable next-line StringLiteral: stdout is null only when Vale did not start, and no fallback text holds a version.
-const valeVersion = /(\d+)\.(\d+)\.\d+/u.exec(versionRun.stdout ?? "");
+const valeVersion = /(?<major>\d+)\.(?<minor>\d+)\.\d+/u.exec(versionRun.stdout ?? "");
 // An unreadable version is refused like an old one, while a Vale that failed to start is left to the lint run, which names its failure.
 if (!valeVersion && versionRun.status === 0)
   proseNotRun(
     `could not read Vale's version from "${versionRun.stdout.trim()}": the prose rules did not run. Install Vale ${minVale} or later, per references/setup.md, and run the check again.`,
   );
 // Stryker disable next-line ArrayDeclaration: with no version read, major and minor are read only behind a test of valeVersion.
-const [major, minor] = valeVersion ? [Number(valeVersion[1]), Number(valeVersion[2])] : [];
+const [major, minor] = valeVersion ? [Number(valeVersion.groups.major), Number(valeVersion.groups.minor)] : [];
 if (valeVersion && (major < MIN_VALE_MAJOR || (major === MIN_VALE_MAJOR && minor < MIN_VALE_MINOR)))
   proseNotRun(
     `vale ${valeVersion[0]} is older than ${minVale}: the prose rules did not run. Install Vale ${minVale} or later, per references/setup.md, and run the check again.`,

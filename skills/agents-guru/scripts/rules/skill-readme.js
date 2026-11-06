@@ -15,7 +15,7 @@ function fencedAndProse(readme) {
   const prose = [];
   let open = null;
   for (const line of readme.split("\n")) {
-    const marker = /^\s*(`{3,}|~{3,})/u.exec(line)?.[1];
+    const marker = /^\s*(?<fence>`{3,}|~{3,})/u.exec(line)?.groups.fence;
     if (marker) {
       if (open === null) open = marker;
       else if (marker.length >= open.length && marker[0] === open[0]) open = null;

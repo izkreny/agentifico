@@ -57,13 +57,13 @@ export function folded(fm, i) {
 // A quoted value and a value carrying a trailing comment are compared by what they parse to rather than by their punctuation.
 export function scalar(raw) {
   if (raw.startsWith('"')) {
-    const m = raw.slice(1).match(/^((?:[^"\\]|\\.)*)"/u);
-    if (m) return m[1].replace(/\\(.)/gu, "$1");
+    const m = raw.slice(1).match(/^(?<body>(?:[^"\\]|\\.)*)"/u);
+    if (m) return m.groups.body.replace(/\\(?<escaped>.)/gu, "$<escaped>");
   }
   if (raw.startsWith("'")) {
     // Stryker disable next-line Regex: the pattern matches from the start whenever it matches at all, so its anchor changes nothing.
-    const m = raw.slice(1).match(/^((?:[^']|'')*)'/u);
-    if (m) return m[1].replace(/''/gu, "'");
+    const m = raw.slice(1).match(/^(?<body>(?:[^']|'')*)'/u);
+    if (m) return m.groups.body.replace(/''/gu, "'");
   }
   // YAML strips the space before ` #` however much there is, so the cut is trimmed rather than sliced raw.
   const cut = raw.search(/\s#/u);
