@@ -4,6 +4,7 @@ import { lint } from "markdownlint/promise";
 import { describe, it } from "vitest";
 import agentFrontmatter, { defects as agentDefects, pluginNameWarnings } from "../rules/agent-frontmatter.js";
 import { description as descriptionValue, scalar } from "../rules/frontmatter.js";
+import { byCodeUnit } from "../rules/order.js";
 import { hooksDefects, manifestDefects, monitorFileDefects } from "../rules/plugin-files.js";
 import argumentHint from "../rules/skill-argument-hint.js";
 import argumentPlaceholders from "../rules/skill-argument-placeholders.js";
@@ -689,7 +690,10 @@ describe("skill-argument-hint", () => {
     ["h-exactly", "[help | status]", routing("If the argument is exactly `help` → print it.", "If it starts with `status` → read a."), null],
     ["h-list", "[state | start | close]", routing("If it starts with `state`, `start` or `close` → read a."), null],
     // CommonMark reads a line ending inside a code span as a space, so the words either side stay apart.
-    ["h-span-broken", "[new]", routing("If it starts with `new\n  mode` → read a."), null],
+    ["h-span-broken", "[new | stop]", routing("If it starts with `new\n  mode` → read a.", "If it starts with `stop` → read b."), null],
+    // A bracket nested in an alternative closes no group, and one opening an alternative holds no verb.
+    ["h-nested-mid", "[run [--x] | stop]", routing("If it starts with `stop` → read a."), unrouted("run")],
+    ["h-nested-lead", "[[x y] run | stop]", routing("If it starts with `stop` → read a."), null],
     // Everything after the arrow names files, tools and other skills, so a span there routes nothing.
     [
       "h-after-arrow",
@@ -1631,6 +1635,8 @@ describe("skill-package-runners", () => {
     'npx "$TOOL"',
     "npx",
     "pipx run",
+    // A runner the command ends on hands the check no word at all.
+    "npx ; ls",
     "npx --help",
     "pipx install black",
     "go build ./...",
@@ -1772,4 +1778,15 @@ describe("a finding's context is its own line, trimmed", () => {
       }
     });
   }
+});
+
+describe("byCodeUnit", () => {
+  it("orders by code unit, as a bare sort does", () => {
+    assert.deepEqual(["b", "a", "B", "a"].sort(byCodeUnit), ["B", "a", "a", "b"]);
+  });
+  it("returns the sign a comparator owes each order", () => {
+    assert.equal(byCodeUnit("a", "b"), -1);
+    assert.equal(byCodeUnit("b", "a"), 1);
+    assert.equal(byCodeUnit("a", "a"), 0);
+  });
 });

@@ -986,6 +986,30 @@ describe("check.js", () => {
       );
       assert.match(r.out, /^ {2}empty\/SKILL\.md:\d+ skill-frontmatter-parsed .*empty description/mu);
     });
+    it("two skills Vale cannot read, each set aside", () => {
+      const dir = path.join(tmp, "unbuilt-two");
+      mk(path.join(dir, "m1"), `${block("m1")}\n<<: 1`);
+      mk(path.join(dir, "m2"), `${block("m2")}\n<<: 1`);
+      const r = run(dir);
+      finished(r);
+      assert.match(r.out, /^ {2}m1\/SKILL\.md:1 vale-unread /mu);
+      assert.match(r.out, /^ {2}m2\/SKILL\.md:1 vale-unread /mu);
+    });
+    it("a target Vale cannot read at all, counted once", () => {
+      const dir = path.join(tmp, "unbuilt-alone");
+      mk(dir, `${block("unbuilt-alone")}\n<<: 1`);
+      const r = run(path.join(dir, "SKILL.md"));
+      finished(r);
+      assert.match(r.out, /^ {2}SKILL\.md:1 vale-unread /mu);
+      assert.match(r.out, /^1 files checked, 2 issues, 0 warnings$/mu);
+    });
+    it("a path holding a brace", () => {
+      const dir = path.join(tmp, "unbuilt-{brace}");
+      mk(path.join(dir, "merge"), `${block("merge")}\n<<: 1`);
+      const r = run(dir);
+      finished(r);
+      assert.match(r.out, /^ {2}merge\/SKILL\.md:1 vale-unread /mu);
+    });
   });
   it("a plugin's hooks file and manifest are read by their fixed paths", () => {
     const r = run(path.join(tmp, "plugins", "plug"));
