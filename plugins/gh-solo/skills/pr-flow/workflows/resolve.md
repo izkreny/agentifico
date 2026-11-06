@@ -202,7 +202,7 @@ Then the record: how many threads were resolved and which ids, which were left a
 
 ## Resolving only the closed threads
 
-The owner types `resolve closed`, or `:rc`, in the session. It resolves every thread a closing verdict ended, so the threads left open are only the ones still waiting on the owner. It runs Steps 2, 3 and 4, and nothing else.
+This is the narrower entrance *The entrance* names. It resolves every thread a closing verdict ended, so the threads left open are only the ones still waiting on the owner. It runs Steps 2, 3 and 4, and nothing else.
 
 **Step 1 is skipped, so a running watch keeps running.** The round is not over: the threads left open wait on the owner's replies, and the watch is what carries them into the session.
 
