@@ -1003,12 +1003,12 @@ describe("agent-plugin-name", () => {
   for (const [id, fm, want] of cases) {
     it(id, () => {
       const found = pluginNameWarnings(lines(fm));
-      if (want)
-        assert.ok(
-          found.some((d) => d.includes(want)),
-          JSON.stringify(found),
-        );
-      else assert.deepEqual(found, []);
+      assert.equal(found.length === 0, want === null, JSON.stringify(found));
+      assert.equal(
+        found.some((d) => want !== null && d.includes(want)),
+        want !== null,
+        JSON.stringify(found),
+      );
     });
   }
   it("no frontmatter", () => {
