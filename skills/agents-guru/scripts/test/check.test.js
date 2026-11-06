@@ -44,6 +44,7 @@ function underStryker(args, env) {
 function run(targets, env = process.env, cwd = undefined) {
   const spawn = underStryker([check, ...[targets].flat()], env);
   const r = spawnSync(process.execPath, spawn.args, { encoding: "utf8", env: spawn.env, cwd });
+  // biome-ignore lint/suspicious/noUnnecessaryConditions: two of underStryker's three returns carry no absorb, which Biome does not see.
   spawn.absorb?.();
   const linted = /^(\d+) files checked/m.exec(r.stdout);
   return { code: r.status, out: r.stdout + r.stderr, linted: linted ? Number(linted[1]) : null };
@@ -569,6 +570,7 @@ describe("check.js", () => {
     ["yaml-trailing-space", "spaces after a full stop still end the sentence"],
     ["yaml-trailing-comment", "a comment after a value is no comment line"],
   ]) {
+    // biome-ignore lint/suspicious/noLoopFunc: tmp is set once, in the beforeAll that runs before any test body.
     it(why, () => {
       const r = run(path.join(tmp, dir));
       assert.equal(r.code, 0, r.out);
@@ -935,7 +937,8 @@ describe("check.js", () => {
       ["merge-key", "name: a\n<<: 1", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Merge sources must be maps or map aliases\)/m, true],
       ["unresolved-alias", "name: a\nx: *nope", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Unresolved alias/m, true],
       ["stringless-name", "name: {toString: 1}", /^ {2}a\.md:\d+ agent-frontmatter .*name must be a string, not a mapping or a list/m, false],
-    ])
+    ]) {
+      // biome-ignore lint/suspicious/noLoopFunc: tmp is set once, in the beforeAll that runs before any test body.
       it(`an agent: ${id}`, () => {
         const dir = path.join(tmp, `unbuilt-${id}`, ".claude", "agents");
         fs.mkdirSync(dir, { recursive: true });
@@ -948,6 +951,7 @@ describe("check.js", () => {
         assert.match(r.out, /^ {2}c\.md:\d+ Agentifico\.ClosingRecap /m);
         assert.equal(/^ {2}a\.md:1 vale-unread \(error\) /m.test(r.out), unread, r.out);
       });
+    }
     it("a skill", () => {
       const dir = path.join(tmp, "unbuilt-skill");
       mk(path.join(dir, "merge"), `${block("merge")}\n<<: 1`);
@@ -1046,6 +1050,7 @@ describe("check.js", () => {
     assert.match(r.out, /^plugin files: none$/m);
   });
   for (const name of ["own-wrapped", "own-flat", "own-inline", "own-file", "own-list"]) {
+    // biome-ignore lint/suspicious/noLoopFunc: tmp is set once, in the beforeAll that runs before any test body.
     it(`${name}: the hooks file is held to the plugin's own server names`, () => {
       const r = run(path.join(tmp, "plugins", name));
       assert.equal(r.code, 1, r.out);

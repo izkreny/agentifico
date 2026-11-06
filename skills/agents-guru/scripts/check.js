@@ -46,11 +46,11 @@ for (const target of targets) {
   if (stat.isDirectory()) {
     // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
     const lost = [];
-    reached = (
-      await Array.fromAsync(
-        glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
-      )
-    )
+    // biome-ignore lint/performance/noAwaitInLoops: targets are walked in order, since a file two targets reach keeps the first one's root and a bad target stops the run before the ones after it.
+    const walked = await Array.fromAsync(
+      glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
+    );
+    reached = walked
       .map((file) => path.join(target, file))
       .filter((file) => {
         try {
@@ -170,10 +170,12 @@ for (const file of files) {
   }
 }
 warnings += contractWarnings + proseShapeWarnings;
+// biome-ignore lint/suspicious/noUnnecessaryConditions: Biome types the counter by its initial 0 and misses the increments in the loop above.
 report("skill rules", contractFindings, contractWarnings ? `${contractFindings.length - contractWarnings} issues, ${contractWarnings} warnings` : undefined);
 report(
   "prose shape",
   proseShapeFindings,
+  // biome-ignore lint/suspicious/noUnnecessaryConditions: Biome types the counter by its initial 0 and misses the increments in the loop above.
   proseShapeWarnings ? `${proseShapeFindings.length - proseShapeWarnings} issues, ${proseShapeWarnings} warnings` : undefined,
 );
 report("general lint", generalFindings);
@@ -224,6 +226,7 @@ for (const file of yamlFiles) {
 }
 issues += yamlFindings.length - yamlWarnings;
 warnings += yamlWarnings;
+// biome-ignore lint/suspicious/noUnnecessaryConditions: Biome types the counter by its initial 0 and misses the increments in the loop above.
 report("yaml files", yamlFindings, yamlWarnings ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
 // The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.

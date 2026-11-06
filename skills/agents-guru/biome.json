@@ -15,7 +15,23 @@
   },
   "linter": {
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "performance": {
+        "noAwaitInLoops": "error"
+      },
+      "style": {
+        "noCommonJs": "error",
+        "useForOf": "error",
+        "useObjectSpread": "error"
+      },
+      "suspicious": {
+        "noVar": "error",
+        "noEmptyBlockStatements": "error",
+        "useArraySortCompare": "error",
+        "noShadow": "error",
+        "noUnnecessaryConditions": "error",
+        "noLoopFunc": "error"
+      }
     }
   },
   "javascript": {
