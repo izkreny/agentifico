@@ -306,7 +306,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <followup-file>
 
 **They stay separate rather than folded into the finding's own text**: `release` reads this ledger and emits each entry as its own reply for `workflows/resolve.md` to post. A held finding with no follow-up opens its thread carrying the finding alone, and `release` says which.
 
-**`rnp` is the route, not the owner and not a later pass**: the protocol's step 7 pushes the fixes, and then `release` posts each held finding as a thread under the id it holds, per `workflows/resolve.md`. **The round report says which findings were threaded and which are held**, so a reader cannot take the second for an absence of findings.
+**`:rp` is the route, not the owner and not a later pass**: the protocol's step 7 pushes the fixes, and then `release` posts each held finding as a thread under the id it holds, per `workflows/resolve.md`. **The round report says which findings were threaded and which are held**, so a reader cannot take the second for an absence of findings.
 
 #### Re-read the highest `RF{n}` before building this payload
 
@@ -329,7 +329,7 @@ Then the owner's next move, which is the whole of what they have to do:
 ```text
 Read the threads on the PR, then react or reply:
   👍 or ❤️ accepts a finding. To question one, react 👀 or reply in the thread.
-When you are through them, type rnp - or say "resolve all and push".
+When you are through them, type :rp - or say "resolve all and push".
 To get each reply answered as you post it instead, before you start run:
 /gh-solo:pr-flow watch <pr-number>
 ```

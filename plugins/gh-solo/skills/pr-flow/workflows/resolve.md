@@ -8,11 +8,11 @@ End a review round on the owner's word: record the authorisation, resolve the th
 
 ## The entrance
 
-The owner says it, in the session: "resolve all and push", or types `rnp`. Also "we are done" said while a round has left fix commits unpushed.
+The owner says it, in the session: "resolve all and push", or types `:rp`. Also "we are done" said while a round has left fix commits unpushed.
 
 **`resolve closed`, or `:rc`, is a narrower entrance**: it resolves only the threads a closing verdict ended and pushes nothing, per *Resolving only the closed threads*.
 
-**"You can merge" is not one of these, and routes to `workflows/merge.md` instead.** After the split it would authorise a push and then not merge, which is worse than a refusal: the owner said the word and watched something else happen. That workflow's Step 1 already refuses on unpushed commits and names `rnp` as the remedy, so the sentence lands on a gate that tells them the word they actually need.
+**"You can merge" is not one of these, and routes to `workflows/merge.md` instead.** After the split it would authorise a push and then not merge, which is worse than a refusal: the owner said the word and watched something else happen. That workflow's Step 1 already refuses on unpushed commits and names `:rp` as the remedy, so the sentence lands on a gate that tells them the word they actually need.
 
 **Their word alone is the authorisation.** Not a reaction, not a reply in a thread, not a mentor saying the work looks done, and not this workflow's own reading of how settled the threads look. If no such word has been given, there is nothing to do here: say what is still waiting and stop.
 
@@ -121,11 +121,11 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F
 
 ### What each id gets
 
-- **An id that already carries a thread is skipped rather than refused.** Nothing rewrites a posted Review, so an earlier round's ledger is still on the pull request at the next `rnp`; the script reports what it skipped.
-- **A failure here loses nothing and refuses nothing.** The push has already happened and the ledger is still in the record Review, so the findings are exactly where they were - report the failure and name this step's commands as the retry, rather than treating it as a failed `rnp`.
+- **An id that already carries a thread is skipped rather than refused.** Nothing rewrites a posted Review, so an earlier round's ledger is still on the pull request at the next `:rp`; the script reports what it skipped.
+- **A failure here loses nothing and refuses nothing.** The push has already happened and the ledger is still in the record Review, so the findings are exactly where they were - report the failure and name this step's commands as the retry, rather than treating it as a failed `:rp`.
 - **The replies are the round's words, not new ones.** They were written during the round and recorded in its follow-up Review; this step copies them, so nothing here composes a plan or a verdict. An entry with no reply recorded opens its thread carrying the finding alone, which `release` reports.
 - **An id `release` could not thread blocks the merge until it has one.** `workflows/merge.md` refuses on any reserved id with no thread, so the report names each one, and the owner decides where its thread goes.
-- **A released thread lands unresolved, and that is correct.** The authorisation in Step 3 named the ids it covered, and these were not among them: the owner has not read them yet. `workflows/merge.md` refuses on an unresolved thread, so the report has to say how many are waiting, or the owner reads a green `rnp` and then meets a red merge with nothing explaining it.
+- **A released thread lands unresolved, and that is correct.** The authorisation in Step 3 named the ids it covered, and these were not among them: the owner has not read them yet. `workflows/merge.md` refuses on an unresolved thread, so the report has to say how many are waiting, or the owner reads a green `:rp` and then meets a red merge with nothing explaining it.
 
 ## Step 7 - Post the delta index
 
@@ -190,7 +190,7 @@ Open with the verdict line: `✅ ALL PASS` when every unresolved thread was cove
 
 Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and wait to be read, which could not be threaded and why, the commits that went up, how many rows the delta index carried and how many of them answered no finding, and the check result.
 
-**Then say that this workflow is over and merging is a word of its own**, since the owner's `rnp` did not ask for one and nothing here is about to run it. The command, flush left:
+**Then say that this workflow is over and merging is a word of its own**, since the owner's `:rp` did not ask for one and nothing here is about to run it. The command, flush left:
 
 ```text
 /gh-solo:pr-flow merge <pr-number>
