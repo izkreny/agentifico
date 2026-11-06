@@ -263,6 +263,9 @@ describe("skill-name", () => {
     ["commented", "name: commented # note\ndescription: |\n  x", null],
     ["twospace", "name: twospace  # two spaces before the comment\ndescription: |\n  x", null],
     ["quotecom", 'name: "quotecom" # a quoted value ends at its own quote\ndescription: |\n  x', null],
+    // The last name loads, so a matching first line must not hide a mismatching last one.
+    ["dup", 'name: "dup"\nname: other\ndescription: |\n  x', 'name is "other", directory is "dup"'],
+    ["dupkey", "name: dupkey\nname: dupkey\ndescription: |\n  x", "duplicate name key"],
     // Each name matches its directory exactly, so only the charset clause can decide it.
     ["My_Skill--v2", "name: My_Skill--v2\ndescription: |\n  x", "lowercase"],
     ["-leading-hyphen", "name: -leading-hyphen\ndescription: |\n  x", "hyphen"],

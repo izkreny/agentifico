@@ -5,12 +5,16 @@ import { FRONTMATTER_LINE, frontmatter, isSkillFile, keyLines, scalar } from "./
 const NAME_LIMIT = 64;
 
 export function defects(fm, dir) {
-  const [line] = keyLines(fm, "name");
-  if (line === undefined) {
+  const lines = keyLines(fm, "name");
+  if (lines.length === 0) {
     return ["no name: nothing can match it"];
   }
-  const declared = scalar(line.slice("name:".length).trim());
   const bad = [];
+  if (lines.length > 1) {
+    bad.push("duplicate name key: last silently wins");
+  }
+  // The last `name:` line is judged because that is the one a last-wins parser loads.
+  const declared = scalar(lines.at(-1).slice("name:".length).trim());
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(declared)) {
     bad.push(`name ${JSON.stringify(declared)} is not lowercase alphanumerics joined by single hyphens`);
   }
