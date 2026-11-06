@@ -8,7 +8,7 @@
   },
   "scripts": {
     "check": "node scripts/check.js",
-    "test": "vitest run scripts/test/",
+    "test": "vitest run --dir scripts/test",
     "lint": "biome check . && { git grep --untracked -n biome-ignore -- '*.js' '*.mjs'; test $? -eq 1; }",
     "mutate": "nice -n 19 ionice -c 3 stryker run --incremental"
   },
