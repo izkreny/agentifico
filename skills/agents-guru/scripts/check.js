@@ -22,12 +22,13 @@ const nothingChecked = (why) => {
 // --skip is taken out before any argument resolves as a path, so a run naming only --skip still checks the working directory.
 const skip = new Set();
 const paths = [];
-for (let i = 2; i < process.argv.length; i++) {
+for (let i = 2; i < process.argv.length; i += 1) {
   if (process.argv[i] !== "--skip") {
     paths.push(process.argv[i]);
     continue;
   }
-  const name = process.argv[++i];
+  i += 1;
+  const name = process.argv[i];
   if (!skippableRuleNames.has(name))
     nothingChecked(`${name === undefined ? "--skip names no rule" : `--skip ${name}`}: only ${[...skippableRuleNames].join(", ")} can be skipped`);
   skip.add(name);
@@ -165,9 +166,9 @@ for (const file of files) {
     const warning = e.ruleNames.some((name) => warningRuleNames.has(name));
     // Stryker disable next-line MethodExpression: every custom rule carries one name and no built-in rule's names are in the set, so some and every agree.
     const proseShape = e.ruleNames.some((name) => proseShapeRuleNames.has(name));
-    if (!warning) issues++;
-    else if (proseShape) proseShapeWarnings++;
-    else contractWarnings++;
+    if (!warning) issues += 1;
+    else if (proseShape) proseShapeWarnings += 1;
+    else contractWarnings += 1;
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
     const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")}${warning ? " (warning)" : ""} ${e.ruleDescription}${detail}${context}`;
@@ -231,7 +232,7 @@ for (const file of yamlFiles) {
       yamlFindings.push(
         `${rel}:${c.line} yaml-comment-wrap (warning) continues the sentence on the line before: write each paragraph of a comment on one line`,
       );
-      yamlWarnings++;
+      yamlWarnings += 1;
     }
   }
 }
@@ -261,8 +262,8 @@ for (const dir of [...pluginDirs].filter(isPluginRoot).sort(byCodeUnit)) {
     if (!fs.statSync(file, { throwIfNoEntry: false })?.isFile()) continue;
     pluginFiles.push(file);
     for (const { line, detail, severity = "error" } of defects(fs.readFileSync(file, "utf8"))) {
-      if (severity === "error") pluginIssues++;
-      else pluginWarnings++;
+      if (severity === "error") pluginIssues += 1;
+      else pluginWarnings += 1;
       pluginFindings.push(`${path.relative(base, file)}:${line} ${rule} (${severity}) ${detail}`);
     }
   }
@@ -344,9 +345,9 @@ for (const file of valeFiles) {
     // Stryker disable next-line ConditionalExpression,ArrayDeclaration: a Vale check is named Style.Rule, and no skippable rule's name holds a dot.
     if (withholds([a.Check])) continue;
     if (a.Severity === "error") {
-      issues++;
-      proseIssues++;
-    } else proseWarnings++;
+      issues += 1;
+      proseIssues += 1;
+    } else proseWarnings += 1;
     proseFindings.push(`${rel}:${a.Line} ${a.Check} (${a.Severity}) ${a.Message}`);
   }
 }

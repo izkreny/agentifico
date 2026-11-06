@@ -10,7 +10,7 @@ function rough(fm) {
   if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar ends at the first non-empty line with no indent.
-  for (let j = i + 1; fm[j] === "" || /^\s/u.test(fm[j]); j++) body.push(fm[j]);
+  for (let j = i + 1; fm[j] === "" || /^\s/u.test(fm[j]); j += 1) body.push(fm[j]);
   return body.join("\n");
 }
 
@@ -41,9 +41,9 @@ export function folded(fm, i) {
   const quoted = /^["']/u.test(first);
   // Empty lines are crossed rather than ended on because empty lines with no content line after them belong to no value.
   let blanks = 0;
-  for (let j = i + 1; j < fm.length; j++) {
+  for (let j = i + 1; j < fm.length; j += 1) {
     if (fm[j].trim() === "") {
-      blanks++;
+      blanks += 1;
       continue;
     }
     if (!/^\s+\S/u.test(fm[j])) break;

@@ -21,8 +21,10 @@ function advertised(hint) {
     current = "";
   };
   for (const ch of hint) {
-    if (ch === "[" && depth++ === 0) continue;
-    if (ch === "]" && --depth === 0) {
+    if (ch === "[") depth += 1;
+    if (ch === "[" && depth === 1) continue;
+    if (ch === "]") depth -= 1;
+    if (ch === "]" && depth === 0) {
       close();
       const words = group.map(firstWord).filter(Boolean);
       for (const word of words) all.add(word);

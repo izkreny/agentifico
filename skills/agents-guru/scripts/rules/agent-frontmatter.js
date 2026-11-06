@@ -110,7 +110,7 @@ function duplicateNames(file, folder, fm) {
 export function agentFolder(file) {
   const parts = path.resolve(file).split(path.sep);
   // Stryker disable next-line ArithmeticOperator,EqualityOperator: past the folder the path holds only the file's own .md name, and before it only the empty root segment, so neither end is ever agents.
-  for (let i = parts.length - 2; i > 0; i--) {
+  for (let i = parts.length - 2; i > 0; i -= 1) {
     if (parts[i] !== "agents") continue;
     const folder = parts.slice(0, i + 1).join(path.sep);
     if (parts[i - 1] === ".claude") return { kind: "standalone", folder };
