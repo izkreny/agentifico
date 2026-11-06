@@ -1,0 +1,30 @@
+# A script rather than a regex, because the key a list item owes depends on the heading above it, and a fenced block quoting a heading or an item must not move that. A checkbox before the key is PlanCheckbox's to report, so it is let through here.
+extends: script
+message: "Every item under '## Steps', '## Verification' and '## Open questions' opens with its own section's key, as '- ::S1::', '- ::V1::' or '- ::Q1::', per Keys in the tracker skill's references/formats.md: '%s' does not."
+level: error
+scope: raw
+script: |
+  text := import("text")
+  matches := []
+  pos := 0
+  key := ""
+  fence := ""
+  for line in text.split(scope, "\n") {
+    stripped := text.trim_left(line, " \t")
+    marker := text.re_find("^(`{3,}|~{3,})", stripped)
+    if fence != "" {
+      if marker != undefined && text.has_prefix(marker[0][1].text, fence) && text.trim_space(text.substr(stripped, len(marker[0][1].text))) == "" { fence = "" }
+    } else if marker != undefined {
+      fence = marker[0][1].text
+    } else if text.re_match(`^#{1,6}[ \t]`, line) {
+      key = ""
+      if text.re_match(`^## Steps[ \t]*$`, line) { key = "S" }
+      if text.re_match(`^## Verification[ \t]*$`, line) { key = "V" }
+      if text.re_match(`^## Open questions[ \t]*$`, line) { key = "Q" }
+    } else if key != "" && text.re_match(`^(?:[-*+]|\d+[.)])[ \t]+\S`, line) {
+      if !text.re_match(`^(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?::` + key + `[1-9]\d*::`, line) {
+        matches = append(matches, {begin: pos, end: pos + len(line)})
+      }
+    }
+    pos += len(line) + 1
+  }
