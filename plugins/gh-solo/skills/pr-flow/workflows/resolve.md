@@ -10,7 +10,7 @@ End a review round on the owner's word: record the authorisation, resolve the th
 
 The owner says it, in the session: "resolve all and push", or types `:rp`. Also "we are done" said while a round has left fix commits unpushed.
 
-**`resolve closed`, or `:rc`, is a narrower entrance**: it resolves only the threads a closing verdict ended and pushes nothing, per *Resolving only the closed threads*.
+**`resolve closed`, `:rc`, or any words asking to resolve only the closed threads, is a narrower entrance**: it resolves only the threads a closing verdict ended and pushes nothing, per *Resolving only the closed threads*.
 
 **"You can merge" is not one of these, and routes to `workflows/merge.md` instead.** After the split it would authorise a push and then not merge, which is worse than a refusal: the owner said the word and watched something else happen. That workflow's Step 1 already refuses on unpushed commits and names `:rp` as the remedy, so the sentence lands on a gate that tells them the word they actually need.
 
