@@ -1,6 +1,7 @@
 // Fixtures live in a temporary directory outside any tree an agent discovers, because a fixture shipped as a real SKILL.md is read by some agents as a broken skill.
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -12,7 +13,8 @@ import { carriesInstallForm } from "../rules/skill-readme.js";
 
 const check = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "check.js");
 const strykerChild = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "stryker-child.js");
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "agents-guru-check-"));
+// WHY: only the name is chosen at import, so a run whose filter skips every test here creates no folder that afterAll would never remove.
+const tmp = path.join(os.tmpdir(), `agents-guru-check-${randomUUID()}`);
 
 // Every fixture carries a README unless `readme` is null, so a skill-readme finding never lands in a test about another rule.
 const README = "# A skill\n\n## Install\n\n```bash\nskills add owner/repo\n```\n";
@@ -50,6 +52,7 @@ function run(targets, env = process.env, cwd = undefined) {
 }
 
 beforeAll(() => {
+  fs.mkdirSync(tmp, { mode: 0o700 });
   mk(path.join(tmp, "good"), block("good"));
   // A sibling whose name extends good's, so a folder test made on strings rather than path segments would put it inside good.
   mk(path.join(tmp, "good-too"), block("good-too"));
