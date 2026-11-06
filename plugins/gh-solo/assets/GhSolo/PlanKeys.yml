@@ -8,6 +8,7 @@ script: |
   matches := []
   pos := 0
   key := ""
+  content := -1
   fence := ""
   for line in text.split(scope, "\n") {
     stripped := text.trim_left(line, " \t")
@@ -18,12 +19,17 @@ script: |
       fence = marker[0][1].text
     } else if text.re_match(`^#{1,6}[ \t]`, line) {
       key = ""
+      content = -1
       if text.re_match(`^## Steps[ \t]*$`, line) { key = "S" }
       if text.re_match(`^## Verification[ \t]*$`, line) { key = "V" }
       if text.re_match(`^## Open questions[ \t]*$`, line) { key = "Q" }
-    } else if key != "" && text.re_match(`^(?:[-*+]|\d+[.)])[ \t]+\S`, line) {
-      if !text.re_match(`^(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?::` + key + `[1-9]\d*::`, line) {
-        matches = append(matches, {begin: pos, end: pos + len(line)})
+    } else if key != "" {
+      item := text.re_find(`^( {0,3})((?:[-*+]|\d+[.)])[ \t]+)\S`, line)
+      if item != undefined && (content < 0 || len(item[0][1].text) < content) {
+        content = len(item[0][1].text) + len(item[0][2].text)
+        if !text.re_match(`^ {0,3}(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?::` + key + `[1-9]\d*::`, line) {
+          matches = append(matches, {begin: pos, end: pos + len(line)})
+        }
       }
     }
     pos += len(line) + 1

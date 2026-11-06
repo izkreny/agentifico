@@ -17,7 +17,7 @@ script: |
     } else if marker != undefined {
       fence = marker[0][1].text
     } else {
-      item := text.re_find(`^(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?::([SVQ][1-9]\d*)::`, line)
+      item := text.re_find(`^ {0,3}(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?::([SVQ][1-9]\d*)::`, line)
       if item != undefined {
         found := item[0][1].text
         if seen[found] != undefined { matches = append(matches, {begin: pos, end: pos + len(line)}) }

@@ -131,11 +131,16 @@ check "an unkeyed gate" 1 "$NAME" "${GOOD/'- ::V1:: `npm test`'/'- `npm test`'}"
 check "an unkeyed question" 1 "$NAME" "${GOOD/'None.'/'- Which form?'}"
 check "a step keyed as a gate" 1 "$NAME" "${GOOD/'- ::S1::'/'- ::V2::'}"
 check "a numbered step with no key" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'1. Write the form.'}"
+check "an unkeyed step one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/' - Write the form.'}"
+check "an unkeyed sibling one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+ - Style it.'}"
 
 echo "a keyed item, or no item at all, passes:"
 check "a keyed question" 0 "$NAME" "${GOOD/'None.'/'- ::Q1:: Which form?'}"
 check "an unkeyed bullet nested under a step" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
   - a detail of it'}"
+check "an unkeyed bullet nested under a numbered step" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'1. ::S1:: Write the form.
+   - a detail of it'}"
 check "an unkeyed item inside a fence" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
 
 ```markdown
@@ -150,6 +155,8 @@ check "an unkeyed item under another heading" 0 "$NAME" "${GOOD/'None.'/'None.
 echo "a key opening two items fails:"
 check "a repeated step key" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
 - ::S1:: Style it.'}"
+check "a repeated key one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+ - ::S1:: Style it.'}"
 check "a question key left in ## Open questions after its move" 1 "$NAME" "${GOOD/'None.'/'- ::Q1:: Which form?
 
 ## Settled
