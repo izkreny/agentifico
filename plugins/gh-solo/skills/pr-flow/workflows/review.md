@@ -257,7 +257,7 @@ Spawn the reviewer again - **the appointed one, resolved exactly as Step 1 resol
 
 Where the repository appointed a `Reviewer command:` instead, **there is no scoped re-review**: skip this step and report it as `references/reviewer-appointment.md` says.
 
-Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit or body item key claims which id. **A key travels bare, as `V3`, and never with its item's text**: the key is an address the reviewer reads itself, and the text would be the author's copy of what it should read. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
+Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit or body item key claims which id, the key bare, as `V3`, per step 5 of `references/review-protocol.md`. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
 
 **The commits are unpushed, so it reads them with `git` locally**; never hand it a diff you generated.
 
