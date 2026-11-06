@@ -879,6 +879,13 @@ describe("agent-frontmatter", () => {
     ["leading-dash", "name: -reviewer\ndescription: Reviews code.", 'starts with "-"'],
     ["at-limit", `name: ${"a".repeat(256)}\ndescription: Reviews code.`, null],
     ["over-limit", `name: ${"a".repeat(257)}\ndescription: Reviews code.`, "257 characters"],
+    // WHY: claude plugin validate 2.1.318 passes a timestamp and a binary as a name and rejects a mapping, a list and a set.
+    ["timestamp-name", "name: 2026-11-06\ndescription: Reviews code.", null],
+    ["merged-timestamp-name", "<<: {name: 2026-11-06}\ndescription: Reviews code.", null],
+    ["binary-name", "name: !!binary aGk=\ndescription: Reviews code.", null],
+    ["mapping-name", "name: {a: 1}\ndescription: Reviews code.", "name must be a string"],
+    ["list-name", "name: [a]\ndescription: Reviews code.", "name must be a string"],
+    ["set-name", "name: !!set {a, b}\ndescription: Reviews code.", "name must be a string"],
     ["bypass", "name: r\ndescription: Reviews code.\npermissionMode: bypassPermissions", "bypassPermissions"],
     ["other-mode", "name: r\ndescription: Reviews code.\npermissionMode: plan", null],
     ["specifier-in-string", "name: r\ndescription: Reviews code.\ndisallowedTools: Write, Bash(git push *)", 'entry "Bash(git push *)" removes the whole tool'],

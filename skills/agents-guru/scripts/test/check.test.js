@@ -811,6 +811,13 @@ describe("check.js", () => {
         assert.doesNotMatch(r.out, /also declared by/, id);
       }
     });
+    it("a timestamp name is compared by the text written, as validate reads it", () => {
+      const dir = agents("timestamp", [
+        ["a.md", "---\nname: 2026-11-06\n---\n\nBody.\n"],
+        ["b.md", '---\nname: "2026-11-06"\n---\n\nBody.\n'],
+      ]);
+      assert.match(run(path.join(dir, "a.md")).out, /name "2026-11-06" is also declared by b\.md:/);
+    });
     it("a sibling's byte order mark is dropped only where it opens the file", () => {
       const dir = agents("bom-inside", [
         ["a.md", "---\nname: ab\n---\n\nBody.\n"],

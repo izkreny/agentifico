@@ -30,6 +30,12 @@ const specifierDefects = (value) =>
     .flatMap((entry) => entry.match(SPECIFIED) ?? [])
     .map((entry) => `disallowedTools entry ${JSON.stringify(entry)} removes the whole tool, not only what it names: a permissions.deny rule blocks only that`);
 
+// WHY: claude plugin validate 2.1.318 reads name: 2026-11-06 as the text written, so an agent's frontmatter is read without YAML 1.1's timestamp tag.
+const UNTIMED = { customTags: (tags) => tags.filter((tag) => tag.tag !== "tag:yaml.org,2002:timestamp") };
+
+// WHY: a binary builds to an object, yet validate passes it as a name and rejects a mapping, a list or a set.
+const nameText = (name) => (typeof name === "object" && !(name instanceof Uint8Array) ? null : String(name));
+
 // Stryker disable next-line ArrayDeclaration: every caller passes the lines, and a line that is no delimiter reads as no lines.
 export function defects(fm, inPlugin, lines = []) {
   if (!fm) {
@@ -43,7 +49,7 @@ export function defects(fm, inPlugin, lines = []) {
       return ["the opening --- is not the first line: Claude Code reads no frontmatter and skips the file as documentation"];
     return ["no name: Claude Code skips the file as documentation kept beside the agents"];
   }
-  const doc = parsed(fm);
+  const doc = parsed(fm, UNTIMED);
   // Frontmatter that does not parse is left to claude plugin validate, which reports it.
   if (doc.errors.length) return [];
   const { value, error } = built(doc);
@@ -61,12 +67,14 @@ export function defects(fm, inPlugin, lines = []) {
     ];
   const bad = [...specifiers];
   if (mapping.name === undefined || mapping.name === null) bad.push("no name: Claude Code skips the file as documentation kept beside the agents");
-  else if (typeof mapping.name === "object") bad.push("name must be a string, not a mapping or a list: claude plugin validate rejects it");
   else {
-    const name = String(mapping.name);
-    if (name.includes(":")) bad.push(`name ${JSON.stringify(name)} contains ":", which is reserved for plugin-scoped names, so Claude Code skips the file`);
-    if (name.startsWith("-")) bad.push(`name ${JSON.stringify(name)} starts with "-", so Claude Code skips the file`);
-    if (name.length > NAME_LIMIT) bad.push(`name is ${name.length} characters, over the ${NAME_LIMIT} Claude Code allows, so it skips the file`);
+    const name = nameText(mapping.name);
+    if (name === null) bad.push("name must be a string, not a mapping or a list: claude plugin validate rejects it");
+    else {
+      if (name.includes(":")) bad.push(`name ${JSON.stringify(name)} contains ":", which is reserved for plugin-scoped names, so Claude Code skips the file`);
+      if (name.startsWith("-")) bad.push(`name ${JSON.stringify(name)} starts with "-", so Claude Code skips the file`);
+      if (name.length > NAME_LIMIT) bad.push(`name is ${name.length} characters, over the ${NAME_LIMIT} Claude Code allows, so it skips the file`);
+    }
   }
   if (mapping.permissionMode === "bypassPermissions")
     bad.push("permissionMode: bypassPermissions does nothing in a subagent, which keeps the main conversation's mode instead");
@@ -75,11 +83,10 @@ export function defects(fm, inPlugin, lines = []) {
 
 function declaredName(fm) {
   if (!fm) return null;
-  const doc = parsed(fm);
+  const doc = parsed(fm, UNTIMED);
   if (doc.errors.length) return null;
   const name = built(doc).value?.name;
-  // WHY: defects rejects a mapping or a list as a name, so neither declares one, and typeof null is object too.
-  return name === undefined || typeof name === "object" ? null : String(name);
+  return name === undefined || name === null ? null : nameText(name);
 }
 
 // WHY: markdownlint drops a BOM before the judged file reaches this rule, so a sibling has to lose one too.

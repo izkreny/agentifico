@@ -62,7 +62,7 @@ export function scalar(raw) {
 export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/;
 
 // Version 1.1 is the reading under which `yes` becomes a boolean, and duplicate keys are allowed so the document parses the way the last-wins parsers an agent runs read it.
-export const parsed = (fm) => parseDocument(fm.join("\n"), { version: "1.1", uniqueKeys: false });
+export const parsed = (fm, options = {}) => parseDocument(fm.join("\n"), { version: "1.1", uniqueKeys: false, ...options });
 
 // WHY: a merge key with nothing to merge and an alias with no anchor leave doc.errors empty and throw only when the value is built.
 export function built(doc) {
