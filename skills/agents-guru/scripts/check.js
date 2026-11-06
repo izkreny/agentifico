@@ -55,7 +55,7 @@ for (const target of targets) {
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const walks = await Promise.all(
   targets.map((target) =>
-    // WHY: a glob whose folder is a file or is missing yields nothing, so every target is walked and a target that changes type mid-run leaves its walk empty.
+    // WHY: a glob whose folder is a file or is missing yields nothing, so every target is walked and the loop's own stat decides which walk is read.
     Array.fromAsync(glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true })),
   ),
 );
