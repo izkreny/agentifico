@@ -20,6 +20,9 @@
         "noUselessUndefined": "error",
         "useSimplifiedLogicExpression": "error"
       },
+      "correctness": {
+        "noUnresolvedImports": "error"
+      },
       "performance": {
         "noAwaitInLoops": "error"
       },

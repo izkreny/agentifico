@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import semver from "semver";
-import YAML from "yaml";
+import * as YAML from "yaml";
 
 // Only the events without matcher support are listed, because a stale copy of this list then misses a warning where a list of the supported events would flag a correct file on a new event.
 const NO_MATCHER = new Set([

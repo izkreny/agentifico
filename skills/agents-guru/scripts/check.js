@@ -4,7 +4,7 @@ import { glob } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { lint } from "markdownlint/promise";
-import YAML from "yaml";
+import * as YAML from "yaml";
 import { config, contractRuleNames, proseShapeRuleNames, rules, skippableRuleNames, warningRuleNames } from "./lint-config.js";
 import { isSkillFile } from "./rules/frontmatter.js";
 import { byCodeUnit } from "./rules/order.js";
