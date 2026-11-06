@@ -2,6 +2,18 @@
 import path from "node:path";
 import { parseDocument } from "yaml";
 
+// Reached when the parser rejects the frontmatter or reads a non-string description, so it only has to hand `statesPolicy` something to match a word and a slash token in.
+function rough(fm) {
+  const i = fm.findIndex((l) => l.startsWith("description:"));
+  if (i < 0) return "";
+  const raw = fm[i].slice(12).trim();
+  if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
+  const body = [];
+  // A paragraph break inside a block scalar is an empty line, so the scalar ends at the first non-empty line with no indent.
+  for (let j = i + 1; fm[j] === "" || /^\s/u.test(fm[j]); j++) body.push(fm[j]);
+  return body.join("\n");
+}
+
 export const isSkillFile = (name) => path.basename(name) === "SKILL.md";
 
 export function frontmatter(params) {
@@ -84,16 +96,4 @@ export function description(fm) {
     if (typeof value === "string") return value;
   }
   return rough(fm);
-}
-
-// Reached when the parser rejects the frontmatter or reads a non-string description, so it only has to hand `statesPolicy` something to match a word and a slash token in.
-function rough(fm) {
-  const i = fm.findIndex((l) => l.startsWith("description:"));
-  if (i < 0) return "";
-  const raw = fm[i].slice(12).trim();
-  if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
-  const body = [];
-  // A paragraph break inside a block scalar is an empty line, so the scalar ends at the first non-empty line with no indent.
-  for (let j = i + 1; fm[j] === "" || /^\s/u.test(fm[j]); j++) body.push(fm[j]);
-  return body.join("\n");
 }

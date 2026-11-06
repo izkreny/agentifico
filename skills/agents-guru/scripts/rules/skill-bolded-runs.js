@@ -1,8 +1,6 @@
 // A nested list is a list of its own, so it neither extends nor breaks its parent's run.
 import { isList, items } from "./skill-continuations.js";
 
-export const CAP = 5;
-
 function walk(tokens, fn) {
   for (const t of tokens) {
     fn(t);
@@ -10,6 +8,8 @@ function walk(tokens, fn) {
     if (t.children) walk(t.children, fn);
   }
 }
+
+export const CAP = 5;
 
 export default {
   names: ["skill-bolded-runs"],

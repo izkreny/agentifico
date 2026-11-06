@@ -50,8 +50,6 @@ const namesServer = (part, server) => new RegExp(`^(?:\\^|\\(\\?:|\\()*mcp__${Re
 // WHY: a tool name turns any other character in the key into an underscore, so a matcher written for the tool carries that form.
 const toolSpelling = (name) => name.replace(/[^\w-]/gu, "_");
 
-export const isPluginRoot = (dir) => fs.statSync(path.join(dir, ".claude-plugin"), { throwIfNoEntry: false })?.isDirectory() ?? false;
-
 // JSON.parse decides whether a file is read, because the yaml parser accepts what JSON rejects and is used only to place each key on its line.
 function read(source) {
   try {
@@ -80,15 +78,6 @@ const jsonIn = (pluginDir, file) => {
     return null;
   }
 };
-
-export function ownServers(pluginDir) {
-  // WHY: a bundle or a URL fails to read as JSON, so it needs no test of its own and adds no name.
-  const declared = [jsonIn(pluginDir, ".claude-plugin/plugin.json")?.mcpServers]
-    .flat()
-    .map((entry) => (typeof entry === "string" ? jsonIn(pluginDir, entry) : entry));
-  const names = [jsonIn(pluginDir, ".mcp.json"), ...declared].flatMap((config) => Object.keys(config?.mcpServers ?? config ?? {}));
-  return new Set(names.flatMap((name) => [name, toolSpelling(name)]));
-}
 
 function matcherRules(matcher, event, own, report) {
   if (matcher && NO_MATCHER.has(event)) report(matcher, `matcher on ${event} is silently ignored: the event has no matcher support`);
@@ -160,27 +149,6 @@ function serverRule(hook, own, report) {
     report(server, `server ${server.value.value} names the plugin's own MCP server by its bare key: write plugin:<plugin-name>:${server.value.value}`);
 }
 
-export function hooksDefects(source, own = new Set()) {
-  const file = read(source);
-  if (!file) return [];
-  const found = [];
-  const report = (pair, detail) => found.push({ line: file.lineOf(pair.key), detail });
-  const events = pairOf(file.root, "hooks")?.value;
-  if (!isMap(events)) return found;
-  for (const { key, value: groups } of events.items) {
-    for (const group of itemsOf(groups)) {
-      matcherRules(pairOf(group, "matcher"), key.value, own, report);
-      for (const hook of itemsOf(pairOf(group, "hooks")?.value)) {
-        if (!isMap(hook)) continue;
-        fieldRules(hook, key.value, report);
-        commandRules(hook, report);
-        serverRule(hook, own, report);
-      }
-    }
-  }
-  return found;
-}
-
 const filesIn = (location) => {
   const stat = fs.statSync(location, { throwIfNoEntry: false });
   if (!stat) return [];
@@ -222,6 +190,38 @@ const monitorDefects = (monitors, lineOf) =>
       line: lineOf(command.key),
       detail: `monitor command names \${user_config.*}, so the monitor fails instead of running: its script has to obtain the value on its own`,
     }));
+
+export const isPluginRoot = (dir) => fs.statSync(path.join(dir, ".claude-plugin"), { throwIfNoEntry: false })?.isDirectory() ?? false;
+
+export function ownServers(pluginDir) {
+  // WHY: a bundle or a URL fails to read as JSON, so it needs no test of its own and adds no name.
+  const declared = [jsonIn(pluginDir, ".claude-plugin/plugin.json")?.mcpServers]
+    .flat()
+    .map((entry) => (typeof entry === "string" ? jsonIn(pluginDir, entry) : entry));
+  const names = [jsonIn(pluginDir, ".mcp.json"), ...declared].flatMap((config) => Object.keys(config?.mcpServers ?? config ?? {}));
+  return new Set(names.flatMap((name) => [name, toolSpelling(name)]));
+}
+
+export function hooksDefects(source, own = new Set()) {
+  const file = read(source);
+  if (!file) return [];
+  const found = [];
+  const report = (pair, detail) => found.push({ line: file.lineOf(pair.key), detail });
+  const events = pairOf(file.root, "hooks")?.value;
+  if (!isMap(events)) return found;
+  for (const { key, value: groups } of events.items) {
+    for (const group of itemsOf(groups)) {
+      matcherRules(pairOf(group, "matcher"), key.value, own, report);
+      for (const hook of itemsOf(pairOf(group, "hooks")?.value)) {
+        if (!isMap(hook)) continue;
+        fieldRules(hook, key.value, report);
+        commandRules(hook, report);
+        serverRule(hook, own, report);
+      }
+    }
+  }
+  return found;
+}
 
 export function monitorFileDefects(source) {
   const file = read(source);

@@ -47,9 +47,9 @@ const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagra
 // A warning rule leaves the run passing: agent-plugin-name's file still loads, skill-package-runners' command still runs, skill-pinned-sources' link still opens, and skill-hard-wrap is a convention a skill may decline, per workflows/export.md or a caller's --skip.
 const contractWarningRules = [agentPluginName, skillPackageRunners, skillPinnedSources];
 const proseShapeWarningRules = [skillHardWrap];
-export const rules = [...contractRules, ...contractWarningRules, ...proseShapeRules, ...proseShapeWarningRules];
-
 const namesOf = (group) => new Set(group.flatMap((rule) => rule.names));
+
+export const rules = [...contractRules, ...contractWarningRules, ...proseShapeRules, ...proseShapeWarningRules];
 export const contractRuleNames = namesOf([...contractRules, ...contractWarningRules]);
 export const warningRuleNames = namesOf([...contractWarningRules, ...proseShapeWarningRules]);
 export const proseShapeRuleNames = namesOf([...proseShapeRules, ...proseShapeWarningRules]);

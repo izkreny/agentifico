@@ -42,7 +42,8 @@
         "useExplicitLengthCheck": "error",
         "useUnicodeRegex": "error",
         "useDefaultParameterLast": "error",
-        "useDestructuring": "error"
+        "useDestructuring": "error",
+        "useExportsLast": "error"
       },
       "suspicious": {
         "noVar": "error",
