@@ -282,8 +282,9 @@ const proseNotRun = (why) => {
 };
 
 // SKILL.md and references/setup.md name the Vale this package needs by pointing here, and each refusal prints it.
-const MIN_VALE = [3, 25];
-const minVale = MIN_VALE.join(".");
+const MIN_VALE_MAJOR = 3;
+const MIN_VALE_MINOR = 25;
+const minVale = `${MIN_VALE_MAJOR}.${MIN_VALE_MINOR}`;
 
 // A Vale before 3.23 loads a rule naming a scope from config/scopes and matches nothing, so its run would pass with rules quietly off.
 const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
@@ -296,15 +297,17 @@ if (!valeVersion && versionRun.status === 0)
   );
 // Stryker disable next-line ArrayDeclaration: with no version read, major and minor are read only behind a test of valeVersion.
 const [major, minor] = valeVersion ? [Number(valeVersion[1]), Number(valeVersion[2])] : [];
-if (valeVersion && (major < MIN_VALE[0] || (major === MIN_VALE[0] && minor < MIN_VALE[1])))
+if (valeVersion && (major < MIN_VALE_MAJOR || (major === MIN_VALE_MAJOR && minor < MIN_VALE_MINOR)))
   proseNotRun(
     `vale ${valeVersion[0]} is older than ${minVale}: the prose rules did not run. Install Vale ${minVale} or later, per references/setup.md, and run the check again.`,
   );
 
 // --no-global drops the user's own configuration and default styles directory, where a style of the same name would shadow this one.
 const valeFiles = [...files, ...codeFiles];
+const MEBIBYTE = 1_048_576;
+const VALE_OUTPUT_MEBIBYTES = 64;
 const runVale = (batch) =>
-  spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...batch], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+  spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...batch], { encoding: "utf8", maxBuffer: VALE_OUTPUT_MEBIBYTES * MEBIBYTE });
 // WHY: Vale refuses the whole run over one file whose frontmatter it cannot read, naming every such file at once on stderr, so those files are set aside as findings and the rest are read again.
 const refusedFiles = (run) => {
   if (run.status !== 2) return [];

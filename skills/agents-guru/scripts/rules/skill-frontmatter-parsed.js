@@ -1,6 +1,8 @@
 import { built, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, parsed, unbuilt } from "./frontmatter.js";
 
 const TOP_LEVEL = /^([^\s:#][^:]*):/u;
+const DESCRIPTION_LIMIT = 1024;
+const COMPATIBILITY_LIMIT = 500;
 
 // A clipped block scalar keeps one trailing newline the style adds rather than the author, so a ceiling measured raw would depend on which style carries the text.
 const authored = (v) => v.replace(/\n$/u, "");
@@ -17,9 +19,11 @@ export function defects(fm) {
   // A bare key parses to null and a bodiless block scalar to the empty string, so both shapes of present-but-empty are tested.
   if (d === null || (typeof d === "string" && d.trim() === "")) bad.push("empty description: never advertised");
   // The ceiling is measured on the value rather than the line so the quote characters and a trailing comment are not counted.
-  else if (typeof d === "string" && authored(d).length > 1024) bad.push(`description is ${authored(d).length} characters, over the spec's 1024`);
+  else if (typeof d === "string" && authored(d).length > DESCRIPTION_LIMIT)
+    bad.push(`description is ${authored(d).length} characters, over the spec's ${DESCRIPTION_LIMIT}`);
   const c = mapping.compatibility;
-  if (typeof c === "string" && authored(c).length > 500) bad.push(`compatibility is ${authored(c).length} characters, over the spec's 500`);
+  if (typeof c === "string" && authored(c).length > COMPATIBILITY_LIMIT)
+    bad.push(`compatibility is ${authored(c).length} characters, over the spec's ${COMPATIBILITY_LIMIT}`);
   // Truncation at ` #` drops the tail of whatever key it lands in, not only the description's.
   const seen = new Set();
   // Stryker disable next-line EqualityOperator: the line past the end is undefined, which TOP_LEVEL never matches.

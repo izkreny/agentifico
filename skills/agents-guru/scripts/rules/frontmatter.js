@@ -6,7 +6,7 @@ import { parseDocument } from "yaml";
 function rough(fm) {
   const i = fm.findIndex((l) => l.startsWith("description:"));
   if (i < 0) return "";
-  const raw = fm[i].slice(12).trim();
+  const raw = fm[i].slice("description:".length).trim();
   if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar ends at the first non-empty line with no indent.

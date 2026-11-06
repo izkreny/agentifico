@@ -12,7 +12,7 @@ export function defects(fm) {
   if (dl.length > 1) bad.push("duplicate description key: last silently wins");
   // The last `description:` line is swept because that is the one a last-wins parser loads, and sweeping the first would report the duplicate and call the winning value clean.
   // Stryker disable next-line StringLiteral: with no description line, no fallback opens with a quote
-  const raw = (dl.at(-1) || "").slice(12).trim();
+  const raw = (dl.at(-1) || "").slice("description:".length).trim();
   const block = dl.length > 0 && BLOCK_SCALAR.test(raw);
   // The value is joined the way YAML folds continuation lines because a continuation can carry the same traps as the first line and a legal fold is not a defect.
   // Stryker disable next-line StringLiteral: with no description line, no fallback holds an XML tag

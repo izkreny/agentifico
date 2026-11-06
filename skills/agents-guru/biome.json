@@ -44,7 +44,8 @@
         "useDefaultParameterLast": "error",
         "useDestructuring": "error",
         "useExportsLast": "error",
-        "noIncrementDecrement": "error"
+        "noIncrementDecrement": "error",
+        "noMagicNumbers": "error"
       },
       "suspicious": {
         "noVar": "error",
@@ -66,7 +67,8 @@
             "noExcessiveLinesPerFunction": "off"
           },
           "style": {
-            "noExcessiveLinesPerFile": "off"
+            "noExcessiveLinesPerFile": "off",
+            "noMagicNumbers": "off"
           }
         }
       }

@@ -2,13 +2,15 @@
 import path from "node:path";
 import { FRONTMATTER_LINE, frontmatter, isSkillFile, keyLines, scalar } from "./frontmatter.js";
 
+const NAME_LIMIT = 64;
+
 export function defects(fm, dir) {
   const [line] = keyLines(fm, "name");
   if (line === undefined) return ["no name: nothing can match it"];
-  const declared = scalar(line.slice(5).trim());
+  const declared = scalar(line.slice("name:".length).trim());
   const bad = [];
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(declared)) bad.push(`name ${JSON.stringify(declared)} is not lowercase alphanumerics joined by single hyphens`);
-  if (declared.length > 64) bad.push(`name is ${declared.length} characters, over the spec's 64`);
+  if (declared.length > NAME_LIMIT) bad.push(`name is ${declared.length} characters, over the spec's ${NAME_LIMIT}`);
   if (declared !== dir) bad.push(`name is ${JSON.stringify(declared)}, directory is ${JSON.stringify(dir)}`);
   return bad;
 }
