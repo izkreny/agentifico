@@ -68,12 +68,13 @@ It takes every criterion line with a checkbox, ticked or not. It skips a removed
 Then read the PR's head and search it, once per key:
 
 ```bash
+gh pr view <pr-number> --json headRefName --jq .headRefName
 git fetch <remote> <branch> --quiet
 git rev-parse FETCH_HEAD
 git grep -n -w -F -e GHI-<issue-number> --and -e <key> <head-sha> -- ':(glob)<glob>'
 ```
 
-The head is read as `workflows/review.md` Step 1 reads it, and never through `gh pr view`, for the lag reason stated there. `-w` makes both whole tokens, and `--and` keeps them on one line. Exit 0 prints each line naming the key; exit 1 means no test names it.
+`<branch>` is the PR's own `headRefName`, never the branch the session has checked out. The head's sha is read as `workflows/review.md` Step 1 reads it, and never through `gh pr view --json headRefOid`, for the lag reason stated there. `-w` makes both whole tokens, and `--and` keeps them on one line. Exit 0 prints each line naming the key; exit 1 means no test names it.
 
 **Any key with no match refuses the flip**, listing every such key: `⛔ REFUSED - no test names {keys}`. Otherwise the verdict lists each key beside the `file:line` that names it, so the mapping reads from the console.
 
