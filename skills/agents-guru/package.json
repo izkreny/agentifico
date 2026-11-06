@@ -9,7 +9,7 @@
   "scripts": {
     "check": "node scripts/check.js",
     "test": "vitest run scripts/test/",
-    "lint": "biome check scripts/",
+    "lint": "biome check .",
     "mutate": "nice -n 19 ionice -c 3 stryker run --incremental"
   },
   "dependencies": {
