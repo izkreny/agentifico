@@ -508,6 +508,10 @@ cases = [
     ("a later round missing, with an earlier round on the same lines",
      [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF7 old"},
       {"path": "b.rb", "line": 2, "body": "> 🤖 h\n\nRF8 old"}]),
+    # A closing verdict names RF2 without issuing it, so read as an issue it stands in for the thread that never landed.
+    ("a closing verdict standing in for a finding that never landed",
+     [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF1 x"},
+      {"path": "b.rb", "line": 2, "body": "> 🤖 h\n>\n> via v\n\n::RF2::CLOSED:: The fix closes it."}]),
 ]
 for name, comments in cases:
     proc = run_verify(payload, comments, name="".join(c if c.isalnum() else "-" for c in name))
@@ -886,6 +890,9 @@ cases = [
     # Without the word boundary PERF123 reads as RF123 and the next round starts at 124.
     ("PERF123 is not an id", [{"body": "PERF123 regressed"}, {"body": "RF2 x"}], "2"),
     ("a comment with no body field at all", [{"path": "a.rb", "line": 1}], "0"),
+    # A closing verdict issues nothing, so even one naming an id above every issued one leaves the answer where it was.
+    ("a closing verdict is not an issued id",
+     [{"body": "> 🤖 h\n\n::RF2:: x"}, {"body": "> 🤖 h\n\n::RF5::CLOSED:: The fix closes it."}], "2"),
 ]
 for name, comments, want in cases:
     proc = run_highest(comments, name="hi-" + "".join(c if c.isalnum() else "-" for c in name))

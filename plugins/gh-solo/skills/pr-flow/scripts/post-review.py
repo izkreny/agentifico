@@ -27,7 +27,8 @@ SEVERITY_SOURCES = ("reviewer", "derived")
 DISCLAIMER_PREFIX = "> 🤖"
 SUGGESTION_FENCE = "```suggestion"
 # An issued id is delimited with `::` so prose can name one without being counted, and `::` rather than brackets because `[RF8]` is markdown link syntax.
-ID_PATTERN = r"::RF(\d+)::"
+# A closing verdict names an id rather than issuing it, so `::RF3::CLOSED::` is no issued id.
+ID_PATTERN = r"::RF(\d+)::(?!CLOSED::)"
 # A legacy finding post opened a line with the bare id, and under-reading it would hand a live id to a second finding.
 LEGACY_PATTERN = r"^RF(\d+) "
 # A legacy post put bare ids mid-line too, so an ignored one is reported rather than silently dropped.

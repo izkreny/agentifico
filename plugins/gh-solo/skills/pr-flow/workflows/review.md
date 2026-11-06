@@ -267,6 +267,8 @@ Then post what it returns:
 
 The same endpoint as step 3, via `pr-flow` review, re-review verdict, under the same post cap.
 
+**A verdict that closes its finding opens with `::RF{n}::CLOSED::`**, right below the disclaimer and the `via` line, per *Keys* in `../tracker/references/formats.md`. A verdict that leaves it open carries no marker. The closing reply from the fix never carries it either: that reply is the fixer's claim, and the verdict is the re-review's own reading of it, so the marker is what tells a reader the thread is closed.
+
 #### Re-read the head before building this payload
 
 Read it exactly as Step 2's first item does and compare it against the pin the full pass used. A difference is refused here by you rather than by the script, since this entrance passes `--anchored-at` instead of the pin pair, so the wording is yours to emit:
