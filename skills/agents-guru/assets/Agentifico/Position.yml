@@ -65,6 +65,8 @@ tokens:
   # An ordinal pair walking the document's own list: "The first is a check", "The second is" #2; "the third row is the finding" #7.
   # Widened to ordinals, PR 263. Narrows auxiliaries: the record holds only "is" and "was".
   - '^the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) (?:is|was)\b'
+  # "No rule reads a prescribed format, so only this question catches it" #412 RF3, 73e3abd: a uniqueness claim over the rule set, which one more rule makes false. Literal.
+  - 'only this question catches'
   # "beneath it" as a pointer at a heading, #236 SW6 and 694a588, belongs here and has no token: every general form trips "the floor beneath it".
 tests:
   - name: fires on each recorded shape, once per line
@@ -109,6 +111,7 @@ tests:
       When a workflow below says it, resolve it.
       The prose class is the one heading the index names.
       Every path here opens with a placeholder.
+      No rule reads that format, so only this question catches it.
     want: |
       3:5:Agentifico.Position:Write sentences that survive change: 'the escape above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       4:1:Agentifico.Position:Write sentences that survive change: 'The row below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
@@ -148,6 +151,7 @@ tests:
       38:6:Agentifico.Position:Write sentences that survive change: 'a workflow below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       39:20:Agentifico.Position:Write sentences that survive change: 'the one heading' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       40:1:Agentifico.Position:Write sentences that survive change: 'Every path here' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      41:31:Agentifico.Position:Write sentences that survive change: 'only this question catches' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
   - name: leaves the sanctioned forms alone
     input: |
       # Title
