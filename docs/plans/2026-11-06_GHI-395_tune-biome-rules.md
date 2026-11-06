@@ -68,4 +68,5 @@ None.
 
 ## Settled
 
-None yet.
+- **Are the findings excused with `biome-ignore` fixed instead?** Yes, all nine, the owner said in the session on 2026-11-06, since a suppression can be misused. The package carries no `biome-ignore`.
+- **Where does the rule against a suppression without the owner's approval live?** In `.agents/gh-solo.md`, beside the lint gate, on this branch, the owner said in the session on 2026-11-06.
