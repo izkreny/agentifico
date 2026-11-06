@@ -1,4 +1,3 @@
-// In micromark's tree a list token holds its item prefixes and its content blocks as siblings, so an item is the run of children between one prefix and the next.
 function walk(tokens, fn) {
   for (const t of tokens) {
     fn(t);
@@ -13,6 +12,7 @@ function walk(tokens, fn) {
 // Stryker disable next-line Regex: no list token type names these words except where anchored
 const isSpace = (t) => /^lineEnding|Prefix$|Indent$/u.test(t.type);
 
+// In micromark's tree a list token holds its item prefixes and its content blocks as siblings, so an item is the run of children between one prefix and the next.
 export const isList = (t) => t.type === "listOrdered" || t.type === "listUnordered";
 
 export const paragraphOf = (t) => {
