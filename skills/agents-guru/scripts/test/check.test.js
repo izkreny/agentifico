@@ -1136,9 +1136,16 @@ describe("check.js", () => {
     assert.match(r.out, /no such file or folder: .*nope\.md/u);
   });
   it("a path that does not exist fails before any folder is walked", () => {
-    const r = run([path.join(tmp, "empty"), path.join(tmp, "nope.md")]);
+    // WHY: the preload makes every walk throw, so the refusal can only be printed if no walk started before it.
+    const noWalk = path.join(tmp, "no-walk.js");
+    fs.writeFileSync(
+      noWalk,
+      'import fsp from "node:fs/promises";\nimport { syncBuiltinESMExports } from "node:module";\nfsp.glob = () => {\n  throw new Error("a folder was walked");\n};\nsyncBuiltinESMExports();\n',
+    );
+    const r = run([path.join(tmp, "good"), path.join(tmp, "nope.md")], { ...process.env, NODE_OPTIONS: `--import=${noWalk}` });
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /no such file or folder: .*nope\.md/u);
+    assert.doesNotMatch(r.out, /a folder was walked/u);
   });
   it("a file no reader takes fails, naming it", () => {
     const r = run(path.join(tmp, "notes", "notes.txt"));
