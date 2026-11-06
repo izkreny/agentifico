@@ -134,6 +134,18 @@ check "a numbered step with no key" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'
 check "an unkeyed step one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/' - Write the form.'}"
 check "an unkeyed sibling one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
  - Style it.'}"
+check "an unkeyed step two spaces in, after a paragraph" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+Then style it.
+
+  - Style it.'}"
+check "an unkeyed step two spaces in, after a fence" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+```text
+a block
+```
+
+  - Style it.'}"
 
 echo "a keyed item, or no item at all, passes:"
 check "a keyed question" 0 "$NAME" "${GOOD/'None.'/'- ::Q1:: Which form?'}"
@@ -141,6 +153,14 @@ check "an unkeyed bullet nested under a step" 0 "$NAME" "${GOOD/'- ::S1:: Write 
   - a detail of it'}"
 check "an unkeyed bullet nested under a numbered step" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'1. ::S1:: Write the form.
    - a detail of it'}"
+check "an unkeyed bullet nested after a lazy continuation" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form,
+then style it.
+  - a detail of it'}"
+check "an unkeyed bullet nested after an indented paragraph" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+  Then style it.
+
+  - a detail of it'}"
 check "an unkeyed item inside a fence" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
 
 ```markdown
