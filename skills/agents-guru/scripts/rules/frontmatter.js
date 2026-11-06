@@ -74,7 +74,7 @@ export function built(doc) {
 }
 
 // WHY: claude plugin validate 2.1.318 passes such a file, so the finding names what this check could not read rather than calling the file broken.
-export const unbuilt = (message) => `frontmatter parses but its value cannot be built (${message}), so no field in it was checked`;
+export const unbuilt = (message) => `frontmatter parses but its value cannot be built (${message}), so this rule checked no field in it`;
 
 // The parser's value rather than the lines', because chomping, folding, the indentation indicator and the last-wins duplicate key are the parser's to decide and a reimplementation agreed with it on `|-` alone.
 export function description(fm) {

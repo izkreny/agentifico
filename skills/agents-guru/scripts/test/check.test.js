@@ -951,7 +951,7 @@ describe("check.js", () => {
       finished(r);
       assert.match(r.out, /^ {2}recap\/SKILL\.md:\d+ Agentifico\.ClosingRecap /m);
       assert.match(r.out, /^ {2}merge\/SKILL\.md:1 vale-unread \(error\) Vale could not read this file \(yaml: map merge/m);
-      assert.match(r.out, /^ {2}merge\/SKILL\.md:\d+ skill-frontmatter-parsed .*cannot be built \(Merge sources must be maps or map aliases\)/m);
+      assert.match(r.out, /^ {2}merge\/SKILL\.md:\d+ skill-frontmatter-parsed .*cannot be built \(Merge sources must be maps or map aliases\), so this rule checked no field in it\]/m);
       assert.match(r.out, /^ {2}empty\/SKILL\.md:\d+ skill-frontmatter-parsed .*empty description/m);
     });
   });
