@@ -36,8 +36,7 @@ export function folded(fm, i) {
     }
     if (!/^\s+\S/.test(fm[j])) break;
     if (!quoted && fm[j].trim().startsWith("#")) break;
-    // biome-ignore lint/suspicious/noUnnecessaryConditions: Biome types blanks by its initial 0 and misses the increment for an empty line above.
-    parts.push(blanks ? "\n".repeat(blanks) : " ", fm[j].trim());
+    parts.push(blanks > 0 ? "\n".repeat(blanks) : " ", fm[j].trim());
     blanks = 0;
   }
   return parts.join("");

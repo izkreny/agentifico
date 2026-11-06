@@ -39,18 +39,23 @@ const rootOf = new Map();
 const folders = [];
 // The walk matches names rather than files, so a folder named notes.md arrives beside the files inside it, and a link statSync cannot resolve arrives as a file nothing can read.
 const dangling = new Map();
-for (const target of targets) {
+// Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
+const walks = await Promise.all(
+  targets.map((target) =>
+    fs.statSync(target, { throwIfNoEntry: false })?.isDirectory()
+      ? Array.fromAsync(
+          glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
+        )
+      : [],
+  ),
+);
+for (const [i, target] of targets.entries()) {
   const stat = fs.statSync(target, { throwIfNoEntry: false });
   if (!stat) nothingChecked(`no such file or folder: ${target}`);
   let reached = [target];
   if (stat.isDirectory()) {
-    // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
     const lost = [];
-    // biome-ignore lint/performance/noAwaitInLoops: targets are walked in order, since a file two targets reach keeps the first one's root and a bad target stops the run before the ones after it.
-    const walked = await Array.fromAsync(
-      glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
-    );
-    reached = walked
+    reached = walks[i]
       .map((file) => path.join(target, file))
       .filter((file) => {
         try {
@@ -170,13 +175,15 @@ for (const file of files) {
   }
 }
 warnings += contractWarnings + proseShapeWarnings;
-// biome-ignore lint/suspicious/noUnnecessaryConditions: Biome types the counter by its initial 0 and misses the increments in the loop above.
-report("skill rules", contractFindings, contractWarnings ? `${contractFindings.length - contractWarnings} issues, ${contractWarnings} warnings` : undefined);
+report(
+  "skill rules",
+  contractFindings,
+  contractWarnings > 0 ? `${contractFindings.length - contractWarnings} issues, ${contractWarnings} warnings` : undefined,
+);
 report(
   "prose shape",
   proseShapeFindings,
-  // biome-ignore lint/suspicious/noUnnecessaryConditions: Biome types the counter by its initial 0 and misses the increments in the loop above.
-  proseShapeWarnings ? `${proseShapeFindings.length - proseShapeWarnings} issues, ${proseShapeWarnings} warnings` : undefined,
+  proseShapeWarnings > 0 ? `${proseShapeFindings.length - proseShapeWarnings} issues, ${proseShapeWarnings} warnings` : undefined,
 );
 report("general lint", generalFindings);
 
@@ -226,8 +233,7 @@ for (const file of yamlFiles) {
 }
 issues += yamlFindings.length - yamlWarnings;
 warnings += yamlWarnings;
-// biome-ignore lint/suspicious/noUnnecessaryConditions: Biome types the counter by its initial 0 and misses the increments in the loop above.
-report("yaml files", yamlFindings, yamlWarnings ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
+report("yaml files", yamlFindings, yamlWarnings > 0 ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
 // Stryker disable next-line MethodExpression: a glob whose folder is a file yields nothing, so a file target adds no plugin either way.
 const searched = targets.filter((dir) => fs.statSync(dir).isDirectory());
