@@ -168,7 +168,7 @@ function duplicateNames(file, folder, fm) {
 export function pluginNameWarnings(fm) {
   const name = declaredName(fm);
   if (name === null) return [];
-  const length = name.length;
+  const { length } = name;
   return length > NAME_LIMIT
     ? [`name is ${length} characters, over the ${NAME_LIMIT} Claude Code allows, so it loads the agent under its file name instead`]
     : [];

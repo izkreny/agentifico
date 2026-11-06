@@ -5,7 +5,7 @@ import { isList } from "./skill-continuations.js";
 const VERB = /^[a-z][a-z0-9-]*$/u;
 const firstWord = (text) => {
   // Stryker disable next-line Regex: the text is trimmed first, so a single-space split leaves the first word the same.
-  const word = text.trim().split(/\s+/u)[0];
+  const [word] = text.trim().split(/\s+/u);
   return VERB.test(word) ? word : null;
 };
 

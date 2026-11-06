@@ -3,7 +3,7 @@ import path from "node:path";
 import { FRONTMATTER_LINE, frontmatter, isSkillFile, keyLines, scalar } from "./frontmatter.js";
 
 export function defects(fm, dir) {
-  const line = keyLines(fm, "name")[0];
+  const [line] = keyLines(fm, "name");
   if (line === undefined) return ["no name: nothing can match it"];
   const declared = scalar(line.slice(5).trim());
   const bad = [];

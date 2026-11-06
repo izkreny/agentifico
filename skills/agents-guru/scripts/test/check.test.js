@@ -853,7 +853,7 @@ describe("check.js", () => {
       fs.chmodSync(path.join(dir, "a.md"), 0o000);
       fs.chmodSync(path.join(dir, "z"), 0o000);
       try {
-        const out = run(path.join(dir, "same.md")).out;
+        const { out } = run(path.join(dir, "same.md"));
         assert.match(out, /could not read a\.md \(EACCES\)[\s\S]*could not read z \(EACCES\)/u, out);
       } finally {
         fs.chmodSync(path.join(dir, "a.md"), 0o644);
@@ -862,7 +862,7 @@ describe("check.js", () => {
     });
     it("a standalone agent's long name is the standalone rule's finding alone", () => {
       const dir = agents("long-standalone", [["a.md", `---\nname: ${"a".repeat(257)}\ndescription: x\n---\n\nBody.\n`]]);
-      const out = run(path.join(dir, "a.md")).out;
+      const { out } = run(path.join(dir, "a.md"));
       assert.match(out, /agent-frontmatter .*257 characters/u, out);
       assert.doesNotMatch(out, /agent-plugin-name/u);
     });
@@ -1032,7 +1032,7 @@ describe("check.js", () => {
     fs.mkdirSync(path.join(dir, ".claude-plugin"));
     const manifest = { name: "styled", outputStyles: "./custom/", workflows: "./custom/", experimental: { themes: "./custom/" } };
     fs.writeFileSync(path.join(dir, ".claude-plugin", "plugin.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-    const out = run(dir).out;
+    const { out } = run(dir);
     for (const [key, folder] of [
       ["outputStyles", "output-styles"],
       ["workflows", "workflows"],
@@ -1874,7 +1874,7 @@ describe("skill-pinned-sources", () => {
     assert.deepEqual(findings(mkSkill("inline-shadow", `## Sources\n\n[x](${url}/blob/${SHA}/f)\n\n[x]: ${url}\n`)), []);
   });
   it("names the link's line, trimmed", () => {
-    const out = run(mkSkill("context", "## Sources\n\n- an item\n  - [a](https://github.com/owner/repo)\n")).out;
+    const { out } = run(mkSkill("context", "## Sources\n\n- an item\n  - [a](https://github.com/owner/repo)\n"));
     assert.match(out, /skill-pinned-sources .*\[Context: "- \[a\]/u);
   });
   it("reads only a README beside a SKILL.md", () => {
@@ -2054,7 +2054,7 @@ describe("check.js, the run's own bookkeeping", () => {
     for (const file of ["b.yml", "a/c.yml"]) write(path.join(dir, file), "key: [1\n");
     const alert = [{ Line: 1, Check: "Stub.Order", Severity: "warning", Message: "m" }];
     const lint = JSON.stringify(Object.fromEntries(["b.md", "a/c.md", "b.js", "a/c.js"].map((file) => [path.join(dir, file), alert])));
-    const out = run(dir, stubVale("order", "3.25.1", lint)).out;
+    const { out } = run(dir, stubVale("order", "3.25.1", lint));
     assert.match(out, /^ {2}a\/c\.md:1 Stub\.Order[^\n]*\n {2}b\.md:1 Stub\.Order[^\n]*\n {2}a\/c\.js:1 Stub\.Order[^\n]*\n {2}b\.js:1 Stub\.Order/mu, out);
     assert.match(out, /^ {2}a\/c\.yml:\d+ yaml-parse [^\n]*\n {2}b\.yml:\d+ yaml-parse /mu, out);
   });

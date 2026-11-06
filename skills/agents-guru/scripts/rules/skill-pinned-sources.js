@@ -27,7 +27,7 @@ function headingOf(token) {
   }
   if (token.type === "setextHeading") {
     // Stryker disable next-line ConditionalExpression: a setext heading opens with its text, so the first child is the one sought.
-    const text = token.children.find((child) => child.type === "setextHeadingText").text;
+    const { text } = token.children.find((child) => child.type === "setextHeadingText");
     return { text, level: token.text.trimEnd().endsWith("=") ? 1 : 2 };
   }
   return null;

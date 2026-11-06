@@ -206,7 +206,7 @@ describe("rule messages", () => {
       const { message } = parseYaml(fs.readFileSync(path.join(styleDir, file), "utf8"));
       assert.equal(typeof message, "string", `${file} carries no message`);
       // The text before the first colon may shorten its heading but never reword it, which is how Banner names its own.
-      const opening = message.split(":")[0];
+      const [opening] = message.split(":");
       assert.ok(opening && headings.some((h) => h.startsWith(opening)), `${file}: "${message}" opens on no ### heading of workflows/new.md`);
     });
   }
