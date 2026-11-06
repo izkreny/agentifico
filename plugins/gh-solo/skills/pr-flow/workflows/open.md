@@ -54,6 +54,8 @@ Everything else is the planner's call. Planning mode already knows how to write 
 
 **A backticked path the branch will create or delete carries a tag**: one space after the closing backtick, then `(new)` or `(delete)`, lowercase, as in `` `lib/login.py` (new) ``. Every mention of such a file carries it, not only the one that says what happens, because an untagged mention fails the docs check whenever the file is absent. A file the branch only changes takes no tag. The docs check never reads a `(new)` path, so a wrong one is the review round's to catch.
 
+**Every step, every gate and every open question carries its key from the moment it is written**: `- ::S1:: …` under `## Steps`, `- ::V1:: …` under `## Verification` and `- ::Q1:: …` under `## Open questions`, per *Keys* in `../tracker/references/formats.md`, which owns how they are numbered. The PR body carries the same keys, so `S3` names one step in both.
+
 **Every required section is written as plain bullets in the plan, never checkboxes.** Each such list is the plan's *intent*, frozen at plan time and reviewed as a diff — it is what the draft PR exists for the owner to argue with. The same list appears in the PR body as `- [ ]`, where it carries *progress*. Two jobs, not two copies of one fact: a checkbox inside a committed file can only be ticked by another commit, and the intent should not change every time a box does.
 
 If the PR's list later diverges from the plan's, that is information rather than drift — scope moved, and the diff between intent and outcome is worth being able to see.
@@ -66,7 +68,7 @@ If the plan is only restating the issue in different words, the issue was specif
 
 **Alone is the rule, not a preference.** Everywhere else the guidance is to use the fewest commits that make sense; the plan is the one standing exception, because the draft PR has to exist before any code does, and it can only do that if the plan is the first thing on the branch.
 
-**Run the plan check before committing the plan.** It fails a plan off Step 2's filename pattern, lacking `## Steps` or `## Verification`, with no list item under `## Verification`, or carrying a checkbox anywhere. A failure here costs an edit, not an amend of the branch's first commit. A missing or old Vale exits `2` with what to install, never clean. Its entry opens the template's `## Verification` in Step 4, so `workflows/ready.md` and `workflows/merge.md` audit it.
+**Run the plan check before committing the plan.** It fails a plan off Step 2's filename pattern, lacking `## Steps` or `## Verification`, with no list item under `## Verification`, carrying a checkbox anywhere, with an item under `## Steps`, `## Verification` or `## Open questions` that does not open with its section's key, or with a key that opens two items. A failure here costs an edit, not an amend of the branch's first commit. A missing or old Vale exits `2` with what to install, never clean. Its entry opens the template's `## Verification` in Step 4, so `workflows/ready.md` and `workflows/merge.md` audit it.
 
 ```bash
 python3 <skill-dir>/scripts/plan-check.py <the plan file>
@@ -121,24 +123,24 @@ Closes #{issue-number}
 
 ## Steps
 
-- [ ] Step 1
-- [ ] Step 2
+- [ ] ::S1:: Step 1
+- [ ] ::S2:: Step 2
 
 ## Verification
 
-- [ ] `python3 <skill-dir>/scripts/plan-check.py <the plan file>`
-- [ ] The command that proves it works
-- [ ] The other one
+- [ ] ::V1:: `python3 <skill-dir>/scripts/plan-check.py <the plan file>`
+- [ ] ::V2:: The command that proves it works
+- [ ] ::V3:: The other one
 
 [What these gates cannot see.]
 
 ## Open questions
 
-[Copied from the plan, because this is where the discussion happens. Ends on "None." once every entry is settled - a bare heading reads as unfinished.]
+- ::Q1:: [Copied from the plan, because this is where the discussion happens. Ends on "None." once every entry is settled - a bare heading reads as unfinished.]
 
 ## Settled
 
-["None yet." at creation, so the heading is never bare. Each answered question moves here from Open questions, question and decision together, the first one replacing the placeholder.]
+["None yet." at creation, so the heading is never bare. Each answered question moves here from Open questions under its own `Q{n}`, question and decision together, the first one replacing the placeholder.]
 ```
 
 The AI disclaimer opens the body, as it does on the plan file and in the commit body. The wording and the rule, including the default used when the owner's global instructions file defines no line, live in the AI-disclaimer bullet of `SKILL.md`; it is not repeated here, because a template is the wrong place to define a convention that applies everywhere.
@@ -159,7 +161,7 @@ Why each part earns its place:
 
 ### The discussion
 
-- **Open questions** are here because a PR body is where a comment thread can answer them. In the plan file alone they are rhetorical. An entry leaves this section the moment it is settled - moved into `## Settled`, never deleted.
+- **Open questions** are here because a PR body is where a comment thread can answer them. In the plan file alone they are rhetorical. An entry leaves this section the moment it is settled - moved into `## Settled` under its own `Q{n}`, never deleted.
 - **`## Settled`** is where an answered question lands, question and decision together, because the question is what makes the decision legible to a later reader. Moving rather than deleting matters to the audit and to the merge: `workflows/ready.md` audits `## Open questions` before lifting the draft, and `workflows/merge.md` has the squash merge write the whole PR body into the commit on `main` (`squash_merge_commit_message: PR_BODY`), so a decision recorded here survives in `git log` permanently, where a comment thread never lands. The move happens where the decision does: a discuss round moves an entry the moment the owner's closing decision settles it, per `workflows/discuss.md`, and Step 1's plan-record settle in the `implement` skill catches anything still unmoved before implementation starts - a body edit either way, like ticking a box, never a commit - except the relocation past the cap, whose whole route *Body caps* below owns. A decision settled in the terminal instead of a thread goes into the plan file under the same `## Settled` heading, per `workflows/discuss.md`: one name for the concept everywhere it appears, and the one sanctioned way a plan file changes after plan time.
 
 For a branch that depends on another unmerged branch this is a stacked PR instead: add `--base <parent>`, and see `workflows/stack.md` for whether a stack is wanted at all.
