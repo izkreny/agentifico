@@ -57,7 +57,7 @@ Where the sources disagree, the skill takes one side:
 
 - `raise` everywhere, over Exceptional Ruby's `fail` and `raise` split, which its own author calls taste; RuboCop enforces it.
 - A `save` that raises on failure, paired with a predicate for code that branches, over Exceptional Ruby's `save` returning `false`, because a caller that ignores the result loses data silently.
-- Standard exception classes for plain misuse and one namespaced root error for anything callers rescue, over [the Ruby Style Guide](https://github.com/rubocop/ruby-style-guide)'s "prefer standard exceptions" alone, because every exemplar gem defines a root.
+- Standard exception classes for plain misuse and one namespaced root error for anything callers rescue, over the Ruby Style Guide's "prefer standard exceptions" alone, because every exemplar gem defines a root.
 - Tests written before or after the code, whichever suits the work, with every new test seen to fail, over the test-first discipline of POODR and 99 Bottles.
 - Real collaborators in tests, your own classes included, with doubles only for what the code cannot control, over POODR's and 99 Bottles' mocks and fakes for your own roles, because a test that mocks your own objects pins how the code works rather than what it does; the shared role test both books teach still keeps every player honest.
 - `Data` for values and `Struct` only for mutable records, over the `Struct` and `OpenStruct` examples of the pre-3.2 books.
@@ -65,10 +65,10 @@ Where the sources disagree, the skill takes one side:
 - Composition by default and inheritance for small, stable families of specialisations: POODR's chapter 8 over its chapters 6 and 7, and 99 Bottles' afterword over its early inheritance refactoring.
 - Dependency constraints in a gemspec as a floor plus a ceiling at the next major for dependencies that follow semantic versioning, over [the RubyGems guides](https://guides.rubygems.org)' optimistic floor alone, because that is what the exemplar plugin ecosystems use and it still admits every compatible release.
 - Development dependencies in the Gemfile, over the gemspec's `add_development_dependency` that Practical Ruby Gems still shows, as the Bundler 4 `bundle gem` template does.
-- [Zeitwerk](https://github.com/fxn/zeitwerk) for gems of more than a handful of files and plain `require_relative` for small ones, because both appear in the exemplar gems and neither is wrong.
-- Separate `<repo-root>/sig/` files over inline RBS, which [rbs](https://github.com/ruby/rbs) 4 and [Steep](https://github.com/soutaro/steep) 2 still call experimental.
-- [mutant](https://github.com/mbj/mutant) for open-source projects in public repositories, and [evilution](https://github.com/marinazzio/evilution) or [mutineer](https://github.com/davidteren/mutineer) elsewhere, because mutant's licence requires a paid subscription for any other project.
-- [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby)'s `Concurrent::Map` or a `Mutex` over `Concurrent::Hash` for compound operations, because on CRuby `Concurrent::Hash` is a plain `Hash`.
+- Zeitwerk for gems of more than a handful of files and plain `require_relative` for small ones, because both appear in the exemplar gems and neither is wrong.
+- Separate `<repo-root>/sig/` files over inline RBS, which rbs 4 and Steep 2 still call experimental.
+- mutant for open-source projects in public repositories, and evilution or mutineer elsewhere, because mutant's licence requires a paid subscription for any other project.
+- concurrent-ruby's `Concurrent::Map` or a `Mutex` over `Concurrent::Hash` for compound operations, because on CRuby `Concurrent::Hash` is a plain `Hash`.
 - No `protected`, with Polished Ruby, over Eloquent Ruby's use of it for comparisons between instances, because a protected method is listed by `methods` yet refuses `respond_to?`.
 - Strict subclass substitutability, over Polished Ruby's deliberate exceptions, because an agent cannot guarantee that the stricter subclass never reaches code expecting the parent.
 - Request context passed as arguments, with Polished Ruby, and `Fiber[:key]` kept for diagnostics such as a request id, where the concurrency sources store all request context there.
@@ -125,13 +125,15 @@ Gems read as examples of Ruby written well:
 Gem authoring:
 
 - [The RubyGems guides](https://github.com/rubygems/guides/tree/bc60bbfd83d860c91e4198c4258b63083c115488).
-- The markdownifico project's research notes on well-built reference gems and the plugin APIs of real tools.
+- [The markdownifico project's research notes](https://github.com/izkreny/markdownifico/tree/7b4502bfb2ca8e2bfae2c6b977319d3437da093a/docs/research) on well-built reference gems and the plugin APIs of real tools.
 
 Tools the skill names, each pinned to its release tag's commit and checked as the installed gem on Ruby 4.0.9:
 
 - [Ruby LSP](https://github.com/Shopify/ruby-lsp/tree/6745c162fce98b1738f8f602fbca38806c6863aa) 0.26.11, for how it finds references and what it renames.
 - [vernier](https://github.com/jhawthorn/vernier/tree/c76c9ac27db9ae68fed493c8b8042de36f0ed5cb) 1.12.0 and [benchmark-ips](https://github.com/evanphx/benchmark-ips/tree/4a0fac51a253de42e65299002ccf2aebf370434c) 2.15.1, for profiling and comparing implementations.
 
-Research, gathered on 2026-11-06 with every claim cited to its page: the state of typed Ruby (RBS, Steep, TypeProf, Sorbet), mutation testing tools for Ruby (mutant, evilution, mutineer), and gem and plugin authoring under Ruby 4.0, RubyGems 4 and Bundler 4.
+Mutation testing tools, each pinned to its default branch on 2026-11-06, when their licences, Minitest support and Ruby 4.0 support were read:
+
+- [mutant](https://github.com/mbj/mutant/tree/233c802bad16ae2ef271cb4bd85d1f66c65238c5) 0.17.1, [evilution](https://github.com/marinazzio/evilution/tree/b525769eb2738dbad8c72f31708588b49c14bab1) 1.5.1 and [mutineer](https://github.com/davidteren/mutineer/tree/59a93caa9c29d00e9454c60c18c7e7bf69280839) 1.8.1.
 
 Skills: go-style and rails-style, whose shape this skill follows.
