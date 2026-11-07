@@ -28,7 +28,7 @@ Each cell of the table states its own rule, prohibitions included, so a row read
 ### Ids
 
 - **`RF{n}` ids are assigned by the orchestrator**, not the reviewer, which emits its own local index and nothing else. Continuing an id sequence needs the PR's existing threads, and that is state the reviewer needs for nothing else.
-- **Ids follow the numbering rule under *Keys* in `../tracker/references/formats.md`**, which also owns how one is issued and named. Before numbering, read the existing threads for the highest `RF{n}` already posted and continue from it, because the threads are where every id a round has issued is recorded.
+- **Ids follow the numbering rule under *Keys* in `../tracker/references/formats.md`**, which also owns how one is issued and named. Before numbering, read the highest `RF{n}` already issued and continue from it. It is read from the threads and the review bodies both, since a held finding's id lives only in a review body until its push; Step 2 of `workflows/review.md` has the read.
 
 ### Severity and scenario
 
@@ -72,7 +72,7 @@ The fixes land as commits grouped by coherent change, each naming the `RF{n}` id
 - **Steps 3 and 4 are two posts and are never merged into one**, even though nothing reads them in between. The gap between the plan and the result is where a departure from the plan is visible; combined, it has nowhere to show.
 - **The fix workflow's carve-out applies to every fix in this block**: a fix the owner might independently reject gets its own commit. There it is the exception; here it is the rule, because nothing in this block has been judged yet.
 - Any gate in `## Verification` the fixes could have invalidated is re-run and re-ticked by whoever ran it, per the standing convention in `SKILL.md`.
-- **A fix that changes what the `## Plan overview` describes brings the overview up to date in the same round.** The overview summarises what the branch does, so a fix that adds or removes a behaviour makes it wrong - and wherever the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `references/repo-settings.md`, that text becomes the squash commit message on `main` and can never be corrected afterwards. The edit is a body edit, read-modify-write per the body-edit convention in `SKILL.md`, never a commit, and it stays inside the overview's cap in *Convention checks*. Name it in the round report next to the fix commits.
+- **A fix that changes what the `## Plan overview` describes brings the overview up to date in the same round.** The overview summarises what the branch does, so a fix that adds or removes a behaviour makes it wrong - and wherever the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `references/repo-settings.md`, that text becomes the squash commit message on `main` and can never be corrected afterwards. The edit is a body edit, read-modify-write per the body-edit convention in `SKILL.md`, never a commit, and it stays inside the cap *Body caps* in `workflows/open.md` sets for it. Name it in the round report next to the fix commits.
 - The mechanics are the `implement` skill's fix workflow, run by the orchestrator rather than handed to anyone.
 
 ### 5. Re-review, scoped
