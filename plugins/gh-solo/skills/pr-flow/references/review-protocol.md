@@ -27,7 +27,7 @@ Each cell of the table states its own rule, prohibitions included, so a row read
 
 ### Ids
 
-- **`RF{n}` ids are assigned by the orchestrator**, not the reviewer, which emits its own local index and nothing else. Continuing an id sequence needs the PR's existing threads, and that is state the reviewer needs for nothing else.
+- **`RF{n}` ids are assigned by the orchestrator**, not the reviewer, which emits its own local index and nothing else. Continuing an id sequence needs the ids the PR already carries, and that is state the reviewer needs for nothing else.
 - **Ids follow the numbering rule under *Keys* in `../tracker/references/formats.md`**, which also owns how one is issued and named. Before numbering, read the highest `RF{n}` already issued and continue from it. It is read from the threads and the review bodies both, since a held finding's id lives only in a review body until its push; Step 2 of `workflows/review.md` has the read.
 
 ### Severity and scenario
