@@ -67,11 +67,10 @@ The script reads the glob, the criterion keys of the issue the body's `Closes #{
 
 ## Step 5 - Audit the body's keys
 
-**Every item under the body's `## Steps`, `## Verification` and `## Open questions` opens with its key, and no key opens two items**, per *Keys* in `../tracker/references/formats.md`. The ticks every other step reads are found by those keys, so the check decides it rather than a reading. Fetch the body into a scratch file outside the working tree, its name ending in .md:
+**Every item under the body's `## Steps`, `## Verification` and `## Open questions` opens with its key, and no key opens two items**, per *Keys* in `../tracker/references/formats.md`. The ticks every other step reads are found by those keys, so the check decides it rather than a reading:
 
 ```bash
-gh pr view <pr-number> --json body --jq .body > <scratch-dir>/body-<pr-number>.md
-python3 <skill-dir>/scripts/keys-check.py <scratch-dir>/body-<pr-number>.md
+python3 <skill-dir>/scripts/keys-check.py pr <pr-number>
 ```
 
 **Exit 1 refuses the flip**: `⛔ REFUSED - the body's keys`, then each line the script printed. **Any other non-zero exit refuses too**, because the check could not run, and the refusal quotes what it printed. `scripts/test-keys-check.sh` is its bench.

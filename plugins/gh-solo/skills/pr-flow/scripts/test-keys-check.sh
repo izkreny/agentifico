@@ -8,12 +8,17 @@ SCRIPT="${1:-$HERE/keys-check.py}"
 TREE="$(mktemp -d)"
 trap 'rm -rf "$TREE"' EXIT
 
-mkdir -p "$TREE/novale" "$TREE/oldvale"
-# WHY: a PATH holding python3 alone is how a machine without Vale is faked, since the real Vale sits beside python3 on this one.
-ln -s "$(command -v python3)" "$TREE/novale/python3"
-ln -s "$(command -v python3)" "$TREE/oldvale/python3"
+# WHY: the stub serves the body with shell builtins alone, because the no-Vale PATHs hold no cat, and it refuses the wrong subcommand so a script that fetched an issue for a pull request fails.
+mkdir -p "$TREE/gh" "$TREE/novale" "$TREE/oldvale"
+printf '#!/bin/sh\nif [ -n "$GH_FAIL" ]; then echo "gh: HTTP 404" >&2; exit 1; fi\nif [ "$1 $2" != "$WANT_KIND view" ]; then echo "stub: got $1 $2" >&2; exit 3; fi\nwhile IFS= read -r line || [ -n "$line" ]; do printf "%%s\\n" "$line"; done < "$BODY"\n' > "$TREE/gh/gh"
+chmod +x "$TREE/gh/gh"
+for dir in novale oldvale; do
+    ln -s "$(command -v python3)" "$TREE/$dir/python3"
+    ln -s "$TREE/gh/gh" "$TREE/$dir/gh"
+done
 printf '#!/bin/sh\nif [ "$1" = --version ]; then echo "vale version 3.22.0"; else echo "{}"; fi\n' > "$TREE/oldvale/vale"
 chmod +x "$TREE/oldvale/vale"
+export BODY="$TREE/body.md"
 
 ISSUE='> a disclaimer
 
@@ -78,58 +83,75 @@ None.
 - ::Q1:: Which form? The login one.'
 fails=0
 
-# check <name> <wanted exit code> <content> [PATH] [filename]
+# run <kind> <content> [PATH]: sets got and out
+run() {
+    local kind="$1" content="$2" path="${3:-$TREE/gh:$PATH}"
+    printf '%s\n' "$content" > "$BODY"
+    got=0
+    out="$(WANT_KIND="$kind" PATH="$path" python3 "$SCRIPT" "$kind" 7 2> /dev/null)" || got=$?
+}
+
+# check <name> <wanted exit code> <kind> <content> [PATH]
 check() {
-    local name="$1" want="$2" content="$3" path="${4:-$PATH}" file="$TREE/${5:-body.md}" got=0
-    printf '%s\n' "$content" > "$file"
-    PATH="$path" python3 "$SCRIPT" "$file" > /dev/null 2>&1 || got=$?
-    rm -f "$file"
-    if [[ "$got" == "$want" ]]; then
-        echo "  ok   $name"
+    run "$3" "$4" "${5:-$TREE/gh:$PATH}"
+    if [[ "$got" == "$2" ]]; then
+        echo "  ok   $1"
     else
-        echo "  FAIL $name: exit $got, want $want"
+        echo "  FAIL $1: exit $got, want $2"
+        fails=$((fails + 1))
+    fi
+}
+
+# says <name> <kind> <content> <line wanted in the output>
+says() {
+    run "$2" "$3"
+    if grep -qxF -- "$4" <<< "$out"; then
+        echo "  ok   $1"
+    else
+        echo "  FAIL $1: printed [$out]"
         fails=$((fails + 1))
     fi
 }
 
 echo "a body with every item keyed passes:"
-check "an issue, with a removed line, a READ marker and a fenced item" 0 "$ISSUE"
-check "an epic" 0 "$EPIC"
-check "a pull request body, checkboxes and None. included" 0 "$PR"
-check "a CRLF issue" 0 "${ISSUE//$'\n'/$'\r\n'}"
+check "an issue, with a removed line, a READ marker and a fenced item" 0 issue "$ISSUE"
+check "an epic" 0 issue "$EPIC"
+check "a pull request body, checkboxes and None. included" 0 pr "$PR"
+check "a CRLF issue" 0 issue "${ISSUE//$'\n'/$'\r\n'}"
 
 echo "an issue item without its section's key fails:"
-check "an unkeyed criterion" 1 "${ISSUE/'- [ ] ::AC1:: It refuses.'/'- [ ] It refuses.'}"
-check "a criterion keyed as a note" 1 "${ISSUE/'::AC1::'/'::N2::'}"
-check "an unkeyed note" 1 "${ISSUE/'- ::N1:: '/'- '}"
-check "an unkeyed Done when item" 1 "${EPIC/'::D1:: '/}"
+check "an unkeyed criterion" 1 issue "${ISSUE/'- [ ] ::AC1:: It refuses.'/'- [ ] It refuses.'}"
+check "a criterion keyed as a note" 1 issue "${ISSUE/'::AC1::'/'::N2::'}"
+check "an unkeyed note" 1 issue "${ISSUE/'- ::N1:: '/'- '}"
+check "an unkeyed Done when item" 1 issue "${EPIC/'::D1:: '/}"
 UNKEYED="${ISSUE/'- [ ] ::AC1:: It refuses.'/'- [ ] It refuses.'}"
-check "an unkeyed CRLF criterion" 1 "${UNKEYED//$'\n'/$'\r\n'}"
+check "an unkeyed CRLF criterion" 1 issue "${UNKEYED//$'\n'/$'\r\n'}"
 
 echo "an issue key opening two items fails:"
-check "a repeated criterion key" 1 "${ISSUE/'::AC2::'/'::AC1::'}"
-check "a repeated note key" 1 "${ISSUE/'- ::N1:: **A note.** About AC1.'/'- ::N1:: One.
+check "a repeated criterion key" 1 issue "${ISSUE/'::AC2::'/'::AC1::'}"
+check "a repeated note key" 1 issue "${ISSUE/'- ::N1:: **A note.** About AC1.'/'- ::N1:: One.
 - ::N1:: Two.'}"
-check "a repeated Done when key" 1 "${EPIC/'- [ ] ::D1:: Every child is closed.'/'- [ ] ::D1:: One.
+check "a repeated Done when key" 1 issue "${EPIC/'- [ ] ::D1:: Every child is closed.'/'- [ ] ::D1:: One.
 - [ ] ::D1:: Two.'}"
 
 echo "a pull request item without its section's key fails:"
-check "an unkeyed step" 1 "${PR/'::S2:: '/}"
-check "an unkeyed gate" 1 "${PR/'::V1:: '/}"
-check "an unkeyed question" 1 "${PR/'None.'/'- Which form?'}"
+check "an unkeyed step" 1 pr "${PR/'::S2:: '/}"
+check "an unkeyed gate" 1 pr "${PR/'::V1:: '/}"
+check "an unkeyed question" 1 pr "${PR/'None.'/'- Which form?'}"
 
 echo "a pull request key opening two items fails:"
-check "a repeated step key" 1 "${PR/'::S2::'/'::S1::'}"
-check "a question left open after its move" 1 "${PR/'None.'/'- ::Q1:: Which form?'}"
+check "a repeated step key" 1 pr "${PR/'::S2::'/'::S1::'}"
+check "a question left open after its move" 1 pr "${PR/'None.'/'- ::Q1:: Which form?'}"
 
-echo "a file Vale cannot check is never a clean result:"
-check "a body not ending in .md" 2 "$ISSUE" "$PATH" "body.txt"
-check "vale absent" 2 "$ISSUE" "$TREE/novale"
-check "vale older than the minimum" 2 "$ISSUE" "$TREE/oldvale"
-# WHY: Vale reports a path that does not exist clean, so only the script's own guard stops a missing scratch file passing.
-got=0
-python3 "$SCRIPT" "$TREE/missing.md" > /dev/null 2>&1 || got=$?
-if [[ "$got" == 2 ]]; then echo "  ok   a missing body file"; else echo "  FAIL a missing body file: exit $got, want 2"; fails=$((fails + 1)); fi
+echo "each problem names its row and its items:"
+says "an unkeyed item is tagged unkeyed, with its line" issue "$UNKEYED" "unkeyed: line 9: - [ ] It refuses."
+says "a repeat names every item the key opens, the first included" issue "${ISSUE/'::AC2::'/'::AC1::'}" "repeated: AC1 opens 2 items: line 9: - [ ] ::AC1:: It refuses.; line 10: - [x] ::AC1:: It passes."
+says "a key quoted in a fence is not one of its items" issue "${ISSUE/'- [ ] a criterion quoted in a fence'/'- [ ] ::AC1:: quoted'}"$'\n- [ ] ::AC1:: late' "repeated: AC1 opens 2 items: line 9: - [ ] ::AC1:: It refuses.; line 25: - [ ] ::AC1:: late"
+
+echo "a body that cannot be checked is never a clean result:"
+GH_FAIL=1 check "a fetch that fails" 2 issue "$ISSUE"
+check "vale absent" 2 issue "$ISSUE" "$TREE/novale"
+check "vale older than the minimum" 2 issue "$ISSUE" "$TREE/oldvale"
 
 echo
 echo "$fails failure(s)"

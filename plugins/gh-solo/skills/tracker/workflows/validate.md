@@ -22,14 +22,13 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 **A `draft` label relaxes the body checks, not the identity.** Title format and the layer label are checked as normal; Body sections, the summary cap, the criteria and key checks and the scope Note are skipped, because an unfinished body is exactly what the label declares, per *Drafts* in `references/tracker-fields.md`. List what the body is still missing under Notes, so finishing the draft has a checklist, and never fail the issue for being what it says it is. The one draft-specific defect to report under Notes: placeholder criteria checkboxes. An empty `## Acceptance criteria` heading is correct on a draft, but stub `- [ ]` items show a lying `0/N` counter on the issue and in every list view, per the stub-body rule in `workflows/create.md`.
 
-**The keys check decides the *Items are keyed* and *Keys are unique* rows, not a reading.** Fetch the body into a scratch file outside the working tree, its name ending in .md, and run the check on it:
+**The keys check decides the *Items are keyed* and *Keys are unique* rows, not a reading:**
 
 ```bash
-gh issue view <issue-number> --json body --jq .body > <scratch-dir>/body-<issue-number>.md
-python3 <skill-dir>/../pr-flow/scripts/keys-check.py <scratch-dir>/body-<issue-number>.md
+python3 <skill-dir>/../pr-flow/scripts/keys-check.py issue <issue-number>
 ```
 
-Exit 0 passes both rows. Exit 1 fails them: each line it prints names an item, a line saying an item lacks its key under *Items are keyed* and one saying a key opens a second item under *Keys are unique*. A repeat line names the second item and any later one, never the first, so the *Keys are unique* fail also names the first item carrying that key, read off the fetched body. Any other exit means the check did not run, so report both rows as not checked, quoting what it printed, and never as a pass.
+Exit 0 passes both rows. Exit 1 fails the rows its lines name: an `unkeyed` line under *Items are keyed*, a `repeated` line under *Keys are unique*. Any other exit means the check did not run, so report both rows as not checked, quoting what it printed, and never as a pass.
 
 ### Issues and spikes
 
