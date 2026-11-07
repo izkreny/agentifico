@@ -132,7 +132,7 @@ Tools the skill names, each pinned to its release tag's commit and checked as th
 - [Ruby LSP](https://github.com/Shopify/ruby-lsp/tree/6745c162fce98b1738f8f602fbca38806c6863aa) 0.26.11, for how it finds references and what it renames.
 - [vernier](https://github.com/jhawthorn/vernier/tree/c76c9ac27db9ae68fed493c8b8042de36f0ed5cb) 1.12.0 and [benchmark-ips](https://github.com/evanphx/benchmark-ips/tree/4a0fac51a253de42e65299002ccf2aebf370434c) 2.15.1, for profiling and comparing implementations.
 
-Mutation testing tools, each pinned to its default branch on 2026-11-06, when their licences, Minitest support and Ruby 4.0 support were read:
+Mutation testing tools, each pinned to its default branch's last commit on 2026-11-06, when their licences, Minitest support and Ruby 4.0 support were read:
 
 - [mutant](https://github.com/mbj/mutant/tree/233c802bad16ae2ef271cb4bd85d1f66c65238c5) 0.17.1, [evilution](https://github.com/marinazzio/evilution/tree/b525769eb2738dbad8c72f31708588b49c14bab1) 1.5.1 and [mutineer](https://github.com/davidteren/mutineer/tree/59a93caa9c29d00e9454c60c18c7e7bf69280839) 1.8.1.
 
