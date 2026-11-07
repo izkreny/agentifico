@@ -104,6 +104,24 @@ beforeAll(() => {
   mk(path.join(tmp, "no-readme"), block("no-readme"), null);
   mk(path.join(tmp, "readme-no-install"), block("readme-no-install"), "# A skill\n\nWhat it does, and nothing about getting it.\n");
   mk(path.join(tmp, "readme-fenced-install"), block("readme-fenced-install"), "# A skill\n\n## Getting it\n\n```bash\nnpm install -g thing\n```\n");
+  // A README.md that is a folder is no file markdownlint is handed, so the rule's own read is the one that names it.
+  mk(path.join(tmp, "readme-folder"), block("readme-folder"), null);
+  fs.mkdirSync(path.join(tmp, "readme-folder", "README.md"));
+  // A folder the markdown pattern matches by name, holding a file whose finding shows it was still read.
+  mk(path.join(tmp, "md-folder"), block("md-folder"));
+  fs.mkdirSync(path.join(tmp, "md-folder", "notes.md"));
+  fs.writeFileSync(path.join(tmp, "md-folder", "notes.md", "inner.md"), "# Inner\n\nbody");
+  mk(path.join(tmp, "dangling-md"), block("dangling-md"));
+  fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-md", "gone.md"));
+  // A link to itself, which statSync cannot resolve for a reason other than a missing target.
+  mk(path.join(tmp, "looped-md"), block("looped-md"));
+  fs.symlinkSync("loop.md", path.join(tmp, "looped-md", "loop.md"));
+  // A second name extending the first by a character that sorts below a comma, so a sort over "file,code" strings would put it first.
+  mk(path.join(tmp, "dangling-order"), block("dangling-order"));
+  fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-order", "a.md"));
+  fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-order", "a.md (1).md"));
+  fs.mkdirSync(path.join(tmp, "dangling-only"));
+  fs.symlinkSync("nowhere.md", path.join(tmp, "dangling-only", "gone.md"));
 
   // <tmp>/ab is not inside <tmp>/a though its path string opens with it, which is enclosingSkill's own boundary.
   mk(path.join(tmp, "ab"), block("ab"));
@@ -254,7 +272,7 @@ beforeAll(() => {
   mkPlugin("folderless", JSON.stringify({ name: "folderless", commands: "./extra/" }));
   mkPlugin("dangling", JSON.stringify({ name: "dangling", agents: "./other/" }));
   fs.mkdirSync(path.join(plugins, "dangling", "agents"));
-  fs.symlinkSync(path.join("..", "nowhere.md"), path.join(plugins, "dangling", "agents", "gone"));
+  fs.symlinkSync(path.join("..", "nowhere.md"), path.join(plugins, "dangling", "agents", "gone.md"));
   mkPlugin("hollow", JSON.stringify({ name: "hollow", agents: "./elsewhere/" }));
   fs.mkdirSync(path.join(plugins, "hollow", "agents"));
   mkPlugin("broken", "{", { "hooks/hooks.json": '{ "hooks": { "Stop": [ { "matcher": "x", "hooks": [] }, ] } }' });
@@ -511,6 +529,58 @@ describe("check.js", () => {
     assert.match(r.out, /^prose rules: 1 issues, 0 warnings$/m);
     assert.match(r.out, /1 files checked, 1 issues, 0 warnings/);
   });
+  it("a folder named like a markdown file is walked into, and its own file is still read", () => {
+    const r = run(path.join(tmp, "md-folder"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}notes\.md\/inner\.md:3 MD047\//m);
+    assert.equal(r.linted, 3, r.out);
+  });
+  it("a dangling link is named as an issue, and every other file is still read", () => {
+    const r = run(path.join(tmp, "dangling-md"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link cannot be resolved \(ENOENT\), so nothing was read from it$/m);
+    assert.match(r.out, /^2 files checked, 1 issues, /m);
+  });
+  it("a target whose only markdown is a dangling link names it rather than refusing", () => {
+    const r = run(path.join(tmp, "dangling-only"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link /m);
+    assert.doesNotMatch(r.out, /no markdown file found/);
+  });
+  it("a link to itself is named as a dangling link, and every other file is still read", () => {
+    const r = run(path.join(tmp, "looped-md"));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^dangling links: 1\n {2}loop\.md dangling-link cannot be resolved \(ELOOP\), so nothing was read from it$/m);
+    assert.match(r.out, /^2 files checked, 1 issues, /m);
+  });
+  it("dangling links print in path order", () => {
+    assert.match(run(path.join(tmp, "dangling-order")).out, /^dangling links: 2\n {2}a\.md dangling-link .*\n {2}a\.md \(1\)\.md dangling-link /m);
+  });
+  it("a plain file the walk cannot stat is never named as a dangling link", () => {
+    const dir = path.join(tmp, "locked");
+    mk(dir, block("locked"));
+    fs.mkdirSync(path.join(dir, "sub"));
+    fs.writeFileSync(path.join(dir, "sub", "x.md"), "# X\n\nbody\n");
+    // WHY: read without execute lets the walk list the folder while every stat inside it fails with EACCES.
+    fs.chmodSync(path.join(dir, "sub"), 0o644);
+    try {
+      const r = run(dir);
+      assert.notEqual(r.code, 0, r.out);
+      assert.doesNotMatch(r.out, /dangling-link/);
+    } finally {
+      fs.chmodSync(path.join(dir, "sub"), 0o755);
+    }
+  });
+  it("a dangling link two targets reach is named once", () => {
+    assert.match(run([path.join(tmp, "dangling-md"), path.join(tmp, "dangling-md")]).out, /^dangling links: 1$/m);
+  });
+  it("a dangling link counts as an issue when Vale did not run", () => {
+    const r = run(path.join(tmp, "dangling-md"), { ...process.env, PATH: path.join(tmp, "empty") });
+    assert.match(r.out, /^2 files checked, 1 issues, prose rules not run$/m);
+  });
+  it("a run with no dangling link says so", () => {
+    assert.match(run(path.join(tmp, "good")).out, /^dangling links: none$/m);
+  });
   it("a relative target resolves against the working directory", () => {
     const r = run("good", process.env, tmp);
     assert.equal(r.code, 0, r.out);
@@ -605,6 +675,7 @@ describe("check.js", () => {
   it("a dangling link in a replaced folder is no file", () => {
     const r = run(path.join(tmp, "plugins", "dangling"));
     assert.doesNotMatch(r.out, /plugin-manifest|TypeError/);
+    assert.match(r.out, /^ {2}agents\/gone\.md dangling-link /m);
   });
   it("a plugin under a package target is found", () => {
     assert.match(run(path.join(tmp, "plugins")).out, /^ {2}plug\/hooks\/hooks\.json:\d+ plugin-hooks /m);
@@ -770,6 +841,14 @@ describe("skill-readme", () => {
     const r = run(path.join(tmp, "readme-no-install"));
     assert.equal(r.code, 1);
     assert.match(r.out, /skill-readme .*carries no install form/);
+  });
+  it("reports a README.md that is a folder as unreadable, and the run still finishes", () => {
+    const r = run(path.join(tmp, "readme-folder"));
+    assert.equal(r.code, 1, r.out);
+    const findings = r.out.match(/skill-readme .*/g) ?? [];
+    assert.equal(findings.length, 1, r.out);
+    assert.match(findings[0], /README\.md cannot be read \(EISDIR\): .*readme-folder\/README\.md\]$/);
+    assert.match(r.out, /^\d+ files checked, /m);
   });
   it("a fenced install command counts, with no install heading", () => {
     const r = run(path.join(tmp, "readme-fenced-install"));
