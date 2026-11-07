@@ -10,7 +10,7 @@ Deliberately absent rather than emulated: **there is no time logging**, and **no
 
 **A milestone operation has no issue number.** Where the request is to create a milestone, move its date or close one, skip to the *Milestone* heading in Step 3; Steps 1 and 2 govern an issue's own state and nothing else. Without this, the routed request stalls asking for a number it has no answer to, or invents one from the current branch and fetches an unrelated issue.
 
-Otherwise, same as `status.md`: the argument, else the current branch, else ask.
+Otherwise, same as Step 1 of `workflows/status.md`: the argument, else the current branch, else ask.
 
 ## Step 2 - Establish what state it is in
 
@@ -24,7 +24,7 @@ Do not skip this. Closing a closed issue and reopening an open one both succeed 
 
 **One state change per invocation.** If the owner asks for two, do them in sequence and confirm each.
 
-**A state change reached by an auto-trigger rather than a typed verb states the command and waits.** `SKILL.md`'s trigger table fires this workflow on ordinary phrasing - "mark it in progress", "set it aside", "this is blocked" - so an aside can otherwise add a dependency and a label to a real issue, with Step 4 reporting it afterwards. Print the exact `gh` command and the issue it names, and run nothing until the owner says so. A typed verb needs no such gate: it is already their instruction. `workflows/create.md` has had a confirm-before-create gate all along, and this is the same gate on the same grounds.
+**A state change reached by an auto-trigger rather than a typed verb states the command and waits.** `SKILL.md`'s trigger table fires this workflow on ordinary phrasing - "mark it in progress", "set it aside", "this is blocked" - so an aside can otherwise add a dependency and a label to a real issue, with Step 4 reporting it afterwards. Print the exact `gh` command and the issue it names, and run nothing until the owner says so. A typed verb needs no such gate: it is already their instruction. `workflows/create.md` gates creation the same way, on the same grounds.
 
 ### Start work
 
