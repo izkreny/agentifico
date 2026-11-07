@@ -1,4 +1,5 @@
 // Each limit is the sub-agents page's or the plugin components page's, at https://code.claude.com/docs/en/sub-agents and https://code.claude.com/docs/en/plugins/components.
+import fs from "node:fs";
 import path from "node:path";
 import { FRONTMATTER_LINE, frontmatter, parsed } from "./frontmatter.js";
 import { isPluginRoot } from "./plugin-files.js";
@@ -7,15 +8,26 @@ const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"
 const NAME_LIMIT = 256;
 
 // The nearest agents folder decides, because both kinds of agents directory are scanned recursively.
-export function agentKind(file) {
+function agentFolder(file) {
   const parts = path.resolve(file).split(path.sep);
   for (let i = parts.length - 2; i > 0; i--) {
     if (parts[i] !== "agents") continue;
-    if (parts[i - 1] === ".claude") return "standalone";
-    if (isPluginRoot(parts.slice(0, i).join(path.sep) || path.sep)) return "plugin";
+    const folder = parts.slice(0, i + 1).join(path.sep);
+    if (parts[i - 1] === ".claude") return { kind: "standalone", folder };
+    if (isPluginRoot(parts.slice(0, i).join(path.sep) || path.sep)) return { kind: "plugin", folder };
   }
   return null;
 }
+
+// WHY: a specifier can hold a comma, as in Agent(a, b), so entries are matched in the text rather than split on commas.
+const SPECIFIED = /[^\s,()]+\([^)]*\)?/g;
+
+const specifierDefects = (value) =>
+  [value]
+    .flat()
+    .filter((entry) => typeof entry === "string")
+    .flatMap((entry) => entry.match(SPECIFIED) ?? [])
+    .map((entry) => `disallowedTools entry ${JSON.stringify(entry)} removes the whole tool, not only what it names: a permissions.deny rule blocks only that`);
 
 // Stryker disable next-line ArrayDeclaration: every caller passes the lines, and a line that is no delimiter reads as no lines.
 export function defects(fm, inPlugin, lines = []) {
@@ -34,11 +46,15 @@ export function defects(fm, inPlugin, lines = []) {
   const value = doc.toJS();
   // Empty frontmatter parses to null, and it sets no name just as a mapping without one does.
   const mapping = value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const specifiers = specifierDefects(mapping.disallowedTools);
   if (inPlugin)
-    return PLUGIN_IGNORES.filter((key) => Object.hasOwn(mapping, key)).map(
-      (key) => `${key} is ignored in a plugin's agent: Claude Code loads the agent without it`,
-    );
-  const bad = [];
+    return [
+      ...PLUGIN_IGNORES.filter((key) => Object.hasOwn(mapping, key)).map(
+        (key) => `${key} is ignored in a plugin's agent: Claude Code loads the agent without it`,
+      ),
+      ...specifiers,
+    ];
+  const bad = [...specifiers];
   if (mapping.name === undefined || mapping.name === null) bad.push("no name: Claude Code skips the file as documentation kept beside the agents");
   else {
     const name = String(mapping.name);
@@ -51,15 +67,94 @@ export function defects(fm, inPlugin, lines = []) {
   return bad;
 }
 
+function declaredName(fm) {
+  if (!fm) return null;
+  const doc = parsed(fm);
+  if (doc.errors.length) return null;
+  try {
+    const name = doc.toJS()?.name;
+    return name === undefined || name === null ? null : String(name);
+  } catch {
+    // WHY: a merge key with nothing to merge and a name with no string form both throw past doc.errors.
+    return null;
+  }
+}
+
+// WHY: markdownlint drops a BOM before the judged file reaches this rule, so a sibling has to lose one too.
+function nameInText(text) {
+  const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/);
+  if (lines[0].trimEnd() !== "---") return null;
+  const close = lines.findIndex((line, i) => i > 0 && line.trimEnd() === "---");
+  return close < 0 ? null : declaredName(lines.slice(1, close));
+}
+
+// WHY: one entry that cannot be read should cost the comparison that entry alone.
+function agentFilesIn(folder) {
+  const files = [];
+  const unread = [];
+  const walk = (dir) => {
+    let entries;
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (error) {
+      // WHY: a folder that is not there holds no names, which is every fixture markdownlint is handed as a string.
+      if (error.code !== "ENOENT") unread.push([dir, error.code]);
+      return;
+    }
+    for (const entry of entries) {
+      // WHY: the sub-agents page does not say Claude Code reads a dot-named entry.
+      if (entry.name.startsWith(".")) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (!entry.name.endsWith(".md")) continue;
+      else if (entry.isFile()) files.push(full);
+      else if (entry.isSymbolicLink()) {
+        try {
+          if (fs.statSync(full, { throwIfNoEntry: false })?.isFile()) files.push(full);
+        } catch (error) {
+          unread.push([full, error.code]);
+        }
+      }
+    }
+  };
+  walk(folder);
+  return { files, unread };
+}
+
+// WHY: a target rarely holds the whole tree, so it is read from disk.
+function duplicateNames(file, folder, fm) {
+  const name = declaredName(fm);
+  if (name === null) return [];
+  const { files, unread } = agentFilesIn(folder);
+  const others = [];
+  for (const other of files.filter((candidate) => candidate !== path.resolve(file))) {
+    let text;
+    try {
+      text = fs.readFileSync(other, "utf8");
+    } catch (error) {
+      unread.push([other, error.code]);
+      continue;
+    }
+    if (nameInText(text) === name) others.push(other);
+  }
+  const relative = (entry) => path.relative(folder, entry) || ".";
+  // WHY: a clean run would otherwise claim a comparison that never happened.
+  const details = unread
+    .map(([entry, code]) => [relative(entry), code])
+    .sort()
+    .map(([entry, code]) => `could not read ${entry} (${code}), so the name ${JSON.stringify(name)} was not compared with it`);
+  if (others.length)
+    details.unshift(
+      `name ${JSON.stringify(name)} is also declared by ${others.map(relative).sort().join(", ")}: Claude Code loads only one of them from this .claude/agents folder, by read order`,
+    );
+  return details;
+}
+
 // Only the length is warned on, because on Claude Code 2.1.310 a plugin's agent named "-x" or "a:b" loaded under that name, while one past 256 characters loaded under its file name.
 export function pluginNameWarnings(fm) {
-  if (!fm) return [];
-  const doc = parsed(fm);
-  if (doc.errors.length) return [];
-  const name = doc.toJS()?.name;
-  // Stryker disable next-line LogicalOperator: a missing or null name stringifies far under the limit, so the early return only saves the work.
-  if (name === undefined || name === null) return [];
-  const length = String(name).length;
+  const name = declaredName(fm);
+  if (name === null) return [];
+  const length = name.length;
   return length > NAME_LIMIT
     ? [`name is ${length} characters, over the ${NAME_LIMIT} Claude Code allows, so it loads the agent under its file name instead`]
     : [];
@@ -71,19 +166,22 @@ export const agentPluginName = {
   tags: ["agents-guru"],
   parser: "none",
   function(params, onError) {
-    if (agentKind(params.name) !== "plugin") return;
+    if (agentFolder(params.name)?.kind !== "plugin") return;
     for (const detail of pluginNameWarnings(frontmatter(params))) onError({ lineNumber: FRONTMATTER_LINE, detail });
   },
 };
 
 export default {
   names: ["agent-frontmatter"],
-  description: "An agent file's frontmatter is one Claude Code loads, and sets no field it ignores",
+  description: "An agent file's frontmatter is one Claude Code loads, and every field in it does what it says",
   tags: ["agents-guru"],
   parser: "none",
   function(params, onError) {
-    const kind = agentKind(params.name);
-    if (!kind) return;
-    for (const detail of defects(frontmatter(params), kind === "plugin", params.lines)) onError({ lineNumber: FRONTMATTER_LINE, detail });
+    const found = agentFolder(params.name);
+    if (!found) return;
+    const fm = frontmatter(params);
+    const details = defects(fm, found.kind === "plugin", params.lines);
+    if (found.kind === "standalone") details.push(...duplicateNames(params.name, found.folder, fm));
+    for (const detail of details) onError({ lineNumber: FRONTMATTER_LINE, detail });
   },
 };
