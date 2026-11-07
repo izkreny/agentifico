@@ -16,7 +16,7 @@ Each token in a phrase rule is named in the rule file by the finding or commit t
 
 ### `skill-readme`
 
-The rule mirrors the install forms `workflows/new.md` lists under *How it is installed* in its patterns, so a form added there is added to the rule in the same change, and the suite reads the list and fails on any form the rule does not accept.
+The rule mirrors the install forms `references/readme.md` lists under *How it is installed* in its patterns, so a form added there is added to the rule in the same change, and the suite reads the list and fails on any form the rule does not accept.
 
 ### `skill-referenced-paths`
 

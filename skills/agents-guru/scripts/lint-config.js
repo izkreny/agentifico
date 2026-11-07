@@ -17,6 +17,7 @@ import skillInvocation from "./rules/skill-invocation.js";
 import skillLayout from "./rules/skill-layout.js";
 import skillName from "./rules/skill-name.js";
 import skillPackageRunners from "./rules/skill-package-runners.js";
+import skillPinnedSources from "./rules/skill-pinned-sources.js";
 import skillPortablePaths from "./rules/skill-portable-paths.js";
 import skillReadme from "./rules/skill-readme.js";
 import skillReferencedPaths from "./rules/skill-referenced-paths.js";
@@ -43,8 +44,8 @@ const contractRules = [
   pluginBodyVariables,
 ];
 const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs];
-// A warning rule's findings print in its group but leave the run passing: agent-plugin-name's file still loads, skill-package-runners' command still runs, and skill-hard-wrap is a convention a skill may decline, per workflows/export.md or a caller's --skip.
-const contractWarningRules = [agentPluginName, skillPackageRunners];
+// A warning rule leaves the run passing: agent-plugin-name's file still loads, skill-package-runners' command still runs, skill-pinned-sources' link still opens, and skill-hard-wrap is a convention a skill may decline, per workflows/export.md or a caller's --skip.
+const contractWarningRules = [agentPluginName, skillPackageRunners, skillPinnedSources];
 const proseShapeWarningRules = [skillHardWrap];
 export const rules = [...contractRules, ...contractWarningRules, ...proseShapeRules, ...proseShapeWarningRules];
 
