@@ -231,13 +231,16 @@ module CheckFloor
 
     def check_watched(defaults)
       puts "Watched pending cops, whose rule the skill states:"
-      watched.each do |cop, home|
-        state = defaults[cop] || "unknown"
-        next puts("  #{cop}: #{state}") unless state == "true"
+      watched.each { |cop, home| check_one_watched(cop, home, defaults[cop]) }
+    end
 
-        failures << cop
-        puts "  FAIL #{cop} is now enabled by default: remove its rule from #{home} and add the cop to `owned`"
-      end
+    def check_one_watched(cop, home, state)
+      return puts("  #{cop}: #{state}") unless state.nil? || state == "true"
+
+      failures << cop
+      return puts("  FAIL #{cop} is unknown to this release: check the rule in #{home} against its notes") unless state
+
+      puts "  FAIL #{cop} is now enabled by default: remove its rule from #{home} and add the cop to `owned`"
     end
 
     def finish
