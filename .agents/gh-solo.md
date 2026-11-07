@@ -187,6 +187,7 @@ bash scripts/test-manifest-check.sh
 | Label | The deliverable is |
 |---|---|
 | `gh-solo` | `plugins/gh-solo/` |
+| `typescript-native-lsp` | `plugins/typescript-native-lsp/` |
 | `rails-style` | `skills/rails-style/` |
 | `review-text` | `skills/review-text/` |
 | `agents-guru` | `skills/agents-guru/` |
@@ -202,7 +203,7 @@ bash scripts/test-manifest-check.sh
 **The mandatory-axis audit has to be rewritten here, not reused.** The plugin's version names the layer values it excludes, and none of them exists in this repository, so it excludes nothing and reports every open issue as unlabelled. This is the one that works:
 
 ```bash
-gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:agents-guru -label:socratic-tutor -label:action-policy-guru -label:glossary-guru -label:repo"
+gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:agents-guru -label:socratic-tutor -label:action-policy-guru -label:glossary-guru -label:typescript-native-lsp -label:repo"
 ```
 
 **A new value in the table above is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
