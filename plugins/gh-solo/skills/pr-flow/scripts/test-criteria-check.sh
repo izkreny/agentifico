@@ -68,6 +68,7 @@ check("four spaces is not a list item", c.criterion_keys("    - [ ] ::AC1:: x"),
 check("an item under an indented item is nested", c.criterion_keys(" - [ ] ::AC1:: x\n   - [ ] ::AC2:: y"), ["AC1"])
 check("a paragraph ends the list, so the next item is top-level", c.criterion_keys("- [ ] ::AC1:: x\n\ntext\n  - [ ] ::AC2:: y"), ["AC1", "AC2"])
 check("a fence ends the list, so the next item is top-level", c.criterion_keys("## Acceptance criteria\n- [ ] ::AC1:: x\n```\ncode\n```\n  - [ ] ::AC2:: y"), ["AC1", "AC2"])
+check("a line opening with an issue reference is not a heading", c.criterion_keys("## Acceptance criteria\n- [ ] ::AC1:: x\n#270 explains\n  - [ ] ::AC2:: nested"), ["AC1"])
 check("an item inside a fence is not an item", c.criterion_keys("## Acceptance criteria\n```\n- x\n- [ ] ::AC2:: in the fence\n```\n  - [ ] ::AC1:: y"), ["AC1"])
 check("an unkeyed body has no keys", c.criterion_keys("- [ ] plain\n- [x] plain"), [])
 

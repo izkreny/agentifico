@@ -20,6 +20,7 @@ GLOB_LINE = re.compile(r"^Test files:[ \t]*(\S.*?)[ \t]*$", re.M)
 CLOSES = re.compile(r"\bCloses #(\d+)\b")
 ITEM = re.compile(r"^( {0,3})((?:[-*+]|\d+[.)])[ \t]+)\S")
 FENCE = re.compile(r"^(`{3,}|~{3,})")
+HEADING = re.compile(r"^#{1,6}[ \t]")
 # WHY: a removed criterion has no checkbox and a READ one is the owner's to prove, so neither is searched.
 CRITERION = re.compile(r"\[[ xX]\][ \t]+::(AC[1-9]\d*)::(READ::)?")
 
@@ -65,7 +66,7 @@ def criterion_keys(issue_body):
             fence = marker.group(1)
             if indent < content:
                 content = -1
-        elif line.startswith("#"):
+        elif HEADING.match(line):
             content = -1
         elif item and (content < 0 or len(item.group(1)) < content):
             content = len(item.group(1)) + len(item.group(2))
