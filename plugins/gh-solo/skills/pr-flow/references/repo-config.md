@@ -1,6 +1,6 @@
 # Where a repository's config lives
 
-Every skill in this plugin, and the `reviewer` agent, reads a repository's config from the first of these files that exists, and from nowhere else:
+Every skill in this plugin, and the `reviewer` agent, looks for a repository's config in these files, in this order, and reads the earliest one that exists:
 
 1. `<home-dir>/.agents/gh-solo/<owner>/<repo>.md`
 2. `<repo-root>/.agents/gh-solo.md`
