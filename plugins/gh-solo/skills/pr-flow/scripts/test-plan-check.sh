@@ -189,6 +189,11 @@ check "an unkeyed item under another heading" 0 "$NAME" "${GOOD/'None.'/'None.
 ## Notes
 
 - A note.'}"
+check "an unkeyed item under a heading only an issue keys" 0 "$NAME" "${GOOD/'None.'/'None.
+
+## Technical notes
+
+- A note.'}"
 
 echo "a key opening two items fails:"
 check "a repeated step key" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.

@@ -1,0 +1,45 @@
+# PlanKeys with an issue's section-to-key map, because Vale scripts share no code: change the parsing in both files, and the keys-check bench runs both.
+extends: script
+message: "Every item under '## Acceptance criteria', '## Technical notes' and '## Done when' opens with its own section's key, as '- [ ] ::AC1::', '- ::N1::' or '- [ ] ::D1::', per Keys in the tracker skill's references/formats.md: '%s' does not."
+level: error
+scope: raw
+script: |
+  text := import("text")
+  matches := []
+  pos := 0
+  key := ""
+  content := -1
+  blank := false
+  fence := ""
+  for line in text.split(scope, "\n") {
+    stripped := text.trim_left(line, " \t")
+    indent := 0
+    for c in text.substr(line, 0, len(line) - len(stripped)) {
+      indent = c == '\t' ? indent + 4 - indent % 4 : indent + 1
+    }
+    marker := text.re_find("^(`{3,}|~{3,})", stripped)
+    if fence != "" {
+      if marker != undefined && text.has_prefix(marker[0][1].text, fence) && text.trim_space(text.substr(stripped, len(marker[0][1].text))) == "" { fence = "" }
+    } else if marker != undefined {
+      fence = marker[0][1].text
+      if indent < content { content = -1 }
+    } else if text.re_match(`^#{1,6}[ \t]`, line) {
+      content = -1
+      if text.re_match(`^#{1,2}[ \t]`, line) { key = "" }
+      if text.re_match(`^## Acceptance criteria[ \t]*$`, line) { key = "AC" }
+      if text.re_match(`^## Technical notes[ \t]*$`, line) { key = "N" }
+      if text.re_match(`^## Done when[ \t]*$`, line) { key = "D" }
+    } else if key != "" {
+      item := text.re_find(`^( {0,3})((?:[-*+]|\d+[.)])[ \t]+)\S`, line)
+      if item != undefined && (content < 0 || len(item[0][1].text) < content) {
+        content = len(item[0][1].text) + len(item[0][2].text)
+        if !text.re_match(`^ {0,3}(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?::` + key + `[1-9]\d*::`, line) {
+          matches = append(matches, {begin: pos, end: pos + len(line)})
+        }
+      } else if item == undefined && stripped != "" && blank && indent < content {
+        content = -1
+      }
+    }
+    blank = text.trim_space(line) == ""
+    pos += len(line) + 1
+  }

@@ -40,16 +40,16 @@ def filename_problem(path: Path) -> str | None:
     return f"{path}: the filename is not YYYY-MM-DD_GHI-{{issue-number}}_{{slug}}.md, with a real date and a lowercase kebab-case slug"
 
 
-def vale_refusal() -> str | None:
+def vale_refusal(unchecked: str) -> str | None:
     try:
         run = subprocess.run(["vale", "--version"], capture_output=True, text=True)
     except FileNotFoundError:
-        return f"vale is not on PATH: the plans were not checked. {INSTALL}"
+        return f"vale is not on PATH: {unchecked}. {INSTALL}"
     found = re.search(r"(\d+)\.(\d+)\.\d+", run.stdout)
     if run.returncode != 0 or not found:
-        return f"could not read Vale's version from {run.stdout.strip() or run.stderr.strip()!r}: the plans were not checked. {INSTALL}"
+        return f"could not read Vale's version from {run.stdout.strip() or run.stderr.strip()!r}: {unchecked}. {INSTALL}"
     if (int(found.group(1)), int(found.group(2))) < MIN_VALE:
-        return f"vale {found.group(0)} is older than {MIN_VALE[0]}.{MIN_VALE[1]}: the plans were not checked. {INSTALL}"
+        return f"vale {found.group(0)} is older than {MIN_VALE[0]}.{MIN_VALE[1]}: {unchecked}. {INSTALL}"
     return None
 
 
@@ -67,13 +67,14 @@ def main() -> int:
         print(f"plan-check: not a file: {', '.join(missing)}", file=sys.stderr)
         return 2
 
-    refusal = vale_refusal()
+    refusal = vale_refusal("the plans were not checked")
     if refusal:
         print(f"plan-check: {refusal}", file=sys.stderr)
         return 2
 
+    # WHY: the style also holds an issue body's key rules, which would hold a plan's own "## Technical notes" to issue keys.
     vale = subprocess.run(
-        ["vale", "--config", str(CONFIG), "--no-global", "--output=JSON", *map(str, files)],
+        ["vale", "--config", str(CONFIG), "--no-global", "--output=JSON", '--filter=.Name startsWith "GhSolo.Plan"', *map(str, files)],
         capture_output=True,
         text=True,
     )
