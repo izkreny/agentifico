@@ -47,7 +47,7 @@ body = "\r\n".join([
     "- [ ] ::AC1:: open",
     "- [x] ::AC2:: ticked",
     "- [X] ::AC3:: capital tick",
-    "- ::AC4:: removed - superseded by AC5",
+    "- ::AC4::REMOVED:: superseded by AC5",
     "- [ ] ::AC5::READ:: the owner reads it",
     "- [ ] ::AC10:: two digits",
     "  - [ ] ::AC6:: nested is not a criterion line",

@@ -30,7 +30,7 @@ What it does.
 
 - [ ] ::AC1:: It refuses.
 - [x] ::AC2:: It passes.
-- ::AC3:: removed - superseded by AC2
+- ::AC3::REMOVED:: superseded by AC2
 - [ ] ::AC4::READ:: It reads well.
 
 ```markdown
@@ -67,6 +67,7 @@ Closes #50
 
 - [x] ::S1:: Write it.
 - [ ] ::S2:: Test it.
+- ::S3::REMOVED:: folded into S2
 
 ## Verification
 
@@ -116,7 +117,7 @@ says() {
 echo "a body with every item keyed passes:"
 check "an issue, with a removed line, a READ marker and a fenced item" 0 issue "$ISSUE"
 check "an epic" 0 issue "$EPIC"
-check "a pull request body, checkboxes and None. included" 0 pr "$PR"
+check "a pull request body, checkboxes, a removed line and None. included" 0 pr "$PR"
 check "a CRLF issue" 0 issue "${ISSUE//$'\n'/$'\r\n'}"
 
 echo "an issue item without its section's key fails:"
