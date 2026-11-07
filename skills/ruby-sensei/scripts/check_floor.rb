@@ -20,9 +20,15 @@ module CheckFloor
     "rubocop-thread_safety" => "rubocop/rubocop-thread_safety",
     "rubocop-on-rbs" => "ksss/rubocop-on-rbs",
   }.freeze
+  PLUGINS = {
+    "Performance" => "rubocop-performance",
+    "Minitest" => "rubocop-minitest",
+    "ThreadSafety" => "rubocop-thread_safety",
+    "RBS" => "rubocop-on-rbs",
+  }.freeze
 
   Gap = Data.define(:name, :checked, :installed, :spec)
-  private_constant :SKILL, :FLOOR, :OWN_CONFIG, :REPOS, :Gap
+  private_constant :SKILL, :FLOOR, :OWN_CONFIG, :REPOS, :PLUGINS, :Gap
 
   # Raised for a check that cannot run or does not pass; only `main` turns it into an exit.
   class Failure < StandardError; end
@@ -238,9 +244,16 @@ module CheckFloor
       return puts("  #{cop}: #{state}") unless state.nil? || state == "true"
 
       failures << cop
-      return puts("  FAIL #{cop} is unknown to this release: check the rule in #{home} against its notes") unless state
+      puts "  FAIL #{cop} #{watched_problem(cop, home, state)}"
+    end
 
-      puts "  FAIL #{cop} is now enabled by default: remove its rule from #{home} and add the cop to `owned`"
+    def watched_problem(cop, home, state)
+      return "is now enabled by default: remove its rule from #{home} and add the cop to `owned`" if state
+
+      plugin = PLUGINS[cop.split("/").first]
+      return "cannot be checked: its plugin #{plugin} is not installed" if plugin && !versions.installed?(plugin)
+
+      "is unknown to this release: check the rule in #{home} against its notes"
     end
 
     def finish
