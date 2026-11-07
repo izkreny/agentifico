@@ -10,13 +10,11 @@ RuboCop passes code that branches on an object's class in five places, rescues t
 
 ## Installation
 
-The canonical copy lives in the agent-neutral skills directory, and each agent's own skills directory links to it:
-
 ```bash
-ln -s ~/.agents/skills/ruby-sensei ~/.claude/skills/ruby-sensei
+npx skills add izkreny/agentifico -g -y -s ruby-sensei
 ```
 
-Where an agent's skills directory is already a link to the canonical one, nothing more is needed.
+That is the [skills CLI](https://skills.sh).
 
 ## Invocation
 
