@@ -63,11 +63,12 @@ The separator does the parsing, not the prefix. `{type}/GHI-{issue-number}_{slug
 | `Q` | an open question | a plan's and its pull request body's `## Open questions` and `## Settled` | `- ::Q1:: …` |
 | `::RF{n}::CLOSED::` | a marker, not a key: the re-review's verdict that `RF{n}` is closed, issuing no number of its own | the verdict reply in that finding's thread, per *Each verdict as a reply in its finding's thread* in `../pr-flow/workflows/review.md` | `::RF1::CLOSED:: …` |
 | `::AC{n}::READ::` | a marker, not a key: `AC{n}` is proven by the owner's reading rather than by a test | the criterion's own line in the issue body, per *Writing good acceptance criteria* in `references/issue-shape.md` | `- [ ] ::AC4::READ:: …` |
+| `::{key}{n}::REMOVED::` | a marker, not a key: the item is removed, and its line stays to keep the key issued | the removed item's own line, in whichever list issued its key, per *A removed item is never deleted* | `- ::AC3::REMOVED:: …` |
 
 A plan and its pull request body share their keys, and one `Q` sequence covers `## Open questions` and `## Settled`, so a moved question keeps its `Q{n}`.
 
 **Every key in the table follows one numbering rule.** The first list a key labels is numbered from `1`, in list order. An item added later takes the next free number, even when the list then reads out of order. No key is ever renumbered, and a removed item's number is never reused: a reference written against `AC3` has to mean the same item for the life of the issue or pull request that carries it. Each key numbers on its own, so `AC3` and `D3` on one epic are different items.
 
-**A removed item is never deleted: its line stays, keeping its key, as a plain line reading `removed` and why**, as in `- ::AC3:: removed - superseded by AC4`. A checkbox it had goes, so GitHub's progress counter stops counting it, and the key stays in the body, which is the only record an issue keeps of the keys it has issued. The next free number is therefore one past the highest key the body carries, removed lines included.
+**A removed item is never deleted: its line stays, keeping its key, marked `REMOVED` and saying why**, as in `- ::AC3::REMOVED:: superseded by AC4`. The marker replaces any other the line carried, so a removed `READ` criterion reads `::AC5::REMOVED::`. A checkbox it had goes, so GitHub's progress counter stops counting it, and the key stays in the body, which is the only record an issue keeps of the keys it has issued. The next free number is therefore one past the highest key the body carries, removed lines included.
 
 **Whoever writes an item issues its key**, whether that is the body's first writer or a later edit that adds an item.
