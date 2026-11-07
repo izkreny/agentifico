@@ -5,7 +5,7 @@
 - Give each class one responsibility you can state in a sentence without "and" or "or", because a class with two jobs changes for two unrelated reasons and cannot be reused for one of them.
 - Move code that mostly reads and drives another object onto that object, and move an instance method that touches no instance state out of the class, because both sit in the wrong home and drag coupling with them.
 - Read instance variables through readers, private ones by default, even inside the class, so the variable becomes behaviour defined once and a change of meaning is a one-method edit.
-- Set every instance variable in `initialize`, with plain assignment rather than `||=`, and never read one a class does not set itself, because an instance variable that appears later hides an initialisation order, and objects that set their variables in different orders get different shapes, which slows every access and which `-W:performance` reports.
+- Set every instance variable in `initialize`, and never read one a class does not set itself, because an instance variable that appears later hides an initialisation order, and objects that set their variables in different orders get different shapes, which slows every access and which `-W:performance` reports.
 - Memoize by setting the variable to `nil` in `initialize` and filling it with `@total ||= compute` in the reader, and only for a value read more than once per object, once measuring shows it pays, as *Immutability* says, and never on an object threads share, as `concurrency.md` *Shared state* says. Memoize a value that can be `nil` or `false` in a cache hash instead, as `collections.md` *Lookups and defaults* shows, because `||=` recomputes a falsy value on every call.
 - When one attribute is checked in one method, defaulted in another and branched on in a third, it is missing an invariant: establish it in `initialize`, through a private setter that checks the value, and let every method rely on it.
 - Keep an object consistent after every public method, so it can always still do its job, and check business validity once, at the boundary where it is saved or sent on, because demanding validity at every step forbids the half-filled states an edit passes through.
@@ -96,7 +96,7 @@ end
 - Make a library's classes work when frozen after setup, and give a class whose instances own mutable state a `freeze` that freezes that state and calls `super`, so a frozen object cannot still change its arrays.
 - When copies must not share mutable state, deep-copy it in `initialize_copy`, which serves both `dup` and `clone`. Choose between them on purpose: `clone` keeps the frozen state and singleton methods, `dup` drops both, and both are shallow.
 - Remember that the frozen-string comment freezes only plain literals: an interpolated string, and a string a method builds, stay mutable.
-- Use `+""` for a string buffer you mean to mutate. Ruby 4.0 does not freeze string literals: they are chilled and warn on mutation under `-W:deprecated`, so the magic comment the linter requires is what makes them frozen.
+- Ruby 4.0 does not freeze string literals: they are chilled and warn on mutation under `-W:deprecated`, so the magic comment the linter requires is what makes them frozen, and a buffer you mean to mutate needs an unfrozen string.
 - Use `Symbol#name` instead of `to_s` when you only read the string, because it returns a frozen string.
 
 ## Visibility and class-level state

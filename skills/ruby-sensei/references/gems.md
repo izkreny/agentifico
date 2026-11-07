@@ -40,7 +40,7 @@
 - For a small fixed set of files, plain `require_relative` in the entry file, as the template does, is equally good, and doubles as a map of the gem; choose one style per gem.
 - Prove Zeitwerk compliance in the test suite with `loader.eager_load(force: true)`, so a mismatched file name fails in CI instead of in a user's application.
 - Use `require_relative` for your own files, in a gem, a script or an application, and `require` for other gems and for a Zeitwerk entry file, so each line says which it is. Never `require "./file"`, which resolves against the working directory.
-- Never leave `require "debug/open"` or `debug/open_nonstop` in code that ships, because the process then keeps a debugger socket open for anyone to attach.
+- Never leave `require "debug/open_nonstop"` in code that ships, because the process then keeps a debugger socket open for anyone to attach.
 - Make extensions to core classes opt-in, through refinements or a separate file the user requires, never a side effect of requiring the gem.
 - Load an optional dependency inside `begin`/`rescue LoadError`, and enable the code that uses it only when it loaded.
 - Run another project's Ruby from a bundled process inside `Bundler.with_unbundled_env`, because `Bundler.setup` exports `RUBYOPT` and `BUNDLE_GEMFILE`, and the child would load your bundle.

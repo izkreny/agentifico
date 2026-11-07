@@ -76,7 +76,7 @@ end
 - Give an implicit-receiver DSL no `name=` writers, because `port = 80` in the block makes a local and configures nothing; offer `port 80` or `set_port 80`.
 - Yield the builder to a block that takes an argument and `instance_exec` one that does not, when both styles must work, and remember that a shipped DSL must be supported for years.
 - Never define top-level DSL methods on `Kernel`; `extend` the main object with a module of delegators, as Sinatra does.
-- Pass the script's path to `instance_eval` so errors name the DSL file, and evaluate only trusted text, because evaluating a string runs arbitrary code.
+- Evaluate only trusted text with `instance_eval`, because evaluating a string runs arbitrary code.
 - Keep the DSL a thin layer over classes that work without it.
 
 ## Dynamic dispatch and lookup

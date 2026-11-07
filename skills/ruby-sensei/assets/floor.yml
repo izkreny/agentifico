@@ -6,7 +6,7 @@ checked:
   rubocop-thread_safety: 0.8.0
   rubocop-on-rbs: 2.2.0
 
-# WHY: the skill states none of these rules, so each cop must stay enabled both by default and under assets/rubocop.yml. Grouped by the bullet in SKILL.md *What the linters own*; the last group holds cops that own a rule the references would otherwise state.
+# WHY: the skill states none of these rules, so each cop must stay enabled both by default and under assets/rubocop.yml. Grouped by the bullet in SKILL.md *What the linters own*; the group `Rules left out of the references` holds cops that own a rule the references would otherwise state.
 owned:
   Control flow:
     - Style/GuardClause
@@ -92,6 +92,8 @@ owned:
     - Lint/IneffectiveAccessModifier
     - Lint/ConstantDefinitionInBlock
     - Lint/AmbiguousBlockAssociation
+    - Lint/DisjunctiveAssignmentInConstructor
+    - Lint/Debugger
     - Style/EvalWithLocation
     - Style/PerlBackrefs
     - Performance/UnfreezeString
@@ -105,3 +107,15 @@ watched:
   Lint/UnmodifiedReduceAccumulator: references/collections.md *Iterating*
   Lint/SharedMutableDefault: references/collections.md *Lookups and defaults*
   Gemspec/RequireMFA: references/gems.md *The gemspec*
+  Gemspec/DevelopmentDependencies: references/gems.md *The gemspec*
+  ThreadSafety/LazySynchronizationPrimitive: references/concurrency.md *Shared state*
+  Minitest/LiteralAsActualArgument: references/testing.md *Minitest*
+  Minitest/NonPublicTestMethod: references/testing.md *Minitest*
+  Minitest/TestMethodName: references/testing.md *Minitest*
+  Minitest/AssertRaisesCompoundBody: references/testing.md *Minitest*
+  Minitest/AssertOutput: references/testing.md *Minitest*
+  Minitest/AssertInDelta: references/testing.md *Minitest*
+  Style/OpenStructUse: references/objects.md *Value objects*
+  Lint/SuppressedExceptionInNumberConversion: references/methods.md *Input at the boundary*
+  Style/ArgumentsForwarding: references/methods.md *Parameters*
+  Naming/BlockForwarding: references/methods.md *Parameters*
