@@ -89,6 +89,8 @@ tokens:
   - 'kept silencing'
   # "lowering it would undo this major release's breaking change" #368 RF11, dcdabdf: a reason pinned to the release that wrote it, which a later major makes point elsewhere. Literal.
   - 'this major release'
+  # "A glossary format is the case, raised on agentifico#298" 93d3825 on #412, which the owner removed as historic fact: an issue cited as a sentence's source. Widened to the verbs and the repository forms, PR 426.
+  - '(?:raised|found|reported) (?:on|in) (?:[\w.-]+/)?(?:[\w.-]+)?#\d+'
 tests:
   - name: fires on each recorded shape, once per line
     input: |
@@ -156,6 +158,9 @@ tests:
       Dot-directories are left out, which is what the walk did.
       Reading shell quoting kept silencing real commands.
       The floor stays because lowering it would undo this major release's change.
+      A glossary format is the case, raised on agentifico#298.
+      The gap was found in #12 and is closed.
+      The crash was reported on izkreny/agentifico#7 first.
     want: |
       3:1:Agentifico.History:Never write the file's own history: 'This reverses' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       4:21:Agentifico.History:Never write the file's own history: 'any more' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
@@ -219,6 +224,9 @@ tests:
       62:31:Agentifico.History:Never write the file's own history: 'which is what the walk did' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       63:23:Agentifico.History:Never write the file's own history: 'kept silencing' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       64:48:Agentifico.History:Never write the file's own history: 'this major release' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      65:32:Agentifico.History:Never write the file's own history: 'raised on agentifico#298' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      66:13:Agentifico.History:Never write the file's own history: 'found in #12' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      67:15:Agentifico.History:Never write the file's own history: 'reported on izkreny/agentifico#7' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
   - name: leaves imperatives and state alone
     input: |
       # Title
@@ -238,4 +246,5 @@ tests:
       Once used, the token expires.
       Once used by a round, the token expires.
       A token once used is spent.
+      Write that the finding was raised on #{issue-number} and found in #<pr-number>.
     want: ""
