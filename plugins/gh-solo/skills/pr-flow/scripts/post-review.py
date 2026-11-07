@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build and reconcile the one API call that lands a review round on a pull request.
 
-The pr-flow review and resolve workflows run every subcommand, and `post-review.py <subcommand> --help` lists its arguments.
+The pr-flow review, resolve and merge workflows run these subcommands, and `post-review.py <subcommand> --help` lists its arguments.
 
 Example:
     post-review.py highest-id --comments comments.json --reviews reviews.json

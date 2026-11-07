@@ -23,7 +23,7 @@ Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow`
 - **The `gh` CLI**, authenticated. Every read and write goes through it.
 - **The `gh stack` extension** and the **`gh-stack` skill** from `github/gh-stack`, needed only for stacked pull requests. The stack workflow documents the extension's traps but does not bundle its manual.
 - **A harness that can spawn a subagent**, for the `reviewer` agent a review round uses. Where yours cannot, appoint a capability with a `Reviewer command:` line in `<repo-root>/.agents/gh-solo.md`; the round invokes it and posts what it returns. **That line has to carry `{sha}` as well as `{pr}`**, because a round hands its reviewer the exact version to read and refuses a capability it cannot pin. **Reading the diff yourself is not the fallback**, because the session that wrote the code is what a review may never be: the round refuses rather than substituting the author. A pass by an appointed command is also not recorded identically - it lands with `severity_source`, `severity_basis` and the `unrated` axis, which exist precisely so a reader can tell which kind of pass they are looking at.
-- **Python 3**, for `hooks/ask-before-trunk-push.py`, `skills/pr-flow/scripts/docs-check.py`, `skills/pr-flow/scripts/plan-check.py`, `skills/pr-flow/scripts/keys-check.py`, `skills/pr-flow/scripts/post-review.py` and `skills/pr-flow/scripts/watch.py`. The hook is the one that makes this non-optional: it runs on every Bash call in every session and repository, not only while a skill of this plugin is loaded.
+- **Python 3**, for `hooks/ask-before-trunk-push.py`, `skills/pr-flow/scripts/docs-check.py`, `skills/pr-flow/scripts/plan-check.py`, `skills/pr-flow/scripts/keys-check.py`, `skills/pr-flow/scripts/criteria-check.py`, `skills/pr-flow/scripts/post-review.py` and `skills/pr-flow/scripts/watch.py`. The hook is the one that makes this non-optional: it runs on every Bash call in every session and repository, not only while a skill of this plugin is loaded.
 - **[Vale](https://vale.sh)**, on `PATH`, for `skills/pr-flow/scripts/plan-check.py`, which checks a plan file before its commit, and `skills/pr-flow/scripts/keys-check.py`, which checks the keys on an issue or pull request body. It needs the version that script names as `MIN_VALE`, or later. A missing or older Vale fails the check rather than passing it, and the refusal names the version to install.
 
 **One thing to know about the tool grants.** `/gh-solo:implement` takes bare `Bash`, because it is the skill that runs *your* repository's tests, linters and builds and those cannot be enumerated in advance. Its sibling skills are all narrowed to `gh`, `git` and `python3`.
@@ -44,6 +44,14 @@ claude plugin marketplace add /path/to/your/agentifico/checkout
 claude plugin install gh-solo@agentifico
 ```
 
+## Keys, and the gates that read them
+
+Every item a reader has to point at carries a key: `::AC1::` on an acceptance criterion, `::S1::` on a plan step, `::V1::` on a gate, `::Q1::` on an open question. *Keys* in `skills/tracker/references/formats.md` owns the full table. A key is never renumbered or reused, so `AC3` names the same item for the life of its issue. A removed item keeps its line, marked as in `::AC3::REMOVED:: why`, and `::AC4::READ::` marks a criterion you prove by reading rather than by a test.
+
+`ready` and `merge` refuse a pull request body with an unkeyed item or a repeated key, and `tracker`'s validate fails an issue the same way. So an issue written without keys fails validate until its items are keyed.
+
+**You can also require a test for each criterion.** A `Test files: <glob>` line in `<repo-root>/.agents/gh-solo.md` turns on a gate in `ready` and `merge`: each keyed criterion of the issue a pull request closes must be named by a line in a matching file that carries both `GHI-{issue-number}` and its key, such as `it "GHI-50 AC1 shows an error"`. A `READ` criterion is exempt. Without the line the gate is off.
+
 ## The AI disclaimer, and how to make it yours
 
 Every post this plugin makes lands under **your** GitHub login, because it uses your credentials. So a login can never tell your comments from an agent's, and one string does that job instead: an AI disclaimer line opening the body of every agent-written PR body, comment, Review and thread reply.
@@ -63,7 +71,7 @@ The default, used when nothing overrides it:
 > 🤖 Written by AI --- read/modified by human! 🤓
 ```
 
-To make it your own, define your line in your agent's global instructions file, the one loaded into every session automatically (`<repo-root>/AGENTS.md`, `<repo-root>/CLAUDE.md`, or whatever your agent reads). When that file defines a disclaimer line, it wins, and the plugin's default is not used. Keep the `> 🤖` prefix and keep it a single-line markdown blockquote: a `via` line naming which skill and workflow posted goes underneath as the blockquote's second paragraph, which is what keeps an implementation record, a divergence note and a review finding tellable apart on one pull request.
+To make it your own, define your line in your agent's global instructions file, the user-level one loaded into every session in every repository (`<home-dir>/.claude/CLAUDE.md` on Claude Code, or whatever your agent reads). When that file defines a disclaimer line, it wins, and the plugin's default is not used. Keep the `> 🤖` prefix and keep it a single-line markdown blockquote: a `via` line naming which skill and workflow posted goes underneath as the blockquote's second paragraph, which is what keeps an implementation record, a divergence note and a review finding tellable apart on one pull request.
 
 What to know before you change it. It must be a string you would never type by hand yourself, or the thread gate will read your own comment as the agent's. And change it once, early: posts already made under a previous wording keep that wording forever.
 
@@ -81,7 +89,7 @@ Untested rather than known in that flow: whether a pull request's author may res
 
 ## The one guardrail
 
-The plugin installs a single hook. A `git push` it can see writing to the trunk asks for confirmation first, and says why. It reads the command the way a shell would: through the quoting, through `&&`, `;` and bare newlines, through a `\`-newline continuation, and into a nested `bash -c` or `eval`. What it cannot see is a destination that only exists at runtime - a variable, a `cd` it deliberately does not follow - and there it fails open rather than guessing. Every skill here states that work reaches the trunk only through a reviewed pull request's squash merge, and a rule written in prose is a request rather than a stop.
+The plugin installs a single hook. A `git push` it can see writing to the trunk asks for confirmation first, and says why. It reads the command the way a shell would: through the quoting, through `&&`, `;` and bare newlines, through a `\`-newline continuation, and into a nested `bash -c` or `eval`. What it cannot see is a destination that only exists at runtime - a variable, a `cd` it deliberately does not follow - and there it fails open rather than guessing. The gh-solo flow states as a hard rule that work reaches the trunk only through a reviewed pull request's squash merge, and a rule written in prose is a request rather than a stop.
 
 It asks rather than refuses, deliberately: a plugin's hook runs on every shell command in every session and every repository, not only while one of these skills is loaded, and plenty of repositories are legitimately trunk-only. `hooks/test-ask-before-trunk-push.sh` is its regression bench, and every case in it has been watched to fire, or to stay quiet, on the situation it names - which is a claim about the cases it holds rather than about every shape a command can take. A new case is added by watching it fail first, since a case that has only ever passed proves nothing.
 

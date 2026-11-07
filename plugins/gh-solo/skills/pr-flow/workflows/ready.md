@@ -61,7 +61,7 @@ Same posture: read, report, do not edit.
 python3 <skill-dir>/scripts/criteria-check.py <pr-number>
 ```
 
-The script reads the glob, the criterion keys of the issue the body's `Closes #{issue-number}` line names, and the PR's own head, then searches that head once per key. It skips a removed criterion and one marked `READ`. It prints each key beside the `file:line` naming it, and says so when the gate is off or no criterion carries a key, so a pass on nothing is never silent. Pass `--remote <remote>` where the repository has several remotes and the trunk tracks none of them. `scripts/test-criteria-check.sh` is its bench.
+The script reads the glob, the criterion keys of the issue the body's `Closes #{issue-number}` line names, and the PR's own head, then searches that head once per key. `scripts/criteria-check.py` owns which criteria it skips and what it prints. Pass `--remote <remote>` where the repository has several remotes and the trunk tracks none of them. `scripts/test-criteria-check.sh` is its bench.
 
 **Exit 1 refuses the flip**: `⛔ REFUSED - no test names {keys}`, the keys being the ones its last line lists. **Any other non-zero exit refuses too**, because the check could not run, and the refusal quotes what the script printed. Exit 0 passes, and the verdict carries the script's output.
 
@@ -87,7 +87,9 @@ gh pr ready <pr-number>
 
 ## Step 7 - Confirm
 
-Open with the verdict line per the standing convention in `SKILL.md`. `✅ ALL PASS` when Step 3 found nothing; `⚠️ PASSED WITH FINDINGS - {the bookkeeping misses}` when it did, naming each by its key - an unticked `## Steps` box whose work is plainly done, by its `S{n}`, or a `## Open questions` entry never moved to `## Settled`, by its `Q{n}`. Step 3 defines both as things to report rather than blockers, so the draft still lifts; printing green over them hides the one line the owner reads first. A refusal never reaches this step: the refusals in Steps 1-5 print `⛔ REFUSED - {reason}` as their first line instead. Then one line: the PR number and URL, that it is out of draft, and that every `## Verification` box was already ticked with CI green on the same head — which is the fact that authorised the flip.
+Open with the verdict line per the standing convention in `SKILL.md`. `✅ ALL PASS` when Step 3 found nothing; `⚠️ PASSED WITH FINDINGS - {the bookkeeping misses}` when it did, naming each by its key - an unticked `## Steps` box whose work is plainly done, by its `S{n}`, or a `## Open questions` entry never moved to `## Settled`, by its `Q{n}`. Step 3 defines both as things to report rather than blockers, so the draft still lifts; printing green over them hides the one line the owner reads first. A refusal never reaches this step: the refusals in Steps 1-5 print `⛔ REFUSED - {reason}` as their first line instead.
+
+Then one line: the PR number and URL, that it is out of draft, and that every `## Verification` box was already ticked with CI green on the same head — which is the fact that authorised the flip.
 
 Then Step 4's result: each key beside the `file:line` naming it, or that the gate is off, or that no criterion carries a key.
 

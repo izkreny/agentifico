@@ -69,3 +69,12 @@ claude plugin install gh-solo@agentifico
 ```
 
 The plugin's own `README.md` has the local-checkout variant, the requirements, and what else installing it brings.
+
+## Sources
+
+Each source feeds `references/baseline.md`, whose *Source and maintenance* section says what it departs from.
+
+| Source | What it gave | Licence |
+| --- | --- | --- |
+| mattpocock/skills *[code-review](https://github.com/mattpocock/skills/tree/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76/skills/engineering/code-review)* | Pairing each smell with the refactorings that resolve it, and skipping anything tooling enforces | MIT, reproduced in `references/baseline.md` |
+| Martin Fowler, *Refactoring*, 2nd edition | Chapter 3's smells entire, with the refactoring column from the book's *Smells* table | Cited, not licensed |
