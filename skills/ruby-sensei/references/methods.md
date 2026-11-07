@@ -53,11 +53,11 @@ Contents: one job, shape, input at the boundary, nil, conditionals, parameters, 
 - Never build a null object on `method_missing` that answers everything with `self`, because it agrees to messages it does not understand and spreads.
 - Never `rescue NoMethodError` to survive a nil, because it also hides every typo in the block.
 - Never turn a `nil` that should not be there into `""`, `0` or `[]` with `to_s`, `to_i` or `to_a`, because the absence disappears and the fault surfaces far from its cause; `Array(value)` is for a value where none is a legitimate answer.
-- Default a hash lookup with `fetch`, not `||`, as `collections.md` *Lookups and defaults* says.
+- Default a hash lookup with `fetch`, not `||`, as `references/collections.md` *Lookups and defaults* says.
 
 ## Conditionals
 
-- Treat the same `case` on a class or a type field, repeated in several methods, as the branch `objects.md` *Messages and roles* replaces with polymorphism.
+- Treat the same `case` on a class or a type field, repeated in several methods, as the branch `references/objects.md` *Messages and roles* replaces with polymorphism.
 - Reshape the code when each new requirement adds another `when`, instead of adding it.
 - Keep only what varies inside the branches of a conditional, and move what every branch repeats out of it, because repeated text hides the difference the branches exist for.
 - Never let the last branch of a conditional on a category stand for "everything else"; name every known category and raise on an unknown one, because a new category otherwise takes a branch nobody chose for it.
@@ -73,7 +73,7 @@ Contents: one job, shape, input at the boundary, nil, conditionals, parameters, 
 - Pass a real keyword or `**hash`, never a trailing hash, because a trailing hash is a positional argument, not keywords.
 - Declare `**rest` only when the method forwards or genuinely collects keywords, so an unknown or misspelled keyword raises. Declare `**nil` on a method with optional or rest positional parameters and no keywords, because without it a caller's keywords silently arrive as a positional hash, and adding a keyword parameter later changes what that caller passes.
 - Never take a flag that picks which branch of the method runs. Write two methods and let the caller, who already knows, call the right one, because the flag couples caller and callee to the method's insides.
-- Take a failure policy as a block or callable, as `errors.md` *Rescue* says.
+- Take a failure policy as a block or callable, as `references/errors.md` *Rescue* says.
 - Treat a long parameter list as a missing object: the values that travel together are a `Data` class waiting to be named. Make one only for a concept that is also passed or returned elsewhere; options stay keywords, however many there are, because an options object adds a class and moves the ordering problem into its constructor.
 - Compute a non-trivial default by calling a method, `chainring: default_chainring`, so a subclass can override it.
 - Make a collaborator a caller must supply a required argument, not a default that only fits the first caller.
@@ -89,7 +89,7 @@ Contents: one job, shape, input at the boundary, nil, conditionals, parameters, 
 - Never let a method that reads as a query change the object's state, because correctness then depends on the order of every call.
 - Never design a writer to return anything useful, because `obj.x = value` always evaluates to `value`, whatever the method returns.
 - Make a predicate return `true` or `false`, never `nil` or a truthy object, because callers compare and serialise the answer.
-- Let a command whose outcome the caller expects to vary report it by yielding, or by returning a result object, rather than `true` or `false` that the caller has to interpret; a failure raises, as `errors.md` *Raise, or not* says.
+- Let a command whose outcome the caller expects to vary report it by yielding, or by returning a result object, rather than `true` or `false` that the caller has to interpret; a failure raises, as `references/errors.md` *Raise, or not* says.
 - Do not chain bang methods, because many return `nil` when they change nothing, and make a bang method of your own built from them return `self` explicitly.
 - Guard a ratio or an average against an empty denominator, because `0.0 / 0` returns `NaN` rather than raising, and `NaN` spreads quietly through every later sum.
 - Build an expensive message lazily, with a block or a proc, when it is needed only on failure.
@@ -108,7 +108,7 @@ Contents: one job, shape, input at the boundary, nil, conditionals, parameters, 
 
 ## Pattern matching
 
-- For nested data, follow `collections.md` *Pattern matching on data*.
+- For nested data, follow `references/collections.md` *Pattern matching on data*.
 - Pin an existing value with `^value`, because an unpinned name in a pattern silently rebinds.
 - Remember that a hash pattern ignores extra keys (add `**nil` to forbid them), except `in {}`, which matches only an empty hash, and an array pattern must account for every element. A pattern is syntax, not a value, so reuse one by putting it in a method.
 - Make your own classes matchable with `deconstruct_keys` and, for ordered values, `deconstruct`; `Data` provides both.

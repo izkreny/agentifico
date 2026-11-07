@@ -3,7 +3,7 @@
 ## Choosing the container
 
 - Use `Set` for membership and uniqueness, not an array searched with `include?` or a hash of `key => true`. `Set` is a core class in Ruby 4.0 and needs no `require`.
-- Pass and return plain arrays and hashes unless a collection has behaviour of its own. When it does, wrap one, include `Enumerable` and delegate only what you support, rather than subclassing, as `objects.md` *Inheritance, modules and composition* says.
+- Pass and return plain arrays and hashes unless a collection has behaviour of its own. When it does, wrap one, include `Enumerable` and delegate only what you support, rather than subclassing, as `references/objects.md` *Inheritance, modules and composition* says.
 
 ```ruby
 class Parts
@@ -28,7 +28,7 @@ end
 - Use `fetch` when a key or an index must be present, and `fetch_values` when several must, because `[]` cannot tell a missing key from a stored `nil` or `false`, and `KeyError` names the key at the point of failure rather than far downstream.
 - Give a default with `fetch(key, default)` for a cheap literal and `fetch(key) { compute }` for anything costly, never `hash[key] || default`, because `||` also replaces a stored `false`.
 - Key a hash with symbols for names the program owns and with strings for data that comes from outside, and read and write each hash with one key type, because `h["name"]` never finds `h[:name]`, and frequent `to_s` and `to_sym` calls mean the wrong type was chosen. Convert where outside data enters, such as `JSON.parse(text, symbolize_names: true)`.
-- Take a method's options as keyword arguments, per `methods.md` *Parameters*, and keep `fetch` for genuinely dynamic hashes, such as `ENV`, parsed JSON and configuration.
+- Take a method's options as keyword arguments, per `references/methods.md` *Parameters*, and keep `fetch` for genuinely dynamic hashes, such as `ENV`, parsed JSON and configuration.
 - Never share a mutable default between keys or slots, `Hash.new([])` or `Array.new(3, [])`: use `Hash.new { |h, k| h[k] = [] }` and `Array.new(3) { [] }`, because the default object is the same object for every missing key and every slot.
 - Memoise into a hash with `cache.fetch(key) { cache[key] = build(key) }`.
 - Normalise "one, many or none" with `Array(value)` before iterating, remembering that `Array(hash)` yields pairs.
@@ -48,9 +48,9 @@ end
 
 ## Mutation
 
-- Return new collections by default, and mutate in place only where the method exists to do that, as `methods.md` *Shape* says.
-- Never assume a method without `!` leaves its receiver alone: `push`, `pop`, `shift`, `delete`, `concat` and `clear` all mutate, because `!` marks only the dangerous twin, as `methods.md` *Names* says.
-- Freeze collections held in constants deeply, as `objects.md` *Immutability* says.
+- Return new collections by default, and mutate in place only where the method exists to do that, as `references/methods.md` *Shape* says.
+- Never assume a method without `!` leaves its receiver alone: `push`, `pop`, `shift`, `delete`, `concat` and `clear` all mutate, because `!` marks only the dangerous twin, as `references/methods.md` *Names* says.
+- Freeze collections held in constants deeply, as `references/objects.md` *Immutability* says.
 - Snapshot a collection, with `dup`, before yielding its elements to a caller's block that might mutate the source.
 
 ## Your own collections
@@ -70,7 +70,7 @@ end
 - Give a keyed or indexed collection of your own a `fetch` that behaves like the core one: raise `KeyError` or `IndexError` when the element is absent, and take a block for the fallback, because callers already know that contract.
 - Keep the block of `Enumerator.new` free of side effects outside it, because it runs again from the start for every method called on the enumerator.
 - Make enumeration over an unbounded or huge source bounded by default, and give the unbounded variant a name that says so.
-- Give an element type with a natural order `Comparable` and `<=>`, as `objects.md` *Value objects* says, so `sort`, `min`, `max`, `clamp` and `between?` all agree.
+- Give an element type with a natural order `Comparable` and `<=>`, as `references/objects.md` *Value objects* says, so `sort`, `min`, `max`, `clamp` and `between?` all agree.
 
 ## Pattern matching on data
 
@@ -82,4 +82,4 @@ log("ok") if response in { status: 200..299 }
 ```
 
 - Find an element anywhere with a find pattern, `in [*, {id: 7} => hit, *]`, rather than a loop, remembering that it is a linear scan like the loop.
-- Reject extra keys with `**nil`, as `methods.md` *Pattern matching* says.
+- Reject extra keys with `**nil`, as `references/methods.md` *Pattern matching* says.

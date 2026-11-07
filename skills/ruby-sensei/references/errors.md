@@ -13,7 +13,7 @@
 - Read the call stack through `caller_locations` and each location's `path`, `lineno` and `label`, never by parsing `caller` strings, whose format is not an interface.
 - In a long multi-step job whose partial progress is worth keeping, collect the problems on the result and report them at the end instead of stopping at the first, because aborting discards the work done and the evidence for a flaky step.
 - When unsure whether a condition is exceptional for the caller, let the caller choose, as `Hash#fetch(key) { ... }` and `Enumerable#find(ifnone)` do: raise by default, and take a block that replaces the raise.
-- Reject unworkable input with a precise built-in error, at the boundary `methods.md` *Input at the boundary* describes.
+- Reject unworkable input with a precise built-in error, at the boundary `references/methods.md` *Input at the boundary* describes.
 - Use `value => pattern` when a mismatch is a bug, so it raises `NoMatchingPatternError`, and `value in pattern` when a miss is normal. Give every `case`/`in` an `else` unless exhaustiveness is the point.
 - Use `throw`/`catch` for an expected early exit across several frames, such as stopping a parser once it has enough, because that is not a failure and needs no exception class.
 
@@ -50,7 +50,7 @@
 
 - Translate a foreign error at a library boundary by raising your own class inside the `rescue`, because Ruby sets `cause` automatically. Pass `cause:` only to set a different one. Never copy the original into an attribute of your own.
 - Rescue your own namespace first and re-raise it untouched, then translate the foreign classes, so a boundary never wraps its own errors twice.
-- Pass `cause:` to `Fiber#raise` when injecting an error into another fiber, and to `Thread#raise` only where interrupting a thread cannot be avoided, per `concurrency.md` *Threads*; both take it since Ruby 4.0.
+- Pass `cause:` to `Fiber#raise` when injecting an error into another fiber, and to `Thread#raise` only where interrupting a thread cannot be avoided, per `references/concurrency.md` *Threads*; both take it since Ruby 4.0.
 - Never match on the text of a built-in error message, because Ruby 3.3 and 3.4 reworded `NoMethodError` and `NameError`; match the class, or fields such as `name` and `receiver`.
 
 ## Timeouts
@@ -60,7 +60,7 @@
 
 ## Threads and processes
 
-- `join` or `value` every thread whose failure matters, as `concurrency.md` *Threads* says; `Thread.report_on_exception` only prints the error.
+- `join` or `value` every thread whose failure matters, as `references/concurrency.md` *Threads* says; `Thread.report_on_exception` only prints the error.
 - Report failure in a command-line program with `warn` to standard error and a non-zero `exit`, or with `abort "message"`, which does both with status 1, and call either only from the program's entry point, so the rest of the code stays callable from tests. Both run `ensure` blocks and `at_exit` hooks; `exit!` skips them, and belongs only at the end of a forked child, so the parent's hooks do not run twice.
 - Turn a failure that an API reports only through state into an exception at once: pass `exception: true` to `system`, and for other state, such as `$?` after a backtick command, write one method named for the check that raises, so the narrative of the caller is not interrupted by deciphering status codes.
 - Write a command-line program's progress and diagnostics to standard error with `warn`, and only its results to standard output, so the output stays usable in a pipe. Parse its options with `OptionParser`, describing every option and collecting them with `parse!(into: options)`, and remove the options from `ARGV` before reading input through `ARGF`, which opens whatever is left in `ARGV` as files.

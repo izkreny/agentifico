@@ -79,7 +79,7 @@ end
 - Load the application, then `fork` the workers, so they share its memory copy-on-write.
 - Close file descriptors the workers must not share before forking, because every child inherits them.
 - Write each line of output from a worker with one call, because separate writes from several processes interleave, and never let two processes write the same file without coordination, because processes share the file system.
-- Reap every child, with `Process.wait` when its status matters and `Process.detach` when it does not, because an unreaped child stays a zombie and its status is lost. End a forked child with `exit!`, as `errors.md` *Threads and processes* says.
+- Reap every child, with `Process.wait` when its status matters and `Process.detach` when it does not, because an unreaped child stays a zombie and its status is lost. End a forked child with `exit!`, as `references/errors.md` *Threads and processes* says.
 - Read a child's output with the block form of `IO.popen`, which closes the pipe, call `close_write` once all input is sent on a two-way pipe, because the child sees the end of its input only then, and use `spawn` rather than `fork` for code that must also run on Windows.
 - Move, copy and delete files with `FileUtils`, never a shell command, because it needs no escaping and works on every platform.
 

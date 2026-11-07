@@ -54,15 +54,15 @@
 - Remember that adding a required keyword breaks every caller and an optional one none, and that moving an options hash to keywords breaks callers that pass a real `Hash`; accept both for a deprecation period, warning when the hash is used.
 - Deprecate before removing: warn in one release, remove in a later major, and name the replacement and the removal version in the warning.
 - Point the warning at the caller with `warn "...", uplevel: 1, category: :deprecated`, and say so in the changelog too, because Ruby shows deprecation warnings only under `-w` or `Warning[:deprecated] = true`. Deprecate a renamed constant with `deprecate_constant`, keeping a private alias for the gem's own use so it does not trigger its own warning.
-- Keep a renamed public error rescuable, as `errors.md` *Which class* says.
+- Keep a renamed public error rescuable, as `references/errors.md` *Which class* says.
 
 ## Public API
 
 - Write down what is public: documented methods and constants are the API, anything marked `@api private` or `:nodoc:` may change in any release, and `private_constant` hides what must not be touched.
 - Open the README with one paragraph on what the gem does and a usage example, because that is what decides whether anyone tries it.
 - Check a name on RubyGems.org, on GitHub and against well-known products before announcing it, because a later rename throws away the recognition.
-- Ship signatures in `<repo-root>/sig/` for the public API, as `types.md` describes.
-- Give the gem one root error class, `MyGem::Error < StandardError`, as `errors.md` describes, and document what each public method raises.
+- Ship signatures in `<repo-root>/sig/` for the public API, as `references/types.md` describes.
+- Give the gem one root error class, `MyGem::Error < StandardError`, as `references/errors.md` describes, and document what each public method raises.
 
 ## Publishing
 
@@ -76,10 +76,10 @@
 
 - Keep the host's core small and make every feature an opt-in plugin loaded by name, as roda and sequel do, so users pay only for what they use and each feature has a clear seam.
 - Load a plugin by convention: `plugin :name` requires `<host>/plugins/name`, which registers itself, and the host raises a clear error naming the plugin when the file is missing or did not register. Accept a module directly as well, for plugins that live in the application.
-- Give plugins the fixed contract `metaprogramming.md` *Plugin systems* describes.
+- Give plugins the fixed contract `references/metaprogramming.md` *Plugin systems* describes.
 - Discover plugins that ship as gems through gemspec metadata, as RuboCop does with lint_roller: `spec.metadata["default_lint_roller_plugin"] = "MyGem::Plugin"`, a string because metadata is read before the gem is loaded. The host requires the gem and instantiates the class with its configuration.
 - Keep the extension contract in its own tiny gem, or versioned module, with as few methods as possible, `about`, `supported?(context)` and `rules(context)` in lint_roller's case, and grow it only by addition, because every plugin and every host depends on it.
-- Ship the backend or plugin contract's role test inside the gem, a module of Minitest tests that a third party includes in its own suite, so every implementation proves it honours the contract, as `testing.md` describes for doubles.
+- Ship the backend or plugin contract's role test inside the gem, a module of Minitest tests that a third party includes in its own suite, so every implementation proves it honours the contract, as `references/testing.md` describes for doubles.
 - Pass the host's facts to a plugin as one keyword object, such as a `Data` or keyword `Struct` context, so a new field never breaks an existing plugin.
 - Ask each plugin whether it supports the running host, and report every unsupported one in a single error, so the user fixes them all at once.
 - Return a plugin's failure as data the host reports, rather than raising across the boundary, so one broken plugin does not end the run.

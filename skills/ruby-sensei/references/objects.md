@@ -8,7 +8,7 @@ Contents: responsibility, dependencies, messages and roles, inheritance, modules
 - Move code that mostly reads and drives another object onto that object, and move an instance method that touches no instance state out of the class, because both sit in the wrong home and drag coupling with them.
 - Read instance variables through readers, private ones by default, even inside the class, so the variable becomes behaviour defined once and a change of meaning is a one-method edit.
 - Set every instance variable in `initialize`, and never read one a class does not set itself, because an instance variable that appears later hides an initialisation order, and objects that set their variables in different orders get different shapes, which slows every access and which `-W:performance` reports.
-- Memoize by setting the variable to `nil` in `initialize` and filling it with `@total ||= compute` in the reader, and only for a value read more than once per object, once measuring shows it pays, as *Immutability* says, and never on an object threads share, as `concurrency.md` *Shared state* says. Memoize a value that can be `nil` or `false` in a cache hash instead, as `collections.md` *Lookups and defaults* shows, because `||=` recomputes a falsy value on every call.
+- Memoize by setting the variable to `nil` in `initialize` and filling it with `@total ||= compute` in the reader, and only for a value read more than once per object, once measuring shows it pays, as *Immutability* says, and never on an object threads share, as `references/concurrency.md` *Shared state* says. Memoize a value that can be `nil` or `false` in a cache hash instead, as `references/collections.md` *Lookups and defaults* shows, because `||=` recomputes a falsy value on every call.
 - When one attribute is checked in one method, defaulted in another and branched on in a third, it is missing an invariant: establish it in `initialize`, through a private setter that checks the value, and let every method rely on it.
 - Keep an object consistent after every public method, so it can always still do its job, and check business validity once, at the boundary where it is saved or sent on, because demanding validity at every step forbids the half-filled states an edit passes through.
 - Add no public writer by reflex, because a public setter lets every caller depend on the representation; change state through methods named for the change.
@@ -28,7 +28,7 @@ Contents: responsibility, dependencies, messages and roles, inheritance, modules
 - Never call another class's or gem's private method with `send`, or read its instance variables with `instance_variable_get` or `instance_eval`; rethink the design first, and if you must, confine the call to one method you own, because a private method can change in any release.
 - Wrap a foreign interface with an awkward signature, such as a long positional list, in one method you own that takes keywords.
 - Never define `initialize` in a module; give the module a named setup method that the including class calls.
-- Let behaviour that works on a clump of parameters move onto the `Data` class the clump becomes, the missing object `methods.md` *Parameters* says to name.
+- Let behaviour that works on a clump of parameters move onto the `Data` class the clump becomes, the missing object `references/methods.md` *Parameters* says to name.
 - Keep design-pattern words out of domain class names (`NumberDecorator`), because they describe the code's mechanics, not the domain.
 
 ## Messages and roles
@@ -36,7 +36,7 @@ Contents: responsibility, dependencies, messages and roles, inheritance, modules
 - Design from the message: decide what needs to be asked, then who should answer. If nobody fits, that is the missing object.
 - Ask for what you want, not how to do it: `mechanic.prepare(bike)`, not four calls into the mechanic's procedure, because the sender should not change when the receiver's procedure does.
 - Keep the public interface small and stable, and everything else private, because callers depend on all of the public interface and on none of the rest.
-- Never branch on what an object is, with `is_a?`, `respond_to?` before a call, or a `case` on a type attribute, to decide what it does. Give each kind of object the method, so the difference lives in one place, except the temporary guard that `testing.md` *Refactoring* allows during a staged change, and a conversion protocol checked once at the boundary, as `methods.md` *Input at the boundary* shows.
+- Never branch on what an object is, with `is_a?`, `respond_to?` before a call, or a `case` on a type attribute, to decide what it does. Give each kind of object the method, so the difference lives in one place, except the temporary guard that `references/testing.md` *Refactoring* allows during a staged change, and a conversion protocol checked once at the boundary, as `references/methods.md` *Input at the boundary* shows.
 - Check a class only once, at the boundary where untrusted data enters, or for a stable core class such as `Array`, and nowhere in the interior. When you do, use `is_a?`, never `instance_of?` or `obj.class ==`, which reject every subclass. Test the exact class only where a subclass must not pass: `==` and `eql?` on a value, as *Value objects* says, and a test asserting which class a factory built, `assert_instance_of BottleNumber0, BottleNumber.for(0)`.
 - Replace a category attribute that many methods switch on (`style == :road`) with small classes that each answer for themselves, and convert to them once, at the boundary.
 - Represent a recurring absent value with a special-case object, such as `GuestUser`, and a do-nothing collaborator with a null object, such as `NullLogger`, when the same `nil` would otherwise be checked in many places. Keep the null object's interface explicit and small, and convert it back to `nil` at a public API, because Ruby cannot make it falsey. Never test whether an object is the special case; where a condition cannot be removed, ask a predicate both answer, `authenticated?`, so the condition states its intent.
@@ -110,7 +110,7 @@ end
 - Make a singleton a plain object in a constant with singleton methods, `Registry = Object.new`, or a module, rather than `include Singleton`, because the constant already is the one instance.
 - Delete private methods nothing calls.
 - Where a class variable would go, which the linter forbids, use a class-level instance variable behind a reader, or a frozen constant.
-- Avoid class-level mutable state such as registries filled by `inherited`, and where it is unavoidable, handle it as `concurrency.md` *Shared state* says.
+- Avoid class-level mutable state such as registries filled by `inherited`, and where it is unavoidable, handle it as `references/concurrency.md` *Shared state* says.
 - Never define a method at the top level outside a script, because it lands on `Object` and leaks everywhere.
 
 ## Factories

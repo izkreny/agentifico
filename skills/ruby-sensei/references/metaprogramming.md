@@ -5,7 +5,7 @@
 - Write ordinary code first, and metaprogram only where nothing else works or where it clearly pays for itself, such as a macro that removes a family of near-identical methods or a plugin loader. A method defined at runtime has no line a reader can find, and hooks fire where nobody expects them.
 - Never generate what Ruby already provides: no `define_method` loop over `instance_variable_get` where `attr_reader` does the job.
 - Reject a convenience that changes what a typo does, such as a class-level `method_missing` that defines whatever is called, because a misspelled name then succeeds instead of raising `NoMethodError`.
-- Test every generated method, hook and `method_missing` branch, the unknown-name case included, as `testing.md` *What to test* says.
+- Test every generated method, hook and `method_missing` branch, the unknown-name case included, as `references/testing.md` *What to test* says.
 
 ## Defining methods
 
@@ -42,7 +42,7 @@ end
 
 - Build a transparent proxy on `BasicObject`, or use `SimpleDelegator` or `DelegateClass`, because methods every `Object` has, `to_s`, `inspect` and `==`, are never missing and would answer for the wrapper. Inside a `BasicObject` subclass, write `::Kernel.raise` and `::Time`, because it has no `Kernel` and constant lookup does not reach `Object`, and take an explicit `&block`, because `block_given?` is a `Kernel` method.
 - Never let a proxy impersonate the implicit conversions, `to_str` and `to_ary`, unless it truly is that type.
-- Delegate a known list of methods with `Forwardable`, as `objects.md` *Messages and roles* says, never with `method_missing`.
+- Delegate a known list of methods with `Forwardable`, as `references/objects.md` *Messages and roles* says, never with `method_missing`.
 
 ## Hooks
 

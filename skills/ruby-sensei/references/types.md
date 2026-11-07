@@ -1,6 +1,6 @@
 # Types
 
-Static typing in Ruby is RBS signatures checked by Steep. Duck typing in plain Ruby, which is most of what "types" means day to day, is `objects.md`; converting input at a boundary is `methods.md`.
+Static typing in Ruby is RBS signatures checked by Steep. Duck typing in plain Ruby, which is most of what "types" means day to day, is `references/objects.md`; converting input at a boundary is `references/methods.md`.
 
 ## Whether to type
 
@@ -27,7 +27,7 @@ Static typing in Ruby is RBS signatures checked by Steep. Duck typing in plain R
 - Mark a value that may be `nil` as `T?`, and a parameter that may be omitted as `?T`, because they mean different things and RBS excludes `nil` unless it is marked. Mark it yourself on a method that returns a `Hash#[]` lookup, because the core signature only annotates `Hash#[]` as implicitly returning `nil`, so the checker will not insist.
 - Write a result that depends on the argument's type as overloads joined with `|`, one per line, rather than a union in and a union out, so each input type stays tied to its result.
 - Use `boolish` for an argument that is only tested for truthiness, and `bool` only where exactly `true` or `false` is required, because Ruby callers honestly pass `nil` and other objects.
-- Model keyword arguments as keywords (`?timeout: Integer`), never as an options hash, because the checker enforces the separation `methods.md` *Parameters* describes.
+- Model keyword arguments as keywords (`?timeout: Integer`), never as an options hash, because the checker enforces the separation `references/methods.md` *Parameters* describes.
 - Use a literal union for a closed set of options, `:read | :write`, rather than `Symbol`, so a misspelled value fails the check.
 - Use a record, `{ id: Integer, name: String }`, for a hash with fixed keys, and a tuple for a fixed-size array; then ask whether that shape should be a `Data` class instead.
 - Write `untyped` only as a stated, temporary escape, and never in a published API, because it switches checking off for every value it touches.
