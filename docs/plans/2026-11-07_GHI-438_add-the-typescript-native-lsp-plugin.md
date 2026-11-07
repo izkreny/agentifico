@@ -43,4 +43,4 @@ V2 adds the new plugin to the repository's docs-check targets on this branch onl
 
 ## Settled
 
-None yet.
+- **Q1, whether this branch also adds `plugins/typescript-native-lsp` to the agents-guru check list in `.agents/gh-solo.md` and the plugin's test as a bench there.** Both, on this branch. Settled by the owner in the terminal on 2026-11-07.
