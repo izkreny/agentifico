@@ -62,6 +62,11 @@ body = "\r\n".join([
 ])
 check("checkbox lines only, READ and removed skipped, CRLF read", c.criterion_keys(body), ["AC1", "AC2", "AC3", "AC10", "AC7", "AC8", "AC9", "AC11", "AC12", "AC13"])
 check("a star-bullet body is not read as unkeyed", c.criterion_keys("* [ ] ::AC1:: x\n* [ ] ::AC2:: y"), ["AC1", "AC2"])
+check("a top-level item indented one space counts", c.criterion_keys(" - [ ] ::AC1:: x"), ["AC1"])
+check("a top-level item indented three spaces counts", c.criterion_keys("   - [ ] ::AC1:: x"), ["AC1"])
+check("four spaces is not a list item", c.criterion_keys("    - [ ] ::AC1:: x"), [])
+check("an item under an indented item is nested", c.criterion_keys(" - [ ] ::AC1:: x\n   - [ ] ::AC2:: y"), ["AC1"])
+check("a paragraph ends the list, so the next item is top-level", c.criterion_keys("- [ ] ::AC1:: x\n\ntext\n  - [ ] ::AC2:: y"), ["AC1", "AC2"])
 check("an unkeyed body has no keys", c.criterion_keys("- [ ] plain\n- [x] plain"), [])
 
 print("\nthe search, on a real repository:")
@@ -109,6 +114,9 @@ check("a key no test names refuses", c.check(423, "origin"), 1)
 
 fake("* [x] ::AC1:: x\n* [ ] ::AC2:: y")
 check("a star-bullet key no test names refuses", c.check(423, "origin"), 1)
+
+fake(" - [x] ::AC1:: x\n - [ ] ::AC2:: y")
+check("an indented key no test names refuses", c.check(423, "origin"), 1)
 
 fake("- [x] ::AC1:: x", pr_body="no closing line")
 check("a PR with no Closes line cannot run", c.main(["423", "--remote", "origin"]), 2)

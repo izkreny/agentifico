@@ -18,8 +18,9 @@ from pathlib import Path
 CONFIG_FILES = (".agents/gh-solo.md", ".claude/gh-solo.md")
 GLOB_LINE = re.compile(r"^Test files:[ \t]*(\S.*?)[ \t]*$", re.M)
 CLOSES = re.compile(r"\bCloses #(\d+)\b")
+ITEM = re.compile(r"^( {0,3})((?:[-*+]|\d+[.)])[ \t]+)\S")
 # WHY: a removed criterion has no checkbox and a READ one is the owner's to prove, so neither is searched.
-CRITERION = re.compile(r"^(?:[-*+]|\d+[.)])[ \t]+\[[ xX]\][ \t]+::(AC[1-9]\d*)::(READ::)?", re.M)
+CRITERION = re.compile(r"\[[ xX]\][ \t]+::(AC[1-9]\d*)::(READ::)?")
 
 
 class CheckError(Exception):
@@ -49,8 +50,23 @@ def closed_issue(pr_body):
 
 
 def criterion_keys(issue_body):
-    text = (issue_body or "").replace("\r\n", "\n")
-    return [m.group(1) for m in CRITERION.finditer(text) if not m.group(2)]
+    # WHY: a nested item is not a criterion, and only the previous item's content column tells nesting from an indented top-level item, as IssueKeys.yml tracks it.
+    keys, content, blank = [], -1, False
+    for line in (issue_body or "").replace("\r\n", "\n").split("\n"):
+        item = ITEM.match(line)
+        expanded = line.expandtabs(4)
+        indent = len(expanded) - len(expanded.lstrip())
+        if line.startswith("#"):
+            content = -1
+        elif item and (content < 0 or len(item.group(1)) < content):
+            content = len(item.group(1)) + len(item.group(2))
+            m = CRITERION.match(line, item.end(2))
+            if m and not m.group(2):
+                keys.append(m.group(1))
+        elif not item and line.strip() and blank and indent < content:
+            content = -1
+        blank = not line.strip()
+    return keys
 
 
 def parse_hits(grep_out, sha):
