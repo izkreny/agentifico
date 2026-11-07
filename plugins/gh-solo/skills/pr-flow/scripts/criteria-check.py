@@ -19,6 +19,7 @@ CONFIG_FILES = (".agents/gh-solo.md", ".claude/gh-solo.md")
 GLOB_LINE = re.compile(r"^Test files:[ \t]*(\S.*?)[ \t]*$", re.M)
 CLOSES = re.compile(r"\bCloses #(\d+)\b")
 ITEM = re.compile(r"^( {0,3})((?:[-*+]|\d+[.)])[ \t]+)\S")
+FENCE = re.compile(r"^(`{3,}|~{3,})")
 # WHY: a removed criterion has no checkbox and a READ one is the owner's to prove, so neither is searched.
 CRITERION = re.compile(r"\[[ xX]\][ \t]+::(AC[1-9]\d*)::(READ::)?")
 
@@ -51,12 +52,20 @@ def closed_issue(pr_body):
 
 def criterion_keys(issue_body):
     # WHY: a nested item is not a criterion, and only the previous item's content column tells nesting from an indented top-level item, as IssueKeys.yml tracks it.
-    keys, content, blank = [], -1, False
+    keys, content, blank, fence = [], -1, False, ""
     for line in (issue_body or "").replace("\r\n", "\n").split("\n"):
         item = ITEM.match(line)
         expanded = line.expandtabs(4)
         indent = len(expanded) - len(expanded.lstrip())
-        if line.startswith("#"):
+        marker = FENCE.match(line.lstrip(" \t"))
+        if fence:
+            if marker and marker.group(1).startswith(fence) and not line.strip()[len(marker.group(1)):].strip():
+                fence = ""
+        elif marker:
+            fence = marker.group(1)
+            if indent < content:
+                content = -1
+        elif line.startswith("#"):
             content = -1
         elif item and (content < 0 or len(item.group(1)) < content):
             content = len(item.group(1)) + len(item.group(2))
