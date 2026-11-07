@@ -72,7 +72,7 @@ The plugin's own `README.md` has the local-checkout variant, the requirements, a
 
 ## Sources
 
-`references/baseline.md` draws on both, and its *Source and maintenance* section says what it departs from.
+Each source feeds `references/baseline.md`, whose *Source and maintenance* section says what it departs from.
 
 | Source | What it gave | Licence |
 | --- | --- | --- |
