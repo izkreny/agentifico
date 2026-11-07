@@ -50,6 +50,7 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 **The agents-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/agents-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are:
 
 - `plugins/gh-solo`
+- `plugins/typescript-native-lsp`
 - `skills/review-text`
 - `skills/agents-guru`
 - `skills/socratic-tutor`
@@ -103,6 +104,12 @@ bash skills/action-policy-guru/scripts/test-check-upstream.sh
 
 ```bash
 bash skills/glossary-guru/scripts/test-glossary-rule.sh
+```
+
+**The typescript-native-lsp manifest test**, after any edit under `plugins/typescript-native-lsp/`, needing the `tsc` of TypeScript 7.0 or later on `PATH`:
+
+```bash
+python3 plugins/typescript-native-lsp/tests/test-manifest.py
 ```
 
 #### The plugin's benches
