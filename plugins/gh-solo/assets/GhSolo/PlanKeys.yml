@@ -1,4 +1,4 @@
-# A script rather than a regex, because the key a list item owes depends on the heading above it and on whether the item is nested, which a paragraph after a blank line or a fence left of the list's content column ends, a fenced block must not move either, and a checkbox before the key is left for PlanCheckbox to report. IssueKeys copies this parsing.
+# A script rather than a regex, because the key a list item owes depends on the heading above it and on whether the item is nested, which a paragraph after a blank line or a fence left of the list's content column ends, a fenced block must not move either, and a checkbox before the key is left for PlanCheckbox to report.
 extends: script
 message: "Every item under '## Steps', '## Verification' and '## Open questions' opens with its own section's key, as '- ::S1::' or '- ::V1::' in a plan, '- [ ] ::S1::' or '- [ ] ::V1::' in a pull request body, and '- ::Q1::' in either, per Keys in the tracker skill's references/formats.md: '%s' does not."
 level: error
