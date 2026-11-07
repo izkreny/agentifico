@@ -13,22 +13,16 @@ module CheckFloor
   SKILL = File.expand_path("..", __dir__)
   FLOOR = File.join(SKILL, "assets", "floor.yml")
   OWN_CONFIG = File.join(SKILL, "assets", "rubocop.yml")
-  REPOS = {
-    "rubocop" => "rubocop/rubocop",
-    "rubocop-performance" => "rubocop/rubocop-performance",
-    "rubocop-minitest" => "rubocop/rubocop-minitest",
-    "rubocop-thread_safety" => "rubocop/rubocop-thread_safety",
-    "rubocop-on-rbs" => "ksss/rubocop-on-rbs",
-  }.freeze
-  PLUGINS = {
-    "Performance" => "rubocop-performance",
-    "Minitest" => "rubocop-minitest",
-    "ThreadSafety" => "rubocop-thread_safety",
-    "RBS" => "rubocop-on-rbs",
+  GEMS = {
+    "rubocop" => { repo: "rubocop/rubocop" },
+    "rubocop-performance" => { repo: "rubocop/rubocop-performance", department: "Performance" },
+    "rubocop-minitest" => { repo: "rubocop/rubocop-minitest", department: "Minitest" },
+    "rubocop-thread_safety" => { repo: "rubocop/rubocop-thread_safety", department: "ThreadSafety" },
+    "rubocop-on-rbs" => { repo: "ksss/rubocop-on-rbs", department: "RBS" },
   }.freeze
 
   Gap = Data.define(:name, :checked, :installed, :spec)
-  private_constant :SKILL, :FLOOR, :OWN_CONFIG, :REPOS, :PLUGINS, :Gap
+  private_constant :SKILL, :FLOOR, :OWN_CONFIG, :GEMS, :Gap
 
   # Raised for a check that cannot run or does not pass; only `main` turns it into an exit.
   class Failure < StandardError; end
@@ -94,7 +88,7 @@ module CheckFloor
     attr_reader :gap
 
     def notes_url
-      "https://github.com/#{REPOS.fetch(gap.name)}/compare/v#{gap.checked}...v#{gap.installed}"
+      "https://github.com/#{GEMS.fetch(gap.name).fetch(:repo)}/compare/v#{gap.checked}...v#{gap.installed}"
     end
 
     def default_config
@@ -203,7 +197,7 @@ module CheckFloor
     end
 
     def defaults_states(show)
-      plugins = REPOS.keys.drop(1).select { versions.installed?(it) }
+      plugins = GEMS.filter_map { |name, gem| name if gem[:department] && versions.installed?(name) }
       Dir.mktmpdir("check-floor") do |dir|
         path = File.join(dir, ".rubocop.yml")
         File.write(path, { "plugins" => plugins }.to_yaml)
@@ -250,7 +244,8 @@ module CheckFloor
     def watched_problem(cop, home, state)
       return "is now enabled by default: remove its rule from #{home} and add the cop to `owned`" if state
 
-      plugin = PLUGINS[cop.split("/").first]
+      department = cop.split("/").first
+      plugin = GEMS.find { |_, gem| gem[:department] == department }&.first
       return "cannot be checked: its plugin #{plugin} is not installed" if plugin && !versions.installed?(plugin)
 
       "is unknown to this release: check the rule in #{home} against its notes"
