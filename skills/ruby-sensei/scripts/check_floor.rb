@@ -261,7 +261,8 @@ module CheckFloor
         text = text.sub(/^(  #{Regexp.escape(gap.name)}: )\S+$/) { "#{::Regexp.last_match(1)}#{gap.installed}" }
       end
       File.write(FLOOR, text)
-      puts "Recorded: #{gaps.map { "#{it.name} #{it.installed}" }.join(", ")}"
+      recorded = gaps.map { "#{it.name} #{it.installed}" }.join(", ")
+      puts "Recorded: #{recorded}"
     end
   end
 
