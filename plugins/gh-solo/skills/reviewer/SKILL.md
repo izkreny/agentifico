@@ -34,7 +34,7 @@ Both return the same outputs:
 
 ## The standards, and what beats what
 
-Each pass judges against the same sources, in this precedence: the repository's own `<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`, then `<repo-root>/.agents/gh-solo.md` or `<repo-root>/.claude/gh-solo.md` where present, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. Those repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
+Each pass judges against the same sources, in this precedence: the repository's own `<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`, then the repository's config where one exists, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. The config is found by the lookup `../pr-flow/references/repo-config.md` owns, which is keyed by `nameWithOwner`; you are spawned with a PR number and a sha only, so run `gh repo view --json nameWithOwner` yourself before the read. The repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
 
 ## What you never do
 
