@@ -137,6 +137,10 @@ This is the part that survives every tracker, and it is worth more than the whol
 
 **Every criterion carries an `AC{n}` key, every technical note an `N{n}` and every `## Done when` item a `D{n}`**, as the templates show. *Keys* in `references/formats.md` owns how they are written and numbered.
 
+**A test proves criterion `AC{n}` of issue `#{issue-number}` when one line of it names the issue and the criterion.** The line sits in a file under the repository's test glob and carries `GHI-{issue-number}` and `AC{n}` as whole tokens. A whole token has no letter, digit or underscore on either side. The glob, and the gate that reads it, belong to the `pr-flow` skill's `../pr-flow/workflows/ready.md`.
+
+**A criterion the owner proves by reading carries `READ` after its key**, as in `- [ ] ::AC4::READ:: The README names the new flag`. The gate skips it, and the owner's reading of the diff is its proof. Use it where no test can hold the outcome, such as wording or layout, never to skip a test that could be written.
+
 ---
 
 ## Spikes
