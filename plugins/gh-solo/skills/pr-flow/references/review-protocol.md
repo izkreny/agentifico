@@ -67,7 +67,7 @@ One reply per finding saying what change would close it, with code in a plain fe
 
 ### 4. Fix, commit, report
 
-The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes on a `Closes:` line in its body, and **nothing is pushed** - step 7 is the round's only push, and says why. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
+The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes on a `Closes:` line in its body; a finding answered by a body item is claimed by that item's key, beside a commit or instead of one, per the `implement` skill's fix workflow. **Nothing is pushed** - step 7 is the round's only push, and says why. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
 
 - **Steps 3 and 4 are two posts and are never merged into one**, even though nothing reads them in between. The gap between the plan and the result is where a departure from the plan is visible; combined, it has nowhere to show.
 - **The fix workflow's carve-out applies to every fix in this block**: a fix the owner might independently reject gets its own commit. There it is the exception; here it is the rule, because nothing in this block has been judged yet.
@@ -77,7 +77,7 @@ The fixes land as commits grouped by coherent change, each naming the `RF{n}` id
 
 ### 5. Re-review, scoped
 
-The reviewer is spawned again with the fix commit *range*, the findings list, and which commit claims which id. A range rather than a diff on purpose: it reads the commits itself, so nothing the author produced sits between it and the code. It answers two questions and no others: for each finding claimed closed, does this diff close it; and did any fix introduce a new defect. It returns verdicts to the orchestrator, which posts them into the threads.
+The reviewer is spawned again with the fix commit *range*, the findings list, and which commit or body item key claims which id. A range rather than a diff on purpose: it reads the commits itself, so nothing the author produced sits between it and the code. A key is passed bare for the same reason, and the reviewer reads the one item it names. It answers two questions and no others: for each finding claimed closed, does this diff or this item close it; and did any fix introduce a new defect. It returns verdicts to the orchestrator, which posts them into the threads.
 
 - **The scope stops there**, and what it excludes is owned by `../reviewer/workflows/rescope.md`, under *You answer exactly two questions, and no others*.
 - **A new defect gets its own record, and the first index is left alone.** One record Review per analysis is the standing rule and the re-review is an analysis, so it posts its own, indexing its own pass and the new `RF{n}` ids in it. Nothing goes stale, because no index ever claimed to cover a pass that had not happened when it was written, and no submitted record is rewritten to make it true.
