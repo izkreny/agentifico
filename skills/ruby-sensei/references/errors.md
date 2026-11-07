@@ -7,7 +7,7 @@
   - a benign value, an empty array or a null object, when the caller can carry on without the result;
   - a `Data` result matched with `case`/`in`, when there are several outcomes;
   - a yield or fallback block, when the caller should decide.
-- Raise, rather than return `false` or `nil`, from a method called for its side effect, such as `save` or `update`, because callers ignore the result and a silent failure loses data.
+- Raise, rather than return `false` or `nil`, from a method called for its side effect, such as `save` or `update`, because callers ignore the result and a silent failure loses data. Pair it with a predicate such as `valid?` for code that branches on input it expects to be invalid, so that input never reaches the raise.
 - Give a guard both a raising form for code that must not continue and a predicate for code that branches, `authorize(user)` and `allowed?(user)`, and make it fail closed, because an unchecked `false` lets the action through.
 - In a guard or assertion helper, pass `caller` as `raise`'s third argument, so the backtrace starts where the bad value came from rather than inside the helper.
 - Read the call stack through `caller_locations` and each location's `path`, `lineno` and `label`, never by parsing `caller` strings, whose format is not an interface.
@@ -50,7 +50,7 @@
 
 - Translate a foreign error at a library boundary by raising your own class inside the `rescue`, because Ruby sets `cause` automatically. Pass `cause:` only to set a different one. Never copy the original into an attribute of your own.
 - Rescue your own namespace first and re-raise it untouched, then translate the foreign classes, so a boundary never wraps its own errors twice.
-- Pass `cause:` to `Thread#raise` and `Fiber#raise` when injecting an error into another thread or fiber, available since Ruby 4.0.
+- Pass `cause:` to `Fiber#raise` when injecting an error into another fiber, and to `Thread#raise` only where interrupting a thread cannot be avoided, per `concurrency.md` *Threads*; both take it since Ruby 4.0.
 - Never match on the text of a built-in error message, because Ruby 3.3 and 3.4 reworded `NoMethodError` and `NameError`; match the class, or fields such as `name` and `receiver`.
 
 ## Timeouts
