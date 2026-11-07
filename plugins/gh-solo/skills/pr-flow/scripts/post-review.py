@@ -421,7 +421,7 @@ def record_body(
         lines.append("")
         lines.append(
             "These point at lines only the unpushed fix commits carry, so GitHub cannot "
-            "anchor a thread to them yet. Their ids are reserved, and `rnp` posts each as "
+            "anchor a thread to them yet. Their ids are reserved, and `:rp` posts each as "
             "a thread the moment its push lands."
         )
         lines.append("")

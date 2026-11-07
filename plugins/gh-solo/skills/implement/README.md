@@ -31,7 +31,7 @@ flowchart TD
     G --> I["<b>fix</b><br/>commits grouped by coherent change,<br/>replies in the threads - nothing pushed"]
     I --> RR["the re-review<br/>(pr-flow, round step 5):<br/>did each fix close its finding"]
     RR --> H(["<b>you</b> judge the findings"])
-    H --> J(["<b>you</b> type <b>rnp</b>,<br/>or say: resolve all and push"])
+    H --> J(["<b>you</b> type <b>:rp</b>,<br/>or say: resolve all and push"])
 ```
 
 The rounded steps are yours, same rule as everywhere in this flow: the skill will not do them for you or pretend it has.
@@ -54,7 +54,7 @@ The one legitimate plan edit is the opposite case. A decision you settled in a p
 
 **Fixes are the same skill through a different door, and they never push.** The doors: the review round calls it at its own step 4, where the work list is the fix plans it already posted, and you call it after judging - "fix all", "fix RF1 and RF3". Either way it lands the fixes as commits grouped by coherent change, each naming the RF ids it closes, replies in each finding's thread, and posts the finding-to-commit map as a PR comment.
 
-Nothing leaves the machine: the threads stay anchored to the exact diff you are still reading, and the commits wait for you to type `rnp`, or say "resolve all and push", per the review protocol in `pr-flow`. It never resolves a thread itself either - that happens once, on the authority of those words.
+Nothing leaves the machine: the threads stay anchored to the exact diff you are still reading, and the commits wait for you to type `:rp`, or say "resolve all and push", per the review protocol in `pr-flow`. It never resolves a thread itself either - that happens once, on the authority of those words.
 
 **The repository says how it is built and tested; the skill never does.** How code is written here comes from the repo's own agent instructions, the check commands from its `<repo-root>/.agents/gh-solo.md`, and a repo silent on either gets that said in the handoff rather than improvised around. The floor underneath every repo: a behavior change carries a test, and a plan that names no gates stops the work with a question.
 

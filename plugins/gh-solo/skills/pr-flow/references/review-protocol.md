@@ -93,9 +93,11 @@ The reviewer is spawned again with the fix commit *range*, the findings list, an
 
 The first step that waits for anything. They answer per thread, in the vocabulary *The owner's vocabulary* states.
 
+**They may clear the closed threads first** with `resolve closed`, per *Resolving only the closed threads* in `workflows/resolve.md`. It resolves only what a closing verdict ended, pushes nothing, and leaves this step running.
+
 ### 7. Resolve and push, on the owner's word
 
-The batch is one word or sentence from the owner - `rnp`, or "resolve all and push", whose order is also the order this step runs in:
+The batch is one word or sentence from the owner - `:rp`, or "resolve all and push", whose order is also the order this step runs in:
 
 - **First the authorisation comment**, before any thread is resolved.
 - **Then the resolves.** To resolve a thread is to mark it Resolved on GitHub: the state change that collapses it and takes it off the open list.
