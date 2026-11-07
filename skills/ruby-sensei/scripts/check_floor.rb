@@ -159,7 +159,7 @@ module CheckFloor
   class Run
     def initialize(config:, record:)
       if record && config != OWN_CONFIG
-        raise Failure, "--record writes the skill's own floor, so it never runs with --config"
+        raise Failure, "--record writes the skill's own floor, so it runs only with the skill's own config"
       end
 
       @config = config
@@ -244,7 +244,7 @@ module CheckFloor
       if config == OWN_CONFIG
         puts "  then run again with --record"
       else
-        puts "  recording the new versions belongs to the skill's own check, run without --config"
+        puts "  the skill's maintainer records its floor, so there is nothing to record from this repository"
       end
     end
 
@@ -269,7 +269,7 @@ module CheckFloor
     parser = OptionParser.new("Usage: bundle exec ruby <skill-dir>/scripts/check_floor.rb [--config PATH] [--record]")
     parser.separator("Run it from the directory of the Gemfile whose bundle holds RuboCop.")
     parser.on("--config PATH", "the RuboCop config to check, by default the skill's assets/rubocop.yml")
-    parser.on("--record", "write the installed versions into assets/floor.yml when nothing failed; never with --config")
+    parser.on("--record", "record the installed versions when nothing failed; with the skill's own config only")
     parser.parse!(argv, into: options)
     Run.new(config: File.expand_path(options.fetch(:config)), record: options.fetch(:record)).call
   rescue Failure => e
