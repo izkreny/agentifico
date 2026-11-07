@@ -76,5 +76,5 @@ The plugin's own `README.md` has the local-checkout variant, the requirements, a
 
 | Source | What it gave | Licence |
 | --- | --- | --- |
-| mattpocock/skills, the `code-review` skill at skills/engineering/code-review/SKILL.md in [the repository](https://github.com/mattpocock/skills) | Pairing each smell with the refactorings that resolve it, and skipping anything tooling enforces. The commit that was read was not recorded, so this link is not pinned to it. | MIT, reproduced in `references/baseline.md` |
+| mattpocock/skills *[code-review](https://github.com/mattpocock/skills/tree/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76/skills/engineering/code-review)* | Pairing each smell with the refactorings that resolve it, and skipping anything tooling enforces | MIT, reproduced in `references/baseline.md` |
 | Martin Fowler, *Refactoring*, 2nd edition | Chapter 3's smells entire, with the refactoring column from the book's *Smells* table | Cited, not licensed |
