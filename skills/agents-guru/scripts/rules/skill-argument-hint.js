@@ -2,10 +2,10 @@ import { built, FRONTMATTER_LINE, frontmatter, isSkillFile, parsed } from "./fro
 import { isList } from "./skill-continuations.js";
 
 // A first word that is not a bare lowercase word, such as `<pr-number>` or a path, is a placeholder or a target rather than a verb.
-const VERB = /^[a-z][a-z0-9-]*$/;
+const VERB = /^[a-z][a-z0-9-]*$/u;
 const firstWord = (text) => {
   // Stryker disable next-line Regex: the text is trimmed first, so a single-space split leaves the first word the same.
-  const word = text.trim().split(/\s+/)[0];
+  const [word] = text.trim().split(/\s+/u);
   return VERB.test(word) ? word : null;
 };
 
@@ -21,12 +21,26 @@ function advertised(hint) {
     current = "";
   };
   for (const ch of hint) {
-    if (ch === "[" && depth++ === 0) continue;
-    if (ch === "]" && --depth === 0) {
+    if (ch === "[") {
+      depth += 1;
+    }
+    if (ch === "[" && depth === 1) {
+      continue;
+    }
+    if (ch === "]") {
+      depth -= 1;
+    }
+    if (ch === "]" && depth === 0) {
       close();
       const words = group.map(firstWord).filter(Boolean);
-      for (const word of words) all.add(word);
-      if (group.length > 1) for (const word of words) menu.add(word);
+      for (const word of words) {
+        all.add(word);
+      }
+      if (group.length > 1) {
+        for (const word of words) {
+          menu.add(word);
+        }
+      }
       group = [];
       continue;
     }
@@ -34,15 +48,21 @@ function advertised(hint) {
       close();
       continue;
     }
-    if (depth > 0) current += ch;
+    if (depth > 0) {
+      current += ch;
+    }
   }
   return { all, menu };
 }
 
 const headingLevel = (t) => {
-  // Stryker disable next-line ConditionalExpression: an ATX heading opens with its sequence, so the first child is the one sought.
-  if (t.type === "atxHeading") return t.children.find((c) => c.type === "atxHeadingSequence").text.length;
-  if (t.type === "setextHeading") return t.children.find((c) => c.type === "setextHeadingLine").text.startsWith("=") ? 1 : 2;
+  if (t.type === "atxHeading") {
+    // Stryker disable next-line ConditionalExpression: an ATX heading opens with its sequence, so the first child is the one sought.
+    return t.children.find((c) => c.type === "atxHeadingSequence").text.length;
+  }
+  if (t.type === "setextHeading") {
+    return t.children.find((c) => c.type === "setextHeadingLine").text.startsWith("=") ? 1 : 2;
+  }
   return 0;
 };
 
@@ -50,8 +70,11 @@ const headingLevel = (t) => {
 function* inline(tokens) {
   for (const t of tokens) {
     // Stryker disable next-line OptionalChaining: markdownlint gives every token a children array.
-    if (t.type !== "codeText" && t.children?.length) yield* inline(t.children);
-    else yield t;
+    if (t.type !== "codeText" && t.children?.length) {
+      yield* inline(t.children);
+    } else {
+      yield t;
+    }
   }
 }
 
@@ -59,7 +82,9 @@ function* inline(tokens) {
 function conditionVerbs(paragraph) {
   const verbs = [];
   for (const c of inline(paragraph.children)) {
-    if (c.type === "data" && c.text.includes("→")) return verbs;
+    if (c.type === "data" && c.text.includes("→")) {
+      return verbs;
+    }
     // Stryker disable next-line ConditionalExpression: every other token inline yields has no children, so it holds no word.
     if (c.type === "codeText") {
       const word = firstWord(
@@ -69,7 +94,9 @@ function conditionVerbs(paragraph) {
           .map((d) => d.text)
           .join(""),
       );
-      if (word) verbs.push(word);
+      if (word) {
+        verbs.push(word);
+      }
     }
   }
   // An item with no arrow states no route, so whatever it backticks is not one.
@@ -88,10 +115,16 @@ function readList(list, out) {
       readList(c, out);
       continue;
     }
-    if (!lead || c.type !== "content") continue;
+    if (!lead || c.type !== "content") {
+      continue;
+    }
     lead = false;
     const p = c.children.find((d) => d.type === "paragraph");
-    if (p) for (const verb of conditionVerbs(p)) out.push({ verb, line: p.startLine });
+    if (p) {
+      for (const verb of conditionVerbs(p)) {
+        out.push({ verb, line: p.startLine });
+      }
+    }
   }
 }
 
@@ -103,17 +136,21 @@ function routes(tokens) {
   for (const t of tokens) {
     const level = headingLevel(t);
     if (level) {
-      if (section && level <= section) section = 0;
-      if (!section && /routing/i.test(t.text)) {
+      if (section && level <= section) {
+        section = 0;
+      }
+      if (!section && /routing/iu.test(t.text)) {
         section = level;
         found = true;
       }
       continue;
     }
-    if (section && isList(t)) readList(t, out);
+    if (section && isList(t)) {
+      readList(t, out);
+    }
   }
   // A routing section yielding no route is a shape the rule cannot read, such as a table, and not proof that nothing routes.
-  return found && out.length ? out : null;
+  return found && out.length > 0 ? out : null;
 }
 
 export default {
@@ -122,24 +159,37 @@ export default {
   tags: ["agents-guru"],
   parser: "micromark",
   function(params, onError) {
-    if (!isSkillFile(params.name)) return;
+    if (!isSkillFile(params.name)) {
+      return;
+    }
     const fm = frontmatter(params);
-    if (!fm) return;
+    if (!fm) {
+      return;
+    }
     const doc = parsed(fm);
     // Frontmatter that does not parse is `skill-frontmatter-parsed`'s, which reports it already.
-    if (doc.errors.length) return;
+    if (doc.errors.length > 0) {
+      return;
+    }
     const hint = built(doc).value?.["argument-hint"];
-    if (typeof hint !== "string") return;
+    if (typeof hint !== "string") {
+      return;
+    }
     const routed = routes(params.parsers.micromark.tokens);
-    if (!routed) return;
+    if (!routed) {
+      return;
+    }
     const { all: offered, menu } = advertised(hint);
     const routedVerbs = new Set(routed.map((r) => r.verb));
     for (const verb of menu) {
-      if (!routedVerbs.has(verb)) onError({ lineNumber: FRONTMATTER_LINE, detail: `argument-hint advertises \`${verb}\`, which no routing bullet routes` });
+      if (!routedVerbs.has(verb)) {
+        onError({ lineNumber: FRONTMATTER_LINE, detail: `argument-hint advertises \`${verb}\`, which no routing bullet routes` });
+      }
     }
     for (const { verb, line } of routed) {
-      if (!offered.has(verb))
+      if (!offered.has(verb)) {
         onError({ lineNumber: line, detail: `routes \`${verb}\`, which argument-hint does not advertise`, context: params.lines[line - 1].trim() });
+      }
     }
   },
 };

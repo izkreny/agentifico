@@ -1,10 +1,14 @@
 function walk(tokens, fn) {
   for (const t of tokens) {
     // markdownlint re-parses an HTML block's contents into a nested paragraph, so the walk stops at one.
-    if (t.type === "htmlFlow") continue;
+    if (t.type === "htmlFlow") {
+      continue;
+    }
     fn(t);
     // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (t.children) walk(t.children, fn);
+    if (t.children) {
+      walk(t.children, fn);
+    }
   }
 }
 
@@ -15,7 +19,9 @@ export default {
   parser: "micromark",
   function(params, onError) {
     walk(params.parsers.micromark.tokens, (t) => {
-      if (t.type !== "paragraph" || t.endLine === t.startLine) return;
+      if (t.type !== "paragraph" || t.endLine === t.startLine) {
+        return;
+      }
       onError({
         lineNumber: t.startLine,
         detail: `paragraph spans ${t.endLine - t.startLine + 1} lines`,

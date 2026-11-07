@@ -15,9 +15,67 @@
   },
   "linter": {
     "rules": {
-      "preset": "recommended"
+      "preset": "recommended",
+      "complexity": {
+        "noUselessUndefined": "error",
+        "useSimplifiedLogicExpression": "error",
+        "noExcessiveLinesPerFunction": "error",
+        "noExcessiveCognitiveComplexity": "warn"
+      },
+      "correctness": {
+        "noUnresolvedImports": "error",
+        "noProcessGlobal": "error"
+      },
+      "performance": {
+        "noAwaitInLoops": "error",
+        "noNamespaceImport": "error"
+      },
+      "style": {
+        "noCommonJs": "error",
+        "useForOf": "error",
+        "useObjectSpread": "error",
+        "noNestedTernary": "error",
+        "useCollapsedIf": "error",
+        "noNegationElse": "error",
+        "noParameterAssign": "error",
+        "noExcessiveLinesPerFile": "warn",
+        "useExplicitLengthCheck": "error",
+        "useUnicodeRegex": "error",
+        "useDefaultParameterLast": "error",
+        "useDestructuring": "error",
+        "useExportsLast": "error",
+        "noIncrementDecrement": "error",
+        "noMagicNumbers": "error",
+        "useNamedCaptureGroup": "error",
+        "useBlockStatements": "error"
+      },
+      "suspicious": {
+        "noVar": "error",
+        "noEmptyBlockStatements": "error",
+        "useArraySortCompare": "error",
+        "noShadow": "error",
+        "noUnnecessaryConditions": "error",
+        "noLoopFunc": "error",
+        "noConditionalExpect": "error"
+      }
     }
   },
+  "overrides": [
+    {
+      "includes": ["scripts/test/**"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off"
+          },
+          "style": {
+            "noExcessiveLinesPerFile": "off",
+            "noMagicNumbers": "off"
+          }
+        }
+      }
+    }
+  ],
   "javascript": {
     "formatter": {
       "quoteStyle": "double",

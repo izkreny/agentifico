@@ -1,29 +1,32 @@
 // WHY: the runners and what counts as a version are the using-scripts page's, at https://agentskills.io/skill-creation/using-scripts.
 import path from "node:path";
+import process from "node:process";
 import { isSkillFile } from "./frontmatter.js";
 import { owningSkill } from "./paths.js";
 
 // WHY: this rule warns when it cannot tell, so whatever stands before a runner leaves it counted, since a wrapper, a prompt or a quoted command leaves it running.
-const RUNNER = /(?:^|[\s;&|(`'"])((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s)([^;&|)`]*))/g;
+const RUNNER = /(?:^|[\s;&|(`'"])(?<written>(?<runner>npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s)[^;&|)`]*)/gu;
 // WHY: a leading @ opens a scoped name and `npm:@` opens a scoped specifier, and neither is a version.
-const VERSION = /[^\s'":/]@[^\s/]|[=~<>!]=/;
+const VERSION = /[^\s'":/]@[^\s/]|[=~<>!]=/u;
 // WHY: only a path or a placeholder marks a local file, since npm reads `chart.js` as a registry name and `tools/run.js` as a hosted spec.
-const LOCAL = /^['"]?(?:\.{1,2}(?:\/|['"]?$)|\/|~\/|\$|<)/;
+const LOCAL = /^['"]?(?:\.{1,2}(?:\/|['"]?$)|\/|~\/|\$|<)/u;
 // WHY: pipx runs a word ending in .py as a script, as the using-scripts page shows.
-const PIPX_SCRIPT = /\.py['"]?$/;
+const PIPX_SCRIPT = /\.py['"]?$/u;
 // WHY: go run and deno run also take a local file, and only these shapes fetch a package.
-const PACKAGE = { go: /^[\w-]+(?:\.[\w-]+)+\//, deno: /^(?:npm|jsr):/ };
+const PACKAGE = { go: /^[\w-]+(?:\.[\w-]+)+\//u, deno: /^(?:npm|jsr):/u };
 // WHY: a quoted string is matched first, so a # inside one is not taken for a comment.
-const QUOTED_OR_COMMENT = /'[^']*'|"(?:[^"\\]|\\.)*"|(?:^|\s)#.*/g;
+const QUOTED_OR_COMMENT = /'[^']*'|"(?:[^"\\]|\\.)*"|(?:^|\s)#.*/gu;
 
-const withoutComment = (text) => text.replace(QUOTED_OR_COMMENT, (match) => (/^\s*#/.test(match) ? "" : match));
+const withoutComment = (text) => text.replace(QUOTED_OR_COMMENT, (match) => (/^\s*#/u.test(match) ? "" : match));
 
 function fetchesPackage(runner, args) {
   // Stryker disable next-line Regex: the empty words a single-space split leaves are filtered out, so it splits the same.
-  const tokens = args.split(/\s+/).filter(Boolean);
+  const tokens = args.split(/\s+/u).filter(Boolean);
   const words = tokens.filter((word) => !word.startsWith("-"));
   const shape = PACKAGE[runner];
-  if (shape) return words.some((word) => shape.test(word));
+  if (shape) {
+    return words.some((word) => shape.test(word));
+  }
   const local = (word) => LOCAL.test(word) || (runner === "pipx" && PIPX_SCRIPT.test(word));
   // WHY: a flag's separate value can sit before the package, so behind a flag any word may be the package.
   return tokens[0]?.startsWith("-") ? words.some((word) => !local(word)) : words.length > 0 && !local(words[0]);
@@ -39,11 +42,11 @@ function withoutClosingQuotes(command) {
 // WHY: this rule only warns, so it parses no shell, and a command runs to the next separator with a word past its closing quote read as part of it.
 function unpinned(text) {
   return [...text.matchAll(RUNNER)]
-    .map(([, written, runner]) => ({ runner, command: written.trim() }))
+    .map(({ groups: { written, runner } }) => ({ runner, command: written.trim() }))
     .filter(
       ({ runner, command }) =>
         // Stryker disable next-line Regex: only the first word is read, and a single-space split leaves it the same.
-        fetchesPackage(runner.split(/\s+/)[0], command.slice(runner.length)) && !VERSION.test(command),
+        fetchesPackage(runner.split(/\s+/u)[0], command.slice(runner.length)) && !VERSION.test(command),
     )
     .map(({ command }) => withoutClosingQuotes(command));
 }
@@ -52,7 +55,9 @@ function walk(tokens, fn) {
   for (const token of tokens) {
     fn(token);
     // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) walk(token.children, fn);
+    if (token.children) {
+      walk(token.children, fn);
+    }
   }
 }
 
@@ -63,16 +68,23 @@ export default {
   parser: "micromark",
   function(params, onError) {
     // WHY: a README is written for a person, per references/readme.md, so its install line is no instruction to an agent.
-    if (path.basename(params.name) === "README.md") return;
-    if (!isSkillFile(params.name) && !owningSkill(params.name, params.config.root ?? process.cwd())) return;
+    if (path.basename(params.name) === "README.md") {
+      return;
+    }
+    if (!(isSkillFile(params.name) || owningSkill(params.name, params.config.root ?? process.cwd()))) {
+      return;
+    }
     walk(params.parsers.micromark.tokens, (token) => {
-      if (token.type !== "codeTextData" && token.type !== "codeFlowValue") return;
-      for (const command of unpinned(withoutComment(token.text)))
+      if (token.type !== "codeTextData" && token.type !== "codeFlowValue") {
+        return;
+      }
+      for (const command of unpinned(withoutComment(token.text))) {
         onError({
           lineNumber: token.startLine,
           detail: `${command} names no version, so what it runs changes over time: pin one, as npx eslint@9`,
           context: params.lines[token.startLine - 1].trim(),
         });
+      }
     });
   },
 };

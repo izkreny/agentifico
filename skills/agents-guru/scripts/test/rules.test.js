@@ -47,7 +47,9 @@ const RULES = [
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
 async function findings(path, content, ...only) {
   const config = { default: false };
-  for (const r of only) config[r.names[0]] = true;
+  for (const r of only) {
+    config[r.names[0]] = true;
+  }
   const results = await lint({ strings: { [path]: content }, customRules: RULES, config, noInlineConfig: true });
   return results[path].map((e) => ({ rule: e.ruleNames[0], line: e.lineNumber, detail: e.errorDetail ?? "", context: e.errorContext }));
 }
@@ -130,8 +132,11 @@ describe("skill-description, the raw sweep", () => {
   for (const [id, fm, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(fm), description);
-      if (want) expectDetail(found, "skill-description", want);
-      else expectClean(found, "skill-description");
+      if (want) {
+        expectDetail(found, "skill-description", want);
+      } else {
+        expectClean(found, "skill-description");
+      }
     });
   }
   it("a file with no frontmatter at all has no description", async () => {
@@ -213,13 +218,16 @@ describe("skill-frontmatter-parsed, the differential", () => {
   for (const [id, fm, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(fm), parsed);
-      if (want) expectDetail(found, "skill-frontmatter-parsed", want);
-      else expectClean(found, "skill-frontmatter-parsed");
+      if (want) {
+        expectDetail(found, "skill-frontmatter-parsed", want);
+      } else {
+        expectClean(found, "skill-frontmatter-parsed");
+      }
     });
   }
   it("an absent or bare description is never called the wrong type", async () => {
-    for (const fm of ["name: x", "name: x\ndescription:"]) {
-      const found = await findings("fx/x/SKILL.md", skill(fm), parsed);
+    const results = await Promise.all(["name: x", "name: x\ndescription:"].map((fm) => findings("fx/x/SKILL.md", skill(fm), parsed)));
+    for (const found of results) {
       assert.ok(!has(found, "skill-frontmatter-parsed", "not a string"), JSON.stringify(found));
     }
   });
@@ -266,8 +274,11 @@ describe("skill-name", () => {
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {
       const found = await findings(`fx/${dir}/SKILL.md`, skill(fm), name);
-      if (want) expectDetail(found, "skill-name", want);
-      else expectClean(found, "skill-name");
+      if (want) {
+        expectDetail(found, "skill-name", want);
+      } else {
+        expectClean(found, "skill-name");
+      }
     });
   }
   it("a markdown file beside a skill is not held to the skill's name", async () => {
@@ -309,8 +320,11 @@ describe("skill-invocation", () => {
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {
       const found = await findings(`fx/${dir}/SKILL.md`, skill(`name: ${dir}\n${fm}`), invocation);
-      if (want) expectDetail(found, "skill-invocation", want);
-      else expectClean(found, "skill-invocation");
+      if (want) {
+        expectDetail(found, "skill-invocation", want);
+      } else {
+        expectClean(found, "skill-invocation");
+      }
     });
   }
 });
@@ -339,8 +353,11 @@ describe("skill-fork", () => {
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {
       const found = await findings(`fx/${dir}/SKILL.md`, skill(`name: ${dir}\n${fm}`), fork);
-      if (want) expectDetail(found, "skill-fork", want);
-      else expectClean(found, "skill-fork");
+      if (want) {
+        expectDetail(found, "skill-fork", want);
+      } else {
+        expectClean(found, "skill-fork");
+      }
     });
   }
   it("leaves a file other than SKILL.md alone", async () => {
@@ -434,8 +451,12 @@ describe("skill-continuations", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), continuations);
-      for (const w of want) expectDetail(found, "skill-continuations", w);
-      if (!want.length) expectClean(found, "skill-continuations");
+      for (const w of want) {
+        expectDetail(found, "skill-continuations", w);
+      }
+      if (want.length === 0) {
+        expectClean(found, "skill-continuations");
+      }
     });
   }
   it("frontmatter is not body: its sequence item claims nothing below", async () => {
@@ -480,8 +501,12 @@ describe("skill-bolded-runs", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), boldedRuns);
-      for (const w of want) expectDetail(found, "skill-bolded-runs", w);
-      if (!want.length) expectClean(found, "skill-bolded-runs");
+      for (const w of want) {
+        expectDetail(found, "skill-bolded-runs", w);
+      }
+      if (want.length === 0) {
+        expectClean(found, "skill-bolded-runs");
+      }
     });
   }
   it("a workflow file is read, not only SKILL.md", async () => {
@@ -518,8 +543,12 @@ describe("skill-bolded-paragraphs", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), boldedParagraphs);
-      for (const w of want) expectDetail(found, "skill-bolded-paragraphs", w);
-      if (!want.length) expectClean(found, "skill-bolded-paragraphs");
+      for (const w of want) {
+        expectDetail(found, "skill-bolded-paragraphs", w);
+      }
+      if (want.length === 0) {
+        expectClean(found, "skill-bolded-paragraphs");
+      }
     });
   }
   it("a workflow file is read, not only SKILL.md", async () => {
@@ -569,8 +598,11 @@ describe("skill-portable-paths", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), portablePaths);
-      if (want) expectDetail(found, "skill-portable-paths", want);
-      else expectClean(found, "skill-portable-paths");
+      if (want) {
+        expectDetail(found, "skill-portable-paths", want);
+      } else {
+        expectClean(found, "skill-portable-paths");
+      }
     });
   }
   it("names the line the path sits on, not the block's first line", async () => {
@@ -606,8 +638,11 @@ describe("skill-vale-directive", () => {
   for (const [id, body, trips] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x`, body), valeDirective);
-      if (trips) expectDetail(found, "skill-vale-directive", "exceptions key");
-      else expectClean(found, "skill-vale-directive");
+      if (trips) {
+        expectDetail(found, "skill-vale-directive", "exceptions key");
+      } else {
+        expectClean(found, "skill-vale-directive");
+      }
     });
   }
   // Nothing else here would notice the rule reporting a constant line.
@@ -760,8 +795,11 @@ describe("skill-argument-hint", () => {
     it(id, async () => {
       const fm = hint === null ? `name: ${id}` : `name: ${id}\nargument-hint: "${hint}"`;
       const found = await findings(`fx/${id}/SKILL.md`, skill(fm, body), argumentHint);
-      if (want) expectDetail(found, "skill-argument-hint", want);
-      else expectClean(found, "skill-argument-hint");
+      if (want) {
+        expectDetail(found, "skill-argument-hint", want);
+      } else {
+        expectClean(found, "skill-argument-hint");
+      }
     });
   }
   it("reads no hint from frontmatter that is missing, does not parse, or loads as no mapping", async () => {
@@ -844,8 +882,11 @@ describe("skill-bash-blocks", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}`, body), bashBlocks);
-      if (want) expectDetail(found, "skill-bash-blocks", want);
-      else expectClean(found, "skill-bash-blocks");
+      if (want) {
+        expectDetail(found, "skill-bash-blocks", want);
+      } else {
+        expectClean(found, "skill-bash-blocks");
+      }
     });
   }
   it("a workflow file is read, not only SKILL.md", async () => {
@@ -911,8 +952,11 @@ describe("agent-frontmatter", () => {
   for (const [id, fm, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/.claude/agents/${id}.md`, skill(fm), agentFrontmatter);
-      if (want) expectDetail(found, "agent-frontmatter", want);
-      else expectClean(found, "agent-frontmatter");
+      if (want) {
+        expectDetail(found, "agent-frontmatter", want);
+      } else {
+        expectClean(found, "agent-frontmatter");
+      }
     });
   }
   it("an opening --- after a blank line is not frontmatter", async () => {
@@ -943,7 +987,7 @@ describe("agent-frontmatter", () => {
   // Exercised directly because a plugin is told apart by a folder on disk, which a string fixture has none of.
   const lines = (fm) => fm.split("\n");
   it("a plugin's agent loses the whole tool to a specifier too", () => {
-    assert.match(agentDefects(lines("description: Reviews code.\ndisallowedTools: Bash(git push *)"), true).join("\n"), /removes the whole tool/);
+    assert.match(agentDefects(lines("description: Reviews code.\ndisallowedTools: Bash(git push *)"), true).join("\n"), /removes the whole tool/u);
   });
   it("each entry with a specifier is its own finding", () => {
     const found = agentDefects(lines("name: r\ndisallowedTools: Bash(git push *), Read(./secrets/**)"), false);
@@ -953,7 +997,7 @@ describe("agent-frontmatter", () => {
     assert.deepEqual(agentDefects(lines("description: Reviews code."), true), []);
   });
   it("an agent whose name is null has no name", () => {
-    assert.match(agentDefects(["name:", "description: Reviews code."], false).join("\n"), /^no name/m);
+    assert.match(agentDefects(["name:", "description: Reviews code."], false).join("\n"), /^no name/mu);
   });
   it("a plugin's agent whose frontmatter does not parse is not measured", () => {
     assert.deepEqual(pluginNameWarnings([`name: ${"x".repeat(300)}`, "other: [1, 2"]), []);
@@ -977,7 +1021,7 @@ describe("agent-frontmatter", () => {
     it(`no frontmatter: ${label}`, () => {
       const found = agentDefects(null, false, given);
       assert.equal(found.length, 1, JSON.stringify(found));
-      assert.match(found[0], new RegExp(want));
+      assert.match(found[0], new RegExp(want, "u"));
     });
   }
   for (const key of ["permissionMode", "hooks", "mcpServers", "initialPrompt"]) {
@@ -1005,12 +1049,12 @@ describe("agent-plugin-name", () => {
   for (const [id, fm, want] of cases) {
     it(id, () => {
       const found = pluginNameWarnings(lines(fm));
-      if (want)
-        assert.ok(
-          found.some((d) => d.includes(want)),
-          JSON.stringify(found),
-        );
-      else assert.deepEqual(found, []);
+      assert.equal(found.length === 0, want === null, JSON.stringify(found));
+      assert.equal(
+        found.some((d) => want !== null && d.includes(want)),
+        want !== null,
+        JSON.stringify(found),
+      );
     });
   }
   it("no frontmatter", () => {
@@ -1087,7 +1131,7 @@ describe("plugin-hooks", () => {
     it("async on an http hook leaves its onFailure working", () => {
       const details = hooksDefects(hooksFile("PreToolUse", { hooks: [http({ onFailure: "block", async: true })] })).map((d) => d.detail);
       assert.equal(details.length, 1, JSON.stringify(details));
-      assert.match(details[0], /^async on a http hook/);
+      assert.match(details[0], /^async on a http hook/u);
     });
     it("names the line onFailure sits on", () => {
       const source = hooksFile("Stop", { hooks: [command({ onFailure: "block" })] });
@@ -1109,11 +1153,11 @@ describe("plugin-hooks", () => {
   });
   describe("a placeholder PowerShell never expands", () => {
     const powershell = (held, extra = {}) => hooksFile("PreToolUse", { hooks: [command({ shell: "powershell", command: held, ...extra })] });
-    for (const name of ["CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_PLUGIN_DATA"]) {
-      it(`a bare $${name}`, () => expectHook(powershell(`& "$${name}\\check.ps1"`), `bare $${name}`));
-      it(`\${${name}} in single quotes`, () => expectHook(powershell(`& '\${${name}}\\check.ps1'`), `\${${name}}`));
-      it(`\${${name}} in double quotes`, () => expectNoHook(powershell(`& "\${${name}}\\check.ps1"`)));
-      it(`$env:${name}`, () => expectNoHook(powershell(`& "$env:${name}\\check.ps1"`)));
+    for (const variable of ["CLAUDE_PROJECT_DIR", "CLAUDE_PLUGIN_ROOT", "CLAUDE_PLUGIN_DATA"]) {
+      it(`a bare $${variable}`, () => expectHook(powershell(`& "$${variable}\\check.ps1"`), `bare $${variable}`));
+      it(`\${${variable}} in single quotes`, () => expectHook(powershell(`& '\${${variable}}\\check.ps1'`), `\${${variable}}`));
+      it(`\${${variable}} in double quotes`, () => expectNoHook(powershell(`& "\${${variable}}\\check.ps1"`)));
+      it(`$env:${variable}`, () => expectNoHook(powershell(`& "$env:${variable}\\check.ps1"`)));
     }
     it("a double quote inside the single quotes", () => expectHook(powershell(`'a "b" \${CLAUDE_PROJECT_DIR}'`), `\${CLAUDE_PROJECT_DIR}`));
     it("a single quote each side, inside double quotes", () => expectNoHook(powershell(`"it's \${CLAUDE_PROJECT_DIR}/it's"`)));
@@ -1255,7 +1299,7 @@ describe("plugin-manifest", () => {
       it(`the version ${JSON.stringify(version)}`, () => {
         const found = depending({ name: "x", version });
         assert.equal(found.length, 1, JSON.stringify(found));
-        assert.match(found[0].detail, /is not a node-semver range/);
+        assert.match(found[0].detail, /is not a node-semver range/u);
       });
     }
     for (const version of ["~2.1.0", "^2.0", ">=1.4", "=2.1.0", "^2.0.0-0", "*"]) {
@@ -1276,8 +1320,8 @@ describe("plugin-manifest", () => {
     const monitor = (command) => ({ name: "m", command, description: "d" });
     const held = `tail \${user_config.path}`;
     it("inline under experimental", () =>
-      assert.match(defects({ experimental: { monitors: [monitor(held)] } })[0].detail, /monitor command names \$\{user_config/));
-    it("inline under the top-level key", () => assert.match(defects({ monitors: [monitor(held)] })[0].detail, /monitor command names \$\{user_config/));
+      assert.match(defects({ experimental: { monitors: [monitor(held)] } })[0].detail, /monitor command names \$\{user_config/u));
+    it("inline under the top-level key", () => assert.match(defects({ monitors: [monitor(held)] })[0].detail, /monitor command names \$\{user_config/u));
     it("names the line the command sits on", () => {
       const source = JSON.stringify({ name: "p", experimental: { monitors: [monitor(held)] } }, null, 2);
       assert.deepEqual(
@@ -1329,8 +1373,11 @@ describe("skill-hard-wrap", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/w.md`, `${body}\n`, hardWrap);
-      if (want) expectDetail(found, "skill-hard-wrap", want);
-      else expectClean(found, "skill-hard-wrap");
+      if (want) {
+        expectDetail(found, "skill-hard-wrap", want);
+      } else {
+        expectClean(found, "skill-hard-wrap");
+      }
     });
   }
   it("frontmatter is not read", async () => {
@@ -1374,8 +1421,11 @@ describe("skill-argument-placeholders", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill("name: x\ndescription: |\n  x", body), argumentPlaceholders);
-      if (want) expectDetail(found, "skill-argument-placeholders", want);
-      else expectClean(found, "skill-argument-placeholders");
+      if (want) {
+        expectDetail(found, "skill-argument-placeholders", want);
+      } else {
+        expectClean(found, "skill-argument-placeholders");
+      }
     });
   }
   it("each placeholder gets a finding on its own line", async () => {
@@ -1441,8 +1491,11 @@ describe("skill-injected-commands", () => {
   for (const [id, body, want] of cases) {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill("name: x\ndescription: |\n  x", body), injectedCommands);
-      if (want) expectDetail(found, "skill-injected-commands", want);
-      else expectClean(found, "skill-injected-commands");
+      if (want) {
+        expectDetail(found, "skill-injected-commands", want);
+      } else {
+        expectClean(found, "skill-injected-commands");
+      }
     });
   }
   it("a command in the wrong place is reported for its place alone, since it never reaches the tool", async () => {
@@ -1635,8 +1688,10 @@ describe("skill-package-runners", () => {
       [`bash -c 'sh -c "npx eslint ."'`, "npx eslint . names no version"],
       ['out="$(npx eslint "$f")"', 'npx eslint "$f" names no version'],
     ];
-    for (const [command, detail] of names)
-      expectDetail(await findings("fx/inner/SKILL.md", skillWith(`\`${command}\``), packageRunners), "skill-package-runners", detail);
+    const results = await Promise.all(names.map(([command]) => findings("fx/inner/SKILL.md", skillWith(`\`${command}\``), packageRunners)));
+    for (const [i, [, detail]] of names.entries()) {
+      expectDetail(results[i], "skill-package-runners", detail);
+    }
   });
   it("a pin inside a quoted command counts", async () => {
     expectClean(await findings("fx/esc-pin/SKILL.md", skillWith('`bash -c "npx \\"eslint@9\\""`'), packageRunners), "skill-package-runners");
@@ -1709,7 +1764,9 @@ describe("a finding's context is its own line, trimmed", () => {
     it(id, async () => {
       const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x${fm ? `\n${fm}` : ""}`, body), rule);
       assert.ok(found.length, `wanted a finding, got none`);
-      for (const f of found) assert.equal(f.context, want);
+      for (const f of found) {
+        assert.equal(f.context, want);
+      }
     });
   }
 });

@@ -9,7 +9,9 @@ function walk(tokens, fn) {
   tokens.forEach((token, i) => {
     fn(token, tokens[i - 1]);
     // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) walk(token.children, fn);
+    if (token.children) {
+      walk(token.children, fn);
+    }
   });
 }
 
@@ -19,19 +21,31 @@ export default {
   tags: ["agents-guru"],
   parser: "micromark",
   function(params, onError) {
-    if (!isSkillFile(params.name)) return;
+    if (!isSkillFile(params.name)) {
+      return;
+    }
     const report = (lineNumber, detail) => onError({ lineNumber, detail, context: params.lines[lineNumber - 1].trim() });
     const stopped = "a raw control character stops every ! command in this file from running: remove it";
     walk(params.parsers.micromark.tokens, (token, before) => {
       if (token.type === "codeFenced" && infoOf(token) === "!") {
-        for (const line of token.children) if (line.type === "codeFlowValue" && CONTROL.test(line.text)) report(line.startLine, stopped);
+        for (const line of token.children) {
+          if (line.type === "codeFlowValue" && CONTROL.test(line.text)) {
+            report(line.startLine, stopped);
+          }
+        }
       }
       // WHY: the tree is read because a raw scan for the pair also finds a span that merely ends in the character.
-      if (token.type !== "codeText" || before?.type !== "data" || !before.text.endsWith("!")) return;
-      const preceding = params.lines[before.endLine - 1][before.endColumn - 3];
-      if (preceding && !/\s/.test(preceding))
+      if (token.type !== "codeText" || before?.type !== "data" || !before.text.endsWith("!")) {
+        return;
+      }
+      // WHY: endColumn is 1-based and points past the token, so the token's closing bang sits two places back in the 0-based line.
+      const bang = before.endColumn - 2;
+      const preceding = params.lines[before.endLine - 1][bang - 1];
+      if (preceding && !/\s/u.test(preceding)) {
         report(token.startLine, "a ! command that does not open a line or follow whitespace stays literal text and does not run: put a space before the !");
-      else if (CONTROL.test(token.text)) report(token.startLine, stopped);
+      } else if (CONTROL.test(token.text)) {
+        report(token.startLine, stopped);
+      }
     });
   },
 };
