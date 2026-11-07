@@ -12,6 +12,7 @@ require "yaml"
 module CheckFloor
   SKILL = File.expand_path("..", __dir__)
   FLOOR = File.join(SKILL, "assets", "floor.yml")
+  OWN_CONFIG = File.join(SKILL, "assets", "rubocop.yml")
   REPOS = {
     "rubocop" => "rubocop/rubocop",
     "rubocop-performance" => "rubocop/rubocop-performance",
@@ -21,7 +22,10 @@ module CheckFloor
   }.freeze
 
   Gap = Data.define(:name, :checked, :installed, :spec)
-  private_constant :SKILL, :FLOOR, :REPOS, :Gap
+  private_constant :SKILL, :FLOOR, :OWN_CONFIG, :REPOS, :Gap
+
+  # Raised for a check that cannot run or does not pass; only `main` turns it into an exit.
+  class Failure < StandardError; end
 
   # Asks RuboCop whether each cop is enabled under a config, the way `--show-cops` reports it.
   class ShowCops
@@ -32,8 +36,9 @@ module CheckFloor
     def states(config)
       out, err, status = Open3.capture3(*command(config))
       unless status.success?
-        abort "rubocop --show-cops failed; a cop in assets/floor.yml may be missing from this release:\n" \
-              "#{err.lines.first(3).join}"
+        detail = err.lines.first(3).join
+        raise Failure, "rubocop --show-cops failed under #{config}: a plugin the config loads may be missing " \
+                       "from this bundle, or a cop in assets/floor.yml from this release:\n#{detail}"
       end
       err.each_line.grep(/\AWarning:/) { puts "RuboCop warns about #{config}: #{it.strip}" }
       parse(out)
@@ -105,40 +110,42 @@ module CheckFloor
     end
   end
 
-  # Reads the floor, checks every cop in it and prints what changed since the checked versions.
-  class Run
-    def initialize(config:, record:)
-      @config = config
-      @record = record
-      @floor = YAML.safe_load_file(FLOOR)
-      @failures = []
-      @older = false
+  # Compares the versions assets/floor.yml records with the gems this bundle has installed.
+  class Versions
+    def initialize(checked)
+      @checked = checked.transform_values { Gem::Version.new(it) }
     end
 
-    def call
-      gaps = versions
-      show = ShowCops.new(owned + watched.keys)
-      defaults = defaults_states(show)
-      check_owned(defaults, show.states(@config))
-      check_watched(defaults)
-      gaps.each { GapReport.new(it).print }
-      finish(gaps)
+    def print
+      puts "Versions (checked -> installed):"
+      checked.each { |name, version| print_one(name, version, spec_for(name)) }
     end
+
+    def gaps
+      checked.filter_map do |name, version|
+        spec = spec_for(name)
+        Gap.new(name:, checked: version, installed: spec.version, spec:) if spec && spec.version > version
+      end
+    end
+
+    def older?
+      checked.any? do |name, version|
+        spec = spec_for(name)
+        spec && spec.version < version
+      end
+    end
+
+    def installed?(name) = !spec_for(name).nil?
 
     private
 
-    attr_reader :floor, :failures
+    attr_reader :checked
 
-    def owned = floor.fetch("owned").values.flatten
-    def watched = floor.fetch("watched")
+    def print_one(name, version, spec)
+      return puts("  #{name}: #{version} -> not installed, its cops cannot be checked") unless spec
 
-    def versions
-      puts "Versions (checked -> installed):"
-      floor.fetch("checked").filter_map do |name, checked|
-        spec = spec_for(name)
-        puts "  #{name}: #{checked} -> #{spec ? spec.version : "not installed, its cops cannot be checked"}"
-        gap_for(name, Gem::Version.new(checked), spec)
-      end
+      puts "  #{name}: #{version} -> #{spec.version}"
+      puts "    older than the checked version: the floor may name cops this release lacks" if spec.version < version
     end
 
     def spec_for(name)
@@ -146,19 +153,46 @@ module CheckFloor
     rescue Gem::MissingSpecError
       nil
     end
+  end
 
-    def gap_for(name, checked, spec)
-      return unless spec
-
-      if spec.version < checked
-        @older = true
-        puts "    older than the checked version: the floor may name cops this release lacks"
+  # Reads the floor, checks every cop in it and prints what changed since the checked versions.
+  class Run
+    def initialize(config:, record:)
+      if record && config != OWN_CONFIG
+        raise Failure, "--record writes the skill's own floor, so it never runs with --config"
       end
-      Gap.new(name:, checked:, installed: spec.version, spec:) if spec.version > checked
+
+      @config = config
+      @record = record
+      @floor = YAML.safe_load_file(FLOOR)
+      @versions = Versions.new(@floor.fetch("checked"))
+      @failures = []
+    end
+
+    def call
+      versions.print
+      check_cops
+      gaps.each { GapReport.new(it).print }
+      finish
+    end
+
+    private
+
+    attr_reader :config, :record, :floor, :versions, :failures
+
+    def owned = floor.fetch("owned").values.flatten
+    def watched = floor.fetch("watched")
+    def gaps = versions.gaps
+
+    def check_cops
+      show = ShowCops.new(owned + watched.keys)
+      defaults = defaults_states(show)
+      check_owned(defaults, show.states(config))
+      check_watched(defaults)
     end
 
     def defaults_states(show)
-      plugins = REPOS.keys.drop(1).select { spec_for(it) }
+      plugins = REPOS.keys.drop(1).select { versions.installed?(it) }
       Dir.mktmpdir("check-floor") do |dir|
         path = File.join(dir, ".rubocop.yml")
         File.write(path, { "plugins" => plugins }.to_yaml)
@@ -167,20 +201,27 @@ module CheckFloor
     end
 
     def check_owned(defaults, configured)
-      puts "Owned cops, which must be enabled by default and under #{@config}:"
-      owned.each do |cop|
-        problems = problems_for(defaults[cop], configured[cop])
-        next if problems.empty?
-
-        failures << cop
-        puts "  FAIL #{cop}: #{problems.join(", ")}"
-      end
+      puts "Owned cops, which must be enabled by default and under #{config}:"
+      owned.each { |cop| check_one_owned(cop, defaults[cop], configured[cop]) }
       puts "  all #{owned.size} enabled" if failures.empty?
+    end
+
+    def check_one_owned(cop, by_default, under_config)
+      problems = problems_for(by_default, under_config)
+      return if problems.empty?
+
+      failures << cop
+      puts "  FAIL #{cop}: #{problems.join(", ")}"
     end
 
     def problems_for(by_default, under_config)
       { "by default" => by_default, "under the config" => under_config }
-        .filter_map { |where, state| "#{state || "unknown"} #{where}" unless state == "true" }
+        .filter_map do |where, state|
+          next if state == "true"
+
+          label = state || "unknown"
+          "#{label} #{where}"
+        end
     end
 
     def check_watched(defaults)
@@ -194,15 +235,26 @@ module CheckFloor
       end
     end
 
-    def finish(gaps)
-      abort "FAILED: #{failures.join(", ")}" if failures.any?
-      return puts("OK: no release newer than the checked versions#{", and some are older" if @older}") if gaps.empty?
-      return record(gaps) if @record
+    def finish
+      raise Failure, "FAILED: #{failures.join(", ")}" if failures.any?
+      return finish_without_gaps if gaps.empty?
+      return write_versions if record
 
-      puts "OK: read the cops above for rules the skill now leaves to the linter, then run again with --record"
+      puts "OK: read the cops above for rules the skill now leaves to the linter"
+      if config == OWN_CONFIG
+        puts "  then run again with --record"
+      else
+        puts "  recording the new versions belongs to the skill's own check, run without --config"
+      end
     end
 
-    def record(gaps)
+    def finish_without_gaps
+      return puts("OK: no release newer than the checked versions, and some are older") if versions.older?
+
+      puts "OK: no release newer than the checked versions"
+    end
+
+    def write_versions
       text = File.read(FLOOR)
       gaps.each do |gap|
         text = text.sub(/^(  #{Regexp.escape(gap.name)}: )\S+$/) { "#{::Regexp.last_match(1)}#{gap.installed}" }
@@ -213,13 +265,15 @@ module CheckFloor
   end
 
   def self.main(argv)
-    options = { config: File.join(SKILL, "assets", "rubocop.yml"), record: false }
+    options = { config: OWN_CONFIG, record: false }
     parser = OptionParser.new("Usage: bundle exec ruby <skill-dir>/scripts/check_floor.rb [--config PATH] [--record]")
     parser.separator("Run it from the directory of the Gemfile whose bundle holds RuboCop.")
     parser.on("--config PATH", "the RuboCop config to check, by default the skill's assets/rubocop.yml")
-    parser.on("--record", "write the installed versions into assets/floor.yml when nothing failed")
+    parser.on("--record", "write the installed versions into assets/floor.yml when nothing failed; never with --config")
     parser.parse!(argv, into: options)
     Run.new(config: File.expand_path(options.fetch(:config)), record: options.fetch(:record)).call
+  rescue Failure => e
+    abort e.message
   end
 end
 
