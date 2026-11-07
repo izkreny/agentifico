@@ -1,7 +1,9 @@
-import { BLOCK_SCALAR, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines } from "./frontmatter.js";
+import { BLOCK_SCALAR, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, keyLines, scalar } from "./frontmatter.js";
 
 // A comment after the closing quote sits outside the value, so it is not a defect, and anything else there is a parse error.
 const TRAILING = /^(\s+#.*)?$/;
+// WHY: the platform's skills guide bars an XML tag from a description, at https://platform.claude.com/docs/en/build-with-claude/skills-guide.
+const XML_TAG = /<\/?[A-Za-z][^<>]*>/;
 
 export function defects(fm) {
   const bad = [];
@@ -35,6 +37,8 @@ export function defects(fm) {
     if (/:(\s|$)/.test(value)) bad.push("colon inside or ending an unquoted value: parse error");
     if (/^(yes|no|on|off|true|false|null|~)$/i.test(value)) bad.push("becomes boolean or null in some parsers");
   }
+  if (XML_TAG.test(block ? value : scalar(value)))
+    bad.push("an XML tag in the description, which the platform's skills guide bars: write a placeholder in square brackets or in argument-hint");
   return bad;
 }
 

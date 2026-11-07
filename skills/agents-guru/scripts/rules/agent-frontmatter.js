@@ -8,7 +8,7 @@ const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"
 const NAME_LIMIT = 256;
 
 // The nearest agents folder decides, because both kinds of agents directory are scanned recursively.
-function agentFolder(file) {
+export function agentFolder(file) {
   const parts = path.resolve(file).split(path.sep);
   for (let i = parts.length - 2; i > 0; i--) {
     if (parts[i] !== "agents") continue;

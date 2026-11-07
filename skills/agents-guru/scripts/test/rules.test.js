@@ -6,6 +6,7 @@ import agentFrontmatter, { defects as agentDefects, pluginNameWarnings } from ".
 import { description as descriptionValue, scalar } from "../rules/frontmatter.js";
 import { hooksDefects, manifestDefects, monitorFileDefects } from "../rules/plugin-files.js";
 import argumentHint from "../rules/skill-argument-hint.js";
+import argumentPlaceholders from "../rules/skill-argument-placeholders.js";
 import bashBlocks from "../rules/skill-bash-blocks.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
 import boldedRuns from "../rules/skill-bolded-runs.js";
@@ -14,8 +15,10 @@ import description from "../rules/skill-description.js";
 import fork from "../rules/skill-fork.js";
 import parsed from "../rules/skill-frontmatter-parsed.js";
 import hardWrap from "../rules/skill-hard-wrap.js";
+import injectedCommands from "../rules/skill-injected-commands.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
+import packageRunners from "../rules/skill-package-runners.js";
 import portablePaths from "../rules/skill-portable-paths.js";
 import referencedPaths from "../rules/skill-referenced-paths.js";
 import valeDirective from "../rules/skill-vale-directive.js";
@@ -36,6 +39,9 @@ const RULES = [
   argumentHint,
   bashBlocks,
   referencedPaths,
+  argumentPlaceholders,
+  injectedCommands,
+  packageRunners,
 ];
 
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
@@ -96,6 +102,19 @@ describe("skill-description, the raw sweep", () => {
     ["good-blank-then-comment", "name: x\ndescription: Use when doing X,\n  and when doing Y.\n\n  # unsure\ncompatibility: node 22", null],
     ["good-comment-line", "name: x\ndescription: one\n  # c\ncompatibility: node 22", null],
     ["good-quoted-hash-continuation", 'name: x\ndescription: "one\n  # two"', null],
+    ["t-xml-open", "name: x\ndescription: Formats <output> blocks.", "XML tag"],
+    ["t-xml-close", "name: x\ndescription: Formats blocks up to </output>.", "XML tag"],
+    ["t-xml-self-closing", "name: x\ndescription: Formats a <br/> well.", "XML tag"],
+    ["t-xml-attribute", 'name: x\ndescription: |\n  Formats a <a href="x"> link.', "XML tag"],
+    ["t-xml-block", "name: x\ndescription: >-\n  Formats\n  <output> blocks.", "XML tag"],
+    ["t-xml-quoted", 'name: x\ndescription: "Formats <output> blocks."', "XML tag"],
+    ["t-xml-single-quoted", "name: x\ndescription: 'Formats <output> blocks.'", "XML tag"],
+    ["t-xml-folded", "name: x\ndescription: Formats\n  <output> blocks.", "XML tag"],
+    ["t-xml-placeholder", "name: x\ndescription: Reads <branch> names.", "XML tag"],
+    ["good-less-than", "name: x\ndescription: Use when a < b and c > d.", null],
+    ["good-tight-number", "name: x\ndescription: Use when a<5 or b>3.", null],
+    ["good-arrow", "name: x\ndescription: Use for a -> b and c <- d.", null],
+    ["good-tag-in-comment", 'name: x\ndescription: "Plain." # <note>', null],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -106,6 +125,11 @@ describe("skill-description, the raw sweep", () => {
   }
   it("a file with no frontmatter at all has no description", async () => {
     expectDetail(await findings("fx/bare/SKILL.md", "body\n", description), "skill-description", "no description");
+  });
+  it("an XML tag's finding says what carries a placeholder instead", async () => {
+    const found = await findings("fx/xml-remedy/SKILL.md", skill("name: x\ndescription: Reads <branch> names."), description);
+    expectDetail(found, "skill-description", "square brackets");
+    expectDetail(found, "skill-description", "argument-hint");
   });
   it("a file that is not a SKILL.md is not a skill", async () => {
     expectClean(await findings("fx/x/README.md", skill("name: x"), description), "skill-description");
@@ -1199,6 +1223,312 @@ describe("skill-hard-wrap", () => {
   });
 });
 
+describe("skill-argument-placeholders", () => {
+  const cases = [
+    ["t-fence", "```bash\nawk '{print $1}' file\n```", "$1 "],
+    ["t-indented", "    awk '{print $1}' file", "$1 "],
+    ["t-span", "Run `awk '{print $2}' file` here.", "$2 "],
+    ["t-other-tag", "```yaml\nrun: echo $0\n```", "$0 "],
+    ["t-two-digits", "`echo $12`", "$12 "],
+    // The page says only a single backslash escapes, and a doubled one leaves the placeholder live.
+    ["t-doubled-backslash", "`echo \\\\$1`", "$1 "],
+    ["t-word-after", "`echo $1abc`", "$1 "],
+    ["good-escaped", "```bash\nawk '{print \\$1}' file\n```", null],
+    ["good-span-escaped", "`awk '{print \\$1}' file`", null],
+    ["good-long-form", "```bash\ngh issue view $ARGUMENTS[0]\n```", null],
+    ["good-arguments", "`$ARGUMENTS`", null],
+    ["good-shell-variable", `\`\`\`bash\necho $HOME \${1} $NF\n\`\`\``, null],
+    // The page's own example, so a finding here fails a correct file.
+    ["good-prose", "Migrate the $0 component from $1 to $2.", null],
+    ["good-price", "It costs $1.00 a month.", null],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill("name: x\ndescription: |\n  x", body), argumentPlaceholders);
+      if (want) expectDetail(found, "skill-argument-placeholders", want);
+      else expectClean(found, "skill-argument-placeholders");
+    });
+  }
+  it("each placeholder gets a finding on its own line", async () => {
+    const found = await findings(
+      "fx/lines/SKILL.md",
+      skill("name: x\ndescription: |\n  x", "```bash\necho $1\necho hi\necho $2 $3\n```"),
+      argumentPlaceholders,
+    );
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [8, 10, 10],
+    );
+  });
+  it("the finding offers both forms", async () => {
+    const found = await findings("fx/forms/SKILL.md", skill("name: x\ndescription: |\n  x", "`echo $1`"), argumentPlaceholders);
+    expectDetail(found, "skill-argument-placeholders", "write \\$1");
+    expectDetail(found, "skill-argument-placeholders", "$ARGUMENTS[1]");
+  });
+  it("a file that is not a SKILL.md gets no substitution", async () => {
+    expectClean(await findings("fx/other/workflows/a.md", "`echo $1`\n", argumentPlaceholders), "skill-argument-placeholders");
+  });
+  it("the frontmatter is not the body", async () => {
+    expectClean(await findings("fx/fm/SKILL.md", skill("name: x\ndescription: |\n  Costs `$1` a month."), argumentPlaceholders), "skill-argument-placeholders");
+  });
+});
+
+describe("skill-injected-commands", () => {
+  const cases = [
+    ["t-after-equals", "KEY=!`cmd`", "does not run"],
+    ["t-after-word", "see!`cmd`", "does not run"],
+    ["t-after-bold", "**!`cmd`**", "does not run"],
+    ["t-after-paren", "(!`cmd`)", "does not run"],
+    ["good-after-space", "Branch: !`git branch --show-current`", null],
+    ["good-after-tab", "Branch:\t!`git branch --show-current`", null],
+    ["good-line-start", "!`git status`", null],
+    ["good-indented", "  !`git status`", null],
+    ["good-list-item", "- !`git status`", null],
+    // The `!` sits inside the span in both, so nothing here is a command.
+    ["good-bang-span", "A leading `!` eats the first word.", null],
+    ["good-bang-in-span", "Call `step.advance!` here.", null],
+    ["good-escaped", "KEY=\\!`cmd`", null],
+    ["good-no-bang", "KEY=`cmd`", null],
+    ["good-bang-then-space", "Stop! `cmd` here.", null],
+    ["good-image", "![alt `code`](a.png)", null],
+    ["t-bell", "Run !`a\u0007b` now.", "control character"],
+    ["t-escape", "!`a\u001bb`", "control character"],
+    ["t-delete", "!`a\u007fb`", "control character"],
+    ["t-c1", "!`a\u009fb`", "control character"],
+    ["t-nul", "!`a\u0000b`", "control character"],
+    ["good-tab-in-command", "!`a\tb`", null],
+    ["good-newline-in-command", "!`a\nb`", null],
+    ["good-control-outside-command", "Plain `a\u0007b` span and a\u0007b text.", null],
+    ["t-fence-control", "```!\nnode --version\na\u0007b\n```", "control character"],
+    ["good-fence", "```!\nnode --version\ngit status --short\n```", null],
+    ["good-fence-tab", "```!\na\tb\n```", null],
+    ["good-other-fence-control", "```bash\na\u0007b\n```", null],
+    ["good-untagged-fence-control", "```\na\u0007b\n```", null],
+  ];
+  for (const [id, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill("name: x\ndescription: |\n  x", body), injectedCommands);
+      if (want) expectDetail(found, "skill-injected-commands", want);
+      else expectClean(found, "skill-injected-commands");
+    });
+  }
+  it("a command in the wrong place is reported for its place alone, since it never reaches the tool", async () => {
+    const found = await findings("fx/both/SKILL.md", skill("name: x\ndescription: |\n  x", "KEY=!`a\u0007b`"), injectedCommands);
+    assert.equal(found.length, 1);
+    expectDetail(found, "skill-injected-commands", "does not run");
+  });
+  it("a fence's finding lands on the line holding the character", async () => {
+    const found = await findings("fx/fence-line/SKILL.md", skill("name: x\ndescription: |\n  x", "```!\nok\na\u0007b\n```"), injectedCommands);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [9],
+    );
+  });
+  it("a file that is not a SKILL.md runs no command", async () => {
+    expectClean(await findings("fx/other/workflows/a.md", "KEY=!`cmd`\n", injectedCommands), "skill-injected-commands");
+  });
+});
+
+describe("skill-package-runners", () => {
+  const unpinned = [
+    ["npx", "npx eslint ."],
+    ["bunx", "bunx eslint --fix ."],
+    ["uvx", "uvx ruff check ."],
+    ["pipx", "pipx run black ."],
+    ["deno-npm", "deno run npm:eslint"],
+    ["deno-flag", "deno run --allow-read npm:eslint -- --fix ."],
+    ["deno-jsr", "deno run jsr:@std/http/file-server"],
+    ["go", "go run golang.org/x/tools/cmd/goimports ."],
+    ["scoped", "npx @scope/tool ."],
+    ["flag-first", "npx --yes eslint ."],
+    ["quoted", "pipx run 'black' ."],
+    ["after-and", "cd x && npx eslint ."],
+    ["after-pipe", "cat a | npx eslint"],
+    ["after-semicolon", "cd x; npx eslint"],
+    ["in-substitution", "echo $(npx eslint)"],
+    ["pinned-beside-unpinned", "npx a@1; npx b"],
+    ["wide-space", "pipx   run   black"],
+    ["indented", "  npx eslint ."],
+    ["with-environment", "CI=1 npx eslint ."],
+    ["two-assignments", "cd x && A=1 B=2 npx eslint ."],
+    ["go-flag-value", "go run -tags foo golang.org/x/tools/cmd/goimports ."],
+    ["deno-flag-value", "deno run --config deno.json npm:eslint"],
+    ["shell-prompt", "$ npx eslint ."],
+    ["sudo", "sudo npx eslint ."],
+    ["time", "time npx eslint ."],
+    ["env", "env CI=1 npx eslint ."],
+    ["keyword", "if npx eslint .; then echo ok; fi"],
+    ["xargs", "xargs npx prettier"],
+    ["yaml-step", "- run: npx eslint ."],
+    ["git-spec", "uvx --from git+https://github.com/astral-sh/ruff ruff check ."],
+    ["extras", "uvx 'black[jupyter]' ."],
+    ["hosted-spec", "npx github:user/repo"],
+    ["hosted-shorthand", "npx user/repo"],
+    ["flag-value-slash", "npx --prefix tools/x eslint ."],
+    ["hash-in-quotes", 'git commit -m "fix #12" && npx eslint .'],
+    ["hash-in-single-quotes", "echo 'a # b'; npx eslint ."],
+    ["flag-before", "time -v npx eslint ."],
+    ["env-flag-before", "env -v npx eslint ."],
+    ["strace-flag-before", "strace -v npx eslint ."],
+    ["double-quoted", 'bash -c "npx eslint ."'],
+    ["single-quoted", "sh -c 'npx eslint .'"],
+    ["yaml-quoted", '- run: "npx eslint ."'],
+    ["registry-name-with-extension", "npx chart.js"],
+    ["hosted-with-extension", "npx tools/run.js"],
+    ["uvx-with-extension", "uvx tools/run.py"],
+    ["flag-value-path", "npx --prefix ./tools eslint ."],
+    ["quoted-substitution", 'out="$(npx "eslint" .)"'],
+    ["quoted-substitution-flag", 'out="$(npx --yes "eslint" .)"'],
+    ["quoted-substitution-uvx", 'out="$(uvx "ruff" check)"'],
+    ["nested-quotes", `bash -c "sh -c 'npx eslint .'"`],
+    ["argument-named-go", "uvx ruff check go"],
+    ["arguments-named-runners", "npx prettier --check go deno"],
+    ["pipx-argument-named-go", "pipx run black go"],
+    // WHY: the rule warns when it cannot tell, so each of these warns although it runs no package.
+    ["cannot-tell-which", "which npx uvx"],
+    ["cannot-tell-list", "npx bunx uvx"],
+    ["cannot-tell-prose-span", "npx or bunx"],
+    ["cannot-tell-echo", "echo npx eslint"],
+    ["cannot-tell-grep", "grep npx package.json"],
+    ["cannot-tell-commit", 'git commit -m "use npx eslint here"'],
+  ];
+  // Every example on the using-scripts page, so a finding here reports the page's own advice.
+  const pinned = [
+    "uvx ruff@0.8.0 check .",
+    "uvx black@24.10.0 .",
+    "pipx run 'black==24.10.0' .",
+    "pipx run 'ruff==0.8.0' check .",
+    "npx eslint@9 --fix .",
+    "npx create-vite@6 my-app",
+    "bunx eslint@9 --fix .",
+    "bunx create-vite@6 my-app",
+    "deno run npm:create-vite@6 my-app",
+    "deno run --allow-read npm:eslint@9 -- --fix .",
+    "go run golang.org/x/tools/cmd/goimports@v0.28.0 .",
+    "go run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0 run",
+    "go run golang.org/x/tools/cmd/goimports@latest .",
+    "npx eslint@9.0.0 .",
+    "npx @scope/tool@1 .",
+    "deno run jsr:@std/http@1/file-server",
+    "npx -p eslint@9 eslint .",
+    "npx --package=eslint@9 eslint .",
+    "uvx --from 'ruff>=0.8' ruff check .",
+    "pipx run scripts/extract.py",
+    "go run -tags foo golang.org/x/tools/cmd/goimports@v0.28.0 .",
+  ];
+  const notPackages = [
+    "go run main.go",
+    "go run ./cmd/x",
+    "go run .",
+    "go run -race main.go",
+    "deno run script.ts",
+    "deno run ./script.ts",
+    "deno run --allow-read script.ts",
+    "npx ./bin/tool",
+    "npx ./bin/tool input.txt",
+    'bash -c "npx ./bin/tool" eslint',
+    "npx --prefix ./tools ./bin/tool",
+    "npx /opt/tool",
+    "npx <tool>",
+    "npx $TOOL",
+    'npx "$TOOL"',
+    "npx",
+    "pipx run",
+    "npx --help",
+    "pipx install black",
+    "go build ./...",
+    "deno test",
+    "mynpx eslint",
+    "npx-like eslint",
+    "type npx",
+    "command -v npx",
+    "pipx run extract.py",
+    "pipx run scripts/extract.py input.txt",
+    "ls # npx eslint",
+  ];
+  const skillWith = (body) => skill("name: x\ndescription: |\n  x", body);
+  for (const [id, command] of unpinned) {
+    it(`reports ${id} in a span and a fence`, async () => {
+      expectDetail(await findings(`fx/${id}/SKILL.md`, skillWith(`Run \`${command}\` now.`), packageRunners), "skill-package-runners", "names no version");
+      expectDetail(
+        await findings(`fx/${id}/SKILL.md`, skillWith(`\`\`\`bash\n${command}\n\`\`\``), packageRunners),
+        "skill-package-runners",
+        "names no version",
+      );
+    });
+  }
+  for (const command of [...pinned, ...notPackages]) {
+    it(`leaves ${command} alone`, async () => {
+      expectClean(await findings("fx/clean/SKILL.md", skillWith(`Run \`${command}\` now.`), packageRunners), "skill-package-runners");
+      expectClean(await findings("fx/clean/SKILL.md", skillWith(`\`\`\`bash\n${command}\n\`\`\``), packageRunners), "skill-package-runners");
+    });
+  }
+  it("names the command it found, and only the unpinned one", async () => {
+    const found = await findings("fx/name/SKILL.md", skillWith("`npx a@1; npx b --flag`"), packageRunners);
+    assert.equal(found.length, 1);
+    expectDetail(found, "skill-package-runners", "npx b --flag names no version");
+  });
+  it("a quote is not part of the command it names", async () => {
+    expectDetail(
+      await findings("fx/quote/SKILL.md", skillWith('`bash -c "npx eslint ."`'), packageRunners),
+      "skill-package-runners",
+      "npx eslint . names no version",
+    );
+  });
+  it("a quote with no partner in the command is not part of what it names", async () => {
+    const names = [
+      [`sh -c 'npx eslint "$f"'`, 'npx eslint "$f" names no version'],
+      ["sh -c 'cd x; npx eslint .'", "npx eslint . names no version"],
+      ['bash -c "npx eslint \\"$f\\""', 'npx eslint \\"$f\\" names no version'],
+      [`bash -c "sh -c 'npx eslint .'"`, "npx eslint . names no version"],
+      [`bash -c 'sh -c "npx eslint ."'`, "npx eslint . names no version"],
+      ['out="$(npx eslint "$f")"', 'npx eslint "$f" names no version'],
+    ];
+    for (const [command, detail] of names)
+      expectDetail(await findings("fx/inner/SKILL.md", skillWith(`\`${command}\``), packageRunners), "skill-package-runners", detail);
+  });
+  it("a pin inside a quoted command counts", async () => {
+    expectClean(await findings("fx/esc-pin/SKILL.md", skillWith('`bash -c "npx \\"eslint@9\\""`'), packageRunners), "skill-package-runners");
+  });
+  // WHY: the rule reads no shell, so a command runs to the next separator and a word past its closing quote is read with it.
+  it("a word past a closing quote is read with the command", async () => {
+    expectDetail(
+      await findings("fx/after/SKILL.md", skillWith('`bash -c "npx eslint ." --norc`'), packageRunners),
+      "skill-package-runners",
+      'npx eslint ." --norc names no version',
+    );
+    expectClean(await findings("fx/past-pin/SKILL.md", skillWith('`bash -c "npx eslint ." x@1`'), packageRunners), "skill-package-runners");
+  });
+  it("a backtick substitution in a fence opens a command", async () => {
+    const found = await findings("fx/backtick/SKILL.md", skillWith("```bash\nx=`npx eslint .`\n```"), packageRunners);
+    expectDetail(found, "skill-package-runners", "npx eslint . names no version");
+  });
+  it("a quoted backtick substitution still warns", async () => {
+    const found = await findings("fx/quoted-backtick/SKILL.md", skillWith('```bash\nout="`npx "eslint" .`"\n```'), packageRunners);
+    expectDetail(found, "skill-package-runners", 'npx "eslint" . names no version');
+  });
+  it("an agent never runs a comment", async () => {
+    expectClean(await findings("fx/comment/SKILL.md", skillWith("```bash\n  # npx eslint .\n```"), packageRunners), "skill-package-runners");
+  });
+  it("a comment after a command is no version", async () => {
+    expectDetail(
+      await findings("fx/trailing/SKILL.md", skillWith("```bash\nnpx eslint . # needs a@b\n```"), packageRunners),
+      "skill-package-runners",
+      "npx eslint . names",
+    );
+  });
+  it("prose is not a command", async () => {
+    expectClean(await findings("fx/prose/SKILL.md", skillWith("Do not run npx eslint here."), packageRunners), "skill-package-runners");
+  });
+  it("each finding lands on its own line", async () => {
+    const found = await findings("fx/lines/SKILL.md", skillWith("```bash\nnpx a\nls\nnpx b\n```"), packageRunners);
+    assert.deepEqual(
+      found.map((f) => f.line),
+      [8, 10],
+    );
+  });
+});
+
 // check.js prints a finding's context beside its line number, so each case pads the flagged line and wants it back trimmed, and from that line rather than the next.
 describe("a finding's context is its own line, trimmed", () => {
   const bolded = (open) => Array.from({ length: 6 }, (_, i) => `${open}**Lead ${i}** text.${i ? "" : "  "}`).join(open ? "\n" : "\n\n");
@@ -1220,6 +1550,9 @@ describe("a finding's context is its own line, trimmed", () => {
     ["c-portable", portablePaths, "", "  A span `/home/someone/notes.md` here.", "A span `/home/someone/notes.md` here."],
     ["c-referenced", referencedPaths, "", "  See `workflows/gone.md` here.", "See `workflows/gone.md` here."],
     ["c-vale", valeDirective, "", "<!-- vale off -->  \n\nProse.", "<!-- vale off -->"],
+    ["c-placeholder", argumentPlaceholders, "", "  Run `echo $1` here.", "Run `echo $1` here."],
+    ["c-injected", injectedCommands, "", "  KEY=!`cmd`", "KEY=!`cmd`"],
+    ["c-runner", packageRunners, "", "  Run `npx eslint` here.", "Run `npx eslint` here."],
   ];
   for (const [id, rule, fm, body, want] of cases) {
     it(id, async () => {

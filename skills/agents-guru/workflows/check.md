@@ -64,6 +64,34 @@ Each of their failure modes is silent: a truncated description keeps loading wit
 
 A path the target cannot resolve, and is not meant to, opens with the placeholder that names its root, per *Paths must survive any working directory and any machine* in `workflows/new.md`.
 
+## The bundled-file rule
+
+**`skill-bundled-files`**, in `scripts/rules/skill-bundled-files.js`, holds a file directly under a skill's `scripts/` or `references/` folder to being named by another file of that skill, so an agent can learn it exists. It reads the skill's tree from disk.
+
+**What it cannot decide is whether the file that names it is one an agent reaches, or where a command's working directory is.** It fails a skill only when it is sure, so an unnamed file can pass.
+
+## The package-runner rule
+
+**`skill-package-runners`**, in `scripts/rules/skill-package-runners.js`, warns on a runner command the using-scripts page lists that names no version, in a skill's markdown.
+
+**What it cannot decide is what the words around a runner mean.** It warns when it cannot tell, so a warning can name a command that runs no package, and the author reads each one. It reads no shell quoting either, so a version-shaped word past a command's closing quote counts as that command's pin.
+
+## The argument-placeholder rule
+
+**`skill-argument-placeholders`**, in `scripts/rules/skill-argument-placeholders.js`, reports an unescaped `$N` in a code span or a fenced line of a `SKILL.md`, which Claude Code replaces when the skill is called with arguments.
+
+**What it cannot decide is what a `$N` in prose means.** The placeholder is meant there, so a price such as `$1.00` is the reviewer's to catch.
+
+## The injected-command rule
+
+**`skill-injected-commands`**, in `scripts/rules/skill-injected-commands.js`, reports what stops a `!` command in a `SKILL.md` from running, per the skills page and the errors page. It reads the parser's tree, so a `!` inside a code span is no command.
+
+**What it cannot decide is whether a command in prose was meant to run.** Text such as ``see!`this` `` reads as a command in the wrong place.
+
+## The plugin-variable rule
+
+**`plugin-body-variables`**, in `scripts/rules/plugin-body-variables.js`, reports a bare path variable in the body of a plugin's `SKILL.md` or agent file.
+
 ## The name rule
 
 **`skill-name`**, in `scripts/rules/skill-name.js`, holds a skill's frontmatter `name` to its own directory and to what the specification allows a name to be.

@@ -32,7 +32,7 @@ function walk(tokens, fn) {
   }
 }
 
-const infoOf = (fenced) => {
+export const infoOf = (fenced) => {
   const info = fenced.children[0].children.find((c) => c.type === "codeFencedFenceInfo");
   return info ? info.text.trim().split(/\s+/)[0] : "";
 };

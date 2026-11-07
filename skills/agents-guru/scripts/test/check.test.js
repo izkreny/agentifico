@@ -1060,6 +1060,416 @@ describe("check.js", () => {
   });
 });
 
+describe("skill-bundled-files", () => {
+  // WHY: each fixture states every file it holds, so a test reads as the tree it judges.
+  const tree = (name, files) => {
+    const dir = path.join(tmp, "bundled", name);
+    mk(dir, block(name));
+    for (const [file, text] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+      fs.writeFileSync(path.join(dir, file), text);
+    }
+    return dir;
+  };
+  const reports = (out, file) => new RegExp(`skill-bundled-files .*${file}\\S* is named by no file`).test(out);
+
+  it("a file nothing names fails the run, under scripts and under references", () => {
+    const r = run(tree("unnamed", { "scripts/lost.py": "x\n", "references/lost.md": "# Lost\n\nbody\n" }));
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*scripts\/lost\.py is named by no file/m);
+    assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*references\/lost\.md is named by no file/m);
+  });
+  it("a file named in the SKILL.md is clean", () => {
+    const dir = tree("named", { "scripts/kept.py": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun `scripts/kept.py` first.\n");
+    assert.equal(reports(run(dir).out, "kept"), false);
+  });
+  it("any other file of the skill can name it, by its bare name", () => {
+    const r = run(tree("sibling", { "scripts/main.sh": "./helper.sh\n", "scripts/helper.sh": "x\n", "workflows/a.md": "# A\n\nRun `scripts/main.sh`.\n" }));
+    assert.equal(reports(r.out, "helper"), false, r.out);
+    assert.equal(reports(r.out, "main"), false, r.out);
+  });
+  it("a path to another file with the same name is not the name", () => {
+    const dir = tree("same-name", { "references/review.md": "# R\n\nbody\n", "workflows/review.md": "# W\n\nbody\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead workflows/review.md.\n");
+    const r = run(dir);
+    assert.equal(reports(r.out, "references\\/review\\.md"), true, r.out);
+  });
+  // WHY: a skill reaches its own file in each of these spellings, and none of them points elsewhere.
+  for (const [id, text] of [
+    ["own-path", "Read references/kept.md."],
+    ["own-path-relative", "Read ../references/kept.md."],
+    ["own-path-placeholder", "Read <skill-dir>/references/kept.md."],
+    ["variable", "Read $DIR/kept.md."],
+    ["braced-variable", `Read \${DIR}/kept.md.`],
+    ["substitution", 'Read "$(dirname "$0")/kept.md".'],
+    ["quoted-variable", 'Read "$DIR"/kept.md.'],
+    ["quoted-braced-variable", `Read "\${DIR}"/references/kept.md.`],
+    ["quoted-substitution", 'Read "$(dirname "$0")"/references/kept.md.'],
+    ["placeholder-then-placeholder", "Read <plugin-dir>/skills/<name>/references/kept.md."],
+    ["placeholder-then-file", "Read <skill-dir>/<topic>/kept.md."],
+    ["variable-then-placeholder", "Read $DIR/<x>/references/kept.md."],
+    ["default-value", `Read \${DIR:-.}/references/kept.md.`],
+    ["glob-folder", "Read skills/*/references/kept.md."],
+    ["glob-any-depth", "Read **/kept.md."],
+    ["backtick-substitution", 'Run `` `dirname "$0"`/references/kept.md ``.'],
+    ["template-expression", `Read \${{ github.workspace }}/references/kept.md.`],
+    ["windows-variable", "Read %DIR%/references/kept.md."],
+    ["two-variables", "Read $A/$B/kept.md."],
+    ["own-path-after-variable", "Read $DIR/references/kept.md."],
+    ["unknown-working-directory", "Run `cd references && ./kept.md`."],
+    ["up-from-unknown-working-directory", "Run `cd scripts && ../references/kept.md`."],
+    ["bare", "Read kept.md."],
+  ]) {
+    it(`a file is named by ${id}`, () => {
+      const dir = tree(id, { "references/kept.md": "# K\n\nbody\n", "scripts/a.sh": "x\n" });
+      fs.appendFileSync(path.join(dir, "SKILL.md"), `\n${text}\n`);
+      assert.equal(reports(run(dir).out, "kept"), false);
+    });
+  }
+  it("an extensionless file is not named by the word alone", () => {
+    const dir = tree("word", { "scripts/deploy": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nUse this to deploy the thing.\n");
+    assert.equal(reports(run(dir).out, "scripts\\/deploy"), true);
+  });
+  it("an extensionless file is named by its own path", () => {
+    const dir = tree("word-path", { "scripts/deploy": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun `scripts/deploy` first.\n");
+    assert.equal(reports(run(dir).out, "scripts\\/deploy"), false);
+  });
+  it("an extensionless file is named by a sibling's dot slash", () => {
+    const dir = tree("word-sibling", { "scripts/deploy": "x\n", "scripts/run.sh": "./deploy\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun `scripts/run.sh` first.\n");
+    assert.equal(reports(run(dir).out, "scripts\\/deploy"), false);
+  });
+  // WHY: each of these points at a file of the same name somewhere other than this one.
+  for (const [id, file, text] of [
+    ["another-skill", "SKILL.md", "\nRead ../other-skill/references/review.md.\n"],
+    ["longer-path", "SKILL.md", "\nRead skills/foo/references/review.md.\n"],
+    ["own-folder-dot-slash", "workflows/a.md", "./review.md\n"],
+    ["up-to-nothing", "references/a.md", "\nSee ../review.md.\n"],
+    ["home", "SKILL.md", "\nRead ~/review.md.\n"],
+    ["filesystem-root", "SKILL.md", "\nRead /review.md.\n"],
+    ["quoted-filesystem-root", "SKILL.md", '\nRead "/review.md".\n'],
+    ["url", "SKILL.md", "\nRead https://example.com/review.md.\n"],
+    ["variable-then-another-folder", "SKILL.md", "\nRead $DIR/workflows/review.md.\n"],
+  ]) {
+    it(`a path elsewhere does not name it: ${id}`, () => {
+      const dir = tree(`elsewhere-${id}`, {
+        "references/review.md": "# R\n\nbody\n",
+        "workflows/a.md": "# A\n\nbody\n",
+        "workflows/review.md": "# W\n\nbody\n",
+      });
+      fs.appendFileSync(path.join(dir, file), text);
+      assert.equal(reports(run(dir).out, "references\\/review\\.md"), true);
+    });
+  }
+  // WHY: a root says nothing about the writer's folder, so a sibling of the same name does not settle what it means.
+  for (const [id, text] of [
+    ["placeholders", "<skill-dir>/<topic>/review.md"],
+    ["variable", "$DIR/review.md"],
+    ["quoted-substitution", '"$(dirname "$0")"/review.md'],
+  ]) {
+    it(`a rooted path is not settled on the writer's sibling: ${id}`, () => {
+      const dir = tree(`rooted-${id}`, {
+        "references/review.md": "# R\n\nbody\n",
+        "workflows/review.md": "# W\n\nbody\n",
+        "workflows/a.md": `# A\n\nRead ${text}.\n`,
+      });
+      assert.equal(reports(run(dir).out, "references\\/review\\.md"), false);
+    });
+  }
+  it("a path up from a file reaches the file it lands on, and not one of the same name", () => {
+    const dir = tree("up-to-root", {
+      "references/review.md": "# R\n\nbody\n",
+      "references/a.md": "# A\n\nSee ../review.md.\n",
+      "review.md": "# Root\n\nbody\n",
+    });
+    assert.equal(reports(run(dir).out, "references\\/review\\.md"), true);
+    const up = tree("up-a-level", { "references/kept.md": "# K\n\nbody\n", "references/sub/a.md": "# A\n\nSee ../kept.md.\n" });
+    assert.equal(reports(run(up).out, "references\\/kept"), false);
+  });
+  it("a dot slash that lands on no file may mean another working directory", () => {
+    const dir = tree("working-directory", { "scripts/deploy.sh": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\n```bash\ncd scripts && ./deploy.sh\n```\n");
+    assert.equal(reports(run(dir).out, "scripts\\/deploy"), false);
+    const extensionless = tree("working-directory-word", { "scripts/deploy": "x\n" });
+    fs.appendFileSync(path.join(extensionless, "SKILL.md"), "\n```bash\ncd scripts && ./deploy\n```\n");
+    assert.equal(reports(run(extensionless).out, "scripts\\/deploy"), false);
+  });
+  it("a dot slash names a file of the same folder", () => {
+    const dir = tree("own-folder", { "references/kept.md": "# K\n\nbody\n", "references/a.md": "# A\n\nSee ./kept.md.\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead references/a.md.\n");
+    assert.equal(reports(run(dir).out, "references\\/kept"), false);
+  });
+  for (const [id, line] of [
+    ["plain", "import helper"],
+    ["list", "import os, helper"],
+    ["aliased", "import helper as h"],
+    ["from", "from helper import run"],
+    ["from-package", "from scripts.helper import run"],
+    ["from-dot", "from . import helper"],
+    ["from-relative", "from .helper import run"],
+    ["from-relative-up", "from ..helper import run"],
+    ["from-own-folder", "from scripts import helper"],
+    ["import-own-folder", "import scripts.helper"],
+    ["from-dot-list", "from . import os, helper as h"],
+    ["from-dot-lines", "from . import (\n    other,\n    helper,\n)"],
+    ["from-dot-comment", "from . import (\n    other,  # first\n    helper,\n)"],
+    ["backslash", "import os, \\\n    helper"],
+    ["from-backslash", "from . import other, \\\n    helper"],
+    ["from-longer-package", "from pkg.scripts import helper"],
+    ["import-longer-package", "import pkg.scripts.helper"],
+    ["from-relative-folder", "from ..scripts import (helper)"],
+    ["from-package-module", "from pkg.scripts.helper import run"],
+    ["indented", "try:\n    import helper\nexcept ImportError:\n    pass"],
+    ["same-line-block", "try: import helper\nexcept ImportError: pass"],
+    ["after-semicolon", "import os; import helper"],
+  ]) {
+    it(`a Python file is named by an import: ${id}`, () => {
+      const r = run(tree(`py-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
+      assert.equal(reports(r.out, "scripts\\/helper"), false, r.out);
+    });
+  }
+  for (const [id, line] of [
+    ["longer", "import helper_two"],
+    ["attribute", "from os import helper"],
+    ["dotted", "import os.helper"],
+    ["alias", "import json as helper"],
+    ["imported-from-longer", "from helper_two import helper"],
+    ["comment", "# import helper"],
+    ["from-another-package", "from email.helper import formatdate"],
+    ["from-a-module-of-another-package", "from os.helper import join"],
+    ["import-another-package", "import email.helper"],
+    ["module-beneath-it", "import helper.sub"],
+  ]) {
+    it(`a Python line does not name it: ${id}`, () => {
+      const r = run(tree(`py-not-${id}`, { "scripts/main.py": `${line}\n`, "scripts/helper.py": "x\n", "notes.md": "# N\n\nRun main.py.\n" }));
+      assert.equal(reports(r.out, "scripts\\/helper"), true, r.out);
+    });
+  }
+  it("only a Python file imports, and only a Python file is imported", () => {
+    const r = run(
+      tree("py-prose", {
+        "scripts/tool.sh": "x\n",
+        "scripts/caller.py": "import tool\n",
+        "scripts/helper.py": "x\n",
+        "notes.md": "# N\n\nimport helper\n\nRun caller.py.\n",
+      }),
+    );
+    assert.equal(reports(r.out, "scripts\\/tool"), true, r.out);
+    assert.equal(reports(r.out, "scripts\\/helper"), true, r.out);
+  });
+  it("a file does not name itself", () => {
+    assert.equal(reports(run(tree("self", { "references/self.md": "# Self\n\nThis is self.md.\n" })).out, "references\\/self\\.md"), true);
+  });
+  it("a longer name holding the name is not the name", () => {
+    const dir = tree("longer", {
+      "references/setup.md": "# Setup\n\nbody\n",
+      "references/other-setup.md": "# Other\n\nbody\n",
+      "references/a-b.md": "# A\n\nSee other-setup.md and setup.md.bak and x.setup.md and setup.md-old.\n",
+    });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead `references/a-b.md`.\n");
+    assert.equal(reports(run(dir).out, "references\\/setup\\.md"), true);
+  });
+  it("a name closing a sentence is the name", () => {
+    const dir = tree("sentence", { "references/setup.md": "# Setup\n\nbody\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRead references/setup.md.\n");
+    assert.equal(reports(run(dir).out, "setup"), false);
+  });
+  it("a name's regex characters are taken as written", () => {
+    const dir = tree("literal", { "scripts/a+b.py": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun aab.py and axb.py.\n");
+    assert.equal(reports(run(dir).out, "a\\+b"), true);
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun a+b.py.\n");
+    assert.equal(reports(run(dir).out, "a\\+b"), false);
+  });
+  it("a dot-named file, a file in a subfolder and a file elsewhere are not bundled", () => {
+    const r = run(
+      tree("exempt", {
+        "scripts/.gitignore": "x\n",
+        "scripts/test/deep.js": "x\n",
+        "references/more/deep.md": "# D\n\nbody\n",
+        "assets/free.txt": "x\n",
+        "free.md": "# F\n\nbody\n",
+      }),
+    );
+    assert.doesNotMatch(r.out, /skill-bundled-files/);
+  });
+  it("what names a file in node_modules or a dot-folder does not count", () => {
+    const r = run(
+      tree("skips", { "scripts/lost.py": "x\n", "node_modules/dep/a.md": "lost.py\n", ".cache/a.md": "lost.py\n", "scripts/.hidden": "lost.py\n" }),
+    );
+    assert.equal(reports(r.out, "lost"), true, r.out);
+  });
+  it("a linked file is bundled, and a linked folder is followed", () => {
+    const dir = tree("links", { "shared/real.md": "# R\n\nbody\n" });
+    fs.mkdirSync(path.join(dir, "scripts"));
+    fs.symlinkSync(path.join(dir, "shared", "real.md"), path.join(dir, "scripts", "linked.sh"));
+    fs.symlinkSync(path.join(dir, "shared"), path.join(dir, "references"));
+    const r = run(dir);
+    assert.equal(reports(r.out, "scripts\\/linked\\.sh"), true, r.out);
+    assert.equal(reports(r.out, "references\\/real\\.md"), true, r.out);
+  });
+  // WHY: directory order decides which path is walked first, so each order is built, with the real folder's name sorting first in one and last in the other.
+  for (const [name, real] of [
+    ["link-first", "a-shared"],
+    ["link-last", "z-shared"],
+  ]) {
+    it(`a linked folder is read beside the folder it points at, as ${name}`, () => {
+      const dir = tree(name, { [`${real}/real.md`]: "# R\n\nbody\n" });
+      fs.symlinkSync(path.join(dir, real), path.join(dir, "references"));
+      assert.equal(reports(run(dir).out, "references\\/real\\.md"), true);
+    });
+  }
+  it("a link to a file is that file, so its own text does not name it", () => {
+    const dir = tree("alias", { "shared/self.sh": "# self.sh\n" });
+    fs.mkdirSync(path.join(dir, "scripts"));
+    fs.symlinkSync(path.join(dir, "shared", "self.sh"), path.join(dir, "scripts", "self.sh"));
+    assert.equal(reports(run(dir).out, "scripts\\/self\\.sh"), true);
+  });
+  it("two links back up the tree end, since each would otherwise double the walk", () => {
+    const dir = tree("cycles", { "scripts/kept.py": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun scripts/kept.py.\n");
+    fs.symlinkSync(dir, path.join(dir, "up-one"));
+    fs.symlinkSync(dir, path.join(dir, "up-two"));
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+  });
+  it("a link back up the tree ends, and costs no finding", () => {
+    const dir = tree("cycle", { "scripts/kept.py": "x\n" });
+    fs.appendFileSync(path.join(dir, "SKILL.md"), "\nRun scripts/kept.py.\n");
+    fs.symlinkSync(dir, path.join(dir, "up"));
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+  });
+  it("a link to itself is left to the group that names it", () => {
+    const dir = tree("self-link", {});
+    fs.mkdirSync(path.join(dir, "scripts"));
+    fs.symlinkSync(path.join(dir, "scripts", "loop.sh"), path.join(dir, "scripts", "loop.sh"));
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+  });
+  it("a dangling link is left to the group that names it", () => {
+    const dir = tree("dangling", {});
+    fs.mkdirSync(path.join(dir, "scripts"));
+    fs.symlinkSync(path.join(dir, "gone.md"), path.join(dir, "scripts", "gone.md"));
+    const r = run(dir);
+    assert.doesNotMatch(r.out, /skill-bundled-files/);
+    assert.match(r.out, /scripts\/gone\.md dangling-link/);
+  });
+  it("a file it cannot read is named, and costs the comparison that file alone", () => {
+    const dir = tree("shut-file", { "scripts/shut.py": "x\n", "scripts/kept.py": "x\n", "notes.md": "# N\n\nRun kept.py.\n" });
+    fs.chmodSync(path.join(dir, "scripts", "shut.py"), 0o000);
+    try {
+      const r = run(dir);
+      assert.match(r.out, /^ {2}SKILL\.md:\d+ skill-bundled-files .*could not read scripts\/shut\.py \(EACCES\)/m);
+      assert.equal(reports(r.out, "kept"), false, r.out);
+    } finally {
+      fs.chmodSync(path.join(dir, "scripts", "shut.py"), 0o644);
+    }
+  });
+  it("a folder it cannot read is named", () => {
+    const dir = tree("shut-folder", { "shut/inner.txt": "x\n" });
+    fs.chmodSync(path.join(dir, "shut"), 0o000);
+    try {
+      assert.match(run(dir).out, /skill-bundled-files .*could not read shut \(EACCES\)/);
+    } finally {
+      fs.chmodSync(path.join(dir, "shut"), 0o755);
+    }
+  });
+  it("only a SKILL.md starts the read", () => {
+    const dir = path.join(tmp, "bundled", "no-skill");
+    fs.mkdirSync(path.join(dir, "scripts"), { recursive: true });
+    fs.writeFileSync(path.join(dir, "notes.md"), "# N\n\nbody\n");
+    fs.writeFileSync(path.join(dir, "scripts", "lost.py"), "x\n");
+    assert.doesNotMatch(run(dir).out, /skill-bundled-files/);
+  });
+});
+
+describe("skill-package-runners, off a tree", () => {
+  const dir = () => path.join(tmp, "runners");
+  beforeAll(() => {
+    mk(dir(), block("runners"), "# Runners\n\n## Install\n\n```bash\nnpx skills add owner/repo\n```\n");
+    fs.mkdirSync(path.join(dir(), "workflows"));
+    fs.writeFileSync(path.join(dir(), "workflows", "run.md"), "# Run\n\nRun `npx eslint .` first.\n");
+  });
+  it("a workflow of the skill is read, and a warning leaves the run passing", () => {
+    const r = run(dir());
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /^ {2}workflows\/run\.md:3 skill-package-runners \(warning\) .*npx eslint \. names no version/m);
+  });
+  it("a README is for a person, so its install line raises nothing", () => {
+    assert.doesNotMatch(run(dir()).out, /README\.md:\d+ skill-package-runners/);
+  });
+  it("a markdown file outside any skill is not read", () => {
+    const outside = path.join(tmp, "runners-outside");
+    fs.mkdirSync(outside);
+    fs.writeFileSync(path.join(outside, "notes.md"), "# Notes\n\nRun `npx eslint .` first.\n");
+    assert.doesNotMatch(run(outside).out, /skill-package-runners/);
+  });
+  it("a file target resolves against the folder the command runs in", () => {
+    assert.match(run(path.join(dir(), "workflows", "run.md"), process.env, dir()).out, /skill-package-runners/);
+    assert.doesNotMatch(run(path.join(dir(), "workflows", "run.md"), process.env, path.join(dir(), "workflows")).out, /skill-package-runners/);
+  });
+});
+
+describe("plugin-body-variables", () => {
+  const plugin = () => path.join(tmp, "body-vars", "plugin");
+  const skillBody = (dir, body) => {
+    mk(dir, block(path.basename(dir)));
+    fs.writeFileSync(path.join(dir, "SKILL.md"), `---\n${block(path.basename(dir))}\n---\n\n${body}\n`);
+  };
+  beforeAll(() => {
+    fs.mkdirSync(path.join(plugin(), ".claude-plugin"), { recursive: true });
+    fs.writeFileSync(path.join(plugin(), ".claude-plugin", "plugin.json"), '{"name":"plugin"}\n');
+    skillBody(
+      path.join(plugin(), "skills", "bare"),
+      "Run `$CLAUDE_PLUGIN_ROOT/scripts/a.sh`.\n\nKeep state in $CLAUDE_PLUGIN_DATA.\n\n```bash\ncd $CLAUDE_PROJECT_DIR\n```",
+    );
+    skillBody(
+      path.join(plugin(), "skills", "braced"),
+      `Run \`"\${CLAUDE_PLUGIN_ROOT}/scripts/a.sh"\`, \${CLAUDE_PLUGIN_DATA} and \${CLAUDE_PROJECT_DIR}.\n\nAnd $CLAUDE_PLUGIN_ROOTS too.`,
+    );
+    fs.mkdirSync(path.join(plugin(), "agents"));
+    fs.writeFileSync(path.join(plugin(), "agents", "bare.md"), "---\nname: bare\ndescription: x\n---\n\nRun $CLAUDE_PLUGIN_ROOT/a.sh.\n");
+    fs.writeFileSync(path.join(plugin(), "agents", "braced.md"), `---\nname: braced\ndescription: x\n---\n\nRun \${CLAUDE_PLUGIN_ROOT}/a.sh.\n`);
+    fs.writeFileSync(path.join(plugin(), "skills", "bare", "notes.md"), "# Notes\n\nA hook reads $CLAUDE_PROJECT_DIR.\n");
+  });
+  it("each bare variable in a plugin's skill fails the run on its own line, and names the braced form", () => {
+    const r = run(plugin());
+    assert.equal(r.code, 1, r.out);
+    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_ROOT .*write \$\{CLAUDE_PLUGIN_ROOT\}/m);
+    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_DATA .*write \$\{CLAUDE_PLUGIN_DATA\}/m);
+    assert.match(r.out, /^ {2}skills\/bare\/SKILL\.md:\d+ plugin-body-variables .*\$CLAUDE_PROJECT_DIR .*write \$\{CLAUDE_PROJECT_DIR\}/m);
+  });
+  it("a plugin's agent is read", () => {
+    assert.match(run(plugin()).out, /^ {2}agents\/bare\.md:\d+ plugin-body-variables .*\$CLAUDE_PLUGIN_ROOT/m);
+  });
+  it("the braced form and a longer name are clean", () => {
+    const r = run(plugin());
+    assert.doesNotMatch(r.out, /skills\/braced\/SKILL\.md:\d+ plugin-body-variables/);
+    assert.doesNotMatch(r.out, /agents\/braced\.md:\d+ plugin-body-variables/);
+  });
+  it("a file the plugin never loads as content is not read", () => {
+    assert.doesNotMatch(run(plugin()).out, /notes\.md:\d+ plugin-body-variables/);
+  });
+  it("a skill outside any plugin is not held to it", () => {
+    const dir = path.join(tmp, "body-vars", "standalone");
+    skillBody(dir, "Read $CLAUDE_PROJECT_DIR here.");
+    assert.doesNotMatch(run(dir).out, /plugin-body-variables/);
+  });
+  it("a marketplace's root is not a plugin, so a skill beside it is not held to it", () => {
+    const root = path.join(tmp, "body-vars", "market");
+    fs.mkdirSync(path.join(root, ".claude-plugin"), { recursive: true });
+    fs.writeFileSync(path.join(root, ".claude-plugin", "marketplace.json"), "{}\n");
+    skillBody(path.join(root, "skills", "free"), "Read $CLAUDE_PROJECT_DIR here.");
+    assert.doesNotMatch(run(root).out, /plugin-body-variables/);
+  });
+  it("the frontmatter is not the body", () => {
+    const dir = path.join(plugin(), "skills", "in-fm");
+    mk(dir, "name: in-fm\ndescription: |\n  Reads $CLAUDE_PROJECT_DIR.");
+    assert.doesNotMatch(run(dir).out, /plugin-body-variables/);
+  });
+});
+
 // Exercised directly because check.js globs under its target and can never hand the function a path outside it.
 describe("enclosingSkill", () => {
   it("a sibling whose name extends the target's is outside it", () => {

@@ -1,17 +1,22 @@
 // A module rather than a config file, so nothing under a target is ever read as configuration.
 import agentFrontmatter, { agentPluginName } from "./rules/agent-frontmatter.js";
+import pluginBodyVariables from "./rules/plugin-body-variables.js";
 import skillArgumentHint from "./rules/skill-argument-hint.js";
+import skillArgumentPlaceholders from "./rules/skill-argument-placeholders.js";
 import skillBashBlocks from "./rules/skill-bash-blocks.js";
 import skillBoldedParagraphs from "./rules/skill-bolded-paragraphs.js";
 import skillBoldedRuns from "./rules/skill-bolded-runs.js";
+import skillBundledFiles from "./rules/skill-bundled-files.js";
 import skillContinuations from "./rules/skill-continuations.js";
 import skillDescription from "./rules/skill-description.js";
 import skillFork from "./rules/skill-fork.js";
 import skillFrontmatterParsed from "./rules/skill-frontmatter-parsed.js";
 import skillHardWrap from "./rules/skill-hard-wrap.js";
+import skillInjectedCommands from "./rules/skill-injected-commands.js";
 import skillInvocation from "./rules/skill-invocation.js";
 import skillLayout from "./rules/skill-layout.js";
 import skillName from "./rules/skill-name.js";
+import skillPackageRunners from "./rules/skill-package-runners.js";
 import skillPortablePaths from "./rules/skill-portable-paths.js";
 import skillReadme from "./rules/skill-readme.js";
 import skillReferencedPaths from "./rules/skill-referenced-paths.js";
@@ -31,11 +36,15 @@ const contractRules = [
   skillValeDirective,
   skillArgumentHint,
   skillBashBlocks,
+  skillBundledFiles,
+  skillArgumentPlaceholders,
+  skillInjectedCommands,
   agentFrontmatter,
+  pluginBodyVariables,
 ];
 const proseShapeRules = [skillContinuations, skillBoldedRuns, skillBoldedParagraphs];
-// A warning rule's findings print in its group but leave the run passing: agent-plugin-name because the file still loads, skill-hard-wrap because a skill may decline its author's conventions, per workflows/export.md, which a caller can also do with --skip.
-const contractWarningRules = [agentPluginName];
+// A warning rule's findings print in its group but leave the run passing: agent-plugin-name's file still loads, skill-package-runners' command still runs, and skill-hard-wrap is a convention a skill may decline, per workflows/export.md or a caller's --skip.
+const contractWarningRules = [agentPluginName, skillPackageRunners];
 const proseShapeWarningRules = [skillHardWrap];
 export const rules = [...contractRules, ...contractWarningRules, ...proseShapeRules, ...proseShapeWarningRules];
 
