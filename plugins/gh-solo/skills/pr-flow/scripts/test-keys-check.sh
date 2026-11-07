@@ -126,6 +126,10 @@ echo "a file Vale cannot check is never a clean result:"
 check "a body not ending in .md" 2 "$ISSUE" "$PATH" "body.txt"
 check "vale absent" 2 "$ISSUE" "$TREE/novale"
 check "vale older than the minimum" 2 "$ISSUE" "$TREE/oldvale"
+# WHY: Vale reports a path that does not exist clean, so only the script's own guard stops a missing scratch file passing.
+got=0
+python3 "$SCRIPT" "$TREE/missing.md" > /dev/null 2>&1 || got=$?
+if [[ "$got" == 2 ]]; then echo "  ok   a missing body file"; else echo "  FAIL a missing body file: exit $got, want 2"; fails=$((fails + 1)); fi
 
 echo
 echo "$fails failure(s)"
