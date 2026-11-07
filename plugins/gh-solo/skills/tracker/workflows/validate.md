@@ -29,7 +29,7 @@ gh issue view <issue-number> --json body --jq .body > <scratch-dir>/body-<issue-
 python3 <skill-dir>/../pr-flow/scripts/keys-check.py <scratch-dir>/body-<issue-number>.md
 ```
 
-Exit 0 passes both rows. Exit 1 fails them: each line it prints names an item, a line saying an item lacks its key under *Items are keyed* and one saying a key opens a second item under *Keys are unique*. Any other exit means the check did not run, so report both rows as not checked, quoting what it printed, and never as a pass.
+Exit 0 passes both rows. Exit 1 fails them: each line it prints names an item, a line saying an item lacks its key under *Items are keyed* and one saying a key opens a second item under *Keys are unique*. A repeat line names the second item and any later one, never the first, so the *Keys are unique* fail also names the first item carrying that key, read off the fetched body. Any other exit means the check did not run, so report both rows as not checked, quoting what it printed, and never as a pass.
 
 ### Issues and spikes
 
