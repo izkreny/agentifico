@@ -30,7 +30,7 @@ GOOD='# Login form
 
 ## Steps
 
-- Write the form.
+- ::S1:: Write the form.
 
 ## Verification
 
@@ -39,7 +39,7 @@ GOOD='# Login form
 npm test
 ```
 
-- `npm test`
+- ::V1:: `npm test`
 
 ## Open questions
 
@@ -61,7 +61,7 @@ check() {
 }
 
 echo "a plan with every required part passes:"
-check "the clean plan" 0 "$NAME" "$GOOD"
+check "the clean plan, its questions reading None." 0 "$NAME" "$GOOD"
 
 echo "a missing required heading fails:"
 check "no ## Steps" 1 "$NAME" "${GOOD/'## Steps'/'## Work'}"
@@ -72,17 +72,17 @@ FENCED_HEADING='# Login form
 
 ## Steps
 
-- Write the form.
+- ::S1:: Write the form.
 
 ## Checks
 
 ```markdown
 ## Verification
 
-- `npm test`
+- ::V1:: `npm test`
 ```
 
-- `npm test`'
+- ::V1:: `npm test`'
 check "a fenced ## Verification" 1 "$NAME" "$FENCED_HEADING"
 check "a fenced ## Steps" 1 "$NAME" "${GOOD/'## Steps'/'## Work
 
@@ -91,12 +91,12 @@ check "a fenced ## Steps" 1 "$NAME" "${GOOD/'## Steps'/'## Work
 ```'}"
 
 echo "a ## Verification with no list item fails:"
-check "only a fenced block and prose" 1 "$NAME" "${GOOD/'- `npm test`'/'Run it.'}"
+check "only a fenced block and prose" 1 "$NAME" "${GOOD/'- ::V1:: `npm test`'/'Run it.'}"
 NESTED='# Login form
 
 ## Steps
 
-- Write the form.
+- ::S1:: Write the form.
 
 ## Verification
 
@@ -106,15 +106,15 @@ NESTED='# Login form
 ```
 ````
 
-- `npm test`'
+- ::V1:: `npm test`'
 check "a list item after a nested fence" 0 "$NAME" "$NESTED"
-check "a nested fence and no list item" 1 "$NAME" "${NESTED/'- `npm test`'/'Run it.'}"
+check "a nested fence and no list item" 1 "$NAME" "${NESTED/'- ::V1:: `npm test`'/'Run it.'}"
 
 echo "a checkbox fails in any section:"
-check "in ## Steps" 1 "$NAME" "${GOOD/'- Write the form.'/'- [ ] Write the form.'}"
-check "in ## Verification" 1 "$NAME" "${GOOD/'- `npm test`'/'- [x] `npm test`'}"
-check "in another section" 1 "$NAME" "${GOOD/'None.'/'* [ ] None.'}"
-check "inside a blockquote" 1 "$NAME" "${GOOD/'- Write the form.'/'> - [ ] Write the form.'}"
+check "in ## Steps" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- [ ] ::S1:: Write the form.'}"
+check "in ## Verification" 1 "$NAME" "${GOOD/'- ::V1:: `npm test`'/'- [x] ::V1:: `npm test`'}"
+check "in another section" 1 "$NAME" "${GOOD/'None.'/'* [ ] ::Q1:: None.'}"
+check "inside a blockquote" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'> - [ ] Write the form.'}"
 
 echo "a checkbox inside a fence is not a checkbox:"
 check "quoted in a fence" 0 "$NAME" "${GOOD/'npm test
@@ -125,6 +125,97 @@ check "quoted in a tilde fence" 0 "$NAME" "${GOOD/'None.'/'~~~
 > - [x] None.
 ~~~'}"
 
+echo "an item without its section's key fails:"
+check "an unkeyed step" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- Write the form.'}"
+check "an unkeyed gate" 1 "$NAME" "${GOOD/'- ::V1:: `npm test`'/'- `npm test`'}"
+check "an unkeyed question" 1 "$NAME" "${GOOD/'None.'/'- Which form?'}"
+check "a step keyed as a gate" 1 "$NAME" "${GOOD/'- ::S1::'/'- ::V2::'}"
+check "a numbered step with no key" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'1. Write the form.'}"
+check "an unkeyed step under a ### subheading" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'### The form
+
+- Write the form.'}"
+check "an unkeyed step one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/' - Write the form.'}"
+check "an unkeyed sibling one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+ - Style it.'}"
+check "an unkeyed step two spaces in, after a paragraph" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+Then style it.
+
+  - Style it.'}"
+check "an unkeyed step two spaces in, after a fence" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+```text
+a block
+```
+
+  - Style it.'}"
+
+echo "a keyed item, or no item at all, passes:"
+check "a keyed question" 0 "$NAME" "${GOOD/'None.'/'- ::Q1:: Which form?'}"
+check "an unkeyed bullet nested under a step" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+  - a detail of it'}"
+check "an unkeyed bullet nested under a numbered step" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'1. ::S1:: Write the form.
+   - a detail of it'}"
+check "an unkeyed bullet nested after a lazy continuation" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form,
+then style it.
+  - a detail of it'}"
+check "an unkeyed bullet nested after an indented paragraph" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+  Then style it.
+
+  - a detail of it'}"
+check "a keyed step under a ### subheading" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'### The form
+
+- ::S1:: Write the form.'}"
+check "an unkeyed bullet nested after a tab-indented paragraph" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+	Then style it.
+
+  - a detail of it'}"
+check "an unkeyed bullet nested after a tab-indented fence" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+	```text
+	a block
+	```
+
+  - a detail of it'}"
+check "an unkeyed item inside a fence" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+```markdown
+- Write the form.
+```'}"
+check "an unkeyed item under another heading" 0 "$NAME" "${GOOD/'None.'/'None.
+
+## Notes
+
+- A note.'}"
+
+echo "a key opening two items fails:"
+check "a repeated step key" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+- ::S1:: Style it.'}"
+check "a repeated key one space in" 1 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+ - ::S1:: Style it.'}"
+check "a question key left in ## Open questions after its move" 1 "$NAME" "${GOOD/'None.'/'- ::Q1:: Which form?
+
+## Settled
+
+- ::Q1:: Which form? The login one.'}"
+
+echo "a key opening one item passes, wherever else it is named:"
+check "a question moved to ## Settled" 0 "$NAME" "${GOOD/'None.'/'None.
+
+## Settled
+
+- ::Q1:: Which form? The login one.'}"
+check "a key named in prose" 0 "$NAME" "${GOOD/'- ::S1:: Write the form.'/'- ::S1:: Write the form.
+
+The step `::S1::` is named here in prose.'}"
+check "a key quoted inside a fence" 0 "$NAME" "${GOOD/'None.'/'None.
+
+```markdown
+- ::S1:: Write the form.
+```'}"
+
 echo "a filename off the pattern fails:"
 check "no issue key" 1 "2026-08-16_login-form.md" "$GOOD"
 check "an impossible date" 1 "2026-13-16_GHI-50_login-form.md" "$GOOD"
@@ -132,7 +223,7 @@ check "an uppercase slug" 1 "2026-08-16_GHI-50_Login-form.md" "$GOOD"
 
 echo "a path Vale rewrites still reports:"
 rm -f "$PLANS"/*
-printf '%s\n' "${GOOD/'- Write the form.'/'- [ ] Write the form.'}" > "$PLANS/$NAME"
+printf '%s\n' "${GOOD/'- ::S1:: Write the form.'/'- [ ] ::S1:: Write the form.'}" > "$PLANS/$NAME"
 got=0
 python3 "$SCRIPT" "$TREE/docs/../docs/plans/$NAME" > /dev/null 2>&1 || got=$?
 if [[ "$got" == 1 ]]; then echo "  ok   a/../b"; else echo "  FAIL a/../b: exit $got, want 1"; fails=$((fails + 1)); fi
@@ -141,7 +232,7 @@ echo "the served repository's own Vale config is never read:"
 printf 'StylesPath = nowhere\n[*.md]\nBasedOnStyles = Nope\n' > "$TREE/.vale.ini"
 for want in 0 1; do
     rm -f "$PLANS"/*
-    [[ "$want" == 0 ]] && content="$GOOD" || content="${GOOD/'- Write the form.'/'- [ ] Write the form.'}"
+    [[ "$want" == 0 ]] && content="$GOOD" || content="${GOOD/'- ::S1:: Write the form.'/'- [ ] ::S1:: Write the form.'}"
     printf '%s\n' "$content" > "$PLANS/$NAME"
     got=0
     (cd "$TREE" && python3 "$SCRIPT" "docs/plans/$NAME") > /dev/null 2>&1 || got=$?

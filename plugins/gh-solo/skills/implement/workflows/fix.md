@@ -50,7 +50,7 @@ Check out the branch, pull, and read `git status` before touching anything - the
 
 ## Step 4 - Re-run what the fixes invalidated, and re-tick
 
-Any gate in `## Verification` whose result the fixes could have changed is re-run and its box re-ticked by you, because you watched it exit. **When in doubt about whether a fix reaches a gate, re-run the gate** - the doubt is the evidence that it might. If a fix invalidated a judgement the owner recorded in the prose under that section, say so in the handoff: their earlier judgement needs remaking.
+Any gate in `## Verification` whose result the fixes could have changed is re-run and its box re-ticked by you, because you watched it exit, the box found by its `::V{n}::` key per *Keys* in `../tracker/references/formats.md`. **When in doubt about whether a fix reaches a gate, re-run the gate** - the doubt is the evidence that it might. If a fix invalidated a judgement the owner recorded in the prose under that section, say so in the handoff: their earlier judgement needs remaking.
 
 ## Step 5 - Update the plan overview where the fixes moved it
 

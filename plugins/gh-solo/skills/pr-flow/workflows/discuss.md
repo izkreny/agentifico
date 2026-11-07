@@ -27,7 +27,7 @@ There is no step after that, because this whole workflow is a fork, not a stage:
 
 A plan change the exchange settles is Step 4 as usual: an order in the thread gets the change committed, unpushed, with the naming reply. Those plan commits wait like any others; their release is the owner starting implementation, which pushes them before any code lands.
 
-A settled question also moves in the body. When the owner's closing decision settles an entry in `## Open questions`, move it to `## Settled` with the decision, question included, per the template in `workflows/open.md` - a body edit made read-modify-write per the body-edit convention in `SKILL.md`, not a commit, so it disturbs nothing the owner is reading.
+A settled question also moves in the body. When the owner's closing decision settles an entry in `## Open questions`, move it to `## Settled` under its own `Q{n}`, per *Keys* in `../tracker/references/formats.md`, with the decision, question included, per the template in `workflows/open.md` - a body edit made read-modify-write per the body-edit convention in `SKILL.md`, not a commit, so it disturbs nothing the owner is reading.
 
 **Where the move takes `## Settled` past the cap** *Body caps* in `workflows/open.md` sets, that section owns the whole route and this round follows it rather than a copy of it. What is this round's own is the relocation `docs:` commit, made here and held like the others it makes; when the body edit that commit owes lands is stated there. Step 1's plan-record settle in the `implement` skill catches any entry still unmoved before implementation starts.
 
