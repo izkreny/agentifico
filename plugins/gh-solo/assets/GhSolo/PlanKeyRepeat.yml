@@ -1,6 +1,6 @@
 # A script rather than a repetition rule, because a key is repeated only when it opens a second list item, and a fenced block or a prose mention of it is no second item.
 extends: script
-message: "A key opens one item in a plan, per Keys in the tracker skill's references/formats.md: '%s' opens a second one."
+message: "A key opens one item in a plan or a pull request body, per Keys in the tracker skill's references/formats.md: '%s' opens a second one."
 level: error
 scope: raw
 script: |

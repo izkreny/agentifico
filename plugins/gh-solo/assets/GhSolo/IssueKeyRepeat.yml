@@ -1,0 +1,28 @@
+# PlanKeyRepeat with an issue's keys, because Vale scripts share no code: change the parsing in both files, and the keys-check bench runs both.
+extends: script
+message: "A key opens one item in an issue, per Keys in the tracker skill's references/formats.md: '%s' opens a second one."
+level: error
+scope: raw
+script: |
+  text := import("text")
+  matches := []
+  pos := 0
+  seen := {}
+  fence := ""
+  for line in text.split(scope, "\n") {
+    stripped := text.trim_left(line, " \t")
+    marker := text.re_find("^(`{3,}|~{3,})", stripped)
+    if fence != "" {
+      if marker != undefined && text.has_prefix(marker[0][1].text, fence) && text.trim_space(text.substr(stripped, len(marker[0][1].text))) == "" { fence = "" }
+    } else if marker != undefined {
+      fence = marker[0][1].text
+    } else {
+      item := text.re_find(`^ {0,3}(?:[-*+]|\d+[.)])[ \t]+(?:\[[ xX]\][ \t]+)?::((?:AC|N|D)[1-9]\d*)::`, line)
+      if item != undefined {
+        found := item[0][1].text
+        if seen[found] != undefined { matches = append(matches, {begin: pos, end: pos + len(line)}) }
+        seen[found] = true
+      }
+    }
+    pos += len(line) + 1
+  }

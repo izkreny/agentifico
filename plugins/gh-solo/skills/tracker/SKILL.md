@@ -3,10 +3,10 @@ name: tracker
 description: |
   Manage the GitHub issue tracker of a repository the user owns, as a solo developer, through the `gh` CLI. Use when asked to break a feature into issues, create an epic with sub-issues, open a spike, park an unfinished issue in the backlog as a draft or finish a draft's description, record blocked-by dependencies, pick the next task to work on or say what is in progress, summarise what is left on the issue for the current branch, search the tracker, validate an issue against the repo's standards, move an issue's state, mark one in progress, start work on one, close one, reopen one, set an issue aside or pause work on it, or create a milestone, move its date, or close one on scope. Also use when the user types `/gh-solo:tracker`, or names an issue number and asks what is on it. Not for branches, plans, pull requests, review or merging - that is the `pr-flow` skill - nor for implementing a plan, which is `implement`.
 argument-hint: "[create issues for X | next | status [<number>] | search [query] | validate [<number>] | state [<number>] | start [<number>] | finish [<number>] | close [<number>] | reopen [<number>] | block [<number>] | milestone | help]"
-allowed-tools: Read, Write, Bash(git:*), Bash(gh:*)
+allowed-tools: Read, Write, Bash(git:*), Bash(gh:*), Bash(python3:*)
 ---
 
-> **Tools used:** `Bash(gh:*)` for every tracker read and write, `Bash(git:*)` for branch context, `Read` for the standards and the per-repo config, `Write` for issue body files passed to `--body-file`.
+> **Tools used:** `Bash(gh:*)` for every tracker read and write, `Bash(git:*)` for branch context, `Bash(python3:*)` for `../pr-flow/scripts/keys-check.py` in `workflows/validate.md`, `Read` for the standards and the per-repo config, `Write` for issue body files passed to `--body-file`.
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 
