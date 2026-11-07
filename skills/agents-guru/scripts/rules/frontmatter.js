@@ -29,6 +29,7 @@ export function frontmatter(params) {
   }
   const body = lines.slice(1);
   // The default frontmatter pattern lets the closing delimiter swallow a blank line after it, so trailing blanks go before the delimiter does.
+  // Stryker disable next-line ConditionalExpression,EqualityOperator: the closing delimiter stops the loop before the body empties
   while (body.length > 0 && body.at(-1).trim() === "") {
     body.pop();
   }

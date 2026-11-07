@@ -2,7 +2,7 @@
 
 # agents-guru
 
-A skill for writing, reviewing, maintaining and exporting agent skills. You type `/agents-guru <argument>`, or an agent invokes it on the triggers the `description` in `SKILL.md` names. Installing and updating skills stays yours: only your typed `/agents-guru manage` reaches that route.
+A skill for writing, reviewing, checking and exporting agent skills. You type `/agents-guru <argument>`, or an agent invokes it on the triggers the `description` in `SKILL.md` names. Installing and updating skills stays yours: only your typed `/agents-guru manage` reaches that route.
 
 It targets the [Agent Skills](https://agentskills.io) format, the open standard originally developed by Anthropic and since adopted across the agent ecosystem. The [specification](https://agentskills.io/specification) is the authority on the format, and the standard ships a [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference validator; the traps this skill exists to catch live below the spec's radar, since a truncated description is still valid YAML.
 
@@ -25,7 +25,7 @@ A skill that never fires looks identical to a skill that was never written. Ever
 | --- | --- |
 | `new <name>` | Author a skill from scratch |
 | `review <path>` | Review an existing skill, or a whole package, for the defects that actually occur |
-| `check [<path>...]`, or no argument | Mechanical audit of one skill or of named files, or a survey across a directory of them |
+| `check [--skip <rule>]... [<path>...]`, or no argument | Mechanical audit of one skill or of named files, or a survey across a directory of them; `--skip` switches a convention rule off for one run |
 | `export <path>` | Publish a local skill to a shared repository |
 | `manage` | Install, update or remove a skill someone else wrote, only when you type it |
 

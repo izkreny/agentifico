@@ -215,7 +215,7 @@ Reviewer model: opus
 This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
 ```
 
-The sweep's last act, after its review round's fixes are pushed and just before merge, is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/agents-guru/references/maintaining.md`, which owns what it reads. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
+The sweep's last act is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/agents-guru/references/maintaining.md`, which owns when it runs and what it reads. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
 
 New tokens land on the sweep's own branch only when the package is `agents-guru`. The lists live under `skills/agents-guru/assets/`, so any other sweep that landed them would move a second package's version inside its own release, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`. That sweep opens an `agents-guru` issue for its tokens instead.
 

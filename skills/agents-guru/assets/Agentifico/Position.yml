@@ -12,7 +12,7 @@ exceptions:
   # The form a review sanctioned for introducing a list, PR 46: "below" names what follows in the same file and no edit anywhere falsifies it.
   - 'Each part below'
   - 'each part below'
-  # "one copy owns it and every other copy says so" in workflows/new.md is the rule's own prescription, made true by construction.
+  # "one copy owns it and every other copy points at it" in workflows/new.md, One fact, one place, and "every other copy becomes a pointer at it" in workflows/review.md are the rule's own prescription, made true by construction.
   - 'every other copy'
 tokens:
   # A pointer by position: "the escape above" PR 46, "the row below" PR 58, "the paragraph above" PR 58, "the table above" and "label taxonomy below" ae1cd1a, "the name loop below" PR 100; twenty removals of "above" and sixteen of "below" across the history; "the above" live in skills/review-text, matched with no word between. "no rule above decides them" 9827051, PR 128, adds "no"; "the `rescope` list below" PR 181 lets a word be a code span, which is masked to asterisks by the time the token reads it. Narrows determiners: "that" is left out because "that floats above" is a CSS reference, not a pointer, and the record holds no "its" or "a" before one.
@@ -65,6 +65,8 @@ tokens:
   # An ordinal pair walking the document's own list: "The first is a check", "The second is" #2; "the third row is the finding" #7.
   # Widened to ordinals, PR 263. Narrows auxiliaries: the record holds only "is" and "was".
   - '^the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) (?:is|was)\b'
+  # "No rule reads a prescribed format, so only this question catches it" #412 RF3, 73e3abd: a uniqueness claim over the rule set, which one more rule makes false. Literal.
+  - 'only this question catches'
   # "beneath it" as a pointer at a heading, #236 SW6 and 694a588, belongs here and has no token: every general form trips "the floor beneath it".
 tests:
   - name: fires on each recorded shape, once per line
@@ -109,6 +111,7 @@ tests:
       When a workflow below says it, resolve it.
       The prose class is the one heading the index names.
       Every path here opens with a placeholder.
+      No rule reads that format, so only this question catches it.
     want: |
       3:5:Agentifico.Position:Write sentences that survive change: 'the escape above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       4:1:Agentifico.Position:Write sentences that survive change: 'The row below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
@@ -148,12 +151,13 @@ tests:
       38:6:Agentifico.Position:Write sentences that survive change: 'a workflow below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       39:20:Agentifico.Position:Write sentences that survive change: 'the one heading' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       40:1:Agentifico.Position:Write sentences that survive change: 'Every path here' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      41:31:Agentifico.Position:Write sentences that survive change: 'only this question catches' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
   - name: leaves the sanctioned forms alone
     input: |
       # Title
 
       Each part below earns its place:
-      One copy owns the fact and every other copy says so.
+      One copy owns the fact and every other copy points at it.
       "Never do X. Doing X is bad." The second sentence should say what breaks.
       Resume at the first unticked step, in the current directory, with the latest release.
       A footer that floats above the page is CSS, and the first of these that is set wins.

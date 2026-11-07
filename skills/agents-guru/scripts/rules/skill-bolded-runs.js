@@ -20,7 +20,7 @@ export default {
   parser: "micromark",
   function(params, onError) {
     walk(params.parsers.micromark.tokens, (list) => {
-      // Stryker disable next-line ConditionalExpression: items finds no item in a token that is not a list, so the guard only saves the search.
+      // Stryker disable next-line ConditionalExpression,BlockStatement: items finds no item in a token that is not a list, so the guard only saves the search.
       if (!isList(list)) {
         return;
       }

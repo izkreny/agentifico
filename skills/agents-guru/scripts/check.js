@@ -55,11 +55,8 @@ for (const target of targets) {
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const walks = await Promise.all(
   targets.map((target) =>
-    fs.statSync(target, { throwIfNoEntry: false })?.isDirectory()
-      ? Array.fromAsync(
-          glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true }),
-        )
-      : [],
+    // WHY: a glob whose folder is a file or is missing yields nothing, so every target is walked and the loop's own stat decides which walk is read.
+    Array.fromAsync(glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true })),
   ),
 );
 for (const [i, target] of targets.entries()) {
@@ -78,6 +75,7 @@ for (const [i, target] of targets.entries()) {
           return fs.statSync(file).isFile();
         } catch (error) {
           // A plain file that cannot be stat'ed is no link, so it stops the run rather than being named as one.
+          // Stryker disable next-line BlockStatement: stat fails on a file that is no link only where lstat throws too
           if (!fs.lstatSync(file).isSymbolicLink()) {
             throw error;
           }
@@ -369,23 +367,32 @@ const runVale = (batch) =>
   spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...batch], { encoding: "utf8", maxBuffer: VALE_OUTPUT_MEBIBYTES * MEBIBYTE });
 // WHY: Vale refuses the whole run over one file whose frontmatter it cannot read, naming every such file at once on stderr, so those files are set aside as findings and the rest are read again.
 const refusedFiles = (run) => {
+  // Stryker disable next-line ConditionalExpression,BlockStatement: Vale writes its refusals as JSON only under its refusal status, and any other stderr fails to parse into the same empty list.
   if (run.status !== 2) {
     return [];
   }
+  // Stryker disable next-line ConditionalExpression,LogicalOperator: any other refusal fails the rerun the same way, so the run stops as not run with or without the filter.
+  const isFileRefusal = (e) => e.Code === "E201" && valeFiles.includes(e.Path);
   try {
-    return run.stderr
-      .split(/^(?=\{)/mu)
-      .map((part) => JSON.parse(part))
-      .filter((e) => e.Code === "E201" && valeFiles.includes(e.Path));
+    return (
+      // Stryker disable next-line MethodExpression: any other refusal fails the rerun the same way, so the run stops as not run with or without the filter.
+      run.stderr
+        .split(/^(?=\{)/mu)
+        .map((part) => JSON.parse(part))
+        .filter(isFileRefusal)
+    );
   } catch {
+    // Stryker disable next-line ArrayDeclaration: stderr that does not parse comes with a refusal status the rerun repeats, so the run stops as not run before the list is read.
     return [];
   }
 };
 let vale = runVale(valeFiles);
 const unreadable = refusedFiles(vale);
 const readable = valeFiles.filter((file) => !unreadable.some((e) => e.Path === file));
-// WHY: Vale handed no file prints its usage rather than JSON.
+// Stryker disable next-line ConditionalExpression,EqualityOperator: with nothing set aside, the rerun reads the same files and returns the same alerts.
 if (unreadable.length > 0) {
+  // WHY: Vale handed no file lints its standard input instead, so a run with nothing left to read is skipped rather than left to that pipe.
+  // Stryker disable next-line ConditionalExpression,EqualityOperator: spawnSync hands Vale an empty pipe, which it answers with an empty result
   vale = readable.length > 0 ? runVale(readable) : { status: 0, stdout: "" };
 }
 // A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
@@ -409,7 +416,7 @@ const proseFindings = unreadable.map(
 for (const file of valeFiles) {
   const rel = path.relative(base, file);
   for (const a of alerts[file] ?? []) {
-    // Stryker disable next-line ConditionalExpression,ArrayDeclaration: a Vale check is named Style.Rule, and no skippable rule's name holds a dot.
+    // Stryker disable next-line ConditionalExpression,ArrayDeclaration,BlockStatement: a Vale check is named Style.Rule, and no skippable rule's name holds a dot.
     if (withholds([a.Check])) {
       continue;
     }

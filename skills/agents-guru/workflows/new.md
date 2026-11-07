@@ -117,7 +117,9 @@ A path to a file the skill holds stays bare, because a bare path is the one the 
 
 ### No hard wrapping
 
-One line per paragraph, per list item, per blockquote. Fenced code, tables and frontmatter keep their line structure exactly.
+One line per paragraph, per list item, per blockquote, because rewrapping a paragraph diffs every line of it and hides the edit that caused it. Fenced code, tables and frontmatter keep their line structure exactly.
+
+This is a convention of this skill's author, and `workflows/export.md` lets a skill decline its author's conventions, so a hard-wrapped skill is not defective. `--skip` in `workflows/check.md` switches its rule off for one run.
 
 ### One continuation paragraph per list item, and it carries the item's reason
 

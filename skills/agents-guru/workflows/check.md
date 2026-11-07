@@ -4,7 +4,7 @@ The mechanical audit. Run it after writing or editing any skill, and in a review
 
 **Findings group by heading**: `dangling links` for a link under a folder target that cannot be resolved, `skill rules` for the rules that decide what a file is, `prose shape` for the rules on how it lays its prose out, `general lint` for markdownlint's defaults, `yaml files` for *The YAML rules*, `plugin files` for *The plugin file rules*, `prose rules` for Vale's alerts.
 
-**Read the last line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale was missing, older than the version `scripts/check.js` requires, printed a version the check could not read, or refused its configuration, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown, YAML and plugin files alone, since a code file's only reader is the process that did not start.
+**Read the summary line**, `N files checked, M issues, K warnings`: an issue fails the run, a warning fails nothing. `prose rules not run` in place of the warning count means Vale did not run, the line after it says why, and the run fails whatever the count, since a check that silently ran half its rules would read as a clean sweep. On that line the file count is the markdown, YAML and plugin files alone, since a code file's only reader is the process that did not start.
 
 ## The check
 
@@ -18,9 +18,9 @@ node <skill-dir>/scripts/check.js AGENTS.md .agents/gh-solo.md
 node <skill-dir>/scripts/check.js --skip skill-hard-wrap path/to/the-skill
 ```
 
-**`--skip <rule>` switches a convention rule off for one run, and may be given more than once.** Only `skill-hard-wrap` and `yaml-comment-wrap` take it, the rules the check already reports as warnings because `workflows/export.md` lets a skill decline its author's conventions. A rule that fails the run is one this skill holds every skill to, so no caller can decline it. Any other name refuses the run and prints the names that do take it.
+**`--skip <rule>` switches a convention rule off for one run, and may be given more than once.** A rule takes it only where the check already reports it as a warning because `workflows/export.md` lets a skill decline its author's conventions. A rule that fails the run is one this skill holds every skill to, so no caller can decline it. Any other name refuses the run and prints the names that do take it.
 
-The switch is the caller's, written in the command where whoever reads the run sees it, and nothing under the target can set it. A run that skipped anything names each skipped rule with how many findings it withheld, and its last line adds `N rule(s) skipped`; the exit code is decided by the findings that remain.
+The switch is the caller's, written in the command where whoever reads the run sees it, and nothing under the target can set it. A run that skipped anything names each skipped rule with how many findings it withheld, and its summary line adds `N rule(s) skipped`; the exit code is decided by the findings that remain.
 
 **A file target is read as named, even inside a dot-directory**, which is how a file such as `<repo-root>/.agents/gh-solo.md` is reached at all. A file names no tree of its own, so its root is the current directory, where a folder target is its own root: the path rules resolve against it and the layout search stops at it. Run a file target from the folder its paths were written against. Several targets print every path from the folder they share, and a file reached by more than one is read once.
 
@@ -138,7 +138,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The hard-wrap rule
 
-**`skill-hard-wrap`**, in `scripts/rules/skill-hard-wrap.js`, is the mechanical face of *No hard wrapping* in `workflows/new.md`. It reads every paragraph on the parser's tree, so a list item's and a blockquote's are reached too. Its findings are warnings, which leave the run passing, because unwrapped prose is a convention of this skill's author and `workflows/export.md` lets a skill decline its author's conventions.
+**`skill-hard-wrap`**, in `scripts/rules/skill-hard-wrap.js`, is the mechanical face of *No hard wrapping* in `workflows/new.md`. It reads every paragraph on the parser's tree, so a list item's and a blockquote's are reached too. Its findings are warnings, which leave the run passing, because a skill may decline that rule, per *No hard wrapping* in `workflows/new.md`.
 
 **What it cannot decide is what a reported paragraph was meant to be.** A list item the parser read as an earlier paragraph's text, as after a block at column 0 that closed its list, needs its structure fixed rather than its lines joined.
 
