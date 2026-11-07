@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check plan files for the structure the pr-flow skill's open workflow requires.
 
-The filename is checked here, since Vale reads no filenames. Everything else is a rule of the plugin's own GhSolo Vale style: a "## Steps" heading, a "## Verification" heading with a list item under it, and no checkbox anywhere. The style is read from the plugin's own .vale.ini, never from the repository being checked.
+The filename is checked here, since Vale reads no filenames. Everything else is a rule of the plugin's own GhSolo Vale style: a "## Steps" heading, a "## Verification" heading with a list item under it, no checkbox anywhere, every item under "## Steps", "## Verification" and "## Open questions" opening with its section's key, and no key opening two items. The style is read from the plugin's own .vale.ini, never from the repository being checked.
 
 Example, on the plan a branch is about to commit:
     plan-check.py docs/plans/2026-08-16_GHI-50_login-form.md
