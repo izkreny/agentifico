@@ -91,6 +91,7 @@ let issues = 0;
 // A warning or suggestion is counted apart from the issues because one figure summing them reads as a failure count on a run that passed.
 let warnings = 0;
 let contractWarnings = 0;
+let proseShapeWarnings = 0;
 const contractFindings = [];
 const proseShapeFindings = [];
 const generalFindings = [];
@@ -98,22 +99,24 @@ for (const file of files) {
   const rel = path.relative(base, file);
   for (const e of results[file] ?? []) {
     const warning = e.ruleNames.some((name) => warningRuleNames.has(name));
-    if (warning) contractWarnings++;
-    else issues++;
+    const proseShape = e.ruleNames.some((name) => proseShapeRuleNames.has(name));
+    if (!warning) issues++;
+    else if (proseShape) proseShapeWarnings++;
+    else contractWarnings++;
     const detail = e.errorDetail ? ` [${e.errorDetail}]` : "";
     const context = e.errorContext ? ` [Context: "${e.errorContext}"]` : "";
     const line = `${rel}:${e.lineNumber} ${e.ruleNames.join("/")}${warning ? " (warning)" : ""} ${e.ruleDescription}${detail}${context}`;
-    const bucket = e.ruleNames.some((name) => contractRuleNames.has(name))
-      ? contractFindings
-      : e.ruleNames.some((name) => proseShapeRuleNames.has(name))
-        ? proseShapeFindings
-        : generalFindings;
+    const bucket = e.ruleNames.some((name) => contractRuleNames.has(name)) ? contractFindings : proseShape ? proseShapeFindings : generalFindings;
     bucket.push(line);
   }
 }
-warnings += contractWarnings;
+warnings += contractWarnings + proseShapeWarnings;
 report("skill rules", contractFindings, contractWarnings ? `${contractFindings.length - contractWarnings} issues, ${contractWarnings} warnings` : undefined);
-report("prose shape", proseShapeFindings);
+report(
+  "prose shape",
+  proseShapeFindings,
+  proseShapeWarnings ? `${proseShapeFindings.length - proseShapeWarnings} issues, ${proseShapeWarnings} warnings` : undefined,
+);
 report("general lint", generalFindings);
 
 // A comment is read off the parser's tree, because a "#" inside a block scalar is text and a raw-line scan would read it as a comment.
@@ -132,6 +135,7 @@ const commentsOf = (source) => {
 };
 
 const yamlFindings = [];
+let yamlWarnings = 0;
 for (const file of yamlFiles) {
   const rel = path.relative(base, file);
   const source = fs.readFileSync(file, "utf8");
@@ -148,12 +152,17 @@ for (const file of yamlFiles) {
   for (const [i, c] of whole.entries()) {
     const before = whole[i - 1];
     // A colon is no sentence end, since a wrapped comment breaks after one mid-sentence as often as after a word.
-    if (before?.line === c.line - 1 && !/[.!?]["')\]`*_]*$/.test(before.text.trimEnd()))
-      yamlFindings.push(`${rel}:${c.line} yaml-comment-wrap continues the sentence on the line before: write each paragraph of a comment on one line`);
+    if (before?.line === c.line - 1 && !/[.!?]["')\]`*_]*$/.test(before.text.trimEnd())) {
+      yamlFindings.push(
+        `${rel}:${c.line} yaml-comment-wrap (warning) continues the sentence on the line before: write each paragraph of a comment on one line`,
+      );
+      yamlWarnings++;
+    }
   }
 }
-issues += yamlFindings.length;
-report("yaml files", yamlFindings);
+issues += yamlFindings.length - yamlWarnings;
+warnings += yamlWarnings;
+report("yaml files", yamlFindings, yamlWarnings ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
 // The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 const pluginDirs = new Set();
