@@ -64,7 +64,7 @@ Stop with `⛔ REFUSED - the thread read is truncated` and name which connection
 
 **Read them through `reactions`, not `reactionGroups`.** Both carry who reacted, but `reactions` gives a plain `user` and a `createdAt` on each one, and the watch needs that timestamp to tell a reaction it has already emitted from a new one. `reactionGroups` exposes its reactors as a union, which is more work to read for nothing gained. `databaseId` is on each comment for the same reason: it is what a reaction is keyed against when deduplicating.
 
-**`owner` and `repo` travel as `-F` fields, never inside the query string.** `gh` substitutes the `{owner}`/`{repo}` placeholders only in the endpoint and in `-F` values; inside a `-f` string they go to GitHub as literal braces and the read fails with "could not resolve to a Repository". The reply mutation in Step 2 is the reverse case: `threadId` and `body` are literal strings, so they take `-f`, which never type-converts.
+**`owner` and `repo` travel as `-F` fields, never inside the query string.** `gh` substitutes the `{owner}`/`{repo}` placeholders only in the endpoint and in `-F` values; inside a `-f` string they go to GitHub as literal braces and the read fails with "could not resolve to a Repository". The reply mutation in Step 2 is the reverse case: `threadId` is a literal string, so it takes `-f`, which never type-converts. `body` takes `-F body=@<body-file>`, because only `-F` reads a file, and `-f body=@<body-file>` would post the literal path.
 
 ### Reading the threads
 

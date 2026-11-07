@@ -50,21 +50,27 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 
 ### The preliminaries, per PR
 
-1. **Fetch the PR.**
+#### 1. Fetch the PR
 
-   ```bash
-   gh pr view <pr-number> --json title,body,headRefName,assignees,isDraft,changedFiles,commits
-   ```
+```bash
+gh pr view <pr-number> --json title,body,headRefName,assignees,isDraft,changedFiles,commits
+```
 
-   If `changedFiles` is `0`, skip and record it as *Scope* does; on a list run that step already dropped these.
-2. **Recover the issue.** Derive the number from the branch name by the parse stated once in `SKILL.md`'s branch-format bullet: `feat/GHI-50_login-form` yields `50`. What the branch yields is the `{issue-number}`, never the `<pr-number>`. Read it with `gh issue view <issue-number> --json title,body,labels,parent,blockedBy`. A branch predating the convention may carry a legacy key whose number is **not** an issue number in this tracker: resolve those by title search, `gh issue list --state all --search "<legacy-prefix>-<legacy-number>"`, rather than by assuming. **The reviewer recovers the issue itself and does not get yours** - this copy is for the round report and for the convention checks.
-3. **Read what is already posted on the PR**, its comments and its Reviews, before posting anything of your own:
+If `changedFiles` is `0`, skip and record it as *Scope* does; on a list run that step already dropped these.
 
-   ```bash
-   gh pr view <pr-number> --json comments,reviews --jq '(.comments + .reviews)[] | [.author.login, .body] | @tsv'
-   ```
+#### 2. Recover the issue
 
-   The login cannot tell you who wrote a thing, per *Recognising the owner* in `references/review-protocol.md`; the disclaimer says an agent wrote it and the `via` line says which one.
+Derive the number from the branch name by the parse stated once in `SKILL.md`'s branch-format bullet: `feat/GHI-50_login-form` yields `50`. What the branch yields is the `{issue-number}`, never the `<pr-number>`. Read it with `gh issue view <issue-number> --json title,body,labels,parent,blockedBy`. A branch predating the convention may carry a legacy key whose number is **not** an issue number in this tracker: resolve those by title search, `gh issue list --state all --search "<legacy-prefix>-<legacy-number>"`, rather than by assuming. **The reviewer recovers the issue itself and does not get yours** - this copy is for the round report and for the convention checks.
+
+#### 3. Read what is already posted on the PR
+
+Read its comments and its Reviews before posting anything of your own:
+
+```bash
+gh pr view <pr-number> --json comments,reviews --jq '(.comments + .reviews)[] | [.author.login, .body] | @tsv'
+```
+
+The login cannot tell you who wrote a thing, per *Recognising the owner* in `references/review-protocol.md`; the disclaimer says an agent wrote it and the `via` line says which one.
 
 | What is already there                                                           | What it means                                                                                                       |
 |---------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
@@ -73,17 +79,23 @@ Stop cleanly on no. **The gate only exists on the no-number path**: when the own
 | A comment in the owner's own voice, no disclaimer                               | A note they wrote themselves. Never restate it as a finding                                                         |
 | A mentor or other reviewer                                                      | Advice the owner may have weighed and declined. Never re-raise it, and name it in the round report as unanswered    |
 
-   **The reviewer gets none of this.** Handing it an earlier round's findings would make its read dependent on the last one.
-4. **Check the conventions**, per *Convention checks* in this file, and post the failures as one Review:
+**The reviewer gets none of this.** Handing it an earlier round's findings would make its read dependent on the last one.
 
-   ```bash
-   gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -F body=@<body-file>
-   ```
+#### 4. Check the conventions
 
-   `COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked. **Not the `pulls/<pr-number>/comments` endpoint**, which anchors to a file and line, where a convention finding has nowhere to anchor. Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` review, convention check; the failure list is a record row, which *Never counted* in `references/post-caps.md` excludes.
+Check them per *Convention checks* in this file, and post the failures as one Review:
 
-   **These are not review findings and get no `RF{n}` id**: giving them ids would put them in the sequence the fix plans and re-review verdicts answer.
-5. **Refuse early on a thread the merge gate will refuse on.** The convention table's last row is the cheap, early check for *Resolution rests on recorded authority*; a violation stops this workflow here rather than after a round's worth of work.
+```bash
+gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -F body=@<body-file>
+```
+
+`COMMENT`, not `REQUEST_CHANGES`: a missing assignee is a one-command fix, not a reason to mark a PR as blocked. **Not the `pulls/<pr-number>/comments` endpoint**, which anchors to a file and line, where a convention finding has nowhere to anchor. Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` review, convention check; the failure list is a record row, which *Never counted* in `references/post-caps.md` excludes.
+
+**These are not review findings and get no `RF{n}` id**: giving them ids would put them in the sequence the fix plans and re-review verdicts answer.
+
+#### 5. Refuse early on a thread the merge gate will refuse on
+
+The convention table's last row is the cheap, early check for *Resolution rests on recorded authority*; a violation stops this workflow here rather than after a round's worth of work.
 
 ## The protocol's steps 1 to 5
 

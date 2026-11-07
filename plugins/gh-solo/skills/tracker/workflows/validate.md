@@ -4,7 +4,7 @@ Check an issue against the standards Step 2 loads and report what is wrong.
 
 ## Step 1 - Resolve the issue number
 
-Same as `status.md`: the argument, else the current branch, else ask.
+Same as Step 1 of `workflows/status.md`: the argument, else the current branch, else ask.
 
 ## Step 2 - Load the standards
 
@@ -42,7 +42,6 @@ Exit 0 passes both rows. Exit 1 fails the rows its lines name: an `unkeyed` line
 | Criteria are checkboxes | `- [ ]`, so GitHub counts them. A removed criterion's plain line is the exception, per *Keys* in `references/formats.md` |
 | Items are keyed | Every criterion, technical note and `## Done when` item carries its key, per *Keys* in `references/formats.md`. An item without one is a fail, named by its wording. The keys check decides it |
 | Keys are unique | No key appears on two items. A repeated key is a fail, naming the key and every item that carries it. The keys check decides it |
-| Criteria are testable | Each one observable; a reader can say pass or fail |
 | Dependencies | Anything the body calls a blocker exists as a real `blockedBy` relation |
 
 ### Epics
