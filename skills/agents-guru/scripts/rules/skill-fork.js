@@ -1,11 +1,11 @@
-import { FRONTMATTER_LINE, frontmatter, isSkillFile, parsed } from "./frontmatter.js";
+import { built, FRONTMATTER_LINE, frontmatter, isSkillFile, parsed } from "./frontmatter.js";
 
 // https://code.claude.com/docs/en/skills scopes `agent` to `context: fork`, and a skill without it runs inline with the field ignored and nothing said.
 export function defects(fm) {
   const doc = parsed(fm);
   // Frontmatter that does not parse is `skill-frontmatter-parsed`'s, which reports it already.
   if (doc.errors.length) return [];
-  const mapping = doc.toJS();
+  const mapping = built(doc).value;
   if (mapping === null || typeof mapping !== "object" || !("agent" in mapping) || mapping.context === "fork") return [];
   return ["agent does nothing without context: fork, so the skill runs inline"];
 }

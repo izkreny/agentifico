@@ -287,7 +287,25 @@ if (valeVersion && (major < MIN_VALE[0] || (major === MIN_VALE[0] && minor < MIN
 
 // --no-global drops the user's own configuration and default styles directory, where a style of the same name would shadow this one.
 const valeFiles = [...files, ...codeFiles];
-const vale = spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...valeFiles], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+const runVale = (targets) =>
+  spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...targets], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+// WHY: Vale refuses the whole run over one file whose frontmatter it cannot read, naming every such file at once on stderr, so those files are set aside as findings and the rest are read again.
+const refusedFiles = (run) => {
+  if (run.status !== 2) return [];
+  try {
+    return run.stderr
+      .split(/^(?=\{)/m)
+      .map((part) => JSON.parse(part))
+      .filter((e) => e.Code === "E201" && valeFiles.includes(e.Path));
+  } catch {
+    return [];
+  }
+};
+let vale = runVale(valeFiles);
+const unreadable = refusedFiles(vale);
+const readable = valeFiles.filter((file) => !unreadable.some((e) => e.Path === file));
+// WHY: Vale handed no file prints its usage rather than JSON.
+if (unreadable.length) vale = readable.length ? runVale(readable) : { status: 0, stdout: "" };
 // A binary that is not there, or a configuration Vale refuses to load, is a setup failure and not a clean run.
 // Stryker disable next-line ConditionalExpression,StringLiteral: a missing binary also sets vale.error, which the last test catches
 if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error)
@@ -299,9 +317,12 @@ if (vale.error?.code === "ENOENT" || vale.status === 2 || vale.error)
 // Vale's exit code is not read because it is non-zero only for an error-level alert and the JSON carries every alert.
 const alerts = vale.stdout.trim() ? JSON.parse(vale.stdout) : {};
 
-let proseIssues = 0;
+let proseIssues = unreadable.length;
+issues += unreadable.length;
 let proseWarnings = 0;
-const proseFindings = [];
+const proseFindings = unreadable.map(
+  (e) => `${path.relative(base, e.Path)}:${e.Line} vale-unread (error) Vale could not read this file (${e.Text}), so no prose rule judged it`,
+);
 for (const file of valeFiles) {
   const rel = path.relative(base, file);
   for (const a of alerts[file] ?? []) {

@@ -62,13 +62,25 @@ export function scalar(raw) {
 export const BLOCK_SCALAR = /^[|>](?:[+-][1-9]?|[1-9][+-]?)?(?:\s+#.*)?$/;
 
 // Version 1.1 is the reading under which `yes` becomes a boolean, and duplicate keys are allowed so the document parses the way the last-wins parsers an agent runs read it.
-export const parsed = (fm) => parseDocument(fm.join("\n"), { version: "1.1", uniqueKeys: false });
+export const parsed = (fm, options = {}) => parseDocument(fm.join("\n"), { version: "1.1", uniqueKeys: false, ...options });
+
+// WHY: a merge key with nothing to merge and an alias with no anchor leave doc.errors empty and throw only when the value is built.
+export function built(doc) {
+  try {
+    return { value: doc.toJS() };
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+// WHY: claude plugin validate 2.1.318 passes such a file, so the finding names what this check could not read rather than calling the file broken.
+export const unbuilt = (message) => `frontmatter parses but its value cannot be built (${message}), so this rule checked no field in it`;
 
 // The parser's value rather than the lines', because chomping, folding, the indentation indicator and the last-wins duplicate key are the parser's to decide and a reimplementation agreed with it on `|-` alone.
 export function description(fm) {
   const doc = parsed(fm);
   if (!doc.errors.length) {
-    const value = doc.toJS()?.description;
+    const value = built(doc).value?.description;
     if (typeof value === "string") return value;
   }
   return rough(fm);
@@ -82,7 +94,6 @@ function rough(fm) {
   if (!BLOCK_SCALAR.test(raw)) return folded(fm, i);
   const body = [];
   // A paragraph break inside a block scalar is an empty line, so the scalar ends at the first non-empty line with no indent.
-  // Stryker disable next-line EqualityOperator: past the end the line is undefined, neither empty nor indented, so the loop stops anyway
-  for (let j = i + 1; j < fm.length && (fm[j] === "" || /^\s/.test(fm[j])); j++) body.push(fm[j]);
+  for (let j = i + 1; fm[j] === "" || /^\s/.test(fm[j]); j++) body.push(fm[j]);
   return body.join("\n");
 }

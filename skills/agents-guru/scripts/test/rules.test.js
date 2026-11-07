@@ -591,6 +591,9 @@ describe("skill-vale-directive", () => {
     ["t-inline", "A paragraph carrying <!-- vale off --> mid-sentence.", true],
     ["t-tight", "<!--vale off-->\n\nProse.", true],
     ["t-blockquote", "> <!-- vale on -->\n\nProse.", true],
+    // Vale honours a comment anywhere in an HTML block, not only where the block opens.
+    ["t-html-block", "<div>\n<!-- vale off -->\n</div>\n\nProse.", true],
+    ["t-html-mid-line", "<div>x <!-- vale off --></div>\n\nProse.", true],
     ["good-ordinary", "<!-- an ordinary comment -->\n\nProse.", false],
     ["good-span", "A span `<!-- vale off -->` naming the form.", false],
     ["good-fenced", "```markdown\n<!-- vale off -->\n```", false],
@@ -617,6 +620,15 @@ describe("skill-vale-directive", () => {
     );
   });
 
+  it("names the line inside an HTML block that holds the directive, and quotes it", async () => {
+    const body = "<div>\n<!-- vale off -->\n</div>";
+    const found = await findings("fx/v-block/SKILL.md", skill("name: v-block\ndescription: |\n  x", body), valeDirective);
+    assert.deepEqual(
+      found.map((f) => [f.line, f.context]),
+      [[8, "<!-- vale off -->"]],
+    );
+  });
+
   // markdownlint masks an HTML comment's content in params.lines, so the context comes off the token.
   it("reports the directive's own text, not the masked line", async () => {
     const results = await lint({
@@ -638,6 +650,8 @@ describe("skill-argument-hint", () => {
     ["h-unadvertised", "[new]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), unadvertised("check")],
     ["h-exactly", "[help | status]", routing("If the argument is exactly `help` → print it.", "If it starts with `status` → read a."), null],
     ["h-list", "[state | start | close]", routing("If it starts with `state`, `start` or `close` → read a."), null],
+    // CommonMark reads a line ending inside a code span as a space, so the words either side stay apart.
+    ["h-span-broken", "[new]", routing("If it starts with `new\n  mode` → read a."), null],
     // Everything after the arrow names files, tools and other skills, so a span there routes nothing.
     [
       "h-after-arrow",
@@ -865,6 +879,13 @@ describe("agent-frontmatter", () => {
     ["leading-dash", "name: -reviewer\ndescription: Reviews code.", 'starts with "-"'],
     ["at-limit", `name: ${"a".repeat(256)}\ndescription: Reviews code.`, null],
     ["over-limit", `name: ${"a".repeat(257)}\ndescription: Reviews code.`, "257 characters"],
+    // WHY: claude plugin validate 2.1.318 passes a timestamp and a binary as a name and rejects a mapping, a list and a set.
+    ["timestamp-name", "name: 2026-11-06\ndescription: Reviews code.", null],
+    ["merged-timestamp-name", "<<: {name: 2026-11-06}\ndescription: Reviews code.", null],
+    ["binary-name", "name: !!binary aGk=\ndescription: Reviews code.", null],
+    ["mapping-name", "name: {a: 1}\ndescription: Reviews code.", "name must be a string"],
+    ["list-name", "name: [a]\ndescription: Reviews code.", "name must be a string"],
+    ["set-name", "name: !!set {a, b}\ndescription: Reviews code.", "name must be a string"],
     ["bypass", "name: r\ndescription: Reviews code.\npermissionMode: bypassPermissions", "bypassPermissions"],
     ["other-mode", "name: r\ndescription: Reviews code.\npermissionMode: plan", null],
     ["specifier-in-string", "name: r\ndescription: Reviews code.\ndisallowedTools: Write, Bash(git push *)", 'entry "Bash(git push *)" removes the whole tool'],

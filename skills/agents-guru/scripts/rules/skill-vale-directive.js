@@ -1,7 +1,7 @@
 // The token's own text is read because markdownlint masks the content of every HTML comment in params.lines.
 const CARRIES_A_COMMENT = new Set(["htmlFlow", "htmlText"]);
 
-// Case is not optional: <!-- VALE OFF --> silences nothing, so an insensitive match would report a file that was never silenced.
+// WHY: <!-- VALE OFF --> silences nothing, so the match keeps its case, and markdownlint reads the comments inside an HTML block again as inline tokens, so an unanchored match would report the block and the comment both.
 const OPENS_WITH_VALE = /^<!--\s*vale(?![\w-])/;
 
 function walk(tokens, fn) {

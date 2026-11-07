@@ -1,7 +1,7 @@
 // Each limit is the sub-agents page's or the plugin components page's, at https://code.claude.com/docs/en/sub-agents and https://code.claude.com/docs/en/plugins/components.
 import fs from "node:fs";
 import path from "node:path";
-import { FRONTMATTER_LINE, frontmatter, parsed } from "./frontmatter.js";
+import { built, FRONTMATTER_LINE, frontmatter, parsed, unbuilt } from "./frontmatter.js";
 import { isPluginRoot } from "./plugin-files.js";
 
 const PLUGIN_IGNORES = ["permissionMode", "hooks", "mcpServers", "initialPrompt"];
@@ -30,6 +30,12 @@ const specifierDefects = (value) =>
     .flatMap((entry) => entry.match(SPECIFIED) ?? [])
     .map((entry) => `disallowedTools entry ${JSON.stringify(entry)} removes the whole tool, not only what it names: a permissions.deny rule blocks only that`);
 
+// WHY: claude plugin validate 2.1.318 reads name: 2026-11-06 as the text written, so an agent's frontmatter is read without YAML 1.1's timestamp tag.
+const UNTIMED = { customTags: (tags) => tags.filter((tag) => tag.tag !== "tag:yaml.org,2002:timestamp") };
+
+// WHY: a binary builds to an object, yet validate passes it as a name and rejects a mapping, a list or a set.
+const nameText = (name) => (typeof name === "object" && !(name instanceof Uint8Array) ? null : String(name));
+
 // Stryker disable next-line ArrayDeclaration: every caller passes the lines, and a line that is no delimiter reads as no lines.
 export function defects(fm, inPlugin, lines = []) {
   if (!fm) {
@@ -43,10 +49,11 @@ export function defects(fm, inPlugin, lines = []) {
       return ["the opening --- is not the first line: Claude Code reads no frontmatter and skips the file as documentation"];
     return ["no name: Claude Code skips the file as documentation kept beside the agents"];
   }
-  const doc = parsed(fm);
+  const doc = parsed(fm, UNTIMED);
   // Frontmatter that does not parse is left to claude plugin validate, which reports it.
   if (doc.errors.length) return [];
-  const value = doc.toJS();
+  const { value, error } = built(doc);
+  if (error) return [unbuilt(error)];
   // Empty frontmatter parses to null, and it sets no name just as a mapping without one does.
   // Stryker disable next-line ConditionalExpression: a string, number or boolean holds none of the keys read off the mapping, just as {} does
   const mapping = value && typeof value === "object" && !Array.isArray(value) ? value : {};
@@ -61,10 +68,13 @@ export function defects(fm, inPlugin, lines = []) {
   const bad = [...specifiers];
   if (mapping.name === undefined || mapping.name === null) bad.push("no name: Claude Code skips the file as documentation kept beside the agents");
   else {
-    const name = String(mapping.name);
-    if (name.includes(":")) bad.push(`name ${JSON.stringify(name)} contains ":", which is reserved for plugin-scoped names, so Claude Code skips the file`);
-    if (name.startsWith("-")) bad.push(`name ${JSON.stringify(name)} starts with "-", so Claude Code skips the file`);
-    if (name.length > NAME_LIMIT) bad.push(`name is ${name.length} characters, over the ${NAME_LIMIT} Claude Code allows, so it skips the file`);
+    const name = nameText(mapping.name);
+    if (name === null) bad.push("name must be a string, not a mapping or a list: claude plugin validate rejects it");
+    else {
+      if (name.includes(":")) bad.push(`name ${JSON.stringify(name)} contains ":", which is reserved for plugin-scoped names, so Claude Code skips the file`);
+      if (name.startsWith("-")) bad.push(`name ${JSON.stringify(name)} starts with "-", so Claude Code skips the file`);
+      if (name.length > NAME_LIMIT) bad.push(`name is ${name.length} characters, over the ${NAME_LIMIT} Claude Code allows, so it skips the file`);
+    }
   }
   if (mapping.permissionMode === "bypassPermissions")
     bad.push("permissionMode: bypassPermissions does nothing in a subagent, which keeps the main conversation's mode instead");
@@ -73,16 +83,10 @@ export function defects(fm, inPlugin, lines = []) {
 
 function declaredName(fm) {
   if (!fm) return null;
-  const doc = parsed(fm);
+  const doc = parsed(fm, UNTIMED);
   if (doc.errors.length) return null;
-  try {
-    // Stryker disable next-line OptionalChaining: reading a name off null throws into declaredName's own catch, which returns null as the chain does.
-    const name = doc.toJS()?.name;
-    return name === undefined || name === null ? null : String(name);
-  } catch {
-    // WHY: a merge key with nothing to merge and a name with no string form both throw past doc.errors.
-    return null;
-  }
+  const name = built(doc).value?.name;
+  return name === undefined || name === null ? null : nameText(name);
 }
 
 // WHY: markdownlint drops a BOM before the judged file reaches this rule, so a sibling has to lose one too.

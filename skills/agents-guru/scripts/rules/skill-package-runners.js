@@ -4,7 +4,7 @@ import { isSkillFile } from "./frontmatter.js";
 import { owningSkill } from "./paths.js";
 
 // WHY: this rule warns when it cannot tell, so whatever stands before a runner leaves it counted, since a wrapper, a prompt or a quoted command leaves it running.
-const RUNNER = /(?:^|[\s;&|(`'"])((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s|$)([^;&|)`]*))/g;
+const RUNNER = /(?:^|[\s;&|(`'"])((npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s)([^;&|)`]*))/g;
 // WHY: a leading @ opens a scoped name and `npm:@` opens a scoped specifier, and neither is a version.
 const VERSION = /[^\s'":/]@[^\s/]|[=~<>!]=/;
 // WHY: only a path or a placeholder marks a local file, since npm reads `chart.js` as a registry name and `tools/run.js` as a hosted spec.
@@ -14,7 +14,7 @@ const PIPX_SCRIPT = /\.py['"]?$/;
 // WHY: go run and deno run also take a local file, and only these shapes fetch a package.
 const PACKAGE = { go: /^[\w-]+(?:\.[\w-]+)+\//, deno: /^(?:npm|jsr):/ };
 // WHY: a quoted string is matched first, so a # inside one is not taken for a comment.
-const QUOTED_OR_COMMENT = /'[^']*'|"(?:[^"\\]|\\.)*"|(?:^|\s)#.*$/g;
+const QUOTED_OR_COMMENT = /'[^']*'|"(?:[^"\\]|\\.)*"|(?:^|\s)#.*/g;
 
 const withoutComment = (text) => text.replace(QUOTED_OR_COMMENT, (match) => (/^\s*#/.test(match) ? "" : match));
 

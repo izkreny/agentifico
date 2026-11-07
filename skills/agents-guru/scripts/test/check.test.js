@@ -806,8 +806,17 @@ describe("check.js", () => {
           ["a.md", `---\n${fm}\n---\n\nBody.\n`],
           ["b.md", `---\n${fm}\n---\n\nBody.\n`],
         ]);
-        assert.doesNotMatch(run(path.join(dir, "a.md")).out, /also declared by/, id);
+        const r = run(path.join(dir, "a.md"));
+        assert.notEqual(r.linted, null, `${id}: ${r.out}`);
+        assert.doesNotMatch(r.out, /also declared by/, id);
       }
+    });
+    it("a timestamp name is compared by the text written, as validate reads it", () => {
+      const dir = agents("timestamp", [
+        ["a.md", "---\nname: 2026-11-06\n---\n\nBody.\n"],
+        ["b.md", '---\nname: "2026-11-06"\n---\n\nBody.\n'],
+      ]);
+      assert.match(run(path.join(dir, "a.md")).out, /name "2026-11-06" is also declared by b\.md:/);
     });
     it("a sibling's byte order mark is dropped only where it opens the file", () => {
       const dir = agents("bom-inside", [
@@ -910,6 +919,50 @@ describe("check.js", () => {
     });
     it("a judged file opening with a BOM is compared like any other", () => {
       assert.match(run(path.join(tmp, "bom", ".claude", "agents", "marked.md")).out, /also declared by same\.md:/);
+    });
+  });
+  // WHY: a throw inside a rule ends the whole run, and Vale refusing one file's frontmatter ends the prose rules, so each case proves the other file's findings of both kinds still print.
+  describe("frontmatter the parser builds no value from costs one finding", () => {
+    const RECAP = "## Step\n\nDo it.\n\n## Rules\n\n- One.\n";
+    const finished = (r) => {
+      assert.equal(r.code, 1, r.out);
+      assert.notEqual(r.linted, null, r.out);
+      assert.doesNotMatch(r.out, /\n\s+at \S/, r.out);
+      assert.doesNotMatch(r.out, /prose rules: not run/, r.out);
+    };
+    // WHY: Vale reads a name with no string form without complaint, so only the other two cost a prose finding of their own.
+    for (const [id, fm, want, unread] of [
+      ["merge-key", "name: a\n<<: 1", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Merge sources must be maps or map aliases\)/m, true],
+      ["unresolved-alias", "name: a\nx: *nope", /^ {2}a\.md:\d+ agent-frontmatter .*cannot be built \(Unresolved alias/m, true],
+      ["stringless-name", "name: {toString: 1}", /^ {2}a\.md:\d+ agent-frontmatter .*name must be a string, not a mapping or a list/m, false],
+    ])
+      it(`an agent: ${id}`, () => {
+        const dir = path.join(tmp, `unbuilt-${id}`, ".claude", "agents");
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, "a.md"), `---\n${fm}\n---\n\nBody.\n`);
+        fs.writeFileSync(path.join(dir, "c.md"), `---\nname: c:d\n---\n\n${RECAP}`);
+        const r = run(dir);
+        finished(r);
+        assert.match(r.out, want);
+        assert.match(r.out, /^ {2}c\.md:\d+ agent-frontmatter .*contains ":"/m);
+        assert.match(r.out, /^ {2}c\.md:\d+ Agentifico\.ClosingRecap /m);
+        assert.equal(/^ {2}a\.md:1 vale-unread \(error\) /m.test(r.out), unread, r.out);
+      });
+    it("a skill", () => {
+      const dir = path.join(tmp, "unbuilt-skill");
+      mk(path.join(dir, "merge"), `${block("merge")}\n<<: 1`);
+      mk(path.join(dir, "empty"), "name: empty\ndescription:");
+      mk(path.join(dir, "recap"), block("recap"));
+      fs.writeFileSync(path.join(dir, "recap", "SKILL.md"), `---\n${block("recap")}\n---\n\n${RECAP}`);
+      const r = run(dir);
+      finished(r);
+      assert.match(r.out, /^ {2}recap\/SKILL\.md:\d+ Agentifico\.ClosingRecap /m);
+      assert.match(r.out, /^ {2}merge\/SKILL\.md:1 vale-unread \(error\) Vale could not read this file \(yaml: map merge/m);
+      assert.match(
+        r.out,
+        /^ {2}merge\/SKILL\.md:\d+ skill-frontmatter-parsed .*cannot be built \(Merge sources must be maps or map aliases\), so this rule checked no field in it\]/m,
+      );
+      assert.match(r.out, /^ {2}empty\/SKILL\.md:\d+ skill-frontmatter-parsed .*empty description/m);
     });
   });
   it("a plugin's hooks file and manifest are read by their fixed paths", () => {
@@ -1662,6 +1715,9 @@ describe("skill-pinned-sources", () => {
     ["a site page, since only the domain is read", "https://github.com/features/actions"],
     ["an owner's profile, since only the domain is read", "https://github.com/owner"],
     ["a bare repository with a query", "https://github.com/owner/repo?tab=readme-ov-file"],
+    // A trailing dot names the same host, and new URL() keeps it in the hostname.
+    ["a forge's host written with a trailing dot", "https://github.com./owner/repo"],
+    ["a git subdomain written with a trailing dot", "https://git.example.com./owner/repo"],
   ];
   for (const [what, url] of unpinned)
     it(`warns on ${what} and leaves the run passing`, () => {

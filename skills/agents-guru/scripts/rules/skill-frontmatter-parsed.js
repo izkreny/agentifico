@@ -1,4 +1,4 @@
-import { FRONTMATTER_LINE, folded, frontmatter, isSkillFile, parsed } from "./frontmatter.js";
+import { built, FRONTMATTER_LINE, folded, frontmatter, isSkillFile, parsed, unbuilt } from "./frontmatter.js";
 
 const TOP_LEVEL = /^([^\s:#][^:]*):/;
 
@@ -8,7 +8,8 @@ const authored = (v) => v.replace(/\n$/, "");
 export function defects(fm) {
   const doc = parsed(fm);
   if (doc.errors.length) return [`PARSE ERROR, skill will not load: ${doc.errors[0].message.split("\n")[0]}`];
-  const mapping = doc.toJS();
+  const { value: mapping, error } = built(doc);
+  if (error) return [unbuilt(error)];
   if (mapping === null || typeof mapping !== "object") return ["frontmatter is not a mapping"];
   const bad = [];
   const d = mapping.description;

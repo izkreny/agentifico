@@ -1,4 +1,4 @@
-import { FRONTMATTER_LINE, frontmatter, isSkillFile, parsed } from "./frontmatter.js";
+import { built, FRONTMATTER_LINE, frontmatter, isSkillFile, parsed } from "./frontmatter.js";
 import { isList } from "./skill-continuations.js";
 
 // A first word that is not a bare lowercase word, such as `<pr-number>` or a path, is a placeholder or a target rather than a verb.
@@ -64,7 +64,8 @@ function conditionVerbs(paragraph) {
     if (c.type === "codeText") {
       const word = firstWord(
         c.children
-          .filter((d) => d.type === "codeTextData")
+          // WHY: CommonMark reads a line ending inside a code span as a space, and firstWord splits on any whitespace, so the line ending's own text keeps the words apart.
+          .filter((d) => d.type === "codeTextData" || d.type === "lineEnding")
           .map((d) => d.text)
           .join(""),
       );
@@ -127,7 +128,7 @@ export default {
     const doc = parsed(fm);
     // Frontmatter that does not parse is `skill-frontmatter-parsed`'s, which reports it already.
     if (doc.errors.length) return;
-    const hint = doc.toJS()?.["argument-hint"];
+    const hint = built(doc).value?.["argument-hint"];
     if (typeof hint !== "string") return;
     const routed = routes(params.parsers.micromark.tokens);
     if (!routed) return;
