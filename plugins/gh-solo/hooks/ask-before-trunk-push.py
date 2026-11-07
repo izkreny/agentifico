@@ -218,7 +218,7 @@ def main():
         if not hits:
             continue
         reason = (
-            f"This push writes to '{hits[0]}', the trunk. Every gh-solo skill states as a "
+            f"This push writes to '{hits[0]}', the trunk. The gh-solo flow states as a "
             f"hard rule that work reaches the trunk only through a reviewed pull request's "
             f"squash merge, never a direct push, so the plan record, the review threads and "
             f"the ticked gates stay the only route in. Confirm only if this repository is "
