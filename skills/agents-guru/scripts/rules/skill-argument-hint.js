@@ -4,6 +4,7 @@ import { isList } from "./skill-continuations.js";
 // A first word that is not a bare lowercase word, such as `<pr-number>` or a path, is a placeholder or a target rather than a verb.
 const VERB = /^[a-z][a-z0-9-]*$/;
 const firstWord = (text) => {
+  // Stryker disable next-line Regex: the text is trimmed first, so a single-space split leaves the first word the same.
   const word = text.trim().split(/\s+/)[0];
   return VERB.test(word) ? word : null;
 };
@@ -39,6 +40,7 @@ function advertised(hint) {
 }
 
 const headingLevel = (t) => {
+  // Stryker disable next-line ConditionalExpression: an ATX heading opens with its sequence, so the first child is the one sought.
   if (t.type === "atxHeading") return t.children.find((c) => c.type === "atxHeadingSequence").text.length;
   if (t.type === "setextHeading") return t.children.find((c) => c.type === "setextHeadingLine").text.startsWith("=") ? 1 : 2;
   return 0;
@@ -58,6 +60,7 @@ function conditionVerbs(paragraph) {
   const verbs = [];
   for (const c of inline(paragraph.children)) {
     if (c.type === "data" && c.text.includes("→")) return verbs;
+    // Stryker disable next-line ConditionalExpression: every other token inline yields has no children, so it holds no word.
     if (c.type === "codeText") {
       const word = firstWord(
         c.children

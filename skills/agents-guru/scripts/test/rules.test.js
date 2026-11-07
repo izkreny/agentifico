@@ -115,6 +115,17 @@ describe("skill-description, the raw sweep", () => {
     ["good-tight-number", "name: x\ndescription: Use when a<5 or b>3.", null],
     ["good-arrow", "name: x\ndescription: Use for a -> b and c <- d.", null],
     ["good-tag-in-comment", 'name: x\ndescription: "Plain." # <note>', null],
+    ["good-quoted-wide-comment", 'name: x\ndescription: "Plain."  # two spaces before the note', null],
+    ["good-inner-curly", "name: x\ndescription: Use for the repository’s own skills.", null],
+    ["good-inner-ampersand", "name: x\ndescription: Fix bugs & ship", null],
+    ["good-ends-in-no", "name: x\ndescription: Say no", null],
+    ["good-strip-block", "name: x\ndescription: |-\n  Use when reviewing X: safe & sound", null],
+    ["good-block-wide-comment", "name: x\ndescription: |  # two spaces before the note\n  Use when reviewing X: safe & sound", null],
+    // Only a header can follow the indicator, so text after it is a plain scalar with its traps.
+    ["t-indicator-then-text", "name: x\ndescription: >bad: value", "colon inside"],
+    ["good-apostrophe-then-comment-line", "name: x\ndescription: it's one\n  # c\ncompatibility: node 22", null],
+    ["t-spaced-blank-fold-comment", "name: x\ndescription: one\n  two\n  \n  three #x", "TRUNCATED"],
+    ["t-one-space-fold-comment", "name: x\ndescription: one\n two #x", "TRUNCATED"],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -125,6 +136,13 @@ describe("skill-description, the raw sweep", () => {
   }
   it("a file with no frontmatter at all has no description", async () => {
     expectDetail(await findings("fx/bare/SKILL.md", "body\n", description), "skill-description", "no description");
+  });
+  it("a truncation says how many characters it loses", async () => {
+    expectDetail(
+      await findings("fx/t-count/SKILL.md", skill("name: x\ndescription: review PR #N and more"), description),
+      "skill-description",
+      "loses 12 chars",
+    );
   });
   it("an XML tag's finding says what carries a placeholder instead", async () => {
     const found = await findings("fx/xml-remedy/SKILL.md", skill("name: x\ndescription: Reads <branch> names."), description);
@@ -185,6 +203,12 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["good-blank-then-key", "name: x\ndescription: one\n  two\n\ncompatibility: c", null],
     ["good-blank-then-comment", "name: x\ndescription: Use when doing X,\n  and when doing Y.\n\n  # unsure\ncompatibility: node 22", null],
     ["good-comment-line", "name: x\ndescription: one\n  # c\ncompatibility: node 22", null],
+    // A nested key is no top-level key, though its name is one.
+    ["good-nested-shadow", "name: x\nmetadata:\n  description: other\ndescription: real", null],
+    ["t-strip-over-cap", `name: x\ndescription: |-\n  ${"a".repeat(512)}\n  ${"b".repeat(512)}`, "1025 characters"],
+    ["t-scalar", "just a scalar", "not a mapping"],
+    ["t-comment-only", "# only a comment", "not a mapping"],
+    ["t-apostrophe-truncated", "name: x\ndescription: |\n  d\ncompatibility: node's 22 #c", "SILENTLY MUTATED"],
   ];
   for (const [id, fm, want] of cases) {
     it(id, async () => {
@@ -193,6 +217,28 @@ describe("skill-frontmatter-parsed, the differential", () => {
       else expectClean(found, "skill-frontmatter-parsed");
     });
   }
+  it("an absent or bare description is never called the wrong type", async () => {
+    for (const fm of ["name: x", "name: x\ndescription:"]) {
+      const found = await findings("fx/x/SKILL.md", skill(fm), parsed);
+      assert.ok(!has(found, "skill-frontmatter-parsed", "not a string"), JSON.stringify(found));
+    }
+  });
+  it("a duplicate key is compared once, against the value that wins", async () => {
+    const found = await findings("fx/x/SKILL.md", skill("name: x\ndescription: |\n  d\ncompatibility: one\ncompatibility: two #c"), parsed);
+    assert.deepEqual(
+      found.map((f) => f.detail),
+      ['compatibility SILENTLY MUTATED: raw line says "one" but parses as "two"'],
+    );
+  });
+  it("a file with no frontmatter has nothing to parse", async () => {
+    expectClean(await findings("fx/x/SKILL.md", "body\n", parsed), "skill-frontmatter-parsed");
+  });
+  it("a closing delimiter with trailing spaces still closes", async () => {
+    expectClean(await findings("fx/x/SKILL.md", "---\nname: x\ndescription: |\n  Fine.\n---  \n\nbody\n", parsed), "skill-frontmatter-parsed");
+  });
+  it("a whitespace-only line after the closing delimiter is not part of the frontmatter", async () => {
+    expectClean(await findings("fx/x/SKILL.md", "---\nname: x\ndescription: |\n  Fine.\n---\n   \n\nbody\n", parsed), "skill-frontmatter-parsed");
+  });
   it("a blank line after the closing delimiter is not part of the frontmatter", async () => {
     // Without the trailing-blank strip the closing `---` is parsed as a second document and every real skill file reports a parse error.
     expectClean(await findings("fx/x/SKILL.md", skill('name: x\ndescription: |\n  Fine.\nmetadata:\n  version: "1.0"'), parsed), "skill-frontmatter-parsed");
@@ -215,6 +261,7 @@ describe("skill-name", () => {
     ["trailing-hyphen-", "name: trailing-hyphen-\ndescription: |\n  x", "hyphen"],
     // The name is all lowercase letters, so only the length clause can decide it.
     [`${"a".repeat(65)}`, `name: ${"a".repeat(65)}\ndescription: |\n  x`, "over the spec's 64"],
+    [`${"a".repeat(64)}`, `name: ${"a".repeat(64)}\ndescription: |\n  x`, null],
   ];
   for (const [dir, fm, want] of cases) {
     it(dir, async () => {
@@ -299,6 +346,10 @@ describe("skill-fork", () => {
   it("leaves a file other than SKILL.md alone", async () => {
     expectClean(await findings("fx/f/workflows/w.md", skill("agent: Explore"), fork), "skill-fork");
   });
+  it("frontmatter that loads as no mapping holds no agent", async () => {
+    expectClean(await findings("fx/f-comment/SKILL.md", skill("# only a comment"), fork), "skill-fork");
+    expectClean(await findings("fx/f-scalar/SKILL.md", skill("just a scalar"), fork), "skill-fork");
+  });
 });
 
 // Each want is a literal from a run against the pinned yaml, because an assertion that asked the parser again could only fail if two calls disagreed about options.
@@ -333,6 +384,12 @@ describe("description(), the value a caller reads", () => {
     it(`a single-quoted scalar: ${raw}`, () => assert.equal(scalar(raw), want));
   }
   it("frontmatter holding only a comment has no description", () => assert.equal(descriptionValue(["# only a comment"]), ""));
+  it("an apostrophe inside a plain scalar opens no quote", () => assert.equal(scalar("it's fine # a note"), "it's fine"));
+  it("a scalar that is only a comment is empty", () => assert.equal(scalar(" # only a note"), ""));
+  it("the fallback ends a block at the first line with no indent", () => {
+    assert.equal(descriptionValue(["description: |", "  text", "other: [1, 2"]), "  text");
+    assert.equal(descriptionValue(["description: |", "  text", "other: [1, 2", "  more"]), "  text");
+  });
   it("the fallback reads a description on the first line", () => assert.equal(descriptionValue(["description: |", "  text", "other: [1, 2"]), "  text"));
   it("the fallback reads a plain description", () => assert.equal(descriptionValue(["name: x", "description: plain text", "other: [1, 2"]), "plain text"));
   it("an escaped quote inside a double-quoted scalar is the quote", () => assert.equal(scalar('"say \\"hi\\""'), 'say "hi"'));
@@ -370,6 +427,9 @@ describe("skill-continuations", () => {
     ["c-quoted", "> -\n>   **lead.** its text starts on the line after the marker\n>\n>   the one continuation\n", []],
     ["c-footnote", "text[^1]\n\n[^1]: -\n      **lead.** its text starts on the line after the marker\n", []],
     ["c-markeralone", "-\n  **lead.** its text starts on the line after the marker\n\n  the one continuation\n", []],
+    ["c-quoted-two", "> - **lead.** first line\n>\n>   the reason\n>\n>   a second paragraph\n", [`2 ${cap}`]],
+    // A link definition is no paragraph, so it is not a continuation.
+    ["c-definition", "- **lead.** first line\n\n  the reason\n\n  [x]: https://example.com\n", []],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
@@ -662,6 +722,25 @@ describe("skill-argument-hint", () => {
       "Routing\n-------\n\n- If it starts with `new` → read a.\n\nSupporting files\n----------------\n\n- If it starts with `check` → read b.",
       null,
     ],
+    // A word that is not a bare lowercase word all the way through is a placeholder or a target, not a verb.
+    ["h-capital-word", "[Fix | new]", routing("If it starts with `new` → read a."), null],
+    ["h-path-word", "[new | check/x]", routing("If it starts with `new` → read a."), null],
+    // Only an item's lead paragraph states its route, so a continuation's arrow routes nothing.
+    ["h-continuation", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n\n  Then `check` → b.", null],
+    // A definition opening an item's lead block leaves the paragraph after it to be read.
+    [
+      "h-definition-lead",
+      "[new | check]",
+      "## Routing\n\n- [d]: https://example.com\n  If it starts with `new` → read a.\n- If it starts with `check` → read b.",
+      null,
+    ],
+    // A fence opening an item holds no paragraph, so the paragraph after it is the item's lead.
+    [
+      "h-fence-lead",
+      "[new]",
+      "## Routing\n\n- If it starts with `new` → read a.\n- ```\n  x\n  ```\n\n  If it starts with `check` → read b.",
+      unadvertised("check"),
+    ],
   ];
   for (const [id, hint, body, want] of cases) {
     it(id, async () => {
@@ -671,6 +750,12 @@ describe("skill-argument-hint", () => {
       else expectClean(found, "skill-argument-hint");
     });
   }
+  it("reads no hint from frontmatter that is missing, does not parse, or loads as no mapping", async () => {
+    const body = routing("If it starts with `new` → read a.");
+    expectClean(await findings("fx/h-none/SKILL.md", `${body}\n`, argumentHint), "skill-argument-hint");
+    expectClean(await findings("fx/h-unparsed/SKILL.md", skill('argument-hint: "[new | check]"\nother: [1, 2', body), argumentHint), "skill-argument-hint");
+    expectClean(await findings("fx/h-comment/SKILL.md", skill("# only a comment", body), argumentHint), "skill-argument-hint");
+  });
   it("leaves a file other than SKILL.md alone", async () => {
     const body = routing("If it starts with `new` → read a.");
     expectClean(await findings("fx/h/workflows/w.md", skill('argument-hint: "[check]"', body), argumentHint), "skill-argument-hint");
@@ -726,6 +811,21 @@ describe("skill-bash-blocks", () => {
     // Bash ends a heredoc only on its exact terminator line, stripping leading tabs for `<<-` alone.
     ["good-indented-terminator", "```bash\ncat <<EOF\nok\n  EOF\nset files (ls)\nEOF\n```", null],
     ["b-tab-terminator", "```bash\ncat <<-EOF\n\tok\n\tEOF\nmake; and true\n```", "; and"],
+    ["b-set-after-command", "```bash\ntrue; set files (ls)\n```", "set <name> ("],
+    ["b-set-wide-name", "```bash\nset  files (ls)\n```", "set <name> ("],
+    ["b-set-wide-paren", "```bash\nset files  (ls)\n```", "set <name> ("],
+    ["b-or-unspaced", "```bash\nmake;or true\n```", "; or"],
+    ["b-and-unspaced", "```bash\nmake;and true\n```", "; and"],
+    ["good-double-quoted-heredoc", '```bash\ncat <<"EOF"\nfixed; and pushed\nEOF\n```', null],
+    ["b-after-backslash-terminator", "```bash\ncat <<\\EOF\nok\nEOF\nmake; and true\n```", "; and"],
+    // A comment after code on the same line leaves that line's code to be read.
+    ["b-trailing-comment", "```bash\nmake; and true # then deploy\n```", "; and"],
+    ["good-indented-comment", "```bash\n  # build; and then test\n```", null],
+    // A quoted string touching the next word shrinks to an empty quote pair, so the word is not read as opening the line.
+    ["good-quote-before-set", '```bash\necho "x"set files (ls)\n```', null],
+    // The opening fence carries words after its tag, which are no command.
+    ["good-fence-meta", "```bash title; and more\necho hi\n```", null],
+    ["b-in-list-item", "- a step\n\n  ```fish\n  echo hi\n  ```", "tagged fish"],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
@@ -736,6 +836,13 @@ describe("skill-bash-blocks", () => {
   }
   it("a workflow file is read, not only SKILL.md", async () => {
     expectDetail(await findings("fx/b/workflows/w.md", "```fish\necho hi\n```\n", bashBlocks), "skill-bash-blocks", "tagged fish");
+  });
+  it("says what to write instead", async () => {
+    const found = await findings("fx/b-advice/SKILL.md", skill("name: b-advice", "```fish\necho hi\n```"), bashBlocks);
+    assert.deepEqual(
+      found.map((f) => f.detail),
+      ["a fenced block tagged fish: write it in Bash, the shell an agent runs commands through"],
+    );
   });
   it("names the fence's line for a tag and the command's line for a phrase", async () => {
     const body = "```fish\necho hi\n```\n\n```bash\necho one\nmake; or true\n```";
@@ -768,6 +875,7 @@ describe("agent-frontmatter", () => {
     ],
     // WHY: a comma inside the parentheses separates nothing, so the entry prints whole.
     ["specifier-with-comma", "name: r\ndescription: Reviews code.\ndisallowedTools: Agent(a, b), Edit", 'entry "Agent(a, b)" removes the whole tool'],
+    ["specifier-unclosed", "name: r\ndescription: Reviews code.\ndisallowedTools: Write, Bash(git", 'entry "Bash(git" removes the whole tool'],
     ["whole-tools", "name: r\ndescription: Reviews code.\ndisallowedTools: Write, Edit", null],
     ["whole-tools-list", "name: r\ndescription: Reviews code.\ndisallowedTools: [Write, Edit]", null],
     ["whole-server", "name: r\ndescription: Reviews code.\ndisallowedTools: mcp__github, mcp__jira__*", null],
@@ -1304,6 +1412,10 @@ describe("skill-injected-commands", () => {
     ["good-fence-tab", "```!\na\tb\n```", null],
     ["good-other-fence-control", "```bash\na\u0007b\n```", null],
     ["good-untagged-fence-control", "```\na\u0007b\n```", null],
+    // The fence's own line is no command, so a control character in its meta stops nothing.
+    ["good-fence-meta-control", "```! a\u0007b\nnode --version\n```", null],
+    ["good-bang-before-bold", "Wow!**bold** text.", null],
+    ["good-span-opens-paragraph", "`ls` opens the paragraph.", null],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
@@ -1391,6 +1503,12 @@ describe("skill-package-runners", () => {
     ["cannot-tell-echo", "echo npx eslint"],
     ["cannot-tell-grep", "grep npx package.json"],
     ["cannot-tell-commit", 'git commit -m "use npx eslint here"'],
+    ["deno-wide-space", "deno  run npm:eslint"],
+    ["go-wide-space", "go  run golang.org/x/tools/cmd/goimports ."],
+    ["go-two-dots", "go run go.uber.org/tools/cmd/x ."],
+    // A word that only opens with a dot is no path.
+    ["dot-name", "npx .tool"],
+    ["pipx-not-py", "pipx run tool.pyz"],
   ];
   // Every example on the using-scripts page, so a finding here reports the page's own advice.
   const pinned = [
@@ -1415,6 +1533,8 @@ describe("skill-package-runners", () => {
     "uvx --from 'ruff>=0.8' ruff check .",
     "pipx run scripts/extract.py",
     "go run -tags foo golang.org/x/tools/cmd/goimports@v0.28.0 .",
+    // A # inside a quoted string is no comment, so the pin after it is read.
+    "uvx --from 'ruff>=0.8 # pinned' ruff check .",
   ];
   const notPackages = [
     "go run main.go",
@@ -1445,6 +1565,13 @@ describe("skill-package-runners", () => {
     "pipx run extract.py",
     "pipx run scripts/extract.py input.txt",
     "ls # npx eslint",
+    "# npx eslint .",
+    "npx ../bin/tool",
+    "npx .",
+    'npx "."',
+    "pipx run 'extract.py'",
+    "go run ./cmd.v2/x",
+    "deno run ./my-npm:task.ts",
   ];
   const skillWith = (body) => skill("name: x\ndescription: |\n  x", body);
   for (const [id, command] of unpinned) {
@@ -1467,6 +1594,9 @@ describe("skill-package-runners", () => {
     const found = await findings("fx/name/SKILL.md", skillWith("`npx a@1; npx b --flag`"), packageRunners);
     assert.equal(found.length, 1);
     expectDetail(found, "skill-package-runners", "npx b --flag names no version");
+  });
+  it("a space before a separator is not part of the command it names", async () => {
+    expectDetail(await findings("fx/space/SKILL.md", skillWith("`npx b ; ls`"), packageRunners), "skill-package-runners", "npx b names no version");
   });
   it("a quote is not part of the command it names", async () => {
     expectDetail(

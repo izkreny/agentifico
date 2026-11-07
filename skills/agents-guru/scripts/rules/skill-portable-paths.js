@@ -6,6 +6,7 @@ const CARRIES_A_PATH = new Set(["codeTextData", "codeFlowValue", "resourceDestin
 function walk(tokens, fn) {
   for (const token of tokens) {
     fn(token);
+    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
     if (token.children) walk(token.children, fn);
   }
 }
@@ -20,6 +21,7 @@ export default {
       if (!CARRIES_A_PATH.has(token.type)) return;
       // Stryker disable next-line StringLiteral: markdownlint gives every token its text, so the fallback is never read.
       const text = String(token.text ?? "");
+      // Stryker disable next-line OptionalChaining: a token's start line is always one of the file's lines.
       const report = (detail) => onError({ lineNumber: token.startLine, detail, context: params.lines[token.startLine - 1]?.trim() });
       for (const match of text.matchAll(ABSOLUTE_TO_ONE_MACHINE)) {
         report(`${match[0]} is absolute to one machine: write it relative to the skill, as <home-dir>/ in prose, or as ~/ in a command`);

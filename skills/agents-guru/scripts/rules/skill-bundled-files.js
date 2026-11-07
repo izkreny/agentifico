@@ -41,12 +41,18 @@ const IMPORT = /(?:^|[;:])[ \t]*(?:from[ \t]+([\w.]+)[ \t]+)?import[ \t]+(\([^)]
 
 // WHY: a statement can span lines through a bracket or a backslash and hold a comment, so a pattern over raw lines keeps missing forms of one import.
 function importedModules(text) {
+  // Stryker disable next-line Regex: a dot stops at a line break, so the comment pattern ends at the line's end with or without its anchor.
   const code = text.replace(/#.*$/gm, "").replace(/\\\r?\n/g, " ");
   return [...code.matchAll(IMPORT)].flatMap(([, from, items]) => {
+    // Stryker disable next-line MethodExpression: an empty name names no file, so filtering it out changes nothing.
     const names = items
       .replace(/[()]/g, "")
       .split(",")
-      .map((item) => item.trim().split(/\s+/)[0])
+      .map(
+        (item) =>
+          // Stryker disable next-line Regex: the item is trimmed first, so a single-space split leaves its first word the same.
+          item.trim().split(/\s+/)[0],
+      )
       .filter(Boolean);
     return from === undefined ? names : [from, ...names.map((name) => `${from}${from.endsWith(".") ? "" : "."}${name}`)];
   });

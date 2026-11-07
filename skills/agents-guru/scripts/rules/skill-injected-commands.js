@@ -8,6 +8,7 @@ const CONTROL = /(?![\t\n\r])\p{Cc}/u;
 function walk(tokens, fn) {
   tokens.forEach((token, i) => {
     fn(token, tokens[i - 1]);
+    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
     if (token.children) walk(token.children, fn);
   });
 }

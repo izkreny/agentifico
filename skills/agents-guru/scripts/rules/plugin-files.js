@@ -60,6 +60,7 @@ function read(source) {
     return null;
   }
   const lineCounter = new YAML.LineCounter();
+  // Stryker disable next-line BooleanLiteral: read() never consults the parser's errors, and a duplicate key leaves the same pairs either way.
   const doc = YAML.parseDocument(source, { lineCounter, uniqueKeys: false });
   return { root: doc.contents, lineOf: (node) => lineCounter.linePos(node.range[0]).line };
 }
@@ -75,7 +76,7 @@ const jsonIn = (pluginDir, file) => {
   try {
     // Stryker disable next-line StringLiteral: JSON.parse reads the buffer an empty encoding returns just the same.
     return JSON.parse(fs.readFileSync(path.resolve(pluginDir, file), "utf8"));
-  } catch {
+  } catch /* Stryker disable next-line BlockStatement: every caller reads the result through optional chaining or a nullish fallback, which take undefined as they take null. */ {
     return null;
   }
 };
@@ -206,9 +207,12 @@ const pathsOf = (value) =>
     ? [value]
     : Array.isArray(value)
       ? value.filter((item) => typeof item === "string")
-      : value && typeof value === "object"
-        ? Object.values(value).flatMap((entry) => (typeof entry?.source === "string" ? [entry.source] : []))
-        : [];
+      : // Stryker disable next-line ConditionalExpression: Object.values gives a number or a boolean no entries.
+        value && typeof value === "object"
+        ? // Stryker disable next-line ArrayDeclaration: a listed path holding no file loads nothing, so a stray one leaves the ignored files the same.
+          Object.values(value).flatMap((entry) => (typeof entry?.source === "string" ? [entry.source] : []))
+        : // Stryker disable next-line ArrayDeclaration: a listed path holding no file loads nothing, so a stray one leaves the ignored files the same.
+          [];
 
 const monitorDefects = (monitors, lineOf) =>
   itemsOf(monitors)
