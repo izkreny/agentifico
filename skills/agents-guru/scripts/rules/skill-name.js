@@ -21,6 +21,7 @@ export default {
   function(params, onError) {
     if (!isSkillFile(params.name)) return;
     const dir = path.basename(path.dirname(path.resolve(params.name)));
+    // Stryker disable next-line ArrayDeclaration: defects reads keys off the lines, and a line naming no key reads exactly as no lines.
     for (const detail of defects(frontmatter(params) ?? [], dir)) onError({ lineNumber: FRONTMATTER_LINE, detail });
   },
 };

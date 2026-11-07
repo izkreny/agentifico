@@ -18,6 +18,7 @@ export default {
   function(params, onError) {
     walk(params.parsers.micromark.tokens, (token) => {
       if (!CARRIES_A_PATH.has(token.type)) return;
+      // Stryker disable next-line StringLiteral: markdownlint gives every token its text, so the fallback is never read.
       const text = String(token.text ?? "");
       const report = (detail) => onError({ lineNumber: token.startLine, detail, context: params.lines[token.startLine - 1]?.trim() });
       for (const match of text.matchAll(ABSOLUTE_TO_ONE_MACHINE)) {

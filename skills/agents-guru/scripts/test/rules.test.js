@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { lint } from "markdownlint/promise";
 import { describe, it } from "vitest";
 import agentFrontmatter, { defects as agentDefects, pluginNameWarnings } from "../rules/agent-frontmatter.js";
-import { description as descriptionValue } from "../rules/frontmatter.js";
-import { hooksDefects } from "../rules/plugin-files.js";
+import { description as descriptionValue, scalar } from "../rules/frontmatter.js";
+import { hooksDefects, manifestDefects } from "../rules/plugin-files.js";
 import argumentHint from "../rules/skill-argument-hint.js";
 import bashBlocks from "../rules/skill-bash-blocks.js";
 import boldedParagraphs from "../rules/skill-bolded-paragraphs.js";
@@ -17,6 +17,7 @@ import hardWrap from "../rules/skill-hard-wrap.js";
 import invocation from "../rules/skill-invocation.js";
 import name from "../rules/skill-name.js";
 import portablePaths from "../rules/skill-portable-paths.js";
+import referencedPaths from "../rules/skill-referenced-paths.js";
 import valeDirective from "../rules/skill-vale-directive.js";
 
 const RULES = [
@@ -34,6 +35,7 @@ const RULES = [
   valeDirective,
   argumentHint,
   bashBlocks,
+  referencedPaths,
 ];
 
 // noInlineConfig is set as check.js sets it, or a fixture's own markdownlint comment would switch off the rule it is there to test.
@@ -41,7 +43,7 @@ async function findings(path, content, ...only) {
   const config = { default: false };
   for (const r of only) config[r.names[0]] = true;
   const results = await lint({ strings: { [path]: content }, customRules: RULES, config, noInlineConfig: true });
-  return results[path].map((e) => ({ rule: e.ruleNames[0], line: e.lineNumber, detail: e.errorDetail ?? "" }));
+  return results[path].map((e) => ({ rule: e.ruleNames[0], line: e.lineNumber, detail: e.errorDetail ?? "", context: e.errorContext }));
 }
 
 // The blank line after the frontmatter is deliberate, since the frontmatter pattern swallows it and the reader has to give it back.
@@ -74,6 +76,12 @@ describe("skill-description, the raw sweep", () => {
     ["t-backslash", 'name: x\ndescription: "matches \\d+ digits"', "risky backslash"],
     ["t-innerdq", 'name: x\ndescription: "say "hi" now"', "inner double quote"],
     ["t-unclosed", 'name: x\ndescription: "never closed', "unclosed double quote"],
+    // An escaped closing quote leaves the value open, and a quote found later in it does not close it.
+    ["t-unclosed-escaped", 'name: x\ndescription: "a\\"', "unclosed double quote"],
+    // A blank line folds into a newline, and text after the closing quote stays text after the quote across that fold.
+    ["t-double-then-text", 'name: x\ndescription: "a"\n\n  b', "parse error"],
+    ["t-single-then-text", "name: x\ndescription: 'a'\n\n  b", "parse error"],
+    ["t-single-across-blank", "name: x\ndescription: 'a'\n\n  b'", "stray apostrophe"],
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "apostrophe"],
     ["t-bool", "name: x\ndescription: yes", "boolean"],
     ["t-missing", "name: x", "no description"],
@@ -120,7 +128,7 @@ describe("skill-frontmatter-parsed, the differential", () => {
     ["t-curly", "name: x\ndescription: “Use for PR #N”", "SILENTLY MUTATED"],
     ["t-dupe", "name: x\ndescription: first\ndescription: second", "SILENTLY MUTATED"],
     ["t-bool", "name: x\ndescription: yes", "not a string"],
-    ["t-colon", "name: x\ndescription: Use when: reviewing", "PARSE ERROR"],
+    ["t-colon", "name: x\ndescription: Use when: reviewing", "PARSE ERROR, skill will not load: Nested mappings are not allowed"],
     ["t-tailcolon", "name: x\ndescription: Use when reviewing:", "PARSE ERROR"],
     ["t-innerdq", 'name: x\ndescription: "say "hi" now"', "PARSE ERROR"],
     ["t-apostrophe", "name: x\ndescription: 'Don't use'", "PARSE ERROR"],
@@ -180,6 +188,7 @@ describe("skill-name", () => {
     // Each name matches its directory exactly, so only the charset clause can decide it.
     ["My_Skill--v2", "name: My_Skill--v2\ndescription: |\n  x", "lowercase"],
     ["-leading-hyphen", "name: -leading-hyphen\ndescription: |\n  x", "hyphen"],
+    ["trailing-hyphen-", "name: trailing-hyphen-\ndescription: |\n  x", "hyphen"],
     // The name is all lowercase letters, so only the length clause can decide it.
     [`${"a".repeat(65)}`, `name: ${"a".repeat(65)}\ndescription: |\n  x`, "over the spec's 64"],
   ];
@@ -211,6 +220,9 @@ describe("skill-invocation", () => {
     ["i-caps", "description: |\n  Explicit invocation only.\ndisable-model-invocation: True", "not true or false"],
     ["i-empty", "description: |\n  Explicit invocation only.\ndisable-model-invocation:", "not true or false"],
     ["i-quoted", 'description: |\n  Explicit invocation only.\nuser-invocable: "false"', "quoted"],
+    // A name is matched literally, so a dot in it is not a wildcard that a slash command could miss.
+    ["i.dot", "description: |\n  Type `/i.dot` yourself.\ndisable-model-invocation: true", null],
+    ["i-quote-in-comment", 'description: |\n  Explicit invocation only.\nuser-invocable: true # "really"', null],
     ["i-dupe", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true\ndisable-model-invocation: false", "duplicate"],
     ["i-comment", "description: |\n  Explicit invocation only.\ndisable-model-invocation: true # the owner types it", null],
     ["i-para", "description: |\n  Does a thing for the user.\n\n  Only when the user invokes it by name.\ndisable-model-invocation: true", null],
@@ -286,7 +298,23 @@ describe("description(), the value a caller reads", () => {
   }
   it("falls back to text a rejected parse cannot supply", () => {
     const got = descriptionValue(["name: x", "description: |", "  Explicit invocation only.", "other: [1, 2"]);
-    assert.match(got, /invocation/);
+    assert.equal(got, "  Explicit invocation only.");
+  });
+  it("an escaped closing quote leaves a double-quoted scalar unclosed, so it is read as written", () => assert.equal(scalar('"a\\"'), '"a\\"'));
+  for (const [raw, want] of [
+    ["'it''s'", "it's"],
+    ["'plain' # a note", "plain"],
+    ["'never closed", "'never closed"],
+  ]) {
+    it(`a single-quoted scalar: ${raw}`, () => assert.equal(scalar(raw), want));
+  }
+  it("frontmatter holding only a comment has no description", () => assert.equal(descriptionValue(["# only a comment"]), ""));
+  it("the fallback reads a description on the first line", () => assert.equal(descriptionValue(["description: |", "  text", "other: [1, 2"]), "  text"));
+  it("the fallback reads a plain description", () => assert.equal(descriptionValue(["name: x", "description: plain text", "other: [1, 2"]), "plain text"));
+  it("an escaped quote inside a double-quoted scalar is the quote", () => assert.equal(scalar('"say \\"hi\\""'), 'say "hi"'));
+  it("the fallback keeps a block's lines and the blank line between them", () => {
+    const got = descriptionValue(["name: x", "description: |", "  one", "", "  two", "other: [1, 2"]);
+    assert.equal(got, "  one\n\n  two");
   });
 });
 
@@ -314,6 +342,7 @@ describe("skill-continuations", () => {
     ["c-tablein", "- **lead.** first\n\n  the reason\n\n  | a | b |\n  | --- | --- |\n  | c | d |\n", []],
     ["c-quotein", "- **lead.** first\n\n  the reason\n\n  > a quoted line, which is not a paragraph of the item\n", []],
     ["c-leadfence", "- ```bash\n  echo hi\n  ```\n\n  the one continuation\n", []],
+    ["c-leadcode", "-     indented code as the lead\n\n  first.\n\n  second.\n", [`2 ${cap}`]],
     ["c-quoted", "> -\n>   **lead.** its text starts on the line after the marker\n>\n>   the one continuation\n", []],
     ["c-footnote", "text[^1]\n\n[^1]: -\n      **lead.** its text starts on the line after the marker\n", []],
     ["c-markeralone", "-\n  **lead.** its text starts on the line after the marker\n\n  the one continuation\n", []],
@@ -361,6 +390,8 @@ describe("skill-bolded-runs", () => {
     ["b-markeralone", "-\n  **lead.** its text starts on the line after the marker\n".repeat(7), ["7 bolded-lead items in a row"]],
     ["b-quoted", "> -\n>   **lead.** its text starts on the line after the marker\n".repeat(7), ["7 bolded-lead items in a row"]],
     ["b-midbold", "- a lead that is **bolded later** in the line\n".repeat(7), []],
+    // An item with no lead block has no bolded lead, so it ends the run as a plain item does.
+    ["b-empty-item", `${bolded(5)}-\n${bolded(1)}`, []],
   ];
   for (const [id, body, want] of cases) {
     it(id, async () => {
@@ -552,6 +583,31 @@ describe("skill-argument-hint", () => {
       null,
     ],
     ["h-no-arrow", "[new | check]", routing("If it starts with `new`, read a.", "If it starts with `check`, read b."), null],
+    // A `|` inside a nested bracket separates that bracket's alternatives, not the outer group's.
+    ["h-nested-group", "[manage [x | y]] [new | check]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
+    [
+      "h-between-groups",
+      "[new | check] or [help | status]",
+      routing(
+        "If it starts with `new` → read a.",
+        "If it starts with `check` → read b.",
+        "If it starts with `help` → read c.",
+        "If it starts with `status` → read d.",
+      ),
+      null,
+    ],
+    [
+      "h-subsection",
+      "[new]",
+      "## Routing\n\n- If it starts with `new` → read a.\n\n### Detail\n\n- If it starts with `check` → read b.",
+      unadvertised("check"),
+    ],
+    ["h-arrow-in-span", "[new]", routing("If it starts with `new` → read a.", "If it names `a→b` or starts with `check` → read b."), unadvertised("check")],
+    ["h-placeholder-span", "[new]", routing("If it starts with `new` or `<n>` → read a."), null],
+    // Only an item's lead paragraph states its route, so a later paragraph in the item routes nothing.
+    ["h-continuation", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n\n  If it starts with `check` → read b.", null],
+    ["h-definition-item", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n- [a]: https://example.com", null],
+    ["h-lone-first-group", "[manage] [new | check]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
     // A group with no `|` is a placeholder, as in the [issue-number] and [filename] [format] hints Claude Code's own docs show.
     ["h-bare-placeholder", "[new | check] [issue-number]", routing("If it starts with `new` → read a.", "If it starts with `check` → read b."), null],
     // The documented gap: a one-word group is not held to routing, so its unrouted verb passes.
@@ -561,6 +617,27 @@ describe("skill-argument-hint", () => {
     ["h-bold-condition", "[new | check]", routing("**If it starts with `new`** → read a.", "If it starts with `check` → read b."), null],
     ["h-bold-arrow", "[new | check]", routing("**If it starts with `new` → read a.**", "If it starts with `check` → read b."), null],
     ["h-nested", "[new | check]", "## Routing\n\n- If it starts with `new` → read a.\n  - If it starts with `check` → read b.", null],
+    ["h-setext", "[new]", "Routing\n-------\n\n- If it starts with `new` → read a.\n- If it starts with `check` → read b.", unadvertised("check")],
+    // A level-2 heading inside a level-1 routing section is a subsection of it, so the bullets under it still route.
+    [
+      "h-setext-level",
+      "[new]",
+      "Routing\n=======\n\n- If it starts with `new` → read a.\n\nDetail\n------\n\n- If it starts with `check` → read b.",
+      unadvertised("check"),
+    ],
+    // A setext underline may carry trailing spaces, which do not change its level.
+    [
+      "h-setext-trailing",
+      "[new]",
+      "Routing\n=======  \n\n- If it starts with `new` → read a.\n\nDetail\n------\n\n- If it starts with `check` → read b.",
+      unadvertised("check"),
+    ],
+    [
+      "h-setext-ends",
+      "[new]",
+      "Routing\n-------\n\n- If it starts with `new` → read a.\n\nSupporting files\n----------------\n\n- If it starts with `check` → read b.",
+      null,
+    ],
   ];
   for (const [id, hint, body, want] of cases) {
     it(id, async () => {
@@ -610,6 +687,15 @@ describe("skill-bash-blocks", () => {
     ["b-arith-shift", "```bash\necho $(( 1 << 2 ))\nmake; and true\n```", "; and"],
     ["b-arith-var", "```bash\necho $(( x << y ))\nmake; and true\n```", "; and"],
     ["b-hyphen-bare", "```bash\ncat <<END-BODY\nok\nEND-BODY\nmake; and true\n```", "; and"],
+    ["good-heredoc-after-quote", "```bash\necho 'a' && cat <<EOF\nfixed; and pushed\nEOF\n```", null],
+    ["good-heredoc-touching-quote", "```bash\ncat 'f'<<EOF\nfixed; and pushed\nEOF\n```", null],
+    ["b-after-quoted-terminator", "```bash\ncat <<'EOF'\nfixed; and pushed\nEOF\nmake; and true\n```", "; and"],
+    ["b-after-double-quoted-terminator", '```bash\ncat <<"EOF"\nfixed; and pushed\nEOF\nmake; and true\n```', "; and"],
+    // Without the dash, a tab before the terminator makes it a line of the body.
+    ["good-tab-without-dash", "```bash\ncat <<EOF\n\tEOF\nfixed; and pushed\nEOF\n```", null],
+    // <<- strips every leading tab from the terminator line and nothing else.
+    ["b-tabs-terminator", "```bash\ncat <<-EOF\n\tok\n\t\tEOF\nmake; and true\n```", "; and"],
+    ["good-tab-after-terminator", "```bash\ncat <<-EOF\nEOF\t\nfixed; and pushed\nEOF\n```", null],
     ["good-hyphen-quoted", "```bash\ncat <<'END-BODY'\nfixed; and pushed\nEND-BODY\n```", null],
     ["good-digit-terminator", "```bash\ncat <<1EOF\nfixed; and pushed\n1EOF\n```", null],
     ["good-backslash-heredoc", "```bash\ncat > body.md <<\\EOF\nFixed it; and pushed.\nEOF\n```", null],
@@ -690,9 +776,34 @@ describe("agent-frontmatter", () => {
   it("a plugin's agent with no name loads under its filename", () => {
     assert.deepEqual(agentDefects(lines("description: Reviews code."), true), []);
   });
+  it("an agent whose name is null has no name", () => {
+    assert.match(agentDefects(["name:", "description: Reviews code."], false).join("\n"), /^no name/m);
+  });
+  it("a plugin's agent whose frontmatter does not parse is not measured", () => {
+    assert.deepEqual(pluginNameWarnings([`name: ${"x".repeat(300)}`, "other: [1, 2"]), []);
+  });
+  it("a plugin's agent whose frontmatter holds only a comment has no name to measure", () => {
+    assert.deepEqual(pluginNameWarnings(["# only a comment"]), []);
+  });
   it("a plugin's agent with no frontmatter loads under its filename", () => {
     assert.deepEqual(agentDefects(null, true, ["# Reviewer"]), []);
   });
+  // The delimiter is a whole line of three dashes, trailing spaces allowed, and a line holding only spaces is as empty as one holding nothing.
+  for (const [label, given, want] of [
+    ["an unclosed delimiter with trailing spaces", ["---  ", "name: r"], "never closed"],
+    ["dashes after text", ["a ---", "name: r"], "^no name"],
+    ["text after dashes", ["--- a", "name: r"], "^no name"],
+    ["a late delimiter with trailing spaces", ["", "---  ", "name: r", "---"], "not the first line"],
+    ["late dashes after text", ["", "a ---"], "^no name"],
+    ["late text after dashes", ["", "--- a"], "^no name"],
+    ["a delimiter after a line of spaces", ["  ", "---", "name: r", "---"], "not the first line"],
+  ]) {
+    it(`no frontmatter: ${label}`, () => {
+      const found = agentDefects(null, false, given);
+      assert.equal(found.length, 1, JSON.stringify(found));
+      assert.match(found[0], new RegExp(want));
+    });
+  }
   for (const key of ["permissionMode", "hooks", "mcpServers", "initialPrompt"]) {
     it(`a plugin's agent setting ${key}`, () => {
       const found = agentDefects(lines(`name: r\ndescription: Reviews code.\n${key}: x`), true);
@@ -759,6 +870,16 @@ describe("plugin-hooks", () => {
     it(`a matcher on ${event}`, () => expectHook(hooksFile(event, { matcher: "x", hooks: [command()] }), `matcher on ${event}`));
   }
   it("a matcher on an event with matcher support", () => expectNoHook(hooksFile("PreToolUse", { matcher: "Bash", hooks: [command()] })));
+  // A malformed file is the schema's to report, so each of these is read past rather than thrown on.
+  it("a group with no hooks list", () => expectNoHook(hooksFile("PreToolUse", { matcher: "Bash" })));
+  it("a hooks list holding a string", () => expectNoHook(hooksFile("PreToolUse", { hooks: ["x"] })));
+  it("user_config in an http hook's command field", () => expectNoHook(hooksFile("PreToolUse", { hooks: [http({ command: `\${user_config.x}` })] })));
+  it("a commands list holding a number", () =>
+    assert.deepEqual(manifestDefects(JSON.stringify({ name: "p", commands: ["./commands/", 5] }), "/no/such/plugin"), []));
+  it("a commands value of null", () => assert.deepEqual(manifestDefects(JSON.stringify({ name: "p", commands: null }), "/no/such/plugin"), []));
+  it("a headers list holding null", () => expectNoHook(hooksFile("PreToolUse", { hooks: [http({ headers: [null] })] })));
+  it("a command hook with no command", () => expectNoHook(hooksFile("PreToolUse", { hooks: [{ type: "command" }] })));
+  it("a commands map holding null", () => assert.deepEqual(manifestDefects(JSON.stringify({ name: "p", commands: { x: null } }), "/no/such/plugin"), []));
   it("no matcher on an event without matcher support", () => expectNoHook(hooksFile("Stop", { hooks: [command()] })));
   it("async on an http hook", () => expectHook(hooksFile("PreToolUse", { hooks: [http({ async: true })] }), "async"));
   it("async on a command hook", () => expectNoHook(hooksFile("PreToolUse", { hooks: [command({ async: true })] })));
@@ -848,4 +969,35 @@ describe("skill-hard-wrap", () => {
       [1, 4, 7],
     );
   });
+});
+
+// check.js prints a finding's context beside its line number, so each case pads the flagged line and wants it back trimmed, and from that line rather than the next.
+describe("a finding's context is its own line, trimmed", () => {
+  const bolded = (open) => Array.from({ length: 6 }, (_, i) => `${open}**Lead ${i}** text.${i ? "" : "  "}`).join(open ? "\n" : "\n\n");
+  const cases = [
+    [
+      "c-unadvertised",
+      argumentHint,
+      'argument-hint: "[new]"',
+      "## Routing\n\n- If it starts with `new` → read a.\n- If it starts with `check` → read b.  ",
+      "- If it starts with `check` → read b.",
+    ],
+    ["c-tagged", bashBlocks, "", "  ```fish\n  echo hi\n  ```", "```fish"],
+    ["c-fish", bashBlocks, "", "```bash\n  make; and make install\n```", "make; and make install"],
+    ["c-bolded-paragraphs", boldedParagraphs, "", bolded(""), "**Lead 0** text."],
+    ["c-bolded-runs", boldedRuns, "", bolded("- "), "- **Lead 0** text."],
+    ["c-bold-continuation", continuations, "", "- item\n\n  **Bold** continuation.", "**Bold** continuation."],
+    ["c-continuations", continuations, "", "- item  \n\n  one.\n\n  two.", "- item"],
+    ["c-hard-wrap", hardWrap, "", "  First line\nsecond line.", "First line"],
+    ["c-portable", portablePaths, "", "  A span `/home/someone/notes.md` here.", "A span `/home/someone/notes.md` here."],
+    ["c-referenced", referencedPaths, "", "  See `workflows/gone.md` here.", "See `workflows/gone.md` here."],
+    ["c-vale", valeDirective, "", "<!-- vale off -->  \n\nProse.", "<!-- vale off -->"],
+  ];
+  for (const [id, rule, fm, body, want] of cases) {
+    it(id, async () => {
+      const found = await findings(`fx/${id}/SKILL.md`, skill(`name: ${id}\ndescription: |\n  x${fm ? `\n${fm}` : ""}`, body), rule);
+      assert.ok(found.length, `wanted a finding, got none`);
+      for (const f of found) assert.equal(f.context, want);
+    });
+  }
 });
