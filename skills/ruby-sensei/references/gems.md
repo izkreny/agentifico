@@ -76,7 +76,7 @@
 
 - Keep the host's core small and make every feature an opt-in plugin loaded by name, as roda and sequel do, so users pay only for what they use and each feature has a clear seam.
 - Load a plugin by convention: `plugin :name` requires `<host>/plugins/name`, which registers itself, and the host raises a clear error naming the plugin when the file is missing or did not register. Accept a module directly as well, for plugins that live in the application.
-- Give plugins a small fixed contract, `InstanceMethods`, `ClassMethods`, an optional `load_dependencies` and `configure`, and compose them through `super`, as `metaprogramming.md` describes.
+- Give plugins the fixed contract `metaprogramming.md` *Plugin systems* describes.
 - Discover plugins that ship as gems through gemspec metadata, as RuboCop does with lint_roller: `spec.metadata["default_lint_roller_plugin"] = "MyGem::Plugin"`, a string because metadata is read before the gem is loaded. The host requires the gem and instantiates the class with its configuration.
 - Keep the extension contract in its own tiny gem, or versioned module, with as few methods as possible, `about`, `supported?(context)` and `rules(context)` in lint_roller's case, and grow it only by addition, because every plugin and every host depends on it.
 - Ship the backend or plugin contract's role test inside the gem, a module of Minitest tests that a third party includes in its own suite, so every implementation proves it honours the contract, as `testing.md` describes for doubles.

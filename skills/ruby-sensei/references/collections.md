@@ -28,7 +28,7 @@ end
 - Use `fetch` when a key or an index must be present, and `fetch_values` when several must, because `[]` cannot tell a missing key from a stored `nil` or `false`, and `KeyError` names the key at the point of failure rather than far downstream.
 - Give a default with `fetch(key, default)` for a cheap literal and `fetch(key) { compute }` for anything costly, never `hash[key] || default`, because `||` also replaces a stored `false`.
 - Key a hash with symbols for names the program owns and with strings for data that comes from outside, and read and write each hash with one key type, because `h["name"]` never finds `h[:name]`, and frequent `to_s` and `to_sym` calls mean the wrong type was chosen. Convert where outside data enters, such as `JSON.parse(text, symbolize_names: true)`.
-- Use required and optional keyword arguments for a method's options instead of an options hash read with `fetch`; keep `fetch` for genuinely dynamic hashes, such as `ENV`, parsed JSON and configuration.
+- Take a method's options as keyword arguments, per `methods.md` *Parameters*, and keep `fetch` for genuinely dynamic hashes, such as `ENV`, parsed JSON and configuration.
 - Never share a mutable default between keys or slots, `Hash.new([])` or `Array.new(3, [])`: use `Hash.new { |h, k| h[k] = [] }` and `Array.new(3) { [] }`, because the default object is the same object for every missing key and every slot.
 - Memoise into a hash with `cache.fetch(key) { cache[key] = build(key) }`.
 - Normalise "one, many or none" with `Array(value)` before iterating, remembering that `Array(hash)` yields pairs.

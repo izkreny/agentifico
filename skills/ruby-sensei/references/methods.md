@@ -5,7 +5,7 @@
 - Give each method one job at one level of abstraction. If describing it takes an "and", or its body changes topic halfway, split it, because a step with a name can be read, tested and moved, and a stretch of mixed steps can only be read.
 - Replace a comment that explains a block of code with a method whose name says the same thing, because a name is checked on every call and a comment is checked by nobody.
 - Stop splitting when the next piece would not be a coherent idea of its own, because a method that wraps one trivial call adds a jump and no meaning.
-- Do not extract a shared helper at the first duplication; wait until the examples show what the shared concept is, per *Rules for every area* in `SKILL.md`.
+- Leave duplication in place until *Rules for every area* in `SKILL.md` allows a shared helper.
 - Never paste behaviour another method owns; call it, so one fact lives in one place. Once a concept has a method, route every use through it, `successor(number)` rather than `number - 1`, even where the raw expression gives the same answer, because code that is right by accident hides that it depends on the concept.
 - Write the call you wish existed first, then build the receiver to answer it, so the interface is designed from the sender's side.
 - Wrap a call to a collaborator you do not control in a method of your own, so a change on their side touches one line.
@@ -106,7 +106,7 @@
 
 ## Pattern matching
 
-- Use `case`/`in` to check a structure's shape and bind its parts in one step, instead of digging with `[]` and `is_a?`.
+- For nested data, follow `collections.md` *Pattern matching on data*.
 - Pin an existing value with `^value`, because an unpinned name in a pattern silently rebinds.
 - Remember that a hash pattern ignores extra keys (add `**nil` to forbid them), except `in {}`, which matches only an empty hash, and an array pattern must account for every element. A pattern is syntax, not a value, so reuse one by putting it in a method.
 - Make your own classes matchable with `deconstruct_keys` and, for ordered values, `deconstruct`; `Data` provides both.

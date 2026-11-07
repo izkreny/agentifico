@@ -108,7 +108,7 @@ end
 - Make a singleton a plain object in a constant with singleton methods, `Registry = Object.new`, or a module, rather than `include Singleton`, because the constant already is the one instance.
 - Delete private methods nothing calls.
 - Where a class variable would go, which the linter forbids, use a class-level instance variable behind a reader, or a frozen constant.
-- Avoid class-level mutable state such as registries filled by `inherited`, because it is shared by every thread and Ractor. Where it is unavoidable, freeze it once loading is done, or guard it, as `concurrency.md` says.
+- Avoid class-level mutable state such as registries filled by `inherited`, and where it is unavoidable, handle it as `concurrency.md` *Shared state* says.
 - Never define a method at the top level outside a script, because it lands on `Object` and leaks everywhere.
 
 ## Factories

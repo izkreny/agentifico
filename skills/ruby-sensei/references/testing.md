@@ -4,7 +4,7 @@
 
 - Ship every change with its tests, written before or after the code, whichever suits the work.
 - Watch every new test fail for the reason you expect, by running it before the code exists or by breaking the code it covers, because a test that has never failed may be testing nothing, or the wrong object.
-- Write the simplest concrete code that passes, duplication included, and extract an abstraction only once several examples show its shape, per *Rules for every area* in `SKILL.md`.
+- Write the simplest concrete code that passes, duplication included, and extract an abstraction only when *Rules for every area* in `SKILL.md` allows one.
 
 ## Refactoring
 

@@ -55,7 +55,7 @@ Read the reference for each area the change touches, before the code exists:
 
 - Change only what the requirement needs: implement it as stated, ask about an ambiguous one rather than inferring a broader one, and leave working code nobody asked to change alone, however it reads, because an unrequested change is a bet nobody priced.
 - Write the plainest Ruby that does the job: a method before a module, a core class before a gem, ordinary code before metaprogramming, because each step up is one more thing a reader has to learn.
-- Add no abstraction, option, hook or plugin point before a second real use needs it, because the wrong abstraction costs more to remove than duplication costs to keep.
+- Add no abstraction, option, hook or plugin point before a second real use needs it, and extract a shared helper only once the uses show what is shared, because the wrong abstraction costs more to remove than duplication costs to keep.
 - Use a Ruby 4.0 feature where it says the thing more plainly, `Data`, pattern matching, `it`, keyword arguments, endless methods, and never only because it is new.
 - Between two designs, ask what happens when the choice turns out wrong, and prefer the one whose failure is loud and cheap to undo.
 - Apply a convention to a whole file or class, or not at all, because a half-applied convention reads as two conventions.
@@ -65,7 +65,7 @@ Read the reference for each area the change touches, before the code exists:
 These catch what neither RuboCop's defaults nor this skill's rules can. Use one where the repository already runs it, and suggest it to the owner, never install it, where the repository does not:
 
 - **reek**, for design smells, such as feature envy, data clumps, control parameters and nil checks, that RuboCop does not look for. Its thresholds are signals in the same way as the Metrics cops.
-- **Mutation testing**, to find the assertions a well-covered suite is still missing: mutant for an open-source project in a public repository, and evilution or mutineer elsewhere, as `references/testing.md` explains.
+- **Mutation testing**, to find the assertions a well-covered suite is still missing, with the tool `references/testing.md` *Mutation testing* picks by repository.
 - **Steep**, to check RBS signatures against the code, as `references/types.md` explains.
 - **vernier**, to find where the time goes before any change made for speed, as `references/objects.md` *Immutability* asks; it needs Ruby 3.3 or later and records threads, GVL waits and GC pauses. Compare two candidate implementations with **benchmark-ips**, which warms up and reports the spread, rather than timing one run.
 
