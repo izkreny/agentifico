@@ -33,7 +33,7 @@ flowchart TD
     G --> Q(["<b>you</b> judge each thread:<br/>accept, question, or refuse in writing"])
     Q --> R["the agent answers, in the thread"]
     R --> Q
-    Q --> S(["<b>you</b> type <b>rnp</b>,<br/>or say: resolve all and push"])
+    Q --> S(["<b>you</b> type <b>:rp</b>,<br/>or say: resolve all and push"])
     S --> T["the fixes are pushed,<br/>and one comment indexes<br/>every hunk that push carried"]
     T --> U(["<b>you</b> type <b>merge</b>"])
     U --> J["<b>merge</b><br/>waits for green CI,<br/>squashes to the trunk, deletes the branch"]
@@ -59,8 +59,8 @@ The rounded steps are yours. They are not delegated, and the skill will not do t
 | **Leaving a signal on every thread**               | **you** - a reaction is enough; a thread resolved with no recorded authority stops the merge |
 | **Authorising the resolve**                        | **you**, always — in words, which get recorded on the PR                                     |
 | Fixing what the review found                       | the agent - committed at once in coherent groups, pushed never                               |
-| **Saying when the fixes push**                     | **you** - `rnp`, or "resolve all and push", the round's only push                            |
-| **Saying when the branch lands**                   | **you** - `merge`, a word of its own; `rnp` stops at the push                                |
+| **Saying when the fixes push**                     | **you** - `:rp`, or "resolve all and push", the round's only push                            |
+| **Saying when the branch lands**                   | **you** - `merge`, a word of its own; `:rp` stops at the push                                |
 | Merging, cleaning up, confirming the issue closed  | the agent                                                                                    |
 
 Nobody else's approval gates a merge and nobody else is accountable for what ships. That is what makes reading the code your job rather than a formality.
@@ -103,7 +103,7 @@ Where your harness cannot spawn one, appoint a capability to invoke instead of a
 
 **Review fixes get their own commits, grouped by coherent change and never amended into the original work.** Not for the trunk's sake — squashing removes them anyway — but for yours, while the PR is open. It keeps "what changed because of the review" separable from the original work, which is the difference you most want to be able to see.
 
-**And they stay unpushed while you read.** A push moves the diff and drops the threads anchored to it behind "Show outdated" - the ground shifting under a review that is part-way through. So a fix is committed and answered in its thread on the spot, and nothing leaves the machine until you type `rnp`, or say "resolve all and push". That word ends at the push: merging is `merge`, typed separately, because the checks read straight after a push have to be able to stop a merge that has not happened yet. The full sequence lives in one place, `references/review-protocol.md`.
+**And they stay unpushed while you read.** A push moves the diff and drops the threads anchored to it behind "Show outdated" - the ground shifting under a review that is part-way through. So a fix is committed and answered in its thread on the spot, and nothing leaves the machine until you type `:rp`, or say "resolve all and push". That word ends at the push: merging is `merge`, typed separately, because the checks read straight after a push have to be able to stop a merge that has not happened yet. The full sequence lives in one place, `references/review-protocol.md`.
 
 ## Stacking, and when not to
 

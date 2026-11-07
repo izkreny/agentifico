@@ -8,9 +8,11 @@ End a review round on the owner's word: record the authorisation, resolve the th
 
 ## The entrance
 
-The owner says it, in the session: "resolve all and push", or types `rnp`. Also "we are done" said while a round has left fix commits unpushed.
+The owner says it, in the session: "resolve all and push", or types `:rp`. Also "we are done" said while a round has left fix commits unpushed.
 
-**"You can merge" is not one of these, and routes to `workflows/merge.md` instead.** After the split it would authorise a push and then not merge, which is worse than a refusal: the owner said the word and watched something else happen. That workflow's Step 1 already refuses on unpushed commits and names `rnp` as the remedy, so the sentence lands on a gate that tells them the word they actually need.
+**`resolve closed`, `:rc`, or any words asking to resolve only the closed threads, is a narrower entrance**: it resolves only the threads a closing verdict ended and pushes nothing, per *Resolving only the closed threads*.
+
+**"You can merge" is not one of these, and routes to `workflows/merge.md` instead.** After the split it would authorise a push and then not merge, which is worse than a refusal: the owner said the word and watched something else happen. That workflow's Step 1 already refuses on unpushed commits and names `:rp` as the remedy, so the sentence lands on a gate that tells them the word they actually need.
 
 **Their word alone is the authorisation.** Not a reaction, not a reply in a thread, not a mentor saying the work looks done, and not this workflow's own reading of how settled the threads look. If no such word has been given, there is nothing to do here: say what is still waiting and stop.
 
@@ -34,6 +36,8 @@ Sort every unresolved thread into its pile, per the protocol's account of what a
 ## Step 3 - The authorisation comment, before any resolve
 
 One Conversation comment, posted first, so that no thread is ever resolved before the evidence for resolving it exists.
+
+**A batch that covers no thread posts no comment**, since a marker naming no id authorises nothing, and Step 4 then resolves nothing. That is the ordinary case for `:rp` after *Resolving only the closed threads* has cleared every thread.
 
 ```bash
 gh pr comment <pr-number> --body-file <body-file>
@@ -119,11 +123,11 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F
 
 ### What each id gets
 
-- **An id that already carries a thread is skipped rather than refused.** Nothing rewrites a posted Review, so an earlier round's ledger is still on the pull request at the next `rnp`; the script reports what it skipped.
-- **A failure here loses nothing and refuses nothing.** The push has already happened and the ledger is still in the record Review, so the findings are exactly where they were - report the failure and name this step's commands as the retry, rather than treating it as a failed `rnp`.
+- **An id that already carries a thread is skipped rather than refused.** Nothing rewrites a posted Review, so an earlier round's ledger is still on the pull request at the next `:rp`; the script reports what it skipped.
+- **A failure here loses nothing and refuses nothing.** The push has already happened and the ledger is still in the record Review, so the findings are exactly where they were - report the failure and name this step's commands as the retry, rather than treating it as a failed `:rp`.
 - **The replies are the round's words, not new ones.** They were written during the round and recorded in its follow-up Review; this step copies them, so nothing here composes a plan or a verdict. An entry with no reply recorded opens its thread carrying the finding alone, which `release` reports.
 - **An id `release` could not thread blocks the merge until it has one.** `workflows/merge.md` refuses on any reserved id with no thread, so the report names each one, and the owner decides where its thread goes.
-- **A released thread lands unresolved, and that is correct.** The authorisation in Step 3 named the ids it covered, and these were not among them: the owner has not read them yet. `workflows/merge.md` refuses on an unresolved thread, so the report has to say how many are waiting, or the owner reads a green `rnp` and then meets a red merge with nothing explaining it.
+- **A released thread lands unresolved, and that is correct.** The authorisation in Step 3 named the ids it covered, and these were not among them: the owner has not read them yet. `workflows/merge.md` refuses on an unresolved thread, so the report has to say how many are waiting, or the owner reads a green `:rp` and then meets a red merge with nothing explaining it.
 
 ## Step 7 - Post the delta index
 
@@ -188,10 +192,45 @@ Open with the verdict line: `✅ ALL PASS` when every unresolved thread was cove
 
 Then the record: how many threads were resolved and which ids, which were left and why, which ids were released and wait to be read, which could not be threaded and why, the commits that went up, how many rows the delta index carried and how many of them answered no finding, and the check result.
 
-**Then say that this workflow is over and merging is a word of its own**, since the owner's `rnp` did not ask for one and nothing here is about to run it. The command, flush left:
+**Then say that this workflow is over and merging is a word of its own**, since the owner's `:rp` did not ask for one and nothing here is about to run it. The command, flush left:
 
 ```text
 /gh-solo:pr-flow merge <pr-number>
 ```
 
 **This file is where that wording is decided.** The split is not an ergonomic: one word that both released the push and landed the branch would read the checks at Step 8 *after* the merge, and the protocol's step 7 says a red check there stops the merge until it is diagnosed - which it cannot do to a merge the same word already made.
+
+## Resolving only the closed threads
+
+This is the narrower entrance *The entrance* names. It resolves every thread a closing verdict ended, so the threads left open are only the ones still waiting on the owner. It runs Steps 2, 3 and 4, and nothing else.
+
+**Step 1 is skipped, so a running watch keeps running.** The round is not over: the threads left open wait on the owner's replies, and the watch is what carries them into the session.
+
+**Step 2 sorts one pile, the closed pile.** A thread joins it when both of these hold:
+
+- **Its last comment is a closing verdict for its own finding**: an agent post, opening with `> 🤖`, that carries `::RF{n}::CLOSED::` for the `RF{n}` the thread's first comment issues. A reply below the verdict means the owner reopened the finding, so that thread stays open. A verdict naming another id closes nothing.
+- **Step 2 sorts it covered.** No authorisation covers an unanswered owner signal, per *The authorisation comment* in `references/review-protocol.md`, so an owner's 👀 on the verdict keeps the thread open.
+
+Every other unresolved thread is left as it is.
+
+**Steps 3 and 4 run as written.** The marker line names exactly the closed pile's ids, and the owner's quoted words are the command they typed. An empty pile posts no comment and resolves nothing.
+
+**It stops there.** It pushes nothing, releases no held finding and posts no delta index, because Steps 5 to 8 belong to `:rp`. So a thread may close while its fix is still local, and the report names those commits.
+
+### The report
+
+Open with the verdict line: `✅ ALL PASS` when every unresolved thread was in the closed pile and resolved, and `⚠️ PASSED WITH FINDINGS - {what}` when a thread was left open or a mutation failed.
+
+Then two tables: the threads resolved, and the threads left open. Each row is the thread's `RF{n}`, or `-` where it has none, its `path` and its `line`. A row left open also says why: no closing verdict, a comment below it, or an unanswered owner signal.
+
+Then the commits still unpushed:
+
+```bash
+git log --oneline @{u}..HEAD
+```
+
+Then what pushes them, flush left:
+
+```text
+/gh-solo:pr-flow :rp <pr-number>
+```
