@@ -12,7 +12,7 @@ Preflight already resolved it. **State it in one line before doing anything else
 git fetch <remote> --quiet && git log --oneline HEAD..<remote>/main
 ```
 
-`<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`; `main` reads as the repository's default branch where `<repo-root>/.agents/gh-solo.md` names another - and that name is needed *now*, so when the file exists, read it here rather than waiting for Step 2. Commits listed mean the file you read may not be the file that exists. Say so, name the commits, then bring the tree up to date or read around it - never silently continue on stale content:
+`<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`; `main` reads as the repository's default branch where the repository's config names another - and that name is needed *now*, so when a config exists, found by the lookup `../pr-flow/references/repo-config.md` owns, read it here rather than waiting for Step 2. Commits listed mean the file you read may not be the file that exists. Say so, name the commits, then bring the tree up to date or read around it - never silently continue on stale content:
 
 - **On the default branch, fast-forward it yourself**: `git merge --ff-only <remote>/main`. `--ff-only` is the guard, not a nicety: local `main` never carries local commits per the hard rule in the `pr-flow` skill's `SKILL.md`, so a fast-forward is the only legal movement, and a refusal means the trunk has diverged locally - stop and report that loudly instead of resolving it, because something has already broken the never-commit-to-`main` rule. If uncommitted changes make the merge refuse, fall back to the other-branch rule rather than stashing anything.
 - **On any other branch, do not pull and do not rebase.** Moving a feature branch is the owner's call, and a stacked branch belongs to `gh stack sync`. Instead, ask per file whether *this branch* owns the version you read: `git log --oneline <remote>/main..HEAD -- <path>` non-empty, or `git status --porcelain -- <path>` non-empty, means the working-tree file is itself the current source - the branch changed it after the trunk's copy - so say so and use it. Only for a path the branch has not touched does the trunk hold the newer copy: there, `git show <remote>/main:<path>` reads it without touching the tree. An untracked path has no trunk copy at all, so the freshness question does not apply to it - name it as unversioned in the plan's Notes.
@@ -23,7 +23,7 @@ Even when nothing is behind, **re-read any source file that was read before this
 
 ## Step 2 - Load standards and config
 
-Read `references/issue-shape.md`, and `references/tracker-fields.md` for the labels. If `<repo-root>/.agents/gh-solo.md` exists in the repository, read it too and let it override the default layer set, label taxonomy and branch format.
+Read `references/issue-shape.md`, and `references/tracker-fields.md` for the labels. If the repository has a config, per `../pr-flow/references/repo-config.md`, read it too and let it override the default layer set, label taxonomy and branch format.
 
 ## Step 3 - Check the label taxonomy
 
@@ -31,7 +31,7 @@ Run `gh label list`. Every label the plan intends to use must already exist, bec
 
 If labels are missing, list them and ask whether to create them, with the exact commands you would run. Do not create labels silently: a label set is a taxonomy the repository lives with, and inventing one mid-plan is how a tracker ends up with `BE`, `backend` and `Backend` all in use at once, splitting every filter three ways.
 
-**Where the repository has no `<repo-root>/.agents/gh-solo.md` and the owner has just confirmed a taxonomy, offer to write one.** This is the moment the offer belongs to: the labels are settled and in front of them, so the axis the file records is a decision they have already made rather than one they are being asked to make for a file's sake. Offer, never write unprompted, and say what else the file carries beyond the labels - the check commands `implement` refuses to improvise without, above all.
+**Where the repository has no config and the owner has just confirmed a taxonomy, offer to write one**, in the file `../pr-flow/references/repo-config.md` says to offer, which in a fork is the user-level file. This is the moment the offer belongs to: the labels are settled and in front of them, so the axis the file records is a decision they have already made rather than one they are being asked to make for a file's sake. Offer, never write unprompted, and say what else the file carries beyond the labels - the check commands `implement` refuses to improvise without, above all.
 
 ## Step 4 - Look for an existing epic
 
