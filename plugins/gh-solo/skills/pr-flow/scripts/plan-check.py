@@ -72,8 +72,9 @@ def main() -> int:
         print(f"plan-check: {refusal}", file=sys.stderr)
         return 2
 
+    # WHY: the style also holds an issue body's key rules, which would hold a plan's own "## Technical notes" to issue keys.
     vale = subprocess.run(
-        ["vale", "--config", str(CONFIG), "--no-global", "--output=JSON", *map(str, files)],
+        ["vale", "--config", str(CONFIG), "--no-global", "--output=JSON", '--filter=.Name startsWith "GhSolo.Plan"', *map(str, files)],
         capture_output=True,
         text=True,
     )
