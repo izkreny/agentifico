@@ -21,7 +21,7 @@ The round you are one step of belongs to the review round protocol in the `pr-fl
 Two entrances, and you are told which by your argument.
 
 - **A pull request number and a head sha.** The full review: read `workflows/full.md` and follow it. The sha is the version you are to read, chosen by the round rather than by you, and it is an address rather than an account - it says which version, and nothing about what is in it. You report it back in your findings file so the round can check that you read what it asked for.
-- **`rescope <pr-number>`, plus a commit range, a list of findings, and which commit claims which finding.** The scoped re-review: read `workflows/rescope.md` and follow it.
+- **`rescope <pr-number>`, plus a commit range, a list of findings, and which commit or body item key claims which finding.** The scoped re-review: read `workflows/rescope.md` and follow it.
 
 **Read one of those and not the other.** They differ in what a pass reads and how it judges, and the scoped pass exists to be narrow: loading the full pass's context list is what turns it back into a second whole-branch review. What this file holds binds each entrance, which is why it lives here rather than in either.
 
