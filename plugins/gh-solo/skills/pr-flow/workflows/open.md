@@ -68,7 +68,7 @@ If the plan is only restating the issue in different words, the issue was specif
 
 **Alone is the rule, not a preference.** Everywhere else the guidance is to use the fewest commits that make sense; the plan is the one standing exception, because the draft PR has to exist before any code does, and it can only do that if the plan is the first thing on the branch.
 
-**Run the plan check before committing the plan.** It fails a plan off Step 2's filename pattern, lacking `## Steps` or `## Verification`, with no list item under `## Verification`, carrying a checkbox anywhere, with an item under `## Steps`, `## Verification` or `## Open questions` that does not open with its section's key, or with a key that opens two items. A failure here costs an edit, not an amend of the branch's first commit. A missing or old Vale exits `2` with what to install, never clean. Its entry opens the template's `## Verification` in Step 4, so `workflows/ready.md` and `workflows/merge.md` audit it.
+**Run the plan check before committing the plan.** `scripts/plan-check.py` owns what it refuses, which is this step's filename and Step 2's required sections. A failure here costs an edit, not an amend of the branch's first commit. A missing or old Vale exits `2` with what to install, never clean. Its entry opens the template's `## Verification` in Step 4, so `workflows/ready.md` and `workflows/merge.md` audit it.
 
 ```bash
 python3 <skill-dir>/scripts/plan-check.py <the plan file>
