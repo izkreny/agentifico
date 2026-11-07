@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(git:*)` for the branch, `Bash(gh:*)` for `gh issue view` and `gh label list`, `Read` for the standards.
+> **Tools used:** `Bash(git:*)` for the branch, `Bash(gh:*)` for `gh issue view` and `gh label list`, `Bash(python3:*)` for `../pr-flow/scripts/keys-check.py`, `Read` for the standards.
 
 Check an issue against the standards Step 2 loads and report what is wrong.
 
@@ -22,6 +22,15 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 
 **A `draft` label relaxes the body checks, not the identity.** Title format and the layer label are checked as normal; Body sections, the summary cap, the criteria and key checks and the scope Note are skipped, because an unfinished body is exactly what the label declares, per *Drafts* in `references/tracker-fields.md`. List what the body is still missing under Notes, so finishing the draft has a checklist, and never fail the issue for being what it says it is. The one draft-specific defect to report under Notes: placeholder criteria checkboxes. An empty `## Acceptance criteria` heading is correct on a draft, but stub `- [ ]` items show a lying `0/N` counter on the issue and in every list view, per the stub-body rule in `workflows/create.md`.
 
+**The keys check decides the *Items are keyed* and *Keys are unique* rows, not a reading.** Fetch the body into a scratch file outside the working tree, its name ending in .md, and run the check on it:
+
+```bash
+gh issue view <issue-number> --json body --jq .body > <scratch-dir>/body-<issue-number>.md
+python3 <skill-dir>/../pr-flow/scripts/keys-check.py <scratch-dir>/body-<issue-number>.md
+```
+
+Exit 0 passes both rows. Exit 1 fails them: each line it prints names an item, a line saying an item lacks its key under *Items are keyed* and one saying a key opens a second item under *Keys are unique*. Any other exit means the check did not run, so report both rows as not checked, quoting what it printed, and never as a pass.
+
 ### Issues and spikes
 
 | Check | Rule |
@@ -32,8 +41,8 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 | Body sections | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when |
 | Summary is capped | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement |
 | Criteria are checkboxes | `- [ ]`, so GitHub counts them. A removed criterion's plain line is the exception, per *Keys* in `references/formats.md` |
-| Items are keyed | Every criterion, technical note and `## Done when` item carries its key, per *Keys* in `references/formats.md`. An item without one is a fail, named by its wording |
-| Keys are unique | No key appears on two items. A repeated key is a fail, naming the key and every item that carries it |
+| Items are keyed | Every criterion, technical note and `## Done when` item carries its key, per *Keys* in `references/formats.md`. An item without one is a fail, named by its wording. The keys check decides it |
+| Keys are unique | No key appears on two items. A repeated key is a fail, naming the key and every item that carries it. The keys check decides it |
 | Criteria are testable | Each one observable; a reader can say pass or fail |
 | Dependencies | Anything the body calls a blocker exists as a real `blockedBy` relation |
 
