@@ -1,0 +1,121 @@
+# WHY: the release gap the next check reports starts at these versions.
+checked:
+  rubocop: 1.92.2
+  rubocop-performance: 1.27.0
+  rubocop-minitest: 0.41.0
+  rubocop-thread_safety: 0.8.0
+  rubocop-on-rbs: 2.2.0
+
+# WHY: the skill states none of these rules, so each cop must stay enabled both by default and under assets/rubocop.yml. Grouped by the bullet in SKILL.md *What the linters own*; the group `Rules left out of the references` holds cops that own a rule the references would otherwise state.
+owned:
+  Control flow:
+    - Style/GuardClause
+    - Style/Next
+    - Style/NestedTernaryOperator
+    - Style/NestedModifier
+    - Style/ConditionalAssignment
+    - Style/RedundantReturn
+    - Style/RedundantSelf
+    - Style/RedundantBegin
+    - Style/DoubleNegation
+    - Style/AndOr
+  Exceptions:
+    - Lint/RescueException
+    - Lint/RaiseException
+    - Lint/InheritException
+    - Lint/SuppressedException
+    - Lint/ShadowedException
+    - Lint/EnsureReturn
+    - Style/RescueModifier
+    - Style/SignalException
+    - Style/RaiseArgs
+  Files and constants:
+    - Style/FrozenStringLiteralComment
+    - Style/MutableConstant
+    - Style/ClassVars
+    - Style/GlobalVars
+    - Style/MixinUsage
+    - Style/ClassAndModuleChildren
+    - Style/Documentation
+  Methods and arguments:
+    - Style/OptionalBooleanParameter
+    - Style/OptionalArguments
+    - Lint/UnusedMethodArgument
+    - Style/MissingRespondToMissing
+    - Lint/MissingSuper
+    - Lint/NestedMethodDefinition
+  Names:
+    - Naming/MethodName
+    - Naming/VariableName
+    - Naming/ClassAndModuleCamelCase
+    - Naming/ConstantName
+    - Naming/PredicatePrefix
+    - Naming/AccessorMethodName
+    - Naming/MemoizedInstanceVariableName
+  Collections and strings:
+    - Style/For
+    - Style/EachWithObject
+    - Style/HashTransformValues
+    - Performance/FlatMap
+    - Performance/RegexpMatch
+    - Performance/StartWith
+    - Style/SlicingWithRange
+    - Style/StringConcatenation
+  Security:
+    - Security/Eval
+    - Security/MarshalLoad
+    - Security/YAMLLoad
+    - Security/JSONLoad
+    - Security/Open
+  Gemspec and Gemfile:
+    - Gemspec/RequiredRubyVersion
+    - Gemspec/RubyVersionGlobalsUsage
+    - Bundler/InsecureProtocolSource
+    - Bundler/DuplicatedGem
+  Tests and threads:
+    - Minitest/AssertNil
+    - Minitest/AssertEmpty
+    - Minitest/AssertIncludes
+    - Minitest/GlobalExpectations
+    - ThreadSafety/ClassInstanceVariable
+    - ThreadSafety/MutableClassInstanceVariable
+    - ThreadSafety/DirChdir
+    - ThreadSafety/NewThread
+  Size and complexity:
+    - Metrics/MethodLength
+    - Metrics/ClassLength
+    - Metrics/BlockLength
+    - Metrics/ParameterLists
+    - Metrics/AbcSize
+    - Metrics/BlockNesting
+  Rules left out of the references:
+    - Lint/IneffectiveAccessModifier
+    - Lint/ConstantDefinitionInBlock
+    - Lint/AmbiguousBlockAssociation
+    - Lint/DisjunctiveAssignmentInConstructor
+    - Lint/Debugger
+    - Style/EvalWithLocation
+    - Style/PerlBackrefs
+    - Performance/UnfreezeString
+    - Performance/CompareWithBlock
+    - RBS/Lint/TopLevelInterface
+    - RBS/Lint/TopLevelTypeAlias
+    - RBS/Style/BlockReturnBoolish
+
+# WHY: these cops are pending, so the skill states their rule in the file named; once one is enabled by default, the rule belongs to the floor and leaves that file.
+watched:
+  Lint/UnmodifiedReduceAccumulator: references/collections.md *Iterating*
+  Lint/SharedMutableDefault: references/collections.md *Lookups and defaults*
+  Gemspec/RequireMFA: references/gems.md *The gemspec*
+  Gemspec/DevelopmentDependencies: references/gems.md *The gemspec*
+  ThreadSafety/LazySynchronizationPrimitive: references/concurrency.md *Shared state*
+  Minitest/LiteralAsActualArgument: references/testing.md *Minitest*
+  Minitest/NonPublicTestMethod: references/testing.md *Minitest*
+  Minitest/TestMethodName: references/testing.md *Minitest*
+  Minitest/AssertRaisesCompoundBody: references/testing.md *Minitest*
+  Minitest/AssertOutput: references/testing.md *Minitest*
+  Minitest/AssertInDelta: references/testing.md *Minitest*
+  Style/OpenStructUse: references/objects.md *Value objects*
+  Lint/SuppressedExceptionInNumberConversion: references/methods.md *Input at the boundary*
+  Style/ArgumentsForwarding: references/methods.md *Parameters*
+  Naming/BlockForwarding: references/methods.md *Parameters*

@@ -1,0 +1,188 @@
+plugins:
+  - rubocop-performance
+  - rubocop-minitest
+  - rubocop-thread_safety
+  - rubocop-rake
+  # WHY: lints the Ruby inside fenced code blocks in Markdown, so README and docs examples cannot rot.
+  - rubocop-md
+  # WHY: checks `.rbs` signatures; it finds nothing to do in a repository without them.
+  - rubocop-on-rbs
+
+AllCops:
+  # WHY: a gem deletes this line, so RuboCop reads the version from the gemspec's required_ruby_version, which Gemspec/RequiredRubyVersion requires to match.
+  TargetRubyVersion: 4.0
+  # WHY: an agent should meet every new cop as soon as RuboCop ships it, not when someone remembers to opt in.
+  NewCops: enable
+  # WHY: Style and Naming report without failing while Lint and Security still fail, so an agent fixes style without being blocked by it.
+  Preview: true
+  Exclude:
+    - "vendor/**/*"
+    - "tmp/**/*"
+
+# WHY: an agent's first reflex on a hard offense is an inline `rubocop:disable`, which hides the decision from review.
+Style/DisableCopsWithinSourceCodeDirective:
+  Enabled: true
+  Severity: error
+
+# WHY: Preview switches these off, but they enforce rules the ruby-sensei skill leaves to the linter.
+Style/GuardClause:
+  Enabled: true
+Style/Next:
+  Enabled: true
+Style/DoubleNegation:
+  Enabled: true
+Style/ClassAndModuleChildren:
+  Enabled: true
+Style/PerlBackrefs:
+  Enabled: true
+Style/SignalException:
+  Enabled: true
+Style/RaiseArgs:
+  Enabled: true
+Style/Documentation:
+  Enabled: true
+  Exclude:
+    - "test/**/*"
+    - "spec/**/*"
+# WHY: Ruby 4.0 still does not freeze string literals; the magic comment is what freezes them, and it keeps a file's behaviour the same when a later Ruby changes the default.
+Style/FrozenStringLiteralComment:
+  Enabled: true
+
+# WHY: the Metrics cops count symptoms. At `info` they are shown as signals of a fault the skill names, a method with two jobs or a class with two responsibilities, and never fail the run, so an agent fixes the design rather than splitting code to satisfy a number.
+Metrics/AbcSize:
+  Enabled: true
+  Severity: info
+Metrics/BlockLength:
+  Enabled: true
+  Severity: info
+  Exclude:
+    - "test/**/*"
+    - "spec/**/*"
+    - "Rakefile"
+    - "*.gemspec"
+Metrics/BlockNesting:
+  Enabled: true
+  Severity: info
+Metrics/ClassLength:
+  Enabled: true
+  Severity: info
+Metrics/CyclomaticComplexity:
+  Enabled: true
+  Severity: info
+Metrics/MethodLength:
+  Enabled: true
+  Severity: info
+Metrics/ModuleLength:
+  Enabled: true
+  Severity: info
+Metrics/ParameterLists:
+  Enabled: true
+  Severity: info
+Metrics/PerceivedComplexity:
+  Enabled: true
+  Severity: info
+
+# WHY: process-wide state that every thread and test shares; off by default in rubocop-thread_safety.
+ThreadSafety/EnvMutation:
+  Enabled: true
+
+# WHY: a test of concurrent code has to start threads; library code should still leave threads to the application.
+ThreadSafety/NewThread:
+  Exclude:
+    - "test/**/*"
+    - "spec/**/*"
+
+# WHY: a test without an assertion passes whatever the code does.
+Minitest/NoAssertions:
+  Enabled: true
+
+# WHY: a code example in Markdown often shows a class beside its test or its collaborator; one class per file is a rule for source files.
+Style/OneClassPerFile:
+  Exclude:
+    - "**/*.md"
+
+# WHY: the owner's verdicts on the cops RuboCop ships disabled; these fail the run, so Style and Layout ones are raised to `warning`, the level Preview fails on.
+Layout/FirstMethodParameterLineBreak:
+  Enabled: true
+  Severity: warning
+Layout/HeredocArgumentClosingParenthesis:
+  Enabled: true
+  Severity: warning
+Layout/MultilineArrayLineBreaks:
+  Enabled: true
+  Severity: warning
+Layout/MultilineHashKeyLineBreaks:
+  Enabled: true
+  Severity: warning
+Layout/MultilineMethodParameterLineBreaks:
+  Enabled: true
+  Severity: warning
+Lint/HeredocMethodCallPosition:
+  Enabled: true
+Lint/NumberConversion:
+  Enabled: true
+Lint/ShadowingOuterLocalVariable:
+  Enabled: true
+Style/ArrayFirstLast:
+  Enabled: true
+  Severity: warning
+Style/ImplicitRuntimeError:
+  Enabled: true
+  Severity: warning
+Style/OptionHash:
+  Enabled: true
+  Severity: warning
+Style/Send:
+  Enabled: true
+  Severity: warning
+Style/StringMethods:
+  Enabled: true
+  Severity: warning
+
+# WHY: the owner's verdicts on the cops RuboCop ships disabled; these report without failing, as Preview treats `convention`.
+Gemspec/DependencyVersion:
+  Enabled: true
+# WHY: it does nothing until `AllCops: UseProjectIndex: true` and the rubydex gem are added; enabled so it starts working when they are.
+Lint/UnusedPrivateMethod:
+  Enabled: true
+  Severity: convention
+Naming/InclusiveLanguage:
+  Enabled: true
+Style/ArrayCoercion:
+  Enabled: true
+Style/AsciiComments:
+  Enabled: true
+Style/AutoResourceCleanup:
+  Enabled: true
+Style/CollectionMethods:
+  Enabled: true
+Style/ConstantVisibility:
+  Enabled: true
+Style/DateTime:
+  Enabled: true
+Style/InlineComment:
+  Enabled: true
+Style/MethodCalledOnDoEndBlock:
+  Enabled: true
+Style/StaticClass:
+  Enabled: true
+Style/TopLevelMethodDefinition:
+  Enabled: true
+  # WHY: a script in `bin/` is where top-level methods are fine, and a Markdown example often shows a method without its class.
+  Exclude:
+    - "bin/**/*"
+    - "**/*.md"
+Style/UnlessLogicalOperators:
+  Enabled: true
+
+# WHY: a numbered name says nothing about the value; `it` or a named parameter does.
+Style/NumberedParameters:
+  EnforcedStyle: disallow
+
+# WHY: with every element on its own line, a trailing comma makes adding one a one-line diff.
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: comma
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: comma
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: comma
