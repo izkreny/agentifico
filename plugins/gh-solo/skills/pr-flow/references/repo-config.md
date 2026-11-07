@@ -8,7 +8,7 @@ Every skill in this plugin, and the `reviewer` agent, looks for a repository's c
 
 **The first file found is the whole config.** Nothing is merged in from a later one, so a key the found file leaves out falls back to the plugin's default, never to another file in the list.
 
-**`<owner>/<repo>` is the `nameWithOwner` that `gh repo view --json nameWithOwner` reports**, the call each skill's preflight already makes. Every `gh` command in this plugin writes to that repository, so keying the file by the same name means the config that is read and the tracker that is written are always one repository.
+**`<owner>/<repo>` is the `nameWithOwner` that `gh repo view --json nameWithOwner` reports** from the working directory. Every `gh` command in this plugin writes to that repository, so keying the file by the same name means the config that is read and the tracker that is written are always one repository.
 
 **The in-repo file is the default.** A repository the owner owns wants its config committed and reviewed like any other file. The user-level file is for a tree that is not the owner's to write config into, such as a fork made to contribute upstream: a committed file there would land on the branch the upstream pull request is opened from. Every worktree of a clone shares the user-level file, and nothing can commit it.
 
