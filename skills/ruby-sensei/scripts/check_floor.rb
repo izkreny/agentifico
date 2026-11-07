@@ -35,7 +35,7 @@ module CheckFloor
 
     def states(config)
       out, err, status = Open3.capture3(*command(config))
-      unless status.success?
+      unless status.success? || only_unknown_cops?(status, err)
         detail = err.lines.first(3).join
         raise Failure, "rubocop --show-cops failed under #{config}: a plugin the config loads may be missing " \
                        "from this bundle, or a cop in assets/floor.yml from this release:\n#{detail}"
@@ -47,6 +47,11 @@ module CheckFloor
     private
 
     attr_reader :cops
+
+    def only_unknown_cops?(status, err)
+      errors = err.each_line.grep_v(/\AWarning:/)
+      status.exitstatus == 2 && errors.any? && errors.all? { it.start_with?("Unrecognized cop: ") }
+    end
 
     def command(config)
       [RbConfig.ruby, Gem.bin_path("rubocop", "rubocop"), "--no-server", "--show-cops", cops.join(","), "-c", config]
