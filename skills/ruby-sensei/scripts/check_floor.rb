@@ -214,7 +214,8 @@ module CheckFloor
 
   def self.main(argv)
     options = { config: File.join(SKILL, "assets", "rubocop.yml"), record: false }
-    parser = OptionParser.new("Usage: bundle exec ruby scripts/check_floor.rb [--config PATH] [--record]")
+    parser = OptionParser.new("Usage: bundle exec ruby <skill-dir>/scripts/check_floor.rb [--config PATH] [--record]")
+    parser.separator("Run it from the directory of the Gemfile whose bundle holds RuboCop.")
     parser.on("--config PATH", "the RuboCop config to check, by default the skill's assets/rubocop.yml")
     parser.on("--record", "write the installed versions into assets/floor.yml when nothing failed")
     parser.parse!(argv, into: options)

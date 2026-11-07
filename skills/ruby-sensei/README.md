@@ -37,7 +37,13 @@ It fires on its own on Ruby work: writing, refactoring or reviewing Ruby code, t
 
 Every rule RuboCop and its plugins enforce at their default configuration is left out rather than restated. The list is *What the linters own* in `SKILL.md`, because the agent is its reader. The Metrics cops are kept as signals: the skill names the fault a count points at and never a number.
 
-`assets/floor.yml` records the versions the floor was checked against and every cop the skill relies on. After upgrading RuboCop or a plugin, run `bundle exec ruby scripts/check_floor.rb` from a bundle that has them. It fails when a relied-on cop is off by default or under `assets/rubocop.yml`, because `Preview` can switch a floor cop off in a minor release, and when a pending cop whose rule the skill states becomes enabled by default. It lists the cops added or changed since the recorded versions, so you can see which rules the linter now owns, and `--record` writes the new versions once you have read them. Pass `--config` to check a repository's own configuration instead.
+`assets/floor.yml` records the versions the floor was checked against and every cop the skill relies on. After upgrading RuboCop or a plugin, run the check, because `Preview` can switch a floor cop off in a minor release. Run it from the directory of a Gemfile whose bundle holds RuboCop and every plugin `assets/rubocop.yml` loads, rubocop-rake and rubocop-md included:
+
+```bash
+bundle exec ruby <skill-dir>/scripts/check_floor.rb
+```
+
+`--help` lists its options, and its output names each failure and the cops added or changed since the recorded versions.
 
 ## The shipped RuboCop configuration
 
