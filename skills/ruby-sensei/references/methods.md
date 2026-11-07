@@ -1,5 +1,7 @@
 # Methods
 
+Contents: one job, shape, input at the boundary, nil, conditionals, parameters, results, blocks, pattern matching, modern syntax, names.
+
 ## One job
 
 - Give each method one job at one level of abstraction. If describing it takes an "and", or its body changes topic halfway, split it, because a step with a name can be read, tested and moved, and a stretch of mixed steps can only be read.
@@ -27,7 +29,7 @@
 ## Input at the boundary
 
 - Decide once, at the public entry point, what to do with each input: convert it into the role the method needs, reject it, or substitute a known-good value. Then trust it inside, because a check repeated in every private method is noise that hides the work.
-- Convert untrusted input with the conversion functions `Integer()`, `Float()`, `String()` and `Array()`, not `to_i` and `to_f`, because `Integer("ham")` raises where `"ham".to_i` quietly returns `0`. Pass the base for decimal input, `Integer(input, 10)`, because without it a leading zero means octal and `Integer("010")` returns 8. Pass `exception: false` where `nil` is the failure you want, rather than rescuing.
+- Convert untrusted input with the conversion functions `Integer()`, `Float()`, `String()` and `Array()`, not `to_i` and `to_f`, because `Integer("ham")` raises where `"ham".to_i` quietly returns `0`. Pass the base for decimal input, `Integer(input, 10)`, because without it a leading zero means octal and `Integer("010")` returns `8`. Pass `exception: false` where `nil` is the failure you want, rather than rescuing.
 - Parse a date or time in a known format with `Date.strptime` or `Time.strptime`, never `Time.parse`, which guesses the format and fills missing parts from the current date, and validate calendar input before `Time.new`, because `Time.new(2023, 2, 31)` rolls into March instead of raising. Remember that `Time + n` adds seconds and `Date + n` adds days, and step by calendar months with `Date#>>`.
 - Pick one internal encoding, normally UTF-8: declare the external encoding when reading text and transcode where it enters, `"r:iso-8859-1:utf-8"`, read binary with `"rb"`, and never rely on the locale. Transcode with `encode`, which raises on a character it cannot map, and use `force_encoding` only to relabel bytes known to be in that encoding, because it changes no byte.
 - Load YAML naming in `permitted_classes:` exactly the classes you expect, and never use `Marshal` for data that must outlive the Ruby version or leave Ruby, because the class list is the security boundary and the format changes between releases.

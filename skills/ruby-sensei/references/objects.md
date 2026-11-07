@@ -1,5 +1,7 @@
 # Objects
 
+Contents: responsibility, dependencies, messages and roles, inheritance, modules and composition, value objects, immutability, visibility and class-level state, factories, names.
+
 ## Responsibility
 
 - Give each class one responsibility you can state in a sentence without "and" or "or", because a class with two jobs changes for two unrelated reasons and cannot be reused for one of them.
