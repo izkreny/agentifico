@@ -129,6 +129,12 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-watch.sh
 bash plugins/gh-solo/skills/pr-flow/scripts/test-criteria-check.sh
 ```
 
+**The keys check's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/keys-check.py`, `plugins/gh-solo/skills/pr-flow/scripts/plan-check.py` or a key rule under `plugins/gh-solo/assets/GhSolo/`:
+
+```bash
+bash plugins/gh-solo/skills/pr-flow/scripts/test-keys-check.sh
+```
+
 **The trunk-push hook's bench**, after any edit to `plugins/gh-solo/hooks/ask-before-trunk-push.py`:
 
 ```bash
