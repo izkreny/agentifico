@@ -246,11 +246,7 @@ module CheckFloor
       return write_versions if record
 
       puts "OK: read the cops above for rules the skill now leaves to the linter"
-      if config == OWN_CONFIG
-        puts "  then run again with --record"
-      else
-        puts "  the skill's maintainer records its floor, so there is nothing to record from this repository"
-      end
+      puts "  the skill's maintainer records the new versions with --record, in the skill's source repository"
     end
 
     def finish_without_gaps
@@ -274,12 +270,19 @@ module CheckFloor
     parser = OptionParser.new("Usage: bundle exec ruby <skill-dir>/scripts/check_floor.rb [--config PATH] [--record]")
     parser.separator("Run it from the directory of the Gemfile whose bundle holds RuboCop.")
     parser.on("--config PATH", "the RuboCop config to check, by default the skill's assets/rubocop.yml")
-    parser.on("--record", "record the installed versions when nothing failed; with the skill's own config only")
+    parser.on("--record", "for the skill's maintainer, in its source repository: record the installed versions")
     parser.parse!(argv, into: options)
-    Run.new(config: File.expand_path(options.fetch(:config)), record: options.fetch(:record)).call
+    Run.new(config: real_config(options.fetch(:config)), record: options.fetch(:record)).call
   rescue Failure => e
     abort e.message
   end
+
+  def self.real_config(path)
+    File.realpath(path)
+  rescue Errno::ENOENT
+    raise Failure, "no RuboCop config at #{path}"
+  end
+  private_class_method :real_config
 end
 
 CheckFloor.main(ARGV) if $PROGRAM_NAME == __FILE__
