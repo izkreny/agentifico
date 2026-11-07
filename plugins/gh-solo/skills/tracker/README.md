@@ -85,20 +85,20 @@ The dotted line back is the point worth noticing: nothing gets moved by hand. Th
 
 **Three levels is the limit.** If an epic's children need children of their own, the epic was a milestone.
 
-**Acceptance criteria are checkboxes, and they live on the issue.** GitHub counts them and shows the count everywhere the issue appears, which is free progress tracking. They are not repeated in the plan or the pull request, because a fact in two places is a fact that will disagree with itself.
+**Acceptance criteria are checkboxes, and they live on the issue.** GitHub counts them and shows the count everywhere the issue appears, which is free progress tracking. A removed one stays as a plain line, so the count stops including it. They are not repeated in the plan or the pull request, because a fact in two places is a fact that will disagree with itself.
 
 ## Layout
 
-| Path                           | Holds                                                                                                        |
-|--------------------------------|--------------------------------------------------------------------------------------------------------------|
-| `SKILL.md`                     | routing, the eligibility rule, the shared vocabulary                                                         |
-| `references/standards.md`      | an index pointing at `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md` |
-| `references/issue-shape.md`    | hierarchy and sizing, titles, bodies, acceptance criteria, spikes                                            |
-| `references/tracker-fields.md` | labels, dependencies, milestones, state, issue types                                                         |
-| `references/formats.md`        | branch names, commit subjects, PR titles, plan filenames                                                     |
-| `references/github-access.md`  | `gh` setup, and the failures that look like something else                                                   |
-| `workflows/`                   | one file per command                                                                                         |
+| Path | Holds |
+| --- | --- |
+| `SKILL.md` | routing, the eligibility rule, the shared vocabulary |
+| `references/standards.md` | an index pointing at `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md` |
+| `references/issue-shape.md` | hierarchy and sizing, titles, bodies, acceptance criteria, spikes |
+| `references/tracker-fields.md` | labels, dependencies, milestones, state, issue types |
+| `references/formats.md` | branch names, commit subjects, PR titles, plan filenames, and the keys on an item |
+| `references/github-access.md` | `gh` setup, and the failures that look like something else |
+| `workflows/` | one file per command |
 
 Anything specific to one repository — its own label set, a different branch convention — belongs in `<repo-root>/.agents/gh-solo.md` in that repository, never in this skill. `pr-flow` reads the same file, so the skills cannot disagree about a repository's conventions.
 
-**The formats live here**, in `references/formats.md`: branch names, commit subjects, pull request titles, plan filenames. They belong to the tracker because every one of them encodes an issue number, and `pr-flow` points back here instead of restating them.
+**The formats live here**, in `references/formats.md`: branch names, commit subjects, pull request titles, plan filenames, and the keys on an item, such as `AC3`. The names belong to the tracker because every one of them encodes an issue number, and `pr-flow` points back here instead of restating them. The keys live here too, because every skill in the flow writes or reads them.

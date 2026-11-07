@@ -1,6 +1,6 @@
 # What an issue looks like
 
-How work is divided into issues, and how each one is titled and bodied. The other halves of the standards are `references/tracker-fields.md`, for the fields GitHub carries, and `references/formats.md`, for the names that encode an issue number.
+How work is divided into issues, and how each one is titled and bodied. The other halves of the standards are `references/tracker-fields.md`, for the fields GitHub carries, and `references/formats.md`, for the names that encode an issue number and the keys on an item.
 
 ## Hierarchy
 
@@ -76,12 +76,13 @@ GitHub renders **GitHub Flavored Markdown** everywhere. Write bodies to a file a
 
 ## Acceptance criteria
 
-- [ ] Criterion 1 (observable, testable)
-- [ ] Criterion 2
+- [ ] ::AC1:: Criterion 1 (observable, testable)
+- [ ] ::AC2:: Criterion 2
 
 ## Technical notes
 
-[Approach, endpoints, component names, data shapes]
+- ::N1:: [Approach, endpoints, component names, data shapes]
+- ::N2:: [One note per bullet]
 
 ## Dependencies
 
@@ -103,14 +104,14 @@ Every body written by an agent opens with the AI disclaimer line, above everythi
 
 ## Acceptance criteria
 
-- [ ] Criterion 1
-- [ ] Criterion 2
+- [ ] ::AC1:: Criterion 1
+- [ ] ::AC2:: Criterion 2
 
 ## Done when
 
-- [ ] Every sub-issue closed
-- [ ] Tests passing
-- [ ] Documentation updated
+- [ ] ::D1:: Every sub-issue closed
+- [ ] ::D2:: Tests passing
+- [ ] ::D3:: Documentation updated
 ```
 
 **The opening section is the summary, and it is capped at five sentences or bullets.** `## Overview` on an issue, `## What this delivers` on an epic, `## Question` on a spike: whichever it is, it answers "what is this" for someone who has forgotten the conversation, and it is the only section that has to be read. Five is a ceiling and not a target; two sentences that say it are better than five that circle it.
@@ -121,7 +122,7 @@ Anything past the cap belongs in `## Technical notes`, or a comment on the issue
 
 **There is no `## Done when` on an issue**, though team templates always carry one. Every box it usually holds is a copy of a fact that lives elsewhere or a box nothing can tick: "criteria met" restates `## Acceptance criteria`, "tests pass" is the plan's `## Verification` and the PR's copy of it, "code reviewed" is the review record the `pr-flow` merge gate refuses to land without, and "merged to main" is made true by the very event that closes the issue - the box would sit empty for the issue's whole open life and the progress counter would never reach full. Done, for an issue, is the close reason GitHub records anyway. The epic and spike templates keep their `## Done when` because those close by hand, and a close checklist is real work at a real moment.
 
-And acceptance criteria are written as **checkboxes**, not bullets, because on GitHub they render as a progress counter on the issue and in every list that shows it, which is free tracking a solo dev actually benefits from.
+And acceptance criteria are written as **checkboxes**, not bullets, because on GitHub they render as a progress counter on the issue and in every list that shows it, which is free tracking a solo dev actually benefits from. A removed criterion is not: it stays as a plain line, per *Keys* in `references/formats.md`, so the counter stops counting it.
 
 ### Writing good acceptance criteria
 
@@ -133,6 +134,8 @@ This is the part that survives every tracker, and it is worth more than the whol
 - One idea per bullet.
 
 **Who ticks them: the agent implementing the issue**, criterion by criterion as each becomes verifiably true, with the gates that prove it green. A tick is the claim "implemented and verified", never acceptance - the owner accepts by merging the PR, after reading the diff. It follows that a read workflow never ticks one in passing, and nobody ticks one to make an issue look closable; `workflows/state.md` refuses that outright.
+
+**Every criterion carries an `AC{n}` key, every technical note an `N{n}` and every `## Done when` item a `D{n}`**, as the templates show. *Keys* in `references/formats.md` owns how they are written and numbered.
 
 ---
 
@@ -173,9 +176,9 @@ The `spike -` opener is not a layer prefix and stays. It is part of the sentence
 
 ## Done when
 
-- [ ] Question answered
-- [ ] Findings written down somewhere durable
-- [ ] Recommendation made
+- [ ] ::D1:: Question answered
+- [ ] ::D2:: Findings written down somewhere durable
+- [ ] ::D3:: Recommendation made
 ```
 
 The time box is the point. A spike that runs over its box has answered a different question than the one asked, and the honest move is to close it with what was learned and open a new one.

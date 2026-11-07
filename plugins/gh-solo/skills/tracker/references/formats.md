@@ -1,6 +1,6 @@
-# The formats that encode an issue number
+# The formats the tracker shares
 
-Branch names, commit subjects, pull request titles and plan filenames. They live with the tracker because every one of them encodes an issue key, and `pr-flow` and `implement` point here rather than restating them.
+Branch names, commit subjects, pull request titles and plan filenames. They live with the tracker because every one of them encodes an issue key, and `pr-flow` and `implement` point here rather than restating them. The keys on an item, under *Keys*, live here too, because every skill in the flow writes or reads them.
 
 ## Quick reference
 
@@ -47,3 +47,20 @@ The spec's optional scope, `type(scope):`, is used in exactly one place: the **p
 **Use `GHI-50` only where `#` cannot go**: branch names and plan filenames. `#` is hostile in a shell and in a path, so the sigil that marks 50 as an issue number is unavailable, and a bare `50` in `git branch -a` or a directory listing says nothing about what it counts. `GHI` stands for GitHub Issue and supplies that missing label. This is a legibility rule, not a linking one — neither a branch name nor a filename autolinks anywhere.
 
 The separator does the parsing, not the prefix. `{type}/GHI-{issue-number}_{slug}` splits on the first `_`, so the number falls out with one regex and no knowledge of the slug, which is what a scheme like `feat/50-login-form` cannot promise once a slug begins with a digit.
+
+## Keys
+
+**An item a reader has to point at carries a key**, issued as `::{key}{n}::` and named in prose as `{key}{n}`: `::AC3::` where it is issued, `AC3` everywhere it is mentioned. A key is how every later reader addresses the item: an agent ticking it, a gate reporting it, a review finding naming it. The wording can change under a key without breaking a reference to it.
+
+| Key | Labels | Carried by | Written as |
+| --- | --- | --- | --- |
+| `AC` | an acceptance criterion | the issue and epic body templates in `references/issue-shape.md` | `- [ ] ::AC1:: …` |
+| `N` | a technical note, one bullet | the issue body template | `- ::N1:: …` |
+| `D` | a `## Done when` item | the epic and spike body templates | `- [ ] ::D1:: …` |
+| `RF` | a review finding | the review threads on a pull request, per *Ids* in `../pr-flow/references/review-protocol.md` | `::RF1:: …` |
+
+**Every key in the table follows one numbering rule.** The first list a key labels is numbered from `1`, in list order. An item added later takes the next free number, even when the list then reads out of order. No key is ever renumbered, and a removed item's number is never reused: a reference written against `AC3` has to mean the same item for the life of the issue or pull request that carries it. Each key numbers on its own, so `AC3` and `D3` on one epic are different items.
+
+**A removed item is never deleted: its line stays, keeping its key, as a plain line reading `removed` and why**, as in `- ::AC3:: removed - superseded by AC4`. A checkbox it had goes, so GitHub's progress counter stops counting it, and the key stays in the body, which is the only record an issue keeps of the keys it has issued. The next free number is therefore one past the highest key the body carries, removed lines included.
+
+**Whoever writes an item issues its key**, whether that is the body's first writer or a later edit that adds an item.
