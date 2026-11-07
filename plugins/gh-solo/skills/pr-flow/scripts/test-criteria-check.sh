@@ -52,8 +52,16 @@ body = "\r\n".join([
     "- [ ] ::AC10:: two digits",
     "  - [ ] ::AC6:: nested is not a criterion line",
     "- [ ] Criterion without a key",
+    "* [ ] ::AC7:: star bullet",
+    "+ [x] ::AC8:: plus bullet",
+    "1. [ ] ::AC9:: numbered",
+    "2) [ ] ::AC11:: numbered with a paren",
+    "-  [ ]  ::AC12:: double spaces",
+    "-\t[ ]\t::AC13:: tabs",
+    "* [ ] ::AC14::READ:: a READ star bullet",
 ])
-check("checkbox lines only, READ and removed skipped, CRLF read", c.criterion_keys(body), ["AC1", "AC2", "AC3", "AC10"])
+check("checkbox lines only, READ and removed skipped, CRLF read", c.criterion_keys(body), ["AC1", "AC2", "AC3", "AC10", "AC7", "AC8", "AC9", "AC11", "AC12", "AC13"])
+check("a star-bullet body is not read as unkeyed", c.criterion_keys("* [ ] ::AC1:: x\n* [ ] ::AC2:: y"), ["AC1", "AC2"])
 check("an unkeyed body has no keys", c.criterion_keys("- [ ] plain\n- [x] plain"), [])
 
 print("\nthe search, on a real repository:")
@@ -98,6 +106,9 @@ check("every key named passes", c.check(423, "origin"), 0)
 
 fake("- [x] ::AC1:: x\n- [ ] ::AC2:: y")
 check("a key no test names refuses", c.check(423, "origin"), 1)
+
+fake("* [x] ::AC1:: x\n* [ ] ::AC2:: y")
+check("a star-bullet key no test names refuses", c.check(423, "origin"), 1)
 
 fake("- [x] ::AC1:: x", pr_body="no closing line")
 check("a PR with no Closes line cannot run", c.main(["423", "--remote", "origin"]), 2)

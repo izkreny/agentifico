@@ -19,7 +19,7 @@ CONFIG_FILES = (".agents/gh-solo.md", ".claude/gh-solo.md")
 GLOB_LINE = re.compile(r"^Test files:[ \t]*(\S.*?)[ \t]*$", re.M)
 CLOSES = re.compile(r"\bCloses #(\d+)\b")
 # WHY: a removed criterion has no checkbox and a READ one is the owner's to prove, so neither is searched.
-CRITERION = re.compile(r"^- \[[ xX]\] ::(AC\d+)::(READ::)?", re.M)
+CRITERION = re.compile(r"^(?:[-*+]|\d+[.)])[ \t]+\[[ xX]\][ \t]+::(AC[1-9]\d*)::(READ::)?", re.M)
 
 
 class CheckError(Exception):
