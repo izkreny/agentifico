@@ -1,6 +1,6 @@
 # The formats the tracker shares
 
-Branch names, commit subjects, pull request titles and plan filenames. They live with the tracker because every one of them encodes an issue key, and `pr-flow` and `implement` point here rather than restating them. The keys on an item, under *Keys*, live here too, because every skill in the flow writes or reads them.
+Branch names, commit subjects, pull request titles and plan filenames. They live with the tracker because every one of them encodes an issue number, and `pr-flow` and `implement` point here rather than restating them. The keys on an item, under *Keys*, live here too, because every skill in the flow writes or reads them.
 
 ## Quick reference
 
