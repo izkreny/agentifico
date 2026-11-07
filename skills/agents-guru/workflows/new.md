@@ -106,6 +106,8 @@ Duplication between a global instructions file and a skill drifts, and the drift
 
 A document about a script, a rule or a configuration file names that file and says what the code cannot: what it is for, what it reads, and what it leaves to another tool or to a reader. Every defect it reports, every case it leaves alone and every message are the code's to say, because the code is what runs and what the suite tests, so a prose copy drifts with nothing to fail and is still the copy a reader trusts.
 
+**This is a hard rule, and an issue or a plan cannot override it.** A criterion asking a document to name what a rule reports is met by naming the rule and what it is for. A reviewer reports the copy as an ordinary finding rather than asking the owner to choose, since the rule has already chosen.
+
 ### Code blocks are Bash
 
 An agent executes a skill's commands through its shell tool, which is Bash; fish or zsh syntax in a skill fails at execution time, on the machine of whoever installed it.
