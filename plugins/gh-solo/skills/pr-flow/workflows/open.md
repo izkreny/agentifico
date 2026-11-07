@@ -170,7 +170,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 ### Body caps
 
-**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement. **This is not the post cap**, which `references/post-caps.md` owns and which puts the PR body outside its domain outright: this one exists because the body becomes a commit message on `main`, so they are separate caps that happen to agree, and neither is evidence for the other's number:
+**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement. **This is not the post cap**, which `references/post-caps.md` owns and which puts the PR body outside its domain outright: this one exists because, where the repository squashes with `PR_BODY` per *Repository settings this assumes* in `references/repo-settings.md`, the body becomes a commit message on `main` that nothing edits afterwards, so they are separate caps that happen to agree, and neither is evidence for the other's number:
 
 - **`## Plan overview`**, the approach.
 - **The paragraph under `## Verification`**, what the gates cannot see.
@@ -178,8 +178,6 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 - **`## Settled`**.
 
 **The unit is the section, never the entry.** A section that collects entries is counted whole, every entry in it summed into one total, which is the only reading under which a section that grows for the length of the branch can breach at all: per entry, a `## Settled` holding a dozen short entries passes forever. `workflows/discuss.md` states the trigger the same way.
-
-**The cap is here because this body becomes a commit message.** Where the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `references/repo-settings.md`, the whole body lands in `git log` on `main` and nothing edits a commit message afterwards. The overview is written once and reviewed at plan time; the rest accumulate for the length of the branch, so uncapped the commit message's length tracks how much discussion the branch had rather than what the branch did.
 
 #### What counts
 
@@ -189,7 +187,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 **The entry that would take a section past its cap moves to the plan file's own `## Settled` heading**, the heading `workflows/discuss.md` already gives a decision settled outside a thread. **The commit message is not the escape here**, however reliably *Post caps* sends overflow there: this body *is* the commit message, so that route is a circle. The plan file is committed under `<repo-root>/docs/plans/`, is already linked from `## Plan overview`, and outlives the branch, so moving rather than deleting holds exactly as it does inside the body.
 
-**This section owns the whole route, and each site elsewhere points at *Body caps*** rather than restating a leg of it, because a route stated in several places is one that gets half-fixed. Each part below earns its place:
+**This section owns the whole route.** Each part below earns its place:
 
 - **The relocation is a `docs:` commit, written where the decision settles**, and held exactly like the other commits that round makes. It is never a body edit, since no body edit can put text in a file.
 - **The body's own edit is owed from the moment that commit exists, never lands before its push, and stays owed until that edit lands.** An invariant rather than a trigger, because a trigger keyed on this round still holding the commit dies with the session that held it, and any push carries the branch rather than selected commits. What discharges it is the first pass to find the commit on the remote with its entry still in `## Open questions`: Step 1's plan-record settle in the `implement` skill, which writes the plan file, pushes it and edits the body in one pass, or the review protocol's step 7, per `workflows/resolve.md`. Both read that condition off the remote and the body, so neither needs to have been the session that made the commit.

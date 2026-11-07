@@ -87,7 +87,9 @@ gh pr ready <pr-number>
 
 ## Step 7 - Confirm
 
-Open with the verdict line per the standing convention in `SKILL.md`. `✅ ALL PASS` when Step 3 found nothing; `⚠️ PASSED WITH FINDINGS - {the bookkeeping misses}` when it did, naming each by its key - an unticked `## Steps` box whose work is plainly done, by its `S{n}`, or a `## Open questions` entry never moved to `## Settled`, by its `Q{n}`. Step 3 defines both as things to report rather than blockers, so the draft still lifts; printing green over them hides the one line the owner reads first. A refusal never reaches this step: the refusals in Steps 1-5 print `⛔ REFUSED - {reason}` as their first line instead. Then one line: the PR number and URL, that it is out of draft, and that every `## Verification` box was already ticked with CI green on the same head — which is the fact that authorised the flip.
+Open with the verdict line per the standing convention in `SKILL.md`. `✅ ALL PASS` when Step 3 found nothing; `⚠️ PASSED WITH FINDINGS - {the bookkeeping misses}` when it did, naming each by its key - an unticked `## Steps` box whose work is plainly done, by its `S{n}`, or a `## Open questions` entry never moved to `## Settled`, by its `Q{n}`. Step 3 defines both as things to report rather than blockers, so the draft still lifts; printing green over them hides the one line the owner reads first. A refusal never reaches this step: the refusals in Steps 1-5 print `⛔ REFUSED - {reason}` as their first line instead.
+
+Then one line: the PR number and URL, that it is out of draft, and that every `## Verification` box was already ticked with CI green on the same head — which is the fact that authorised the flip.
 
 Then Step 4's result: each key beside the `file:line` naming it, or that the gate is off, or that no criterion carries a key.
 
