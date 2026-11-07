@@ -8,10 +8,10 @@ Per-repository facts the `gh-solo` plugin reads. Only what differs from its defa
 
 There is no CI and no build. Everything below runs locally, and nothing else is a gate.
 
-**The plugin's own files, this file, `AGENTS.md` and the open branch's own plan**, from the repository root:
+**The plugin's own files, this file, `.agents/dependencies.md`, `AGENTS.md` and the open branch's own plan**, from the repository root:
 
 ```bash
-python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md AGENTS.md \
+python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md .agents/dependencies.md AGENTS.md \
   $(git diff --name-only origin/main...HEAD -- docs/plans) --plans docs/plans
 ```
 

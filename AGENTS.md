@@ -14,6 +14,7 @@ This file is for any agent working in this repository, whatever its harness, and
 | `docs/plans/` | one implementation plan per branch |
 | `scripts/` | this repository's own checks, and their benches |
 | `.agents/gh-solo.md` | the per-repository facts the `gh-solo` plugin reads |
+| `.agents/dependencies.md` | what an update round covers, and how each dependency moves |
 | `AGENTS.md`, `CLAUDE.md` | this file; the second is a symlink to the first |
 
 ## Each plugin, and each skill under `skills/`, is a package
@@ -67,7 +68,7 @@ git push origin <name>_<version>
 
 ## Skill files follow the agents-guru rules
 
-**Every file under `plugins/` and `skills/` is held to the `agents-guru` skill at `skills/agents-guru/`, and so are `AGENTS.md` and `.agents/gh-solo.md`.** A plugin's manifests, agents, hooks and README are read by agents just as its skills are, and `AGENTS.md` and `.agents/gh-solo.md` govern all of them. The skill is a package of this repository, so it is readable from any branch and can be cited by path rather than copied here, where a copy would drift from the file it came from.
+**Every file under `plugins/` and `skills/` is held to the `agents-guru` skill at `skills/agents-guru/`, and so are `AGENTS.md`, `.agents/gh-solo.md` and `.agents/dependencies.md`.** A plugin's manifests, agents, hooks and README are read by agents just as its skills are, and `AGENTS.md` and the files under `.agents/` govern all of them. The skill is a package of this repository, so it is readable from any branch and can be cited by path rather than copied here, where a copy would drift from the file it came from.
 
 **`docs/plans/` is outside the standard.** A plan is a record of intent and keeps its history by design, so the rule against a file's own history cannot bind it.
 

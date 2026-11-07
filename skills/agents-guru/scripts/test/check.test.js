@@ -63,11 +63,11 @@ beforeAll(() => {
   const refuses = path.join(tmp, "refuses-bin");
   fs.mkdirSync(refuses);
   fs.writeFileSync(path.join(refuses, "vale"), '#!/bin/sh\necho "E100 [core] cannot parse config: bad line" >&2\nexit 2\n', { mode: 0o755 });
-  // One stub per minor under 3.23, so an off-by-one threshold fails on 3.22.0.
-  for (const version of ["3.21.0", "3.22.0"]) {
-    const bin = path.join(tmp, `old-bin-${version}`);
+  // One stub per minor under 3.25, so an off-by-one threshold fails on 3.24.0, and one at 3.25.0, so a threshold one minor too high fails there.
+  for (const version of ["3.23.0", "3.24.0", "3.25.0"]) {
+    const bin = path.join(tmp, `stub-bin-${version}`);
     fs.mkdirSync(bin);
-    fs.writeFileSync(path.join(bin, "vale"), `#!/bin/sh\necho "vale version ${version}"\n`, { mode: 0o755 });
+    fs.writeFileSync(path.join(bin, "vale"), `#!/bin/sh\nif [ "$1" = --version ]; then echo "vale version ${version}"; else echo "{}"; fi\n`, { mode: 0o755 });
   }
   const unversioned = path.join(tmp, "unversioned-bin");
   fs.mkdirSync(unversioned);
@@ -319,13 +319,18 @@ describe("check.js", () => {
     assert.match(r.out, /cannot parse config/);
     assert.ok(r.out.endsWith("vale could not run: E100 [core] cannot parse config: bad line\n"), r.out);
   });
-  it("a vale older than 3.23 fails the run, and says so", () => {
-    for (const version of ["3.21.0", "3.22.0"]) {
-      const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, `old-bin-${version}`) });
+  it("a vale older than 3.25 fails the run, and says so", () => {
+    for (const version of ["3.23.0", "3.24.0"]) {
+      const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, `stub-bin-${version}`) });
       assert.equal(r.code, 1, version);
       assert.match(r.out, /2 files checked, \d+ issues, prose rules not run/);
-      assert.match(r.out, new RegExp(`vale ${version.replaceAll(".", "\\.")} is older than 3\\.23`));
+      assert.match(r.out, new RegExp(`vale ${version.replaceAll(".", "\\.")} is older than 3\\.25`));
     }
+  });
+  it("a vale at 3.25 is not refused for its version", () => {
+    const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "stub-bin-3.25.0") });
+    assert.match(r.out, /2 files checked, \d+ issues/);
+    assert.doesNotMatch(r.out, /prose rules not run/);
   });
   it("a vale whose version cannot be read fails the run, and says so", () => {
     const r = run(path.join(tmp, "bad"), { ...process.env, PATH: path.join(tmp, "unversioned-bin") });

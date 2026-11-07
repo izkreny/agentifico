@@ -206,10 +206,10 @@ const proseNotRun = (why) => {
 };
 
 // SKILL.md and references/setup.md name the Vale this package needs by pointing here, and each refusal prints it.
-const MIN_VALE = [3, 23];
+const MIN_VALE = [3, 25];
 const minVale = MIN_VALE.join(".");
 
-// An older Vale loads a rule naming a scope from config/scopes and matches nothing, so a run on one would pass with the comment rules off.
+// A Vale before 3.23 loads a rule naming a scope from config/scopes and matches nothing, so its run would pass with rules quietly off.
 const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
 // Stryker disable next-line StringLiteral: stdout is null only when Vale did not start, and no fallback text holds a version.
 const valeVersion = /(\d+)\.(\d+)\.\d+/.exec(versionRun.stdout ?? "");
