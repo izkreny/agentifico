@@ -21,7 +21,7 @@ Install TypeScript 7.0 or later globally first, with npm where Node.js is alread
 npm install -g typescript@7
 ```
 
-Or with [mise](https://mise.jdx.dev), which installs Node.js too:
+Or with [mise](https://mise.jdx.dev), which installs Node.js too, in a shell where mise is activated:
 
 ```bash
 mise use -g node
