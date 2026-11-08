@@ -9,6 +9,7 @@ AI agent skills, instructions and gotchas. Each package here is published one of
 | Package | Route | What it is for |
 |---|---|---|
 | [gh-solo](plugins/gh-solo/README.md) | marketplace | The solo maintainer's GitHub loop: issues, plan-first pull requests, fresh-context review rounds and gated merges |
+| [typescript-native-lsp](plugins/typescript-native-lsp/README.md) | marketplace | TypeScript and JavaScript code intelligence from the language server built into the `tsc` of TypeScript 7.0 |
 | [rails-style](skills/rails-style/README.md) | skill | A house Rails style from 37signals practice, applied to Rails coding, refactoring and code review |
 | [review-text](skills/review-text/README.md) | skill | A proofreader for prose that reports errors apart from style suggestions and edits only when asked |
 | [agents-guru](skills/agents-guru/README.md) | skill | Writing, reviewing, maintaining and exporting agent skills, with checks for the traps a YAML parser cannot see |

@@ -50,6 +50,7 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 **The agents-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/agents-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are:
 
 - `plugins/gh-solo`
+- `plugins/typescript-native-lsp`
 - `skills/review-text`
 - `skills/agents-guru`
 - `skills/socratic-tutor`
@@ -103,6 +104,12 @@ bash skills/action-policy-guru/scripts/test-check-upstream.sh
 
 ```bash
 bash skills/glossary-guru/scripts/test-glossary-rule.sh
+```
+
+**The typescript-native-lsp manifest test**, after any edit under `plugins/typescript-native-lsp/`, needing the `tsc` of TypeScript 7.0 or later on `PATH`:
+
+```bash
+python3 plugins/typescript-native-lsp/tests/test-manifest.py
 ```
 
 #### The plugin's benches
@@ -187,6 +194,7 @@ bash scripts/test-manifest-check.sh
 | Label | The deliverable is |
 |---|---|
 | `gh-solo` | `plugins/gh-solo/` |
+| `typescript-native-lsp` | `plugins/typescript-native-lsp/` |
 | `rails-style` | `skills/rails-style/` |
 | `review-text` | `skills/review-text/` |
 | `agents-guru` | `skills/agents-guru/` |
@@ -202,7 +210,7 @@ bash scripts/test-manifest-check.sh
 **The mandatory-axis audit has to be rewritten here, not reused.** The plugin's version names the layer values it excludes, and none of them exists in this repository, so it excludes nothing and reports every open issue as unlabelled. This is the one that works:
 
 ```bash
-gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:agents-guru -label:socratic-tutor -label:action-policy-guru -label:glossary-guru -label:repo"
+gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:agents-guru -label:socratic-tutor -label:action-policy-guru -label:glossary-guru -label:typescript-native-lsp -label:repo"
 ```
 
 **A new value in the table above is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
