@@ -10,25 +10,34 @@ The mechanical audit. Run it after writing or editing any skill, and in a review
 
 Before the first run on an install, follow `references/setup.md`.
 
-Each argument is a target, a folder or a file, and the current directory is the target when there is none. A folder target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/`. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories under a folder target are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
+Each argument is a target, a folder or a file, and the current directory is the target when there is none. A folder target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/`. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories under a folder target are skipped, and so is every path git ignores there and every path an exclusion glob matches:
 
 ```bash
 node <skill-dir>/scripts/check.js path/to/the-skill
 node <skill-dir>/scripts/check.js AGENTS.md .agents/gh-solo.md
 node <skill-dir>/scripts/check.js --skip skill-hard-wrap path/to/the-skill
+node <skill-dir>/scripts/check.js --include 'vendor/**' path/to/the-skill
 ```
 
 **`--skip <rule>` switches a convention rule off for one run, and may be given more than once.** A rule takes it only where the check already reports it as a warning because `workflows/export.md` lets a skill decline its author's conventions. A rule that fails the run is one this skill holds every skill to, so no caller can decline it. Any other name refuses the run and prints the names that do take it.
 
 The switch is the caller's, written in the command where whoever reads the run sees it, and nothing under the target can set it. A run that skipped anything names each skipped rule with how many findings it withheld, and its summary line adds `N rule(s) skipped`; the exit code is decided by the findings that remain.
 
-**A file target is read as named, even inside a dot-directory**, which is how a file such as `<repo-root>/.agents/gh-solo.md` is reached at all. A file names no tree of its own, so its root is the current directory, where a folder target is its own root: the path rules resolve against it and the layout search stops at it. Run a file target from the folder its paths were written against. Several targets print every path from the folder they share, and a file reached by more than one is read once.
+**A path git ignores under a folder target is skipped**, so a dependency folder a skill keeps out of git, such as a Bundler `vendor/bundle`, adds no file and no finding. It is never in a published copy of the skill. The check asks git once per folder target. Outside a repository, without git on the machine, or on a target git ignores as a whole, nothing is skipped for this reason. A walk that follows a symlink into another tree still asks the target's repository, so a path ignored only there is read; an exclusion glob covers it.
+
+**`--exclude <glob>` leaves out every path matching it, and may be given more than once.** Its default is `**/node_modules/**`, so a target outside any repository still skips a skill's dependencies. A given `--exclude` replaces that default rather than adding to it, so name `**/node_modules/**` again to keep it.
+
+**`--include <glob>` checks every path matching it, even where git ignores it or an exclusion glob matches it, and may be given more than once.** It still reads only a file a reader takes. Neither option can be given without a glob.
+
+Each glob is matched against a path relative to its folder target, never against a file target. A glob naming a folder, with or without a trailing `/`, covers everything under it.
+
+**A file target is read as named, even inside a dot-directory or a path git ignores**, which is how a file such as `<repo-root>/.agents/gh-solo.md` is reached at all. A target inside a skill takes that skill's directory as its root, whether it is a file such as `<skill-dir>/SKILL.md` or a folder such as `<skill-dir>/references/`. So a run naming a skill's files resolves their pointers as a run over the whole skill does. Outside any skill, a file names no tree of its own, so its root is the current directory, where a folder target is its own root. The path rules resolve against the root and the layout search stops at it. Run a file target outside a skill from the folder its paths were written against. Several targets print every path from the folder they share, and a file reached by more than one is read once.
 
 **One skill is the gate; a wider target is a survey.** Against a single skill the exit code answers "is this skill clean", which is what a branch and a sweep both want. Against a directory of skills or a package root it answers only "does anything under here have findings", and it will usually be non-zero: the run reports every skill it reaches, and `references/managing.md` forbids editing a manager-installed one, so a finding there is a report to that skill's author rather than work for the runner.
 
 Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about a skill's frontmatter apply to a file named `SKILL.md`, *The agent rule* applies to an agent file, and each leaves the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported.
 
-A target the check cannot read fails the run, naming that target: a path that does not exist, a folder with no markdown under it, or a file no reader takes. Its silence is indistinguishable from a clean sweep, and beside other targets it would hide. A folder holding markdown but no skill is a legitimate target and is read.
+A target the check cannot read fails the run, naming that target: a path that does not exist, a folder holding no file any reader takes, or a file no reader takes. Its silence is indistinguishable from a clean sweep, and beside other targets it would hide. A folder holding no skill, or no markdown, is a legitimate target and is read, as a skill's `<skill-dir>/assets/` of YAML is.
 
 A link under a folder target that cannot be resolved, because it points at nothing or loops back on itself, fails the run the same way, named under `dangling links` with the reason, since nothing read it and its silence would look like a clean file. It counts as an issue and never in the closing line's file count. A folder named like a markdown file is walked into rather than read, so the files inside it are checked like any others.
 
