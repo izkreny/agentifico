@@ -33,8 +33,8 @@ for (let i = 2; i < process.argv.length; i += 1) {
   i += 1;
   const value = process.argv[i];
   if (option !== "--skip") {
-    // WHY: an empty or absolute value is refused, because a glob is relative to its folder target and a folder glob gains /**, which from an empty value walks the whole filesystem.
-    if (value === undefined || value.replace(/\/+$/u, "") === "" || path.isAbsolute(value)) {
+    // WHY: an empty, absolute or climbing value is refused, because a glob is relative to its folder target, and from an empty value a folder glob's added /** walks the whole filesystem.
+    if (value === undefined || value.replace(/\/+$/u, "") === "" || path.isAbsolute(value) || path.posix.normalize(value).split("/")[0] === "..") {
       nothingChecked(`${option} ${value === undefined ? "names no glob" : `"${value}" is no glob relative to a folder target`}`);
     }
     (option === "--exclude" ? excludes : includes).push(value);
