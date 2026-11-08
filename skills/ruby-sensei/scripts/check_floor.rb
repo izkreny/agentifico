@@ -12,7 +12,6 @@ require "yaml"
 module CheckFloor
   SKILL = File.expand_path("..", __dir__)
   FLOOR = File.join(SKILL, "assets", "floor.yml")
-  OWN_CONFIG = File.join(SKILL, "assets", "rubocop.yml")
   GEMS = {
     "rubocop" => { repo: "rubocop/rubocop" },
     "rubocop-performance" => { repo: "rubocop/rubocop-performance", department: "Performance" },
@@ -22,7 +21,7 @@ module CheckFloor
   }.freeze
 
   Gap = Data.define(:name, :checked, :installed, :spec)
-  private_constant :SKILL, :FLOOR, :OWN_CONFIG, :GEMS, :Gap
+  private_constant :SKILL, :FLOOR, :GEMS, :Gap
 
   # Raised for a check that cannot run or does not pass; only `main` turns it into an exit.
   class Failure < StandardError; end
@@ -163,9 +162,7 @@ module CheckFloor
   # Reads the floor, checks every cop in it and prints what changed since the checked versions.
   class Run
     def initialize(config:, record:)
-      if record && config != OWN_CONFIG
-        raise Failure, "--record writes the skill's own floor, so it runs only with the skill's own config"
-      end
+      raise Failure, "--record records a check of RuboCop's defaults, so it runs without --config" if record && config
 
       @config = config
       @record = record
@@ -192,7 +189,7 @@ module CheckFloor
     def check_cops
       show = ShowCops.new(owned + watched.keys)
       defaults = defaults_states(show)
-      check_owned(defaults, show.states(config))
+      check_owned(defaults, config && show.states(config))
       check_watched(defaults)
     end
 
@@ -206,27 +203,19 @@ module CheckFloor
     end
 
     def check_owned(defaults, configured)
-      puts "Owned cops, which must be enabled by default and under #{config}:"
-      owned.each { |cop| check_one_owned(cop, defaults[cop], configured[cop]) }
+      where = config ? "by default and under #{config}" : "by default"
+      puts "Owned cops, which must be enabled #{where}:"
+      runs = { "by default" => defaults, "under the config" => configured }.compact
+      owned.each { |cop| check_one_owned(cop, runs.transform_values { it[cop] }) }
       puts "  all #{owned.size} enabled" if failures.empty?
     end
 
-    def check_one_owned(cop, by_default, under_config)
-      problems = problems_for(by_default, under_config)
+    def check_one_owned(cop, states)
+      problems = states.filter_map { |where, state| "#{state || "unknown"} #{where}" unless state == "true" }
       return if problems.empty?
 
       failures << cop
       puts "  FAIL #{cop}: #{problems.join(", ")}"
-    end
-
-    def problems_for(by_default, under_config)
-      { "by default" => by_default, "under the config" => under_config }
-        .filter_map do |where, state|
-          next if state == "true"
-
-          label = state || "unknown"
-          "#{label} #{where}"
-        end
     end
 
     def check_watched(defaults)
@@ -278,13 +267,13 @@ module CheckFloor
   end
 
   def self.main(argv)
-    options = { config: OWN_CONFIG, record: false }
+    options = { record: false }
     parser = OptionParser.new("Usage: bundle exec ruby <skill-dir>/scripts/check_floor.rb [--config PATH] [--record]")
     parser.separator("Run it from the directory of the Gemfile whose bundle holds RuboCop.")
-    parser.on("--config PATH", "the RuboCop config to check, by default the skill's assets/rubocop.yml")
+    parser.on("--config PATH", "also check the owned cops under this RuboCop config")
     parser.on("--record", "for the skill's maintainer, in its source repository: record the installed versions")
     parser.parse!(argv, into: options)
-    Run.new(config: real_config(options.fetch(:config)), record: options.fetch(:record)).call
+    Run.new(config: options[:config]&.then { real_config(it) }, record: options.fetch(:record)).call
   rescue Failure => e
     abort e.message
   end

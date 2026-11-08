@@ -51,4 +51,4 @@ None.
 
 ## Settled
 
-None yet.
+- **Does the opinionated RuboCop configuration ship with the skill?** No. The owner moved `skills/ruby-sensei/assets/rubocop.yml` (delete) to a repository of their own for RuboCop configuration and custom cops, because anyone else who installs the skill brings their own configuration. The floor rests on RuboCop's defaults, so `skills/ruby-sensei/assets/floor.yml` and `skills/ruby-sensei/scripts/check_floor.rb` stay: the check reads the defaults, adds a configuration's owned cops with `--config`, and records versions only from a defaults run.

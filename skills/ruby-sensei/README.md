@@ -31,25 +31,18 @@ It fires on its own on Ruby work: writing, refactoring or reviewing Ruby code, t
 | `references/metaprogramming.md` | when it pays, defining methods, `method_missing`, hooks, patches and refinements, DSLs, dynamic dispatch and lookup, plugin systems |
 | `references/gems.md` | layout, the gemspec, dependencies, loading, versioning, public API, publishing, plugin design |
 | `references/types.md` | whether to type, where signatures live, writing them, making the checker see the code, keeping them true |
-| `assets/rubocop.yml` | an opinionated RuboCop configuration for Ruby written with agents |
 
 ## What it leaves to the linters
 
 Every rule RuboCop and its plugins enforce at their default configuration is left out rather than restated. The list is *What the linters own* in `SKILL.md`, because the agent is its reader. The Metrics cops are kept as signals: the skill names the fault a count points at and never a number.
 
-`assets/floor.yml` records the versions the floor was checked against and every cop the skill relies on. After upgrading RuboCop or a plugin, run the check, because `Preview` can switch a floor cop off in a minor release. Run it from the directory of a Gemfile whose bundle holds RuboCop and every plugin `assets/rubocop.yml` loads, rubocop-rake and rubocop-md included:
+`assets/floor.yml` records the versions the floor was checked against and every cop the skill relies on. After upgrading RuboCop or a plugin, run the check, because a release can switch a floor cop off or enable a pending one. Run it from the directory of a Gemfile whose bundle holds RuboCop and the plugins `assets/floor.yml` records:
 
 ```bash
 bundle exec ruby <skill-dir>/scripts/check_floor.rb
 ```
 
-`--help` lists its options, and its output names each failure and the cops added or changed since the recorded versions.
-
-## The shipped RuboCop configuration
-
-`assets/rubocop.yml` is for a new plain-Ruby project that has no RuboCop configuration; a Rails app keeps the rubocop-rails-omakase configuration Rails generates. Copy it to `<repo-root>/.rubocop.yml`, and add `rubocop`, [`rubocop-performance`](https://github.com/rubocop/rubocop-performance), [`rubocop-minitest`](https://github.com/rubocop/rubocop-minitest), [`rubocop-thread_safety`](https://github.com/rubocop/rubocop-thread_safety), [`rubocop-rake`](https://github.com/rubocop/rubocop-rake), [`rubocop-md`](https://github.com/rubocop/rubocop-md) and [`rubocop-on-rbs`](https://github.com/ksss/rubocop-on-rbs) to the Gemfile's development group. It was read against the versions `assets/floor.yml` records, with rubocop-rake 0.7.1 and rubocop-md 3.0.0.
-
-It turns on the cops chosen from those RuboCop ships disabled, after an audit that ran each one on real code, and it opts in to RuboCop's `Preview` mode so style reports without blocking, while Lint, Security and inline `rubocop:disable` comments fail the run; each setting's `WHY:` comment says the rest. It was tested against a fixture: a clean file passes, a style-only offense reports and passes, a rescued `Exception` fails, an inline disable fails, a long method reports at `info` and passes, and an `Exception` rescued inside a Markdown code block fails through rubocop-md.
+It checks RuboCop's defaults. Add `--config <repo-root>/.rubocop.yml` to check a repository's own configuration too, since a configuration can switch a floor cop off, as `Preview: true` does with `Style/GuardClause`. `--help` lists its options, and its output names each failure and the cops added or changed since the recorded versions.
 
 ## Sources, and the choices between them
 

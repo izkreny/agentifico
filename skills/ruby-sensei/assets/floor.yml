@@ -6,7 +6,7 @@ checked:
   rubocop-thread_safety: 0.8.0
   rubocop-on-rbs: 2.2.0
 
-# WHY: the skill states none of these rules, so each cop must stay enabled both by default and under assets/rubocop.yml. Grouped by the bullet in SKILL.md *What the linters own*; the group `Rules left out of the references` holds cops that own a rule the references would otherwise state.
+# WHY: the skill states none of these rules, so each cop must stay enabled by default. Grouped by the bullet in SKILL.md *What the linters own*; the group `Rules left out of the references` holds cops that own a rule the references would otherwise state.
 owned:
   Control flow:
     - Style/GuardClause

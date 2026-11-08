@@ -68,7 +68,7 @@ end
 - Default to Minitest in a new plain-Ruby project, and follow whatever the repository already uses, because Minitest ships with Ruby and needs no DSL to read.
 - Know Minitest 6, which Ruby 4.0 bundles:
   - `Minitest::Mock` and `stub` live in the separate `minitest-mock` gem, which must be in the Gemfile.
-  - Expectations are not defined on `Object`, so write `_(value).must_equal`.
+  - Expectations are not defined on `Object`, so write `expect(value).must_equal`.
   - `assert_equal nil, value` fails rather than warns.
   - The `MiniTest` and `MiniTest::Unit::TestCase` names are gone.
   - Plugins load only when required or named with `Minitest.load`.

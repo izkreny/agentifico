@@ -68,5 +68,3 @@ These catch what neither RuboCop's defaults nor this skill's rules can. Use one 
 - **Mutation testing**, to find the assertions a well-covered suite is still missing, with the tool `references/testing.md` *Mutation testing* picks by repository.
 - **Steep**, to check RBS signatures against the code, as `references/types.md` explains.
 - **vernier**, to find where the time goes before any change made for speed, as `references/objects.md` *Immutability* asks; it needs Ruby 3.3 or later and records threads, GVL waits and GC pauses. Compare two candidate implementations with **benchmark-ips**, which warms up and reports the spread, rather than timing one run.
-
-`assets/rubocop.yml` is an opinionated RuboCop configuration for Ruby written with AI agents, offered for a new plain-Ruby project that has none; a Rails app keeps the rubocop-rails-omakase configuration Rails generates. Its comments say why each setting is there.
