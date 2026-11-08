@@ -36,7 +36,8 @@ for (let i = 2; i < process.argv.length; i += 1) {
     if (value === undefined) {
       nothingChecked(`${option} names no glob`);
     }
-    (option === "--exclude" ? excludes : includes).push(value);
+    // WHY: a glob is normalised before matching, since matchesGlob neither drops a leading ./ nor resolves .., and an empty one is kept empty so it matches nothing.
+    (option === "--exclude" ? excludes : includes).push(value === "" ? value : path.posix.normalize(value));
     continue;
   }
   if (!skippableRuleNames.has(value)) {
@@ -89,12 +90,11 @@ const gitIgnored = (target) => {
 };
 // A listed folder covers everything under it, so a path is ignored when it, or a folder it sits in, is listed.
 const ignoredBy = (ignored, rel) => rel.split("/").some((_, i, parts) => ignored.has(parts.slice(0, i + 1).join("/")));
-// WHY: a glob naming a folder covers everything under it, so a path matches when it or a folder it sits in does, each tried with a trailing slash too because **/node_modules/** matches no bare folder name.
+// WHY: a glob naming a folder covers everything under it, so a path matches when it or a folder it sits in does, the target itself as ".", each tried with a trailing slash too because **/node_modules/** matches no bare folder name.
 const matchesUnder = (rel, pattern) =>
-  rel.split("/").some((_, i, parts) => {
-    const at = parts.slice(0, i + 1).join("/");
-    return path.matchesGlob(at, pattern) || path.matchesGlob(`${at}/`, pattern);
-  });
+  [".", ...rel.split("/").map((_, i, parts) => parts.slice(0, i + 1).join("/"))].some(
+    (at) => path.matchesGlob(at, pattern) || path.matchesGlob(`${at}/`, pattern),
+  );
 // The globs filter paths the walk found under the target, as RuboCop's Include and Exclude do, so no glob reads a path outside it however it is spelled.
 const leftOutBy = (ignored) => (rel) =>
   (ignoredBy(ignored, rel) || excludeGlobs.some((pattern) => matchesUnder(rel, pattern))) && !includes.some((pattern) => matchesUnder(rel, pattern));
