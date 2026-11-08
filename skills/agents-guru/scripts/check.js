@@ -46,6 +46,8 @@ for (let i = 2; i < process.argv.length; i += 1) {
 }
 // A dependency folder is nobody's prose, so it is left out unless the caller names exclusions of their own.
 const excludeGlobs = excludes.length > 0 ? excludes : ["**/node_modules/**"];
+// WHY: each include glob is walked again with /** after it, because a glob naming a folder matches only the folder, which no reader takes.
+const includeGlobs = includes.flatMap((pattern) => [pattern, `${pattern.replace(/\/+$/u, "")}/**`]);
 // Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
 const targets = (paths.length > 0 ? paths : ["."]).map((arg) => path.resolve(arg));
 
@@ -101,7 +103,7 @@ const walks = await Promise.all(
       glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: exclusions[i], withFileTypes: true, followSymlinks: true }),
     );
     // WHY: an included path can sit under a folder the walk pruned, which the walk never enters, so the include globs are walked on their own and joined to it.
-    const included = includes.length > 0 ? await Array.fromAsync(glob(includes, { cwd: target, followSymlinks: true })) : [];
+    const included = includeGlobs.length > 0 ? await Array.fromAsync(glob(includeGlobs, { cwd: target, followSymlinks: true })) : [];
     return [
       ...new Set([
         ...walked.map((entry) => path.join(entry.parentPath, entry.name)),
