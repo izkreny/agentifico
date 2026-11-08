@@ -38,7 +38,7 @@ Every rule RuboCop and its plugins enforce at their default configuration is lef
 
 `assets/floor.yml` is the skill's record of what it does not have to say, because RuboCop already says it. `owned` lists the cops whose rules the skill leaves out, so each must stay enabled by default. `watched` lists pending cops whose rule the skill does state, each pointing at the section that states it, until RuboCop enables the cop. `Gemfile.lock` records the RuboCop and plugin versions the floor was checked against.
 
-`scripts/check_floor.rb` asks the installed RuboCop about every cop the floor names. An owned cop switched off, or a watched cop switched on, fails the check, since either means the skill and the linter have drifted apart:
+`scripts/check_floor.rb` asks the installed RuboCop about every cop the floor names. An owned cop switched off, a watched cop switched on, or a floor cop the installed release does not recognise fails the check, since each means the skill and the linter have drifted apart:
 
 ```mermaid
 flowchart TD
@@ -47,7 +47,7 @@ flowchart TD
   L[Gemfile.lock · pinned versions] --> S
   S[scripts/check_floor.rb] -->|reads| F
   S -->|asks about every cop| R[installed RuboCop]
-  R --> Q{owned cop off, or watched cop on?}
+  R --> Q{owned cop off, watched cop on, or a cop unknown?}
   Q -->|yes| X[FAIL · the skill and the linter drifted]
   Q -->|no| K[OK · lists the cops changed since the pins]
 ```
