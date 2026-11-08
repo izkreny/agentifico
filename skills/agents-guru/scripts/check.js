@@ -56,13 +56,16 @@ const rootOf = new Map();
 const folders = [];
 // The walk matches names rather than files, so a folder named notes.md arrives beside the files inside it, and a link statSync cannot resolve arrives as a file nothing can read.
 const dangling = new Map();
+// The one list of what a reader takes, so the target test, the walk and the include filter cannot drift apart.
+const READER_EXTENSIONS = ["md", "js", "py", "yml", "yaml"];
+const readerTakes = (file) => READER_EXTENSIONS.includes(path.extname(file).slice(1));
 // WHY: every target is stat'ed before any folder is walked, so a mistyped one refuses at once rather than after the walks of the targets beside it.
 for (const target of targets) {
   const stat = fs.statSync(target, { throwIfNoEntry: false });
   if (!stat) {
     nothingChecked(`no such file or folder: ${target}`);
   }
-  if (!(stat.isDirectory() || /\.(?:md|js|py|ya?ml)$/u.test(target))) {
+  if (!(stat.isDirectory() || readerTakes(target))) {
     nothingChecked(`no reader takes ${target}`);
   }
 }
@@ -94,21 +97,20 @@ const excluder = (target, ignored) => (entry) => {
   return ignoredBy(ignored, rel) || excludeGlobs.some((pattern) => path.matchesGlob(rel, pattern) || path.matchesGlob(`${rel}/`, pattern));
 };
 const exclusions = targets.map((target) => excluder(target, gitIgnored(target)));
-const readerTakes = /\.(?:md|js|py|ya?ml)$/u;
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const walks = await Promise.all(
   targets.map(async (target, i) => {
     // WHY: a glob whose folder is a file or is missing yields nothing, so every target is walked and the loop's own stat decides which walk is read.
     const walked = await Array.fromAsync(
-      glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: exclusions[i], withFileTypes: true, followSymlinks: true }),
+      glob(
+        READER_EXTENSIONS.map((extension) => `**/*.${extension}`),
+        { cwd: target, exclude: exclusions[i], withFileTypes: true, followSymlinks: true },
+      ),
     );
     // WHY: an included path can sit under a folder the walk pruned, which the walk never enters, so the include globs are walked on their own and joined to it.
     const included = includeGlobs.length > 0 ? await Array.fromAsync(glob(includeGlobs, { cwd: target, followSymlinks: true })) : [];
     return [
-      ...new Set([
-        ...walked.map((entry) => path.join(entry.parentPath, entry.name)),
-        ...included.filter((file) => readerTakes.test(file)).map((file) => path.join(target, file)),
-      ]),
+      ...new Set([...walked.map((entry) => path.join(entry.parentPath, entry.name)), ...included.filter(readerTakes).map((file) => path.join(target, file))]),
     ];
   }),
 );
