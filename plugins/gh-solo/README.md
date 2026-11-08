@@ -22,16 +22,18 @@ Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow`
 
 Two Claude Code frontmatter fields decide who may start a skill: `disable-model-invocation: true` leaves only your slash command, and `user-invocable: false` leaves only the model.
 
-| Skill | You, by its slash command | The model, by the Skill tool | One load at 5.4.0 | Why |
+| Skill | You, by its slash command | The model, by the Skill tool | One load at 6.0.0 | Why |
 | --- | --- | --- | --- | --- |
 | `tracker` | yes | yes | about 12k characters | Its trigger phrases are how an aside reaches it, and a state change one of them starts prints its command and waits rather than writing. |
-| `pr-flow` | yes | yes | about 40k characters | Its workflows are reached by sentences once it is loaded, and the model may need to load it again after a long session is summarised. |
+| `pr-flow` | yes | yes | about 41k characters | Its workflows are reached by sentences once it is loaded, and the model may need to load it again after a long session is summarised. |
 | `implement` | yes | yes | about 9k characters | `pr-flow` enters it through the Skill tool from its `auto`, `review` and `discuss` workflows, which `disable-model-invocation` would block, and you type it yourself to implement without the rest of the chain. |
 | `reviewer` | no | yes | about 14k characters | The `reviewer` agent loads it through the Skill tool, so `disable-model-invocation` would break every review round without an error. `user-invocable: false` keeps it out of your `/` menu, because the session that wrote the code reviewing it is a self-review. |
 
 **What a load costs.** A skill loads by putting its whole skill file into the conversation, which is what the table's load column counts. A slash command loads it again in full every time it is typed, even with the same argument. The model calling the Skill tool again for a skill already loaded gets a one-line note instead, and a plain sentence reaches a loaded skill's workflows without loading anything. So model invocation is also what keeps repeats cheap: a skill only you could start could be re-entered only by the command that re-injects it. The observations behind this, with the commands that produced them, are on issue #56.
 
-**`auto`, `go`, `ready review` and `watch` stay literal commands whatever a sentence would save.** Each skips a stop that is yours to make: `auto`, `go` and `ready review` the waits between workflows, `auto` the plan reading too, and `watch` the choice to leave something polling in the background. A saving is never a reason to let a sentence start one.
+**So a next step is printed as a shortcut, or as the bare command, and never as the slash form.** The session printing it already has the skill loaded, so typing `:mr 60` there costs nothing where `/gh-solo:pr-flow merge 60` reloads the whole file. `/gh-solo:pr-flow help` lists every shortcut. In a fresh session both forms cost the same, and the slash form is the sure way in.
+
+**`auto`, `go`, `ready review` and `watch` stay literal commands whatever a sentence would save.** Each skips a stop that is yours to make: `auto`, `go` and `ready review` the waits between workflows, `auto` the plan reading too, and `watch` the choice to leave something polling in the background. A saving is never a reason to let a sentence start one. A shortcut such as `:rr 60` or `:wt 60` is the typed command, so it starts one as the full form does.
 
 **Other agents ignore `disable-model-invocation` and `user-invocable`.** They are Claude Code extensions rather than part of the Agent Skills specification, so another agent reading these skills reaches every one of them every way, silently. That is why `reviewer`'s description also says who starts it: on such an agent the description is what states the policy.
 
