@@ -33,9 +33,8 @@ for (let i = 2; i < process.argv.length; i += 1) {
   i += 1;
   const value = process.argv[i];
   if (option !== "--skip") {
-    // WHY: an empty or absolute value is refused, because a glob is relative to its folder target, and from an empty value a folder glob's added /** walks the whole filesystem.
-    if (value === undefined || value.replace(/\/+$/u, "") === "" || path.isAbsolute(value)) {
-      nothingChecked(`${option} ${value === undefined ? "names no glob" : `"${value}" is no glob relative to a folder target`}`);
+    if (value === undefined) {
+      nothingChecked(`${option} names no glob`);
     }
     (option === "--exclude" ? excludes : includes).push(value);
     continue;
@@ -47,8 +46,6 @@ for (let i = 2; i < process.argv.length; i += 1) {
 }
 // A dependency folder is nobody's prose, so it is left out unless the caller names exclusions of their own.
 const excludeGlobs = excludes.length > 0 ? excludes : ["**/node_modules/**"];
-// WHY: each include glob is walked again with /** after it, because a glob naming a folder matches only the folder, which no reader takes.
-const includeGlobs = includes.flatMap((pattern) => [pattern, `${pattern.replace(/\/+$/u, "")}/**`]);
 // Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
 const targets = (paths.length > 0 ? paths : ["."]).map((arg) => path.resolve(arg));
 
@@ -92,12 +89,18 @@ const gitIgnored = (target) => {
 };
 // A listed folder covers everything under it, so a path is ignored when it, or a folder it sits in, is listed.
 const ignoredBy = (ignored, rel) => rel.split("/").some((_, i, parts) => ignored.has(parts.slice(0, i + 1).join("/")));
-// WHY: each glob is tried on the path with a trailing slash too, because **/node_modules/** matches no bare folder name, and a folder must match to be pruned before it is walked.
-const excluder = (target, ignored) => (entry) => {
-  const rel = path.relative(target, path.join(entry.parentPath, entry.name));
-  return ignoredBy(ignored, rel) || excludeGlobs.some((pattern) => path.matchesGlob(rel, pattern) || path.matchesGlob(`${rel}/`, pattern));
-};
-const exclusions = targets.map((target) => excluder(target, gitIgnored(target)));
+// WHY: a glob naming a folder covers everything under it, so a path matches when it or a folder it sits in does, each tried with a trailing slash too because **/node_modules/** matches no bare folder name.
+const matchesUnder = (rel, pattern) =>
+  rel.split("/").some((_, i, parts) => {
+    const at = parts.slice(0, i + 1).join("/");
+    return path.matchesGlob(at, pattern) || path.matchesGlob(`${at}/`, pattern);
+  });
+// The globs filter paths the walk found under the target, as RuboCop's Include and Exclude do, so no glob reads a path outside it however it is spelled.
+const leftOutBy = (ignored) => (rel) =>
+  (ignoredBy(ignored, rel) || excludeGlobs.some((pattern) => matchesUnder(rel, pattern))) && !includes.some((pattern) => matchesUnder(rel, pattern));
+const leftOut = targets.map((target) => leftOutBy(gitIgnored(target)));
+// WHY: a left-out folder is pruned only when no include is given, since what an include keeps below it is known only by walking it.
+const pruner = (target, isLeftOut) => (entry) => includes.length === 0 && isLeftOut(path.relative(target, path.join(entry.parentPath, entry.name)));
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const walks = await Promise.all(
   targets.map(async (target, i) => {
@@ -105,21 +108,10 @@ const walks = await Promise.all(
     const walked = await Array.fromAsync(
       glob(
         READER_EXTENSIONS.map((extension) => `**/*.${extension}`),
-        { cwd: target, exclude: exclusions[i], withFileTypes: true, followSymlinks: true },
+        { cwd: target, exclude: pruner(target, leftOut[i]), withFileTypes: true, followSymlinks: true },
       ),
     );
-    // WHY: each visited entry is tested where it sits, never the glob's text, so a climb however spelled refuses at its first step out, before anything there is walked.
-    const inside = (entry) => {
-      const reached = path.resolve(target, entry.parentPath, entry.name);
-      if (path.relative(target, reached).split(path.sep)[0] === "..") {
-        nothingChecked(`--include reaches ${reached}, above its folder target`);
-      }
-      return false;
-    };
-    // WHY: an included path can sit under a folder the walk pruned, which the walk never enters, so the include globs are walked on their own and joined to it.
-    const included =
-      includeGlobs.length > 0 ? await Array.fromAsync(glob(includeGlobs, { cwd: target, exclude: inside, withFileTypes: true, followSymlinks: true })) : [];
-    return [...new Set([...walked, ...included].map((entry) => path.join(entry.parentPath, entry.name)).filter(readerTakes))];
+    return walked.map((entry) => path.join(entry.parentPath, entry.name)).filter((file) => !leftOut[i](path.relative(target, file)));
   }),
 );
 // A target inside a skill takes that skill as its root, so its pointers resolve as they would in a run over the whole skill.
@@ -363,10 +355,14 @@ warnings += yamlWarnings;
 report("yaml files", yamlFindings, yamlWarnings > 0 ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
 // Stryker disable next-line MethodExpression: a glob whose folder is a file yields nothing, so a file target adds no plugin either way.
-const searched = targets.flatMap((dir, i) => (fs.statSync(dir).isDirectory() ? [[dir, exclusions[i]]] : []));
+const searched = targets.flatMap((dir, i) => (fs.statSync(dir).isDirectory() ? [[dir, leftOut[i]]] : []));
 // The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 const markersPerDir = await Promise.all(
-  searched.map(([dir, exclude]) => Array.fromAsync(glob("**/.claude-plugin", { cwd: dir, exclude, withFileTypes: true, followSymlinks: true }))),
+  searched.map(async ([dir, isLeftOut]) =>
+    (await Array.fromAsync(glob("**/.claude-plugin", { cwd: dir, exclude: pruner(dir, isLeftOut), withFileTypes: true, followSymlinks: true }))).filter(
+      (marker) => !isLeftOut(path.relative(dir, path.join(marker.parentPath, marker.name))),
+    ),
+  ),
 );
 const pluginDirs = new Set(markersPerDir.flat().map((marker) => marker.parentPath));
 const pluginFiles = [];
