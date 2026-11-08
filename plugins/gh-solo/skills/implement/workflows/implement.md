@@ -94,5 +94,5 @@ It lands in the Conversation tab, which is right: it expects no answer, and it o
 End with the owner's next move, alone on its line, flush left:
 
 ```text
-/gh-solo:pr-flow ready review <pr-number>
+:rr <pr-number>
 ```
