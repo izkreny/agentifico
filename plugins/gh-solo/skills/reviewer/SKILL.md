@@ -2,7 +2,7 @@
 name: reviewer
 description: |
   The procedure the `reviewer` agent follows once a review round has spawned it: what to read, the axes, what every finding must carry, and the findings file it returns. Only that agent loads it, never the owner by typing it. Not a way to start a review - a round is started through the `pr-flow` skill, which spawns the agent that loads this. Loading it anywhere else, above all in a session that planned, wrote or fixed the code, produces a self-review, because that session has already reasoned its way to why every line looks the way it does.
-# WHY: never add disable-model-invocation here. The reviewer agent loads this skill through the Skill tool, which that field blocks, so every review round would break with no error the owner sees. The plugin README's "How each skill is reached" owns the policy.
+# WHY: the reviewer agent loads this skill through the Skill tool, which disable-model-invocation blocks, so that field here would break every review round silently.
 user-invocable: false
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Write, Grep, Glob
 ---
