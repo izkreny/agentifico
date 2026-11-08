@@ -10,7 +10,7 @@ The mechanical audit. Run it after writing or editing any skill, and in a review
 
 Before the first run on an install, follow `references/setup.md`.
 
-Each argument is a target, a folder or a file, and the current directory is the target when there is none. A folder target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/`. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories under a folder target are skipped, and so is every path git ignores there and every path an exclusion glob matches:
+Each argument is a target, a folder or a file, and the current directory is the target when there is none. A folder target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/`. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories under a folder target are excluded, and so is every path git ignores there and every path an `--exclude` glob matches:
 
 ```bash
 node <skill-dir>/scripts/check.js path/to/the-skill
@@ -23,11 +23,9 @@ node <skill-dir>/scripts/check.js --include 'vendor/**' path/to/the-skill
 
 The switch is the caller's, written in the command where whoever reads the run sees it, and nothing under the target can set it. A run that skipped anything names each skipped rule with how many findings it withheld, and its summary line adds `N rule(s) skipped`; the exit code is decided by the findings that remain.
 
-**A path git ignores under a folder target is skipped**, so a dependency folder a skill keeps out of git, such as a Bundler `vendor/bundle`, adds no file and no finding. It is never in a published copy of the skill. The check asks git once per folder target. Outside a repository, without git on the machine, or on a target git ignores as a whole, nothing is skipped for this reason. A walk that follows a symlink into another tree still asks the target's repository, so a path ignored only there is read; an exclusion glob covers it.
+**A path git ignores under a folder target is excluded**, so a folder a skill keeps out of git adds no file and no finding. It is never in a published copy of the skill. The check asks git once per folder target. Outside a repository, without git on the machine, or on a target git ignores as a whole, git excludes nothing. A walk that follows a symlink into another tree still asks the target's repository, so a path ignored only there is read unless an `--exclude` glob names it.
 
-**`--exclude <glob>` leaves out every path matching it, and may be given more than once.** Its default is `**/node_modules/**`, so a target outside any repository still skips a skill's dependencies. A given `--exclude` replaces that default rather than adding to it, so name `**/node_modules/**` again to keep it.
-
-**`--include <glob>` checks every path matching it, even where git ignores it or an exclusion glob matches it, and may be given more than once.** It still reads only a file a reader takes. Neither option can be given without a glob. With an `--include` given, the walk enters every folder git or an exclusion glob leaves out, so a run over a large ignored tree takes longer.
+**`--exclude <glob>` excludes every path matching it, and `--include <glob>` checks every path matching it, even one git ignores or an `--exclude` glob matches.** Each may be given more than once and needs a glob, and neither has a default, so a run excludes only what git ignores and what its command names. An `--include` still reads only a file a reader takes, and with one given the walk enters every excluded folder, so a run over a large ignored tree takes longer.
 
 Each glob filters the paths the walk finds under its folder target, matched relative to that target and never against a file target, so a glob that climbs out with `..` matches nothing. A glob naming a folder, with or without a trailing `/`, covers everything under it.
 
@@ -179,7 +177,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The plugin file rules
 
-**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json`, `<plugin-dir>/.claude-plugin/plugin.json` and monitors file to what Claude Code loads: a field with no effect where it is set, a matcher or a server name that never fires, and a value that fails when it runs. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and the hooks file and manifest are read by their fixed paths because the walk skips dot-folders.
+**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json`, `<plugin-dir>/.claude-plugin/plugin.json` and monitors file to what Claude Code loads: a field with no effect where it is set, a matcher or a server name that never fires, and a value that fails when it runs. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and the hooks file and manifest are read by their fixed paths because the walk excludes dot-folders.
 
 **Some of these rules need more than the file they judge.** `plugin-hooks` takes the plugin's own MCP server names from `<plugin-dir>/.mcp.json` and the manifest's `mcpServers`, and what a bundle or a URL declares goes unread. `plugin-manifest` reads monitors where they load from, inline or in a file, and a finding in a file prints that file's own path and line.
 
