@@ -15,7 +15,7 @@ printf 'GHI-287 AC2\n' > "$REPO/README.md"
 git -C "$REPO" add -A
 git -C "$REPO" -c commit.gpgsign=false -c user.name=bench -c user.email=bench@example.invalid commit -qm bench
 
-HOME="$HOME_DIR" python3 - "$HERE/criteria-check.py" "$REPO" <<'PY'
+HOME="$HOME_DIR" XDG_CONFIG_HOME= python3 - "$HERE/criteria-check.py" "$REPO" <<'PY'
 import importlib.util, json, os, sys
 
 spec = importlib.util.spec_from_file_location("cc", sys.argv[1])
@@ -128,7 +128,7 @@ fake("- [x] ::AC1:: x", pr_body="no closing line")
 check("a PR with no Closes line cannot run", c.main(["423", "--remote", "origin"]), 2)
 
 print("\nthe user-level config:")
-user_level = os.path.join(os.environ["HOME"], ".agents/gh-solo/bench/repo.md")
+user_level = os.path.join(os.environ["HOME"], ".config/gh-solo/bench/repo.md")
 os.makedirs(os.path.dirname(user_level))
 os.remove(os.path.join(repo, ".agents/gh-solo.md"))
 with open(user_level, "w") as f:
@@ -140,6 +140,18 @@ with open(user_level, "w") as f:
     f.write("Reviewer model: opus\n")
 config("Test files: spec/**/*_spec.rb\n")
 check("the user-level file beats the in-repo one", c.check(423, "origin"), 0)
+
+os.remove(os.path.join(repo, ".agents/gh-solo.md"))
+for root in (os.path.join(os.environ["HOME"], "xdg"), "relative/xdg"):
+    os.makedirs(os.path.join(root, "gh-solo/bench"))
+    with open(os.path.join(root, "gh-solo/bench/repo.md"), "w") as f:
+        f.write("Test files: spec/**/*_spec.rb\n")
+fake("- [x] ::AC1:: x\n- [ ] ::AC2:: y")
+os.environ["XDG_CONFIG_HOME"] = os.path.join(os.environ["HOME"], "xdg")
+check("XDG_CONFIG_HOME moves the user-level file", c.check(423, "origin"), 1)
+os.environ["XDG_CONFIG_HOME"] = "relative/xdg"
+check("a relative XDG_CONFIG_HOME is ignored", c.check(423, "origin"), 0)
+os.environ["XDG_CONFIG_HOME"] = ""
 
 c.run = real_run
 print(f"\n{'all passed' if not fails else f'{fails} failed'}")
