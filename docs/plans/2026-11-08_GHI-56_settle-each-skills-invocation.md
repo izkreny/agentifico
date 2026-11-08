@@ -45,4 +45,4 @@ No gate here can see whether the S2 to S4 observations were read correctly, or w
 
 ## Settled
 
-None yet.
+- ::Q2:: Should a printed next step keep the `/gh-solo:` form, beside a line saying a sentence works too? No, decided by the owner in the terminal during the review round: the session printing it has the skill loaded, so the slash form is the one route that costs a whole reload. A step prints its shortcut, or the bare command where none exists; `:mr`, `:rr`, `:wt`, `:uwt`, `:im` and `:ds` join `:rp` and `:rc`; and the `reply` and `chat` verbs go, which is breaking and moves the version to 6.0.0.
