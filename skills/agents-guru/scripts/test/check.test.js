@@ -2314,7 +2314,15 @@ describe("check.js, what the walk leaves out and takes in", () => {
     for (const value of ["../../outside/**", "notes/../../../outside", "{../../outside,x}/**", "[.][.]/[.][.]/outside/**"]) {
       const r = run([ruby, "--include", value]);
       assert.equal(r.code, 1, r.out);
-      assert.match(r.out, /--include reaches .*\/ignoring\/outside(?:\/out\.md)?, above its folder target: nothing was checked/u, value);
+      assert.match(r.out, /--include reaches \/\S*\/ignoring\/\S*, above its folder target: nothing was checked/u, value);
+      assert.doesNotMatch(r.out, /files checked/u, value);
+    }
+  });
+  it("--include climbing above its folder target refuses the run even where it matches nothing", () => {
+    for (const value of ["../../outside/zzz-none", "{../../outside,x}/**/zzz-none"]) {
+      const r = run([ruby, "--include", value]);
+      assert.equal(r.code, 1, r.out);
+      assert.match(r.out, /--include reaches \/\S*\/ignoring\/\S*, above its folder target: nothing was checked/u, value);
     }
   });
 });

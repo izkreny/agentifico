@@ -108,18 +108,18 @@ const walks = await Promise.all(
         { cwd: target, exclude: exclusions[i], withFileTypes: true, followSymlinks: true },
       ),
     );
-    // WHY: an included path can sit under a folder the walk pruned, which the walk never enters, so the include globs are walked on their own and joined to it.
-    const included = [];
-    // WHY: each match is tested where it lands, never by the glob's text, since braces and character classes spell a climb in ways no text test lists.
-    for await (const file of includeGlobs.length > 0 ? glob(includeGlobs, { cwd: target, followSymlinks: true }) : []) {
-      if (path.relative(target, path.join(target, file)).split(path.sep)[0] === "..") {
-        nothingChecked(`--include reaches ${path.join(target, file)}, above its folder target`);
+    // WHY: each visited entry is tested where it sits, never the glob's text, so a climb however spelled refuses at its first step out, before anything there is walked.
+    const inside = (entry) => {
+      const reached = path.resolve(target, entry.parentPath, entry.name);
+      if (path.relative(target, reached).split(path.sep)[0] === "..") {
+        nothingChecked(`--include reaches ${reached}, above its folder target`);
       }
-      included.push(file);
-    }
-    return [
-      ...new Set([...walked.map((entry) => path.join(entry.parentPath, entry.name)), ...included.filter(readerTakes).map((file) => path.join(target, file))]),
-    ];
+      return false;
+    };
+    // WHY: an included path can sit under a folder the walk pruned, which the walk never enters, so the include globs are walked on their own and joined to it.
+    const included =
+      includeGlobs.length > 0 ? await Array.fromAsync(glob(includeGlobs, { cwd: target, exclude: inside, withFileTypes: true, followSymlinks: true })) : [];
+    return [...new Set([...walked, ...included].map((entry) => path.join(entry.parentPath, entry.name)).filter(readerTakes))];
   }),
 );
 // A target inside a skill takes that skill as its root, so its pointers resolve as they would in a run over the whole skill.
