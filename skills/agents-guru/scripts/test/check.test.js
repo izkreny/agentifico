@@ -2274,6 +2274,10 @@ describe("check.js, what the walk leaves out and takes in", () => {
     assert.match(vendored.out, /vendor\/bundle\/gems\/dep\/README\.md:\d+ Agentifico\.Position/u);
     assert.equal(run([ruby, "--exclude", "notes/**", "--include", "notes/kept.md"]).linted, 5);
   });
+  it("--include naming a folder, bare or with a trailing slash, checks everything under it", () => {
+    assert.equal(run([ruby, "--include", "vendor"]).linted, 6);
+    assert.equal(run([ruby, "--include", "vendor/"]).linted, 6);
+  });
   it("targets inside one skill resolve its pointers against the skill", () => {
     const r = run([path.join(ruby, "SKILL.md"), path.join(ruby, "README.md"), path.join(ruby, "references")]);
     assert.equal(r.code, 0, r.out);
