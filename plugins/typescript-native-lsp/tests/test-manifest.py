@@ -12,7 +12,16 @@ from pathlib import Path
 PLUGIN = Path(__file__).resolve().parent.parent
 MANIFEST = PLUGIN / ".claude-plugin" / "plugin.json"
 MARKETPLACE = PLUGIN.parent.parent / ".claude-plugin" / "marketplace.json"
-EXTENSIONS = {".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs"}
+LANGUAGES = {
+    ".ts": "typescript",
+    ".tsx": "typescriptreact",
+    ".mts": "typescript",
+    ".cts": "typescript",
+    ".js": "javascript",
+    ".jsx": "javascriptreact",
+    ".mjs": "javascript",
+    ".cjs": "javascript",
+}
 REPLY_TIMEOUT = 30
 
 
@@ -48,7 +57,11 @@ def initialize(command):
 
         def read():
             while True:
-                message = read_message(stdout)
+                try:
+                    message = read_message(stdout)
+                except Exception as error:
+                    found["reason"] = f"unreadable output: {error!r}"
+                    return
                 if message is None:
                     found["reason"] = "output ended before a reply"
                     return
@@ -76,7 +89,7 @@ def initialize(command):
 
 class Manifest(unittest.TestCase):
     def test_serves_every_typescript_and_javascript_extension(self):  # GHI-438 AC1
-        self.assertEqual(set(server()["extensionToLanguage"]), EXTENSIONS)
+        self.assertEqual(server()["extensionToLanguage"], LANGUAGES)
 
     def test_marketplace_lists_the_plugin(self):  # GHI-438 AC1
         entries = json.loads(MARKETPLACE.read_text())["plugins"]
