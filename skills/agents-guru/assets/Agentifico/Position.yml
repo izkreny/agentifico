@@ -67,6 +67,8 @@ tokens:
   - '^the (?:first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|last|next|previous|final) (?:is|was)\b'
   # "No rule reads a prescribed format, so only this question catches it" #412 RF3, 73e3abd: a uniqueness claim over the rule set, which one more rule makes false. Literal.
   - 'only this question catches'
+  # "the repository's `squash_merge_commit_message: PR_BODY` setting, configured below" #270 SW10, ee09d06: a pointer at a section further on in the same file. Literal, since "configured" in the participle group trips "A timeout configured below the default is refused."; an article after it keeps that comparison quiet.
+  - 'configured below(?! (?:the|a|an)\b)'
   # "beneath it" as a pointer at a heading, #236 SW6 and 694a588, belongs here and has no token: every general form trips "the floor beneath it".
 tests:
   - name: fires on each recorded shape, once per line
@@ -112,6 +114,7 @@ tests:
       The prose class is the one heading the index names.
       Every path here opens with a placeholder.
       No rule reads that format, so only this question catches it.
+      The squash setting, configured below - so anything stale lands in the log.
     want: |
       3:5:Agentifico.Position:Write sentences that survive change: 'the escape above' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       4:1:Agentifico.Position:Write sentences that survive change: 'The row below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
@@ -152,6 +155,7 @@ tests:
       39:20:Agentifico.Position:Write sentences that survive change: 'the one heading' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       40:1:Agentifico.Position:Write sentences that survive change: 'Every path here' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
       41:31:Agentifico.Position:Write sentences that survive change: 'only this question catches' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
+      42:21:Agentifico.Position:Write sentences that survive change: 'configured below' claims a position or uniqueness that any edit can falsify; name the section, file or member instead.
   - name: leaves the sanctioned forms alone
     input: |
       # Title
@@ -172,4 +176,5 @@ tests:
       Write the last edge case as a test of its own.
       Every file here is written to the agent, and every command here starts with gh.
       Every path this file names opens with a placeholder.
+      A timeout configured below the default is refused.
     want: ""
