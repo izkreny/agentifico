@@ -255,4 +255,5 @@ tests:
       Once used by a round, the token expires.
       A token once used is spent.
       Write that the finding was raised on #{issue-number} and found in #<pr-number>.
+      It walks all along the path to the gate.
     want: ""
