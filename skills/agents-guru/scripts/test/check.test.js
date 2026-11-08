@@ -2301,28 +2301,29 @@ describe("check.js, what the walk leaves out and takes in", () => {
   it("a glob that stays inside its target is taken, though it passes through ..", () => {
     assert.equal(run([ruby, "--exclude", "assets/../notes/**"]).linted, 4);
   });
-  it("--exclude or --include with an empty or absolute glob refuses the run", () => {
-    for (const option of ["--exclude", "--include"]) {
-      for (const value of ["", "/", "//", "/tmp/**"]) {
-        const r = run([ruby, option, value]);
-        assert.equal(r.code, 1, r.out);
-        assert.match(r.out, /is no glob relative to a folder target: nothing was checked/u, `${option} ${value}`);
-      }
+  it("an --include glob is matched only under its folder target, so one that is empty, absolute or climbs out reads nothing more", () => {
+    const values = [
+      "",
+      "/",
+      "/tmp/**",
+      "../../outside/**",
+      "notes/../../../outside",
+      "{../../outside,x}/**",
+      "[.][.]/[.][.]/outside/**",
+      "../../outside/zzz-none",
+      "/**",
+    ];
+    for (const value of values) {
+      const r = run([ruby, "--include", value]);
+      assert.equal(r.code, 0, `${value}\n${r.out}`);
+      assert.equal(r.linted, 5, `${value}\n${r.out}`);
     }
   });
-  it("--include reaching above its folder target refuses the run, however the glob spells the climb", () => {
-    for (const value of ["../../outside/**", "notes/../../../outside", "{../../outside,x}/**", "[.][.]/[.][.]/outside/**"]) {
+  it("an --include glob pointing back inside its folder target is taken", () => {
+    for (const value of ["notes/..", "*/.."]) {
       const r = run([ruby, "--include", value]);
-      assert.equal(r.code, 1, r.out);
-      assert.match(r.out, /--include reaches \/\S*\/ignoring\/\S*, above its folder target: nothing was checked/u, value);
-      assert.doesNotMatch(r.out, /files checked/u, value);
+      assert.equal(r.code, 0, `${value}\n${r.out}`);
     }
-  });
-  it("--include climbing above its folder target refuses the run even where it matches nothing", () => {
-    for (const value of ["../../outside/zzz-none", "{../../outside,x}/**/zzz-none"]) {
-      const r = run([ruby, "--include", value]);
-      assert.equal(r.code, 1, r.out);
-      assert.match(r.out, /--include reaches \/\S*\/ignoring\/\S*, above its folder target: nothing was checked/u, value);
-    }
+    assert.equal(run([ruby, "--include", "vendor/bundle/.."]).linted, 6);
   });
 });
