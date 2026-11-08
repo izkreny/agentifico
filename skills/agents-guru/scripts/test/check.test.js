@@ -540,8 +540,8 @@ describe("check.js", () => {
     assert.match(r.out, /^1 skill\(s\) found under .*good$/mu);
     assert.match(r.out, /^ {2}\.$/mu);
   });
-  it("a code file under the target reaches the prose rules, and one under node_modules does not", () => {
-    const r = run(path.join(tmp, "code"));
+  it("a code file under the target reaches the prose rules, and one an --exclude glob names does not", () => {
+    const r = run([path.join(tmp, "code"), "--exclude", "**/node_modules/**"]);
     assert.equal(r.code, 1);
     assert.match(r.out, /^ {2}scripts\/run\.js:1 Agentifico\.CommentSentences \(error\)/mu);
     assert.doesNotMatch(r.out, /node_modules/u);
@@ -2163,11 +2163,11 @@ describe("check.js, the run's own bookkeeping", () => {
     assert.match(run(path.join(tmp, "plugins", "plug")).out, /^\d+ files checked, 3 issues, 0 warnings$/mu);
     assert.match(run(path.join(tmp, "plugins", "partial")).out, /^\d+ files checked, 0 issues, 1 warnings$/mu);
   });
-  it("a plugin inside node_modules is not read", () => {
+  it("a plugin inside a folder an --exclude glob names is not read", () => {
     const dir = path.join(tmp, "vendored");
     mk(dir, block("vendored"));
     plugin(path.join(dir, "node_modules", "dep"), "dep");
-    assert.match(run(dir).out, /^plugin files: none$/mu);
+    assert.match(run([dir, "--exclude", "**/node_modules/**"]).out, /^plugin files: none$/mu);
   });
   it("a plugin reached through a linked folder is read", () => {
     const dir = path.join(tmp, "linked-plugin");
@@ -2265,10 +2265,10 @@ describe("check.js, what the walk leaves out and takes in", () => {
     assert.equal(run([ruby, "--exclude", "notes"]).linted, 4);
     assert.equal(run([ruby, "--exclude", "notes/"]).linted, 4);
   });
-  it("--exclude replaces the node_modules default, which holds outside any repository", () => {
+  it("--exclude has no default, so outside any repository node_modules is read until a glob names it", () => {
     const code = path.join(tmp, "code");
-    assert.doesNotMatch(run(code).out, /node_modules/u);
-    assert.match(run([code, "--exclude", "nothing/**"]).out, /node_modules\/dep\/index\.js:1 Agentifico\.CommentSentences/u);
+    assert.match(run(code).out, /node_modules\/dep\/index\.js:1 Agentifico\.CommentSentences/u);
+    assert.doesNotMatch(run([code, "--exclude", "**/node_modules/**"]).out, /node_modules/u);
   });
   it("--include checks a path git ignores, and a path --exclude matches", () => {
     const vendored = run([ruby, "--include", "vendor/**"]);

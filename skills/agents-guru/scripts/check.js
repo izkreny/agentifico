@@ -45,8 +45,6 @@ for (let i = 2; i < process.argv.length; i += 1) {
   }
   skip.add(value);
 }
-// A dependency folder is nobody's prose, so it is left out unless the caller names exclusions of their own.
-const excludeGlobs = excludes.length > 0 ? excludes : ["**/node_modules/**"];
 // Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
 const targets = (paths.length > 0 ? paths : ["."]).map((arg) => path.resolve(arg));
 
@@ -97,7 +95,7 @@ const matchesUnder = (rel, pattern) =>
   );
 // The globs filter paths the walk found under the target, as RuboCop's Include and Exclude do, so no glob reads a path outside it however it is spelled.
 const leftOutBy = (ignored) => (rel) =>
-  (ignoredBy(ignored, rel) || excludeGlobs.some((pattern) => matchesUnder(rel, pattern))) && !includes.some((pattern) => matchesUnder(rel, pattern));
+  (ignoredBy(ignored, rel) || excludes.some((pattern) => matchesUnder(rel, pattern))) && !includes.some((pattern) => matchesUnder(rel, pattern));
 const leftOut = targets.map((target) => leftOutBy(gitIgnored(target)));
 // WHY: a left-out folder is pruned only when no include is given, since what an include keeps below it is known only by walking it.
 const pruner = (target, isLeftOut) => (entry) => includes.length === 0 && isLeftOut(path.relative(target, path.join(entry.parentPath, entry.name)));
@@ -356,7 +354,7 @@ report("yaml files", yamlFindings, yamlWarnings > 0 ? `${yamlFindings.length - y
 
 // Stryker disable next-line MethodExpression: a glob whose folder is a file yields nothing, so a file target adds no plugin either way.
 const searched = targets.flatMap((dir, i) => (fs.statSync(dir).isDirectory() ? [[dir, leftOut[i]]] : []));
-// The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
+// The .claude-plugin folder is searched for by name, because the walk excludes dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 const markersPerDir = await Promise.all(
   searched.map(async ([dir, isLeftOut]) =>
     (await Array.fromAsync(glob("**/.claude-plugin", { cwd: dir, exclude: pruner(dir, isLeftOut), withFileTypes: true, followSymlinks: true }))).filter(
