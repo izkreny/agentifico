@@ -27,7 +27,7 @@ The switch is the caller's, written in the command where whoever reads the run s
 
 **`--exclude <glob>` leaves out every path matching it, and may be given more than once.** Its default is `**/node_modules/**`, so a target outside any repository still skips a skill's dependencies. A given `--exclude` replaces that default rather than adding to it, so name `**/node_modules/**` again to keep it.
 
-**`--include <glob>` checks every path matching it, even where git ignores it or an exclusion glob matches it, and may be given more than once.** It still reads only a file a reader takes. Neither option can be given without a glob, and one that is empty, absolute or climbs above its folder target with `..` refuses the run.
+**`--include <glob>` checks every path matching it, even where git ignores it or an exclusion glob matches it, and may be given more than once.** It still reads only a file a reader takes. Neither option can be given without a glob, and one that is empty or absolute refuses the run, as does an `--include` that matches a path above its folder target.
 
 Each glob is matched against a path relative to its folder target, never against a file target. A glob naming a folder, with or without a trailing `/`, covers everything under it.
 

@@ -2237,6 +2237,9 @@ describe("check.js, what the walk leaves out and takes in", () => {
     fs.writeFileSync(path.join(ruby, "assets", "style.yml"), "key: value\n");
     fs.mkdirSync(path.join(plugin, ".claude-plugin"), { recursive: true });
     fs.writeFileSync(path.join(plugin, ".claude-plugin", "plugin.json"), '{ "name": "kit" }\n');
+    // A file above every target here, so a glob that climbs out has something to reach.
+    fs.mkdirSync(path.join(repo, "outside"));
+    fs.writeFileSync(path.join(repo, "outside", "out.md"), "# Out\n\nbody\n");
   });
 
   it("a git-ignored vendor/bundle adds no file and no issue", () => {
@@ -2298,13 +2301,20 @@ describe("check.js, what the walk leaves out and takes in", () => {
   it("a glob that stays inside its target is taken, though it passes through ..", () => {
     assert.equal(run([ruby, "--exclude", "assets/../notes/**"]).linted, 4);
   });
-  it("--exclude or --include with an empty, absolute or climbing glob refuses the run", () => {
+  it("--exclude or --include with an empty or absolute glob refuses the run", () => {
     for (const option of ["--exclude", "--include"]) {
-      for (const value of ["", "/", "//", "/tmp/**", "..", "../**", "notes/../../**"]) {
+      for (const value of ["", "/", "//", "/tmp/**"]) {
         const r = run([ruby, option, value]);
         assert.equal(r.code, 1, r.out);
         assert.match(r.out, /is no glob relative to a folder target: nothing was checked/u, `${option} ${value}`);
       }
+    }
+  });
+  it("--include reaching above its folder target refuses the run, however the glob spells the climb", () => {
+    for (const value of ["../../outside/**", "notes/../../../outside", "{../../outside,x}/**", "[.][.]/[.][.]/outside/**"]) {
+      const r = run([ruby, "--include", value]);
+      assert.equal(r.code, 1, r.out);
+      assert.match(r.out, /--include reaches .*\/ignoring\/outside(?:\/out\.md)?, above its folder target: nothing was checked/u, value);
     }
   });
 });
