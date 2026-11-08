@@ -3,14 +3,14 @@
 require_relative "common"
 
 module CheckFloor
-  # Compares the versions assets/floor.yml records with the gems this bundle has installed.
+  # Compares the versions the skill's Gemfile.lock pins with the gems this bundle has installed.
   class Versions
     def initialize(checked)
       @checked = checked.transform_values { Gem::Version.new(it) }
     end
 
     def print
-      puts "Versions (checked -> installed):"
+      puts "Versions (pinned -> installed):"
       checked.each { |name, version| print_one(name, version, spec_for(name)) }
     end
 
@@ -38,7 +38,7 @@ module CheckFloor
       return puts("  #{name}: #{version} -> not installed, its cops cannot be checked") unless spec
 
       puts "  #{name}: #{version} -> #{spec.version}"
-      puts "    older than the checked version: the floor may name cops this release lacks" if spec.version < version
+      puts "    older than the pinned version: the floor may name cops this release lacks" if spec.version < version
     end
 
     def spec_for(name)

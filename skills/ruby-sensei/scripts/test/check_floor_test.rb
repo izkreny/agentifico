@@ -7,7 +7,7 @@ require "rbconfig"
 require "tmpdir"
 require "yaml"
 
-# WHY: it runs the real command against RuboCop, on a copy of the skill whose floor each test writes, so the floor the skill ships is never touched.
+# WHY: it runs the real command against RuboCop, on a copy of the skill whose floor and pins each test writes, so the ones the skill ships are never touched.
 describe "scripts/check_floor.rb" do
   let(:skill) { Dir.mktmpdir("check-floor") }
   let(:floor) { File.join(skill, "assets", "floor.yml") }
@@ -25,9 +25,15 @@ describe "scripts/check_floor.rb" do
 
   after { FileUtils.rm_rf(skill) }
 
-  def write_floor(checked: "999.0.0", watched: {})
+  def write_floor(pinned: "999.0.0", watched: {})
     owned = { "Core" => ["Lint/Debugger", "Style/GuardClause"] }
-    File.write(floor, { "checked" => { "rubocop" => checked }, "owned" => owned, "watched" => watched }.to_yaml)
+    File.write(floor, { "owned" => owned, "watched" => watched }.to_yaml)
+    File.write(File.join(skill, "Gemfile.lock"), <<~LOCK)
+      GEM
+        remote: https://rubygems.org/
+        specs:
+          rubocop (#{pinned})
+    LOCK
   end
 
   def check(*)
@@ -66,21 +72,12 @@ describe "scripts/check_floor.rb" do
     expect(out).must_equal "no RuboCop config at #{File.join(skill, "missing.yml")}\n"
   end
 
-  it "refuses --record together with --config and leaves the floor alone" do
-    write_floor(checked: "0.1.0")
-    out, status = check("--config", preview_config, "--record")
-
-    expect(status.success?).must_equal false, out
-    expect(out).must_match "--record records a check of RuboCop's defaults, so it runs without --config"
-    expect(File.read(floor)).must_match(/^  rubocop: 0\.1\.0$/)
-  end
-
-  it "records the installed version from a run of the defaults" do
-    write_floor(checked: "0.1.0")
-    out, status = check("--record")
+  it "lists the release gap when the bundle is newer than the pins" do
+    write_floor(pinned: "0.1.0")
+    out, status = check
 
     expect(status.success?).must_equal true, out
-    expect(out).must_match(/^Recorded: rubocop \d+\.\d+\.\d+$/)
-    expect(File.read(floor)).must_match(/^  rubocop: (?!0\.1\.0$)\d+\.\d+\.\d+$/)
+    expect(out).must_match(/^Cops added or changed in rubocop after 0\.1\.0, up to \d+\.\d+\.\d+:$/)
+    expect(out).must_match "the skill's maintainer moves the pins in the skill's Gemfile"
   end
 end

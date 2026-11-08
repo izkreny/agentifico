@@ -1,0 +1,12 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+# WHY: the floor was checked against exactly these releases, which Gemfile.lock records for scripts/check_floor.rb to compare against.
+gem "rubocop", "1.92.2"
+gem "rubocop-minitest", "0.41.0"
+gem "rubocop-on-rbs", "2.2.0"
+gem "rubocop-performance", "1.27.0"
+gem "rubocop-thread_safety", "0.8.0"
+
+gem "minitest", "6.0.6"

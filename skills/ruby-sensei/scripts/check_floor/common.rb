@@ -4,6 +4,7 @@
 module CheckFloor
   SKILL = File.expand_path("../..", __dir__)
   FLOOR = File.join(SKILL, "assets", "floor.yml")
+  LOCK = File.join(SKILL, "Gemfile.lock")
   GEMS = {
     "rubocop" => { repo: "rubocop/rubocop" },
     "rubocop-performance" => { repo: "rubocop/rubocop-performance", department: "Performance" },
@@ -13,7 +14,7 @@ module CheckFloor
   }.freeze
 
   Gap = Data.define(:name, :checked, :installed, :spec)
-  private_constant :SKILL, :FLOOR, :GEMS, :Gap
+  private_constant :SKILL, :FLOOR, :LOCK, :GEMS, :Gap
 
   # Raised for a check that cannot run or does not pass; only the CLI turns it into an exit.
   class Failure < StandardError; end

@@ -36,18 +36,22 @@ It fires on its own on Ruby work: writing, refactoring or reviewing Ruby code, t
 
 Every rule RuboCop and its plugins enforce at their default configuration is left out rather than restated. The list is *What the linters own* in `SKILL.md`, because the agent is its reader. The Metrics cops are kept as signals: the skill names the fault a count points at and never a number.
 
-`assets/floor.yml` records the versions the floor was checked against and every cop the skill relies on. After upgrading RuboCop or a plugin, run the check, because a release can switch a floor cop off or enable a pending one. Run it from the directory of a Gemfile whose bundle holds RuboCop and the plugins `assets/floor.yml` records:
+`Gemfile.lock` records the versions the floor was checked against, and `assets/floor.yml` every cop the skill relies on. After upgrading RuboCop or a plugin, run the check, because a release can switch a floor cop off or enable a pending one. Run it from the directory of a Gemfile whose bundle holds RuboCop and the plugins the skill's `Gemfile` pins:
 
 ```bash
 bundle exec ruby <skill-dir>/scripts/check_floor.rb
 ```
 
-It checks RuboCop's defaults. Add `--config <repo-root>/.rubocop.yml` to check a repository's own configuration too, since a configuration can switch a floor cop off, as `Preview: true` does with `Style/GuardClause`. `--help` lists its options, and its output names each failure and the cops added or changed since the recorded versions.
+It checks RuboCop's defaults. Add `--config <repo-root>/.rubocop.yml` to check a repository's own configuration too, since a configuration can switch a floor cop off, as `Preview: true` does with `Style/GuardClause`. `--help` lists its options, and its output names each failure and the cops added or changed since the pinned versions.
 
-`scripts/check_floor.rb` only calls into `scripts/check_floor/`, one file per part, laid out as `references/gems.md` lays out a gem. Its Minitest suite is under `scripts/test/`, in spec style. Run it with plain Ruby; the integration tests in `scripts/test/check_floor_test.rb` run the real check, and skip unless `BUNDLE_GEMFILE` names a bundle that holds RuboCop:
+## Developing it
+
+To move the floor to newer releases, change the pins in `Gemfile`, run `bundle install` from the skill's directory, run the check there with `bundle exec`, and commit `Gemfile.lock` once it passes. `.bundle/config` installs the bundle into the skill's own `vendor/bundle`, which git ignores.
+
+`scripts/check_floor.rb` only calls into `scripts/check_floor/`, one file per part, laid out as `references/gems.md` lays out a gem. Its Minitest suite is under `scripts/test/`, in spec style, and the integration tests in `scripts/test/check_floor_test.rb` run the real check. Run it from the skill's directory:
 
 ```bash
-ruby -e 'ARGV.each { require File.expand_path(it) }' <skill-dir>/scripts/test/*_test.rb
+bundle exec ruby -e 'ARGV.each { require File.expand_path(it) }' scripts/test/*_test.rb
 ```
 
 ## Sources, and the choices between them

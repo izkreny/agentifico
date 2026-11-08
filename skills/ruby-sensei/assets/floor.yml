@@ -1,11 +1,3 @@
-# WHY: the release gap the next check reports starts at these versions.
-checked:
-  rubocop: 1.92.2
-  rubocop-performance: 1.27.0
-  rubocop-minitest: 0.41.0
-  rubocop-thread_safety: 0.8.0
-  rubocop-on-rbs: 2.2.0
-
 # WHY: the skill states none of these rules, so each cop must stay enabled by default. Grouped by the bullet in SKILL.md *What the linters own*; the group `Rules left out of the references` holds cops that own a rule the references would otherwise state.
 owned:
   Control flow:

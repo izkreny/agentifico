@@ -8,13 +8,12 @@ module CheckFloor
   # Reads the command line, runs the check, and turns a failure into the exit status.
   module CLI
     def self.call(argv)
-      options = { record: false }
-      parser = OptionParser.new("Usage: bundle exec ruby <skill-dir>/scripts/check_floor.rb [--config PATH] [--record]")
+      options = {}
+      parser = OptionParser.new("Usage: bundle exec ruby <skill-dir>/scripts/check_floor.rb [--config PATH]")
       parser.separator("Run it from the directory of the Gemfile whose bundle holds RuboCop.")
       parser.on("--config PATH", "also check the owned cops under this RuboCop config")
-      parser.on("--record", "for the skill's maintainer, in its source repository: record the installed versions")
       parser.parse!(argv, into: options)
-      Run.new(config: options[:config]&.then { real_config(it) }, record: options.fetch(:record)).call
+      Run.new(config: options[:config]&.then { real_config(it) }).call
     rescue Failure => e
       abort e.message
     end

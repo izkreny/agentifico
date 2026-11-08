@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "bundler"
 require "tmpdir"
 require "yaml"
 require_relative "common"
@@ -8,15 +9,12 @@ require_relative "show_cops"
 require_relative "versions"
 
 module CheckFloor
-  # Reads the floor, checks every cop in it and prints what changed since the checked versions.
+  # Reads the floor, checks every cop in it and prints what changed since the pinned versions.
   class Run
-    def initialize(config:, record:)
-      raise Failure, "--record records a check of RuboCop's defaults, so it runs without --config" if record && config
-
+    def initialize(config:)
       @config = config
-      @record = record
       @floor = YAML.safe_load_file(FLOOR)
-      @versions = Versions.new(@floor.fetch("checked"))
+      @versions = Versions.new(pinned)
       @failures = []
     end
 
@@ -29,7 +27,12 @@ module CheckFloor
 
     private
 
-    attr_reader :config, :record, :floor, :versions, :failures
+    attr_reader :config, :floor, :versions, :failures
+
+    def pinned
+      specs = Bundler::LockfileParser.new(File.read(LOCK)).specs.to_h { [it.name, it.version.to_s] }
+      GEMS.keys.filter_map { |name| [name, specs[name]] if specs.key?(name) }.to_h
+    end
 
     def owned = floor.fetch("owned").values.flatten
     def watched = floor.fetch("watched")
@@ -92,26 +95,15 @@ module CheckFloor
     def finish
       raise Failure, "FAILED: #{failures.join(", ")}" if failures.any?
       return finish_without_gaps if gaps.empty?
-      return write_versions if record
 
       puts "OK: read the cops above for rules the skill now leaves to the linter"
-      puts "  the skill's maintainer records the new versions with --record, in the skill's source repository"
+      puts "  the skill's maintainer moves the pins in the skill's Gemfile, in the skill's source repository"
     end
 
     def finish_without_gaps
-      return puts("OK: no release newer than the checked versions, and some are older") if versions.older?
+      return puts("OK: no release newer than the pinned versions, and some are older") if versions.older?
 
-      puts "OK: no release newer than the checked versions"
-    end
-
-    def write_versions
-      text = File.read(FLOOR)
-      gaps.each do |gap|
-        text = text.sub(/^(  #{Regexp.escape(gap.name)}: )\S+$/) { "#{::Regexp.last_match(1)}#{gap.installed}" }
-      end
-      File.write(FLOOR, text)
-      recorded = gaps.map { "#{it.name} #{it.installed}" }.join(", ")
-      puts "Recorded: #{recorded}"
+      puts "OK: no release newer than the pinned versions"
     end
   end
 end
