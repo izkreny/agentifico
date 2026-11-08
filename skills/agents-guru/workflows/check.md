@@ -10,25 +10,34 @@ The mechanical audit. Run it after writing or editing any skill, and in a review
 
 Before the first run on an install, follow `references/setup.md`.
 
-Each argument is a target, a folder or a file, and the current directory is the target when there is none. A folder target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/`. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories under a folder target are skipped, and so is anything under `node_modules/`, which belongs to a skill's dependencies rather than to its prose:
+Each argument is a target, a folder or a file, and the current directory is the target when there is none. A folder target is one skill's own directory, a directory of skills, or a package root whose skills sit further down - a plugin's at `<target>/skills/`. Symlinks are followed, because an agent's own skills directory is a directory of them pointing into the canonical tree. Dot-directories under a folder target are excluded, and so is every path git ignores there and every path an `--exclude` glob matches:
 
 ```bash
 node <skill-dir>/scripts/check.js path/to/the-skill
 node <skill-dir>/scripts/check.js AGENTS.md .agents/gh-solo.md
 node <skill-dir>/scripts/check.js --skip skill-hard-wrap path/to/the-skill
+node <skill-dir>/scripts/check.js --include 'vendor/**' path/to/the-skill
 ```
 
 **`--skip <rule>` switches a convention rule off for one run, and may be given more than once.** A rule takes it only where the check already reports it as a warning because `workflows/export.md` lets a skill decline its author's conventions. A rule that fails the run is one this skill holds every skill to, so no caller can decline it. Any other name refuses the run and prints the names that do take it.
 
 The switch is the caller's, written in the command where whoever reads the run sees it, and nothing under the target can set it. A run that skipped anything names each skipped rule with how many findings it withheld, and its summary line adds `N rule(s) skipped`; the exit code is decided by the findings that remain.
 
-**A file target is read as named, even inside a dot-directory**, which is how a file such as `<repo-root>/.agents/gh-solo.md` is reached at all. A file names no tree of its own, so its root is the current directory, where a folder target is its own root: the path rules resolve against it and the layout search stops at it. Run a file target from the folder its paths were written against. Several targets print every path from the folder they share, and a file reached by more than one is read once.
+**A path git ignores under a folder target is excluded**, so a folder a skill keeps out of git adds no file and no finding. It is never in a published copy of the skill. The check asks git once per folder target. Outside a repository, without git on the machine, or on a target git ignores as a whole, git excludes nothing. A walk that follows a symlink into another tree still asks the target's repository, so a path ignored only there is read unless an `--exclude` glob names it.
+
+**`--exclude <glob>` excludes every path matching it, and `--include <glob>` checks every path matching it, even one git ignores or an `--exclude` glob matches.** Each may be given more than once and needs a glob, and neither has a default, so a run excludes only what git ignores and what its command names. An `--include` still reads only a file a reader takes, and with one given the walk enters every excluded folder, so a run over a large ignored tree takes longer.
+
+Each glob filters the paths the walk finds under its folder target, matched relative to that target and never against a file target, so a glob that climbs out with `..` matches nothing. A glob naming a folder, with or without a trailing `/`, covers everything under it.
+
+**A file target is read as named, even inside a dot-directory or a path git ignores**, which is how a file such as `<repo-root>/.agents/gh-solo.md` is reached at all. Several targets print every path from the folder they share, and a file reached by more than one is read once.
+
+**A target inside a skill takes that skill's directory as its root**, whether it is a file such as `<skill-dir>/SKILL.md` or a folder such as `<skill-dir>/references/`, so its pointers resolve as in a run over the whole skill. Outside any skill, a folder target is its own root and a file target's root is the current directory, so run such a file from the folder its paths were written against. The path rules resolve against the root and the layout search stops at it.
 
 **One skill is the gate; a wider target is a survey.** Against a single skill the exit code answers "is this skill clean", which is what a branch and a sweep both want. Against a directory of skills or a package root it answers only "does anything under here have findings", and it will usually be non-zero: the run reports every skill it reaches, and `references/managing.md` forbids editing a manager-installed one, so a finding there is a report to that skill's author rather than work for the runner.
 
 Every markdown file under the target is read, subject to those exclusions, since a rule about prose applies wherever the skill keeps prose; the rules about a skill's frontmatter apply to a file named `SKILL.md`, *The agent rule* applies to an agent file, and each leaves the rest alone. Nothing under the target is read as configuration, so a tree cannot switch off the rules that judge it, and a copy of this skill under the target is linted rather than imported.
 
-A target the check cannot read fails the run, naming that target: a path that does not exist, a folder with no markdown under it, or a file no reader takes. Its silence is indistinguishable from a clean sweep, and beside other targets it would hide. A folder holding markdown but no skill is a legitimate target and is read.
+A target the check cannot read fails the run, naming that target: a path that does not exist, a folder holding no file any reader takes, or a file no reader takes. Its silence is indistinguishable from a clean sweep, and beside other targets it would hide. A folder holding no skill, or no markdown, is a legitimate target and is read, as a skill's `<skill-dir>/assets/` of YAML is.
 
 A link under a folder target that cannot be resolved, because it points at nothing or loops back on itself, fails the run the same way, named under `dangling links` with the reason, since nothing read it and its silence would look like a clean file. It counts as an issue and never in the closing line's file count. A folder named like a markdown file is walked into rather than read, so the files inside it are checked like any others.
 
@@ -168,7 +177,7 @@ A path the target cannot resolve, and is not meant to, opens with the placeholde
 
 ## The plugin file rules
 
-**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json`, `<plugin-dir>/.claude-plugin/plugin.json` and monitors file to what Claude Code loads: a field with no effect where it is set, a matcher or a server name that never fires, and a value that fails when it runs. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and the hooks file and manifest are read by their fixed paths because the walk skips dot-folders.
+**`plugin-hooks`** and **`plugin-manifest`**, in `scripts/rules/plugin-files.js`, hold a plugin's `<plugin-dir>/hooks/hooks.json`, `<plugin-dir>/.claude-plugin/plugin.json` and monitors file to what Claude Code loads: a field with no effect where it is set, a matcher or a server name that never fires, and a value that fails when it runs. A plugin is any folder at the target or under it that holds a `<plugin-dir>/.claude-plugin/` folder, and the hooks file and manifest are read by their fixed paths because the walk excludes dot-folders.
 
 **Some of these rules need more than the file they judge.** `plugin-hooks` takes the plugin's own MCP server names from `<plugin-dir>/.mcp.json` and the manifest's `mcpServers`, and what a bundle or a URL declares goes unread. `plugin-manifest` reads monitors where they load from, inline or in a file, and a finding in a file prints that file's own path and line.
 
