@@ -22,8 +22,9 @@ Every command is checked against `claude plugin --help` and `claude plugin marke
 - ::V3:: `python3 scripts/version-check.py`
 - ::V4:: `python3 scripts/manifest-check.py`
 - ::V5:: `node skills/agents-guru/scripts/check.js plugins/gh-solo`
-- ::V6:: `git grep -q -F '/plugin marketplace update agentifico' -- plugins/gh-solo/README.md && git grep -q -F '/plugin update gh-solo@agentifico' -- plugins/gh-solo/README.md && git grep -q -F 'claude plugin marketplace update agentifico' -- plugins/gh-solo/README.md && git grep -q -F 'claude plugin update gh-solo@agentifico' -- plugins/gh-solo/README.md` exits 0, watched exiting 1 on the tree before S1
+- ::V6:: `git grep -q -F '/plugin marketplace update agentifico' -- plugins/gh-solo/README.md && git grep -q -F '/plugin manage' -- plugins/gh-solo/README.md && git grep -q -F 'claude plugin marketplace update agentifico' -- plugins/gh-solo/README.md && git grep -q -F 'claude plugin update gh-solo@agentifico' -- plugins/gh-solo/README.md` exits 0, watched exiting 1 on the tree before S1
 - ::V7:: `git grep -n 'prune' -- plugins/gh-solo/README.md` exits 1, watched exiting 0 with `prune` inserted into the new section as a mutation
+- ::V8:: `git grep -n -F '/plugin update' -- plugins/gh-solo/README.md` exits 1, watched exiting 0 with that string inserted into the new section as a mutation
 
 V6 proves the four update commands are present, not that the prose around them is right. Whether the section reads as instructions to an installer, and whether each behaviour claim matches the cited docs, is the review round's to judge. The criteria gate is off, since `.agents/gh-solo.md` carries no `Test files:` line.
 
@@ -33,4 +34,4 @@ None.
 
 ## Settled
 
-None yet.
+- ::Q1:: Is the in-session update `/plugin update gh-solo@agentifico`? No: `update` has no session form, so the session path is **Update now** on the Installed tab, and #60's AC1 was reworded to match.
