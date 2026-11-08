@@ -33,7 +33,7 @@ Two Claude Code frontmatter fields decide who may start a skill: `disable-model-
 
 **`auto`, `go` and `watch` stay literal commands whatever a sentence would save.** Each skips a stop that is yours to make: `auto` and `go` the waits between workflows, `auto` the plan reading too, and `watch` the choice to leave something polling in the background. A saving is never a reason to let a sentence start one.
 
-**Other agents ignore both fields.** They are Claude Code extensions rather than part of the Agent Skills specification, so another agent reading these skills reaches every one of them every way, silently. That is why `reviewer`'s description also says who starts it: on such an agent the description is the only thing stating the policy.
+**Other agents ignore `disable-model-invocation` and `user-invocable`.** They are Claude Code extensions rather than part of the Agent Skills specification, so another agent reading these skills reaches every one of them every way, silently. That is why `reviewer`'s description also says who starts it: on such an agent the description is what states the policy.
 
 ## Requirements
 
