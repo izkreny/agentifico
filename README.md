@@ -15,6 +15,7 @@ AI agent skills, instructions and gotchas. Each package here is published one of
 | [socratic-tutor](skills/socratic-tutor/README.md) | skill | A tutor that asks one question at a time until you reach the answer yourself |
 | [action-policy-guru](skills/action-policy-guru/README.md) | skill | Writing, reviewing and testing Action Policy authorization in Ruby and Rails code |
 | [glossary-guru](skills/glossary-guru/README.md) | skill | Keeping a project's domain vocabulary in one glossary file and holding an agent to it |
+| [ruby-sensei](skills/ruby-sensei/README.md) | skill | The judgement half of writing Ruby 4.0, covering only what RuboCop cannot check |
 
 Each package's own README has its requirements and the full picture.
 
