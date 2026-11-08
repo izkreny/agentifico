@@ -14,7 +14,7 @@ describe "scripts/check_floor.rb" do
   let(:preview_config) { File.join(skill, "preview.rubocop.yml") }
 
   before do
-    skip "set BUNDLE_GEMFILE to a bundle that holds RuboCop" unless ENV["BUNDLE_GEMFILE"]
+    skip "this bundle does not hold RuboCop" unless Gem.loaded_specs.key?("rubocop")
 
     scripts = File.expand_path("..", __dir__)
     FileUtils.mkdir_p([File.join(skill, "assets"), File.join(skill, "scripts")])
