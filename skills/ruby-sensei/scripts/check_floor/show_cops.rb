@@ -34,7 +34,13 @@ module CheckFloor
     end
 
     def command(config)
-      [RbConfig.ruby, Gem.bin_path("rubocop", "rubocop"), "--no-server", "--show-cops", cops.join(","), "-c", config]
+      [RbConfig.ruby, rubocop, "--no-server", "--show-cops", cops.join(","), "-c", config]
+    end
+
+    def rubocop
+      Gem.bin_path("rubocop", "rubocop")
+    rescue Gem::GemNotFoundException
+      raise Failure, "RuboCop is not installed in this bundle"
     end
 
     def parse(text)
