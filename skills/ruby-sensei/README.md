@@ -44,6 +44,12 @@ bundle exec ruby <skill-dir>/scripts/check_floor.rb
 
 It checks RuboCop's defaults. Add `--config <repo-root>/.rubocop.yml` to check a repository's own configuration too, since a configuration can switch a floor cop off, as `Preview: true` does with `Style/GuardClause`. `--help` lists its options, and its output names each failure and the cops added or changed since the recorded versions.
 
+`scripts/check_floor.rb` only calls into `scripts/check_floor/`, one file per part, laid out as `references/gems.md` lays out a gem. Its Minitest suite is under `scripts/test/`, in spec style. Run it with plain Ruby; the integration tests in `scripts/test/check_floor_test.rb` run the real check, and skip unless `BUNDLE_GEMFILE` names a bundle that holds RuboCop:
+
+```bash
+ruby -e 'ARGV.each { require File.expand_path(it) }' <skill-dir>/scripts/test/*_test.rb
+```
+
 ## Sources, and the choices between them
 
 Where the sources disagree, the skill takes one side:

@@ -34,6 +34,7 @@ This repository is canonical from the merge on, per Step 1 of `skills/agents-gur
 - `python3 scripts/version-check.py`
 - `node skills/agents-guru/scripts/check.js skills/ruby-sensei`
 - `ruby -c skills/ruby-sensei/scripts/check_floor.rb`
+- `ruby -e 'ARGV.each { require File.expand_path(it) }' skills/ruby-sensei/scripts/test/*_test.rb`
 
 The version check sees a new package, so it passes on any version, and `1.0.0` is checked by reading the frontmatter. `ruby -c` proves the floor check parses, not that it passes: running it needs a bundle holding the versions `skills/ruby-sensei/assets/floor.yml` (new) records, which is installed only on the owner's approval and only if a sweep fix touches a rule the floor covers. No gate can say whether a rule is right, which the sweep and the owner's own reading of the pull request judge. The README's install command cannot resolve until the branch merges, because the skills CLI reads the default branch.
 
@@ -52,3 +53,4 @@ None.
 ## Settled
 
 - **Does the opinionated RuboCop configuration ship with the skill?** No. The owner moved `skills/ruby-sensei/assets/rubocop.yml` (delete) to a repository of their own for RuboCop configuration and custom cops, because anyone else who installs the skill brings their own configuration. The floor rests on RuboCop's defaults, so `skills/ruby-sensei/assets/floor.yml` and `skills/ruby-sensei/scripts/check_floor.rb` stay: the check reads the defaults, adds a configuration's owned cops with `--config`, and records versions only from a defaults run.
+- **Is the floor check one file, and is it tested?** No to the first, yes to the second, on the owner's decision. `skills/ruby-sensei/scripts/check_floor.rb` only calls into `skills/ruby-sensei/scripts/check_floor/` (new), one file per part, as `skills/ruby-sensei/references/gems.md` lays out a gem, and a Minitest suite in spec style with `expect` sits under `skills/ruby-sensei/scripts/test/` (new), following `skills/agents-guru/scripts/test/`.
