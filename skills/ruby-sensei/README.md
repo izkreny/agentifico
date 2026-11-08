@@ -36,7 +36,23 @@ It fires on its own on Ruby work: writing, refactoring or reviewing Ruby code, t
 
 Every rule RuboCop and its plugins enforce at their default configuration is left out rather than restated. The list is *What the linters own* in `SKILL.md`, because the agent is its reader. The Metrics cops are kept as signals: the skill names the fault a count points at and never a number.
 
-`Gemfile.lock` records the versions the floor was checked against, and `assets/floor.yml` every cop the skill relies on. After upgrading RuboCop or a plugin, run the check, because a release can switch a floor cop off or enable a pending one. Run it from the directory of a Gemfile whose bundle holds RuboCop and the plugins the skill's `Gemfile` pins:
+`assets/floor.yml` is the skill's record of what it does not have to say, because RuboCop already says it. `owned` lists the cops whose rules the skill leaves out, so each must stay enabled by default. `watched` lists pending cops whose rule the skill does state, each pointing at the section that states it, until RuboCop enables the cop. `Gemfile.lock` records the RuboCop and plugin versions the floor was checked against.
+
+`scripts/check_floor.rb` asks the installed RuboCop about every cop the floor names. An owned cop switched off, or a watched cop switched on, fails the check, since either means the skill and the linter have drifted apart:
+
+```mermaid
+flowchart TD
+  F[assets/floor.yml] --> O[owned · rules left to RuboCop]
+  F --> W[watched · rules the skill states for now]
+  L[Gemfile.lock · pinned versions] --> S
+  S[scripts/check_floor.rb] -->|reads| F
+  S -->|asks about every cop| R[installed RuboCop]
+  R --> Q{owned cop off, or watched cop on?}
+  Q -->|yes| X[FAIL · the skill and the linter drifted]
+  Q -->|no| K[OK · lists the cops changed since the pins]
+```
+
+After upgrading RuboCop or a plugin, run the check, because a release can switch a floor cop off or enable a pending one. Run it from the directory of a Gemfile whose bundle holds RuboCop and the plugins the skill's `Gemfile` pins:
 
 ```bash
 bundle exec ruby <skill-dir>/scripts/check_floor.rb
