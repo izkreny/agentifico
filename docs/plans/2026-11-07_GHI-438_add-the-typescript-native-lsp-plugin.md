@@ -44,3 +44,4 @@ V2 adds the new plugin to the repository's docs-check targets on this branch onl
 ## Settled
 
 - **Q1, whether this branch also adds `plugins/typescript-native-lsp` to the agents-guru check list in `.agents/gh-solo.md` and the plugin's test as a bench there.** Both, on this branch. Settled by the owner in the terminal on 2026-11-07.
+- ::Q2:: **Does the package's sweep run on this branch, or on an issue of its own?** On this branch, so the first tag can follow the merge. Settled by the owner in the terminal on 2026-11-08.
