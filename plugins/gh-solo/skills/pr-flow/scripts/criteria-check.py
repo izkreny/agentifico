@@ -10,6 +10,7 @@ Usage:
 """
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -107,8 +108,14 @@ def resolve_remote():
     raise CheckError("more than one remote and none tracked by main: pass --remote")
 
 
+def user_config_dir():
+    # WHY: the XDG Base Directory spec ignores a relative value, as it does an empty one.
+    xdg = os.environ.get("XDG_CONFIG_HOME", "")
+    return Path(xdg) if os.path.isabs(xdg) else Path.home() / ".config"
+
+
 def config_paths(root, name_with_owner):
-    user_level = Path.home() / ".agents" / "gh-solo" / f"{name_with_owner}.md"
+    user_level = user_config_dir() / "gh-solo" / f"{name_with_owner}.md"
     return [user_level] + [Path(root) / name for name in IN_REPO_CONFIGS]
 
 
