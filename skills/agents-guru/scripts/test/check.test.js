@@ -2320,10 +2320,9 @@ describe("check.js, what the walk leaves out and takes in", () => {
     }
   });
   it("an --include glob pointing back inside its folder target is taken", () => {
-    for (const value of ["notes/..", "*/.."]) {
-      const r = run([ruby, "--include", value]);
-      assert.equal(r.code, 0, `${value}\n${r.out}`);
+    for (const value of ["./vendor/**", "vendor/bundle/..", "notes/..", "*/..", ".", "./"]) {
+      assert.equal(run([ruby, "--include", value]).linted, 6, value);
     }
-    assert.equal(run([ruby, "--include", "vendor/bundle/.."]).linted, 6);
+    assert.equal(run([ruby, "--exclude", "./notes/**"]).linted, 4);
   });
 });
