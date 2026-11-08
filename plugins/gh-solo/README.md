@@ -18,6 +18,23 @@ It is deliberately not a generic workflow plugin. It assumes GitHub, it assumes 
 
 Each skill carries its own `README.md` with the full picture. `/gh-solo:pr-flow` and `/gh-solo:tracker` also take `help` as a routing verb, which prints their own summary; `implement` and the `reviewer` skill have no such verb, because each has one job and its README is the summary.
 
+## How each skill is reached
+
+Two Claude Code frontmatter fields decide who may start a skill: `disable-model-invocation: true` leaves only your slash command, and `user-invocable: false` leaves only the model.
+
+| Skill | You, by its slash command | The model, by the Skill tool | Why |
+| --- | --- | --- | --- |
+| `tracker` | yes | yes | Its trigger phrases are how an aside reaches it, and a state change one of them starts prints its command and waits rather than writing. |
+| `pr-flow` | yes | yes | Its workflows are reached by sentences once it is loaded, and the model may need to load it again after a long session is summarised. |
+| `implement` | yes | yes | `pr-flow` enters it through the Skill tool from its `auto`, `review` and `discuss` workflows, which `disable-model-invocation` would block, and you type it yourself to implement without the rest of the chain. |
+| `reviewer` | no | yes | The `reviewer` agent loads it through the Skill tool, so `disable-model-invocation` would break every review round without an error. `user-invocable: false` keeps it out of your `/` menu, because the session that wrote the code reviewing it is a self-review. |
+
+**What a load costs.** A skill loads by putting its whole `SKILL.md` into the conversation, and `pr-flow`'s is the largest, at about 39k characters. A slash command loads it again in full every time it is typed, even with the same argument. The model calling the Skill tool again for a skill already loaded gets a one-line note instead, and a plain sentence reaches a loaded skill's workflows without loading anything. So model invocation is also what keeps repeats cheap: a skill only you could start could be re-entered only by the command that re-injects it. The observations behind this, with the commands that produced them, are on issue #56.
+
+**`auto`, `go` and `watch` stay literal commands whatever a sentence would save.** Each skips a stop that is yours to make: `auto` and `go` the waits between workflows, `auto` the plan reading too, and `watch` the choice to leave something polling in the background. A saving is never a reason to let a sentence start one.
+
+**Other agents ignore both fields.** They are Claude Code extensions rather than part of the Agent Skills specification, so another agent reading these skills reaches every one of them every way, silently. That is why `reviewer`'s description also says who starts it: on such an agent the description is the only thing stating the policy.
+
 ## Requirements
 
 - **The `gh` CLI**, authenticated. Every read and write goes through it.
