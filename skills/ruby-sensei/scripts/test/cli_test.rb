@@ -22,6 +22,21 @@ describe "scripts/check_floor.rb when it cannot run" do
     expect(out).wont_match "GemNotFoundException"
   end
 
+  it "names a bundle that holds no RuboCop when run with bundle exec" do
+    script = File.expand_path("../check_floor.rb", __dir__)
+    out, status = Dir.mktmpdir("empty-bundle") do |dir|
+      gemfile = File.join(dir, "Gemfile")
+      File.write(gemfile, "source \"https://rubygems.org\"\n")
+      Bundler.with_unbundled_env do
+        Open3.capture2e({ "BUNDLE_GEMFILE" => gemfile }, "bundle", "exec", RbConfig.ruby, script, chdir: dir)
+      end
+    end
+
+    expect(status.success?).must_equal false
+    expect(out).must_match(/^RuboCop is not installed in this bundle$/)
+    expect(out).wont_match "Gem::Exception"
+  end
+
   it "names an unknown option and exits without a backtrace" do
     out, status = check("--confg", "x")
 

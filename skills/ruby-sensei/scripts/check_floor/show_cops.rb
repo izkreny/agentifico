@@ -39,7 +39,7 @@ module CheckFloor
 
     def rubocop
       Gem.bin_path("rubocop", "rubocop")
-    rescue Gem::GemNotFoundException
+    rescue Gem::Exception
       raise Failure, "RuboCop is not installed in this bundle"
     end
 
