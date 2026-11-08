@@ -1,4 +1,4 @@
-# WHY: the skill states none of these rules, so each cop must stay enabled by default. Grouped by the bullet in SKILL.md *What the linters own*; the group `Rules left out of the references` holds cops that own a rule the references would otherwise state.
+# WHY: the skill states none of these rules, so each cop must stay enabled by default.
 owned:
   Control flow:
     - Style/GuardClause
