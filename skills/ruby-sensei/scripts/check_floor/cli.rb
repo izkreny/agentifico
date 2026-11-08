@@ -14,7 +14,7 @@ module CheckFloor
       parser.on("--config PATH", "also check the owned cops under this RuboCop config")
       parser.parse!(argv, into: options)
       Run.new(config: options[:config]&.then { real_config(it) }).call
-    rescue Failure => e
+    rescue Failure, OptionParser::ParseError => e
       abort e.message
     end
 
