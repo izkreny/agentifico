@@ -10,7 +10,7 @@ The official `typescript-lsp` plugin starts `typescript-language-server`, which 
 
 - **TypeScript 7.0 or later, with its `tsc` on `PATH`.** An older `tsc` has no `--lsp` flag, so the server fails to start.
 
-**It checks code with whichever `tsc` is on `PATH`, not the version a project pins in its own `node_modules`.** Claude Code starts the command from the plugin's manifest, and the manifest names `tsc`, so a project that pins a different TypeScript is checked by your global one.
+**It checks code with the `tsc` on the `PATH` of the shell you start `claude` from, not the version a project pins in its own `node_modules`.** The manifest names `tsc`, so Claude Code runs whichever one that `PATH` finds. A version manager can set that `PATH` per project, and a project it pins to an older TypeScript gets no server at all.
 
 ## Install
 
@@ -24,6 +24,12 @@ claude plugin install typescript-native-lsp@agentifico
 ```bash
 claude plugin disable typescript-lsp@claude-plugins-official
 ```
+
+Start a new session afterwards, since a plugin's server loads when a session starts.
+
+## Use
+
+Nothing is typed. The server starts the first time Claude edits a file with one of these extensions, and from then on Claude gets the errors and warnings it reports after each edit. If none ever appear, run `/plugin` and open its **Errors** tab, where `Executable not found in $PATH: "tsc"` means no `tsc` is on that `PATH`.
 
 ## Sources
 
