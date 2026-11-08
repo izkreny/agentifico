@@ -9,6 +9,14 @@ The official `typescript-lsp` plugin starts `typescript-language-server`, which 
 ## Requirements
 
 - **TypeScript 7.0 or later, with its `tsc` on `PATH`.** An older `tsc` has no `--lsp` flag, so the server fails to start.
+- **Node.js on `PATH`**, since `tsc` runs under it.
+
+With [mise](https://mise.jdx.dev), both install globally:
+
+```bash
+mise use -g node
+mise use -g npm:typescript@7
+```
 
 **It checks code with the `tsc` on the `PATH` of the shell you start `claude` from, not the version a project pins in its own `node_modules`.** The manifest names `tsc`, so Claude Code runs whichever one that `PATH` finds. A version manager can set that `PATH` per project, and a project it pins to an older TypeScript gets no server at all.
 
