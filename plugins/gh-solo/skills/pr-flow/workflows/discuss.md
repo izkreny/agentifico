@@ -109,7 +109,7 @@ Drop every body that opens with the AI disclaimer - those are this workflow's ow
 
 The differences from threads: there is no resolution state, so "already handled" is read from the record - a body whose ask is answered by a later agent Conversation comment naming it is done; one with no such answer is live, however old it is. And there is no thread to reply into, so an owed answer goes as a Conversation comment (Step 2). An acknowledgement-only body ("Round two", "LGTM so far") gets what an acknowledgement gets: nothing.
 
-**If no surface holds an owner request awaiting an answer - no thread reply, no review body, no Conversation comment - say so and stop.** There is nothing to do and nothing to post.
+**If no surface holds an owner request awaiting an answer - no thread reply, no review body, no Conversation comment - say so, print Step 5's list of what fails *Recognising the owner*, and stop.** There is nothing else to do and nothing to post.
 
 ## Step 2 - Answer in the thread
 
@@ -170,7 +170,7 @@ About the fix and its reply:
 
 One line per thread touched: the file and line, what the owner asked, and one clause on what was answered or fixed. Then the same for review bodies and Conversation comments: each one answered or acted on this round, and that the rest were read and needed nothing.
 
-Then each post from anyone other than the owner that is newer than the last post opening with the AI disclaimer, since an older one was already in front of an earlier round: its author, where it sits, and that it was left unanswered.
+Then each comment, reaction and review body this round read that fails *Recognising the owner*: its author, where it sits, and that it was left unanswered. The line is a record, so naming one again in a later round answers nothing and carries nothing as live.
 
 Then the count of threads left alone, and why - settled, unanswered, or resolved. Then any `## Open questions` entries moved to `## Settled`, since `ready` and `merge` audit that section later and the report is what ties their finding to the round that acted.
 
