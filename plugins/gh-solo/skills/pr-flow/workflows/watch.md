@@ -4,7 +4,7 @@ Poll a pull request for the owner's replies and reactions while they read a roun
 
 ## Arming it, on the `watch` command and nothing else
 
-**Only the literal `watch <pr-number>` command arms this.** Not a sentence, not "I am going to read the comments now", not an inference from context however obvious. The `auto` and `go` chains arm one at their last step, and that is not an exception: each is itself a literal command the owner typed, carrying the authorisation in advance, which is why `workflows/auto.md` may do it and a sentence may not. A watch is a background process that keeps polling and keeps interrupting; starting one because a sentence sounded like a request is how the owner ends up with something running that they never asked for and may not know about.
+**Only the literal `watch <pr-number>` command, or its shortcut `:wt <pr-number>`, arms this.** Not a sentence, not "I am going to read the comments now", not an inference from context however obvious. The `auto` and `go` chains arm one at their last step, and that is not an exception: each is itself a literal command the owner typed, carrying the authorisation in advance, which is why `workflows/auto.md` may do it and a sentence may not. A watch is a background process that keeps polling and keeps interrupting; starting one because a sentence sounded like a request is how the owner ends up with something running that they never asked for and may not know about.
 
 If they describe being about to read the review, that is not the command. Mention that `watch <pr-number>` exists and wait to be asked.
 
@@ -31,7 +31,7 @@ Only these end a watch, and the owner needs to know `unwatch` at minimum. A `dis
 
 |                                                |                                                                                                                                                                |
 |------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `unwatch`                                      | The explicit stop. Call `TaskStop` on the monitor and confirm it is gone                                                                                       |
+| `unwatch`, or `:uwt`                           | The explicit stop. Call `TaskStop` on the monitor and confirm it is gone                                                                                       |
 | The owner authorising the resolve and the push | The review is over. Stop it before pushing anything. There is no other way out of the round, so this is the only stop besides `unwatch` and the session ending |
 | The session ending                             | Monitors do not outlive it                                                                                                                                     |
 

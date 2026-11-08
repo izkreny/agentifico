@@ -33,7 +33,7 @@ A settled question also moves in the body. When the owner's closing decision set
 
 A decision settled **in the terminal** instead of a thread is recorded the moment it settles - into the plan where it can be public, under a `## Settled` heading, the same name the PR body template gives the section that collects answered questions, so the record wears one heading across every plan and PR instead of a fresh invention each time; or into a private artifact the plan points at (the owner's knowledge base, a local note) where it cannot - never left in the chat transcript.
 
-When the owner says the plan is settled, name the ways forward and let them type one: `go <pr-number>` for the full chain to the review handoff, or `/gh-solo:implement <pr-number>` for implementation alone. `/gh-solo:implement` takes the sentence line *Console output* in `SKILL.md` gives a printed `/gh-solo:` command; `go` never does.
+When the owner says the plan is settled, name the ways forward and let them type one: `go <pr-number>` for the full chain to the review handoff, or `:im <pr-number>` for implementation alone.
 
 **The owner's words reach a PR on more surfaces than the threads, and a round reads them all.** Inline threads on the diff are the primary surface: they anchor to lines, they thread, and the steps of this workflow assume them. But a submitted review carries its own summary body (the `#pullrequestreview-…` anchor), written in the same gesture as its inline comments, and the Conversation tab takes free-standing *issue* comments on an endpoint of its own - and neither is a `reviewThread`, so a round that reads only threads walks past an instruction written on either.
 
