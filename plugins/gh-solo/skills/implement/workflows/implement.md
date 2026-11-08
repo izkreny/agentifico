@@ -12,9 +12,9 @@ Check out the branch and pull - and where the owner keeps a worktree per branch,
 
 **A hard stop, and this workflow's first act on the plan.** There is nowhere earlier to put it: the session that implements the plan is the session that settles its record, so the check lands before the first line of code rather than before a handover. **Never soften it into a warning, and never carry on having named it.** What it guards against is this session talking itself past an unsettled question in the plan it is about to implement, and a warning is precisely what that sounds like from the inside.
 
-1. **Read the plan-discussion threads whole**, with the GraphQL `reviewThreads` query from Step 1 of the `pr-flow` skill's discuss workflow - the REST comments endpoint has no resolution state - and drop the resolved ones. **An unsettled thread that affects the work stops everything:** `⛔ REFUSED - {which thread}`, and no code is written. The `discuss` workflow of the `pr-flow` skill is what ends that state.
+1. **Read the plan-discussion threads whole**, with the GraphQL `reviewThreads` query from Step 1 of the `pr-flow` skill's reply workflow - the REST comments endpoint has no resolution state - and drop the resolved ones. **An unsettled thread that affects the work stops everything:** `⛔ REFUSED - {which thread}`, and no code is written. The `reply` workflow of the `pr-flow` skill is what ends that state.
 2. **Apply any settled decision the plan or body does not yet reflect**: a new `docs:` commit - never `git commit --amend` on the plan commit, which would force-push away the threads that record why the plan changed - and the PR body updated **whole**: each answered `## Open questions` entry moved to `## Settled` under its own `Q{n}` with its decision, question included - moved, never deleted, per the body template in the `pr-flow` skill's open workflow, and into the plan file's own `## Settled` heading instead where that file's *Body caps* sends what the body's section cannot hold - and `## Open questions` left reading "None." once nothing remains open.
-3. **Push the plan commits**, then read `gh pr checks <pr-number>`, per the contract. The discuss rounds held them for the owner's word, and the owner's command to implement is that word.
+3. **Push the plan commits**, then read `gh pr checks <pr-number>`, per the contract. The reply rounds held them for the owner's word, and the owner's command to implement is that word.
 
 **Then read what is still unpushed** (`git log <remote>/<branch>..<branch> --oneline`). With the plan commits pushed in the settle, whatever is left is implementation commits, which is the ordinary resume rather than a fault: a session that died between its last commit and Step 6's backup push leaves exactly this state, and refusing on it would make the commonest resume unresumable. Say what is unpushed and carry on into Step 2, which reconciles those commits against the record; the work travels in Step 6's push as it always does. **Do not push them here** - whether they are finished work is Step 2's reconciliation to make, not this step's.
 
@@ -89,7 +89,7 @@ Then the record: what landed (commits), the box states on PR and issue, CI state
 
 What the cap leaves untouched is the record itself: the commits, the box states and any unrunnable gate are a record row, which *Never counted* in the `pr-flow` skill's `../pr-flow/references/post-caps.md` excludes, so their length follows how many there are. Keep both the record rather than a second copy of the PR, with a pointer at the divergence comments and never a restatement of them.
 
-It lands in the Conversation tab, which is right: it expects no answer, and it opens with the disclaimer, so a later `discuss` round's read excludes it rather than treating it as the owner speaking.
+It lands in the Conversation tab, which is right: it expects no answer, and it opens with the disclaimer, so a later `reply` round's read excludes it rather than treating it as the owner speaking.
 
 End with the owner's next move, alone on its line, flush left:
 

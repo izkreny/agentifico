@@ -27,7 +27,7 @@ Nothing about this is a preference:
 
 ## Stopping it
 
-Only these end a watch, and the owner needs to know `unwatch` at minimum. A `discuss` round does **not** stop it - per *The watch survives the round* in `references/review-protocol.md`, it keeps running so comments posted mid-round still wake answers:
+Only these end a watch, and the owner needs to know `unwatch` at minimum. A `reply` round does **not** stop it - per *The watch survives the round* in `references/review-protocol.md`, it keeps running so comments posted mid-round still wake answers:
 
 |                                                |                                                                                                                                                                |
 |------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
