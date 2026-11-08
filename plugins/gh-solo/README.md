@@ -63,7 +63,7 @@ The new version loads when you start your next session. To switch a running sess
 
 Background auto-update is set per marketplace. A third-party marketplace such as agentifico starts with it off. To turn it on, run `/plugin`, open the **Marketplaces** tab, select agentifico and choose **Enable auto-update**.
 
-An update leaves the previous version's directory in the plugin cache, marked as orphaned. Claude Code deletes it in a background sweep about 14 days later. The delay is a grace period, so a session already running on the old copy keeps working. You never need to delete an old version by hand.
+Each version lives in its own directory in the plugin cache, and an update marks the outgoing version's directory as orphaned. Claude Code deletes it in a background sweep about fourteen days later. The delay is a grace period, so a session already running on the old copy keeps working. You never need to delete an old version by hand.
 
 ## Keys, and the gates that read them
 
