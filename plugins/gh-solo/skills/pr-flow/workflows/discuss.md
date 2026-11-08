@@ -2,7 +2,7 @@
 
 Answer the owner's replies wherever they land on a pull request - inline comment threads, review summary bodies, Conversation comments - and land the fixes those replies order: committed, never pushed. The sequence this serves is `references/review-protocol.md`; this file is how its step 6 is answered.
 
-**Nothing tells the agent a reply happened.** There is no webhook, no polling and no notification reaching the session: a comment posted in the GitHub UI is invisible here until someone asks. So this workflow runs only when the owner says they have been through the review — "I replied on the PR", "answer my comments", `discuss 60` — or when a `watch` they explicitly started fires. If they seem to be waiting for the agent to notice on its own, say plainly that it cannot.
+**Nothing tells the agent a reply happened.** There is no webhook, no polling and no notification reaching the session: a comment posted in the GitHub UI is invisible here until someone asks. So this workflow runs only when the owner says they have been through the review — "I replied on the PR", "answer my comments", `reply 60` — or when a `watch` they explicitly started fires. If they seem to be waiting for the agent to notice on its own, say plainly that it cannot.
 
 **Never call this `sync`.** That word routes to `workflows/stack.md`, where `gh stack sync` cascade-rebases every branch in a stack and then force-pushes all of them. Reading comments and rewriting history must not share a name, and the history in question is pushed.
 
@@ -10,7 +10,7 @@ It is the return half of `workflows/review.md`: that workflow puts findings on t
 
 ## One round, in order
 
-Each `discuss` run is one round of the conversation, and it goes:
+Each `reply` run is one round of the conversation, and it goes:
 
 1. Leave any watch running - per *The watch survives the round* in `references/review-protocol.md`, whose loop is `workflows/watch.md`. It outlives a round, and stops only when the owner authorises the resolve and the push, or on `unwatch` (*Stopping it*).
 2. Fetch every inline thread in one GraphQL read and drop the resolved ones, and in the same pass fetch the PR's review summary bodies and its Conversation comments (Step 1).
@@ -19,7 +19,7 @@ Each `discuss` run is one round of the conversation, and it goes:
 5. Resolve nothing (Step 3), and push nothing - an order authorises the fix and the commit, never the push (Step 4).
 6. Report in the terminal: `file:line`, what was asked and what was answered per thread touched, the count left alone with why, any `## Open questions` entries moved to `## Settled`, **how many fix commits sit unpushed waiting for the owner's word**, and whether a watch is armed (Step 5).
 
-Then the ball is the owner's again: read the replies on GitHub, respond or resolve, and run `discuss` once more - or `watch`, for live answers. When every thread is walked, the round ends on the owner authorising the resolve and the push in the session - `:rp`, or "resolve all and push" - which is `workflows/resolve.md`, the protocol's step 7. There is no push-without-resolving option to offer them.
+Then the ball is the owner's again: read the replies on GitHub, respond or resolve, and run `reply` once more - or `watch`, for live answers. When every thread is walked, the round ends on the owner authorising the resolve and the push in the session - `:rp`, or "resolve all and push" - which is `workflows/resolve.md`, the protocol's step 7. There is no push-without-resolving option to offer them.
 
 There is no step after that, because this whole workflow is a fork, not a stage: it hangs off the protocol's step 6 and exits where it entered. The owner is still judging throughout, and what follows is their word at step 7, which is `workflows/resolve.md`.
 
@@ -142,7 +142,7 @@ Report to the owner: the review id, that their unsubmitted review is holding the
 
 **One reply per thread per pass.** Threads are read as units, and three replies in a row from the agent make that impossible.
 
-**Every reply opens with the AI disclaimer line** per the AI-disclaimer bullet in `SKILL.md`, the `via` line under it per the standing convention there: via `pr-flow` discuss, thread reply. **Its length is set by *Post caps***, in the same file. A thread the owner may quote or a mentor may read has no other way to tell who wrote what - the login is always the owner's, the disclaimer says an agent wrote it, and the `via` line says which process did.
+**Every reply opens with the AI disclaimer line** per the AI-disclaimer bullet in `SKILL.md`, the `via` line under it per the standing convention there: via `pr-flow` reply, thread reply. **Its length is set by *Post caps***, in the same file. A thread the owner may quote or a mentor may read has no other way to tell who wrote what - the login is always the owner's, the disclaimer says an agent wrote it, and the `via` line says which process did.
 
 **A review body or Conversation comment is answered with one Conversation comment.** There is no thread to reply into, so post with `gh pr comment <pr-number> --body-file <file>` - disclaimer and `via` line first, then a link to the review or comment being answered, then the answer, within the length *Post caps* in `SKILL.md` sets. One comment may answer several bodies from the same round, naming each; the body file lives in the harness scratchpad like every other scratch file, never in the working tree.
 
@@ -150,7 +150,7 @@ Never open a new finding here: a defect noticed while answering goes to the next
 
 ## Step 3 - Never resolve a thread
 
-**A resolve rests on authority the owner recorded, and a discuss round holds none.** Resolving is the orchestrator's act, not the owner's - `workflows/resolve.md` runs the mutation - but per *Resolution rests on recorded authority* in `references/review-protocol.md` the authority for it is never inferred, and a thread that reached agreement is not the owner's word that the round is done. That word comes in the session, at the protocol's step 7, which is where the resolve happens. Leave every thread open here, however finished the exchange feels.
+**A resolve rests on authority the owner recorded, and a reply round holds none.** Resolving is the orchestrator's act, not the owner's - `workflows/resolve.md` runs the mutation - but per *Resolution rests on recorded authority* in `references/review-protocol.md` the authority for it is never inferred, and a thread that reached agreement is not the owner's word that the round is done. That word comes in the session, at the protocol's step 7, which is where the resolve happens. Leave every thread open here, however finished the exchange feels.
 
 The same reasoning forbids the softer version: do not ask to resolve them, and do not report a thread as resolved because the conversation reached agreement. Until step 7, unresolved is also the owner's live list of what they have not re-read.
 

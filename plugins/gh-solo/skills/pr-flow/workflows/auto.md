@@ -29,7 +29,7 @@ The refusals, each opening `⛔ REFUSED - {reason}` per the standing convention 
 
 - **The number does not resolve to a PR.** Do not silently retry it as an issue number - the placeholder rule in `SKILL.md` exists because that swap fails quietly. Say that `go` takes a PR number, and that `auto` is the entrance that takes an issue.
 - **`state` is not `OPEN`.** A merged or closed PR has nothing left for this chain.
-- **`isDraft` is `false`.** The implementation phase is over on this PR, and the chain would re-run work that already passed `ready`. Name `review`, `discuss` or `merge` as the likely intended entrance.
+- **`isDraft` is `false`.** The implementation phase is over on this PR, and the chain would re-run work that already passed `ready`. Name `review`, `reply` or `merge` as the likely intended entrance.
 
 Plan-discussion threads need no check here: Step 3 settles the plan record as its first act, applying the decisions the owner settled and refusing on an unsettled thread that affects the work, and that refusal stops this chain like any other.
 

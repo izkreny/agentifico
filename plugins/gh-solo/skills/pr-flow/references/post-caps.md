@@ -32,6 +32,6 @@ Inside a post the cap does reach, none of this counts toward the five, because n
 
 ## The `via` forms in use
 
-`via` `implement` implement, the implementation record; `via` `pr-flow` review, convention check; `via` `pr-flow` resolve, the authorisation; `via` `pr-flow` discuss, thread reply; `via` `implement` implement, divergence note. These are examples of the form rather than a closed set - the domain is any post carrying such a line, so a new one needs no edit here.
+`via` `implement` implement, the implementation record; `via` `pr-flow` review, convention check; `via` `pr-flow` resolve, the authorisation; `via` `pr-flow` reply, thread reply; `via` `implement` implement, divergence note. These are examples of the form rather than a closed set - the domain is any post carrying such a line, so a new one needs no edit here.
 
 **The PR body is exempt, and carries the disclaimer alone.** It is unmistakably itself, and the squash merge lands it in the commit on `main`, where a workflow tag would be noise.
