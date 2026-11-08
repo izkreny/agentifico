@@ -33,8 +33,8 @@ for (let i = 2; i < process.argv.length; i += 1) {
   i += 1;
   const value = process.argv[i];
   if (option !== "--skip") {
-    // WHY: an empty, absolute or climbing value is refused, because a glob is relative to its folder target, and from an empty value a folder glob's added /** walks the whole filesystem.
-    if (value === undefined || value.replace(/\/+$/u, "") === "" || path.isAbsolute(value) || path.posix.normalize(value).split("/")[0] === "..") {
+    // WHY: an empty or absolute value is refused, because a glob is relative to its folder target, and from an empty value a folder glob's added /** walks the whole filesystem.
+    if (value === undefined || value.replace(/\/+$/u, "") === "" || path.isAbsolute(value)) {
       nothingChecked(`${option} ${value === undefined ? "names no glob" : `"${value}" is no glob relative to a folder target`}`);
     }
     (option === "--exclude" ? excludes : includes).push(value);
@@ -109,7 +109,14 @@ const walks = await Promise.all(
       ),
     );
     // WHY: an included path can sit under a folder the walk pruned, which the walk never enters, so the include globs are walked on their own and joined to it.
-    const included = includeGlobs.length > 0 ? await Array.fromAsync(glob(includeGlobs, { cwd: target, followSymlinks: true })) : [];
+    const included = [];
+    // WHY: each match is tested where it lands, never by the glob's text, since braces and character classes spell a climb in ways no text test lists.
+    for await (const file of includeGlobs.length > 0 ? glob(includeGlobs, { cwd: target, followSymlinks: true }) : []) {
+      if (path.relative(target, path.join(target, file)).split(path.sep)[0] === "..") {
+        nothingChecked(`--include reaches ${path.join(target, file)}, above its folder target`);
+      }
+      included.push(file);
+    }
     return [
       ...new Set([...walked.map((entry) => path.join(entry.parentPath, entry.name)), ...included.filter(readerTakes).map((file) => path.join(target, file))]),
     ];
