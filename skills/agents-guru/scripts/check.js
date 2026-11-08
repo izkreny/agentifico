@@ -33,8 +33,9 @@ for (let i = 2; i < process.argv.length; i += 1) {
   i += 1;
   const value = process.argv[i];
   if (option !== "--skip") {
-    if (value === undefined) {
-      nothingChecked(`${option} names no glob`);
+    // WHY: an empty or absolute value is refused, because a glob is relative to its folder target and a folder glob gains /**, which from an empty value walks the whole filesystem.
+    if (value === undefined || value.replace(/\/+$/u, "") === "" || path.isAbsolute(value)) {
+      nothingChecked(`${option} ${value === undefined ? "names no glob" : `"${value}" is no glob relative to a folder target`}`);
     }
     (option === "--exclude" ? excludes : includes).push(value);
     continue;

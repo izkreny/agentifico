@@ -2295,4 +2295,13 @@ describe("check.js, what the walk leaves out and takes in", () => {
       assert.match(r.out, new RegExp(`${option} names no glob: nothing was checked`, "u"));
     }
   });
+  it("--exclude or --include with an empty or absolute glob refuses the run", () => {
+    for (const option of ["--exclude", "--include"]) {
+      for (const value of ["", "/", "//", "/tmp/**"]) {
+        const r = run([ruby, option, value]);
+        assert.equal(r.code, 1, r.out);
+        assert.match(r.out, /is no glob relative to a folder target: nothing was checked/u, `${option} ${value}`);
+      }
+    }
+  });
 });
