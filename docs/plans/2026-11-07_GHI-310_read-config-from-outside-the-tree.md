@@ -47,3 +47,4 @@ None.
 ## Settled
 
 - ::Q1:: May the AC5 observation write a user-level config file under the owner's home and clone a fork into the session folder? Yes, settled in the terminal: write it for the run, delete it afterwards, and write nothing to GitHub.
+- ::Q2:: Should the user-level file live under the standard Linux config directory instead of `<home-dir>/.agents/gh-solo/`? Yes, settled in the terminal after the review round: `$XDG_CONFIG_HOME/gh-solo/<owner>/<repo>.md`, with `<home-dir>/.config` standing in where the variable is unset, and AC1 on #310 reworded to match.
