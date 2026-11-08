@@ -11,16 +11,24 @@ The official `typescript-lsp` plugin starts `typescript-language-server`, which 
 - **TypeScript 7.0 or later, with its `tsc` on `PATH`.** An older `tsc` has no `--lsp` flag, so the server fails to start.
 - **Node.js on `PATH`**, since `tsc` runs under it.
 
-With [mise](https://mise.jdx.dev), both install globally:
+**It checks code with the `tsc` on the `PATH` of the shell you start `claude` from, not the version a project pins in its own `node_modules`.** The manifest names `tsc`, so Claude Code runs whichever one that `PATH` finds. A version manager can set that `PATH` per project, and a project it pins to an older TypeScript gets no server at all.
+
+## Install
+
+Install TypeScript 7.0 or later globally first, with npm where Node.js is already installed:
+
+```bash
+npm install -g typescript@7
+```
+
+Or with [mise](https://mise.jdx.dev), which installs Node.js too:
 
 ```bash
 mise use -g node
 mise use -g npm:typescript@7
 ```
 
-**It checks code with the `tsc` on the `PATH` of the shell you start `claude` from, not the version a project pins in its own `node_modules`.** The manifest names `tsc`, so Claude Code runs whichever one that `PATH` finds. A version manager can set that `PATH` per project, and a project it pins to an older TypeScript gets no server at all.
-
-## Install
+Then the plugin:
 
 ```bash
 claude plugin marketplace add izkreny/agentifico
