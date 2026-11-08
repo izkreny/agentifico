@@ -57,7 +57,7 @@ That workflow's own steps 1 to 5 need nothing from the owner, so the chain does 
 
 The chain ends where the round does, at the protocol's step 6, by arming the watch and then printing the run as one block.
 
-**Arm the watch on this PR**, per *The watch survives the round* in `references/review-protocol.md`, whose loop is `workflows/watch.md`. The owner was away for the whole chain and will now read the threads at their own pace, reacting and replying as they go; without a watch each of those signals waits for them to come back and say so. **Here a watch is armed by something other than the owner typing `watch`**, and it is not an exception to that rule: the literal `auto` or `go` command is itself the authorisation, given in advance, and `workflows/watch.md` owns the mechanics and the cost.
+**Arm the watch on this PR**, per *The watch survives the round* in `references/review-protocol.md`, whose loop is `workflows/watch.md`. The owner was away for the whole chain and will now read the threads at their own pace, reacting and replying as they go; without a watch each of those signals waits for them to come back and say so. **Here the watch is armed without the owner typing `watch`, because they typed `auto` or `go`, which asks for it.** `workflows/watch.md` owns the mechanics and the cost.
 
 **Then the consolidated block**, because the owner saw none of it happen: one line per stage with its verdict, so the whole run reads as one block. The block's numbers are a sample - print the run's real issue and PR numbers, so every command is typeable as it stands:
 
