@@ -91,8 +91,9 @@ What the cap leaves untouched is the record itself: the commits, the box states 
 
 It lands in the Conversation tab, which is right: it expects no answer, and it opens with the disclaimer, so a later `discuss` round's read excludes it rather than treating it as the owner speaking.
 
-End with the owner's next move, alone on its line, flush left:
+End with the owner's next move, alone on its line, flush left, and the line *Console output* in the `pr-flow` skill's `SKILL.md` puts under it:
 
 ```text
 /gh-solo:pr-flow ready review <pr-number>
+Or say it in words: a sentence reaches the same workflow.
 ```
