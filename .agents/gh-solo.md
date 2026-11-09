@@ -64,8 +64,6 @@ node skills/agents-guru/scripts/check.js <package-dir>
 
 It needs the `npm ci` and the Vale that *The agents-guru package's checks* name. **A package joins this list the day the check exits zero on it.** A package still carrying findings stays off, so no branch has to clear another package's backlog to pass its own gate. Its sweep, or an issue of its own, is what puts it here.
 
-**A listed package that fails on a finding no branch caused comes off the list on the branch that finds it.** The issue tracking that finding puts the package back once the check exits zero on it again. `skills/glossary-guru` waits on #448.
-
 **Here a run over a package root is a gate, not a survey.** `skills/agents-guru/workflows/check.md` calls a run over a directory of skills a survey, because it may reach a skill someone else maintains. Every skill under a package here is this repository's own, so a non-zero exit is this repository's work.
 
 **Unlike `/agents-guru review`, this check is a `## Verification` entry.** It is a set of rules with an exit code, where the review is a whole-skill judgement, per *The skill review is its own issue, not a branch's gate*.
@@ -86,6 +84,12 @@ A lint finding is fixed in the code, never suppressed, unless the owner approves
 ```bash
 npm --prefix skills/agents-guru run mutate
 ```
+
+#### Packages off the list
+
+A listed package that fails on a finding no branch caused comes off the list on the branch that finds it, and the issue tracking that finding puts it back once the check exits zero on it again.
+
+- `skills/glossary-guru`, waiting on #448
 
 ### The benches
 
