@@ -19,7 +19,11 @@ os.chdir(repo)
 in_repo = os.path.join(repo, ".agents/gh-solo.md")
 
 
+calls = []
+
+
 def must(*args):
+    calls.append(args[0])
     if args[:2] == ("git", "rev-parse"):
         return repo
     if args[:3] == ("gh", "repo", "view"):
@@ -73,7 +77,9 @@ print("\nthe block:")
 config("# config\n\nProse with no block.\n")
 check("a file with no block sets no key", get("reviewer_model"), (1, ""))
 config(block(full))
+calls.clear()
 check("a string prints as it is", get("reviewer_model"), (0, "opus"))
+check("with no user-level directory, gh is never called", "gh" in calls, False)
 check("a glob prints as it is", get("test_files"), (0, "spec/**/*_spec.rb"))
 check("an object prints as JSON", json.loads(get("labels")[1]), full["labels"])
 check("a list prints as JSON", get("branch_types"), (0, '["feat", "fix", "docs"]'))
