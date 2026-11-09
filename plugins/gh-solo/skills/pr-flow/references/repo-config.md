@@ -25,17 +25,19 @@ Every skill in this plugin, and the `reviewer` agent, looks for a repository's c
 }
 ```
 
-| Key | Value | Default | Read by |
-| --- | --- | --- | --- |
-| `reviewer_model` | a model name the spawn accepts | none, so the `reviewer` agent's frontmatter decides | `workflows/review.md` Step 1, per `references/reviewer-appointment.md` |
-| `test_files` | a git pathspec glob naming the repository's tests | none, so the criteria gate is off | `scripts/criteria-check.py`, from `workflows/ready.md` Step 4 and `workflows/merge.md` Step 2 |
-| `labels` | an object: `axis` names the mandatory axis, and `values` maps each of its labels to what that label's deliverable is | printed by `get`: the Layer axis `../tracker/references/tracker-fields.md` describes | the `tracker` skill |
-| `branch_format` | a branch-name template | printed by `get`: the format under *Quick reference* in `../tracker/references/formats.md` | the `tracker` skill |
-| `branch_types` | a list of `{type}` values | printed by `get`: the set under *Branch and commit type* in `../tracker/references/formats.md` | the `tracker` skill |
-| `issue_types` | `true` where the repository uses GitHub issue types | printed by `get`: `false` | the `tracker` skill, per *Issue types are for organizations only* in `../tracker/references/tracker-fields.md` |
-| `default_branch` | the trunk's name | printed by `get`: `main` | every skill |
-| `remote` | the remote's name | the remote the recipe in `SKILL.md`'s remote-name convention resolves | every skill |
-| `commit_scope` | `"label"`: a branch commit carries the issue's mandatory-axis label as its scope | none, so a branch commit carries no scope | the `implement` skill, per *Branch and commit type* in `../tracker/references/formats.md` |
+| Key | What it holds |
+| --- | --- |
+| `reviewer_model` | the model a review round asks the `reviewer` spawn for |
+| `test_files` | a git pathspec glob naming the repository's tests, which turns the criteria gate on |
+| `labels` | an object: `axis` names the mandatory axis, and `values` maps each of its labels to what that label's deliverable is |
+| `branch_format` | the branch-name template |
+| `branch_types` | the list of `{type}` values a branch may take |
+| `issue_types` | `true` where the repository uses GitHub issue types |
+| `default_branch` | the trunk's name |
+| `remote` | the remote's name |
+| `commit_scope` | `"label"`, giving every branch commit the issue's mandatory-axis label as its scope |
+
+`get-all` shows the value in force for each. A `null` there means the plugin does without the key: the `reviewer` agent's frontmatter picks the model, the criteria gate is off, the remote is the one the recipe in `SKILL.md`'s remote-name convention resolves, and branch commits carry no scope.
 
 ### Reading a key
 
@@ -48,7 +50,7 @@ python3 <skill-dir>/scripts/read-config.py get-all
 
 `get-all` prints every key at once, as one JSON object: the config's value, or else the default, or `null` where a key is unset and has no default.
 
-From the `tracker` and `implement` skills, the script is `<skill-dir>/../pr-flow/scripts/read-config.py`. Exit `0` prints the value, the config's or else the default the script holds: a string as it is, anything else as JSON. Exit `1` means the key is unset and its default is to do without it, as the table says. Exit `2` is a refusal printed as a `⛔ REFUSED` line, or a read that could not run: stop and relay it, since the gate that key feeds cannot be trusted.
+From the `tracker` and `implement` skills, the script is `<skill-dir>/../pr-flow/scripts/read-config.py`. Exit `0` prints the value, the config's or else the default the script holds: a string as it is, anything else as JSON. Exit `1` means the key is unset and the plugin does without it, as *The keys* says. Exit `2` is a refusal printed as a `⛔ REFUSED` line, or a read that could not run: stop and relay it, since the gate that key feeds cannot be trusted.
 
 ### What refuses
 
