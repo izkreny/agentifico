@@ -87,7 +87,7 @@ def json_blocks(lines):
             continue
         if marker:
             fence = marker.group(1)
-            body = [] if marker.group(2) == "json" else None
+            body = [] if marker.group(2).lower() == "json" else None
             continue
         m = OLD_LINE.match(line)
         if m:
