@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read one key from a repository's gh-solo config.
 
-The config is the first file the lookup in `references/repo-config.md` finds, and its keys are the one fenced `json` block in that file. A file with no block sets no key. The schema, the defaults and the refusals are stated in that reference; this script enforces them, so every reader of a key gets the same answer.
+The config is the first file the lookup in `references/repo-config.md` finds, and its keys are the one fenced `json` block in that file. A file with no block sets no key. That reference states the schema and the defaults; this script enforces the schema and owns every refusal and its message, so every reader of a key gets the same answer.
 
 Usage:
     read-config.py get <key>
