@@ -46,9 +46,9 @@ After fixes land, the round spawns it again with only the fix commits and the fi
 
 That exists because the fixes were made by the author of the code under review, with nobody watching. A guard added on the wrong branch leaves every gate green and a thread asserting a closure that never happened.
 
-## If you want a different reviewer
+## If you want a different model
 
-Your repository can appoint one, in its config: another agent to spawn. The `pr-flow` skill's reviewer-appointment reference, `../pr-flow/references/reviewer-appointment.md`, owns what it must produce. Whatever reads the diff, the round is what posts the findings, so they arrive marked and numbered the same way.
+Your repository's config can name the model a round asks this reviewer for, with a `Reviewer model:` line. The `pr-flow` skill's `../pr-flow/references/reviewer-appointment.md` owns what that line changes. The reviewer itself is always this one, and the round is what posts its findings, so they arrive marked and numbered the same way.
 
 ## Layout
 

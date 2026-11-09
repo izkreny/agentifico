@@ -21,7 +21,7 @@ Each cell of the table states its own rule, prohibitions included, so a row read
 
 **The reviewer is a pure function: a PR number and the head to read in, one findings file out.** It is forbidden to write to the PR - a rule rather than a wall, because its bare `Bash` grant cannot express read-only - and it has no knowledge of this protocol's conventions - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence. **What it fetches depends on which entrance it came in by**, and the reviewer skill has one workflow file per entrance owning that list; a second copy here would drift from it.
 
-**A repository may appoint its own reviewer agent.** What holds is the shape of the seam: the findings reach the orchestrator and the orchestrator posts them, so there is one writer and one set of conventions whichever agent did the reading. `references/reviewer-appointment.md` owns the appointment and the file's shape.
+**The reviewer is always the agent this plugin ships, and a repository may name only its model.** The findings reach the orchestrator and the orchestrator posts them, so there is one writer and one set of conventions. `references/reviewer-appointment.md` owns the model key, and the reviewer skill's *The findings file* owns the file's shape.
 
 ## The finding key
 

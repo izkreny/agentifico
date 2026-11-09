@@ -116,7 +116,7 @@ python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 
 **Then print the one exit, `authorise`, in the owner's terms**, per *The pass cap* in `references/pass-cap.md`, which owns the word and what it costs.
 
-**Go to *Which reviewer runs, and the spawn* in this step, and continue from there** - never back to the budget, which would read the same count and refuse the pass just bought, and never forward to the head read, which would skip resolving the appointed reviewer.
+**Go to *Which reviewer runs, and the spawn* in this step, and continue from there** - never back to the budget, which would read the same count and refuse the pass just bought, and never forward to the head read, which would skip reading the reviewer model.
 
 **Then what the pull request is left holding, read rather than recalled.** The open findings are the unresolved nodes of the GraphQL `reviewThreads` read the convention checks already make before this step, for *Every resolved thread has recorded owner authority*; take each thread's `body` in the same query and an uncertified verdict is legible in the thread that carries it. **Never fill this from an earlier round's report**, written before every resolve since, nor from a re-review record, which counts verdicts without naming their findings.
 
@@ -126,7 +126,7 @@ Never spawn first and check after: the spawn is the thing being counted, so a ch
 
 #### Which reviewer runs, and the spawn
 
-**Which reviewer runs, and which model, is a per-repo fact.** The default is the `reviewer` agent this plugin ships, spawned with no model parameter so its own frontmatter decides. Where the repository's config, found by the lookup `references/repo-config.md` owns, carries a `Reviewer agent:` or `Reviewer model:` line, `references/reviewer-appointment.md` owns what it changes: read it before the spawn, and refuse as it says rather than falling back to the default.
+**The reviewer is the `reviewer` agent this plugin ships, and which model it runs on is a per-repo fact.** By default it is spawned with no model parameter, so its own frontmatter decides. Where the repository's config, found by the lookup `references/repo-config.md` owns, carries a `Reviewer model:` line, `references/reviewer-appointment.md` owns what it changes: read it before the spawn, and refuse as it says rather than falling back to the default.
 
 **Read the head before the spawn and hand it over as the scope**, because every anchor the reviewer produces belongs to the version it read:
 
@@ -265,7 +265,7 @@ Which findings get no plan and wait for the owner instead, and what their reply 
 
 ### Step 5 - Re-review, scoped
 
-Spawn the reviewer again - **the appointed one, resolved exactly as Step 1 resolves it per `references/reviewer-appointment.md`, and refused in the same wording.**
+Spawn the reviewer again, exactly as Step 1 spawns it.
 
 Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit or body item key claims which id, the key bare, as `V3`, per step 5 of `references/review-protocol.md`. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
 
