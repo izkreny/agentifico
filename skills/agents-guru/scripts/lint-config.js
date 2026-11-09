@@ -53,8 +53,8 @@ export const rules = [...contractRules, ...contractWarningRules, ...proseShapeRu
 export const contractRuleNames = namesOf([...contractRules, ...contractWarningRules]);
 export const warningRuleNames = namesOf([...contractWarningRules, ...proseShapeWarningRules]);
 export const proseShapeRuleNames = namesOf([...proseShapeRules, ...proseShapeWarningRules]);
-// A caller's --skip reaches only the rules that warn because a skill may decline them, since every rule that fails the run is one each skill is held to; yaml-comment-wrap is named here as scripts/check.js raises it itself.
-export const skippableRuleNames = new Set([...namesOf(proseShapeWarningRules), "yaml-comment-wrap"]);
+// A caller's --skip reaches only the rules that warn because a skill may decline them, since every rule that fails the run is one each skill is held to; yaml-comment-wrap is named here as scripts/check.js raises it itself, and Agentifico.CommentSentences as Vale reports it.
+export const skippableRuleNames = new Set([...namesOf(proseShapeWarningRules), "yaml-comment-wrap", "Agentifico.CommentSentences"]);
 
 // A rule named here is off for the reason beside it, never for quiet.
 export const config = {
