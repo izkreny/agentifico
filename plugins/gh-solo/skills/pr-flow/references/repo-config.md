@@ -16,7 +16,7 @@ Every skill in this plugin, and the `reviewer` agent, looks for a repository's c
 
 ## The keys
 
-**Every key the plugin reads sits in one fenced `json` block in the config file**, as one JSON object. The rest of the file is prose: an agent reads it as the repository's conventions, and no script parses it. A file with no block sets no key, so every default applies.
+**Every key the plugin reads sits in one fenced `json` block in the config file**, as one JSON object. The rest of the file is prose: an agent reads it as the repository's conventions, and the script reads it only to refuse, never for a key. A file with no block sets no key, so every default applies.
 
 ```json
 {
