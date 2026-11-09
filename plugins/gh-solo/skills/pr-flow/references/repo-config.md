@@ -39,7 +39,7 @@ Every skill in this plugin, and the `reviewer` agent, looks for a repository's c
 
 ### Reading a key
 
-**Read a key with the script, never from the file by eye**, so every reader gets the same answer and every refusal in *What refuses* fires:
+**Read a key with the script, never from the file by eye**, so every reader gets the same answer and every refusal the script owns fires:
 
 ```bash
 python3 <skill-dir>/scripts/read-config.py get <key>
