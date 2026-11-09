@@ -61,7 +61,7 @@ Same posture: read, report, do not edit.
 python3 <skill-dir>/scripts/criteria-check.py <pr-number>
 ```
 
-The script reads the glob, the criterion keys of the issue the body's `Closes #{issue-number}` line names, and the PR's own head, then searches that head once per key. `scripts/criteria-check.py` owns which criteria it skips and what it prints. Pass `--remote <remote>` where the repository has several remotes and the trunk tracks none of them. `scripts/test-criteria-check.sh` is its bench.
+The script reads the glob, the criterion keys of the issue the body's `Closes #{issue-number}` line names, and the PR's own head, then searches that head once per key. `scripts/criteria-check.py` owns which criteria it skips and what it prints. Pass `--remote <remote>` where the repository has several remotes, the trunk tracks none of them and the config sets no `remote`. `scripts/test-criteria-check.sh` is its bench.
 
 **Exit 1 refuses the flip**: `⛔ REFUSED - no test names {keys}`, the keys being the ones its last line lists. **Any other non-zero exit refuses too**, because the check could not run, and the refusal quotes what the script printed. Exit 0 passes, and the verdict carries the script's output.
 
