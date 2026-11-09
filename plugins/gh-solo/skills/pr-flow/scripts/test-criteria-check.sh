@@ -32,14 +32,10 @@ def check(name, got, want):
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}: {got!r}" + ("" if ok else f" want {want!r}"))
 
-print("the config line:")
-check("a glob is read", c.test_glob("x\nTest files: spec/**/*_spec.rb\n"), "spec/**/*_spec.rb")
-check("trailing space is dropped", c.test_glob("Test files: spec/*  \n"), "spec/*")
-check("no line is no glob", c.test_glob("Reviewer model: opus\n"), None)
-check("an empty value is no glob", c.test_glob("Test files:   \n"), None)
-check("an indented line is not the key", c.test_glob("  Test files: spec/*\n"), None)
+def block(obj):
+    return "```json\n" + json.dumps(obj) + "\n```\n"
 
-print("\nthe Closes line:")
+print("the Closes line:")
 check("the issue is read", c.closed_issue("> x\n\nCloses #287\n"), 287)
 check("no line is no issue", c.closed_issue("Refs #287"), None)
 
@@ -104,11 +100,17 @@ def config(text):
     with open(os.path.join(repo, ".agents/gh-solo.md"), "w") as f:
         f.write(text)
 
-config("Reviewer model: opus\n")
+config(block({"reviewer_model": "opus"}))
 fake("- [ ] ::AC1:: x")
-check("no Test files line turns the gate off", c.check(423, "origin"), 0)
+check("no test_files key turns the gate off", c.check(423, "origin"), 0)
 
 config("Test files: spec/**/*_spec.rb\n")
+check("an old Test files line refuses", c.check(423, "origin"), 2)
+
+config(block({"test_files": "spec/**/*_spec.rb", "reviewr_model": "opus"}))
+check("a block the reader refuses refuses", c.check(423, "origin"), 2)
+
+config("# config\n\n" + block({"test_files": "spec/**/*_spec.rb"}))
 fake("- [ ] criterion with no key")
 check("an unkeyed issue passes", c.check(423, "origin"), 0)
 
@@ -132,20 +134,20 @@ user_level = os.path.join(os.environ["HOME"], ".config/gh-solo/bench/repo.md")
 os.makedirs(os.path.dirname(user_level))
 os.remove(os.path.join(repo, ".agents/gh-solo.md"))
 with open(user_level, "w") as f:
-    f.write("Test files: spec/**/*_spec.rb\n")
+    f.write(block({"test_files": "spec/**/*_spec.rb"}))
 fake("- [x] ::AC1:: x\n- [ ] ::AC2:: y")
 check("a user-level file alone turns the gate on", c.check(423, "origin"), 1)
 
 with open(user_level, "w") as f:
-    f.write("Reviewer model: opus\n")
-config("Test files: spec/**/*_spec.rb\n")
+    f.write(block({"reviewer_model": "opus"}))
+config(block({"test_files": "spec/**/*_spec.rb"}))
 check("the user-level file beats the in-repo one", c.check(423, "origin"), 0)
 
 os.remove(os.path.join(repo, ".agents/gh-solo.md"))
 for root in (os.path.join(os.environ["HOME"], "xdg"), "relative/xdg"):
     os.makedirs(os.path.join(root, "gh-solo/bench"))
     with open(os.path.join(root, "gh-solo/bench/repo.md"), "w") as f:
-        f.write("Test files: spec/**/*_spec.rb\n")
+        f.write(block({"test_files": "spec/**/*_spec.rb"}))
 fake("- [x] ::AC1:: x\n- [ ] ::AC2:: y")
 os.environ["XDG_CONFIG_HOME"] = os.path.join(os.environ["HOME"], "xdg")
 check("XDG_CONFIG_HOME moves the user-level file", c.check(423, "origin"), 1)
