@@ -58,6 +58,13 @@ def get(key):
     return code, out.getvalue().strip()
 
 
+def get_all():
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        code = rc.main(["get-all"])
+    return code, out.getvalue().strip()
+
+
 full = {
     "reviewer_model": "opus",
     "test_files": "spec/**/*_spec.rb",
@@ -95,6 +102,14 @@ check("unset issue_types prints its default", get("issue_types"), (0, "false"))
 check("unset branch_format prints its default", get("branch_format"), (0, "{type}/GHI-{issue-number}_{slug}"))
 check("unset branch_types prints its default", json.loads(get("branch_types")[1]), ["feat", "fix", "refactor", "docs", "chore"])
 check("unset labels prints the Layer axis", sorted(json.loads(get("labels")[1])["values"]), ["backend", "docs", "frontend", "fullstack", "infra"])
+code, out = get_all()
+everything = json.loads(out) if code == 0 else {}
+check("get-all prints every key", (code, sorted(everything)), (0, sorted(rc.SCHEMA)))
+check("get-all prints a set key's value", everything.get("reviewer_model"), "opus")
+check("get-all prints an unset key's default", everything.get("default_branch"), "main")
+check("get-all prints null for a key with no default", everything.get("test_files", "missing"), None)
+config(block({"reviewr_model": "opus"}))
+check("get-all refuses as get does", get_all()[0], 2)
 config("```bash\necho hi\n```\n\n```json\n{\"reviewer_model\": \"opus\"}\n```\n\n~~~\n```json\n{}\n```\n~~~\n")
 check("a json fence inside another fence is not a block", get("reviewer_model"), (0, "opus"))
 config("```json\r\n{\"reviewer_model\": \"opus\"}\r\n```\r\n")
