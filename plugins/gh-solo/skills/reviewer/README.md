@@ -48,7 +48,15 @@ That exists because the fixes were made by the author of the code under review, 
 
 ## If you want a different model
 
-Your repository's config can name the model a round asks this reviewer for, with a `Reviewer model:` line. The `pr-flow` skill's `../pr-flow/references/reviewer-appointment.md` owns what that line changes, and which reviewer a round runs. The round is what posts the findings, so they arrive marked and numbered the same way.
+Your repository's config can name the model a round asks this reviewer for, with the `reviewer_model` key in its `json` block:
+
+```json
+{
+  "reviewer_model": "opus"
+}
+```
+
+The `pr-flow` skill's `../pr-flow/references/reviewer-appointment.md` owns what that key changes, and which reviewer a round runs. The round is what posts the findings, so they arrive marked and numbered the same way.
 
 ## Layout
 
