@@ -265,7 +265,7 @@ Which findings get no plan and wait for the owner instead, and what their reply 
 
 ### Step 5 - Re-review, scoped
 
-Spawn the reviewer again, exactly as Step 1 spawns it.
+Spawn the reviewer again.
 
 Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit or body item key claims which id, the key bare, as `V3`, per step 5 of `references/review-protocol.md`. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
 
