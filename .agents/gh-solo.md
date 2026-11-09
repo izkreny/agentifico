@@ -55,7 +55,6 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 - `skills/agents-guru`
 - `skills/socratic-tutor`
 - `skills/action-policy-guru`
-- `skills/glossary-guru`
 
 `<package-dir>` is each of them the branch owes the run on:
 
@@ -64,6 +63,8 @@ node skills/agents-guru/scripts/check.js <package-dir>
 ```
 
 It needs the `npm ci` and the Vale that *The agents-guru package's checks* name. **A package joins this list the day the check exits zero on it.** A package still carrying findings stays off, so no branch has to clear another package's backlog to pass its own gate. Its sweep, or an issue of its own, is what puts it here.
+
+**A listed package that fails on a finding no branch caused comes off the list on the branch that finds it.** The issue tracking that finding puts the package back once the check exits zero on it again. `skills/glossary-guru` waits on #448.
 
 **Here a run over a package root is a gate, not a survey.** `skills/agents-guru/workflows/check.md` calls a run over a directory of skills a survey, because it may reach a skill someone else maintains. Every skill under a package here is this repository's own, so a non-zero exit is this repository's work.
 
