@@ -59,7 +59,7 @@ gh issue list --state open --limit 100 \
   --search "-label:epic -label:backend -label:frontend -label:fullstack -label:infra -label:docs"
 ```
 
-**That exclusion list is the default layer set, so where the config sets `labels`, build the list from it instead**: `-label:epic`, then one `-label:<label>` per key of its `values`, read with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get labels`. The query works by excluding every legal value and reporting what is left. Run with the default list against a repository whose axis is named otherwise, it excludes only the epics and reports every other open issue as unlabelled, which reads as a wall of defects and gets the audit ignored.
+**That exclusion list is the default layer set, so build the list from the `labels` key instead**: `-label:epic`, then one `-label:<label>` per key of its `values`, read with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get labels`, which prints this default set where the config sets none. The query works by excluding every legal value and reporting what is left. Run with the default list against a repository whose axis is named otherwise, it excludes only the epics and reports every other open issue as unlabelled, which reads as a wall of defects and gets the audit ignored.
 
 **A list written by hand fails the other way, silently**: a label added to the set but not to the list makes every issue carrying it invisible to the audit. Building the list from the key means a new label is excluded the moment the set gains it.
 
