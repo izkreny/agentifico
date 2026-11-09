@@ -90,7 +90,15 @@ Every item a reader has to point at carries a key: `::AC1::` on an acceptance cr
 
 `ready` and `merge` refuse a pull request body with an unkeyed item or a repeated key, and `tracker`'s validate fails an issue the same way. So an issue written without keys fails validate until its items are keyed.
 
-**You can also require a test for each criterion.** A `Test files: <glob>` line in your repository's config turns on a gate in `ready` and `merge`: each keyed criterion of the issue a pull request closes must be named by a line in a matching file that carries both `GHI-{issue-number}` and its key, such as `it "GHI-50 AC1 shows an error"`. A `READ` criterion is exempt. Without the line the gate is off.
+**You can also require a test for each criterion.** A `test_files` glob in your repository's config turns on a gate in `ready` and `merge`: each keyed criterion of the issue a pull request closes must be named by a line in a matching file that carries both `GHI-{issue-number}` and its key, such as `it "GHI-50 AC1 shows an error"`. A `READ` criterion is exempt. Without the key the gate is off.
+
+```json
+{
+  "test_files": "spec/**/*_spec.rb"
+}
+```
+
+Every setting the plugin reads sits in that one `json` block in your config, and the rest of the file is prose. A config with an unknown key, a second block, or a key line written outside the block refuses rather than being half-read. `skills/pr-flow/references/repo-config.md` lists every key and its default.
 
 ## The AI disclaimer, and how to make it yours
 
