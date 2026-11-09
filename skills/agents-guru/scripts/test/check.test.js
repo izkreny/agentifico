@@ -1279,7 +1279,10 @@ describe("check.js", () => {
     ]) {
       const r = run(args, process.env, good);
       assert.equal(r.code, 1, named);
-      assert.ok(r.out.startsWith(`${named}: only skill-hard-wrap, yaml-comment-wrap, Agentifico.CommentSentences can be skipped: nothing was checked\n`), r.out);
+      assert.ok(
+        r.out.startsWith(`${named}: only skill-hard-wrap, yaml-comment-wrap, Agentifico.CommentSentences can be skipped: nothing was checked\n`),
+        r.out,
+      );
       assert.doesNotMatch(r.out, /found under/u, named);
     }
   });
