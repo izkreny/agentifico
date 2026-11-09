@@ -5,8 +5,9 @@ The config is the first file the lookup in `references/repo-config.md` finds, an
 
 Usage:
     read-config.py get <key>
+    read-config.py get-all
 
-Exit codes: 0 the key's value is printed, the config's or else the default, a string as it is and anything else as JSON; 1 the key is unset and has no default to print, so it means nothing is set; 2 the config refuses, with a `⛔ REFUSED` line, or the read could not run.
+Exit codes: 0 the value is printed, the config's or else the default: for `get` a string as it is and anything else as JSON, for `get-all` one JSON object of every key, `null` where a key is unset with no default; 1 `get` found the key unset with no default to print, so it means nothing is set; 2 the config refuses, with a `⛔ REFUSED` line, or the read could not run.
 """
 import argparse
 import json
@@ -181,6 +182,7 @@ def main(argv=None):
     sub = p.add_subparsers(dest="command", required=True)
     get = sub.add_parser("get", help="print one key's value")
     get.add_argument("key", choices=sorted(SCHEMA))
+    sub.add_parser("get-all", help="print every key's value as one JSON object")
     a = p.parse_args(argv)
     try:
         root = must("git", "rev-parse", "--show-toplevel")
@@ -188,10 +190,13 @@ def main(argv=None):
     except Refused as e:
         print(f"⛔ REFUSED - {e}")
         return 2
-    # WHY: exit 1 means "unset, use the default", so an unexpected failure must never fall through to it.
+    # WHY: exit 1 means "unset, with no default", so an unexpected failure must never fall through to it.
     except Exception as e:
         print(f"read-config: {e}", file=sys.stderr)
         return 2
+    if a.command == "get-all":
+        print(json.dumps({key: config.get(key, DEFAULTS.get(key)) for key in SCHEMA}, indent=2))
+        return 0
     if a.key not in config and a.key not in DEFAULTS:
         return 1
     value = config.get(a.key, DEFAULTS.get(a.key))
