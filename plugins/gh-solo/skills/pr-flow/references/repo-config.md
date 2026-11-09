@@ -14,4 +14,48 @@ Every skill in this plugin, and the `reviewer` agent, looks for a repository's c
 
 **The in-repo file is the default.** A repository the owner owns wants its config committed and reviewed like any other file. The user-level file is for a tree that is not the owner's to write config into, such as a fork made to contribute upstream: a committed file there would land on the branch the upstream pull request is opened from. Every worktree of a clone shares the user-level file, and no commit to the clone can carry it, while a repository of the owner's own that tracks their config directory can still version it.
 
+## The keys
+
+**Every key the plugin reads sits in one fenced `json` block in the config file**, as one JSON object. The rest of the file is prose: an agent reads it as the repository's conventions, and no script parses it. A file with no block sets no key, so every default applies.
+
+```json
+{
+  "reviewer_model": "opus",
+  "test_files": "spec/**/*_spec.rb"
+}
+```
+
+| Key | Value | Default | Read by |
+| --- | --- | --- | --- |
+| `reviewer_model` | a model name the spawn accepts | none, so the `reviewer` agent's frontmatter decides | `workflows/review.md` Step 1, per `references/reviewer-appointment.md` |
+| `test_files` | a git pathspec glob naming the repository's tests | none, so the criteria gate is off | `scripts/criteria-check.py`, from `workflows/ready.md` Step 4 and `workflows/merge.md` Step 2 |
+| `labels` | an object: `axis` names the mandatory axis, and `values` maps each of its labels to what that label's deliverable is | the Layer axis in `../tracker/references/tracker-fields.md` | the `tracker` skill |
+| `branch_format` | a branch-name template | the format under *Quick reference* in `../tracker/references/formats.md` | the `tracker` skill |
+| `branch_types` | a list of `{type}` values | the set under *Branch and commit type* in `../tracker/references/formats.md` | the `tracker` skill |
+| `issue_types` | `true` where the repository uses GitHub issue types | `false` | the `tracker` skill, per *Issue types are for organizations only* in `../tracker/references/tracker-fields.md` |
+| `default_branch` | the trunk's name | `main` | every skill |
+| `remote` | the remote's name | the remote the recipe in `SKILL.md`'s remote-name convention resolves | every skill |
+| `commit_scope` | `"label"`: a branch commit carries the issue's mandatory-axis label as its scope | none, so a branch commit carries no scope | the `implement` skill, per *Branch and commit type* in `../tracker/references/formats.md` |
+
+### Reading a key
+
+**Read a key with the script, never from the file by eye**, so every reader gets the same answer and every refusal below fires:
+
+```bash
+python3 <skill-dir>/scripts/read-config.py get <key>
+```
+
+From the `tracker` and `implement` skills, the script is `../pr-flow/scripts/read-config.py`. Exit 0 prints the value: a string as it is, anything else as JSON. Exit 1 means the key is unset, so the default in the table applies. Exit 2 is a refusal printed as a `⛔ REFUSED` line, or a read that could not run: stop and relay it, since the gate that key feeds cannot be trusted.
+
+### What refuses
+
+**A config the script cannot read exactly refuses, with no fallback**, because a key read wrong, or not read at all, switches a gate off without a sound. It refuses on:
+
+- a second `json` block, or a block that never closes
+- a block that does not parse as JSON, or is not an object
+- a key the table does not name, a key set twice, or a value of the wrong shape
+- a `Reviewer model:` or `Test files:` line at column one outside any fence. It refuses with `⛔ REFUSED - {old key} is now {new key}`, naming the key that holds that value in the block.
+
+## Writing a config
+
 **Where a repository has no config and one is to be written**, offer `<repo-root>/.agents/gh-solo.md` in the owner's own project, and the user-level file in a fork or any other tree whose commits are bound for someone else's repository.
