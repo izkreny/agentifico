@@ -50,7 +50,7 @@ Labels that would otherwise creep across the whole tracker depend on this rule:
 
 **`fullstack` is required, not optional, when an issue genuinely spans both.** It is also rarer than it looks. An issue that merely *calls* an endpoint owned by another issue is `frontend`. If each side could merge and be useful on its own, that is not one `fullstack` issue at all, it is a `backend` issue and a `frontend` issue, per the split test in *How big is one issue*.
 
-The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in its config, per `../pr-flow/references/repo-config.md`. What matters is that the set is small, closed, and mandatory.
+The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in its config's `labels` key, per `../pr-flow/references/repo-config.md`. What matters is that the set is small, closed, and mandatory.
 
 **Because this axis is mandatory, its absence is a defect rather than a default**, which is what separates it from the other axes in *Labels*. Nothing in a title reveals a missing layer label, so audit for it directly rather than expecting to notice:
 
@@ -59,7 +59,7 @@ gh issue list --state open --limit 100 \
   --search "-label:epic -label:backend -label:frontend -label:fullstack -label:infra -label:docs"
 ```
 
-**That exclusion list is the default layer set, so a repository that replaced the set must rebuild it before running this.** The query works by excluding every legal value and reporting what is left; run unchanged against a repository whose axis is named otherwise, it excludes only the epics and reports every other open issue as unlabelled, which reads as a wall of defects and gets the audit ignored. The same trap in the other direction is silent: a set that gains a value the query does not name makes every issue carrying it invisible to the audit. **A new value in the repository's set is a new exclusion here.**
+**That exclusion list is the default layer set, so where the config sets `labels`, build the list from it instead**: `-label:epic`, then one `-label:<label>` per key of its `values`, read with `python3 ../pr-flow/scripts/read-config.py get labels`. The query works by excluding every legal value and reporting what is left. Run with the default list against a repository whose axis is named otherwise, it excludes only the epics and reports every other open issue as unlabelled, which reads as a wall of defects and gets the audit ignored. A list written by hand fails the other way, silently: a label added to the set but not to the list makes every issue carrying it invisible to the audit. Building the list from the key is what keeps the two in step.
 
 Structure is a **separate** axis, not a fourth value of Nature. An epic with three sub-issues has not stopped being a task or a bug; it is simply also a container. The questions are orthogonal, and an issue answering "no" to each — no `bug`, no `spike`, no `epic` — is the most common issue in any tracker and carries no label on either axis. That is the design working, not a gap.
 
@@ -206,6 +206,6 @@ GitHub has an **issue type** field separate from labels, exposed as `gh issue cr
 
 So: **`epic`, `bug` and `spike` are labels here**, per *Labels*, and `--type` is never passed. Do not go looking for the field, and do not treat its absence as something misconfigured.
 
-The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in the repository's config, per `../pr-flow/references/repo-config.md`, so no later session probes again. Passing an unknown type is an error rather than a no-op.
+The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in the repository's config as `issue_types`, per `../pr-flow/references/repo-config.md`, so no later session probes again. Passing an unknown type is an error rather than a no-op.
 
 ---
