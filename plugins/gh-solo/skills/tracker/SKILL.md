@@ -6,7 +6,7 @@ argument-hint: "[create issues for X | next | status [<number>] | search [query]
 allowed-tools: Read, Write, Bash(git:*), Bash(gh:*), Bash(python3:*)
 ---
 
-> **Tools used:** `Bash(gh:*)` for every tracker read and write, `Bash(git:*)` for branch context, `Bash(python3:*)` for `../pr-flow/scripts/keys-check.py` in `workflows/validate.md`, `Read` for the standards and the per-repo config, `Write` for issue body files passed to `--body-file`.
+> **Tools used:** `Bash(gh:*)` for every tracker read and write, `Bash(git:*)` for branch context, `Bash(python3:*)` for `../pr-flow/scripts/keys-check.py` in `workflows/validate.md` and `../pr-flow/scripts/read-config.py` wherever a config key is read, `Read` for the standards and the per-repo config, `Write` for issue body files passed to `--body-file`.
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 
@@ -50,7 +50,7 @@ Do not probe any further than that. Setup, scopes and troubleshooting are in `re
 
 Optional. Read the repository's config where one exists, found by the lookup `../pr-flow/references/repo-config.md` owns. **The file is the authority on its own contents**, and it carries more than this skill acts on - `pr-flow` and `implement` read the same file for their own keys.
 
-What this skill takes from it: the label taxonomy and which axis is mandatory, the branch format and its `{type}` vocabulary, whether the repository uses GitHub issue types, the default branch's name where it is not `main`, and the remote's name where `git remote` alone cannot settle it. Where the file is absent, infer what you need with `gh label list` and `gh repo view`, and **never create it unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
+What this skill takes from it: `labels`, the mandatory axis and its labels; `branch_format` and `branch_types`, the branch format and its `{type}` vocabulary; `issue_types`, whether the repository uses GitHub issue types; `default_branch`; and `remote`. Read each with `../pr-flow/scripts/read-config.py`, which that reference owns along with every default and refusal. Where the file is absent, infer what you need with `gh label list` and `gh repo view`, and **never create it unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
 
 No other key is project configuration. `gh` resolves owner and repository from the working directory, so there is no key, no cloud ID, no board and no custom field ID to discover or store.
 

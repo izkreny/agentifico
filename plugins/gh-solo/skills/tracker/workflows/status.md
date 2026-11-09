@@ -30,7 +30,7 @@ If the labels include `draft`, say so first: the description is unfinished by it
 git log <remote>/main..HEAD --oneline
 ```
 
-`main` here is the repository's default branch - a per-repo fact, recorded in the repository's config where it differs, per `../pr-flow/references/repo-config.md` - and the base is the *remote-tracking* ref rather than local `main`, which can sit behind and would then credit trunk commits to this issue; `<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`. On a stacked branch use the parent branch as the base instead - ask the `pr-flow` skill's `stack` workflow for the parent, or ask the owner, rather than guessing, since guessing wrong falls back to the trunk range and credits the parent's commits to this issue.
+`main` here is the repository's default branch - a per-repo fact, recorded in the config's `default_branch` key where it differs, per `../pr-flow/references/repo-config.md` - and the base is the *remote-tracking* ref rather than local `main`, which can sit behind and would then credit trunk commits to this issue; `<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`. On a stacked branch use the parent branch as the base instead - ask the `pr-flow` skill's `stack` workflow for the parent, or ask the owner, rather than guessing, since guessing wrong falls back to the trunk range and credits the parent's commits to this issue.
 
 Match commits to acceptance criteria by what they claim to do. Be honest about the strength of the match: a commit message is a claim, not evidence, and this step infers rather than verifies.
 
