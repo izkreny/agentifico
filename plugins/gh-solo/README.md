@@ -98,7 +98,7 @@ Every item a reader has to point at carries a key: `::AC1::` on an acceptance cr
 }
 ```
 
-Every setting the plugin reads sits in that one `json` block in your config, and the rest of the file is prose. A config with an unknown key, a second block, or a key line written outside the block refuses rather than being half-read. `skills/pr-flow/references/repo-config.md` lists every key and its default.
+Every setting the plugin reads sits in that one `json` block in your config, and the rest of the file is prose. A config the plugin cannot read exactly refuses rather than being half-read, and anything outside the block is prose that no script reads. `skills/pr-flow/references/repo-config.md` lists every key and its default.
 
 ## The AI disclaimer, and how to make it yours
 
