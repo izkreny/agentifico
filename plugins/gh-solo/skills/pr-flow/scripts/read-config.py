@@ -69,8 +69,13 @@ def user_config_dir():
 
 
 def config_paths(root, name_with_owner):
-    user_level = user_config_dir() / "gh-solo" / f"{name_with_owner}.md"
-    return [user_level] + [Path(root) / name for name in IN_REPO_CONFIGS]
+    in_repo = [Path(root) / name for name in IN_REPO_CONFIGS]
+    user_dir = user_config_dir() / "gh-solo"
+    # WHY: naming the user-level file costs a GitHub API call, so a machine with no such directory reads offline.
+    if not user_dir.is_dir():
+        return in_repo
+    name = name_with_owner() if callable(name_with_owner) else name_with_owner
+    return [user_dir / f"{name}.md"] + in_repo
 
 
 def json_blocks(lines):
@@ -160,8 +165,7 @@ def main(argv=None):
     a = p.parse_args(argv)
     try:
         root = must("git", "rev-parse", "--show-toplevel")
-        name_with_owner = must("gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner")
-        _, config = load(root, name_with_owner)
+        _, config = load(root, lambda: must("gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"))
     except Refused as e:
         print(f"⛔ REFUSED - {e}")
         return 2
