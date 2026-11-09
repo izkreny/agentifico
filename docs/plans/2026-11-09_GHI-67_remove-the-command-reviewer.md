@@ -44,4 +44,4 @@ None.
 
 ## Settled
 
-None yet.
+- ::Q1:: How should V8 read, given the bench must keep `unrated` to test that it is refused? Decided by the owner in the terminal: V8 greps only for `severity_source`, `severity_basis` and `corroborat`, which no file may still contain, and drops `unrated`. V6 covers `unrated`, through the bench cases that refuse it as a severity, an axis and an entry in `axes_run`.
