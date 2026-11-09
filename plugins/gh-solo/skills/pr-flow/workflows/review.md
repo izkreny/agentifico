@@ -126,7 +126,7 @@ Never spawn first and check after: the spawn is the thing being counted, so a ch
 
 #### Which reviewer runs, and the spawn
 
-**Which reviewer runs, and which model, is a per-repo fact.** The default is the `reviewer` agent this plugin ships, spawned with no model parameter so its own frontmatter decides. Where the repository's config, found by the lookup `references/repo-config.md` owns, carries a `Reviewer agent:`, `Reviewer model:` or `Reviewer command:` line, `references/reviewer-appointment.md` owns what it changes: read it before the spawn, and refuse as it says rather than falling back to the default.
+**Which reviewer runs, and which model, is a per-repo fact.** The default is the `reviewer` agent this plugin ships, spawned with no model parameter so its own frontmatter decides. Where the repository's config, found by the lookup `references/repo-config.md` owns, carries a `Reviewer agent:` or `Reviewer model:` line, `references/reviewer-appointment.md` owns what it changes: read it before the spawn, and refuse as it says rather than falling back to the default.
 
 **Read the head before the spawn and hand it over as the scope**, because every anchor the reviewer produces belongs to the version it read:
 
@@ -225,7 +225,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
 
 The JSON travels in a **file**, per the unattended-command bullet in `SKILL.md`, kept outside the working tree so a copy of it cannot get committed.
 
-**A `422` reading `Line could not be resolved` is an anchor that will not resolve**, which after item 1 leaves one cause: on the appointed-command path `side` is guessed as `RIGHT`, per *Where the appointed reviewer is a command* in `references/reviewer-appointment.md`, and a wrong guess fails the call. Name the finding that could not be anchored and stop - **posting the discard record before you do**.
+**A `422` reading `Line could not be resolved` is an anchor that will not resolve**, which after item 1 leaves one cause: the reviewer gave a `line` or `side` the diff at the pin does not carry. Name the finding that could not be anchored and stop - **posting the discard record before you do**.
 
 #### 6. Reconcile what landed
 
@@ -266,8 +266,6 @@ Which findings get no plan and wait for the owner instead, and what their reply 
 ### Step 5 - Re-review, scoped
 
 Spawn the reviewer again - **the appointed one, resolved exactly as Step 1 resolves it per `references/reviewer-appointment.md`, and refused in the same wording.**
-
-Where the repository appointed a `Reviewer command:` instead, **there is no scoped re-review**: skip this step and report it as `references/reviewer-appointment.md` says.
 
 Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit or body item key claims which id, the key bare, as `V3`, per step 5 of `references/review-protocol.md`. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
 
