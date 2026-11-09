@@ -77,7 +77,7 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 ### The review
 
-**The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, spawned with a PR number and the sha to review, and nothing else, so that the session which wrote the code is not the session that judges it - and so that the round knows which version was judged rather than trusting a claim about it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check.
+**The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, per `references/reviewer-appointment.md`, spawned with a PR number and the sha to review, and nothing else, so that the session which wrote the code is not the session that judges it - and so that the round knows which version was judged rather than trusting a claim about it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check.
 
 Where your harness cannot spawn one, there is no review round. What is never substitutable is that the analysis comes from something other than the author.
 
