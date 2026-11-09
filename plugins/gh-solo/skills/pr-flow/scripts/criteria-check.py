@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check that a test names each keyed acceptance criterion of the issue a pull request closes.
 
-It reads the `test_files` glob from the repository's config through `read-config.py`, then the criterion keys of the issue the PR body's `Closes #` line names, and the PR's head, then searches that head once per key. It writes only to stdout and stderr.
+It reads the glob `python3 read-config.py get test_files` prints, loading that script in-process rather than running it, then the criterion keys of the issue the PR body's `Closes #` line names, and the PR's head, then searches that head once per key. It writes only to stdout and stderr.
 
 Exit codes: 0 every key is named, or the gate is off, or no criterion carries a key; 1 a key no test names; 2 the config refuses, or the check could not run.
 
