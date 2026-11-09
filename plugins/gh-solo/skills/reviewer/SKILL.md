@@ -53,7 +53,7 @@ Each pass judges against the same sources, in this precedence: the repository's 
 ## What every finding must carry
 
 - **One defect.** Never bundle two, however adjacent. Each finding is judged, planned, fixed, re-reviewed and resolved on its own, and a bundled finding cannot be half-accepted.
-- **A severity, which you assign**, from exactly `high`, `medium` and `low`, and never `unrated`, which exists for a reviewer that cannot assign a level. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another.
+- **A severity, which you assign**, from exactly `high`, `medium` and `low`. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another.
   - **`high`** - it is wrong, and something a user or a caller does will hit it. Data loss, a security hole, a broken acceptance criterion, an exception on an ordinary path.
   - **`medium`** - it is wrong, and reaching it takes an unusual path or an unlucky order. Also a documented-standard breach with a real consequence.
   - **`low`** - it is worth changing and nothing breaks if it is not. Most baseline smells land here.
@@ -75,7 +75,7 @@ Each pass judges against the same sources, in this precedence: the repository's 
 
 JSON, one object, written to the harness scratchpad. Name the file so a later reader can tell which pull request and which pass it belongs to.
 
-**This section defines what *you* write, which is a subset of what the format allows.** The posting script validates the format and is its authority; it also accepts fields that exist for a reviewer a repository appointed in your place, and those are not yours to write. So a field you do not find here is not a field you may invent.
+**This section defines what *you* write.** The posting script validates the format and is its authority, so a field you do not find here is not a field you may invent.
 
 ```json
 {
