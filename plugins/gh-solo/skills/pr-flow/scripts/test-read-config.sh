@@ -107,6 +107,10 @@ for key, bad in (("reviewer_model", ""), ("test_files", 3), ("issue_types", "fal
     check(f"{key} as {bad!r} refuses", (code, out.startswith(f"⛔ REFUSED - {in_repo}: {key} must be")), (2, True))
 config(block({"test_files": ""}))
 check("a bad value refuses a read of another key", get("reviewer_model")[0], 2)
+with open(in_repo, "wb") as f:
+    f.write(b"caf\xe9\n\n" + block({"reviewer_model": "opus"}).encode())
+code, out = get("reviewer_model")
+check("a file that does not decode refuses", (code, out.startswith(f"⛔ REFUSED - {in_repo}: it cannot be read")), (2, True))
 
 print("\nthe old lines:")
 config("Reviewer model: opus\n")

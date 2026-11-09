@@ -131,7 +131,11 @@ def load(root, name_with_owner):
     for path in config_paths(root, name_with_owner):
         if path.is_file():
             try:
-                return str(path), parse(path.read_text())
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as e:
+                raise Refused(f"{path}: it cannot be read: {e}")
+            try:
+                return str(path), parse(text)
             except ReadError as e:
                 raise Refused(f"{path}: {e}")
     return None, {}
@@ -157,7 +161,8 @@ def main(argv=None):
     except Refused as e:
         print(f"⛔ REFUSED - {e}")
         return 2
-    except OSError as e:
+    # WHY: exit 1 means "unset, use the default", so an unexpected failure must never fall through to it.
+    except Exception as e:
         print(f"read-config: {e}", file=sys.stderr)
         return 2
     if a.key not in config:
