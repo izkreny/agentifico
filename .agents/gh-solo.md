@@ -4,6 +4,31 @@ Per-repository facts the `gh-solo` plugin reads. Only what differs from its defa
 
 `AGENTS.md` holds what is true of this repository and not of this loop: what it is, its layout, and the package scheme. It is deliberately minimal, so a convention it does not state is owned by the plugin or by the agent's own instructions rather than missing.
 
+## Settings
+
+Every key the plugin reads is in this block, per `plugins/gh-solo/skills/pr-flow/references/repo-config.md`, which owns the schema. The sections below say why each value is what it is.
+
+```json
+{
+  "reviewer_model": "opus",
+  "labels": {
+    "axis": "package",
+    "values": {
+      "gh-solo": "plugins/gh-solo/",
+      "typescript-native-lsp": "plugins/typescript-native-lsp/",
+      "rails-style": "skills/rails-style/",
+      "review-text": "skills/review-text/",
+      "agents-guru": "skills/agents-guru/",
+      "socratic-tutor": "skills/socratic-tutor/",
+      "action-policy-guru": "skills/action-policy-guru/",
+      "glossary-guru": "skills/glossary-guru/",
+      "repo": "the repository itself: README.md, .claude-plugin/marketplace.json, LICENSE, AGENTS.md, this file"
+    }
+  },
+  "commit_scope": "label"
+}
+```
+
 ## Check commands
 
 There is no CI and no build. Everything below runs locally, and nothing else is a gate.
@@ -138,7 +163,13 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-post-review.sh
 bash plugins/gh-solo/skills/pr-flow/scripts/test-watch.sh
 ```
 
-**The criteria check's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/criteria-check.py`:
+**The config reader's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/read-config.py`:
+
+```bash
+bash plugins/gh-solo/skills/pr-flow/scripts/test-read-config.sh
+```
+
+**The criteria check's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/criteria-check.py` or `plugins/gh-solo/skills/pr-flow/scripts/read-config.py`:
 
 ```bash
 bash plugins/gh-solo/skills/pr-flow/scripts/test-criteria-check.sh
@@ -189,35 +220,11 @@ bash scripts/test-manifest-check.sh
 
 ## Labels
 
-**The package axis replaces the plugin's Layer axis.** The plugin's own standards call the `backend`/`frontend`/`fullstack`/`infra`/`docs` set a default rather than a law, and this repository has no such split: it has packages, each released on its own tag. The axis rules carry over - exactly one value, mandatory, an epic exempt - but the plugin's *tooling* for them does not, per the audit below.
-
-| Label | The deliverable is |
-|---|---|
-| `gh-solo` | `plugins/gh-solo/` |
-| `typescript-native-lsp` | `plugins/typescript-native-lsp/` |
-| `rails-style` | `skills/rails-style/` |
-| `review-text` | `skills/review-text/` |
-| `agents-guru` | `skills/agents-guru/` |
-| `socratic-tutor` | `skills/socratic-tutor/` |
-| `action-policy-guru` | `skills/action-policy-guru/` |
-| `glossary-guru` | `skills/glossary-guru/` |
-| `repo` | the repository itself: `README.md`, `.claude-plugin/marketplace.json`, `LICENSE`, `AGENTS.md`, this file |
+**The package axis replaces the plugin's Layer axis.** The plugin's own standards call the `backend`/`frontend`/`fullstack`/`infra`/`docs` set a default rather than a law, and this repository has no such split: it has packages, each released on its own tag. The axis rules carry over - exactly one value, mandatory, an epic exempt - and the labels with what each one's deliverable is are the `labels` key in *Settings*.
 
 **The label is where the deliverable lands, not every directory the branch touches.** A change to the plugin that also updates its README is `gh-solo`; ask what the issue would be closed *for*.
 
-**A new package arrives with a new value.** The axis is the set of packages, so it grows when `plugins/` or `skills/` does, and this table is what a new directory owes an edit to.
-
-**The mandatory-axis audit has to be rewritten here, not reused.** The plugin's version names the layer values it excludes, and none of them exists in this repository, so it excludes nothing and reports every open issue as unlabelled. This is the one that works:
-
-```bash
-gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:agents-guru -label:socratic-tutor -label:action-policy-guru -label:glossary-guru -label:typescript-native-lsp -label:repo"
-```
-
-**A new value in the table above is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
-
-## The reviewer model
-
-Reviewer model: opus
+**A new package arrives with a new value.** The axis is the set of packages, so it grows when `plugins/` or `skills/` does, and the `labels` key is what a new directory owes an edit to. The plugin's mandatory-axis audit builds its exclusions from that key, so the new value needs no edit anywhere else.
 
 ## The skill review is its own issue, not a branch's gate
 
@@ -285,7 +292,7 @@ The sweep issue carries the step as its last acceptance criterion, naming the so
 
 No branch `{type}` vocabulary is recorded here, because the plugin's own is what this repository uses.
 
-**A branch commit here carries its package label as a scope**, `fix(gh-solo): the description (#63)` and `docs(repo): the description (#84)`, where *Branch and commit type* in `plugins/gh-solo/skills/tracker/references/formats.md` leaves the header at `{type}: {description} (#{issue-number})`. That is an override under *Repository-specific conventions live in the repository* in `plugins/gh-solo/skills/pr-flow/SKILL.md`, not a second opinion about the plugin's rule.
+**A branch commit here carries its package label as a scope**, `fix(gh-solo): the description (#63)` and `docs(repo): the description (#84)`, where *Branch and commit type* in `plugins/gh-solo/skills/tracker/references/formats.md` leaves the header at `{type}: {description} (#{issue-number})`. That is an override under *Repository-specific conventions live in the repository* in `plugins/gh-solo/skills/pr-flow/SKILL.md`, not a second opinion about the plugin's rule, and the `commit_scope` key in *Settings* is what records it.
 
 **The ban's reasons do not decide it here.** The value does repeat on a branch, and it costs nothing to: it is decided once by the issue's package label, and it buys a commit that names its package in any read crossing branches, which a repository shipping several packages has and a single-deliverable one does not. Squashing deletes it, which is why the pull request title carries it onto the trunk.
 
