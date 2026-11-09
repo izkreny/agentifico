@@ -88,8 +88,8 @@ def json_blocks(lines):
                 if body is not None:
                     blocks.append("\n".join(body))
                 fence, body = None, None
-            # WHY: an opener of the same character cannot nest, so it means an earlier fence was left open and would swallow the block.
-            elif same and marker.group(2).lower() == "json":
+            # WHY: an opener at least as long as the open fence has a closer that would close that fence too, so it cannot nest: an earlier fence was left open and swallows the block.
+            elif same and len(marker.group(1)) >= len(fence) and marker.group(2).lower() == "json":
                 raise ReadError(f"a json block opens on line {number}, inside a fence still open")
             elif body is not None:
                 body.append(line)
