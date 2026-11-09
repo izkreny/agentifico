@@ -237,8 +237,10 @@ Reviewer model: opus
 ```text
 /agents-guru review <package-dir>
 
-This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
+This is the sweep that precedes the <name>_<version> tag.
 ```
+
+**The sweep's record has two homes, the issue and a file.** The sweep issue carries the summary: one line per `AGF{n}` finding, then one verdict per id once Step 5 of `skills/agents-guru/workflows/review.md` has run. `docs/sweeps/<name>_<version>.md`, named for the tag the sweep precedes, carries every finding and every verdict in full, as the reviewer returned them, and is committed on the sweep's branch. The cap on a post under the owner's name keeps the full text off the issue, and the squash merge drops a branch's commit bodies, so the file is the one home that reaches `main`. Its paths are relative to the repository root, because the repository is public and a path relative to a package or to one machine resolves nowhere for a later reader.
 
 The sweep's last act is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/agents-guru/references/maintaining.md`, which owns when it runs and what it reads. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
 

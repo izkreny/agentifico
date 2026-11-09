@@ -12,6 +12,7 @@ This file is for any agent working in this repository, whatever its harness, and
 | `plugins/<name>/` | one plugin, with its own manifest, skills, agents and hooks |
 | `skills/<name>/` | a skill that ships on its own, outside any plugin |
 | `docs/plans/` | one implementation plan per branch |
+| `docs/sweeps/<name>_<version>.md` | one package sweep's findings and verdicts in full, named for the tag it precedes |
 | `scripts/` | this repository's own checks, and their benches |
 | `.agents/gh-solo.md` | the per-repository facts the `gh-solo` plugin reads |
 | `.agents/dependencies.md` | what an update round covers, and how each dependency moves |
@@ -70,7 +71,7 @@ git push origin <name>_<version>
 
 **Every file under `plugins/` and `skills/` is held to the `agents-guru` skill at `skills/agents-guru/`, and so are `AGENTS.md`, `.agents/gh-solo.md` and `.agents/dependencies.md`.** A plugin's manifests, agents, hooks and README are read by agents just as its skills are, and `AGENTS.md` and the files under `.agents/` govern all of them. The skill is a package of this repository, so it is readable from any branch and can be cited by path rather than copied here, where a copy would drift from the file it came from.
 
-**`docs/plans/` is outside the standard.** A plan is a record of intent and keeps its history by design, so the rule against a file's own history cannot bind it.
+**`docs/plans/` and `docs/sweeps/<name>_<version>.md` are outside the standard.** A plan is a record of intent and a sweep record is a record of what one reading found. Each keeps its history by design, so the rule against a file's own history cannot bind it.
 
 **A round reviewing a diff under any of those paths reads `skills/agents-guru/workflows/review.md` first, as a repository standard.** That file is the entry point rather than one rule set among several: it is written for a reviewer, its Step 2 routes to `skills/agents-guru/workflows/check.md` and its Step 3 holds the skill against every rule in `skills/agents-guru/workflows/new.md`. Naming it is not enough: the reviewer's own fetch list ends at this file, so this sentence is what puts that one in scope. A diff breaking a rule any of those files states is an ordinary `standards` finding, cited by path and line.
 
