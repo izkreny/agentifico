@@ -50,7 +50,16 @@ Do not probe any further than that. Setup, scopes and troubleshooting are in `re
 
 Optional. Read the repository's config where one exists, found by the lookup `../pr-flow/references/repo-config.md` owns. **The file is the authority on its own contents**, and it carries more than this skill acts on - `pr-flow` and `implement` read the same file for their own keys.
 
-What this skill takes from it: `labels`, the mandatory axis and its labels; `branch_format` and `branch_types`, the branch format and its `{type}` vocabulary; `issue_types`, whether the repository uses GitHub issue types; `default_branch`; and `remote`. Read each with `../pr-flow/scripts/read-config.py`, which owns every refusal; that reference owns every default. Where the file is absent, infer what you need with `gh label list` and `gh repo view`, and **never create it unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
+What this skill takes from it, each read with the call beside it, whose script owns every refusal while that reference owns every default:
+
+- the mandatory axis and its labels: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get labels`
+- the branch format: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_format`
+- its `{type}` vocabulary: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_types`
+- whether the repository uses GitHub issue types: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get issue_types`
+- the default branch: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get default_branch`
+- the remote: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get remote`
+
+Where the file is absent, infer what you need with `gh label list` and `gh repo view`, and **never create it unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
 
 No other key is project configuration. `gh` resolves owner and repository from the working directory, so there is no key, no cloud ID, no board and no custom field ID to discover or store.
 

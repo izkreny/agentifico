@@ -55,13 +55,13 @@ Same posture: read, report, do not edit.
 
 **A keyed criterion is proven by a test that names it**, per *Writing good acceptance criteria* in `../tracker/references/issue-shape.md`, which owns the rule. This step checks only that such a test exists. Whether it passes is the job of the check commands in `## Verification`, so a skipped test still passes here.
 
-**The repository turns the gate on with the `test_files` key in its config**, per `references/repo-config.md`. The glob is a git pathspec glob. Without the key the gate is off.
+**The gate is on where `python3 <skill-dir>/scripts/read-config.py get test_files` prints a glob**, per `references/repo-config.md`. The glob is a git pathspec glob. Where it exits `1`, the gate is off.
 
 ```bash
 python3 <skill-dir>/scripts/criteria-check.py <pr-number>
 ```
 
-The script reads the glob, the criterion keys of the issue the body's `Closes #{issue-number}` line names, and the PR's own head, then searches that head once per key. `scripts/criteria-check.py` owns which criteria it skips and what it prints. Pass `--remote <remote>` where the repository has several remotes, the trunk tracks none of them and the config sets no `remote`. `scripts/test-criteria-check.sh` is its bench.
+The script reads the glob, the criterion keys of the issue the body's `Closes #{issue-number}` line names, and the PR's own head, then searches that head once per key. `scripts/criteria-check.py` owns which criteria it skips and what it prints. Pass `--remote <remote>` where the repository has several remotes, the trunk tracks none of them and `python3 <skill-dir>/scripts/read-config.py get remote` exits `1`. `scripts/test-criteria-check.sh` is its bench.
 
 **Exit 1 refuses the flip**: `⛔ REFUSED - no test names {keys}`, the keys being the ones its last line lists. **Any other non-zero exit refuses too**, because the check could not run, and the refusal quotes what the script printed. Exit 0 passes, and the verdict carries the script's output.
 

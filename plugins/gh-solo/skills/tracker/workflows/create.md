@@ -12,7 +12,7 @@ Preflight already resolved it. **State it in one line before doing anything else
 git fetch <remote> --quiet && git log --oneline HEAD..<remote>/main
 ```
 
-`<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`; `main` reads as the repository's default branch where the config's `default_branch` key names another - and that name is needed *now*, so read it here with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get default_branch` rather than waiting for Step 2, per `../pr-flow/references/repo-config.md`. Commits listed mean the file you read may not be the file that exists. Say so, name the commits, then bring the tree up to date or read around it - never silently continue on stale content:
+`<remote>` per the remote-name convention in the `pr-flow` skill's `SKILL.md`; `main` reads as the repository's default branch - and that name is needed *now*, so read it here with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get default_branch` rather than waiting for Step 2, per `../pr-flow/references/repo-config.md`. Commits listed mean the file you read may not be the file that exists. Say so, name the commits, then bring the tree up to date or read around it - never silently continue on stale content:
 
 - **On the default branch, fast-forward it yourself**: `git merge --ff-only <remote>/main`. `--ff-only` is the guard, not a nicety: local `main` never carries local commits per the hard rule in the `pr-flow` skill's `SKILL.md`, so a fast-forward is the only legal movement, and a refusal means the trunk has diverged locally - stop and report that loudly instead of resolving it, because something has already broken the never-commit-to-`main` rule. If uncommitted changes make the merge refuse, fall back to the other-branch rule rather than stashing anything.
 - **On any other branch, do not pull and do not rebase.** Moving a feature branch is the owner's call, and a stacked branch belongs to `gh stack sync`. Instead, ask per file whether *this branch* owns the version you read: `git log --oneline <remote>/main..HEAD -- <path>` non-empty, or `git status --porcelain -- <path>` non-empty, means the working-tree file is itself the current source - the branch changed it after the trunk's copy - so say so and use it. Only for a path the branch has not touched does the trunk hold the newer copy: there, `git show <remote>/main:<path>` reads it without touching the tree. An untracked path has no trunk copy at all, so the freshness question does not apply to it - name it as unversioned in the plan's Notes.
@@ -23,7 +23,7 @@ Even when nothing is behind, **re-read any source file that was read before this
 
 ## Step 2 - Load standards and config
 
-Read `references/issue-shape.md`, and `references/tracker-fields.md` for the labels. If the repository has a config, per `../pr-flow/references/repo-config.md`, read its `labels`, `branch_format` and `branch_types` keys and let them override the default layer set and branch format.
+Read `references/issue-shape.md`, and `references/tracker-fields.md` for the labels. Then take the layer set and the branch format in force from `python3 <skill-dir>/../pr-flow/scripts/read-config.py get labels`, `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_format` and `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_types`, which print the defaults where the config sets none, per `../pr-flow/references/repo-config.md`.
 
 ## Step 3 - Check the label taxonomy
 

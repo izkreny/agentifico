@@ -1,6 +1,6 @@
 # The reviewer model
 
-**Read this file before the spawn at Step 1 of `workflows/review.md` whenever the repository's config sets the `reviewer_model` key**, per the per-repo config convention in `SKILL.md`. It owns what the key changes about the spawn, and why an unaccepted model refuses the round rather than falling back.
+**Read this file before the spawn at Step 1 of `workflows/review.md` whenever `python3 <skill-dir>/scripts/read-config.py get reviewer_model` exits `0`**, per the per-repo config convention in `SKILL.md`. It owns what the value it prints changes about the spawn, and why an unaccepted model refuses the round rather than falling back.
 
 ## The model a round asks for is a per-repo fact
 
