@@ -49,12 +49,7 @@ From the `tracker` and `implement` skills, the script is `../pr-flow/scripts/rea
 
 ### What refuses
 
-**A config the script cannot read exactly refuses, with no fallback**, because a key read wrong, or not read at all, switches a gate off without a sound. It refuses on:
-
-- a second `json` block, or a block that never closes
-- a block that does not parse as JSON, or is not an object
-- a key the table does not name, a key set twice, or a value of the wrong shape
-- a `Reviewer model:` or `Test files:` line at column one outside any fence. It refuses with `⛔ REFUSED - {old key} is now {new key}`, naming the key that holds that value in the block.
+**A config the script cannot read exactly refuses, with no fallback**, because a key read wrong, or not read at all, switches a gate off without a sound. Which configs refuse, and what each refusal prints, is `scripts/read-config.py`'s to say, and `scripts/test-read-config.sh` holds a case for each.
 
 ## Writing a config
 
