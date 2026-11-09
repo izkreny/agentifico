@@ -28,7 +28,7 @@ A public repository permanently publishes everything in the skill. Strip anythin
 ### The origin machine's residue
 
 - **Paths.** Home-absolute paths become skill-relative ("relative to this skill's own directory", stated in `SKILL.md`) or, for user locations, `<home-dir>/` in prose and `~/` in a fenced command. A path absolute to the author's home breaks on every other machine and identifies it.
-- **The install line.** The copy's `README.md` installs from the destination with that repository's own install command, whichever copy Step 1 made canonical, never with the canonical path and the symlink that *How it is installed* in `references/readme.md` asks of a skill that stays on its machine.
+- **The install line.** The copy's `README.md` installs from the destination with that repository's own install command, whichever copy Step 1 made canonical, never with the canonical path and the symlink that *How it is installed* in `references/readme.md` asks of a skill that stays on its machine. A reader of the copy has neither that path nor the directory the symlink points at.
 - **Facts true on one machine only.** Which manager owns which skill, where a lock file sits, how a tool was installed there: these move to the machine's own notes (a knowledge base, the local instructions file) before export, not into the shared copy.
 
 ### The author's conventions
