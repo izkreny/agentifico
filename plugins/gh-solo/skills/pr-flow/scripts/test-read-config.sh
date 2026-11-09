@@ -86,6 +86,8 @@ config("```bash\necho hi\n```\n\n```json\n{\"reviewer_model\": \"opus\"}\n```\n\
 check("a json fence inside another fence is not a block", get("reviewer_model"), (0, "opus"))
 config("```json\r\n{\"reviewer_model\": \"opus\"}\r\n```\r\n")
 check("CRLF line ends are read", get("reviewer_model"), (0, "opus"))
+config("```JSON\n{\"reviewer_model\": \"opus\"}\n```\n")
+check("a capitalised JSON tag opens the block", get("reviewer_model"), (0, "opus"))
 
 print("\nthe refusals:")
 config(block({"reviewer_model": "opus"}) + "\n" + block({"test_files": "x"}))
