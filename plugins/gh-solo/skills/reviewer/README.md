@@ -48,7 +48,7 @@ That exists because the fixes were made by the author of the code under review, 
 
 ## If you want a different reviewer
 
-Your repository can appoint one, in its config: another agent to spawn, or a capability to invoke instead. The `pr-flow` skill's reviewer-appointment reference, `../pr-flow/references/reviewer-appointment.md`, owns what each must produce. Whatever reads the diff, the round is what posts the findings, so they arrive marked and numbered the same way.
+Your repository can appoint one, in its config: another agent to spawn. The `pr-flow` skill's reviewer-appointment reference, `../pr-flow/references/reviewer-appointment.md`, owns what it must produce. Whatever reads the diff, the round is what posts the findings, so they arrive marked and numbered the same way.
 
 ## Layout
 
