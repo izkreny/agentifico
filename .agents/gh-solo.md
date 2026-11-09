@@ -280,6 +280,14 @@ The sweep issue carries the step as its last acceptance criterion, naming the so
 
 **Never clear the relation to get past the stop.** `blockedBy` is what records the stack's order, and removing it to satisfy a gate destroys the only typed record of which branch sits under which.
 
+## Each epic's stack lives in one worktree of its own
+
+**An epic gets one worktree, `.claude/worktrees/GHI-<epic-number>-<slug>`, and every branch of its stack is checked out there.** A child is a `git checkout` inside that worktree, never a `git worktree add` of its own. *The worktree trap* in `plugins/gh-solo/skills/pr-flow/workflows/stack.md` gives the reason: a sync or a rebase moves every branch in the stack, and git refuses to move a branch checked out in another worktree.
+
+**The main checkout stays on `main` and holds no epic's stack.** Two epics can then be worked side by side, each in its own folder, without one's checkout pinning a branch the other's rebase needs to move.
+
+**The epic's first child creates the worktree**, and every later child enters it. A new worktree carries no ignored files, so a package's `npm ci` runs there before its gates.
+
 ## The commit header format
 
 No branch `{type}` vocabulary is recorded here, because the plugin's own is what this repository uses.
