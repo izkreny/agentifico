@@ -75,7 +75,7 @@ Each pass judges against the same sources, in this precedence: the repository's 
 
 JSON, one object, written to the harness scratchpad. Name the file so a later reader can tell which pull request and which pass it belongs to.
 
-**This section defines what *you* write.** The posting script validates the format and is its authority, so a field you do not find here is not a field you may invent.
+**This section defines everything you write, so a field you do not find here is not a field you may invent.** The posting script validates the format and is its authority.
 
 ```json
 {
