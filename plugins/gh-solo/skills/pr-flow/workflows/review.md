@@ -328,7 +328,7 @@ The caps on the loops are *The caps* in `references/review-protocol.md`: land ev
 
 Open with the verdict line: `✅ ALL PASS` when the reviewer found nothing and the conventions were clean, `⚠️ PASSED WITH FINDINGS - {count} posted, {count} fixed locally` otherwise.
 
-Then the round report: which reviewer ran, the model the round asked the spawn for, which is the model that ran unless `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` is set, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, which the re-review held for the push rather than threaded, what it would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
+Then the round report: the model the round asked the spawn for, which is the model that ran unless `CLAUDE_CODE_SUBAGENT_MODEL_FORCE` is set, the finding count by severity and axis, which ids were fixed and by which commit subject, which are waiting on the owner and why, which the re-review held for the push rather than threaded, what it would not certify as closed, which `## Verification` gates were re-run, and that **every commit is local and unpushed**.
 
 Then what the round spent from the budget: which pass this was, how many the pull request has left under *The pass cap* in `references/pass-cap.md`, and any pass that was discarded and why.
 
