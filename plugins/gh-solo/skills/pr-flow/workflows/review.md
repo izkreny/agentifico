@@ -126,7 +126,7 @@ Never spawn first and check after: the spawn is the thing being counted, so a ch
 
 #### Which reviewer runs, and the spawn
 
-**The reviewer is the `reviewer` agent this plugin ships, per `references/reviewer-appointment.md`, and which model it runs on is a per-repo fact.** By default the spawn carries no model parameter, so the agent's own frontmatter decides. Where the repository's config, found by the lookup `references/repo-config.md` owns, carries a `Reviewer model:` line, read that file before the spawn, and refuse as it says rather than falling back to the default.
+**The reviewer is the `reviewer` agent this plugin ships, per `references/reviewer-appointment.md`, and which model it runs on is a per-repo fact.** By default the spawn carries no model parameter, so the agent's own frontmatter decides. Where the repository's config, found by the lookup `references/repo-config.md` owns, carries a `Reviewer model:` line, read `references/reviewer-appointment.md` before the spawn, and refuse as it says rather than falling back to the default.
 
 **Read the head before the spawn and hand it over as the scope**, because every anchor the reviewer produces belongs to the version it read:
 
