@@ -88,6 +88,13 @@ for key in ("branch_format", "default_branch", "remote", "commit_scope"):
     check(f"{key} is read", get(key), (0, full[key]))
 config(block({"reviewer_model": "opus"}))
 check("an unset key exits 1", get("test_files"), (1, ""))
+for key in ("remote", "commit_scope"):
+    check(f"unset {key} has no default and exits 1", get(key), (1, ""))
+check("unset default_branch prints its default", get("default_branch"), (0, "main"))
+check("unset issue_types prints its default", get("issue_types"), (0, "false"))
+check("unset branch_format prints its default", get("branch_format"), (0, "{type}/GHI-{issue-number}_{slug}"))
+check("unset branch_types prints its default", json.loads(get("branch_types")[1]), ["feat", "fix", "refactor", "docs", "chore"])
+check("unset labels prints the Layer axis", sorted(json.loads(get("labels")[1])["values"]), ["backend", "docs", "frontend", "fullstack", "infra"])
 config("```bash\necho hi\n```\n\n```json\n{\"reviewer_model\": \"opus\"}\n```\n\n~~~\n```json\n{}\n```\n~~~\n")
 check("a json fence inside another fence is not a block", get("reviewer_model"), (0, "opus"))
 config("```json\r\n{\"reviewer_model\": \"opus\"}\r\n```\r\n")

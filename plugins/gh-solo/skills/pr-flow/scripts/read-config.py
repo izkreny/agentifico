@@ -6,7 +6,7 @@ The config is the first file the lookup in `references/repo-config.md` finds, an
 Usage:
     read-config.py get <key>
 
-Exit codes: 0 the key is set and its value is printed, a string as it is and anything else as JSON; 1 the key is unset, so the caller applies the default; 2 the config refuses, with a `⛔ REFUSED` line, or the read could not run.
+Exit codes: 0 the key's value is printed, the config's or else the default, a string as it is and anything else as JSON; 1 the key is unset and has no default to print, so it means nothing is set; 2 the config refuses, with a `⛔ REFUSED` line, or the read could not run.
 """
 import argparse
 import json
@@ -59,6 +59,25 @@ SCHEMA = {
     "default_branch": (text, "a string"),
     "remote": (text, "a string"),
     "commit_scope": (lambda v: v == "label", '"label"'),
+}
+
+
+# WHY: these mirror the defaults the tracker skill's formats.md and tracker-fields.md describe to a reader; a key absent here has no value to print, so an unset read exits 1.
+DEFAULTS = {
+    "default_branch": "main",
+    "issue_types": False,
+    "branch_format": "{type}/GHI-{issue-number}_{slug}",
+    "branch_types": ["feat", "fix", "refactor", "docs", "chore"],
+    "labels": {
+        "axis": "layer",
+        "values": {
+            "backend": "An API, a service, a background job, a schema or a migration",
+            "frontend": "A view, a component, a route, styling",
+            "fullstack": "One thing that cannot be accepted from either side alone",
+            "infra": "A pipeline, a deployment, a container, tooling or repository config",
+            "docs": "Prose that is the point in itself: a README, a guide, an ADR",
+        },
+    },
 }
 
 
@@ -173,9 +192,9 @@ def main(argv=None):
     except Exception as e:
         print(f"read-config: {e}", file=sys.stderr)
         return 2
-    if a.key not in config:
+    if a.key not in config and a.key not in DEFAULTS:
         return 1
-    value = config[a.key]
+    value = config.get(a.key, DEFAULTS.get(a.key))
     print(value if isinstance(value, str) else json.dumps(value))
     return 0
 
