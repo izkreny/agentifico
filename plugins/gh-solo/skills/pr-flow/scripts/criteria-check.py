@@ -128,7 +128,7 @@ def check(pr, remote):
         print(f"criteria-check: #{issue} carries no keyed criterion")
         return 0
     # WHY: `gh pr view --json headRefOid` was seen answering with a pre-push sha, so the head is read by fetch.
-    must("git", "fetch", remote or resolve_remote(), view["headRefName"], "--quiet")
+    must("git", "fetch", remote or config.get("remote") or resolve_remote(), view["headRefName"], "--quiet")
     sha = must("git", "rev-parse", "FETCH_HEAD").strip()
     missing = []
     for key in keys:

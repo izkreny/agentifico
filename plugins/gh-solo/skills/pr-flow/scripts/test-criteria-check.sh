@@ -80,6 +80,7 @@ check("AC10 is found on its own line", c.search(287, "AC10", head, glob), ["spec
 
 print("\nthe whole check, gh and the fetch faked:")
 real_run = c.run
+fetched = []
 
 def fake(issue_body, pr_body="Closes #287"):
     def run(*args):
@@ -90,6 +91,7 @@ def fake(issue_body, pr_body="Closes #287"):
         if args[:3] == ("gh", "issue", "view"):
             return 0, json.dumps({"body": issue_body}), ""
         if args[:2] == ("git", "fetch"):
+            fetched.append(args[2])
             return 0, "", ""
         if args == ("git", "rev-parse", "FETCH_HEAD"):
             return 0, head + "\n", ""
@@ -128,6 +130,15 @@ check("an indented key no test names refuses", c.check(423, "origin"), 1)
 
 fake("- [x] ::AC1:: x", pr_body="no closing line")
 check("a PR with no Closes line cannot run", c.main(["423", "--remote", "origin"]), 2)
+
+config(block({"test_files": "spec/**/*_spec.rb", "remote": "upstream"}))
+fake("- [x] ::AC1:: x")
+fetched.clear()
+c.check(423, None)
+check("the remote key names the remote fetched from", fetched, ["upstream"])
+fetched.clear()
+c.check(423, "origin")
+check("--remote beats the remote key", fetched, ["origin"])
 
 print("\nthe user-level config:")
 user_level = os.path.join(os.environ["HOME"], ".config/gh-solo/bench/repo.md")
