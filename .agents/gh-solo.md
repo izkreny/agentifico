@@ -237,8 +237,10 @@ Reviewer model: opus
 ```text
 /agents-guru review <package-dir>
 
-This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
+This is the sweep that precedes the <name>_<version> tag.
 ```
+
+**The sweep's record lives on its issue, in two comments.** The findings comment has one row per `AGF{n}`: its severity, where it is, the defect, what it costs and the fix the reviewer proposed. The verdicts comment has one row per id once Step 5 of `skills/agents-guru/workflows/review.md` has run, with the commit that answered it. Rows are kept in the reviewer's own words, with every path rewritten relative to the repository root, because the repository is public and a path relative to a package or to one machine resolves nowhere for a later reader.
 
 The sweep's last act is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/agents-guru/references/maintaining.md`, which owns when it runs and what it reads. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
 
