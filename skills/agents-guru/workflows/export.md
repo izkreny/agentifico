@@ -31,7 +31,7 @@ A public repository permanently publishes everything in the skill. Strip anythin
 - **The install line.** The copy's `README.md` installs from the destination with that repository's own install command, whichever copy Step 1 made canonical, never with the canonical path and the symlink that *How it is installed* in `references/readme.md` asks of a skill that stays on its machine. A reader of the copy has neither that path nor the directory the symlink points at.
 - **Facts true on one machine only.** Which manager owns which skill, where a lock file sits, how a tool was installed there: these move to the machine's own notes (a knowledge base, the local instructions file) before export, not into the shared copy.
 
-### The author's conventions
+### What the skill asks of its reader
 
 - **The owner's global instructions file.** References to a specific AGENTS.md or CLAUDE.md become "the user's global instructions file". The skill may practice its author's conventions; it must not require them.
 - **Tool enumerations.** Name the one tool the skill actually supports rather than surveying alternatives; the survey is stale the day a new tool ships, and the skill's job is a working path, not a market overview.
