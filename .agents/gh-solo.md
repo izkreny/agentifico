@@ -6,7 +6,7 @@ Per-repository facts the `gh-solo` plugin reads. Only what differs from its defa
 
 ## Settings
 
-Every key the plugin reads is in this block, per `plugins/gh-solo/skills/pr-flow/references/repo-config.md`, which owns the schema. The sections below say why each value is what it is.
+Every key the plugin reads is in this block, per `plugins/gh-solo/skills/pr-flow/references/repo-config.md`, which owns the schema. *Labels* and *The commit header format* say why `labels` and `commit_scope` hold what they do.
 
 ```json
 {
