@@ -18,12 +18,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-# `unrated` is never a guess, because a level that looked like the reviewer's but came from the orchestrator is the fictional mapping this flow exists to remove.
-SEVERITIES = {"high": "🔴", "medium": "🟡", "low": "🔵", "unrated": "⚪"}
-AXES = ("standards", "spec", "unrated")
+SEVERITIES = {"high": "🔴", "medium": "🟡", "low": "🔵"}
+AXES = ("standards", "spec")
 SIDES = ("RIGHT", "LEFT")
 PASSES = ("review", "re-review")
-SEVERITY_SOURCES = ("reviewer", "derived")
 DISCLAIMER_PREFIX = "> 🤖"
 SUGGESTION_FENCE = "```suggestion"
 # An issued id is delimited with `::` so prose can name one without being counted, `::` rather than brackets because `[RF8]` is markdown link syntax, and a closing verdict's `::RF3::CLOSED::` is skipped because it names an id rather than issuing one.
@@ -368,7 +366,6 @@ def record_body(
     held: set[int],
     anchored_at: str,
     reviewed_at: str,
-    corroborated: bool,
     disclaimer: str,
     via: str,
 ) -> str:
@@ -376,13 +373,9 @@ def record_body(
 
     if data["pass"] == "review":
         axes = ", ".join(data["axes_run"])
-        unrated = sum(1 for _, f in assigned if f["severity"] == "unrated")
-        tail = f" {unrated} arrived unrated." if unrated else ""
-        lines.append(f"Review round on {len(assigned)} finding(s). Axes run: {axes}.{tail}")
+        lines.append(f"Review round on {len(assigned)} finding(s). Axes run: {axes}.")
         # A row rather than a sentence, so the head outlives the session that pinned it and reads as one of the record's entries.
-        witness = ("corroborated by the reviewer" if corroborated
-                   else "not corroborated - the reviewer reported no head")
-        lines.append(f"- Reviewed at {reviewed_at} ({witness})")
+        lines.append(f"- Reviewed at {reviewed_at}")
         # Its own row, so the line `passes` counts carries no other fact that could be edited out from under it.
         lines.append(f"- {PASS_MARKER} one full reviewer pass, counted against this "
                      f"pull request's cap")
@@ -399,10 +392,9 @@ def record_body(
         lines.append("")
         for rf, finding in assigned:
             emoji = SEVERITIES[finding["severity"]]
-            axis = "" if finding["axis"] == "unrated" else f"`{finding['axis']}` "
             tail = " - no thread yet, held for the push" if rf in held else ""
             lines.append(
-                f"- ::RF{rf}:: {emoji} {finding['severity']} {axis}"
+                f"- ::RF{rf}:: {emoji} {finding['severity']} `{finding['axis']}` "
                 f"{finding['path']}:{finding['line']}{tail}"
             )
     else:
@@ -428,17 +420,6 @@ def record_body(
         lines.append("```json")
         lines.append(json.dumps({HELD_KEY: ledger}, ensure_ascii=False, indent=1))
         lines.append("```")
-
-    if data.get("severity_source") == "derived":
-        lines.append("")
-        lines.append("## The severity basis, and why it is stated")
-        lines.append("")
-        lines.append(
-            "These levels were not supplied by the reviewer, which gave none. They were "
-            "read out of each finding's own account of what goes wrong, on this basis:"
-        )
-        lines.append("")
-        lines.append(data["severity_basis"].strip())
 
     return "\n".join(lines)
 
@@ -469,38 +450,6 @@ def build(args: argparse.Namespace) -> int:
     if not isinstance(findings, list):
         problems.append("findings is missing or not a list")
         findings = []
-
-    # A derived severity is honest only if the record says so, which is why the basis is required here.
-    source = data.get("severity_source", "reviewer")
-    basis = data.get("severity_basis")
-    if source not in SEVERITY_SOURCES:
-        problems.append(
-            f"severity_source is not one of {'/'.join(SEVERITY_SOURCES)}: {source!r}"
-        )
-    elif source == "derived":
-        if not isinstance(basis, str) or not basis.strip():
-            problems.append(
-                "severity_source is derived but severity_basis is empty, so the record "
-                "would publish levels with no account of where they came from"
-            )
-    elif basis is not None:
-        problems.append(
-            "severity_basis is set while severity_source is reviewer, which would claim a "
-            "derivation that did not happen"
-        )
-
-    # `unrated` from a reviewer that assigned levels would publish a level the reviewer never gave.
-    if source == "reviewer":
-        unrated = [
-            f.get("index") for f in findings
-            if isinstance(f, dict) and f.get("severity") == "unrated"
-        ]
-        if unrated:
-            problems.append(
-                "severity is unrated on finding(s) %s while severity_source is reviewer, "
-                "so the record would attribute a level to a reviewer that supplied none"
-                % ", ".join(str(i) for i in unrated)
-            )
 
     # `--unpushed-diff` belongs to the rescope entrance alone, because a full pass runs on the pushed head.
     if which_pass == "review" and args.unpushed_diff is not None:
@@ -538,12 +487,16 @@ def build(args: argparse.Namespace) -> int:
                 )
             elif not re.fullmatch(r"[0-9a-f]{7,40}", value):
                 problems.append(f"{flag} is not a commit sha: {value!r}")
-        # Optional because an appointed reviewer may not write it.
-        if reported is not None and not re.fullmatch(r"[0-9a-f]{7,40}", str(reported)):
+        if reported is None:
+            problems.append(
+                "head is missing on a review pass, so nothing confirms the reviewer read "
+                "the version it was told to read"
+            )
+        elif not re.fullmatch(r"[0-9a-f]{7,40}", str(reported)):
             problems.append(f"head is not a commit sha: {reported!r}")
         else:
             # Two messages, because a merged one would leave a reader unable to tell an invalid pass from anchors that cannot resolve.
-            if reported is not None and args.pinned_head is not None and reported != args.pinned_head:
+            if args.pinned_head is not None and reported != args.pinned_head:
                 problems.append(
                     f"the reviewer read {reported} but was told to read "
                     f"{args.pinned_head}, so the pass judged something else"
@@ -626,7 +579,6 @@ def build(args: argparse.Namespace) -> int:
             held,
             args.anchored_at or "",
             args.pinned_head or "",
-            data.get("head") is not None,
             disclaimer,
             via_record,
         ),
