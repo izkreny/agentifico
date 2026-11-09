@@ -92,7 +92,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 ## Step 4 - Report
 
-Rank findings by consequence, not by reading order. For each: the file and line, the specific defect, and what it costs when it bites. Propose the fix; apply it only when asked. **Name every skill read, by path**, alongside the files Step 1 asks for rather than instead of them, since the files it names as belonging to no skill are unaccounted for by a skill list.
+Rank findings by consequence, not by reading order, and give each an id in that order: `AGF1`, `AGF2` and on, so a record of the review and a fix commit can cite it. For each: the file and line, the specific defect, and what it costs when it bites. Propose the fix; apply it only when asked. **Name every skill read, by path**, alongside the files Step 1 asks for rather than instead of them, since the files it names as belonging to no skill are unaccounted for by a skill list.
 
 Separate what is wrong from what is merely different. A skill written in a style you would not choose is not defective, and expectations tier to the skill's size: a single-file skill needs no `workflows/` or `references/`, and the absence of structure it does not need is not a finding.
 
@@ -102,7 +102,7 @@ Separate what is wrong from what is merely different. A skill written in a style
 
 When the review ran in a subagent and its findings were then fixed, resume that same agent to judge the fixes rather than starting a fresh review. The resumed agent keeps its full audit context, every file it read and what each finding actually meant, so re-verification is cheaper and sharper than a second audit, and it judges the fixes against what it originally meant rather than re-deriving the findings.
 
-Keep the agent's id from the run that produced the findings. After the fixes are committed, send it the fix commit and ask for a verdict per finding:
+Keep the agent's id from the run that produced the findings. After the fixes are committed, send it the fix commit and ask for a verdict per `AGF{n}` id:
 
 - CLOSED - the fix resolves the finding as it stands.
 - NOT CLOSED - the finding stands, with what the fix missed.
