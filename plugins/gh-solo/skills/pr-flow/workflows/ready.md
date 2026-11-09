@@ -55,7 +55,7 @@ Same posture: read, report, do not edit.
 
 **A keyed criterion is proven by a test that names it**, per *Writing good acceptance criteria* in `../tracker/references/issue-shape.md`, which owns the rule. This step checks only that such a test exists. Whether it passes is the job of the check commands in `## Verification`, so a skipped test still passes here.
 
-**The repository turns the gate on with `Test files: <test-files-glob>` in its config file.** The glob is a git pathspec glob. Without the line the gate is off.
+**The repository turns the gate on with the `test_files` key in its config**, per `references/repo-config.md`. The glob is a git pathspec glob. Without the key the gate is off.
 
 ```bash
 python3 <skill-dir>/scripts/criteria-check.py <pr-number>
