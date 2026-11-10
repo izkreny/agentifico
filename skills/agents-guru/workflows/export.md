@@ -19,7 +19,7 @@ On GitHub:
 gh repo view <owner/repo> --json visibility
 ```
 
-On another forge, use its own CLI or API; and when no tool is at hand, open the repository page in a logged-out browser, since what it shows there, it shows everyone. The `gh` CLI is declared in the frontmatter `compatibility` field, with its other use.
+On another forge, use its own CLI or API; and when no tool is at hand, open the repository page in a logged-out browser, since what it shows there, it shows everyone.
 
 A public repository permanently publishes everything in the skill. Strip anything that helps someone target or impersonate the origin machine: absolute paths under the author's home directory, inventories of installed tooling and their sources, permission and guardrail configuration.
 
@@ -43,7 +43,7 @@ The rule and its reason are in `workflows/new.md` ("Code blocks are Bash"), and 
 
 ## Step 5 - Verify the exported copy
 
-Run `workflows/check.md` against the exported directory. Its command verifies that the description is intact and free of the frontmatter traps, that the name matches the directory, that every referenced file exists and that no machine-absolute paths are left. Then read the copy for what *The argument-hint rule* and *The Bash rule* in that file leave to a reader, and for the items under *What a sweep still looks for by hand* that bear on an export.
+Run `workflows/check.md` against the exported directory. Then read the copy for what *The path rules*, *The argument-hint rule* and *The Bash rule* in that file leave to a reader, and for the items under *What a sweep still looks for by hand* that bear on an export.
 
 If the skill carries `metadata.version`, bump it in this same pass whenever the content changed; a version that does not move with the content is the banner lie in frontmatter form. Then grep the copy for the author's username and home directory as a final sweep; zero hits is the exit criterion. Excepted, since each is public the moment the repository is: the destination repository's own name, in a URL such as a rule's `link:` or in the install command in `README.md`, and the author's byline there.
 
