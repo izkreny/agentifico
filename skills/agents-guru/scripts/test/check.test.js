@@ -543,7 +543,7 @@ describe("check.js", () => {
   it("a code file under the target reaches the prose rules, and one an --exclude glob names does not", () => {
     const r = run([path.join(tmp, "code"), "--exclude", "**/node_modules/**"]);
     assert.equal(r.code, 1);
-    assert.match(r.out, /^ {2}scripts\/run\.js:1 Agentifico\.CommentSentences \(error\)/mu);
+    assert.match(r.out, /^ {2}scripts\/run\.js:1 Agentifico\.CommentSentences \(warning\)/mu);
     assert.doesNotMatch(r.out, /node_modules/u);
     assert.equal(r.linted, 3);
   });
@@ -1236,6 +1236,12 @@ describe("check.js", () => {
     assert.match(r.out, /^ {2}yaml-comment-wrap: 1 findings withheld$/mu);
     assert.match(r.out, /^3 files checked, 0 issues, 0 warnings, 1 rule\(s\) skipped$/mu);
   });
+  it("a skipped comment-sentence finding is withheld, named and counted", () => {
+    const r = run(["--skip", "Agentifico.CommentSentences", path.join(tmp, "code"), "--exclude", "**/node_modules/**"]);
+    assert.doesNotMatch(r.out, /scripts\/run\.js:\d+ Agentifico\.CommentSentences/u);
+    assert.match(r.out, /^ {2}Agentifico\.CommentSentences: 1 findings withheld$/mu);
+    assert.match(r.out, /, 0 warnings, 1 rule\(s\) skipped$/mu);
+  });
   it("--skip repeats, and a rule named twice is skipped once", () => {
     const targets = [path.join(tmp, "wrapped"), path.join(tmp, "yaml-wrapped")];
     const both = run(["--skip", "yaml-comment-wrap", "--skip", "skill-hard-wrap", ...targets]);
@@ -1273,7 +1279,10 @@ describe("check.js", () => {
     ]) {
       const r = run(args, process.env, good);
       assert.equal(r.code, 1, named);
-      assert.ok(r.out.startsWith(`${named}: only skill-hard-wrap, yaml-comment-wrap can be skipped: nothing was checked\n`), r.out);
+      assert.ok(
+        r.out.startsWith(`${named}: only skill-hard-wrap, yaml-comment-wrap, Agentifico.CommentSentences can be skipped: nothing was checked\n`),
+        r.out,
+      );
       assert.doesNotMatch(r.out, /found under/u, named);
     }
   });

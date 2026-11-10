@@ -19,7 +19,7 @@ node <skill-dir>/scripts/check.js --skip skill-hard-wrap path/to/the-skill
 node <skill-dir>/scripts/check.js --include 'vendor/**' path/to/the-skill
 ```
 
-**`--skip <rule>` switches a convention rule off for one run, and may be given more than once.** A rule takes it only where the check already reports it as a warning because `workflows/export.md` lets a skill decline its author's conventions. A rule that fails the run is one this skill holds every skill to, so no caller can decline it. Any other name refuses the run and prints the names that do take it.
+**`--skip <rule>` switches a convention rule off for one run, and may be given more than once.** A rule takes it only where the check already reports it as a warning because a skill may decline it, for the reason that rule's own section in `workflows/new.md` gives. A rule that fails the run is one this skill holds every skill to, so no caller can decline it. The names it takes are `skill-hard-wrap`, `yaml-comment-wrap` and `Agentifico.CommentSentences`, each as the run reports it. Any other name refuses the run and prints the names that do take it.
 
 The switch is the caller's, written in the command where whoever reads the run sees it, and nothing under the target can set it. A run that skipped anything names each skipped rule with how many findings it withheld, and its summary line adds `N rule(s) skipped`; the exit code is decided by the findings that remain.
 
