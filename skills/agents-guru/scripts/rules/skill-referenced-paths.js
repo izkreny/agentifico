@@ -1,18 +1,9 @@
 import process from "node:process";
 import { isHomeRelative, looksLikePath, resolves } from "./paths.js";
+import { walk } from "./walk.js";
 
 // A fenced block is a command to run rather than a reference to a file in this tree, so only code spans in prose are read.
 const IS_PROSE_SPAN = (token) => token.type === "codeTextData";
-
-function walk(tokens, fn) {
-  for (const token of tokens) {
-    fn(token);
-    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) {
-      walk(token.children, fn);
-    }
-  }
-}
 
 export default {
   names: ["skill-referenced-paths"],

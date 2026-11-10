@@ -1,12 +1,4 @@
-function walk(tokens, fn) {
-  for (const t of tokens) {
-    fn(t);
-    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (t.children) {
-      walk(t.children, fn);
-    }
-  }
-}
+import { walk } from "./walk.js";
 
 // A container's own prefix or indent sits between a marker and text that starts on the next line, so whitespace is matched by token family rather than by name.
 // Stryker disable next-line Regex: no list token type names these words except where anchored

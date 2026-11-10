@@ -1,19 +1,10 @@
 // WHY: where a command is recognised is the skills page's, at https://code.claude.com/docs/en/skills, and what stops it is the errors page's, at https://code.claude.com/docs/en/errors#no-shell-command-was-run.
 import { isSkillFile } from "./frontmatter.js";
 import { infoOf } from "./skill-bash-blocks.js";
+import { walk } from "./walk.js";
 
 // WHY: a carriage return is half of a newline in a file with CRLF endings.
 const CONTROL = /(?![\t\n\r])\p{Cc}/u;
-
-function walk(tokens, fn) {
-  tokens.forEach((token, i) => {
-    fn(token, tokens[i - 1]);
-    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) {
-      walk(token.children, fn);
-    }
-  });
-}
 
 export default {
   names: ["skill-injected-commands"],

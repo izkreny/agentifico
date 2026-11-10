@@ -5,10 +5,7 @@ function walk(tokens, fn) {
       continue;
     }
     fn(t);
-    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (t.children) {
-      walk(t.children, fn);
-    }
+    walk(t.children, fn);
   }
 }
 

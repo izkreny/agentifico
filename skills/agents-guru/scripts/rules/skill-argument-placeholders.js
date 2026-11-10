@@ -1,17 +1,8 @@
 // WHY: what is replaced and what escapes it are the skills page's, at https://code.claude.com/docs/en/skills.
 import { isSkillFile } from "./frontmatter.js";
+import { walk } from "./walk.js";
 
 const PLACEHOLDER = /(?<backslashes>\\*)\$(?<index>\d+)/gu;
-
-function walk(tokens, fn) {
-  for (const token of tokens) {
-    fn(token);
-    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) {
-      walk(token.children, fn);
-    }
-  }
-}
 
 export default {
   names: ["skill-argument-placeholders"],
