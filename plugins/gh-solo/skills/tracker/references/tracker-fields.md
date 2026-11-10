@@ -50,7 +50,7 @@ Labels that would otherwise creep across the whole tracker depend on this rule:
 
 **`fullstack` is required, not optional, when an issue genuinely spans both.** It is also rarer than it looks. An issue that merely *calls* an endpoint owned by another issue is `frontend`. If each side could merge and be useful on its own, that is not one `fullstack` issue at all, it is a `backend` issue and a `frontend` issue, per the split test in *How big is one issue*.
 
-The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in its config's `labels` key, per `../pr-flow/references/repo-config.md`. What matters is that the set is small, closed, and mandatory.
+The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in its config's `mandatory_labels` key, per `../pr-flow/references/repo-config.md`. What matters is that the set is small, closed, and mandatory.
 
 **Because this axis is mandatory, its absence is a defect rather than a default**, which is what separates it from the other axes in *Labels*. Nothing in a title reveals a missing layer label, so audit for it directly rather than expecting to notice:
 
@@ -59,7 +59,7 @@ gh issue list --state open --limit 100 \
   --search "-label:epic -label:backend -label:frontend -label:fullstack -label:infra -label:docs"
 ```
 
-**That exclusion list is the default layer set, so build the list from the `labels` key instead**: `-label:epic`, then one `-label:<label>` per key of its `values`, read with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get labels`, which prints this default set where the config sets none. The query works by excluding every legal value and reporting what is left. Run with the default list against a repository whose axis is named otherwise, it excludes only the epics and reports every other open issue as unlabelled, which reads as a wall of defects and gets the audit ignored.
+**That exclusion list is the default layer set, so build the list from the `mandatory_labels` key instead**: `-label:epic`, then one `-label:<label>` per key of its `values`, read with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get mandatory_labels`, which prints this default set where the config sets none. The query works by excluding every legal value and reporting what is left. Run with the default list against a repository whose axis is named otherwise, it excludes only the epics and reports every other open issue as unlabelled, which reads as a wall of defects and gets the audit ignored.
 
 **A list written by hand fails the other way, silently**: a label added to the set but not to the list makes every issue carrying it invisible to the audit. Building the list from the key means a new label is excluded the moment the set gains it.
 

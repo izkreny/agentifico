@@ -68,7 +68,7 @@ def get_all():
 full = {
     "reviewer_model": "opus",
     "test_files": "spec/**/*_spec.rb",
-    "labels": {"axis": "package", "values": {"gh-solo": "plugins/gh-solo/", "repo": "the repository itself"}},
+    "mandatory_labels": {"axis": "package", "values": {"gh-solo": "plugins/gh-solo/", "repo": "the repository itself"}},
     "branch_name_format": "{type}/GHI-{issue-number}_{slug}",
     "commit_types": ["feat", "fix", "docs"],
     "use_issue_types": False,
@@ -88,7 +88,7 @@ calls.clear()
 check("a string prints as it is", get("reviewer_model"), (0, "opus"))
 check("with no user-level directory, gh is never called", "gh" in calls, False)
 check("a glob prints as it is", get("test_files"), (0, "spec/**/*_spec.rb"))
-check("an object prints as JSON", json.loads(get("labels")[1]), full["labels"])
+check("an object prints as JSON", json.loads(get("mandatory_labels")[1]), full["mandatory_labels"])
 check("a list prints as JSON", get("commit_types"), (0, '["feat", "fix", "docs"]'))
 check("a boolean prints as JSON", get("use_issue_types"), (0, "false"))
 for key in ("branch_name_format","default_branch", "remote", "commit_scope"):
@@ -101,7 +101,7 @@ check("unset default_branch prints its default", get("default_branch"), (0, "mai
 check("unset use_issue_types prints its default", get("use_issue_types"), (0, "false"))
 check("unset branch_name_format prints its default", get("branch_name_format"), (0, "{type}/GHI-{issue-number}_{slug}"))
 check("unset commit_types prints its default", json.loads(get("commit_types")[1]), ["feat", "fix", "refactor", "docs", "chore"])
-check("unset labels prints the Layer axis", sorted(json.loads(get("labels")[1])["values"]), ["backend", "docs", "frontend", "fullstack", "infra"])
+check("unset mandatory_labels prints the Layer axis", sorted(json.loads(get("mandatory_labels")[1])["values"]), ["backend", "docs", "frontend", "fullstack", "infra"])
 code, out = get_all()
 everything = json.loads(out) if code == 0 else {}
 check("get-all prints every key", (code, sorted(everything)), (0, sorted(rc.SCHEMA)))
@@ -137,7 +137,7 @@ config(block({"reviewr_model": "opus"}))
 check("an unknown key refuses", get("reviewer_model"), (2, f"⛔ REFUSED - {in_repo}: reviewr_model is not a key"))
 config("```json\n{\"reviewer_model\": \"opus\", \"reviewer_model\": \"sonnet\"}\n```\n")
 check("a key set twice refuses", get("reviewer_model"), (2, f"⛔ REFUSED - {in_repo}: reviewer_model is set twice"))
-for key, bad in (("reviewer_model", ""), ("test_files", 3), ("use_issue_types", "false"), ("commit_types", "feat"), ("commit_scope", "package"), ("labels", {"axis": "package"}), ("labels", {"axis": "package", "values": {"x": 1}})):
+for key, bad in (("reviewer_model", ""), ("test_files", 3), ("use_issue_types", "false"), ("commit_types", "feat"), ("commit_scope", "package"), ("mandatory_labels", {"axis": "package"}), ("mandatory_labels", {"axis": "package", "values": {"x": 1}})):
     config(block({key: bad}))
     code, out = get("reviewer_model")
     check(f"{key} as {bad!r} refuses", (code, out.startswith(f"⛔ REFUSED - {in_repo}: {key} must be")), (2, True))
