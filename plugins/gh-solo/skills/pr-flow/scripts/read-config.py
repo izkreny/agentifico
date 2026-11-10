@@ -55,8 +55,8 @@ SCHEMA = {
     "test_files": (text, "a string"),
     "labels": (labels, 'an object with "axis", a string, and "values", an object of strings'),
     "branch_name_format": (text, "a string"),
-    "branch_types": (text_list, "a list of strings"),
-    "issue_types": (lambda v: isinstance(v, bool), "true or false"),
+    "commit_types": (text_list, "a list of strings"),
+    "use_issue_types": (lambda v: isinstance(v, bool), "true or false"),
     "default_branch": (text, "a string"),
     "remote": (text, "a string"),
     "commit_scope": (lambda v: v == "label", '"label"'),
@@ -66,9 +66,9 @@ SCHEMA = {
 # WHY: these mirror the defaults the tracker skill's formats.md and tracker-fields.md describe to a reader; a key absent here has no value to print, so an unset read exits 1.
 DEFAULTS = {
     "default_branch": "main",
-    "issue_types": False,
+    "use_issue_types": False,
     "branch_name_format": "{type}/GHI-{issue-number}_{slug}",
-    "branch_types": ["feat", "fix", "refactor", "docs", "chore"],
+    "commit_types": ["feat", "fix", "refactor", "docs", "chore"],
     "labels": {
         "axis": "layer",
         "values": {

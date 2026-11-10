@@ -208,6 +208,6 @@ GitHub has an **issue type** field separate from labels, exposed as `gh issue cr
 
 So: **`epic`, `bug` and `spike` are labels here**, per *Labels*, and `--type` is never passed. Do not go looking for the field, and do not treat its absence as something misconfigured.
 
-The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in the repository's config as `issue_types`, per `../pr-flow/references/repo-config.md`, so a later session reads it with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get issue_types` instead of probing again. Passing an unknown type is an error rather than a no-op.
+The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in the repository's config as `use_issue_types`, per `../pr-flow/references/repo-config.md`, so a later session reads it with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get use_issue_types` instead of probing again. Passing an unknown type is an error rather than a no-op.
 
 ---
