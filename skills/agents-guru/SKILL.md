@@ -4,7 +4,7 @@ description: |
   Write, review, check and export agent skills, and check agent definitions and a plugin's hooks file and manifest. An agent invokes it when told to, or when it reviews or checks a change to a skill, a SKILL.md file, a package of skills, an agent file, or a plugin's hooks file or manifest. Covers the frontmatter contract, the traps that fail silently and the routing-skill layout. Not for using a skill or an agent, only for the files that make one. Never invoked by an agent to install, update or remove a skill: the owner types `/agents-guru manage` for that.
 argument-hint: "[new <name> | review <path> | check [<option>]... [<path>...] | export <path> | manage]"
 compatibility: |
-  Supported on Linux, and on Windows only under WSL; untested on macOS. Requires Node 26.1 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list, and git only for the check to exclude what a repository ignores.
+  Supported on Linux, and on Windows only under WSL; untested on macOS. Requires Node 26.1 or later with an `npm ci` in the installed skill directory, and Vale on PATH at the version scripts/check.js requires, installed by the route https://docs.vale.sh/topics/installation gives for the machine, for the checks; the gh CLI is needed only for export and for growing a phrase list, and git for the check to exclude what a repository ignores.
 metadata:
   version: "9.3.0"
 allowed-tools: Bash(gh:*) Bash(node:*) Read Write Edit Grep Glob
