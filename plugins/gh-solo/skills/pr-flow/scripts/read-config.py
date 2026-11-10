@@ -53,7 +53,7 @@ def labels(value):
 SCHEMA = {
     "reviewer_model": (text, "a string"),
     "test_files": (text, "a string"),
-    "labels": (labels, 'an object with "axis", a string, and "values", an object of strings'),
+    "mandatory_labels": (labels, 'an object with "axis", a string, and "values", an object of strings'),
     "branch_name_format": (text, "a string"),
     "commit_types": (text_list, "a list of strings"),
     "use_issue_types": (lambda v: isinstance(v, bool), "true or false"),
