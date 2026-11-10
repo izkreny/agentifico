@@ -30,7 +30,7 @@ Every skill in this plugin, and the `reviewer` agent, looks for a repository's c
 | `reviewer_model` | the model a review round asks the `reviewer` spawn for |
 | `test_files` | a git pathspec glob naming the repository's tests, which turns the criteria gate on |
 | `labels` | an object: `axis` names the mandatory axis, and `values` maps each of its labels to what that label's deliverable is |
-| `branch_format` | the branch-name template |
+| `branch_name_format` | the branch-name template |
 | `branch_types` | the list of `{type}` values a branch may take |
 | `issue_types` | `true` where the repository uses GitHub issue types |
 | `default_branch` | the trunk's name |

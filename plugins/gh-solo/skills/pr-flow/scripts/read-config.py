@@ -54,7 +54,7 @@ SCHEMA = {
     "reviewer_model": (text, "a string"),
     "test_files": (text, "a string"),
     "labels": (labels, 'an object with "axis", a string, and "values", an object of strings'),
-    "branch_format": (text, "a string"),
+    "branch_name_format": (text, "a string"),
     "branch_types": (text_list, "a list of strings"),
     "issue_types": (lambda v: isinstance(v, bool), "true or false"),
     "default_branch": (text, "a string"),
@@ -67,7 +67,7 @@ SCHEMA = {
 DEFAULTS = {
     "default_branch": "main",
     "issue_types": False,
-    "branch_format": "{type}/GHI-{issue-number}_{slug}",
+    "branch_name_format": "{type}/GHI-{issue-number}_{slug}",
     "branch_types": ["feat", "fix", "refactor", "docs", "chore"],
     "labels": {
         "axis": "layer",
