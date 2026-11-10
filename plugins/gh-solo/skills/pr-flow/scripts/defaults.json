@@ -1,0 +1,16 @@
+{
+  "default_branch": "main",
+  "use_issue_types": false,
+  "branch_name_format": "{type}/GHI-{issue-number}_{slug}",
+  "commit_types": ["feat", "fix", "refactor", "docs", "chore"],
+  "labels": {
+    "axis": "layer",
+    "values": {
+      "backend": "An API, a service, a background job, a schema or a migration",
+      "frontend": "A view, a component, a route, styling",
+      "fullstack": "One thing that cannot be accepted from either side alone",
+      "infra": "A pipeline, a deployment, a container, tooling or repository config",
+      "docs": "Prose that is the point in itself: a README, a guide, an ADR"
+    }
+  }
+}
