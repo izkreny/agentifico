@@ -1,15 +1,10 @@
-> **Tools used:** `Write` to create the files, `Read` / `Glob` to check for an existing skill covering the same ground.
+> **Tools used:** `Write` to create the files, `Glob` / `Grep` / `Read` to check for an existing skill covering the same ground.
 
 Author a new skill. The description facts in `SKILL.md` apply throughout and are not repeated here.
 
 ## Step 1 - Check nothing already covers it
 
-Run from the skills directory of the agent in use:
-
-```bash
-ls
-grep -rl "<topic>" */SKILL.md
-```
+In the skills directory of the agent in use, list the skills with `Glob` on `*/SKILL.md`, and `Grep` those files for the topic.
 
 If an existing skill is within one section of the new idea, extend it instead. Two skills that both half-cover a topic is worse than one that covers it, because the trigger phrases compete and whichever loads first wins.
 
