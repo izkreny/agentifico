@@ -885,11 +885,11 @@ describe("check.js", () => {
       assert.doesNotMatch(out, /agent-plugin-name/u);
     });
     it("a link to a file declares what the file declares, and a dangling one declares nothing", () => {
-      const dir = path.join(tmp, "linked", ".claude", "agents");
+      const dir = path.join(tmp, "linked-agent", ".claude", "agents");
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
-      fs.writeFileSync(path.join(tmp, "linked", "elsewhere.md"), "---\nname: same\n---\n\nBody.\n");
-      fs.symlinkSync(path.join(tmp, "linked", "elsewhere.md"), path.join(dir, "link.md"));
+      fs.writeFileSync(path.join(tmp, "linked-agent", "elsewhere.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.symlinkSync(path.join(tmp, "linked-agent", "elsewhere.md"), path.join(dir, "link.md"));
       fs.symlinkSync("gone.md", path.join(dir, "dangling.md"));
       const r = run(path.join(dir, "same.md"));
       assert.match(r.out, /also declared by link\.md:/u);
