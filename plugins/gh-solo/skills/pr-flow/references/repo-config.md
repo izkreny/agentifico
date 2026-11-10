@@ -31,8 +31,8 @@ Every skill in this plugin, and the `reviewer` agent, looks for a repository's c
 | `test_files` | a git pathspec glob naming the repository's tests, which turns the criteria gate on |
 | `labels` | an object: `axis` names the mandatory axis, and `values` maps each of its labels to what that label's deliverable is |
 | `branch_name_format` | the branch-name template |
-| `branch_types` | the list of `{type}` values a branch may take |
-| `issue_types` | `true` where the repository uses GitHub issue types |
+| `commit_types` | the Conventional Commits types a branch name, a commit header and a PR title may take |
+| `use_issue_types` | `true` where the repository uses GitHub issue types |
 | `default_branch` | the trunk's name |
 | `remote` | the remote's name |
 | `commit_scope` | `"label"`, giving every branch commit the issue's mandatory-axis label as its scope |

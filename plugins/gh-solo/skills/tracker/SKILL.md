@@ -54,8 +54,8 @@ What this skill takes from it, each read with the call beside it, whose script o
 
 - the mandatory axis and its labels: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get labels`
 - the branch format: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_name_format`
-- its `{type}` vocabulary: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_types`
-- whether the repository uses GitHub issue types: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get issue_types`
+- its `{type}` vocabulary: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_types`
+- whether the repository uses GitHub issue types: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get use_issue_types`
 - the default branch: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get default_branch`
 - the remote: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get remote`
 

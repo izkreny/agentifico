@@ -32,7 +32,7 @@ The Branch row is the default; the branch format in force is what `python3 <skil
 | `docs`     | Prose                                  |
 | `chore`    | Tooling, dependencies, config          |
 
-That set is the default, and the set in force is what `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_types` prints; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set as `branch_types` in the repository's config if it differs, and a different branch format as `branch_name_format`, per `../pr-flow/references/repo-config.md`.
+That set is the default, and the set in force is what `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_types` prints; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set as `commit_types` in the repository's config if it differs, and a different branch format as `branch_name_format`, per `../pr-flow/references/repo-config.md`.
 
 **Type describes the change, labels describe the deliverable.** They are separate axes and neither derives from the other: a `docs` branch usually sits on a `docs`-labelled issue and a `fix` branch on a `bug` issue, but a `refactor` branch can serve a `feat`-shaped issue and a `chore` can close a `bug`. Never infer the label from the branch, or the branch from the label. **The word `docs` lives on each axis and asks a different question on each**: as a type it says the change is prose, as a label it says the deliverable is prose. They usually coincide, which is exactly why the scope rule omits the scope when it would repeat the type.
 
