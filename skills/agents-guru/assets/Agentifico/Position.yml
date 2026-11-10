@@ -14,6 +14,13 @@ exceptions:
   - 'each part below'
   # "one copy owns it and every other copy points at it" in workflows/new.md, One fact, one place, and "every other copy becomes a pointer at it" in workflows/review.md are the rule's own prescription, made true by construction.
   - 'every other copy'
+  # A branch's place in a stack, as AGENTS.md and .agents/gh-solo.md write it: "every branch below it", "The child below", "the branch below it". No edit to the document can falsify it, #445 AGF3.
+  - 'every branch below'
+  - 'Every branch below'
+  - 'the branch below'
+  - 'The branch below'
+  - 'the child below'
+  - 'The child below'
 tokens:
   # A pointer by position: "the escape above" PR 46, "the row below" PR 58, "the paragraph above" PR 58, "the table above" and "label taxonomy below" ae1cd1a, "the name loop below" PR 100; twenty removals of "above" and sixteen of "below" across the history; "the above" live in skills/review-text, matched with no word between. "no rule above decides them" 9827051, PR 128, adds "no"; "the `rescope` list below" PR 181 lets a word be a code span, which is masked to asterisks by the time the token reads it. Narrows determiners: "that" is left out because "that floats above" is a CSS reference, not a pointer, and the record holds no "its" or "a" before one.
   - '(?:the|this|these|those|any|every|each|no) (?:[\w''*-]+ ){0,3}(?:above|below)'
@@ -177,4 +184,6 @@ tests:
       Every file here is written to the agent, and every command here starts with gh.
       Every path this file names opens with a placeholder.
       A timeout configured below the default is refused.
+      The top branch contains every branch below it, and the child below goes first.
+      The child below often lands first, since the branch below it is the base.
     want: ""
