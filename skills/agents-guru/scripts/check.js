@@ -407,7 +407,7 @@ const MIN_VALE_MAJOR = 3;
 const MIN_VALE_MINOR = 25;
 const minVale = `${MIN_VALE_MAJOR}.${MIN_VALE_MINOR}`;
 
-// A Vale before 3.23 loads a rule naming a scope from config/scopes and matches nothing, so its run would pass with rules quietly off.
+// WHY: no floor may go below 3.23, since an older Vale loads a rule naming a scope from config/scopes and matches nothing, passing with rules quietly off.
 const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
 // Stryker disable next-line StringLiteral: stdout is null only when Vale did not start, and no fallback text holds a version.
 const valeVersion = /(?<major>\d+)\.(?<minor>\d+)\.\d+/u.exec(versionRun.stdout ?? "");
