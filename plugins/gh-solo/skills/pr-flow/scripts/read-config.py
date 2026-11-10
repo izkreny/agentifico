@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read one key from a repository's gh-solo config.
 
-The config is the first file the lookup in `references/repo-config.md` finds, and its keys are the one fenced `json` block in that file. A file with no block sets no key. That reference states the schema and the defaults; this script enforces the schema and owns every refusal and its message, so every reader of a key gets the same answer.
+The config is the first file the lookup in `references/repo-config.md` finds, and its keys are the one fenced `json` block in that file. A file with no block sets no key. That reference names the keys, `defaults.json` beside this script holds the defaults, and a key it leaves out has none; this script enforces the schema and owns every refusal and its message, so every reader of a key gets the same answer.
 
 Usage:
     read-config.py get <key>
@@ -62,24 +62,7 @@ SCHEMA = {
     "commit_scope": (lambda v: v == "label", '"label"'),
 }
 
-
-# WHY: these mirror the defaults the tracker skill's formats.md and tracker-fields.md describe to a reader; a key absent here has no value to print, so an unset read exits 1.
-DEFAULTS = {
-    "default_branch": "main",
-    "use_issue_types": False,
-    "branch_name_format": "{type}/GHI-{issue-number}_{slug}",
-    "commit_types": ["feat", "fix", "refactor", "docs", "chore"],
-    "labels": {
-        "axis": "layer",
-        "values": {
-            "backend": "An API, a service, a background job, a schema or a migration",
-            "frontend": "A view, a component, a route, styling",
-            "fullstack": "One thing that cannot be accepted from either side alone",
-            "infra": "A pipeline, a deployment, a container, tooling or repository config",
-            "docs": "Prose that is the point in itself: a README, a guide, an ADR",
-        },
-    },
-}
+DEFAULTS_FILE = Path(__file__).with_name("defaults.json")
 
 
 def user_config_dir():
@@ -145,8 +128,12 @@ def parse(config_text):
         config = json.loads(blocks[0], object_pairs_hook=no_repeats)
     except json.JSONDecodeError as e:
         raise ReadError(f"its json block does not parse: {e}")
+    return checked(config, "its json block")
+
+
+def checked(config, what):
     if not isinstance(config, dict):
-        raise ReadError("its json block is not an object")
+        raise ReadError(f"{what} is not an object")
     for key, value in config.items():
         if key not in SCHEMA:
             raise ReadError(f"{key} is not a key")
@@ -154,6 +141,14 @@ def parse(config_text):
         if not valid(value):
             raise ReadError(f"{key} must be {shape}")
     return config
+
+
+def defaults():
+    # WHY: a bad default would print a wrong value to every repository that sets none, so the plugin's own file is held to the config's rules.
+    try:
+        return checked(json.loads(DEFAULTS_FILE.read_text(encoding="utf-8"), object_pairs_hook=no_repeats), "it")
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ReadError) as e:
+        raise ReadError(f"{DEFAULTS_FILE}: {e}")
 
 
 def load(root, name_with_owner):
@@ -187,6 +182,7 @@ def main(argv=None):
     try:
         root = must("git", "rev-parse", "--show-toplevel")
         _, config = load(root, lambda: must("gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"))
+        fallback = defaults()
     except Refused as e:
         print(f"⛔ REFUSED - {e}")
         return 2
@@ -195,11 +191,11 @@ def main(argv=None):
         print(f"read-config: {e}", file=sys.stderr)
         return 2
     if a.command == "get-all":
-        print(json.dumps({key: config.get(key, DEFAULTS.get(key)) for key in SCHEMA}, indent=2))
+        print(json.dumps({key: config.get(key, fallback.get(key)) for key in SCHEMA}, indent=2))
         return 0
-    if a.key not in config and a.key not in DEFAULTS:
+    if a.key not in config and a.key not in fallback:
         return 1
-    value = config.get(a.key, DEFAULTS.get(a.key))
+    value = config.get(a.key, fallback.get(a.key))
     print(value if isinstance(value, str) else json.dumps(value))
     return 0
 

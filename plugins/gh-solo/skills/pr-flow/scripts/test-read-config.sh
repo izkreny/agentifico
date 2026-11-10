@@ -181,6 +181,15 @@ os.environ["XDG_CONFIG_HOME"] = "relative/xdg"
 check("a relative XDG_CONFIG_HOME is ignored", get("reviewer_model"), (1, ""))
 os.environ["XDG_CONFIG_HOME"] = ""
 
+print("\nthe defaults file:")
+shipped = rc.DEFAULTS_FILE
+rc.DEFAULTS_FILE = rc.Path(repo) / "defaults.json"
+check("a missing defaults file exits 2, never 1", get("test_files")[0], 2)
+for name, bad in (("an unknown key", {"comit_types": ["feat"]}), ("a bad value", {"use_issue_types": "false"})):
+    rc.DEFAULTS_FILE.write_text(json.dumps(bad))
+    check(f"a defaults file with {name} exits 2", get("default_branch")[0], 2)
+rc.DEFAULTS_FILE = shipped
+
 print(f"\n{'all passed' if not fails else f'{fails} failed'}")
 sys.exit(1 if fails else 0)
 PY
