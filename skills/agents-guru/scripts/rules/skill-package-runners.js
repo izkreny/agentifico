@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { isSkillFile } from "./frontmatter.js";
 import { owningSkill } from "./paths.js";
+import { walk } from "./walk.js";
 
 // WHY: this rule warns when it cannot tell, so whatever stands before a runner leaves it counted, since a wrapper, a prompt or a quoted command leaves it running.
 const RUNNER = /(?:^|[\s;&|(`'"])(?<written>(?<runner>npx|bunx|uvx|pipx\s+run|deno\s+run|go\s+run)(?=\s)[^;&|)`]*)/gu;
@@ -49,16 +50,6 @@ function unpinned(text) {
         fetchesPackage(runner.split(/\s+/u)[0], command.slice(runner.length)) && !VERSION.test(command),
     )
     .map(({ command }) => withoutClosingQuotes(command));
-}
-
-function walk(tokens, fn) {
-  for (const token of tokens) {
-    fn(token);
-    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) {
-      walk(token.children, fn);
-    }
-  }
 }
 
 export default {
