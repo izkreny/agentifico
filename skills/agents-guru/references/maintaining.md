@@ -2,6 +2,8 @@
 
 Read this before editing anything under `assets/` or `scripts/`. No route loads it, because an agent checking, writing, reviewing or exporting a skill never needs it. Growing a phrase list also needs `gh` and `git`, to read findings and fix commits.
 
+Contents: *Registering a rule*, *Where the prose rules live*, *Why some rules take the shape they do*, *How a phrase list grows*, *The suite*.
+
 ## Registering a rule
 
 A rule taken from another tool's catalogue first earns its place by `references/porting.md`. A rule you add is filed against the heading its findings group under, which `workflows/check.md` names. Register a markdownlint rule in `scripts/lint-config.js`, in the array for the heading it belongs under. A rule over a file markdownlint does not read, such as a YAML file or a plugin's manifest, is a reader in `scripts/check.js`, under its own heading. Vale needs no registration.
