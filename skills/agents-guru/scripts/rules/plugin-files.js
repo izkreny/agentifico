@@ -114,7 +114,7 @@ function fieldRules(hook, event, report) {
   const type = hook.get("type");
   const async = pairOf(hook, "async");
   if (async && type !== "command") {
-    report(async, `async on a ${type} hook is ignored: it is available on command hooks only`);
+    report(async, `async is ignored on ${type} hooks: it is available on command hooks only`);
   }
   const onFailure = pairOf(hook, "onFailure");
   if (onFailure && NO_ON_FAILURE.has(event)) {

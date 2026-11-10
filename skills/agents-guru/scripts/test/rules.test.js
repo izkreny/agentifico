@@ -782,7 +782,7 @@ describe("skill-argument-hint", () => {
     ["h-capital-word", "[Fix | new]", routing("If it starts with `new` → read a."), null],
     ["h-path-word", "[new | check/x]", routing("If it starts with `new` → read a."), null],
     // Only an item's lead paragraph states its route, so a continuation's arrow routes nothing.
-    ["h-continuation", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n\n  Then `check` → b.", null],
+    ["h-continuation-arrow", "[new]", "## Routing\n\n- If it starts with `new` → read a.\n\n  Then `check` → b.", null],
     // A definition opening an item's lead block leaves the paragraph after it to be read.
     [
       "h-definition-lead",
@@ -1138,7 +1138,7 @@ describe("plugin-hooks", () => {
     it("async on an http hook leaves its onFailure working", () => {
       const details = hooksDefects(hooksFile("PreToolUse", { hooks: [http({ onFailure: "block", async: true })] })).map((d) => d.detail);
       assert.equal(details.length, 1, JSON.stringify(details));
-      assert.match(details[0], /^async on a http hook/u);
+      assert.match(details[0], /^async is ignored on http hooks/u);
     });
     it("names the line onFailure sits on", () => {
       const source = hooksFile("Stop", { hooks: [command({ onFailure: "block" })] });
