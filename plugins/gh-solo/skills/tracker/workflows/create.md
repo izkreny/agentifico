@@ -23,7 +23,7 @@ Even when nothing is behind, **re-read any source file that was read before this
 
 ## Step 2 - Load standards and config
 
-Read `references/issue-shape.md`, and `references/tracker-fields.md` for the labels. Then take the layer set and the branch format in force from `python3 <skill-dir>/../pr-flow/scripts/read-config.py get labels`, `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_format` and `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_types`, which print the defaults where the config sets none, per `../pr-flow/references/repo-config.md`.
+Read `references/issue-shape.md`, and `references/tracker-fields.md` for the labels. Then take the layer set and the branch format in force from `python3 <skill-dir>/../pr-flow/scripts/read-config.py get labels`, `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_name_format` and `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_types`, which print the defaults where the config sets none, per `../pr-flow/references/repo-config.md`.
 
 ## Step 3 - Check the label taxonomy
 

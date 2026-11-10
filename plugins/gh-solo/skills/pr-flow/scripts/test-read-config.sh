@@ -69,7 +69,7 @@ full = {
     "reviewer_model": "opus",
     "test_files": "spec/**/*_spec.rb",
     "labels": {"axis": "package", "values": {"gh-solo": "plugins/gh-solo/", "repo": "the repository itself"}},
-    "branch_format": "{type}/GHI-{issue-number}_{slug}",
+    "branch_name_format": "{type}/GHI-{issue-number}_{slug}",
     "branch_types": ["feat", "fix", "docs"],
     "issue_types": False,
     "default_branch": "trunk",
@@ -91,7 +91,7 @@ check("a glob prints as it is", get("test_files"), (0, "spec/**/*_spec.rb"))
 check("an object prints as JSON", json.loads(get("labels")[1]), full["labels"])
 check("a list prints as JSON", get("branch_types"), (0, '["feat", "fix", "docs"]'))
 check("a boolean prints as JSON", get("issue_types"), (0, "false"))
-for key in ("branch_format", "default_branch", "remote", "commit_scope"):
+for key in ("branch_name_format","default_branch", "remote", "commit_scope"):
     check(f"{key} is read", get(key), (0, full[key]))
 config(block({"reviewer_model": "opus"}))
 check("an unset key exits 1", get("test_files"), (1, ""))
@@ -99,7 +99,7 @@ for key in ("remote", "commit_scope"):
     check(f"unset {key} has no default and exits 1", get(key), (1, ""))
 check("unset default_branch prints its default", get("default_branch"), (0, "main"))
 check("unset issue_types prints its default", get("issue_types"), (0, "false"))
-check("unset branch_format prints its default", get("branch_format"), (0, "{type}/GHI-{issue-number}_{slug}"))
+check("unset branch_name_format prints its default", get("branch_name_format"), (0, "{type}/GHI-{issue-number}_{slug}"))
 check("unset branch_types prints its default", json.loads(get("branch_types")[1]), ["feat", "fix", "refactor", "docs", "chore"])
 check("unset labels prints the Layer axis", sorted(json.loads(get("labels")[1])["values"]), ["backend", "docs", "frontend", "fullstack", "infra"])
 code, out = get_all()
