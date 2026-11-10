@@ -1,4 +1,4 @@
-# The other half of "Write sentences that survive change" in workflows/new.md: a claim of position, uniqueness or recency is falsified by an edit made anywhere in the document, and nothing points at the sentence when it happens. The repair a review always landed on is to name the section, the file or the member instead. Tokens are the shapes caught in this repository, each named by the pull request or commit that removed it.
+# The other half of "Write sentences that survive change" in workflows/new.md: a claim of position, uniqueness or recency is falsified by an edit made anywhere in the document, and nothing points at the sentence when it happens. The repair a review always landed on is to name the section, the file or the member instead. Tokens are the shapes caught in this repository, each named by the pull request or commit that removed it, or by the file a live occurrence sits in.
 extends: existence
 message: "Write sentences that survive change: '%s' claims a position or uniqueness that any edit can falsify; name the section, file or member instead."
 link: https://github.com/izkreny/agentifico/blob/main/skills/agents-guru/workflows/new.md
