@@ -29,7 +29,7 @@ Every skill in this plugin, and the `reviewer` agent, looks for a repository's c
 | --- | --- |
 | `reviewer_model` | the model a review round asks the `reviewer` spawn for |
 | `test_files` | a git pathspec glob naming the repository's tests, which turns the criteria gate on |
-| `mandatory_labels` | an object: `axis_name` names the mandatory axis, as *Labels* in `../tracker/references/tracker-fields.md` defines an axis, and `values` maps each of its labels to what that label's deliverable is |
+| `mandatory_axis` | an object: `name` names the mandatory axis, as *Labels* in `../tracker/references/tracker-fields.md` defines an axis, and `labels` maps each of its labels to what that label's deliverable is |
 | `branch_name_format` | the branch-name template, whose `{type}` takes one of the `commit_types` |
 | `commit_types` | the Conventional Commits types a branch name, a commit header and a PR title may take |
 | `use_issue_types` | `true` where the repository uses GitHub issue types |

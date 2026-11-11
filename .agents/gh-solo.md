@@ -6,14 +6,14 @@ Per-repository facts the `gh-solo` plugin reads. Only what differs from its defa
 
 ## Settings
 
-Every key the plugin reads is in this block, per `plugins/gh-solo/skills/pr-flow/references/repo-config.md`, which owns the schema. *Labels* and *The commit header format* say why `mandatory_labels` and `commit_scope` hold what they do.
+Every key the plugin reads is in this block, per `plugins/gh-solo/skills/pr-flow/references/repo-config.md`, which owns the schema. *Labels* and *The commit header format* say why `mandatory_axis` and `commit_scope` hold what they do.
 
 ```json
 {
   "reviewer_model": "opus",
-  "mandatory_labels": {
-    "axis_name": "package",
-    "values": {
+  "mandatory_axis": {
+    "name": "package",
+    "labels": {
       "gh-solo": "plugins/gh-solo/",
       "typescript-native-lsp": "plugins/typescript-native-lsp/",
       "rails-style": "skills/rails-style/",
@@ -220,11 +220,11 @@ bash scripts/test-manifest-check.sh
 
 ## Labels
 
-**The package axis replaces the plugin's Layer axis.** The plugin's own standards call the `backend`/`frontend`/`fullstack`/`infra`/`docs` set a default rather than a law, and this repository has no such split: it has packages, each released on its own tag. The axis rules carry over - exactly one value, mandatory, an epic exempt - and the labels with what each one's deliverable is are the `mandatory_labels` key in *Settings*.
+**The package axis replaces the plugin's Layer axis.** The plugin's own standards call the `backend`/`frontend`/`fullstack`/`infra`/`docs` set a default rather than a law, and this repository has no such split: it has packages, each released on its own tag. The axis rules carry over - exactly one value, mandatory, an epic exempt - and the labels with what each one's deliverable is are the `mandatory_axis` key in *Settings*.
 
 **The label is where the deliverable lands, not every directory the branch touches.** A change to the plugin that also updates its README is `gh-solo`; ask what the issue would be closed *for*.
 
-**A new package arrives with a new value.** The axis is the set of packages, so it grows when `plugins/` or `skills/` does, and the `mandatory_labels` key is what a new directory owes an edit to. The plugin's mandatory-axis audit builds its exclusions from that key, so the new value needs no edit anywhere else.
+**A new package arrives with a new value.** The axis is the set of packages, so it grows when `plugins/` or `skills/` does, and the `mandatory_axis` key is what a new directory owes an edit to. The plugin's mandatory-axis audit builds its exclusions from that key, so the new value needs no edit anywhere else.
 
 ## The skill review is its own issue, not a branch's gate
 
