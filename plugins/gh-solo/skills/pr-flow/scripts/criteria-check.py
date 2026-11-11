@@ -96,14 +96,21 @@ def search(issue, key, sha, glob):
     return parse_hits(out, sha)
 
 
-def resolve_remote():
+def trunk_name(config):
+    try:
+        return config.get("default_branch") or rc.defaults()["default_branch"]
+    except rc.ReadError as e:
+        raise CheckError(str(e))
+
+
+def resolve_remote(trunk):
     remotes = must("git", "remote").split()
     if len(remotes) == 1:
         return remotes[0]
-    code, out, _ = run("git", "config", "branch.main.remote")
+    code, out, _ = run("git", "config", f"branch.{trunk}.remote")
     if code == 0 and out.strip():
         return out.strip()
-    raise CheckError("more than one remote and none tracked by main: pass --remote")
+    raise CheckError(f"more than one remote and none tracked by {trunk}: pass --remote")
 
 
 def check(pr, remote):
@@ -128,7 +135,7 @@ def check(pr, remote):
         print(f"criteria-check: #{issue} carries no keyed criterion")
         return 0
     # WHY: `gh pr view --json headRefOid` was seen answering with a pre-push sha, so the head is read by fetch.
-    must("git", "fetch", remote or config.get("remote") or resolve_remote(), view["headRefName"], "--quiet")
+    must("git", "fetch", remote or config.get("remote") or resolve_remote(trunk_name(config)), view["headRefName"], "--quiet")
     sha = must("git", "rev-parse", "FETCH_HEAD").strip()
     missing = []
     for key in keys:
