@@ -21,7 +21,9 @@ const nothingChecked = (why) => {
 
 // The options are taken out before any argument resolves as a path, so a run naming only options still checks the working directory.
 const skip = new Set();
+// Stryker disable next-line ArrayDeclaration: a seeded glob names no path, so nothing more is left out.
 const excludes = [];
+// Stryker disable next-line ArrayDeclaration: a seeded include matches no path and only stops the pruning, which the walk's own filter makes invisible.
 const includes = [];
 const paths = [];
 for (let i = 2; i < process.argv.length; i += 1) {
@@ -70,6 +72,7 @@ const MEBIBYTE = 1_048_576;
 const GIT_LISTING_MEBIBYTES = 64;
 // WHY: git is asked once per folder target, and a failure of any kind, from no repository to no git, leaves nothing ignored, so a target git ignores as a whole is still read as named.
 const gitIgnored = (target) => {
+  // Stryker disable next-line ConditionalExpression,BlockStatement: git -C on a file fails, which leaves nothing ignored, as the early return does.
   if (!fs.statSync(target).isDirectory()) {
     return new Set();
   }
@@ -79,11 +82,13 @@ const gitIgnored = (target) => {
   });
   return new Set(
     listing.status === 0
-      ? listing.stdout
+      ? // Stryker disable next-line MethodExpression: the empty entry after the last NUL names no path a walk yields.
+        listing.stdout
           .split("\0")
           .filter(Boolean)
           .map((entry) => entry.replace(/\/$/u, ""))
-      : [],
+      : // Stryker disable next-line ArrayDeclaration: a seeded entry names no path, so a failed listing still ignores nothing.
+        [],
   );
 };
 // A listed folder covers everything under it, so a path is ignored when it, or a folder it sits in, is listed.
@@ -97,7 +102,7 @@ const matchesUnder = (rel, pattern) =>
 const leftOutBy = (ignored) => (rel) =>
   (ignoredBy(ignored, rel) || excludes.some((pattern) => matchesUnder(rel, pattern))) && !includes.some((pattern) => matchesUnder(rel, pattern));
 const leftOut = targets.map((target) => leftOutBy(gitIgnored(target)));
-// WHY: a left-out folder is pruned only when no include is given, since what an include keeps below it is known only by walking it.
+// Stryker disable next-line ArrowFunction,ConditionalExpression: pruning only saves time, since the walk's filter drops every left-out path, and an include turns it off because what it keeps below a folder is known only by walking it.
 const pruner = (target, isLeftOut) => (entry) => includes.length === 0 && isLeftOut(path.relative(target, path.join(entry.parentPath, entry.name)));
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const walks = await Promise.all(
@@ -352,7 +357,7 @@ issues += yamlFindings.length - yamlWarnings;
 warnings += yamlWarnings;
 report("yaml files", yamlFindings, yamlWarnings > 0 ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
-// Stryker disable next-line MethodExpression: a glob whose folder is a file yields nothing, so a file target adds no plugin either way.
+// Stryker disable next-line MethodExpression,ArrayDeclaration: a glob whose folder is a file or missing yields nothing, so a file target adds no plugin either way.
 const searched = targets.flatMap((dir, i) => (fs.statSync(dir).isDirectory() ? [[dir, leftOut[i]]] : []));
 // The .claude-plugin folder is searched for by name, because the walk excludes dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 const markersPerDir = await Promise.all(
