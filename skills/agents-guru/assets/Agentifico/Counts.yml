@@ -56,6 +56,8 @@ tokens:
   - 'replaces both(?=[,.;])'
   # "`references/baseline.md` draws on both" #431 RF3, 56bd15a, counting the two sources the sentence before it named. Punctuation after it keeps "draws on both the rule and the file" quiet, which names its members.
   - 'draws on both(?=[,.;])'
+  # "The `gh` CLI is declared in the frontmatter `compatibility` field, with its other use." #445 AGF10, 4433548, counting the CLI's uses as two, false once a third use arrived.
+  - 'its other use'
 tests:
   - name: fires on each recorded shape, once per line
     input: |
@@ -89,6 +91,7 @@ tests:
       Both observed on the gem's last release.
       The next run replaces both.
       The baseline draws on both, and says what it departs from.
+      The gh CLI is declared in the compatibility field, with its other use.
     want: |
       3:11:Agentifico.Counts:Write sentences that survive change: 'all three' counts adjacent content, and the list is the authority on its own length.
       4:7:Agentifico.Counts:Write sentences that survive change: 'the two caps' counts adjacent content, and the list is the authority on its own length.
@@ -118,6 +121,7 @@ tests:
       28:1:Agentifico.Counts:Write sentences that survive change: 'Both observed' counts adjacent content, and the list is the authority on its own length.
       29:14:Agentifico.Counts:Write sentences that survive change: 'replaces both' counts adjacent content, and the list is the authority on its own length.
       30:14:Agentifico.Counts:Write sentences that survive change: 'draws on both' counts adjacent content, and the list is the authority on its own length.
+      31:57:Agentifico.Counts:Write sentences that survive change: 'its other use' counts adjacent content, and the list is the authority on its own length.
   - name: leaves caps, a bare both and code alone
     input: |
       # Title
