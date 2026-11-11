@@ -2,6 +2,8 @@
 
 Read this before editing anything under `assets/` or `scripts/`. No route loads it, because an agent checking, writing, reviewing or exporting a skill never needs it. Growing a phrase list also needs `gh` and `git`, to read findings and fix commits.
 
+Contents: *Registering a rule*, *Where the prose rules live*, *Why some rules take the shape they do*, *How a phrase list grows*, *The suite*.
+
 ## Registering a rule
 
 A rule taken from another tool's catalogue first earns its place by `references/porting.md`. A rule you add is filed against the heading its findings group under, which `workflows/check.md` names. Register a markdownlint rule in `scripts/lint-config.js`, in the array for the heading it belongs under. A rule over a file markdownlint does not read, such as a YAML file or a plugin's manifest, is a reader in `scripts/check.js`, under its own heading. Vale needs no registration.
@@ -10,7 +12,7 @@ A rule taken from another tool's catalogue first earns its place by `references/
 
 **`assets/` is where the Agent Skills specification puts them**, as the data files it names lookup tables and schemas alongside. They are machine-read definitions rather than prose a reader loads or code the check runs, so `references/` and `scripts/` are both the wrong home. `StylesPath` points at that directory itself rather than one inside it, because Vale requires the path to hold the style's own subdirectory.
 
-Each token in a phrase rule is named in the rule file by the finding or commit that removed it, so a token with no source is not there. A token added later carries its own source the same way, which is what keeps the list evidence rather than taste.
+Each token in a phrase rule is named in the rule file by its source: the finding or commit that removed it, or a live occurrence a run found, named by its file. A token with no source is not there. A token added later carries its own source the same way, which is what keeps the list evidence rather than taste.
 
 ## Why some rules take the shape they do
 
@@ -69,7 +71,7 @@ git log --patch origin/main..<branch> -- '*.md' '*.js' '*.py'
 
 ### How a token lands
 
-**A token lands in the rule file under `assets/Agentifico/`, under a comment naming the finding or commit it came from**, in the form the file uses. A token with no source is not there, per *Where the prose rules live*.
+**A token lands in the rule file under `assets/Agentifico/`, under a comment naming its source**, in the form the file uses. A token with no source is not there, per *Where the prose rules live*.
 
 **It gets a line of its own in that rule's trip case, one only it trips, and that line's alert joins the case's `want`.** The trip case is the `tests:` case in the rule file named `fires on each recorded shape, once per line`. The suite's per-token coverage proves a token fires somewhere on that case's input, and where several tokens share a line, a token can pass on a neighbour's line. A line only it trips is what fails the trip case when the token is removed, and that removal is how the line is watched failing before it is trusted, per *A check that has never been seen to fail is not evidence* in `workflows/new.md`.
 

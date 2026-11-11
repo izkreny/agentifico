@@ -1,4 +1,4 @@
-# "Never write the file's own history" in workflows/new.md: a reader cannot locate the past being described, and in a file read as instructions a claim about a rule that no longer exists reads as a rule about the present. Each token is the wording of a history claim a review removed here, named by the pull request or commit. What survives is the durable reason, so the tokens are the words that anchor a sentence to a moment rather than to a reason.
+# "Never write the file's own history" in workflows/new.md: a reader cannot locate the past being described, and in a file read as instructions a claim about a rule that no longer exists reads as a rule about the present. Each token is the wording of a history claim a review removed here, named by the pull request or commit, or by the file a live occurrence sits in. What survives is the durable reason, so the tokens are the words that anchor a sentence to a moment rather than to a reason.
 extends: existence
 message: "Never write the file's own history: '%s' anchors the sentence to a past a reader cannot locate; state the durable reason instead."
 link: https://github.com/izkreny/agentifico/blob/main/skills/agents-guru/workflows/new.md
@@ -64,7 +64,8 @@ tokens:
   # "This supersedes the wording-only fix" #22; "a risk the gate has retired" #80; "rewritten rather than left standing" #101; "it currently forbids bundling a parser, which this issue reverses" #101; seventeen "currently" across the tracker, each dating the sentence it sits in.
   - 'supersede[sd]?'
   - 'has retired'
-  - 'left standing'
+  # Narrowed to its recorded shape, #445 AGF4: "a defect found and left standing" in .agents/gh-solo.md states a present condition.
+  - 'rather than left standing'
   - 'currently'
   # The document narrating its own drafting: "The first draft of this issue" #7, "An earlier shape of this issue" #17, "the reasoning first written here was wrong" #55, "dropped that rule" #3.
   # Narrows determiners: the record holds only "the" and "its" before a first draft.
@@ -133,7 +134,7 @@ tests:
       The rule has been moved to check.md.
       The script was dropped from the package.
       The analysis stands as it was written.
-      The draft is left standing.
+      The draft is rewritten rather than left standing.
       The criterion first said the field stays.
       The rebuild dropped that rule.
       Reading them back asks for a permanent ignore span, which is what the `scripts/*` span was.
@@ -201,7 +202,7 @@ tests:
       33:10:Agentifico.History:Never write the file's own history: 'has been moved' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       34:12:Agentifico.History:Never write the file's own history: 'was dropped from' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       35:14:Agentifico.History:Never write the file's own history: 'stands as it was written' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
-      36:14:Agentifico.History:Never write the file's own history: 'left standing' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      36:24:Agentifico.History:Never write the file's own history: 'rather than left standing' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       37:15:Agentifico.History:Never write the file's own history: 'first said' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       38:13:Agentifico.History:Never write the file's own history: 'dropped that' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       39:53:Agentifico.History:Never write the file's own history: 'which is what the ********* span was' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
@@ -256,4 +257,5 @@ tests:
       A token once used is spent.
       Write that the finding was raised on #{issue-number} and found in #<pr-number>.
       It walks all along the path to the gate.
+      A defect found and left standing makes that assertion false.
     want: ""
