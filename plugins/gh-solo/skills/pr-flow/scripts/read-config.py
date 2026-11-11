@@ -42,8 +42,8 @@ def text_list(value):
 def labels(value):
     return (
         isinstance(value, dict)
-        and set(value) == {"axis", "values"}
-        and text(value["axis"])
+        and set(value) == {"axis_name", "values"}
+        and text(value["axis_name"])
         and isinstance(value["values"], dict)
         and value["values"] != {}
         and all(text(k) and text(v) for k, v in value["values"].items())
@@ -53,7 +53,7 @@ def labels(value):
 SCHEMA = {
     "reviewer_model": (text, "a string"),
     "test_files": (text, "a string"),
-    "mandatory_labels": (labels, 'an object with "axis", a string, and "values", an object of strings'),
+    "mandatory_labels": (labels, 'an object with "axis_name", a string, and "values", an object of strings'),
     "branch_name_format": (text, "a string"),
     "commit_types": (text_list, "a list of strings"),
     "use_issue_types": (lambda v: isinstance(v, bool), "true or false"),
