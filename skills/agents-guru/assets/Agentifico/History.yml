@@ -64,7 +64,7 @@ tokens:
   # "This supersedes the wording-only fix" #22; "a risk the gate has retired" #80; "rewritten rather than left standing" #101; "it currently forbids bundling a parser, which this issue reverses" #101; seventeen "currently" across the tracker, each dating the sentence it sits in.
   - 'supersede[sd]?'
   - 'has retired'
-  # Narrowed to its recorded shape, #445 AGF4: "a defect found and left standing" in .agents/gh-solo.md states a present condition.
+  # Narrows to the recorded phrasing, #445 AGF4: "a defect found and left standing" in .agents/gh-solo.md states a present condition.
   - 'rather than left standing'
   - 'currently'
   # The document narrating its own drafting: "The first draft of this issue" #7, "An earlier shape of this issue" #17, "the reasoning first written here was wrong" #55, "dropped that rule" #3.
