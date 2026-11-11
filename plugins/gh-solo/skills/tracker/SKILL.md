@@ -59,7 +59,7 @@ What this skill takes from it, each read with the call beside it, whose script o
 - the default branch: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get default_branch`
 - the remote: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get remote`
 
-Where the file is absent, each call prints the plugin's default. **Never create the file unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
+Where the file is absent, each call prints the plugin's default, or exits `1` for a key that has none, per `../pr-flow/references/repo-config.md`. **Never create the file unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
 
 No other key is project configuration. `gh` resolves owner and repository from the working directory, so there is no key, no cloud ID, no board and no custom field ID to discover or store.
 
