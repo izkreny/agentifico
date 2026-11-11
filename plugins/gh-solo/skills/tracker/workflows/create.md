@@ -23,7 +23,7 @@ Even when nothing is behind, **re-read any source file that was read before this
 
 ## Step 2 - Load standards and config
 
-Read `references/issue-shape.md`, and `references/tracker-fields.md` for the labels. Then take the layer set and the branch format in force from `python3 <skill-dir>/../pr-flow/scripts/read-config.py get mandatory_labels`, `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_name_format` and `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_types`, which print the defaults where the config sets none, per `../pr-flow/references/repo-config.md`.
+Read `references/issue-shape.md`, and `references/tracker-fields.md` for the labels. Then take the layer set and the branch format in force from `python3 <skill-dir>/../pr-flow/scripts/read-config.py get mandatory_axis`, `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_name_format` and `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_types`, which print the defaults where the config sets none, per `../pr-flow/references/repo-config.md`.
 
 ## Step 3 - Check the label taxonomy
 
@@ -31,7 +31,7 @@ Run `gh label list`. Every label the plan intends to use must already exist, bec
 
 If labels are missing, list them and ask whether to create them, with the exact commands you would run. Do not create labels silently: a label set is a taxonomy the repository lives with, and inventing one mid-plan is how a tracker ends up with `BE`, `backend` and `Backend` all in use at once, splitting every filter three ways.
 
-**Where the repository has no config and the owner has just confirmed a taxonomy, offer to write one**, in the file `../pr-flow/references/repo-config.md` says to offer. This is the moment the offer belongs to: the labels are settled and in front of them, so the axis the file's `mandatory_labels` key records is a decision they have already made rather than one they are being asked to make for a file's sake. Offer, never write unprompted, and say what else the file carries beyond the labels - the check commands `implement` refuses to improvise without, above all.
+**Where the repository has no config and the owner has just confirmed a taxonomy, offer to write one**, in the file `../pr-flow/references/repo-config.md` says to offer. This is the moment the offer belongs to: the labels are settled and in front of them, so the axis the file's `mandatory_axis` key records is a decision they have already made rather than one they are being asked to make for a file's sake. Offer, never write unprompted, and say what else the file carries beyond the labels - the check commands `implement` refuses to improvise without, above all.
 
 ## Step 4 - Look for an existing epic
 
