@@ -126,7 +126,7 @@ Never spawn first and check after: the spawn is the thing being counted, so a ch
 
 #### Which reviewer runs, and the spawn
 
-**The reviewer is the `reviewer` agent this plugin ships, per `references/reviewer-appointment.md`, and which model it runs on is a per-repo fact.** By default the spawn carries no model parameter, so the agent's own frontmatter decides. Where `python3 <skill-dir>/scripts/read-config.py get reviewer_model` prints a model, per `references/repo-config.md`, read `references/reviewer-appointment.md` before the spawn, and refuse as it says rather than falling back to the default.
+**The reviewer is the `reviewer` agent this plugin ships, per `references/reviewer-appointment.md`, and which model it runs on is a per-repo fact.** By default the spawn carries no model parameter, so the agent's own frontmatter decides. Where `python3 <skill-dir>/scripts/read-config.py get reviewer_model` prints a model, per `references/repo-config.md`, read `references/reviewer-appointment.md` before the spawn, and refuse as it says rather than falling back to the default. Where the call exits `2`, stop and relay its refusal rather than spawning with no model parameter.
 
 **Read the head before the spawn and hand it over as the scope**, because every anchor the reviewer produces belongs to the version it read:
 
