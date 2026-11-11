@@ -357,7 +357,7 @@ issues += yamlFindings.length - yamlWarnings;
 warnings += yamlWarnings;
 report("yaml files", yamlFindings, yamlWarnings > 0 ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
-// Stryker disable next-line MethodExpression,ArrayDeclaration: a glob whose folder is a file or missing yields nothing, so a file target adds no plugin either way.
+// Stryker disable next-line MethodExpression: a glob whose folder is a file yields nothing, so a file target adds no plugin either way.
 const searched = targets.flatMap((dir, i) => (fs.statSync(dir).isDirectory() ? [[dir, leftOut[i]]] : []));
 // The .claude-plugin folder is searched for by name, because the walk excludes dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 const markersPerDir = await Promise.all(
