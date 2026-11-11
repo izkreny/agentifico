@@ -102,7 +102,7 @@ const matchesUnder = (rel, pattern) =>
 const leftOutBy = (ignored) => (rel) =>
   (ignoredBy(ignored, rel) || excludes.some((pattern) => matchesUnder(rel, pattern))) && !includes.some((pattern) => matchesUnder(rel, pattern));
 const leftOut = targets.map((target) => leftOutBy(gitIgnored(target)));
-// Stryker disable next-line ArrowFunction,ConditionalExpression: pruning only saves time, since the walk's filter drops every left-out path, and an include turns it off because what it keeps below a folder is known only by walking it.
+// Stryker disable next-line ArrowFunction: pruning only saves time, since the walk's filter drops every left-out path, and an include turns it off because what it keeps below a folder is known only by walking it.
 const pruner = (target, isLeftOut) => (entry) => includes.length === 0 && isLeftOut(path.relative(target, path.join(entry.parentPath, entry.name)));
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const walks = await Promise.all(
