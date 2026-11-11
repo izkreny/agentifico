@@ -8,7 +8,7 @@ Same as Step 1 of `workflows/status.md`: the argument, else the current branch, 
 
 ## Step 2 - Load the standards
 
-Read `references/issue-shape.md` and `references/tracker-fields.md`, and the repository's config if it has one, found by the lookup `../pr-flow/references/repo-config.md` owns. **The per-repo file wins on every conflict.** A repository that declared its own layer set is not failing validation for using it.
+Read `references/issue-shape.md` and `references/tracker-fields.md`, and the repository's config if it has one, found by the lookup `../pr-flow/references/repo-config.md` owns, taking its mandatory axis from `python3 <skill-dir>/../pr-flow/scripts/read-config.py get mandatory_axis`. **The per-repo file wins on every conflict.** A repository that declared its own layer set is not failing validation for using it.
 
 ## Step 3 - Fetch
 
@@ -35,7 +35,7 @@ Exit 0 passes both rows. Exit 1 fails the rows its lines name: an `unkeyed` line
 | Check | Rule |
 | --- | --- |
 | Title format | `imperative action`, all lowercase, under the length cap in *Titles* of `references/issue-shape.md`, no bracketed prefix or layer tag |
-| Mandatory axis | Exactly one value of the repository's mandatory axis present - `layer` by default, and whatever the repository's config names where it defines its own axis. It is the only record of that axis, so absent is a fail and two is a fail. Report the row under the axis's real name and the repository's real values, never the default set's. Two values means either one deliverable, and the axis has a combined value for it, or two issues |
+| Mandatory axis | Exactly one value of the repository's mandatory axis present - `layer` by default, and whatever `get mandatory_axis` prints where the repository's config defines its own axis. It is the only record of that axis, so absent is a fail and two is a fail. Report the row under the axis's real name and the repository's real values, never the default set's. Two values means either one deliverable, and the axis has a combined value for it, or two issues |
 | Parent | Attached to an epic, unless the issue is genuinely standalone |
 | Body sections | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when |
 | Summary is capped | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement |
