@@ -72,7 +72,7 @@ const MEBIBYTE = 1_048_576;
 const GIT_LISTING_MEBIBYTES = 64;
 // WHY: git is asked once per folder target, and a failure of any kind, from no repository to no git, leaves nothing ignored, so a target git ignores as a whole is still read as named.
 const gitIgnored = (target) => {
-  // Stryker disable next-line ConditionalExpression,BlockStatement: git -C on a file fails, which leaves nothing ignored, as the early return does.
+  // Stryker disable next-line BlockStatement: git -C on a file fails, which leaves nothing ignored, as the early return does.
   if (!fs.statSync(target).isDirectory()) {
     return new Set();
   }
