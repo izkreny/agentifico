@@ -68,7 +68,7 @@ def get_all():
 full = {
     "reviewer_model": "opus",
     "test_files": "spec/**/*_spec.rb",
-    "mandatory_labels": {"axis": "package", "values": {"gh-solo": "plugins/gh-solo/", "repo": "the repository itself"}},
+    "mandatory_labels": {"axis_name": "package", "values": {"gh-solo": "plugins/gh-solo/", "repo": "the repository itself"}},
     "branch_name_format": "{type}/GHI-{issue-number}_{slug}",
     "commit_types": ["feat", "fix", "docs"],
     "use_issue_types": False,
@@ -137,7 +137,7 @@ config(block({"reviewr_model": "opus"}))
 check("an unknown key refuses", get("reviewer_model"), (2, f"⛔ REFUSED - {in_repo}: reviewr_model is not a key"))
 config("```json\n{\"reviewer_model\": \"opus\", \"reviewer_model\": \"sonnet\"}\n```\n")
 check("a key set twice refuses", get("reviewer_model"), (2, f"⛔ REFUSED - {in_repo}: reviewer_model is set twice"))
-for key, bad in (("reviewer_model", ""), ("test_files", 3), ("use_issue_types", "false"), ("commit_types", "feat"), ("commit_scope", "package"), ("mandatory_labels", {"axis": "package"}), ("mandatory_labels", {"axis": "package", "values": {"x": 1}})):
+for key, bad in (("reviewer_model", ""), ("test_files", 3), ("use_issue_types", "false"), ("commit_types", "feat"), ("commit_scope", "package"), ("mandatory_labels", {"axis_name": "package"}), ("mandatory_labels", {"axis_name": "package", "values": {"x": 1}})):
     config(block({key: bad}))
     code, out = get("reviewer_model")
     check(f"{key} as {bad!r} refuses", (code, out.startswith(f"⛔ REFUSED - {in_repo}: {key} must be")), (2, True))

@@ -4,7 +4,7 @@
   "branch_name_format": "{type}/GHI-{issue-number}_{slug}",
   "commit_types": ["feat", "fix", "refactor", "docs", "chore"],
   "mandatory_labels": {
-    "axis": "layer",
+    "axis_name": "layer",
     "values": {
       "backend": "An API, a service, a background job, a schema or a migration",
       "frontend": "A view, a component, a route, styling",

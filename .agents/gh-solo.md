@@ -12,7 +12,7 @@ Every key the plugin reads is in this block, per `plugins/gh-solo/skills/pr-flow
 {
   "reviewer_model": "opus",
   "mandatory_labels": {
-    "axis": "package",
+    "axis_name": "package",
     "values": {
       "gh-solo": "plugins/gh-solo/",
       "typescript-native-lsp": "plugins/typescript-native-lsp/",
