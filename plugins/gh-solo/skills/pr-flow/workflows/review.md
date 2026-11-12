@@ -126,7 +126,7 @@ Never spawn first and check after: the spawn is the thing being counted, so a ch
 
 #### Which reviewer runs, and the spawn
 
-**The reviewer is the `reviewer` agent this plugin ships, per `references/reviewer-appointment.md`, and which model it runs on is a per-repo fact.** By default the spawn carries no model parameter, so the agent's own frontmatter decides. Where the repository's config, found by the lookup `references/repo-config.md` owns, carries a `Reviewer model:` line, read `references/reviewer-appointment.md` before the spawn, and refuse as it says rather than falling back to the default.
+**The reviewer is the `reviewer` agent this plugin ships, per `references/reviewer-appointment.md`, and which model it runs on is a per-repo fact.** By default the spawn carries no model parameter, so the agent's own frontmatter decides. Where `python3 <skill-dir>/scripts/read-config.py get reviewer_model` prints a model, per `references/repo-config.md`, read `references/reviewer-appointment.md` before the spawn, and refuse as it says rather than falling back to the default. Where the call exits `2`, stop and relay its refusal rather than spawning with no model parameter.
 
 **Read the head before the spawn and hand it over as the scope**, because every anchor the reviewer produces belongs to the version it read:
 
@@ -139,7 +139,7 @@ git rev-parse FETCH_HEAD
 
 Keep the value. It is the pin: Step 2 passes it to the script, which compares it both against what the reviewer reports reading and against the head the ref holds by then.
 
-Spawn it with the PR number and the pin, and nothing else, beside the model parameter where `Reviewer model:` set one.
+Spawn it with the PR number and the pin, and nothing else, beside the model parameter where `python3 <skill-dir>/scripts/read-config.py get reviewer_model` printed one.
 
 **The pin is admissible in the prompt where an account of the diff is not**: a sha is an address rather than an account, which is the test `../../agents/reviewer.md` applies to the `rescope` prompt's commit range, so it takes nothing away from the reviewer fetching its own context.
 
@@ -267,7 +267,7 @@ Which findings get no plan and wait for the owner instead, and what their reply 
 
 Spawn the reviewer again.
 
-Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit or body item key claims which id, the key bare, as `V3`, per step 5 of `references/review-protocol.md`. **Where `Reviewer model:` set one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
+Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit or body item key claims which id, the key bare, as `V3`, per step 5 of `references/review-protocol.md`. **Where `python3 <skill-dir>/scripts/read-config.py get reviewer_model` printed one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
 
 **The commits are unpushed, so it reads them with `git` locally**; never hand it a diff you generated.
 

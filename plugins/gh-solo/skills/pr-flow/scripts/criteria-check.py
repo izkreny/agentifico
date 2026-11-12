@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
 """Check that a test names each keyed acceptance criterion of the issue a pull request closes.
 
-It reads the `Test files:` glob from the repository's config, the first file the lookup in `references/repo-config.md` finds, then the criterion keys of the issue the PR body's `Closes #` line names, and the PR's head, then searches that head once per key. It writes only to stdout and stderr.
+It reads the glob `python3 read-config.py get test_files` prints, loading that script in-process rather than running it, then the criterion keys of the issue the PR body's `Closes #` line names, and the PR's head, then searches that head once per key. It writes only to stdout and stderr.
 
-Exit codes: 0 every key is named, or the gate is off, or no criterion carries a key; 1 a key no test names; 2 the check could not run.
+Exit codes: 0 every key is named, or the gate is off, or no criterion carries a key; 1 a key no test names; 2 the config refuses, or the check could not run.
 
 Usage:
     criteria-check.py <pr-number> [--remote <remote>]
 """
 import argparse
+import importlib.util
 import json
-import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-IN_REPO_CONFIGS = (".agents/gh-solo.md", ".claude/gh-solo.md")
-GLOB_LINE = re.compile(r"^Test files:[ \t]*(\S.*?)[ \t]*$", re.M)
+# WHY: the reader's filename has a hyphen, like every script here, so it loads by path rather than by import.
+_spec = importlib.util.spec_from_file_location("read_config", Path(__file__).with_name("read-config.py"))
+rc = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(rc)
+
 CLOSES = re.compile(r"\bCloses #(\d+)\b")
 ITEM = re.compile(r"^( {0,3})((?:[-*+]|\d+[.)])[ \t]+)\S")
 FENCE = re.compile(r"^(`{3,}|~{3,})")
@@ -40,11 +43,6 @@ def must(*args):
     if code != 0:
         raise CheckError(f"{' '.join(args)} exited {code}: {err.strip()}")
     return out
-
-
-def test_glob(config_text):
-    m = GLOB_LINE.search(config_text or "")
-    return m.group(1) if m else None
 
 
 def closed_issue(pr_body):
@@ -98,41 +96,34 @@ def search(issue, key, sha, glob):
     return parse_hits(out, sha)
 
 
-def resolve_remote():
+def trunk_name(config):
+    try:
+        return config.get("default_branch") or rc.defaults()["default_branch"]
+    except rc.ReadError as e:
+        raise CheckError(str(e))
+
+
+def resolve_remote(trunk):
     remotes = must("git", "remote").split()
     if len(remotes) == 1:
         return remotes[0]
-    code, out, _ = run("git", "config", "branch.main.remote")
+    code, out, _ = run("git", "config", f"branch.{trunk}.remote")
     if code == 0 and out.strip():
         return out.strip()
-    raise CheckError("more than one remote and none tracked by main: pass --remote")
-
-
-def user_config_dir():
-    # WHY: the XDG Base Directory spec ignores a relative value, as it does an empty one.
-    xdg = os.environ.get("XDG_CONFIG_HOME", "")
-    return Path(xdg) if os.path.isabs(xdg) else Path.home() / ".config"
-
-
-def config_paths(root, name_with_owner):
-    user_level = user_config_dir() / "gh-solo" / f"{name_with_owner}.md"
-    return [user_level] + [Path(root) / name for name in IN_REPO_CONFIGS]
-
-
-def read_config(root, name_with_owner):
-    for path in config_paths(root, name_with_owner):
-        if path.is_file():
-            return str(path), path.read_text()
-    return None, ""
+    raise CheckError(f"more than one remote and none tracked by {trunk}: pass --remote")
 
 
 def check(pr, remote):
     root = must("git", "rev-parse", "--show-toplevel").strip()
     name_with_owner = must("gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner").strip()
-    name, text = read_config(root, name_with_owner)
-    glob = test_glob(text)
+    try:
+        name, config = rc.load(root, name_with_owner)
+    except rc.Refused as e:
+        print(f"⛔ REFUSED - {e}")
+        return 2
+    glob = config.get("test_files")
     if glob is None:
-        print(f"criteria-check: gate off, no `Test files:` line in {name or 'any config file'}")
+        print(f"criteria-check: gate off, no `test_files` key in {name or 'any config file'}")
         return 0
     view = json.loads(must("gh", "pr", "view", str(pr), "--json", "body,headRefName"))
     issue = closed_issue(view["body"])
@@ -144,7 +135,7 @@ def check(pr, remote):
         print(f"criteria-check: #{issue} carries no keyed criterion")
         return 0
     # WHY: `gh pr view --json headRefOid` was seen answering with a pre-push sha, so the head is read by fetch.
-    must("git", "fetch", remote or resolve_remote(), view["headRefName"], "--quiet")
+    must("git", "fetch", remote or config.get("remote") or resolve_remote(trunk_name(config)), view["headRefName"], "--quiet")
     sha = must("git", "rev-parse", "FETCH_HEAD").strip()
     missing = []
     for key in keys:
