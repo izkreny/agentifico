@@ -48,4 +48,4 @@ None.
 
 ## Settled
 
-None yet.
+- ::Q1:: Does the resolve entrance also ignore every other bare word while a pass-cap refusal stands? Yes, decided by the owner in the terminal: the rule stays, so a habit-typed `authorise` cannot push. Narrowing every entrance to its defined words is a separate issue.
