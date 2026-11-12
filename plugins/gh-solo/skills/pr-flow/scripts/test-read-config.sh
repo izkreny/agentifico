@@ -65,6 +65,13 @@ def get_all():
     return code, out.getvalue().strip()
 
 
+def path():
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        code = rc.main(["path"])
+    return code, out.getvalue().strip()
+
+
 full = {
     "reviewer_model": "opus",
     "test_files": "spec/**/*_spec.rb",
@@ -79,10 +86,12 @@ full = {
 
 print("no config:")
 check("no file sets no key", get("reviewer_model"), (1, ""))
+check("path exits 1 with no file", path(), (1, ""))
 
 print("\nthe block:")
 config("# config\n\nProse with no block.\n")
 check("a file with no block sets no key", get("reviewer_model"), (1, ""))
+check("path prints a file that sets no key", path(), (0, in_repo))
 config(block(full))
 calls.clear()
 check("a string prints as it is", get("reviewer_model"), (0, "opus"))
@@ -165,6 +174,7 @@ with open(user_level, "w") as f:
     f.write(block({"reviewer_model": "sonnet"}))
 config(block({"reviewer_model": "opus", "test_files": "x"}))
 check("the user-level file beats the in-repo one", get("reviewer_model"), (0, "sonnet"))
+check("path prints the user-level file", path(), (0, user_level))
 check("nothing is merged in from a later file", get("test_files"), (1, ""))
 os.remove(user_level)
 os.remove(in_repo)
