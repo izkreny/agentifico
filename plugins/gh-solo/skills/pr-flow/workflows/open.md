@@ -90,7 +90,7 @@ The commit header follows *Branch and commit type* in `../tracker/references/for
 
 **The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings. A file the plan creates or deletes needs no ignore: pass `--plans` naming the plans directory, and the tagged spans in a plan are skipped.
 
-**A served repository's ignore set belongs in its `<repo-root>/.agents/gh-solo.md`**, and stays as narrow as the output allows, because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
+**A served repository's ignore set belongs in its config**, per `references/repo-config.md`, and stays as narrow as the output allows, because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
 
 ```bash
 git push -u <remote> "$(git branch --show-current)"
