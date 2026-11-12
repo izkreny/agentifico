@@ -3,10 +3,10 @@ name: setup
 description: |
   Put a GitHub repository the owner administers into the state the gh-solo loop assumes, once per repository: squash as the only merge method, branches deleted on merge, the PR title and body as the squash commit, the trunk protected with no approval required, and a gh-solo config scaffolded to fill in. Only the owner starts it, by typing `/gh-solo:setup`, because it rewrites repository settings; the model never invokes it. Not for creating a repository, nor its labels, which the `tracker` skill creates when an issue needs one.
 disable-model-invocation: true
-allowed-tools: Bash(gh:*) Bash(git:*) Bash(python3:*) Read
+allowed-tools: Bash(gh:*) Bash(python3:*) Read
 ---
 
-> **Tools used:** `Bash(gh:*)` to confirm the repository, `Bash(python3:*)` for `scripts/setup.py`, which makes every read and write itself, `Bash(git:*)` for the repository root that script reads, `Read` for the config it scaffolds.
+> **Tools used:** `Bash(gh:*)` to confirm the repository, `Bash(python3:*)` for `scripts/setup.py`, which makes every read and write itself, `Read` for the config it scaffolds.
 
 Put the repository in the working directory into the state the gh-solo loop assumes. Paths here are relative to this skill's own directory, and `<skill-dir>` stands for it in a command.
 
