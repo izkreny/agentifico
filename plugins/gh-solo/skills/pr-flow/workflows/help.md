@@ -52,6 +52,8 @@ The diff is read by a reviewer with its own fresh context, spawned by `review` -
 
 Every round is recorded as one Review on the PR, even when the reviewer found nothing. That is what makes "has this been reviewed" answerable later, and it is the gate `merge` checks.
 
+**Reviewer passes are capped per pull request.** A round that would need one more stops there and says what is still open. Type `approve`, or `:ap`, at that stop to buy exactly one more pass.
+
 By the time it stops for you, each finding's thread already carries the finding, the plan for fixing it, and what actually changed with any departure from that plan named. The fixes are **committed locally and not pushed**, so the threads stay anchored to the exact diff in front of you.
 
 **Answering a thread takes a reaction or a word.** 👍 or ❤️ accepts a finding. 👀 or 😕, or writing "explain", gets one plain-language explanation in the thread. A written reply opens a discussion. Anything else is no signal, and no signal is fine - the batch at the end covers it. **A refusal has to be written**, though: there is no reaction that means "no".

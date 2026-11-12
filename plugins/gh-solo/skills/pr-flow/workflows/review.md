@@ -114,7 +114,7 @@ python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 
 **At or past the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries.
 
-**Then print the one exit, `authorise`, in the owner's terms**, per *The pass cap* in `references/pass-cap.md`, which owns the word and what it costs.
+**Then print the one exit, `approve` or `:ap`, in the owner's terms**, per *The pass cap* in `references/pass-cap.md`, which owns the word and what it costs.
 
 **Go to *Which reviewer runs, and the spawn* in this step, and continue from there** - never back to the budget, which would read the same count and refuse the pass just bought, and never forward to the head read, which would skip reading the reviewer model.
 
@@ -145,7 +145,7 @@ Spawn it with the PR number and the pin, and nothing else, beside the model para
 
 **Nothing else means nothing else.** No summary of the diff, no account of what the branch was trying to do, no list of what you think is risky, no reassurance that a hunk is deliberate. It fetches its own context, and evidence chosen by the author of the code is not independent evidence.
 
-It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit**: post the discard record, re-read the budget, and refuse rather than re-spawn when that pass would be beyond it, naming `authorise` as what buys it.
+It returns the absolute path of a findings file and its report text. **If the path is missing from its report, the round stops**: a findings file you cannot read is not a review. **The re-spawn is a pass, and the cap is its limit**: post the discard record, re-read the budget, and refuse rather than re-spawn when that pass would be beyond it, naming `approve` as what buys it.
 
 **A pass whose findings never reach the pull request posts a record, whether anything is re-spawned or not.** The charge follows the pass being spent, per *The pass cap* in `references/pass-cap.md`, whether the round ends or tries again. **Where a re-spawn does follow, the record goes up first** - a session that dies in between has then already charged the pass it lost.
 
@@ -167,7 +167,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
 ⛔ REFUSED - a reviewer is reading this pull request at {sha}; wait for the round report, or type discard to charge the pass and free the push
 ```
 
-**Print the exits under it in the owner's terms**, per *The exits* in `references/pass-cap.md`: waiting costs nothing, and `discard` posts the discard record for this pass, charges it, and frees the push - at a cap of one, a further pass is then the owner's to buy with `authorise`.
+**Print the exits under it in the owner's terms**, per *The exits* in `references/pass-cap.md`: waiting costs nothing, and `discard` posts the discard record for this pass, charges it, and frees the push - at a cap of one, a further pass is then the owner's to buy with `approve`.
 
 ### Step 2 - Post
 
@@ -215,7 +215,7 @@ python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> \
 
 **Both head arguments are required here**, exactly as `--unpushed-diff` and `--anchored-at` are required on the re-review's own block in Step 5, and the script refuses a full pass missing either. This block and Step 5's are read together whenever either moves, since `scripts/test-post-review.sh` builds its own argument list rather than reading this file.
 
-It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. The record Review it builds is posted even at zero findings: it is the evidence `workflows/merge.md` gates on. **A refusal here is not something to work around by posting by hand**: say what is wrong and stop. **A re-spawn here would be a pass too**, so post the discard record, re-read the budget, and name `authorise` as what buys a further pass.
+It assigns the ids, applies every header, and refuses the whole round on any invalid finding rather than emitting a partial payload. The record Review it builds is posted even at zero findings: it is the evidence `workflows/merge.md` gates on. **A refusal here is not something to work around by posting by hand**: say what is wrong and stop. **A re-spawn here would be a pass too**, so post the discard record, re-read the budget, and name `approve` as what buys a further pass.
 
 #### 5. Post it
 
