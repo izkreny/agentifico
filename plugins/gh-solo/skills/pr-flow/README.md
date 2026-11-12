@@ -77,9 +77,9 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 ### The review
 
-**The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, spawned with a PR number and the sha to review, and nothing else, so that the session which wrote the code is not the session that judges it - and so that the round knows which version was judged rather than trusting a claim about it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check.
+**The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, per `references/reviewer-appointment.md`, spawned with a PR number and the sha to review, and nothing else, so that the session which wrote the code is not the session that judges it - and so that the round knows which version was judged rather than trusting a claim about it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check.
 
-Where your harness cannot spawn one, appoint a capability to invoke instead of an agent to spawn - your repository's config takes either, found where `references/repo-config.md` says - and the round posts its findings for it. What is never substitutable is that the analysis comes from something other than the author.
+Where your harness cannot spawn one, there is no review round. What is never substitutable is that the analysis comes from something other than the author.
 
 **Every review is recorded, including a clean one.** A pull request with no comments on it is ambiguous: it might have been read and found fine, or never read at all. So the outcome is always written onto the PR, even when the outcome is "nothing found". Later, that is the difference between knowing and guessing — and it is what merging checks before it will land anything.
 
@@ -130,7 +130,7 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 | `workflows/help.md`                  | printed to you on `help`                                                                                                                                                                                                  |
 | `references/review-protocol.md`      | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates                                                                                               |
 | `references/pass-cap.md`             | the budget of reviewer passes, and the words that spend or buy one while a reviewer is reading                                                                                                                            |
-| `references/reviewer-appointment.md` | what changes when your repository appoints its own reviewer, model or review command                                                                                                                                      |
+| `references/reviewer-appointment.md` | what changes when your repository names the model its reviewer runs on                                                                                                                                                    |
 | `references/repo-settings.md`        | the repository settings and branch protection the merge assumes, read when a repository first takes this flow and when a merge misbehaves                                                                                 |
 | `scripts/post-review.py`             | builds and validates the one call that posts a round, then reconciles it; also reads the highest `RF{n}` already on the pull request, and how many reviewer passes it has had; `scripts/test-post-review.sh` is its bench |
 | `references/post-caps.md`            | how long a post carrying a `via` line may be, what falls outside that cap, and what sits inside a capped post without counting                                                                                            |
