@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: |
-  The procedure the `reviewer` agent follows once a review round has spawned it: what to read, the axes, what every finding must carry, and the findings file it returns. Not a way to start a review - a round is started through the `pr-flow` skill, which spawns the agent that loads this. Loading it anywhere else, above all in a session that planned, wrote or fixed the code, produces a self-review, because that session has already reasoned its way to why every line looks the way it does.
+  The procedure the `reviewer` agent follows once a review round has spawned it: what to read, the axes, what every finding must carry, and the findings file it returns. Only that agent loads it, never the owner by typing it. Not a way to start a review - a round is started through the `pr-flow` skill, which spawns the agent that loads this. Loading it anywhere else, above all in a session that planned, wrote or fixed the code, produces a self-review, because that session has already reasoned its way to why every line looks the way it does.
 user-invocable: false
 allowed-tools: Bash(gh:*), Bash(git:*), Read, Write, Grep, Glob
 ---

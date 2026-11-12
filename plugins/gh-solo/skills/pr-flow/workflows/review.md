@@ -343,7 +343,7 @@ Read the threads on the PR, then react or reply:
   👍 or ❤️ accepts a finding. To question one, react 👀 or reply in the thread.
 When you are through them, type :rp - or say "resolve all and push".
 To get each reply answered as you post it instead, before you start run:
-/gh-solo:pr-flow watch <pr-number>
+:wt <pr-number> (watch)
 ```
 
 Print it with the actual PR number substituted, every time. Naming `watch` here is a mention, not an arming: per `workflows/watch.md`, only the owner typing that command starts a poll.
