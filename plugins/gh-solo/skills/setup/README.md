@@ -34,4 +34,4 @@ What it leaves to you: the required checks for a repository with CI, since their
 | `scripts/test-setup.sh` | the bench, against a faked `gh`, so no case can reach GitHub |
 | `assets/gh-solo.md` | the config template, with an empty settings block |
 
-Why each setting holds the value it does is in pr-flow's settings reference, and where a config lives in its config reference.
+Why each setting holds the value it does is in `../pr-flow/references/repo-settings.md`, and where a config lives in `../pr-flow/references/repo-config.md`.
