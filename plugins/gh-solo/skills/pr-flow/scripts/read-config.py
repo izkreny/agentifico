@@ -7,10 +7,11 @@ Usage:
     read-config.py get <key>
     read-config.py get <key> --no-default
     read-config.py get-all
+    read-config.py path
 
-`--no-default` prints only what the config itself sets, so a reader can tell a key the config chose from a default.
+`--no-default` prints only what the config itself sets, so a reader can tell a key the config chose from a default. `path` prints the file the lookup found, so a reader can tell a config that leaves a key unset from no config at all.
 
-Exit codes: 0 the value is printed, the config's or else the default: for `get` a string as it is and anything else as JSON, for `get-all` one JSON object of every key, `null` where a key is unset with no default; 1 `get` found the key unset with no default to print, or with `--no-default` unset in the config, so it means nothing is set; 2 the config refuses, with a `⛔ REFUSED` line, or the read could not run.
+Exit codes: 0 the value is printed, the config's or else the default: for `get` a string as it is and anything else as JSON, for `get-all` one JSON object of every key, `null` where a key is unset with no default, for `path` the file; 1 `get` found the key unset with no default to print, or with `--no-default` unset in the config, or `path` found no config file, so it means nothing is set; 2 the config refuses, with a `⛔ REFUSED` line, or the read could not run.
 """
 import argparse
 import json
@@ -182,10 +183,11 @@ def main(argv=None):
     get.add_argument("key", choices=sorted(SCHEMA))
     get.add_argument("--no-default", action="store_true", help="print only a value the config itself sets")
     sub.add_parser("get-all", help="print every key's value as one JSON object")
+    sub.add_parser("path", help="print the config file the lookup found")
     a = p.parse_args(argv)
     try:
         root = must("git", "rev-parse", "--show-toplevel")
-        _, config = load(root, lambda: must("gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"))
+        found, config = load(root, lambda: must("gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"))
         fallback = defaults()
     except Refused as e:
         print(f"⛔ REFUSED - {e}")
@@ -194,6 +196,11 @@ def main(argv=None):
     except Exception as e:
         print(f"read-config: {e}", file=sys.stderr)
         return 2
+    if a.command == "path":
+        if found is None:
+            return 1
+        print(found)
+        return 0
     if a.command == "get-all":
         print(json.dumps({key: config.get(key, fallback.get(key)) for key in SCHEMA}, indent=2))
         return 0

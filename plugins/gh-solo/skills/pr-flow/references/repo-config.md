@@ -46,7 +46,10 @@ Every skill in this plugin, and the `reviewer` agent, looks for a repository's c
 ```bash
 python3 <skill-dir>/scripts/read-config.py get <key>
 python3 <skill-dir>/scripts/read-config.py get-all
+python3 <skill-dir>/scripts/read-config.py path
 ```
+
+`path` prints the file the lookup found and exits 1 where there is none, and `get <key> --no-default` prints only what that file sets.
 
 From the `tracker` and `implement` skills, the script is `<skill-dir>/../pr-flow/scripts/read-config.py`. Exit `0` prints the value, the config's or else the default `scripts/defaults.json` holds: a string as it is, anything else as JSON. Exit `1` means the key is unset and the plugin does without it, as *The keys* says. Exit `2` is a refusal printed as a `⛔ REFUSED` line, or a read that could not run: stop and relay it, since the gate that key feeds cannot be trusted.
 
