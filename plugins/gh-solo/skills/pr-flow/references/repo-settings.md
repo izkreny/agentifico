@@ -2,6 +2,8 @@
 
 **`workflows/merge.md` assumes these, and this file owns them.** Every value is per-repository and none is the default, so each is checked once per repository rather than every merge; the workflow reads none of them on an ordinary run.
 
+**The `setup` skill applies them**, when the owner types `/gh-solo:setup`: every value this file names, in one pass, after showing each change and waiting for their yes. This file stays the record of why each value is what it is, and its commands are for reading one setting or fixing it by hand.
+
 ## Repository settings this assumes
 
 Read them in one call:
