@@ -51,10 +51,10 @@ def block(obj):
     return "# config\n\n```json\n" + json.dumps(obj, indent=2) + "\n```\n"
 
 
-def get(key):
+def get(key, *flags):
     out = io.StringIO()
     with contextlib.redirect_stdout(out):
-        code = rc.main(["get", key])
+        code = rc.main(["get", key, *flags])
     return code, out.getvalue().strip()
 
 
@@ -102,6 +102,8 @@ check("unset use_issue_types prints its default", get("use_issue_types"), (0, "f
 check("unset branch_name_format prints its default", get("branch_name_format"), (0, "{type}/GHI-{issue-number}_{slug}"))
 check("unset commit_types prints its default", json.loads(get("commit_types")[1]), ["feat", "fix", "refactor", "docs", "chore"])
 check("unset mandatory_axis prints the Layer axis", sorted(json.loads(get("mandatory_axis")[1])["labels"]), ["backend", "docs", "frontend", "fullstack", "infra"])
+check("--no-default exits 1 on a key only the default sets", get("mandatory_axis", "--no-default"), (1, ""))
+check("--no-default prints a key the config sets", get("reviewer_model", "--no-default"), (0, "opus"))
 code, out = get_all()
 everything = json.loads(out) if code == 0 else {}
 check("get-all prints every key", (code, sorted(everything)), (0, sorted(rc.SCHEMA)))
