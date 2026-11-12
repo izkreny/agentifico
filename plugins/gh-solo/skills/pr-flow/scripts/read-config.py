@@ -5,9 +5,12 @@ The config is the first file the lookup in `references/repo-config.md` finds, an
 
 Usage:
     read-config.py get <key>
+    read-config.py get <key> --no-default
     read-config.py get-all
 
-Exit codes: 0 the value is printed, the config's or else the default: for `get` a string as it is and anything else as JSON, for `get-all` one JSON object of every key, `null` where a key is unset with no default; 1 `get` found the key unset with no default to print, so it means nothing is set; 2 the config refuses, with a `⛔ REFUSED` line, or the read could not run.
+`--no-default` prints only what the config itself sets, so a reader can tell a key the config chose from a default.
+
+Exit codes: 0 the value is printed, the config's or else the default: for `get` a string as it is and anything else as JSON, for `get-all` one JSON object of every key, `null` where a key is unset with no default; 1 `get` found the key unset with no default to print, or with `--no-default` unset in the config, so it means nothing is set; 2 the config refuses, with a `⛔ REFUSED` line, or the read could not run.
 """
 import argparse
 import json
@@ -177,6 +180,7 @@ def main(argv=None):
     sub = p.add_subparsers(dest="command", required=True)
     get = sub.add_parser("get", help="print one key's value")
     get.add_argument("key", choices=sorted(SCHEMA))
+    get.add_argument("--no-default", action="store_true", help="print only a value the config itself sets")
     sub.add_parser("get-all", help="print every key's value as one JSON object")
     a = p.parse_args(argv)
     try:
@@ -193,6 +197,8 @@ def main(argv=None):
     if a.command == "get-all":
         print(json.dumps({key: config.get(key, fallback.get(key)) for key in SCHEMA}, indent=2))
         return 0
+    if a.no_default:
+        fallback = {}
     if a.key not in config and a.key not in fallback:
         return 1
     value = config.get(a.key, fallback.get(a.key))
