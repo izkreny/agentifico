@@ -17,16 +17,16 @@ That is the intended shape rather than a corner of it: a second reading of the b
 **The test is `{n}` at or past the cap, never equal to it, and the wording is fixed here rather than composed per round:**
 
 ```text
-⛔ REFUSED - {n} reviewer passes have run on this pull request, at or past the cap of {cap}; {what} is unresolved; type authorise to charge a further pass
+⛔ REFUSED - {n} reviewer passes have run on this pull request, at or past the cap of {cap}; {what} is unresolved; type approve, or :ap, to charge a further pass
 ```
 
 An owner-spent pass leaves the count past the cap, per *The owner's word can spend a further pass* in this section, so a test for equality would let every pass after that one through - and a string asserting `{n}` *is* the cap would be false on exactly the path the protocol grants.
 
 `{what}` names what the pull request is left holding: the findings still open, and any the last pass could not certify closed. A stop that says only that the cap was reached hands the owner a budget and no state.
 
-**The owner's word can spend a further pass, and the word is `authorise`, typed at that standing refusal.** It buys exactly one: **the refusal lifts for the single spawn that follows the word**, and step 1 resumes at that spawn rather than at the budget read that refused - a re-entry from the top would read the same count, refuse again, and leave the owner typing the word at a stop that never moves. That pass leaves its own marker like any other, and the next stop arrives one pass later.
+**The owner's word can spend a further pass, and the word is `approve`, or its shortcut `:ap`, typed at that standing refusal.** It buys exactly one: **the refusal lifts for the single spawn that follows the word**, and step 1 resumes at that spawn rather than at the budget read that refused - a re-entry from the top would read the same count, refuse again, and leave the owner typing the word at a stop that never moves. That pass leaves its own marker like any other, and the next stop arrives one pass later.
 
-**Only the literal word buys it**, never a sentence that reads as agreement - the same rule, and the same reason, as *Arming it, on the `watch` command and nothing else* in `workflows/watch.md`: what this cap exists to refuse is a reading of the branch nobody asked for, and prose is how one gets taken anyway.
+**Only the literal word or its shortcut buys it**, never a sentence that reads as agreement - the same rule, and the same reason, as *Arming it, on the `watch` command and nothing else* in `workflows/watch.md`: what this cap exists to refuse is a reading of the branch nobody asked for, and prose is how one gets taken anyway.
 
 The cap bounds the block nobody is watching, not the pull request: work that genuinely earns a further reading gets one when they ask for it, and a cap they could not pass would block such a branch, the cheap way out of which is to stop counting.
 
@@ -43,11 +43,11 @@ The cap bounds the block nobody is watching, not the pull request: work that gen
 **Each exit does something different to the round, and the verdict line says which:**
 
 - **Wait** changes nothing. The reviewer finishes, the round posts at step 2, and the push is the owner's to ask for at step 7, which is where it was going.
-- **Discard**, the word they type while the refusal stands, posts the discard record for that pass, charges it under *The pass cap*, and then frees the push. At a cap of one that charge puts the pull request at the cap, so the round ends there: a further reading of the branch is the owner's to buy with `authorise` rather than the round's to resume. `workflows/review.md` owns the invocation and the verdict's wording.
+- **Discard**, the word they type while the refusal stands, posts the discard record for that pass, charges it under *The pass cap*, and then frees the push. At a cap of one that charge puts the pull request at the cap, so the round ends there: a further reading of the branch is the owner's to buy with `approve` rather than the round's to resume. `workflows/review.md` owns the invocation and the verdict's wording.
 
 **`discard` is a word typed at a standing refusal, never a routing argument.** Nothing in `SKILL.md` routes it and nothing should: it means something only while this session is holding a reviewer, and a route would make it typeable when there is no pass to charge.
 
-**`authorise` is the same kind of word, and it needs one thing said out loud that `discard` does not.** `SKILL.md`'s resolve entrance takes the owner's authorisation of the resolve and the push *in any words*, deliberately, so a bare `authorise` is a sentence that entrance would otherwise match - and matching it there pushes the round's unpushed fixes instead of buying a pass, which is the one irreversible act in the flow and the exact thing the push hold exists to prevent. So the word buys a pass and routes nowhere, and `SKILL.md` states the exclusion at the entrance that would have swallowed it.
+**`approve` and `:ap` are the same kind of word, and they need one thing said out loud that `discard` does not.** `SKILL.md`'s resolve entrance takes the owner's authorisation of the resolve and the push *in any words*, deliberately, so a bare `approve` is a sentence that entrance would otherwise match - and matching it there pushes the round's unpushed fixes instead of buying a pass, which is the one irreversible act in the flow and the exact thing the push hold exists to prevent. So the word buys a pass and routes nowhere, and `SKILL.md` states the exclusion at the entrance that would have swallowed it.
 
 ### "In flight" is session-local
 
