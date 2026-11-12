@@ -235,7 +235,7 @@ Reviewer model: opus
 This is the sweep that precedes the <name>_<version> tag. Give every finding a short id, so this issue and the fix commits can cite it.
 ```
 
-**Where the package's work is a stack, the sweep sets the release's version on its own branch**, measured from the version on the trunk. It is a major when any commit or pull request title in the stack carries `!` or a `BREAKING CHANGE:` trailer, otherwise a minor when any is a `feat`, otherwise a patch. It replaces the patches the branches below took, so a trunk at 5.2.1 under a stack holding one breaking branch lands 6.0.0. *An epic's work is stacked, and the stack is the release train* in `AGENTS.md` owns why each branch moves only the patch.
+**Where the package's work is a stack, the sweep sets the release's version on its own branch**, measured from the version on the trunk. It is a major when any commit or pull request title in the stack carries `!` or a `BREAKING CHANGE:` trailer, otherwise a minor when any is a `feat`, otherwise a patch. It replaces the patches the branches below took, so a trunk at 5.2.1 under a stack holding one breaking branch lands 6.0.0. *A stacked branch moves only the patch because no installer can fetch the versions in between* in `AGENTS.md` owns why.
 
 The sweep's last act is re-mining the Vale phrase lists, per *How a phrase list grows* in `skills/agents-guru/references/maintaining.md`, which owns when it runs and what it reads. Every package's sweep runs it, because a finding on any package's prose is a phrase the lists want.
 
