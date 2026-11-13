@@ -25,9 +25,15 @@ A public repository permanently publishes everything in the skill. Strip anythin
 
 ## Step 3 - Generalise the content
 
+### The origin machine's residue
+
 - **Paths.** Home-absolute paths become skill-relative ("relative to this skill's own directory", stated in `SKILL.md`) or, for user locations, `<home-dir>/` in prose and `~/` in a fenced command. A path absolute to the author's home breaks on every other machine and identifies it.
-- **The owner's global instructions file.** References to a specific AGENTS.md or CLAUDE.md become "the user's global instructions file". The skill may practice its author's conventions; it must not require them.
+- **The install line.** The copy's `README.md` installs from the destination with that repository's own install command, since the destination is all a reader of the copy has.
 - **Facts true on one machine only.** Which manager owns which skill, where a lock file sits, how a tool was installed there: these move to the machine's own notes (a knowledge base, the local instructions file) before export, not into the shared copy.
+
+### What the skill asks of its reader
+
+- **The owner's global instructions file.** References to a specific AGENTS.md or CLAUDE.md become "the user's global instructions file". The skill may practice its author's conventions; it must not require them.
 - **Tool enumerations.** Name the one tool the skill actually supports rather than surveying alternatives; the survey is stale the day a new tool ships, and the skill's job is a working path, not a market overview.
 - **Brand independence.** Write rules for agents in general, not for one vendor's harness. Where a fact is genuinely harness-specific (a CLI command, a marketplace, a skills directory, a model name), keep it but mark whose it is and phrase the rule so another harness substitutes its own equivalent.
 
