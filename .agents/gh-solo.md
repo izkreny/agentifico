@@ -55,7 +55,6 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 - `skills/agents-guru`
 - `skills/socratic-tutor`
 - `skills/action-policy-guru`
-- `skills/glossary-guru`
 
 `<package-dir>` is each of them the branch owes the run on:
 
@@ -85,6 +84,12 @@ A lint finding is fixed in the code, never suppressed, unless the owner approves
 ```bash
 npm --prefix skills/agents-guru run mutate
 ```
+
+#### Packages off the list
+
+A listed package that fails on a finding no branch caused comes off the list on the branch that finds it, and the issue tracking that finding puts it back once the check exits zero on it again.
+
+- `skills/glossary-guru`, waiting on #448
 
 ### The benches
 
@@ -280,6 +285,14 @@ The sweep issue carries the step as its last acceptance criterion, naming the so
 **Say which of the two it is, and name the branch the child was cut from.** A run that claims the exception is then readable back off the pull request's base rather than taken on trust.
 
 **Never clear the relation to get past the stop.** `blockedBy` is what records the stack's order, and removing it to satisfy a gate destroys the only typed record of which branch sits under which.
+
+## Each epic's stack lives in one worktree of its own
+
+**An epic gets one worktree, `.claude/worktrees/GHI-<epic-number>-<slug>`, and every branch of its stack is checked out there.** A child is a `git checkout` inside that worktree, never a `git worktree add` of its own. *The worktree trap* in `plugins/gh-solo/skills/pr-flow/workflows/stack.md` gives the reason: a sync or a rebase moves every branch in the stack, and git refuses to move a branch checked out in another worktree.
+
+**The main checkout stays on `main` and holds no epic's stack.** Two epics can then be worked side by side, each in its own folder, without one's checkout pinning a branch the other's rebase needs to move.
+
+**The epic's first child creates the worktree**, and every later child enters it. A new worktree carries no ignored files, so a package's `npm ci` runs there before its gates.
 
 ## The commit header format
 
