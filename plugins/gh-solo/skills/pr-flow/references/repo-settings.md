@@ -1,6 +1,6 @@
 # Repository settings and branch protection
 
-**`workflows/merge.md` assumes these, and this file owns them.** Every value is per-repository and none is the default, so each is checked once per repository rather than every merge; the workflow reads none of them on an ordinary run.
+**`workflows/merge.md` assumes these, and this file owns them.** Every value is per-repository and none is the default. `scripts/settings-check.py` refuses where one does not hold: the preflight in `SKILL.md` checks the merge methods and `delete_branch_on_merge` on every command, and Step 1 of `workflows/merge.md` checks every value here, branch protection included.
 
 **The `setup` skill applies them**, when the owner types `/gh-solo:setup`: every value this file names, in one pass, after showing each change and waiting for their yes.
 
@@ -12,7 +12,7 @@ Read them in one call:
 gh api repos/{owner}/{repo} --jq '{allow_squash_merge, allow_merge_commit, allow_rebase_merge, delete_branch_on_merge, squash_merge_commit_title, squash_merge_commit_message}'
 ```
 
-- **`delete_branch_on_merge: true`** — otherwise every merged branch stays on the remote forever, and this setting is what deletes it: Step 3 of `workflows/merge.md` passes no `--delete-branch`, for the reasons given there. It also covers a PR merged from the GitHub UI, which no flag of this workflow ever could. Where it is off, the remote check in Step 4 of `workflows/merge.md` is what catches the leftover branch.
+- **`delete_branch_on_merge: true`** — otherwise every merged branch stays on the remote forever, and this setting is what deletes it: Step 3 of `workflows/merge.md` passes no `--delete-branch`, for the reasons given there. It also covers a PR merged from the GitHub UI, which no flag of this workflow ever could.
 - **`squash_merge_commit_title: PR_TITLE`** is what makes the PR title become the commit subject, and it is the **only** value that may accompany `PR_BODY` - GitHub validates the pair and rejects every other combination with a `422` (`invalid_squash_commit_setting_combo`, whose `field` misleadingly reads `merge_commit_allowed`), so they must be sent together. `PR_TITLE` is also the safer value on its own merits: the alternative, `COMMIT_OR_PR_TITLE`, takes the branch commit's subject on a single-commit PR and discards the PR title - observed live on a pre-flow repository, where a `main` commit carries the branch commit's wording while the PR was titled differently. This flow's plan-commit-first rule makes a single-commit PR impossible anyway, but `PR_TITLE` lands the scoped subject even if that invariant is somehow broken.
 - **`squash_merge_commit_message: PR_BODY`**, because the GitHub default, `COMMIT_MESSAGES`, concatenates every branch commit message into the squash body - the plan commit and each fix commit included, which is exactly the transcript squashing exists to drop. `PR_BODY` puts the PR body there instead, and its first line is the AI disclaimer, which the commit-message convention wants in the body anyway. The body lands as GitHub composes it: unwrapped markdown, checkbox lists and all. That is the documented exception to the 72-column commit-body wrap - git's own convention, and the owner's where their instructions restate it - which governs bodies written by hand; never rewrap or trim the PR body to satisfy it.
 
@@ -22,7 +22,7 @@ Set both in one call, never one at a time:
 gh api -X PATCH repos/{owner}/{repo} -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=PR_BODY
 ```
 
-**`allow_merge_commit` or `allow_rebase_merge` reading true is worth raising with the owner.** While either is enabled, the GitHub UI offers a merge-strategy dropdown, and one absent-minded click puts a merge commit on `main` that no local rule can prevent. Leaving squash as the only enabled method makes the policy structural instead of remembered:
+**`allow_merge_commit` and `allow_rebase_merge` must both read false.** While either is enabled, the GitHub UI offers a merge-strategy dropdown, and one absent-minded click puts a merge commit on `main` that no local rule can prevent. Leaving squash as the only enabled method makes the policy structural instead of remembered:
 
 ```bash
 gh api -X PATCH repos/{owner}/{repo} -F allow_merge_commit=false -F allow_rebase_merge=false

@@ -4,7 +4,7 @@
 
 Puts a GitHub repository you administer into the state the gh-solo loop assumes, once. It turns off merge commits and rebase merges, deletes branches on merge, makes the PR title and body the squash commit, protects the trunk without requiring an approval, and scaffolds a config file for you to fill in.
 
-The loop's merge gate assumes all of that, and each setting left at GitHub's default fails quietly: a merge commit from the UI's dropdown, a squash commit carrying every fix commit's message, a branch left on the remote forever. This skill makes the state one command instead of a checklist you have to remember.
+The loop refuses to run without all of that, naming this skill, because each setting left at GitHub's default fails quietly: a merge commit from the UI's dropdown, a squash commit carrying every fix commit's message, a branch left on the remote forever. This skill makes the state one command instead of a checklist you have to remember.
 
 ## Install
 
