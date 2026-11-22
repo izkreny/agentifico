@@ -78,6 +78,15 @@ def problems_in(alerts: list[dict], lines: list[str]) -> list[str]:
 
 
 def main() -> int:
+    # WHY: exit 1 means "problems found", so an unexpected failure must never fall through to it.
+    try:
+        return check()
+    except Exception as e:
+        print(f"keys-check: could not run: {e!r}", file=sys.stderr)
+        return 2
+
+
+def check() -> int:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,

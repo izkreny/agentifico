@@ -160,6 +160,10 @@ def main(argv=None):
     except CheckError as e:
         print(f"criteria-check: {e}", file=sys.stderr)
         return 2
+    # WHY: exit 1 means "no test names these keys", so an unexpected failure must never fall through to it.
+    except Exception as e:
+        print(f"criteria-check: could not run: {e!r}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
