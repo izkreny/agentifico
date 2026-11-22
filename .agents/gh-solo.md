@@ -6,7 +6,7 @@ Per-repository facts the `gh-solo` plugin reads. Only what differs from its defa
 
 ## Check commands
 
-There is no CI and no build. Everything below runs locally, and nothing else is a gate.
+There is no CI and no build. The commands under *Check commands* run locally, and they are the gates.
 
 **The plugin's own files, this file, `.agents/dependencies.md`, `AGENTS.md` and the open branch's own plan**, from the repository root:
 
@@ -17,13 +17,17 @@ python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .ag
 
 **A merged plan is not read, and the open branch's own plan is.** A plan is a record of intent and stays as written, so the paths a merged one names go stale by design: reading them back asks for a permanent ignore span per rewrite the repository has ever done. The substitution names every plan still being written, which on the upper branch of a stack is one per branch in it, per *The stacked release train asks nothing of this script, and the reason is not that each branch is checked alone*. It is unquoted on purpose: the script falls back to the whole tree when it is handed no target, and `Path("")` is the current directory, so a quoted substitution on a branch that carries no plan yet would hand it an empty string and scan the repository root. Unquoted, an empty result contributes no word at all and the named targets stand alone; plan filenames carry no spaces, so nothing else splits.
 
+### Running the docs check
+
 **A path relative to a package opens with a placeholder**, as `<skill-dir>/SKILL.md`, from the set *Paths must survive any working directory and any machine* in `skills/agents-guru/workflows/new.md` names. The script skips any span holding `<` or `>`, so a placeholder needs no ignore.
 
-**The command takes no `--ignore`.** `--ignore` skips a matching *span* rather than a file, so `--ignore 'AGENTS.md'`, `--ignore 'CLAUDE.md'` and `--ignore '.agents/*'` would skip exactly the cross-links between this file and `AGENTS.md` - the spans most worth checking, since both files exist here where in a served repository they do not. Never add one to make an output quieter.
+**The command takes no `--ignore`.** `--ignore` skips a matching *span* rather than a file, so `--ignore 'AGENTS.md'`, `--ignore 'CLAUDE.md'` and `--ignore '.agents/*'` would skip exactly the cross-links between this file and `AGENTS.md` - the spans most worth checking, since `AGENTS.md` and this file exist here where in a served repository they do not. Never add one to make an output quieter.
 
 **`skills/` is deliberately not a target.** Those skills carry home-relative paths this script cannot resolve, and they are checked by their own tooling, so widening the target to the repository root reports failures that are not failures.
 
 **Read the exit code, not the output.** A run piped through `tail` reports the pipe's status, so a chained command runs anyway; this has caused a broken path to be committed here twice. Use `set -o pipefail`, or read `${PIPESTATUS[0]}`, or do not pipe it.
+
+### The plan check
 
 **The open branch's own plan, by its structure**, from the repository root:
 
@@ -32,6 +36,8 @@ python3 plugins/gh-solo/skills/pr-flow/scripts/plan-check.py $(git diff --name-o
 ```
 
 The substitution is the docs check's, unquoted for the same reason. A branch carrying no plan hands the script no file, and it exits 2 rather than passing, since every branch here has one. It needs the same Vale as the agents-guru check.
+
+### The version check
 
 **Every package a branch touches has moved its own version**, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`, which owns the rule:
 
@@ -62,7 +68,13 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 node skills/agents-guru/scripts/check.js <package-dir>
 ```
 
-It needs the `npm ci` and the Vale that *The agents-guru package's checks* name. **A package joins this list the day the check exits zero on it.** A package still carrying findings stays off, so no branch has to clear another package's backlog to pass its own gate. Its sweep, or an issue of its own, is what puts it here.
+The repository's own files owe the same check, on any branch that edits `AGENTS.md`, `.agents/gh-solo.md` or `.agents/dependencies.md`. *Skill files follow the agents-guru rules* in `AGENTS.md` holds them to the standard, and this run enforces it:
+
+```bash
+node skills/agents-guru/scripts/check.js AGENTS.md .agents/gh-solo.md .agents/dependencies.md
+```
+
+The check needs the `npm ci` and the Vale that *The agents-guru package's checks* name. **A package joins this list the day the check exits zero on it.** A package still carrying findings stays off, so no branch has to clear another package's backlog to pass its own gate. Its sweep, or an issue of its own, is what puts it here.
 
 **Here a run over a package root is a gate, not a survey.** `skills/agents-guru/workflows/check.md` calls a run over a directory of skills a survey, because it may reach a skill someone else maintains. Every skill under a package here is this repository's own, so a non-zero exit is this repository's work.
 
@@ -143,6 +155,8 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-post-review.sh
 bash plugins/gh-solo/skills/pr-flow/scripts/test-watch.sh
 ```
 
+#### The plugin's gate and hook benches
+
 **The criteria check's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/criteria-check.py`:
 
 ```bash
@@ -166,17 +180,17 @@ bash plugins/gh-solo/hooks/test-ask-before-trunk-push.sh
 **What a plugin's two manifests share, and which fields must be kept in step.** A plugin's entry in `.claude-plugin/marketplace.json` and its own `plugins/<name>/.claude-plugin/plugin.json` overlap by schema rather than by convention: an entry may carry any field of the plugin manifest, plus the entry-only `source`, `category`, `tags`, `strict`, `relevance`, `headers` and `headersHelper`. So the answer is finite and worth writing out rather than remembering.
 
 | Field | Lives in | Kept in step |
-|---|---|---|
+| --- | --- | --- |
 | `name` | both | Yes, exactly. It is the plugin's id, and two names disagreeing is a marketplace entry pointing at nothing. |
 | `description` | both | Yes. This is the pair that has drifted before, which is why the agreement is checked rather than remembered. |
-| `keywords` in the manifest, `tags` in the entry | one each | Yes, the same values. They are different fields with different names, and nothing here wants a plugin advertised differently in the two places; they have already drifted by one value. |
+| `keywords` in the manifest, `tags` in the entry | one each | Yes, the same values. They are different fields with different names, and nothing here wants a plugin advertised differently in its entry and its manifest; they have already drifted by one value. |
 | `version` | the manifest only | No, and never. The entry's copy is read only when the manifest has none, so a version there could drift and could never be read - `AGENTS.md` owns why, under *How a package is released*. |
 | `homepage` | the manifest only | No, for the reason `author`, `repository` and `license` are not: the marketplace's own `owner` block already says who publishes this, so an entry's copy would buy a drift surface and nothing else. |
 | `author`, `repository`, `license` | the manifest only | No. The marketplace's own `owner` block already says who publishes this, so copying them into an entry buys a drift surface and nothing else. |
 | `category`, `source` | the entry only | No; the plugin manifest has no such fields. |
 | `strict`, `relevance`, `headers`, `headersHelper` | the entry only | No; the plugin manifest has no such fields, and no entry here sets them. An entry that gains one owes this table a row of its own rather than falling under this one. |
 
-**The agreement is checked rather than remembered**, because prose alone has now failed at it twice - once on `description` and once on `keywords`:
+**The agreement is checked rather than remembered**, because copies kept in step by prose alone drift apart unseen, as `description` and `keywords` did:
 
 ```bash
 python3 scripts/manifest-check.py
@@ -194,10 +208,10 @@ bash scripts/test-manifest-check.sh
 
 ## Labels
 
-**The package axis replaces the plugin's Layer axis.** The plugin's own standards call the `backend`/`frontend`/`fullstack`/`infra`/`docs` set a default rather than a law, and this repository has no such split: it has packages, each released on its own tag. The axis rules carry over - exactly one value, mandatory, an epic exempt - but the plugin's *tooling* for them does not, per the audit below.
+**The package axis replaces the plugin's Layer axis.** The plugin's own standards call the `backend`/`frontend`/`fullstack`/`infra`/`docs` set a default rather than a law, and this repository has no such split: it has packages, each released on its own tag. The axis rules carry over - exactly one value, mandatory, an epic exempt - but the plugin's *tooling* for them does not, per the mandatory-axis audit.
 
 | Label | The deliverable is |
-|---|---|
+| --- | --- |
 | `gh-solo` | `plugins/gh-solo/` |
 | `typescript-native-lsp` | `plugins/typescript-native-lsp/` |
 | `rails-style` | `skills/rails-style/` |
@@ -212,13 +226,13 @@ bash scripts/test-manifest-check.sh
 
 **A new package arrives with a new value.** The axis is the set of packages, so it grows when `plugins/` or `skills/` does, and this table is what a new directory owes an edit to.
 
-**The mandatory-axis audit has to be rewritten here, not reused.** The plugin's version names the layer values it excludes, and none of them exists in this repository, so it excludes nothing and reports every open issue as unlabelled. This is the one that works:
+**The mandatory-axis audit has to be rewritten here, not reused.** The plugin's version names the layer values it excludes, and none of them exists in this repository, so it excludes nothing and reports every open issue as unlabelled. The query for this repository:
 
 ```bash
 gh issue list --state open --limit 100 --search "-label:epic -label:gh-solo -label:rails-style -label:review-text -label:agents-guru -label:socratic-tutor -label:action-policy-guru -label:glossary-guru -label:typescript-native-lsp -label:repo"
 ```
 
-**A new value in the table above is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
+**A new value in the *Labels* table is a new exclusion here.** A package label the query does not name is invisible to it, which is the same silent-pass failure the plugin's own version has here.
 
 ## The reviewer model
 
@@ -240,7 +254,9 @@ Reviewer model: opus
 This is the sweep that precedes the <name>_<version> tag.
 ```
 
-**Where the package's work is a stack, the sweep sets the release's version on its own branch**, measured from the version on the trunk. It is a major when any commit or pull request title in the stack carries `!` or a `BREAKING CHANGE:` trailer, otherwise a minor when any is a `feat`, otherwise a patch. It replaces the patches the branches below took, so a trunk at 5.2.1 under a stack holding one breaking branch lands 6.0.0. *A stacked branch moves only the patch because no installer can fetch the versions in between* in `AGENTS.md` owns why.
+### What the sweep does
+
+**Where the package's work is a stack, the sweep sets the release's version on its own branch**, measured from the version on the trunk. It is a major when any commit or pull request title in the stack carries `!` or a `BREAKING CHANGE:` trailer, otherwise a minor when any is a `feat`, otherwise a patch. The other branches of the stack each took a patch, and the sweep's version is measured from the trunk rather than from them, so a trunk at 5.2.1 under a stack holding one breaking branch lands 6.0.0. *A stacked branch moves only the patch because no installer can fetch the versions in between* in `AGENTS.md` owns why.
 
 **The sweep's record lives on its issue, in two comments.** The findings comment has one row per `AGF{n}`: its severity, where it is, the defect, what it costs and the fix the reviewer proposed. The verdicts comment has one row per id once Step 5 of `skills/agents-guru/workflows/review.md` has run, with the commit that answered it. Rows are kept in the reviewer's own words, with every path rewritten relative to the repository root, because the repository is public and a path relative to a package or to one machine resolves nowhere for a later reader.
 
@@ -262,13 +278,15 @@ The sweep issue carries the step as its last acceptance criterion, naming the so
 
 **This section is addressed to whoever writes an epic, where *How a package is released* in `AGENTS.md` addresses whoever cuts the release.** Those are the same rules read from two ends, and an epic author reading the release end has to re-derive what their own issue owes. What is here is what the epic body has to say and what a child's criteria may not; each rule stated elsewhere is pointed at rather than copied.
 
-**What the epic author owes is the shape *An epic's work is stacked, and the stack is the release train* and *A package epic's last child is that package's sweep issue, and its branch is the stack's top branch* in `AGENTS.md` assume.** Those two own the rules and their reasons. The epic's part is the sweep opened as a child of the epic rather than beside it, and written last so that its branch is the one every other child sits under.
+**What the epic author owes is the shape *An epic's work is stacked, and the stack is the release train* and *A package epic's last child is that package's sweep issue, and its branch is the stack's top branch* in `AGENTS.md` assume.** Those sections own the rules and their reasons. The epic's part is the sweep opened as a child of the epic rather than beside it, and written last so that its branch is the one every other child sits under.
 
 **A child that joins an epic already carrying a sweep goes below the sweep, never after it.** The sweep's branch is the stack's top because it contains every branch below it, so a child stacked above the sweep ships in the same tag as a package the sweep never read. It follows from the last-child rule rather than adding to it, and it is stated here because a child arriving mid-epic is when the question is asked.
 
 **The sweep's finding rule is not the epic's to answer.** It is stated once, for every sweep, under *The skill review is its own issue, not a branch's gate*, which owns it and names the hotfix exception `AGENTS.md` carries. An epic that writes its own version of it acquires a second copy that can disagree with the first.
 
-**What `blockedBy` records on an epic child is usually serialisation on shared files rather than a logical dependency.** The child below often has to land first only because both edit the same paths, which is a different fact from needing its work, and the child's `## Dependencies` says which of the two it is so a reader is not left inferring a need that is not there. That the relation records the stack's order, and is never cleared to get past a gate, is *An epic child's blocker is its stack parent, not a wait*.
+### A child's dependencies and criteria
+
+**What `blockedBy` records on an epic child is usually serialisation on shared files rather than a logical dependency.** The child below often has to land first only because both edit the same paths, which is a different fact from needing its work, and the child's `## Dependencies` says whether it is serialisation or a need, so a reader is not left inferring a need that is not there. That the relation records the stack's order, and is never cleared to get past a gate, is *An epic child's blocker is its stack parent, not a wait*.
 
 **The tag belongs to the epic's own `## Done when`, so no child carries it as an acceptance criterion.** It is cut by hand rather than by any branch's merge, per *The tag is cut by hand, once that package's sweep issue is closed, and never as part of a branch's merge* in `AGENTS.md`, so a child holding that box holds one its own branch cannot close.
 
@@ -280,11 +298,11 @@ The sweep issue carries the step as its last acceptance criterion, naming the so
 
 **`plugins/gh-solo/skills/pr-flow/workflows/open.md` stops on an open `blockedBy`, and a child cut from that blocker's own branch tip is the exception.** Per *An epic's work is stacked, and the stack is the release train* in `AGENTS.md`, every child of an epic but the bottom one is cut from the branch below it and lands with the stack rather than before it, so the stop fires on the epic's normal shape.
 
-**Both reasons the stop gives are void in that shape.** The plan is written against a tree that already contains the blocker's work, so landing the blocker rewrites nothing; and not merging first is what the stack is for rather than an obstacle to it.
+**The stop's reasons are void in that shape.** The plan is written against a tree that already contains the blocker's work, so landing the blocker rewrites nothing; and not merging first is what the stack is for rather than an obstacle to it.
 
 **The exception is that shape and nothing wider.** The blocking issue's branch must exist, must be the branch the new one is cut from, and must be the new pull request's `--base`. A blocker carrying no branch, or one the child is not stacked on, is an ordinary wait and the stop holds unchanged.
 
-**Say which of the two it is, and name the branch the child was cut from.** A run that claims the exception is then readable back off the pull request's base rather than taken on trust.
+**Say whether it is the exception or an ordinary wait, and name the branch the child was cut from.** A run that claims the exception is then readable back off the pull request's base rather than taken on trust.
 
 **Never clear the relation to get past the stop.** `blockedBy` is what records the stack's order, and removing it to satisfy a gate destroys the only typed record of which branch sits under which.
 
@@ -304,4 +322,4 @@ No branch `{type}` vocabulary is recorded here, because the plugin's own is what
 
 **The ban's reasons do not decide it here.** The value does repeat on a branch, and it costs nothing to: it is decided once by the issue's package label, and it buys a commit that names its package in any read crossing branches, which a repository shipping several packages has and a single-deliverable one does not. Squashing deletes it, which is why the pull request title carries it onto the trunk.
 
-**The pull request title's own scope rule is unchanged, and a pushed header is never rewritten to match this record.**
+**The pull request title keeps the plugin's own scope rule, and a pushed header is never rewritten to match this record.**

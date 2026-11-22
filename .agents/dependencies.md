@@ -12,7 +12,7 @@ Read this before opening or working an update issue, bumping any package, editin
 
 ### The inventory
 
-Each entry is what to compare and the commands that read both sides:
+Each entry is what to compare and the commands that read the installed version and the available one:
 
 - **The npm packages**: `npm outdated`, `npm outdated --all` and `npm audit`, each after `npm ci`. `npm outdated` covers the direct dependencies. `npm outdated --all` adds the transitive ones, and a row whose current version is below its wanted version is one `npm update` moves. An audit finding is in scope even where nothing is outdated.
 - **Node**: `node --version` against `mise latest node`, and the `engines` field in each `<package-dir>/package.json` against what the package needs, per *Floors*.
