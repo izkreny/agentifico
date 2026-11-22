@@ -1,6 +1,6 @@
 # Repository settings and branch protection
 
-**`workflows/merge.md` assumes these, and this file owns them.** Every value is per-repository and none is the default. `scripts/settings-check.py` refuses where one does not hold: the preflight in `SKILL.md` checks the merge methods and `delete_branch_on_merge` on every command, and Step 1 of `workflows/merge.md` checks every value here, branch protection included.
+**`workflows/merge.md` assumes these, and this file owns them.** Every value is per-repository and none is the default. `scripts/settings-check.py` refuses where one does not hold: the preflight in `SKILL.md` checks the merge methods and `delete_branch_on_merge` on every command, and Step 1 of `workflows/merge.md` checks the repository settings and the protection's load-bearing values. The script owns exactly which.
 
 **The `setup` skill applies them**, when the owner types `/gh-solo:setup`: every value this file names, in one pass, after showing each change and waiting for their yes.
 
