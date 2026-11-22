@@ -47,7 +47,7 @@ The cap bounds the block nobody is watching, not the pull request: work that gen
 
 **`discard` is a word typed at a standing refusal, never a routing argument.** Nothing in `SKILL.md` routes it and nothing should: it means something only while this session is holding a reviewer, and a route would make it typeable when there is no pass to charge.
 
-**`approve` and `:ap` are the same kind of word, and they need one thing said out loud that `discard` does not.** `SKILL.md`'s resolve entrance takes the owner's authorisation of the resolve and the push *in any words*, deliberately, so a bare `approve` is a sentence that entrance would otherwise match - and matching it there pushes the round's unpushed fixes instead of buying a pass, which is the one irreversible act in the flow and the exact thing the push hold exists to prevent. So the word buys a pass and routes nowhere, and `SKILL.md` states the exclusion at the entrance that would have swallowed it.
+**`approve` and `:ap` are the same kind of word**, typed at a standing pass-cap refusal and routed by nothing.
 
 ### "In flight" is session-local
 
