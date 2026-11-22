@@ -1,6 +1,6 @@
-> **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup, `Bash(python3:*)` for `scripts/post-review.py unthreaded` in Step 1 and `scripts/keys-check.py` in Step 2, `ExitWorktree` for leaving the branch's worktree in Step 4.
+> **Tools used:** `Bash(gh:*)` for `gh pr merge`, `gh stack merge` and the state queries, `Bash(git:*)` for local cleanup, `Bash(python3:*)` for `scripts/settings-check.py door` and `scripts/post-review.py unthreaded` in Step 1 and `scripts/keys-check.py` in Step 2, `ExitWorktree` for leaving the branch's worktree in Step 4.
 
-Land a reviewed PR on `main` and clean up after it. This is the last step of a branch's life: `workflows/open.md` opened it, `workflows/ready.md` admitted it to review, `workflows/review.md` prepared and recorded the review, and this ends it. The repository settings and branch protection it assumes are per-repository, in `references/repo-settings.md`: read it when a repository first takes this flow, and again when a merge lands with a squash subject or body other than the PR's, or when an ordinary squash merge leaves the remote branch standing, since each is the symptom of a setting it names; a stack merge leaves the branch standing by its own mechanism, which Step 3 states, and no setting changes that.
+Land a reviewed PR on `main` and clean up after it. This is the last step of a branch's life: `workflows/open.md` opened it, `workflows/ready.md` admitted it to review, `workflows/review.md` prepared and recorded the review, and this ends it. The repository settings and branch protection it assumes are per-repository, in `references/repo-settings.md`, and Step 1 refuses where one does not hold; a stack merge leaves the branch standing by its own mechanism, which Step 3 states, and no setting changes that.
 
 ## Step 1 - Confirm it was actually reviewed
 
@@ -11,6 +11,14 @@ git fetch <remote> && git log <remote>/<branch>..<branch> --oneline
 ```
 
 Any output is a refusal: `⛔ REFUSED - {n} unpushed commit(s) on {branch}`, naming `:rp`, or "resolve all and push" - the protocol's step 7 - as what releases them. Where the branch is not in any local tree, compare `gh pr view <pr-number> --json headRefOid` against `git rev-parse <branch>` if the ref exists at all, and otherwise say plainly that local state could not be checked rather than implying it was.
+
+**Then confirm the repository still backs the merge:**
+
+```bash
+python3 <skill-dir>/scripts/settings-check.py door
+```
+
+Exit `1` is the refusal, its `⛔ REFUSED` line naming `/gh-solo:setup`: a setting `references/repo-settings.md` names that does not hold, or a trunk without the protection it describes. Exit `2` is a read that failed; stop and say so, since an unread setting is not a held one.
 
 ```bash
 gh pr view <pr-number> --json isDraft,reviews,reviewDecision,mergeable,statusCheckRollup,commits
@@ -96,7 +104,7 @@ This is the last look before the branch stops existing. A gap found now costs on
 gh pr merge <pr-number> --squash
 ```
 
-**`--squash` is never omitted.** One branch is one issue, so squash makes `main` a readable list of completed issues — one commit each. The alternative strategies both cost that: a merge commit adds a `Merge pull request #NN` commit nobody reads, and rebase-and-merge replays every branch commit onto `main`, which permanently installs the `docs: add plan for …` commit that only ever mattered inside the PR.
+**`--squash` is never omitted, on this command or on `gh stack merge`, though Step 1 has confirmed squash is the only method GitHub allows.** Left off, `gh pr merge` prompts or fails, and `gh stack merge` reuses its last-used method, which GitHub then refuses, so the flag is what lets either command run unattended. One branch is one issue, so squash makes `main` a readable list of completed issues — one commit each. The alternative strategies both cost that: a merge commit adds a `Merge pull request #NN` commit nobody reads, and rebase-and-merge replays every branch commit onto `main`, which permanently installs the `docs: add plan for …` commit that only ever mattered inside the PR.
 
 **Read the squash subject before confirming.** GitHub composes it from the PR title and appends `(#{pr-number})`, so it should already read `feat(frontend): add a login form (#60)` — that is what `workflows/open.md` sets the title for, the scope being the issue's layer label and omitted when it repeats the type. If it does not carry a `type:` prefix, fix the PR title first with `gh pr edit <pr-number> --title "..."` and merge after - GitHub then still appends `(#{pr-number})` itself. `gh pr merge` does take `-t`/`--subject` and `-b`/`--body` overrides, but an overridden subject is used verbatim and has to carry the `(#{pr-number})` by hand, so the title edit is the better lever. The commit that lands is the one that stays.
 
@@ -117,7 +125,6 @@ gh stack merge <pr-number> --yes --squash
 
 - **There is no message lever at merge time.** `gh stack merge` takes no `--subject` or `--body`; each PR's squash commit is composed by GitHub from that PR's title plus `(#{pr-number})` and from `squash_merge_commit_message`, exactly as in Step 3. Any title or body that needs fixing is fixed with `gh pr edit`, per PR, before this command runs - it lands the whole stack atomically, and afterwards there is no second chance for any of them.
 - **Adopt tracking before merging.** `merge` is a write, and every write is subject to the mandatory-adoption rule in `workflows/stack.md`. Running it when tracking already exists is harmless; skipping it is how a command half-works against a stack the tool cannot see. Check the worktree trap in the same file before any merge that cascades.
-- **Pass `--squash` every time.** Without an explicit method `gh stack` reuses the last-used one, so the strategy would depend on session history rather than on policy.
 - **It does not delete the remote branch.** There is no `--delete-branch` equivalent, so clean up with `git push <remote> --delete <branch>` afterwards - `<remote>` resolved per the remote-name convention in `SKILL.md`, never assumed to be `origin` - and prune locally with `gh stack sync --prune` **only once every branch in the stack has merged**, since `sync` also rebases and force-pushes whatever remains. The repository's `delete_branch_on_merge` does not cover this path. Step 4 then deletes each merged local branch as it does on the single-PR path, once per branch in the stack.
 
 **Merging a stack lands several PRs and closes several issues.** So the gates multiply too: Steps 1 and 2 run once per PR in the merge's scope *before* the command - the merge is atomic, and one unreviewed PR in the middle must stop the whole thing, not ride in on its siblings' record. Step 4 then runs once per branch and Step 5 once per issue afterwards.
@@ -126,7 +133,7 @@ gh stack merge <pr-number> --yes --squash
 
 ## Step 4 - Remove the worktree, delete the local branch, move the trunk
 
-Where `delete_branch_on_merge` is set, the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. That setting is per-repository and not a default, and nothing this workflow reads carries it, so *Whoever holds `main`* below asks the remote for the branch rather than assuming, and deletes it where it remains.
+Step 1 has confirmed `delete_branch_on_merge`, so after an ordinary squash merge the remote branch is already gone - which is why Step 3 passes no `--delete-branch`. A stack merge leaves it standing, per Step 3, so *Whoever holds `main`* below asks the remote for the branch rather than assuming, and deletes it where it remains.
 
 ```bash
 git worktree list
