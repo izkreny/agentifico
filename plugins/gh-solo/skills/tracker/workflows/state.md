@@ -24,8 +24,6 @@ Do not skip this. Closing a closed issue and reopening an open one both succeed 
 
 **One state change per invocation.** If the owner asks for two, do them in sequence and confirm each.
 
-**A state change reached by an auto-trigger rather than a typed verb states the command and waits.** `SKILL.md`'s trigger table fires this workflow on ordinary phrasing - "mark it in progress", "set it aside", "this is blocked" - so an aside can otherwise add a dependency and a label to a real issue, with Step 4 reporting it afterwards. Print the exact `gh` command and the issue it names, and run nothing until the owner says so. A typed verb needs no such gate: it is already their instruction. `workflows/create.md` gates creation the same way, on the same grounds.
-
 ### Start work
 
 **Refuse a `draft` issue.** Step 2 already fetched the labels; if `draft` is among them, the description is unfinished, and per *Drafts* in `references/tracker-fields.md` a draft is finished, not started. Say what the body is still missing, offer the *Finishing a draft* section of `workflows/create.md`, and assign nothing.

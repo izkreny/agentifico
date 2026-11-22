@@ -6,7 +6,7 @@ For repositories you own and commit to alone. A client setting scope and dates i
 
 | Command                               | What it does                                                                            |
 |---------------------------------------|-----------------------------------------------------------------------------------------|
-| `create issues for [description]`     | Break a feature into issues, show the plan, create on confirmation                      |
+| `create [description]`                | Break a feature into issues, show the plan, create on confirmation                      |
 | `next`                                | Offer the top three startable issues, ordered, with why each is a candidate             |
 | `status`                              | Summarise the issue behind the current branch                                           |
 | `status 50`                           | Summarise a specific issue                                                              |
@@ -20,13 +20,9 @@ For repositories you own and commit to alone. A client setting scope and dates i
 | `milestone`                           | Create one, move its date, close it on scope                                            |
 | `help`                                | This page                                                                               |
 
-Bare invocation with a description routes to `create`.
+Each one starts only when you type its word. A sentence or a bare description starts nothing: the reply names the word that would have.
 
 An issue you want in the backlog before you have time or information to describe it gets the `draft` label: title and layer label as normal, body a stub. It stays invisible to `next` until `finish` removes the label. `search draft` lists them.
-
-## Auto-triggers
-
-Any of the phrasings in the *Auto-triggers* table of `SKILL.md` reaches the matching command without you typing it - that table is the one list, and this page deliberately does not copy it: a second copy drifts from the first the moment a row moves, and a reader given two lists cannot tell which one is current. What the table covers: reading an issue, moving its state, searching, picking what is next, validating one against the standards, breaking work into issues, and the milestone operations.
 
 ## Prerequisites
 

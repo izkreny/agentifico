@@ -2,7 +2,7 @@
 name: tracker
 description: |
   Manage the GitHub issue tracker of a repository the user owns, as a solo developer, through the `gh` CLI. Use when asked to break a feature into issues, create an epic with sub-issues, open a spike, park an unfinished issue in the backlog as a draft or finish a draft's description, record blocked-by dependencies, pick the next task to work on or say what is in progress, summarise what is left on the issue for the current branch, search the tracker, validate an issue against the repo's standards, move an issue's state, mark one in progress, start work on one, close one, reopen one, set an issue aside or pause work on it, or create a milestone, move its date, or close one on scope. Also use when the user types `/gh-solo:tracker`, or names an issue number and asks what is on it. Not for branches, plans, pull requests, review or merging - that is the `pr-flow` skill - nor for implementing a plan, which is `implement`.
-argument-hint: "[create issues for X | next | status [<number>] | search [query] | validate [<number>] | state [<number>] | start [<number>] | finish [<number>] | close [<number>] | reopen [<number>] | block [<number>] | milestone | help]"
+argument-hint: "[create <description> | next | status [<number>] | search [query] | validate [<number>] | state [<number>] | start [<number>] | finish [<number>] | close [<number>] | reopen [<number>] | block [<number>] | milestone | help]"
 allowed-tools: Read, Write, Bash(git:*), Bash(gh:*), Bash(python3:*)
 ---
 
@@ -10,7 +10,7 @@ allowed-tools: Read, Write, Bash(git:*), Bash(gh:*), Bash(python3:*)
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 
-This is a **routing skill**. Read `$ARGUMENTS` and the conversation context, pick exactly one workflow, read that workflow file, and follow its instructions inline. Do nothing else.
+This is a **routing skill**. Read the word the owner typed, in `$ARGUMENTS` or in their own message, pick exactly one workflow per *Routing*, read that workflow file, and follow its instructions inline. Do nothing else.
 
 **Console output is markdown, and a printed table has its cells padded so the columns line up**, header rule included: a terminal that does not render markdown turns an unpadded table into a wall of `|` and `-`, and the alignment is the whole reason a table beats a list there. *Console output* in `../pr-flow/SKILL.md` owns this rule. It is copied here because it binds every line this skill prints, where a pointer is followed only on the path that names it.
 
@@ -65,26 +65,11 @@ No other key is project configuration. `gh` resolves owner and repository from t
 
 ---
 
-## Auto-triggers
+## Routing
 
-These fire on conversation context. Read the matched workflow and execute it inline.
+**A workflow here starts only when the owner's own message names its word**, per *Routing* in `../pr-flow/SKILL.md`, which owns the rule. The words are the ones below. A sentence that names none starts nothing: where it asks for what a workflow does, reply with that word, as `status 50`, and stop.
 
-| Conversation signal | Workflow |
-| --- | --- |
-| A `#50` issue number is named, or the owner asks "what's on this issue", "what's left on this one" | `workflows/status.md` |
-| "close this issue", "reopen", "mark it in progress", "set it aside", "this is blocked" | `workflows/state.md` |
-| "create a milestone", "move the milestone date", "close the milestone" | `workflows/state.md` |
-| "find the issue about X", "which issues are still open", "show me the `bug` ones" | `workflows/search.md` |
-| "give me the next task", "what should I work on", "what am I working on" | `workflows/search.md` |
-| "check this issue against the standards", "is this issue written properly" | `workflows/validate.md` |
-| "break this feature into issues", "write issues for X" | `workflows/create.md` |
-| "park this as a draft", "finish the draft", "flesh out that draft issue" | `workflows/create.md`; the *finish* phrasings enter its *Finishing a draft* section |
-
-"I'm done" and "ready for review" are deliberately **not** triggers *here*. A pull request that says `Closes #50` closes the issue on merge without anybody transitioning anything, so reaching for a state change on those phrases would fight the platform. **They belong to the `pr-flow` skill**, which takes them as the signal to run its checks and lift a PR out of draft. Hand them over rather than treating them as unroutable: the phrases have an owner, just not this one.
-
-## Explicit routing
-
-Based on the argument, do exactly one of the following and nothing else:
+Based on the word, do exactly one of the following and nothing else:
 
 - If the argument is exactly `help` → read `workflows/help.md`, output its contents, stop.
 - If it starts with `status` → read `workflows/status.md` and follow it.
@@ -92,8 +77,8 @@ Based on the argument, do exactly one of the following and nothing else:
 - If it starts with `search` or `next` → read `workflows/search.md` and follow it.
 - If it starts with `state`, `start`, `close`, `reopen`, `block` or `milestone` → read `workflows/state.md` and follow it.
 - If it starts with `finish` → read `workflows/create.md` and follow its *Finishing a draft* section.
-- If the argument reads as prose describing work to break down - `create issues for X`, or a bare description - → read `workflows/create.md` and follow it.
-- Otherwise → read `workflows/help.md`, output its contents, and say which argument failed to match any routing entry. A single unrecognised token is a typo or a verb this skill does not have, and sending it into the breakdown workflow would answer it with a proposed breakdown of the typo.
+- If it starts with `create` → read `workflows/create.md` and follow it. The rest of the argument describes the work to break down.
+- Otherwise → read `workflows/help.md`, output its contents, say which argument failed to match any routing entry, and name the nearest word. A bare description is such an argument: it starts no breakdown until it follows `create`.
 
 ---
 
