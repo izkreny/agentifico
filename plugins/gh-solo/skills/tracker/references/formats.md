@@ -14,7 +14,7 @@ Branch names, commit subjects, pull request titles and plan filenames. They live
 | Branch | `{type}/GHI-{issue-number}_{slug}` | `feat/GHI-50_login-form` |
 | Commit header | `{type}: {description} (#{issue-number})` | `fix: reject a blank email (#50)` |
 | Plan file | `YYYY-MM-DD_GHI-{issue-number}_{slug}.md` | `<repo-root>/docs/plans/2026-08-16_GHI-50_login-form.md` |
-| PR title | `{type}({scope}): {issue title}` - the scope is the issue's layer label, omitted when it repeats the type | `feat(backend): add user lookup endpoint` |
+| PR title | `{type}({scope}): {issue title}` - the scope is the issue's mandatory-axis label, omitted when it repeats the type | `feat(backend): add user lookup endpoint` |
 | PR body | Must contain `Closes #{issue-number}` | `Closes #50` |
 | Assignee | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation | `--add-assignee @me` |
 
@@ -40,9 +40,9 @@ That set is the default, and the set in force is what `python3 <skill-dir>/../pr
 
 **That format describes a commit on a branch.** Where the repository squash-merges, the commit that lands on the trunk is built from the *pull request* title instead and carries `(#{pr-number})`, so the trunk references PRs while branch history references issues. Both are correct and neither should be "fixed" to match the other; the `pr-flow` skill owns that transition.
 
-The spec's optional scope, `type(scope):`, is used in exactly one place: the **pull request title**, and from there the squash commit on the trunk. The scope is always the issue's **layer label**, never a fresh choice - decided once, on the issue, it cannot drift - and it is **omitted when it repeats the type**, so a `docs`-labelled issue with a `docs` type opens `docs: rewrite the readme`, never `docs(docs): …`. The trunk is where the layer is worth carrying: `git log --oneline` on `main` shows squash subjects two hops away from the issue's labels, and `feat(frontend): add login form (#60)` answers "what did this touch" without a hop. **Branch commits carry no scope.** Every commit on a branch would repeat the same value, and squashing deletes that history anyway; the header there stays `{type}: {description} (#{issue-number})`.
+The spec's optional scope, `type(scope):`, is used by default in one place: the **pull request title**, and from there the squash commit on the trunk. The scope is always the issue's **mandatory-axis label**, `layer` unless the repository's config names another axis, never a fresh choice - decided once, on the issue, it cannot drift - and it is **omitted when it repeats the type**, so a `docs`-labelled issue with a `docs` type opens `docs: rewrite the readme`, never `docs(docs): …`. The trunk is where the layer is worth carrying: `git log --oneline` on `main` shows squash subjects two hops away from the issue's labels, and `feat(frontend): add login form (#60)` answers "what did this touch" without a hop. **By default, branch commits carry no scope.** Every commit on a branch would repeat the same value, and squashing deletes that history anyway; the header there stays `{type}: {description} (#{issue-number})`.
 
-**Where `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_scope` prints `label`, every branch commit carries the issue's layer label as its scope**, per `../pr-flow/references/repo-config.md`. The pull request title keeps its own rule either way.
+**Where `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_scope` prints `label`, every branch commit carries the issue's mandatory-axis label as its scope**, per `../pr-flow/references/repo-config.md`. The pull request title keeps its own rule either way.
 
 ### `#50` in prose, `GHI-50` in names
 
