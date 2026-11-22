@@ -7,7 +7,8 @@ REPO="$(mktemp -d)"
 ODD="$(mktemp -d)"
 CONF="$(mktemp -d)"
 BARE="$(mktemp -d)"
-trap 'rm -rf "$REPO" "$ODD" "$CONF" "$BARE"' EXIT
+TAGGED="$(mktemp -d)"
+trap 'rm -rf "$REPO" "$ODD" "$CONF" "$BARE" "$TAGGED"' EXIT
 
 git -C "$REPO" init -q -b main .
 git -C "$REPO" config user.email bench@example.invalid
@@ -29,7 +30,7 @@ git -C "$ODD" symbolic-ref refs/remotes/upstream/HEAD refs/remotes/upstream/deve
 git -C "$ODD" checkout -qb feature/main
 
 # WHY: config is set per case in a repository of its own, so the cases above keep testing the default `simple`.
-for dir in "$CONF" "$BARE"; do
+for dir in "$CONF" "$BARE" "$TAGGED"; do
   git -C "$dir" init -q -b main .
   git -C "$dir" config user.email bench@example.invalid
   git -C "$dir" config user.name bench
@@ -41,10 +42,13 @@ git -C "$CONF" checkout -qb feat/GHI-50_login-form
 # WHY: `matching` asks only when a local trunk branch exists, so one fixture must have none.
 git -C "$BARE" checkout -qb work
 git -C "$BARE" branch -qD main
+# WHY: a tag sharing a branch's name makes git print that branch's short name as `heads/<name>`.
+git -C "$TAGGED" tag main
+git -C "$TAGGED" checkout -qb feat
 
-python3 - "$HOOK" "$REPO" "$ODD" "$CONF" "$BARE" <<'PY'
+python3 - "$HOOK" "$REPO" "$ODD" "$CONF" "$BARE" "$TAGGED" <<'PY'
 import json, subprocess, sys
-hook, cwd, odd, conf, bare = sys.argv[1:6]
+hook, cwd, odd, conf, bare, tagged = sys.argv[1:7]
 
 def decision(cmd, branch, repo=None, config=None):
     repo = repo or cwd
@@ -199,6 +203,10 @@ CONF_MUST_STAY_SILENT = [
 BARE_MUST_STAY_SILENT = [
     ("git push", "work", {"push.default": "matching"}),          # no local trunk branch to match
 ]
+TAGGED_MUST_ASK = [
+    ("git push", "feat", {"push.default": "matching"}),          # a tag named main must not hide the branch
+    ("git push origin :", "feat", {}),
+]
 
 fails = 0
 rounds = (
@@ -213,8 +221,9 @@ rounds = (
     ("ask", CONF_MUST_ASK, conf),
     ("silent", CONF_MUST_STAY_SILENT, conf),
     ("silent", BARE_MUST_STAY_SILENT, bare),
+    ("ask", TAGGED_MUST_ASK, tagged),
 )
-NAMES = {odd: "odd repo", conf: "config repo", bare: "no-trunk repo"}
+NAMES = {odd: "odd repo", conf: "config repo", bare: "no-trunk repo", tagged: "tagged repo"}
 for want, cases, repo in rounds:
     print(f"must be {want}{f' [{NAMES[repo]}]' if repo else ''}:")
     for cmd, branch, *config in cases:

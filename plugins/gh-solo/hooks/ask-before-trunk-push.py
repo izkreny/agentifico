@@ -183,7 +183,9 @@ def current_branch(cwd):
 
 
 def local_branches(cwd):
-    return git(cwd, "for-each-ref", "--format=%(refname:short)", "refs/heads").splitlines()
+    """The full name is stripped rather than `:short` read, because a tag sharing a branch's name makes git shorten it to `heads/<name>`."""
+    refs = git(cwd, "for-each-ref", "--format=%(refname)", "refs/heads").splitlines()
+    return [r[len("refs/heads/"):] for r in refs]
 
 
 def pattern_hits(dest, cwd):
