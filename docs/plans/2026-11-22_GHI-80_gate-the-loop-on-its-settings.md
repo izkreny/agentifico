@@ -41,8 +41,8 @@ No gate sees a real repository refuse: none on hand has a wrong setting, so the 
 
 ## Open questions
 
-- ::Q1:: **May this branch list the new bench under *The plugin's benches* in the repository-level `.agents/gh-solo.md`?** Recommendation: yes, as #79 did for its own bench, so a later edit to the script knows which bench it owes. Until you answer, the edit stays out of `## Steps`.
+None.
 
 ## Settled
 
-None yet.
+- ::Q1:: May this branch list the new bench under *The plugin's benches* in the repository-level `.agents/gh-solo.md`? Yes, decided by the owner in the terminal after the implementation, naming `setup.py` beside `settings-check.py` as an edit that owes the bench.
