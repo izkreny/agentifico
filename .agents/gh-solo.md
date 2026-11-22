@@ -68,7 +68,7 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 node skills/agents-guru/scripts/check.js <package-dir>
 ```
 
-The repository's own files owe the same check, on any branch that edits `AGENTS.md`, `.agents/gh-solo.md` or `.agents/dependencies.md`. *Skill files follow the agents-guru rules* in `AGENTS.md` holds them to the standard, and this run enforces it:
+The repository's own files owe the same check, on any branch that edits `AGENTS.md`, `.agents/gh-solo.md` or `.agents/dependencies.md`, and on any edit under `skills/agents-guru/`, whose rules judge these files too. *Skill files follow the agents-guru rules* in `AGENTS.md` holds them to the standard, and this run enforces it:
 
 ```bash
 node skills/agents-guru/scripts/check.js AGENTS.md .agents/gh-solo.md .agents/dependencies.md
