@@ -95,7 +95,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" -f event=COMMENT -F body
 
 #### 5. Refuse early on a thread the merge gate will refuse on
 
-The convention table's last row is the cheap, early check for *Resolution rests on recorded authority*; a violation stops this workflow here rather than after a round's worth of work.
+The convention table's *Every resolved thread has recorded owner authority* row is the cheap, early check for *Resolution rests on recorded authority*; a violation stops this workflow here rather than after a round's worth of work.
 
 ## The protocol's steps 1 to 5
 
@@ -114,11 +114,11 @@ python3 <skill-dir>/scripts/post-review.py passes --reviews <reviews-file>
 
 **At or past the cap, refuse in the protocol's wording**, and under the verdict line list the passes that ran - each by the head it read and whether it posted or was discarded, all of which the reviews listing already in hand carries.
 
-**Then print the one exit, `approve` or `:ap`, in the owner's terms**, per *The pass cap* in `references/pass-cap.md`, which owns the word and what it costs.
-
-**Go to *Which reviewer runs, and the spawn* in this step, and continue from there** - never back to the budget, which would read the same count and refuse the pass just bought, and never forward to the head read, which would skip reading the reviewer model.
-
 **Then what the pull request is left holding, read rather than recalled.** The open findings are the unresolved nodes of the GraphQL `reviewThreads` read the convention checks already make before this step, for *Every resolved thread has recorded owner authority*; take each thread's `body` in the same query and an uncertified verdict is legible in the thread that carries it. **Never fill this from an earlier round's report**, written before every resolve since, nor from a re-review record, which counts verdicts without naming their findings.
+
+**Then print the one exit, `approve` or `:ap`, in the owner's terms**, per *The pass cap* in `references/pass-cap.md`, which owns the word and what it costs, **and stop.**
+
+**Once the owner types `approve` or `:ap`, go to *Which reviewer runs, and the spawn* in this step, and continue from there** - never back to the budget, which would read the same count and refuse the pass just bought, and never forward to the head read, which would skip reading the reviewer model.
 
 Never spawn first and check after: the spawn is the thing being counted, so a check made afterwards has already spent what it was protecting.
 
@@ -198,7 +198,7 @@ python3 <skill-dir>/scripts/post-review.py highest-id --comments <listing-file> 
 
 **An id can live on either surface, so each is read and neither argument is optional.** A held finding's id, per Step 5, is reserved in the record Review's body until the push releases it, which the comments endpoint does not reach, so a read of the threads alone would hand that id to a different finding.
 
-**The number comes from the script rather than from a `--jq` filter on the `gh` call**, for the reason the unattended-command bullet in `SKILL.md` states about an aggregate over a paginated result. `highest-id` prints `0` when no round has posted yet, and **`--slurp` must not be added to the listing**: the script refuses that shape.
+**The number comes from the script rather than from a `--jq` filter on the `gh` call**, because under `--paginate` the filter runs once per page, so a maximum taken there is each page's rather than the listing's and can hand out an id already in use. `highest-id` prints `0` when no round has posted yet, and **`--slurp` must not be added to the listing**: the script refuses that shape.
 
 #### 3. Write the disclaimer line to a file
 
@@ -265,7 +265,7 @@ Which findings get no plan and wait for the owner instead, and what their reply 
 
 ### Step 5 - Re-review, scoped
 
-Spawn the reviewer again.
+Read the local head with `git rev-parse HEAD` and keep the value, then spawn the reviewer again.
 
 Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit or body item key claims which id, the key bare, as `V3`, per step 5 of `references/review-protocol.md`. **Where `python3 <skill-dir>/scripts/read-config.py get reviewer_model` printed one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
 
@@ -292,9 +292,8 @@ Read it exactly as Step 2's first item does and compare it against the pin the f
 One record per analysis is the standing rule and a re-review is an analysis. Same script and same call as step 2, with the re-review findings file, plus the arguments that entrance requires:
 
 ```bash
-git rev-parse HEAD                              # before the spawn above; keep the value
 git diff @{u}..HEAD -U0 > <unpushed-diff-file>
-python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head> --out <payload-file>
+python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head read before the spawn> --out <payload-file>
 ```
 
 **`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against.
