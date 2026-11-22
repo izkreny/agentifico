@@ -4,7 +4,7 @@
 
 Turns an approved plan into commits, and review findings into fixes. This is the middle of a branch's life: `pr-flow`'s `open` creates the draft PR this skill requires, and its `ready`, `review` and `merge` take over the moment this skill's work is pushed.
 
-Run `/gh-solo:implement <pr-number>` to implement, and `/gh-solo:implement fix <pr-number>`, as `fix 60 RF1 RF3`, to land the findings you say stand. From a session where `pr-flow` is loaded, `implement 60`, `:im 60` and `fix 60` do the same. Those words are the only way in: a sentence starts nothing and gets the word back. This page is the why.
+Run `/gh-solo:implement <pr-number>` to implement, and `/gh-solo:implement fix <pr-number>`, as `fix 60 RF1 RF3`, to land the findings you say stand. From a session where `pr-flow` is loaded, `implement 60`, `:im 60` and `fix 60` do the same. A sentence starts nothing and gets the word back. This page is the why.
 
 ## Install
 

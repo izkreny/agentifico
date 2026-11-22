@@ -86,7 +86,9 @@ Issue context comes from the same `gh`, so a headless run under `claude --print`
 
 ## Routing
 
-**A workflow starts only when the owner's own message names its word or that word's shortcut.** A word is exact, and a sentence is a guess that can push or merge. So a sentence that names no word starts nothing, however clearly it implies one. Where it asks for what a workflow does, reply with that workflow's word or shortcut, as `:mr 60 (merge)`, and stop. **The word is what the owner typed, never what `$ARGUMENTS` holds**: where this skill loaded from its description, an argument the agent composed from their sentence is not their word. A workflow that another enters by name, as `workflows/auto.md` enters `implement`, is started by the word that started the chain. This section owns the rule, and the `tracker` and `implement` skills point at it.
+**A workflow starts only when the owner's own message names its word or that word's shortcut.** A word is exact, and a sentence is a guess that can push or merge. So a sentence that names no word starts nothing, however clearly it implies one. Where it asks for what a workflow does, reply with that workflow's word or shortcut, as `:mr 60 (merge)`, and stop.
+
+**The word is what the owner typed, never what `$ARGUMENTS` holds**: where this skill loaded from its description, an argument the agent composed from their sentence is not their word. A workflow that another enters by name, as `workflows/auto.md` enters `implement`, is started by the word that started the chain. This section owns the rule, and the `tracker` and `implement` skills point at it.
 
 | The owner types | Workflow |
 | --- | --- |
