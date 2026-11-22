@@ -254,6 +254,8 @@ Reviewer model: opus
 This is the sweep that precedes the <name>_<version> tag.
 ```
 
+**The sweep issue's title names the moment the sweep must run by.** An epic's last child is `sweep <name> before epic #<epic-number> merges`. A sweep outside an epic is `sweep <name> before its next tag`, or `sweep <name> before its first tag` for a package that has never been tagged. A title naming a moment after the one the sweep must run by tells the next reader the sweep can wait.
+
 ### What the sweep does
 
 **Where the package's work is a stack, the sweep sets the release's version on its own branch**, measured from the version on the trunk. It is a major when any commit or pull request title in the stack carries `!` or a `BREAKING CHANGE:` trailer, otherwise a minor when any is a `feat`, otherwise a patch. The other branches of the stack each took a patch, and the sweep's version is measured from the trunk rather than from them, so a trunk at 5.2.1 under a stack holding one breaking branch lands 6.0.0. *A stacked branch moves only the patch because no installer can fetch the versions in between* in `AGENTS.md` owns why.
