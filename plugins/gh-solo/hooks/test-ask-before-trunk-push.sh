@@ -45,6 +45,7 @@ git -C "$BARE" branch -qD main
 # WHY: a tag sharing a branch's name makes git print that branch's short name as `heads/<name>`.
 git -C "$TAGGED" tag main
 git -C "$TAGGED" checkout -qb feat
+git -C "$TAGGED" tag feat
 
 python3 - "$HOOK" "$REPO" "$ODD" "$CONF" "$BARE" "$TAGGED" <<'PY'
 import json, subprocess, sys
@@ -206,6 +207,9 @@ BARE_MUST_STAY_SILENT = [
 TAGGED_MUST_ASK = [
     ("git push", "feat", {"push.default": "matching"}),          # a tag named main must not hide the branch
     ("git push origin :", "feat", {}),
+    # A tag named feat must not hide the branch's own upstream config.
+    ("git push", "feat", {"push.default": "upstream", "branch.feat.remote": "origin",
+                          "branch.feat.merge": "refs/heads/main"}),
 ]
 
 fails = 0

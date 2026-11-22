@@ -178,8 +178,9 @@ def config(cwd, overrides, key, every=False):
 
 
 def current_branch(cwd):
-    b = git(cwd, "rev-parse", "--abbrev-ref", "HEAD")
-    return b if b and b != "HEAD" else None
+    """The full ref is stripped for the reason `local_branches` gives, and a detached HEAD has none."""
+    ref = git(cwd, "symbolic-ref", "-q", "HEAD")
+    return ref[len("refs/heads/"):] if ref.startswith("refs/heads/") else None
 
 
 def local_branches(cwd):
