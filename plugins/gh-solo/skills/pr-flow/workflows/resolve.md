@@ -147,7 +147,7 @@ git log -p --format='%n::commit %h %s%n%b%n::body-end' <before-head>..HEAD
 
 ```markdown
 | Hunk | Answers |
-|---|---|
+| --- | --- |
 | [`workflows/merge.md:61-68`](https://github.com/{owner}/{repo}/pull/<pr-number>/commits/<that commit>#diff-<the path's sha256>R61-R68) | `RF4` |
 | [`SKILL.md:39`](https://github.com/{owner}/{repo}/pull/<pr-number>/commits/<that commit>#diff-<the path's sha256>R39) | `-` |
 ```

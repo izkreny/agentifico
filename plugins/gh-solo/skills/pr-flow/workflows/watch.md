@@ -29,11 +29,11 @@ Nothing about this is a preference:
 
 Only these end a watch, and the owner needs to know `unwatch` at minimum. A `reply` round does **not** stop it - per *The watch survives the round* in `references/review-protocol.md`, it keeps running so comments posted mid-round still wake answers:
 
-|                                                |                                                                                                                                                                |
-|------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `unwatch`, or `:uwt`                           | The explicit stop. Call `TaskStop` on the monitor and confirm it is gone                                                                                       |
+|  |  |
+| --- | --- |
+| `unwatch`, or `:uwt` | The explicit stop. Call `TaskStop` on the monitor and confirm it is gone |
 | The owner authorising the resolve and the push | The review is over. Stop it before pushing anything. There is no other way out of the round, so this is the only stop besides `unwatch` and the session ending |
-| The session ending                             | Monitors do not outlive it                                                                                                                                     |
+| The session ending | Monitors do not outlive it |
 
 **Say how to stop it in the same breath as arming it.** A background process the owner cannot confidently stop is worse than no background process, and they will not have this file open.
 
