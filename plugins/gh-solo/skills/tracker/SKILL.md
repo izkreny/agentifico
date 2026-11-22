@@ -78,7 +78,7 @@ Based on the word, do exactly one of the following and nothing else:
 - If it starts with `state`, `start`, `close`, `reopen`, `block` or `milestone` → read `workflows/state.md` and follow it.
 - If it starts with `finish` → read `workflows/create.md` and follow its *Finishing a draft* section.
 - If it starts with `create` → read `workflows/create.md` and follow it. The rest of the argument describes the work to break down.
-- Otherwise → read `workflows/help.md`, output its contents, say which argument failed to match any routing entry, and name the nearest word. A bare description is such an argument: it starts no breakdown until it follows `create`.
+- Otherwise → read `workflows/help.md`, output its contents, say which argument failed to match any routing entry, and name the nearest word. A description with no word before it is such an argument: it starts no breakdown until it follows `create`.
 
 ---
 

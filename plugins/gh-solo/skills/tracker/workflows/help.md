@@ -20,7 +20,7 @@ For repositories you own and commit to alone. A client setting scope and dates i
 | `milestone`                           | Create one, move its date, close it on scope                                            |
 | `help`                                | This page                                                                               |
 
-Each one starts only when you type its word. A sentence or a bare description starts nothing: the reply names the word that would have.
+Each one starts only when you type its word. A sentence, or a description with no word before it, starts nothing: the reply names the word that would have.
 
 An issue you want in the backlog before you have time or information to describe it gets the `draft` label: title and layer label as normal, body a stub. It stays invisible to `next` until `finish` removes the label. `search draft` lists them.
 
