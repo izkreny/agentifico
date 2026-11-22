@@ -22,7 +22,7 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 
 ## Where this sits
 
-This skill is the implementation stage of a branch's life, the node the `pr-flow` and `tracker` lifecycle diagrams name *implement*. Everything around it stays there: `open` created the draft PR this skill requires, `ready` audits what this skill leaves behind, `review` and `merge` come later. **You never do their work from here** - never lift the draft, never post a review, never merge.
+This skill is the implementation stage of a branch's life, the node the `pr-flow` and `tracker` lifecycle diagrams name *implement*. Everything around it stays there: `plan` created the draft PR this skill requires, `ready` audits what this skill leaves behind, `review` and `merge` come later. **You never do their work from here** - never lift the draft, never post a review, never merge.
 
 It is also written to be **resumable across sessions**: all state lives on the PR and the branch - ticked boxes, commits - and none in the session. A fresh session picks up mid-implementation by reading that state, which is what `workflows/implement.md` Step 2 does.
 
@@ -67,5 +67,5 @@ The workflows share these; each is stated once here.
 
 ## Supporting files
 
-- **`workflows/implement.md`** - the plan-to-commits work: locate, settle the plan record, establish where the branch stands, implement step by step, verify as the last act, push, hand off to `ready review`
+- **`workflows/implement.md`** - the plan-to-commits work: locate, settle the plan record, establish where the branch stands, implement step by step, verify as the last act, push, hand off to `ready-review`
 - **`workflows/fix.md`** - the fix entrance, from a review round's step 4, from a reply round's order, or from the owner naming what stands: land the findings as review-fix commits grouped by coherent change, re-run what they invalidated, leave the threads for the owner

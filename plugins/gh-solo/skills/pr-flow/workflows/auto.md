@@ -9,7 +9,7 @@ The entrances here run the lifecycle's workflows back to back, removing the wait
 
 **Only the literal command enters a chain.** Like the `watch` arming rule in `workflows/watch.md`, and for a stronger reason: `auto` skips a stop that exists for the owner's judgement, so no sentence, however clearly it implies one, may start either chain. The owner typing the command is the authorisation for everything the chain does - the plan pushed unread, the implementation, the draft flip, the posts - given in advance, once, for this invocation only.
 
-**Every refusal ends the chain.** The same rule the `ready review` chain states in `SKILL.md`, extended to every stage: a ⛔ anywhere stops with that workflow's own verdict line, carries nothing forward, and names the command that resumes from where it stopped. A chain is a convenience; a gate is not.
+**Every refusal ends the chain.** The same rule the `ready-review` chain states in `SKILL.md`, extended to every stage: a ⛔ anywhere stops with that workflow's own verdict line, carries nothing forward, and names the command that resumes from where it stopped. A chain is a convenience; a gate is not.
 
 ## Step 1 - `auto` only: the branch, the plan, the draft PR
 
@@ -17,7 +17,7 @@ If `git branch --show-current` already parses to the given issue number - the pa
 
 Then run `workflows/open.md` in full, through its Step 5. Its Step 6 stop is the wait this command waived: where that file says to stop and wait for the plan discussion, continue to Step 3 instead. The plan and the draft PR still land exactly as that workflow makes them - the owner can read the plan at any point afterwards, and a planning decision they would have argued with can still come back later, as a review finding. That trade is this entrance's premise, and it was made when the command was typed.
 
-The PR number `open` created carries through the rest of the chain.
+The PR number `plan` created carries through the rest of the chain.
 
 ## Step 2 - `go` only: confirm the PR is where this chain starts
 
@@ -37,7 +37,7 @@ Plan-discussion threads need no check here: Step 3 settles the plan record as it
 
 **Invoke the `gh-solo:implement` skill with the PR number** and follow it here, in this session. Entering it by name rather than reading its workflow file directly is what puts the implementation under that skill's own tool grant: it is the one skill in the flow that runs the repository's commands, tests and linters and builds, and this file's narrowed `Bash` cannot.
 
-Its Step 1 settles the plan record as its first act: after `auto`'s Step 1 that is a read, since `open` just pushed the plan, and after `go`'s Step 2 it is what puts the owner's settled plan on the remote before any code exists. Its refusal on an unsettled thread that affects the work ends this chain like any other.
+Its Step 1 settles the plan record as its first act: after `auto`'s Step 1 that is a read, since `plan` just pushed the plan, and after `go`'s Step 2 it is what puts the owner's settled plan on the remote before any code exists. Its refusal on an unsettled thread that affects the work ends this chain like any other.
 
 The handoff it produces is already posted on the PR as a comment. Relay it verbatim, then gate on it:
 
@@ -47,7 +47,7 @@ The handoff it produces is already posted on the PR as a comment. Relay it verba
 
 ## Step 4 - `ready`, then the review round
 
-The `ready review` chain already defined in `SKILL.md`'s routing, exactly as written there: read `workflows/ready.md` and follow it, and when it ends green with the draft lifted, continue straight into `workflows/review.md` on the same PR. A refusal in `ready` stops this chain as it stops that one.
+The `ready-review` chain already defined in `SKILL.md`'s routing, exactly as written there: read `workflows/ready.md` and follow it, and when it ends green with the draft lifted, continue straight into `workflows/review.md` on the same PR. A refusal in `ready` stops this chain as it stops that one.
 
 That workflow's own steps 1 to 5 need nothing from the owner, so the chain does not stop before them: the reviewer runs, its findings land, each gets a fix plan, the fixes are committed locally, and the re-review checks them. **Its confirmation gate does not fire here**, because the chain was entered by a PR number rather than a list, which is the same rule that workflow already applies to a named PR.
 

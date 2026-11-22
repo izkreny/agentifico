@@ -93,6 +93,6 @@ Then one line: the PR number and URL, that it is out of draft, and that every `#
 
 Then Step 4's result: each key beside the `file:line` naming it, or that the gate is off, or that no criterion carries a key.
 
-**If the invocation was the `ready review` chain**, per the routing in `SKILL.md`, do not stop here: continue into `workflows/review.md` on this PR, as if the owner had named it. The chain exists only to remove the wait between `ready` and `review`; a refusal above never reaches this point, so the chain never carries a failed audit forward.
+**If the invocation was the `ready-review` chain**, per the routing in `SKILL.md`, do not stop here: continue into `workflows/review.md` on this PR, as if the owner had named it. The chain exists only to remove the wait between `ready` and `review`; a refusal above never reaches this point, so the chain never carries a failed audit forward.
 
 Otherwise stop here: marking ready and reviewing are separate requests, and `workflows/review.md` has its own confirmation gate.

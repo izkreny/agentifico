@@ -23,7 +23,7 @@ Then the ball is the owner's again: read the replies on GitHub, respond or resol
 
 There is no step after that, because this whole workflow is a fork, not a stage: it hangs off the protocol's step 6 and exits where it entered. The owner is still judging throughout, and what follows is their word at step 7, which is `workflows/resolve.md`.
 
-**The fork is available whenever the PR exists, not only mid-review.** The plan discussion `workflows/open.md` stops for is the same mechanics: after `open`, the plan file is the PR's whole diff, so the owner can comment inline on its lines in the **Files changed** tab, `watch` sees those comments, and this workflow answers them in-thread - which puts the plan debate and its decisions on the PR permanently instead of in a chat transcript.
+**The fork is available whenever the PR exists, not only mid-review.** The plan discussion `workflows/open.md` stops for is the same mechanics: after `plan`, the plan file is the PR's whole diff, so the owner can comment inline on its lines in the **Files changed** tab, `watch` sees those comments, and this workflow answers them in-thread - which puts the plan debate and its decisions on the PR permanently instead of in a chat transcript.
 
 A plan change the exchange settles is Step 4 as usual: an order in the thread gets the change committed, unpushed, with the naming reply. Those plan commits wait like any others; their release is the owner starting implementation, which pushes them before any code lands.
 

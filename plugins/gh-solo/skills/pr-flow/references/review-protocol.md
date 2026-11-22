@@ -92,7 +92,7 @@ The reviewer is spawned again with the fix commit *range*, the findings list, an
 
 The first step that waits for anything. They answer per thread, in the vocabulary *The owner's vocabulary* states.
 
-**They may clear the closed threads first** with `resolve closed`, per *Resolving only the closed threads* in `workflows/resolve.md`. It resolves only what a closing verdict ended, pushes nothing, and leaves this step running.
+**They may clear the closed threads first** with `resolve-closed`, per *Resolving only the closed threads* in `workflows/resolve.md`. It resolves only what a closing verdict ended, pushes nothing, and leaves this step running.
 
 ### 7. Resolve and push, on the owner's word
 

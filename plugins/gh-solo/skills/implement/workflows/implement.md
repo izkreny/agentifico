@@ -1,6 +1,6 @@
 > **Tools used:** everything in `SKILL.md`'s header - this is the workflow the bare `Bash` exists for.
 
-Turn the plan on a draft PR into commits on its branch. Runs after `open` in the `pr-flow` skill has created the draft, and ends by handing the branch to that skill's `ready review`. It may run across many sessions; Step 2 is what makes session three indistinguishable from session one.
+Turn the plan on a draft PR into commits on its branch. Runs after `plan` in the `pr-flow` skill has created the draft, and ends by handing the branch to that skill's `ready-review`. It may run across many sessions; Step 2 is what makes session three indistinguishable from session one.
 
 ## Step 1 - Locate, settle the plan record, load
 
@@ -94,5 +94,5 @@ It lands in the Conversation tab, which is right: it expects no answer, and it o
 End with the owner's next move, alone on its line, flush left:
 
 ```text
-:rr <pr-number> (ready review)
+:rr <pr-number> (ready-review)
 ```

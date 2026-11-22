@@ -10,7 +10,7 @@ End a review round on the owner's word: record the authorisation, resolve the th
 
 The owner types `resolve` or `:rp` in the session, per *Routing* in `SKILL.md`.
 
-**`resolve closed`, or `:rc`, is a narrower entrance**: it resolves only the threads a closing verdict ended and pushes nothing, per *Resolving only the closed threads*.
+**`resolve-closed`, or `:rc`, is a narrower entrance**: it resolves only the threads a closing verdict ended and pushes nothing, per *Resolving only the closed threads*.
 
 **`merge` is not one of these, and routes to `workflows/merge.md` instead.** That workflow's Step 1 refuses on unpushed commits and names `:rp` as the remedy, so the owner is told the word they actually need.
 

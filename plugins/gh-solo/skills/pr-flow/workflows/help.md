@@ -8,9 +8,9 @@ Each one starts only when you type its word or its shortcut. A sentence starts n
 
 | Command                                 | What it does                                                                                                                                                                        |
 |-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `open` (or `plan`)                      | Check the issue is startable and the trunk current, write the plan file, commit it first and alone, open the PR as a draft, stop                                                    |
+| `plan`                                  | Check the issue is startable and the trunk current, write the plan file, commit it first and alone, open the PR as a draft, stop                                                    |
 | `ready`                                 | Audit that every stated gate ran and was ticked and that CI agrees - it runs nothing itself - then lift the PR out of draft                                                         |
-| `ready review 60` (or `:rr 60`)         | The same audit, then straight into `review` when it passes - one wait instead of two. A refusal stops the chain                                                                     |
+| `ready-review 60` (or `:rr 60`)         | The same audit, then straight into `review` when it passes - one wait instead of two. A refusal stops the chain                                                                     |
 | `auto 50`                               | One command from issue number to prepared review: plan, draft PR, implementation, `ready`, `review`. Skips your plan-reading stop, so keep it for small work you would wave through |
 | `go 60`                                 | The same chain entered after you read the plan on draft PR 60: implementation, `ready`, `review`, one stop at the end                                                               |
 | `review`                                | Run a full review round on every open PR: findings posted, fixes committed locally, then it stops for you                                                                           |
@@ -20,7 +20,7 @@ Each one starts only when you type its word or its shortcut. A sentence starts n
 | `reply 60` (or `:re 60`)                | Read your replies on the review threads and answer them, in the thread                                                                                                              |
 | `watch 60` (or `:wt 60`)                | Poll every 30s for your replies while you read, and answer as they arrive                                                                                                           |
 | `unwatch` (or `:uwt`)                   | Stop that polling. `:rp` stops it too; `reply` leaves it running, and it dies with the session                                                                                      |
-| `resolve closed 60` (or `:rc 60`)       | Resolve every thread a closing verdict ended, and leave the rest open for you to read. It pushes nothing and leaves `watch` running                                                 |
+| `resolve-closed 60` (or `:rc 60`)       | Resolve every thread a closing verdict ended, and leave the rest open for you to read. It pushes nothing and leaves `watch` running                                                 |
 | `resolve 60` (or `:rp 60`)              | Record your authorisation, resolve the threads it covers, push the fixes, and post an index of what that push carried. It stops there                                               |
 | `implement 60` (or `:im 60`)            | Hand PR 60 to the `implement` skill to implement its plan                                                                                                                           |
 | `fix 60`                                | Hand PR 60 to the `implement` skill to land the review fixes you named, as `fix 60 RF2 RF4`                                                                                         |
@@ -36,7 +36,7 @@ Each one starts only when you type its word or its shortcut. A sentence starts n
 ## A branch's life, in order
 
 1. **issue** - the branch is cut from it; that side is `tracker`
-2. **`open`** - the plan, committed alone, and a draft PR holding nothing else
+2. **`plan`** - the plan, committed alone, and a draft PR holding nothing else
 3. *implementation* - the work itself, on the branch: the `implement` skill, which settles the plan record first and then does the work - resumable across sessions because the PR body carries the state
 4. **`ready`** - the record audited, the PR out of draft
 5. **`review`** - tracker checks posted, then the round: a fresh-context reviewer reads the diff, its findings land as inline threads, each gets a fix plan, the fixes are committed **locally**, and a scoped re-review checks each one closed the finding it claims
@@ -44,7 +44,7 @@ Each one starts only when you type its word or its shortcut. A sentence starts n
 7. **`:rp`** - you type it; the authorisation is recorded, the covered threads resolve, the fixes finally go up, and an index of what that push carried is posted. It ends here
 8. **`merge 60`** - you type it, separately; checklists audited, squash to `main`, branch deleted, the issue closes itself
 
-`open` stops at the draft PR on purpose: the plan is reviewed as a diff before any code is written. Plan approval never authorises the first implementation commit.
+`plan` stops at the draft PR on purpose: the plan is reviewed as a diff before any code is written. Plan approval never authorises the first implementation commit.
 
 **The accelerators.** `auto` and `go` run that same life with the waits removed and nothing else: every audit still runs, and any refusal stops the chain where it stands. `auto 50` goes from the issue all the way to step 6 without your plan stop - the trade is that a planning call you would have argued with comes back later as a review finding, so use it for work you trust. `go 60` is for after you have read the plan.
 
@@ -70,7 +70,7 @@ Two kinds of thread wait for you specifically, and the round will have said whic
 
 **Or come back and type `reply 60`.** Or run `watch 60` first and it will poll while you work, answering as they land. `auto` and `go` arm it for you when they reach this step. The watch runs through the whole round, so comment at your own pace; it stops on `:rp`, on `unwatch`, or with the session. Nothing notifies the session that you commented in the GitHub UI, so a reply nobody is told about is a reply nobody reads. `sync` does *not* mean this: that word cascade-rebases a stack.
 
-`reply` and `watch` work from the moment the PR exists, not only mid-review - the plan discussion after `open` is the same loop, since the plan file is the whole diff. **Inline on the file's lines in the Files changed tab is the best place to comment**, because a thread anchored to a line is what the round's ids, fix plans and resolves attach to. It is a recommendation rather than a requirement: review summary bodies and Conversation comments are read too, on their own endpoints, so nothing you write goes unread wherever you put it.
+`reply` and `watch` work from the moment the PR exists, not only mid-review - the plan discussion after `plan` is the same loop, since the plan file is the whole diff. **Inline on the file's lines in the Files changed tab is the best place to comment**, because a thread anchored to a line is what the round's ids, fix plans and resolves attach to. It is a recommendation rather than a requirement: review summary bodies and Conversation comments are read too, on their own endpoints, so nothing you write goes unread wherever you put it.
 
 ## Prerequisites
 

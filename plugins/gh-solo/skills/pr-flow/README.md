@@ -23,7 +23,7 @@ The plugin's own `README.md` has the local-checkout variant, the requirements, a
 
 ```mermaid
 flowchart TD
-    A["branch exists"] --> B["<b>open</b><br/>writes the plan, commits it<br/>alone, opens a draft PR"]
+    A["branch exists"] --> B["<b>plan</b><br/>writes the plan, commits it<br/>alone, opens a draft PR"]
     B --> STOP(["<b>you</b> read the plan<br/>and argue with it"])
     STOP --> C["implementation<br/>(the implement skill)"]
     C --> D["<b>ready</b><br/>audits that every check ran<br/>and CI agrees, takes the PR out of draft"]

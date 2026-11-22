@@ -2,7 +2,7 @@
 name: pr-flow
 description: |
   Manage branches, stacked pull requests and PR review on a GitHub repository the user owns, through the `gh` CLI and the `gh stack` extension. Use when asked to write a branch's plan file, open its pull request, or mark a draft PR ready; to stack a branch, add a branch to a stack, submit, sync, restack or view a stack; when asked what a branch is stacked on; when asked to review open PRs, review a numbered PR, or check what needs review; when asked to merge or land a pull request or a stack; or when the user says they replied to review comments on GitHub and wants those answered; when the user says "resolve all and push" or "resolve closed", or that the review is done; or when asked to watch a PR for new comments, poll for replies, or stop watching one. Also use when the user says a branch is done or ready for review, or types `/gh-solo:pr-flow` or a shortcut: `:rp`, `:rc`, `:mr`, `:rr`, `:wt`, `:uwt`, `:im`, `:re`. Assumes one committer; for the issue tracker itself use `tracker` skill.
-argument-hint: "[open | plan | auto <issue-number> | go <pr-number> | ready [review] | :rr <pr-number> | review [pr-number] | watch [pr-number] | :wt <pr-number> | unwatch | :uwt | reply [pr-number] | :re [pr-number] | implement <pr-number> | :im <pr-number> | fix <pr-number> | resolve [closed] [pr-number] | :rp [pr-number] | :rc [pr-number] | merge [pr-number] | :mr [pr-number] | view | init | add | submit | sync | restack | help]"
+argument-hint: "[plan | auto <issue-number> | go <pr-number> | ready | ready-review <pr-number> | :rr <pr-number> | review [pr-number] | watch [pr-number] | :wt <pr-number> | unwatch | :uwt | reply [pr-number] | :re [pr-number] | implement <pr-number> | :im <pr-number> | fix <pr-number> | resolve [pr-number] | :rp [pr-number] | resolve-closed [pr-number] | :rc [pr-number] | merge [pr-number] | :mr [pr-number] | view | init | add | submit | sync | restack | help]"
 allowed-tools: Bash(gh:*), Bash(git:*), Bash(python3:*), Read, Write, Edit, Grep, Glob, Monitor, TaskStop, Agent, Skill, EnterWorktree, ExitWorktree
 ---
 
@@ -86,7 +86,7 @@ Issue context comes from the same `gh`, so a headless run under `claude --print`
 
 ## Routing
 
-**A workflow starts only when the owner's own message names its word or that word's shortcut.** A word is exact, and a sentence is a guess that can push or merge. So a sentence that names no word starts nothing, however clearly it implies one. Where it asks for what a workflow does, reply with that workflow's word or shortcut, as `:mr 60 (merge)`, and stop.
+**A workflow starts only when the owner's own message names its word or that word's shortcut.** Each action has exactly one word and at most one shortcut, and a word is matched as the whole first token, so `resolve-closed` is never `resolve`. A word is exact, and a sentence is a guess that can push or merge. So a sentence that names no word starts nothing, however clearly it implies one. Where it asks for what a workflow does, reply with that workflow's word or shortcut, as `:mr 60 (merge)`, and stop.
 
 **The word is what the owner typed, never what `$ARGUMENTS` holds**: where this skill loaded from its description, an argument the agent composed from their sentence is not their word. A workflow that another enters by name, as `workflows/auto.md` enters `implement`, is started by the word that started the chain. A word typed into a running workflow, as `approve`, `:ap` or `discard` at a standing refusal or a reply in a thread, answers that workflow and starts no other. This section owns the rule, and the `tracker` and `implement` skills point at it.
 
@@ -94,30 +94,33 @@ Issue context comes from the same `gh`, so a headless run under `claude --print`
 | --- | --- |
 | `view`, `init`, `add`, `submit`, `sync`, `restack` | `workflows/stack.md` |
 | `review`, `review 60` | `workflows/review.md` |
-| `open`, `plan` | `workflows/open.md` |
-| `ready`, and `ready review 60` or `:rr 60` for the chain into `review` | `workflows/ready.md` |
+| `plan` | `workflows/open.md` |
+| `ready` | `workflows/ready.md` |
+| `ready-review 60`, `:rr 60` | `workflows/ready.md`, then straight into `workflows/review.md` |
 | `auto 50`, with an issue number | `workflows/auto.md` from the top: plan and draft PR, the implementation, `ready`, the review round, stop at the owner with the watch armed |
-| `go 60`, with a PR number | `workflows/auto.md` at its `go` entrance: the same chain minus `open`, for a plan the owner has already read |
+| `go 60`, with a PR number | `workflows/auto.md` at its `go` entrance: the same chain minus `plan`, for a plan the owner has already read |
 | `merge`, `:mr` | `workflows/merge.md`. Typed while a review round has left fix commits unpushed, its Step 1 refuses and names `:rp` as the remedy, which is the answer the owner needs rather than a push they did not ask for |
 | `reply`, `:re` | `workflows/discuss.md` |
 | `watch 60`, `:wt 60` | `workflows/watch.md`: arm the poll |
 | `resolve`, `:rp` - typed after a review round left fix commits unpushed | `workflows/resolve.md`, the protocol's step 7: stop the watch, post the authorisation, resolve what it covers, push, release what was held for the push, post the delta index, read the checks. It ends there; that file names what follows |
-| `resolve closed`, `:rc` - typed during a review round | `workflows/resolve.md` at *Resolving only the closed threads*: resolve every thread a closing verdict ended, push nothing, leave the watch running |
+| `resolve-closed`, `:rc` - typed during a review round | `workflows/resolve.md` at *Resolving only the closed threads*: resolve every thread a closing verdict ended, push nothing, leave the watch running |
 | `unwatch`, `:uwt` | stop the monitor; see *Stopping it* in `workflows/watch.md` |
-| `implement 60`, `:im 60`, `fix 60` - with a PR number | the `implement` skill, entered by name with the rest of the argument |
+| `implement 60`, `:im 60` | the `implement` skill, entered by name with the PR number |
+| `fix 60`, as `fix 60 RF2` | the `implement` skill at its fix entrance, entered by name with the whole argument |
 
 Based on the word, do exactly one of the following:
 
 - If the argument is exactly `help` → read `workflows/help.md`, output its contents, stop.
 - If it starts with `review` → read `workflows/review.md` and follow it.
-- If it starts with `open` or `plan` → read `workflows/open.md` and follow it.
+- If it starts with `plan` → read `workflows/open.md` and follow it.
 - If it starts with `auto` followed by a number → read `workflows/auto.md` and follow it from the top.
 - If it starts with `go` followed by a number → read `workflows/auto.md` at its `go` entrance.
-- If it starts with `ready` or `:rr` → read `workflows/ready.md` and follow it. **If the argument also contains `review`, or is `:rr`** (`ready review`, `ready review 60`, `:rr 60`) → when `ready` ends green with the draft lifted, continue straight into `workflows/review.md` on the same PR, as if the owner had named it. A refusal in `ready` stops the chain, and the chain changes nothing inside either workflow - it only removes the wait between them. `auto` and `go` run this chain too, at their Step 4, because the owner typed them.
+- If it starts with `ready` → read `workflows/ready.md` and follow it.
+- If it starts with `ready-review` or `:rr` (`ready-review 60`, `:rr 60`) → read `workflows/ready.md` and follow it, and when `ready` ends green with the draft lifted, continue straight into `workflows/review.md` on the same PR, as if the owner had named it. A refusal in `ready` stops the chain, and the chain changes nothing inside either workflow - it only removes the wait between them. `auto` and `go` run this chain too, at their Step 4, because the owner typed them.
 - If it starts with `reply` or `:re` → read `workflows/discuss.md` and follow it. **`sync` never means this**: that word belongs to the cascade rebase in `workflows/stack.md`, and confusing them rewrites history when someone asked for a conversation.
 - If it starts with `watch` or `:wt` → read `workflows/watch.md` and arm its poll.
 - If it starts with `unwatch` or `:uwt` → stop the monitor with `TaskStop` and confirm it is gone.
-- If it starts with `resolve closed` or `:rc` → read `workflows/resolve.md` and follow its *Resolving only the closed threads*. It pushes nothing and leaves a running watch alone. **`resolve closed` never takes the plain `resolve` entrance**, even though it starts with that word: that entrance pushes, and a push cannot be taken back.
+- If it starts with `resolve-closed` or `:rc` → read `workflows/resolve.md` and follow its *Resolving only the closed threads*. It pushes nothing and leaves a running watch alone.
 - If it starts with `resolve` or `:rp`, while a review round has left fix commits unpushed → read `workflows/resolve.md` and follow it. **It ends at the push**, and its confirm step is what names the owner's next move.
 - If it starts with `merge` or `:mr` → read `workflows/merge.md` and follow it, **including when the PR is stacked**. It is where every landing enters, and it routes to `gh stack merge` itself. Sending a stacked merge to `workflows/stack.md` instead skips the review gate.
 - If it starts with `view`, `init`, `add`, `submit`, `sync` or `restack` → read `workflows/stack.md` and follow it.
