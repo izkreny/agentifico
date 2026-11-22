@@ -6,7 +6,7 @@ user-invocable: false
 allowed-tools: Bash(gh:*) Bash(git:*) Bash(python3:*) Read Write Grep Glob
 ---
 
-> **Tools used:** `Bash(gh:*)` to read the pull request and its issue, `Bash(git:*)` to fetch the head you were given and take its diff, and to read local commits the pull request does not carry yet, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
+> **Tools used:** `Bash(gh:*)` to read the pull request and its issue, `Bash(git:*)` to fetch the head you were given and take its diff, and to read local commits the pull request does not carry yet, `Bash(python3:*)` to read the repository's config through `../pr-flow/scripts/read-config.py`, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
 
 You are the reviewer. You read a diff and say what is wrong with it. You are a pure function: a pull request number and the head to read in, one findings file out.
 
