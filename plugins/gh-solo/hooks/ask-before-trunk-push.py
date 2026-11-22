@@ -150,7 +150,7 @@ def push_invocations(command, cwd, depth=0):
             if os.path.basename(tok) != "git":
                 continue
             rest = tokens[i + 1:]
-            where, j = cwd, 0
+            where, j, overrides = cwd, 0, []
             while j < len(rest):
                 t = rest[j]
                 if t == "-C" and j + 1 < len(rest):
@@ -159,17 +159,69 @@ def push_invocations(command, cwd, depth=0):
                     where = target if git(target, "rev-parse", "--git-dir") else cwd
                     j += 2
                 elif t in GLOBAL_FLAGS_WITH_VALUE:
+                    # WHY: a `-c` pair overrides the repository's config for this one push, so it can change where the push goes.
+                    if t == "-c" and j + 1 < len(rest):
+                        overrides += ["-c", rest[j + 1]]
                     j += 2
                 elif t.startswith("-"):
                     j += 1
                 else:
                     break
             if j < len(rest) and rest[j] == "push":
-                yield rest[j + 1:], where
+                yield rest[j + 1:], where, overrides
             # No `break`, because a segment may carry more than one `git` and abandoning it after a non-push hid every push behind it.
 
 
-def destinations(args, cwd):
+def config(cwd, overrides, key, every=False):
+    out = git(cwd, *overrides, "config", "--get-all" if every else "--get", key)
+    return out.splitlines() if every else out
+
+
+def current_branch(cwd):
+    b = git(cwd, "rev-parse", "--abbrev-ref", "HEAD")
+    return b if b and b != "HEAD" else None
+
+
+def local_branches(cwd):
+    return git(cwd, "for-each-ref", "--format=%(refname:short)", "refs/heads").splitlines()
+
+
+def pattern_hits(dest, cwd):
+    """The full ref is matched, because a pattern such as `refs/*` covers branches without naming `refs/heads/`."""
+    full = dest if dest.startswith("refs/") else "refs/heads/" + dest
+    pattern = re.compile(re.escape(full).replace(r"\*", ".*"))
+    return [t for t in trunk_names(cwd) if pattern.fullmatch("refs/heads/" + t)]
+
+
+def refspec_destinations(refspecs, cwd):
+    """One reading for refspecs from the command line and from `remote.<name>.push`, so a pattern or a bare `:` means the same in both."""
+    out = []
+    for r in refspecs:
+        if r.lstrip("+") == ":":
+            out += local_branches(cwd)   # git's matching refspec
+            continue
+        b = branch_of(r)
+        if b == "HEAD":
+            b = current_branch(cwd)
+        if b and "*" in b:
+            out += pattern_hits(b, cwd)
+        elif b:
+            out.append(b)
+    return out
+
+
+def push_remote(cwd, overrides, branch):
+    """The order `git help config` gives for a push that names no remote."""
+    keys = ([f"branch.{branch}.pushRemote"] if branch else []) + ["remote.pushDefault"] \
+        + ([f"branch.{branch}.remote"] if branch else [])
+    for key in keys:
+        remote = config(cwd, overrides, key)
+        if remote:
+            return remote
+    return "origin"
+
+
+def destinations(args, cwd, overrides=()):
     if "--dry-run" in args or "-n" in args:
         return []
     if any(a in PUSHES_EVERYTHING for a in args):
@@ -187,22 +239,28 @@ def destinations(args, cwd):
         j += 1
     deleting = any(a in DELETES for a in args)
     refspecs = positional if deleting else positional[1:]   # a delete names branches, not a remote
-
-    def current_branch():
-        b = git(cwd, "rev-parse", "--abbrev-ref", "HEAD")
-        return b if b and b != "HEAD" else None
-
     if refspecs:
-        out = []
-        for r in refspecs:
-            b = branch_of(r)
-            if b == "HEAD":
-                b = current_branch()
-            if b:
-                out.append(b)
-        return out
-    b = current_branch()  # A bare `git push` follows HEAD.
-    return [b] if b else []
+        return refspec_destinations(refspecs, cwd)
+    # WHY: `git help push` orders it so: the command's refspecs or `--tags`, then `remote.<name>.push`, then `push.default`.
+    if "--tags" in args:
+        return []
+    branch = current_branch(cwd)
+    remote = positional[0] if positional else push_remote(cwd, overrides, branch)
+    configured = config(cwd, overrides, f"remote.{remote}.push", every=True)
+    if configured:
+        return refspec_destinations(configured, cwd)
+    mode = config(cwd, overrides, "push.default") or "simple"
+    if mode == "matching":
+        return local_branches(cwd)
+    if mode in ("upstream", "tracking"):
+        # WHY: git refuses an upstream push to any remote but the branch's own upstream remote.
+        if branch and config(cwd, overrides, f"branch.{branch}.remote") == remote:
+            merge = config(cwd, overrides, f"branch.{branch}.merge")
+            return [branch_of(merge)] if merge else []
+        return []
+    if mode == "nothing":
+        return []
+    return [branch] if branch else []   # simple and current push to the branch's own name
 
 
 def main():
@@ -211,10 +269,10 @@ def main():
     if "push" not in command:
         return
     cwd = data.get("cwd") or os.getcwd()
-    for args, where in push_invocations(command, cwd):
+    for args, where, overrides in push_invocations(command, cwd):
         if not git(where, "rev-parse", "--git-dir"):
             continue
-        hits = [d for d in destinations(args, where) if d in trunk_names(where)]
+        hits = [d for d in destinations(args, where, overrides) if d in trunk_names(where)]
         if not hits:
             continue
         reason = (
