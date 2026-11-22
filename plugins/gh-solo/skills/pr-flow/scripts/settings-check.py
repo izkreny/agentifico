@@ -36,7 +36,7 @@ def load_setup():
     return module
 
 
-setup = load_setup()
+setup = None
 
 
 class Refused(Exception):
@@ -93,10 +93,13 @@ def door():
 
 
 def main(argv=None):
+    global setup
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("command", choices=["preflight", "door"])
     a = p.parse_args(argv)
     try:
+        # WHY: loaded here rather than at import, so a missing setup.py exits 2 like any read that could not run, never 1 like a refusal.
+        setup = setup or load_setup()
         if a.command == "preflight":
             preflight()
         else:

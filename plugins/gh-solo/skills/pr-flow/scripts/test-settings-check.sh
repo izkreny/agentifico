@@ -8,13 +8,13 @@ HOME_DIR="$(mktemp -d)"
 trap 'rm -rf "$REPO" "$HOME_DIR"' EXIT
 
 HOME="$HOME_DIR" XDG_CONFIG_HOME= python3 - "$HERE/settings-check.py" "$REPO" <<'PY'
-import contextlib, copy, importlib.util, io, json, sys
+import contextlib, copy, importlib.util, io, json, shutil, subprocess, sys, tempfile
 from pathlib import Path
 
 spec = importlib.util.spec_from_file_location("settings_check", sys.argv[1])
 sc = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(sc)
-setup = sc.setup
+setup = sc.setup = sc.load_setup()
 repo_root = Path(sys.argv[2])
 (repo_root / ".agents").mkdir()
 # WHY: with a config in place setup's plan has no scaffold to report, so its exit code speaks for the settings alone.
@@ -130,6 +130,14 @@ code, out = run(Fake(repo_with(permissions={"admin": False}), NO_CHECKS), "door"
 check("below admin: refuses", (code, out.startswith("⛔ REFUSED - bench/repo: reading its settings")), (1, True))
 check("a protection read that fails is not taken for absent", run(Fake(GOOD_REPO, NO_CHECKS, fail="protection"), "door")[0], 2)
 check("a failed repository read exits 2", run(Fake(GOOD_REPO, NO_CHECKS, fail="repos/{owner}/{repo}"), "door")[0], 2)
+
+print("\nloading setup.py:")
+with tempfile.TemporaryDirectory() as tmp:
+    lone = Path(tmp) / "skills/pr-flow/scripts/settings-check.py"
+    lone.parent.mkdir(parents=True)
+    shutil.copy(sys.argv[1], lone)
+    r = subprocess.run([sys.executable, str(lone), "preflight"], capture_output=True, text=True)
+    check("no setup.py beside it: exits 2 without a traceback", (r.returncode, "Traceback" in r.stderr), (2, False))
 
 print(f"\n{'all passed' if not fails else f'{fails} failed'}")
 sys.exit(1 if fails else 0)
