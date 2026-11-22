@@ -254,7 +254,7 @@ Reviewer model: opus
 This is the sweep that precedes the <name>_<version> tag.
 ```
 
-**The sweep issue's title names the moment the sweep must run by.** An epic's last child is `sweep <name> before epic #<epic-number> merges`. A sweep outside an epic is `sweep <name> before its next tag`, or `sweep <name> before its first tag` for a package that has never been tagged. The sweep has to run before the epic merges or the tag is cut, so a title naming any later moment tells the next reader the sweep can wait.
+**The sweep issue's title names the moment the sweep must run by.** An epic's last child is `sweep <name> before epic #<epic-number> merges`. A sweep outside an epic is `sweep <name> before its next tag`, or `sweep <name> before its first tag` for a package that has never been tagged. A title naming a moment after the one the sweep must run by tells the next reader the sweep can wait.
 
 ### What the sweep does
 
