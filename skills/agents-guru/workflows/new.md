@@ -51,8 +51,6 @@ Whatever every workflow depends on belongs there, because a fact copied into thr
 
 A workflow is loaded whole on every run that reaches it, so setup read once per repository, or a playbook for a rare failure, is context spent on every run that needs none of it. Move it to `references/<topic>.md` and leave the workflow one line saying when to read it. This holds whatever the size of the `SKILL.md`: *Let size decide whether to split* is about how much one file carries, and this is about what a run reads.
 
-A long reference file opens with its contents, so an agent previewing it with a partial read still sees everything it covers.
-
 ### State in `SKILL.md` that paths are relative to the skill's own directory
 
 A skill gets invoked from many working directories, and nothing else tells the agent which one the paths are anchored to.
