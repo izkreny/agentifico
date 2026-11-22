@@ -99,7 +99,7 @@ EVASIONS = [
     (f"{PUSH}\n", FEAT),
     (f"bash -ceu '{PUSH}'", FEAT),     # `c` need not end the cluster; bash still runs it
     (f"env bash -c '{PUSH}'", FEAT),   # a wrapper in front of the shell
-    # posix-mode shlex resolves the escape into a literal newline glued to the next word, so the token was `\ngit` and the scan skipped it.
+    # WHY: posix-mode shlex resolves the escape into a newline glued to the next word, so a scan matching the bare token `git` misses `\ngit`.
     (f"git status && \\\n{PUSH}", FEAT),
     (f"git push \\\n  origin main", FEAT),
     (f"git add -A \\\n  . && {PUSH}", FEAT),
