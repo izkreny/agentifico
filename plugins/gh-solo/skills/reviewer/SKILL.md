@@ -3,7 +3,7 @@ name: reviewer
 description: |
   The procedure the `reviewer` agent follows once a review round has spawned it: what to read, the axes, what every finding must carry, and the findings file it returns. Only that agent loads it, never the owner by typing it. Not a way to start a review - a round is started through the `pr-flow` skill, which spawns the agent that loads this. Loading it anywhere else, above all in a session that planned, wrote or fixed the code, produces a self-review, because that session has already reasoned its way to why every line looks the way it does.
 user-invocable: false
-allowed-tools: Bash(gh:*) Bash(git:*) Read Write Grep Glob
+allowed-tools: Bash(gh:*) Bash(git:*) Bash(python3:*) Read Write Grep Glob
 ---
 
 > **Tools used:** `Bash(gh:*)` to read the pull request and its issue, `Bash(git:*)` to fetch the head you were given and take its diff, and to read local commits the pull request does not carry yet, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
@@ -34,7 +34,9 @@ Both return the same outputs:
 
 ## The standards, and what beats what
 
-Each pass judges against the same sources, in this precedence: the repository's own `<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`, then the repository's config, found by the lookup `../pr-flow/references/repo-config.md` owns, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. The repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
+Each pass judges against the same sources, in this precedence: the repository's own `<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`, then the repository's config, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. The repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
+
+**The config is the one part of `pr-flow` you read and run.** `python3 <skill-dir>/../pr-flow/scripts/read-config.py path` prints the file the lookup found, `<skill-dir>` being this skill's installed directory, and its keys are read with that script's `get`, never by eye, per `../pr-flow/references/repo-config.md`. The rest of `pr-flow`, its workflows and the round's protocol above all, stays unread.
 
 ## What you never do
 
