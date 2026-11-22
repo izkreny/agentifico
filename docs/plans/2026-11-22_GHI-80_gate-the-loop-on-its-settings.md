@@ -45,4 +45,4 @@ None.
 
 ## Settled
 
-- ::Q1:: May this branch list the new bench under *The plugin's benches* in the repository-level `.agents/gh-solo.md`? Yes, decided by the owner in the terminal after the implementation, naming `setup.py` beside `settings-check.py` as an edit that owes the bench.
+- ::Q1:: May this branch list the new bench under *The plugin's benches* in the repository-level `.agents/gh-solo.md`? Yes, decided by the owner in the terminal after the implementation, naming `plugins/gh-solo/skills/setup/scripts/setup.py` beside `plugins/gh-solo/skills/pr-flow/scripts/settings-check.py` as an edit that owes the bench.
