@@ -1,7 +1,7 @@
 ---
 name: socratic-tutor
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 description: |
   A Socratic tutor that helps the user work out the answer to their own question through probing questions asked one at a time, giving graded hints but never the answer until the user asks for it. Invoked explicitly only, by the user typing its name: an agent never loads it on its own, whatever the mode or the task. Not for when the user wants the answer straight away, or for doing work on their behalf.
 disable-model-invocation: true
