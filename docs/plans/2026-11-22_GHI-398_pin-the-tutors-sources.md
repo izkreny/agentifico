@@ -24,11 +24,22 @@ The gist has a single revision, addressed by its own commit in the URL. Only mat
 
 The README gains one sentence under its source heading, saying the links are pinned to the commit this skill was adapted from, so a later version can be compared against it. The heading, the install line and every description stay as they are.
 
+## The source check
+
+Between the adaptation-day pins and 2026-11-22, only mattpocock/skills changed its source, in two edits to grilling's SKILL.md, reaching [`7739eae`](https://github.com/mattpocock/skills/blob/7739eaed7f8f3915437a8def198a6d0d7206dbc7/skills/productivity/grilling/SKILL.md). Neither fits the tutor:
+
+- "Word each question so yes accepts your recommended answer" contradicts the tutor's own rules, which forbid a yes-or-no question and a recommendation inside a question.
+- "Dispatch a sub-agent with a fresh context window" tightens a step the tutor does not have: it looks facts up itself and dispatches no sub-agent.
+
+So the skill's text is unchanged, and the grilling link moves to `7739eae`. The other links already name their newest commit.
+
 ## Steps
 
 - ::S1:: Replace each `main` link in the source list of `skills/socratic-tutor/README.md` with its commit from the table, and the gist link with its revision
 - ::S2:: Add the sentence saying the links are pinned, and why, under that list's heading
 - ::S3:: Move `metadata.version` in `skills/socratic-tutor/SKILL.md` from `1.0.0` to `1.0.1`
+- ::S4:: Read each source's changes since its adaptation-day commit, carry into `skills/socratic-tutor/SKILL.md` what fits, and name on the PR what does not and why
+- ::S5:: Re-pin each link to the newest commit read, and reword the README's sentence to say the links name the commit last compared against
 
 ## Verification
 
@@ -45,4 +56,4 @@ None.
 
 ## Settled
 
-None yet.
+- ::Q1:: **Should the source check fold into this branch?** Yes, the owner said so in the terminal. Downloading the sources into the package was dropped, for the reasons N2 on the issue gives.
