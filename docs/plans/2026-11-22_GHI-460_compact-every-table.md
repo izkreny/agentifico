@@ -44,4 +44,4 @@ None.
 
 ## Settled
 
-None yet.
+- ::Q1:: Do the tables the plugin prints stay padded? No: the owner settled on #482 that every markdown table is compact, printed or in a file, so the six console tables are compacted too and *Console output* loses its padding clause in both skill files.
