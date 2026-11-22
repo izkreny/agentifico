@@ -67,7 +67,7 @@ No other key is project configuration. `gh` resolves owner and repository from t
 
 ## Routing
 
-**A workflow here starts only when the owner's own message names its word**, per *Routing* in `../pr-flow/SKILL.md`, which owns the rule. The words are those this section routes. A sentence that names none starts nothing: where it asks for what a workflow does, reply with that word, as `status 50`, and stop.
+**A workflow here starts only when the owner's own message names its word**, per *Routing* in `../pr-flow/SKILL.md`, which owns the rule. The words are those this section routes, and an argument the agent composed from a sentence is none of them. A sentence that names none starts nothing: where it asks for what a workflow does, reply with that word, as `status 50`, and stop.
 
 Based on the word, do exactly one of the following and nothing else:
 

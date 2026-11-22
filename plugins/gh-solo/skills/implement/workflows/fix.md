@@ -5,7 +5,7 @@ Land review fixes on a branch whose review round has posted findings. This is th
 **The entrances differ in where the work list comes from.**
 
 - **The review round's step 4**, run by the orchestrator inside the round's unattended block. The work list is the fix plans it posted at step 3, which is every finding except the kinds the protocol routes to the owner instead. **Nothing has been judged yet, and that is the design**: the round's own step 5 re-review is what checks each fix closed the finding it claims, because the fixes were made by the author of the code under review with nobody watching.
-- **The owner naming what stands**, after they have read the threads at step 6. "fix all", "fix RF1 and RF3, skip RF2". Their words are the whole scope.
+- **The owner naming what stands**, after they have read the threads at step 6. `fix 60` for every finding, `fix 60 RF1 RF3` for the ones named. Their words are the whole scope.
 - **An order inside one thread**, from a reply round, which enters here for the repository's own gates rather than for the whole workflow. The scope is that one order, the thread is its own; Steps 2, 4, 5 and 6 apply unchanged, and the departure clause in Step 3 and the id map in the handoff apply only where a fix plan and an `RF{n}` exist. That round owns its own reply wording.
 
 The round, its steps and its caps are the review round protocol in the `pr-flow` skill.

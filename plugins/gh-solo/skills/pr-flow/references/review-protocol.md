@@ -96,7 +96,7 @@ The first step that waits for anything. They answer per thread, in the vocabular
 
 ### 7. Resolve and push, on the owner's word
 
-The batch is one word from the owner - `:rp`, or `resolve` - whose order is also the order this step runs in:
+The batch is one word from the owner, `:rp` or `resolve`, and this step runs in this order:
 
 - **First the authorisation comment**, before any thread is resolved.
 - **Then the resolves.** To resolve a thread is to mark it Resolved on GitHub: the state change that collapses it and takes it off the open list.
