@@ -4,7 +4,7 @@ Land a reviewed PR on `main` and clean up after it. This is the last step of a b
 
 ## Step 1 - Confirm it was actually reviewed
 
-**First, confirm nothing is still sitting local.** Every other gate in this step reads the *remote* PR, so this is the check that can catch a review round whose fix commits were never pushed - the protocol in `references/review-protocol.md` deliberately holds them local until the owner authorises the push at its step 7, and "merge it" said mid-round would otherwise pass every remote gate green and land the branch without its fixes. Where the branch exists locally:
+**First, confirm nothing is still sitting local.** Every other gate in this step reads the *remote* PR, so this is the check that can catch a review round whose fix commits were never pushed - the protocol in `references/review-protocol.md` deliberately holds them local until the owner authorises the push at its step 7, and `merge` typed mid-round would otherwise pass every remote gate green and land the branch without its fixes. Where the branch exists locally:
 
 ```bash
 git fetch <remote> && git log <remote>/<branch>..<branch> --oneline
