@@ -13,8 +13,8 @@ For repositories you own and commit to alone. A client setting scope and dates i
 | `validate`                            | Check the current branch's issue against the standards                                  |
 | `validate 50`                         | Check a specific issue                                                                  |
 | `search [query]`                      | Find issues by label, state or free text                                                |
-| `state 50`                            | Close, reopen, mark blocked, or start a branch                                          |
 | `start 50`                            | Assign `@me` and cut the branch                                                         |
+| `pause 50`                            | Unassign `@me` from an issue you set aside unfinished                                   |
 | `finish 50`                           | Write a draft issue's missing description, run the split test, remove the `draft` label |
 | `close 50` / `reopen 50` / `block 50` | One state change, with the right close reason                                           |
 | `milestone`                           | Create one, move its date, close it on scope                                            |

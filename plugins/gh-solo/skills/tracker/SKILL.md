@@ -2,7 +2,7 @@
 name: tracker
 description: |
   Manage the GitHub issue tracker of a repository the user owns, as a solo developer, through the `gh` CLI. Use when asked to break a feature into issues, create an epic with sub-issues, open a spike, park an unfinished issue in the backlog as a draft or finish a draft's description, record blocked-by dependencies, pick the next task to work on or say what is in progress, summarise what is left on the issue for the current branch, search the tracker, validate an issue against the repo's standards, move an issue's state, mark one in progress, start work on one, close one, reopen one, set an issue aside or pause work on it, or create a milestone, move its date, or close one on scope. Also use when the user types `/gh-solo:tracker`, or names an issue number and asks what is on it. Not for branches, plans, pull requests, review or merging - that is the `pr-flow` skill - nor for implementing a plan, which is `implement`.
-argument-hint: "[create <description> | next | status [<number>] | search [query] | validate [<number>] | state [<number>] | start [<number>] | finish [<number>] | close [<number>] | reopen [<number>] | block [<number>] | milestone | help]"
+argument-hint: "[create <description> | next | status [<number>] | search [query] | validate [<number>] | start [<number>] | pause [<number>] | finish [<number>] | close [<number>] | reopen [<number>] | block [<number>] | milestone | help]"
 allowed-tools: Read, Write, Bash(git:*), Bash(gh:*), Bash(python3:*)
 ---
 
@@ -75,7 +75,7 @@ Based on the word, do exactly one of the following and nothing else:
 - If it starts with `status` → read `workflows/status.md` and follow it.
 - If it starts with `validate` → read `workflows/validate.md` and follow it.
 - If it starts with `search` or `next` → read `workflows/search.md` and follow it.
-- If it starts with `state`, `start`, `close`, `reopen`, `block` or `milestone` → read `workflows/state.md` and follow it.
+- If it starts with `start`, `pause`, `close`, `reopen`, `block` or `milestone` → read `workflows/state.md` and follow the section that word names.
 - If it starts with `finish` → read `workflows/create.md` and follow its *Finishing a draft* section.
 - If it starts with `create` → read `workflows/create.md` and follow it. The rest of the argument describes the work to break down.
 - Otherwise → read `workflows/help.md`, output its contents, say which argument failed to match any routing entry, and name the nearest word. A description with no word before it is such an argument: it starts no breakdown until it follows `create`.

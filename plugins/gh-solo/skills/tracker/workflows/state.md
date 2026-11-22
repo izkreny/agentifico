@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(gh:*)` for `gh issue close` / `reopen` / `edit` / `develop`, `Bash(git:*)` for branch context.
 
-Move an issue's state: close it, reopen it, record that it is blocked, or start work on it.
+Move an issue's state: close it, reopen it, record that it is blocked, start work on it, or pause that work.
 
 Deliberately absent rather than emulated: **there is no time logging**, and **no story-point gate on any transition**. Each serves an audience this repository does not have. If the owner asks to log hours, say plainly that GitHub has no worklog and ask whether they want a comment on the issue instead.
 
