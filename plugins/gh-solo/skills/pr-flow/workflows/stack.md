@@ -10,7 +10,7 @@ The `gh stack` extension is per developer and is not carried by a clone. Look fo
 gh extension list
 ```
 
-**Where it is absent, stop and say so: installing it is the owner's step**, with `gh extension install github/gh-stack`, never one this workflow runs.
+Where it is absent, stop and say so: installing it is the owner's step, with `gh extension install github/gh-stack`, never one this workflow runs.
 
 **The repository must have stacked pull requests enabled**, per the `gh-stack` manual: without it `gh stack submit` exits `9`, non-interactively and with no fallback. Step 0 asks whether a stack is wanted; this is whether one is possible.
 

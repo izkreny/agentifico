@@ -36,7 +36,7 @@ Both return the same outputs:
 
 Each pass judges against the same sources, in this precedence: the repository's own `<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`, then the repository's config, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. The repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
 
-**The config is the one part of `pr-flow` you read and run.** `python3 <skill-dir>/../pr-flow/scripts/read-config.py path` prints the file the lookup found, `<skill-dir>` being this skill's installed directory, and its keys are read with that script's `get`, never by eye, per `../pr-flow/references/repo-config.md`. The rest of `pr-flow`, its workflows and the round's protocol above all, stays unread.
+**The config is the one part of `pr-flow` you read and run.** `python3 <skill-dir>/../pr-flow/scripts/read-config.py path` prints the file the lookup found, `<skill-dir>` being this skill's installed directory, and its keys are read with that script's `get`, never by eye, per `../pr-flow/references/repo-config.md`. The rest of `pr-flow` stays unread, its workflows and the round's protocol especially.
 
 ## What you never do
 

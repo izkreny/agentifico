@@ -198,7 +198,7 @@ Then the record: how many threads were resolved and which ids, which were left a
 :mr <pr-number> (merge)
 ```
 
-**This file is where that wording is decided.** Why the push and the merge are separate words is *7. Resolve and push, on the owner's word* in `references/review-protocol.md`.
+**This file is where that wording is decided.** Why the push and the merge are separate words is the protocol's *Resolve and push, on the owner's word*, in `references/review-protocol.md`.
 
 ## Resolving only the closed threads
 
