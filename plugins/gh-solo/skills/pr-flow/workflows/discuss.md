@@ -2,7 +2,7 @@
 
 Answer the owner's replies wherever they land on a pull request - inline comment threads, review summary bodies, Conversation comments - and land the fixes those replies order: committed, never pushed. The sequence this serves is `references/review-protocol.md`; this file is how its step 6 is answered.
 
-**Nothing tells the agent a reply happened.** There is no webhook, no polling and no notification reaching the session: a comment posted in the GitHub UI is invisible here until someone asks. So this workflow runs only when the owner says they have been through the review — "I replied on the PR", "answer my comments", `reply 60` — or when a `watch` they explicitly started fires. If they seem to be waiting for the agent to notice on its own, say plainly that it cannot.
+**Nothing tells the agent a reply happened.** There is no webhook, no polling and no notification reaching the session: a comment posted in the GitHub UI is invisible here until someone asks. So this workflow runs only when the owner types `reply` or `:re`, as `reply 60`, or when a `watch` they explicitly started fires. If they seem to be waiting for the agent to notice on its own, say plainly that it cannot.
 
 **Never call this `sync`.** That word routes to `workflows/stack.md`, where `gh stack sync` cascade-rebases every branch in a stack and then force-pushes all of them. Reading comments and rewriting history must not share a name, and the history in question is pushed.
 
@@ -19,7 +19,7 @@ Each `reply` run is one round of the conversation, and it goes:
 5. Resolve nothing (Step 3), and push nothing - an order authorises the fix and the commit, never the push (Step 4).
 6. Report in the terminal: `file:line`, what was asked and what was answered per thread touched, the count left alone with why, any `## Open questions` entries moved to `## Settled`, **how many fix commits sit unpushed waiting for the owner's word**, and whether a watch is armed (Step 5).
 
-Then the ball is the owner's again: read the replies on GitHub, respond or resolve, and run `reply` once more - or `watch`, for live answers. When every thread is walked, the round ends on the owner authorising the resolve and the push in the session - `:rp`, or "resolve all and push" - which is `workflows/resolve.md`, the protocol's step 7. There is no push-without-resolving option to offer them.
+Then the ball is the owner's again: read the replies on GitHub, respond or resolve, and run `reply` once more - or `watch`, for live answers. When every thread is walked, the round ends on the owner typing `:rp` in the session, which is `workflows/resolve.md`, the protocol's step 7. There is no push-without-resolving option to offer them.
 
 There is no step after that, because this whole workflow is a fork, not a stage: it hangs off the protocol's step 6 and exits where it entered. The owner is still judging throughout, and what follows is their word at step 7, which is `workflows/resolve.md`.
 
@@ -89,7 +89,7 @@ Stop with `⛔ REFUSED - the thread read is truncated` and name which connection
 | Proposes a different fix | An invitation to compare approaches | Say which is better and why; if theirs is, say so plainly |
 | States a decision that closes the thread | Settled; only bookkeeping follows | **Nothing in the thread** - no reply, no argument, no restatement. If the decision settles an entry in the PR body's `## Open questions`, move it to `## Settled` with the decision, question included - a body edit per the body-edit convention in `SKILL.md`, not a commit. Past the cap, the route is *Body caps* in `workflows/open.md` and none of it happens in this round but the held commit |
 | **Orders a change** ("OK", "fix it", "drop it", "rewrite it") | Settled, and work follows | Fix it, commit it, reply in the thread naming the commit - **do not push** (Step 4) |
-| **Orders work behind a terminal gate** ("create a ticket for this", "push it", "merge it") | An order this workflow cannot execute from a thread: creation has the confirm-before-create gate of `tracker`, pushing and merging wait on the owner authorising them in the session, which is the protocol's step 7 | Reply naming the gate and the exact command to type in the session - `create issues for ...`, `:rp` or "resolve all and push", `merge <pr-number>` - and execute nothing |
+| **Orders work behind a terminal gate** ("create a ticket for this", "push it", "merge it") | An order this workflow cannot execute from a thread: creation has the confirm-before-create gate of `tracker`, pushing and merging wait on the owner authorising them in the session, which is the protocol's step 7 | Reply naming the gate and the exact command to type in the session - `create ...`, `:rp`, `merge <pr-number>` - and execute nothing |
 | **Refuses a change** ("no", "nay", "skip it") | Settled, no work follows | Acknowledge briefly in the thread - unless there is a strong counter-argument, which is made once - then stop. No fix is made |
 | **Acknowledges an agent reply** ("OK" after "fixed, committed") | Closing the loop | **Nothing. Never reply to an acknowledgement** - the watch is persistent, so an answered "OK" would fire it and the loop would answer itself forever |
 | Nothing — the owner has not replied | Not a discussion | Leave it alone. `workflows/review.md` owns unanswered findings |
