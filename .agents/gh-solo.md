@@ -6,7 +6,7 @@ Per-repository facts the `gh-solo` plugin reads. Only what differs from its defa
 
 ## Check commands
 
-There is no CI and no build. The commands under *Check commands* run locally, and they are the gates.
+There is no CI and no build. Every gate is one of the commands under *Check commands*, and each runs locally.
 
 **The plugin's own files, this file, `.agents/dependencies.md`, `AGENTS.md` and the open branch's own plan**, from the repository root:
 
