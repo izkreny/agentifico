@@ -98,7 +98,7 @@ def main(argv=None):
     p.add_argument("command", choices=["preflight", "door"])
     a = p.parse_args(argv)
     try:
-        # WHY: loaded here rather than at import, so a missing setup.py exits 2 like any read that could not run, never 1 like a refusal.
+        # WHY: loaded here rather than at import, so a missing setup.py exits as a read that could not run, never as a refusal.
         setup = setup or load_setup()
         if a.command == "preflight":
             preflight()
