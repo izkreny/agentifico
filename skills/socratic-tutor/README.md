@@ -22,10 +22,10 @@ Type `/socratic-tutor` followed by your question. The skill never fires on its o
 
 ## Inspiration
 
-Each link to a git host is pinned to the upstream commit this skill was adapted from, so a later version can be compared against it.
+Each link to a git host is pinned to the upstream commit this skill was last compared against, so later upstream changes can be read as a diff.
 
 - [Paul & Elder, *The Art of Socratic Questioning*](https://www.criticalthinking.org/files/SocraticQuestioning2006.pdf): each question built on the last answer, and the directions a question can take around a claim.
-- [mattpocock/skills, `grilling`](https://github.com/mattpocock/skills/blob/85f83d3fde1d3a90d5c9a657f6998c79a6c37308/skills/productivity/grilling/SKILL.md): the agent looks up facts itself and asks the user only for what the user alone can supply.
+- [mattpocock/skills, `grilling`](https://github.com/mattpocock/skills/blob/7739eaed7f8f3915437a8def198a6d0d7206dbc7/skills/productivity/grilling/SKILL.md): the agent looks up facts itself and asks the user only for what the user alone can supply.
 - [EveryInc/teach-skill, the curriculum mode](https://github.com/EveryInc/teach-skill/blob/02ec4c8c2f49e5f490dcd300256fa443fda27b86/references/curriculum.md): asking what the learner already knows before teaching.
 - [ChatGPT study mode system prompt](https://gist.github.com/idcesares/c28c7a7189726dc3d8a89b6db92c1c8d/82c66256579f12be38acf7086df5b1916141a1de): building from what the user already knows, one question per step.
 - [Sharan0516/socratic-tutor](https://github.com/Sharan0516/socratic-tutor/blob/0013716e69b468e439de6ed0d4fb6305d96178dd/SKILL.md): asking why a correct answer is correct, "what would happen if that were true?" for a wrong one, and stepping back after a run of short replies.
