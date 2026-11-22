@@ -16,7 +16,7 @@ python3 <skill-dir>/scripts/watch.py <pr-number>
 
 `<skill-dir>` is this skill's installed directory, per the placeholder note in `SKILL.md`; the shell's working directory is the repository, so the path cannot be relative.
 
-What it prints is one line per new comment, review body, Conversation comment or reaction, each once. It leaves out every post that opens with the disclaimer prefix: the round posts under the owner's login, so without that test the watch would re-emit the round's own replies and the loop would answer itself. A failed request skips one poll rather than ending the watch. `scripts/watch.py` owns the endpoints, the time window, the deduplication and the one-line flattening, and `scripts/test-watch.sh` benches them.
+What it prints is one line per new comment, review body, Conversation comment or reaction, each once. It leaves out every post that opens with the disclaimer prefix: the round posts under the owner's login, so without that test the watch would re-emit the round's own replies and the loop would answer itself. A failed request delays that poll's lines to the next clean poll rather than ending the watch. `scripts/watch.py` owns the endpoints, the time window, the deduplication and the one-line flattening, and `scripts/test-watch.sh` benches them.
 
 Nothing about this is a preference:
 
