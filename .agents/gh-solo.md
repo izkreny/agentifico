@@ -155,7 +155,7 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-post-review.sh
 bash plugins/gh-solo/skills/pr-flow/scripts/test-watch.sh
 ```
 
-#### The plugin's gate and hook benches
+#### The criteria, keys and trunk-push benches
 
 **The criteria check's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/criteria-check.py`:
 
