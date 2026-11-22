@@ -48,5 +48,5 @@ None.
 ## Settled
 
 - ::Q1:: How many words may start one action? Exactly one, with at most one shortcut, per AC6, so `fix` is a row of its own.
-- ::Q2:: `open` or `plan`? `plan`, while the file keeps its name here, because the stack's open plans cite it; a separate issue renames it to `workflows/plan.md`.
+- ::Q2:: `open` or `plan`? `plan`, while the file keeps its name here, because the stack's open plans cite it; a separate issue renames the file after its word.
 - ::Q3:: Which words does each action keep, settled in the terminal on the owner's thread at `plugins/gh-solo/skills/pr-flow/SKILL.md`? `tracker` drops `state`, which duplicated `start`, `close`, `reopen` and `block`, and gains `pause` for *Pause work*, which only `state` reached. `plugins/gh-solo/skills/tracker/workflows/state.md` keeps its name, because a file holding several words keeps a name for what they share. The compounds become `ready-review` with `:rr` and `resolve-closed` with `:rc`, and routing matches the whole first token, so the rule keeping `resolve closed` off the plain `resolve` entrance goes. The file renames wait for an issue of their own after epic #78 merges, since the stack's open plans cite the old paths.
