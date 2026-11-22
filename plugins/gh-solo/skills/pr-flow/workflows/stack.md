@@ -28,7 +28,7 @@ gh extension list | grep gh-stack              # read the installed binary versi
 - Always `gh stack view --json`, never bare `view` or `view --short`.
 - Always `gh stack submit --auto`.
 - Always positional branch names.
-- `gh stack merge --yes --squash`, never `gh pr merge`, which does not work on stacked PRs. Without an explicit method the last-used one is reused, so the strategy must always be named.
+- `gh stack merge --yes --squash`, never `gh pr merge`, which does not work on stacked PRs. Step 3 of `workflows/merge.md` says why `--squash` stays.
 - `gh stack unstack --local` before a checkout that would conflict.
 - **A bare number given to `gh stack merge` resolves as a stack number first, then a PR number**, per `gh stack merge --help`. The manual presents PR number and stack number as a free choice; they are not. The merge is all-or-nothing and irreversible, so establish which the number is before running it.
 - **Always pass `-m` to `gh stack add`, including with `-A` and `-u`.** The `gh-stack` skill's own commands reference implies those flags supply a message; they do not, and without `-m` the command opens `$EDITOR` and hangs, which is the exact failure the non-interactive rules exist to prevent. Stage and commit with plain `git` instead where that is easier.
