@@ -44,7 +44,7 @@ The rounded steps are yours. They are not delegated, and the skill will not do t
 
 ## What is yours and what is not
 
-|  | Who does it |
+| | Who does it |
 | --- | --- |
 | Writing the plan | the agent, from the issue and the code |
 | **Deciding the plan is right** | **you** — this is a gate, and the work stops until you pass it |
