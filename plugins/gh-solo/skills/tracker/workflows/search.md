@@ -14,7 +14,7 @@ Find issues. `gh issue list` takes structured filters as flags and free text thr
 | the epics | `gh issue list --state all --label epic` |
 | children of #51 | `gh issue view 51 --json subIssues` |
 | what is blocked | `gh issue list --label blocked` |
-| show drafts | `gh issue list --label draft` |
+| `draft`, show drafts | `gh issue list --label draft` |
 | anything mentioning a legacy tracker key | `gh issue list --state all --search "ABC-72"` |
 | issues missing a layer label | the audit under *The Layer axis* in `references/tracker-fields.md`, which owns it. Build its exclusion list from the repository's own layer set rather than copying one: the query reports whatever it fails to exclude, so a stale list reports every open issue as a defect |
 
