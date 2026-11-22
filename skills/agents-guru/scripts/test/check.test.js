@@ -540,8 +540,8 @@ describe("check.js", () => {
     assert.match(r.out, /^1 skill\(s\) found under .*good$/mu);
     assert.match(r.out, /^ {2}\.$/mu);
   });
-  it("a code file under the target reaches the prose rules, and one under node_modules does not", () => {
-    const r = run(path.join(tmp, "code"));
+  it("a code file under the target reaches the prose rules, and one an --exclude glob names does not", () => {
+    const r = run([path.join(tmp, "code"), "--exclude", "**/node_modules/**"]);
     assert.equal(r.code, 1);
     assert.match(r.out, /^ {2}scripts\/run\.js:1 Agentifico\.CommentSentences \(error\)/mu);
     assert.doesNotMatch(r.out, /node_modules/u);
@@ -626,7 +626,7 @@ describe("check.js", () => {
     const r = run(path.join(tmp, "dangling-only"));
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /^dangling links: 1\n {2}gone\.md dangling-link /mu);
-    assert.doesNotMatch(r.out, /no markdown file found/u);
+    assert.doesNotMatch(r.out, /no file the check reads found/u);
   });
   it("a link to itself is named as a dangling link, and every other file is still read", () => {
     const r = run(path.join(tmp, "looped-md"));
@@ -690,7 +690,7 @@ describe("check.js", () => {
   it("a wrong target among right ones fails the run, naming it", () => {
     const r = run([path.join(tmp, "good"), path.join(tmp, "empty")]);
     assert.equal(r.code, 1, r.out);
-    assert.match(r.out, /no markdown file found under .*empty: nothing was checked/u);
+    assert.match(r.out, /no file the check reads found under .*empty: nothing was checked/u);
   });
   it("a single file is checked, and printed by its own name", () => {
     const r = run(path.join(tmp, "prose-only", "notes.md"));
@@ -1199,13 +1199,22 @@ describe("check.js", () => {
     assert.equal(r.code, 1, r.out);
     assert.match(r.out, /no reader takes .*data\.json: nothing was checked/u);
   });
-  it("a file target's paths resolve against the working directory", () => {
-    const file = path.join("skills", "inner", "workflows", "deep", "only-root.md");
-    const inside = run(file, process.env, path.join(tmp, "refs"));
-    assert.doesNotMatch(inside.out, /skill-referenced-paths/u);
-    assert.equal(inside.linted, 1, inside.out);
-    const outside = run(path.join(tmp, "refs", file), process.env, tmp);
-    assert.match(outside.out, /only-root\.md:\d+ skill-referenced-paths .*top\.md/u);
+  it("a file target inside a skill resolves against the skill, from any working directory", () => {
+    const deep = path.join(tmp, "refs", "skills", "inner", "workflows", "deep");
+    for (const cwd of [path.join(tmp, "refs"), tmp, deep]) {
+      const skill = run(path.join(deep, "only-skill.md"), process.env, cwd);
+      assert.doesNotMatch(skill.out, /skill-referenced-paths/u, cwd);
+      assert.equal(skill.linted, 1, skill.out);
+      assert.match(run(path.join(deep, "only-root.md"), process.env, cwd).out, /only-root\.md:\d+ skill-referenced-paths .*top\.md/u, cwd);
+    }
+  });
+  it("a file target outside any skill resolves against the working directory", () => {
+    const notes = path.join(tmp, "cwd-notes");
+    fs.mkdirSync(path.join(notes, "docs"), { recursive: true });
+    fs.writeFileSync(path.join(notes, "top.md"), "# Top\n\nbody\n");
+    fs.writeFileSync(path.join(notes, "docs", "guide.md"), "# Guide\n\nRead `top.md` first.\n");
+    assert.doesNotMatch(run(path.join("docs", "guide.md"), process.env, notes).out, /skill-referenced-paths/u);
+    assert.match(run(path.join(notes, "docs", "guide.md"), process.env, tmp).out, /guide\.md:\d+ skill-referenced-paths .*top\.md/u);
   });
   it("the default target is the working directory", () => {
     const r = run([], process.env, path.join(tmp, "bad"));
@@ -1640,9 +1649,9 @@ describe("skill-package-runners, off a tree", () => {
     fs.writeFileSync(path.join(outside, "notes.md"), "# Notes\n\nRun `npx eslint .` first.\n");
     assert.doesNotMatch(run(outside).out, /skill-package-runners/u);
   });
-  it("a file target resolves against the folder the command runs in", () => {
+  it("a file target inside a skill is read as the skill's, from any working directory", () => {
     assert.match(run(path.join(dir(), "workflows", "run.md"), process.env, dir()).out, /skill-package-runners/u);
-    assert.doesNotMatch(run(path.join(dir(), "workflows", "run.md"), process.env, path.join(dir(), "workflows")).out, /skill-package-runners/u);
+    assert.match(run(path.join(dir(), "workflows", "run.md"), process.env, path.join(dir(), "workflows")).out, /skill-package-runners/u);
   });
 });
 
@@ -2095,10 +2104,12 @@ describe("check.js, the run's own bookkeeping", () => {
     }
     assert.match(run(dir).out, /^7 files checked, /mu);
   });
-  it("a target holding code and no markdown checks nothing", () => {
+  it("a target holding code and no markdown is checked", () => {
     const dir = path.join(tmp, "code-only");
     write(path.join(dir, "a.js"), "// A comment.\n");
-    assert.match(run(dir).out, /no markdown file found under .*code-only: nothing was checked/u);
+    const r = run(dir);
+    assert.equal(r.code, 0, r.out);
+    assert.equal(r.linted, 1, r.out);
   });
   it("a file two targets reach keeps the root of the first", () => {
     const refs = path.join(tmp, "refs");
@@ -2152,11 +2163,11 @@ describe("check.js, the run's own bookkeeping", () => {
     assert.match(run(path.join(tmp, "plugins", "plug")).out, /^\d+ files checked, 3 issues, 0 warnings$/mu);
     assert.match(run(path.join(tmp, "plugins", "partial")).out, /^\d+ files checked, 0 issues, 1 warnings$/mu);
   });
-  it("a plugin inside node_modules is not read", () => {
+  it("a plugin inside a folder an --exclude glob names is not read", () => {
     const dir = path.join(tmp, "vendored");
     mk(dir, block("vendored"));
     plugin(path.join(dir, "node_modules", "dep"), "dep");
-    assert.match(run(dir).out, /^plugin files: none$/mu);
+    assert.match(run([dir, "--exclude", "**/node_modules/**"]).out, /^plugin files: none$/mu);
   });
   it("a plugin reached through a linked folder is read", () => {
     const dir = path.join(tmp, "linked-plugin");
@@ -2199,5 +2210,119 @@ describe("check.js, the run's own bookkeeping", () => {
     const r = run(path.join(tmp, "good"), stubVale("blank", "3.25.0", " "));
     assert.equal(r.code, 0, r.out);
     assert.match(r.out, /^prose rules: none$/mu);
+  });
+});
+
+describe("check.js, what the walk leaves out and takes in", () => {
+  // A repository of its own, so git's view of the fixture is the one under test and not the view of whatever tree holds the temporary folder.
+  const repo = path.join(tmp, "ignoring");
+  const ruby = path.join(repo, "skills", "ruby");
+  const plugin = path.join(repo, "plugins", "kit");
+  const flagged = "# Vendored\n\nthe example above says so.\n";
+  beforeAll(() => {
+    fs.mkdirSync(repo, { recursive: true });
+    assert.equal(spawnSync("git", ["init", "-q", repo]).status, 0);
+    fs.writeFileSync(path.join(repo, ".gitignore"), "vendor/\n");
+    for (const skill of [ruby, path.join(plugin, "skills", "tool")]) {
+      mk(skill, block(path.basename(skill)));
+      fs.mkdirSync(path.join(skill, "notes"));
+      fs.writeFileSync(path.join(skill, "notes", "kept.md"), "# Kept\n\nbody\n");
+      fs.mkdirSync(path.join(skill, "vendor", "bundle", "gems", "dep"), { recursive: true });
+      fs.writeFileSync(path.join(skill, "vendor", "bundle", "gems", "dep", "README.md"), flagged);
+    }
+    fs.appendFileSync(path.join(ruby, "SKILL.md"), "\nThe guide is `references/guide.md`.\n");
+    fs.mkdirSync(path.join(ruby, "references"));
+    fs.writeFileSync(path.join(ruby, "references", "guide.md"), "# Guide\n\nThe kept notes are `notes/kept.md`.\n");
+    fs.mkdirSync(path.join(ruby, "assets"));
+    fs.writeFileSync(path.join(ruby, "assets", "style.yml"), "key: value\n");
+    fs.mkdirSync(path.join(plugin, ".claude-plugin"), { recursive: true });
+    fs.writeFileSync(path.join(plugin, ".claude-plugin", "plugin.json"), '{ "name": "kit" }\n');
+    // A file above every target here, so a glob that climbs out has something to reach.
+    fs.mkdirSync(path.join(repo, "outside"));
+    fs.writeFileSync(path.join(repo, "outside", "out.md"), "# Out\n\nbody\n");
+  });
+
+  it("a git-ignored vendor/bundle adds no file and no issue", () => {
+    const r = run(ruby);
+    assert.equal(r.code, 0, r.out);
+    assert.equal(r.linted, 5, r.out);
+    assert.doesNotMatch(r.out, /vendor/u);
+  });
+  it("a path git does not ignore is read, under a skill, a plugin and a directory of skills", () => {
+    assert.equal(run(ruby).linted, 5);
+    const skills = run(path.join(repo, "skills"));
+    assert.equal(skills.linted, 5, skills.out);
+    assert.doesNotMatch(skills.out, /vendor/u);
+    const kit = run(plugin);
+    assert.equal(kit.linted, 4, kit.out);
+    assert.doesNotMatch(kit.out, /vendor/u);
+  });
+  it("--exclude leaves out every path matching it, and may be given more than once", () => {
+    assert.equal(run([ruby, "--exclude", "notes/**"]).linted, 4);
+    assert.equal(run([ruby, "--exclude", "notes/**", "--exclude", "assets/**"]).linted, 3);
+  });
+  it("--exclude naming a folder, bare or with a trailing slash, leaves out everything under it", () => {
+    assert.equal(run([ruby, "--exclude", "notes"]).linted, 4);
+    assert.equal(run([ruby, "--exclude", "notes/"]).linted, 4);
+  });
+  it("--exclude has no default, so outside any repository node_modules is read until a glob names it", () => {
+    const code = path.join(tmp, "code");
+    assert.match(run(code).out, /node_modules\/dep\/index\.js:1 Agentifico\.CommentSentences/u);
+    assert.doesNotMatch(run([code, "--exclude", "**/node_modules/**"]).out, /node_modules/u);
+  });
+  it("--include checks a path git ignores, and a path --exclude matches", () => {
+    const vendored = run([ruby, "--include", "vendor/**"]);
+    assert.equal(vendored.code, 1, vendored.out);
+    assert.equal(vendored.linted, 6, vendored.out);
+    assert.match(vendored.out, /vendor\/bundle\/gems\/dep\/README\.md:\d+ Agentifico\.Position/u);
+    assert.equal(run([ruby, "--exclude", "notes/**", "--include", "notes/kept.md"]).linted, 5);
+  });
+  it("--include naming a folder, bare or with a trailing slash, checks everything under it", () => {
+    assert.equal(run([ruby, "--include", "vendor"]).linted, 6);
+    assert.equal(run([ruby, "--include", "vendor/"]).linted, 6);
+  });
+  it("targets inside one skill resolve its pointers against the skill", () => {
+    const r = run([path.join(ruby, "SKILL.md"), path.join(ruby, "README.md"), path.join(ruby, "references")]);
+    assert.equal(r.code, 0, r.out);
+    assert.doesNotMatch(r.out, /skill-referenced-paths/u);
+  });
+  it("a target holding no markdown is checked rather than refused", () => {
+    const r = run([path.join(ruby, "SKILL.md"), path.join(ruby, "assets")]);
+    assert.equal(r.code, 0, r.out);
+    assert.equal(r.linted, 2, r.out);
+  });
+  it("--exclude or --include with no value refuses the run", () => {
+    for (const option of ["--exclude", "--include"]) {
+      const r = run([ruby, option]);
+      assert.equal(r.code, 1, r.out);
+      assert.match(r.out, new RegExp(`${option} names no glob: nothing was checked`, "u"));
+    }
+  });
+  it("a glob that stays inside its target is taken, though it passes through ..", () => {
+    assert.equal(run([ruby, "--exclude", "assets/../notes/**"]).linted, 4);
+  });
+  it("an --include glob is matched only under its folder target, so one that is empty, absolute or climbs out reads nothing more", () => {
+    const values = [
+      "",
+      "/",
+      "/tmp/**",
+      "../../outside/**",
+      "notes/../../../outside",
+      "{../../outside,x}/**",
+      "[.][.]/[.][.]/outside/**",
+      "../../outside/zzz-none",
+      "/**",
+    ];
+    for (const value of values) {
+      const r = run([ruby, "--include", value]);
+      assert.equal(r.code, 0, `${value}\n${r.out}`);
+      assert.equal(r.linted, 5, `${value}\n${r.out}`);
+    }
+  });
+  it("an --include glob pointing back inside its folder target is taken", () => {
+    for (const value of ["./vendor/**", "vendor/bundle/..", "notes/..", "*/..", ".", "./"]) {
+      assert.equal(run([ruby, "--include", value]).linted, 6, value);
+    }
+    assert.equal(run([ruby, "--exclude", "./notes/**"]).linted, 4);
   });
 });
