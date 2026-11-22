@@ -42,8 +42,10 @@ WRONG = {
 class Fake:
     def __init__(self, repo, protection, permission="ADMIN", fail=None):
         self.repo, self.protection, self.permission, self.fail = repo, protection, permission, fail
+        self.calls = []
 
     def __call__(self, *args, stdin=None):
+        self.calls.append(args)
         if self.fail and self.fail in " ".join(args):
             return 1, "", "gh: Server Error (HTTP 500)"
         if args[:2] == ("repo", "view"):
@@ -92,6 +94,9 @@ def repo_with(**changes):
 print("preflight:")
 check("every setting holds: passes", run(Fake(GOOD_REPO, NO_CHECKS), "preflight")[0], 0)
 check("it prints the name and the permission", run(Fake(GOOD_REPO, NO_CHECKS), "preflight")[1].splitlines()[0], "bench/repo, ADMIN")
+fake = Fake(repo_with(allow_merge_commit=True), NO_CHECKS)
+run(fake, "preflight")
+check("it makes one gh call, the repo view", [args[:2] for args in fake.calls], [("repo", "view")])
 for rest in sc.VIEW_FIELDS.values():
     fake = Fake(repo_with(**{rest: WRONG[rest]}), NO_CHECKS)
     check(f"{rest} {WRONG[rest]}: refuses, naming it and setup", refused(*run(fake, "preflight"), rest), True)
