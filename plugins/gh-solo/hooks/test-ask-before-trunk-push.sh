@@ -217,6 +217,8 @@ TAGGED_MUST_ASK = [
 ]
 SOLE_MUST_ASK = [
     ("git push", "feat", {"remote.upstream.push": "refs/heads/*:refs/heads/*"}),
+    # A remote defined by `-c` counts too, so git falls back to `origin` and reads its pattern.
+    ("git -c remote.origin.url=/dev/null -c remote.origin.push=refs/heads/*:refs/heads/* push", "feat", {}),
 ]
 
 fails = 0
