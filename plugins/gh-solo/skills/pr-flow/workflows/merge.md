@@ -18,7 +18,7 @@ Any output is a refusal: `⛔ REFUSED - {n} unpushed commit(s) on {branch}`, nam
 python3 <skill-dir>/scripts/settings-check.py door
 ```
 
-Exit `1` is the refusal, its `⛔ REFUSED` line naming `/gh-solo:setup`: a setting `references/repo-settings.md` names that does not hold, or a trunk without the protection it describes. Exit `2` is a read that failed; stop and say so, since an unread setting is not a held one.
+Exit `1` is a refusal and exit `2` a read that failed. Stop on either and quote what it printed: the script owns each case and its message, and an unread setting is not a held one.
 
 ```bash
 gh pr view <pr-number> --json isDraft,reviews,reviewDecision,mergeable,statusCheckRollup,commits
