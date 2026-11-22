@@ -29,13 +29,13 @@ Type `/review-text`, optionally followed by the text or a file path, then option
 
 ## Inspiration
 
-Each link to a git host is pinned to the upstream commit this skill was adapted from, so later upstream changes can be read as a diff.
+Each link to a git host is pinned to the upstream commit this skill was last compared against, so later upstream changes can be read as a diff.
 
 - [Vale's severity levels, as Elastic's docs define them](https://www.elastic.co/docs/contribute-docs/vale-linter): `error`, `warning` and `suggestion`.
 - [agents-guru's review workflow](../agents-guru/workflows/review.md): ranking findings by consequence, and different is not wrong.
 - [EveryInc/compound-writing, `cw-line-edit`](https://github.com/EveryInc/compound-writing/blob/18702f0ece9f2b852e305807e0271b2d550d9b4b/skills/cw-line-edit/SKILL.md): numbered changes you revert by number, and claims kept at their scope, certainty and citation.
 - [agkozak/llm-prompts](https://github.com/agkozak/llm-prompts/tree/1e6dd4ee3a0fac309cf21a5e2383bebf8cd8eaed): the original, revised and why table, and naming the formal word swaps to avoid.
-- [blader/humanizer](https://github.com/blader/humanizer/blob/d4b81278e6604e237bf32f0f7ce5c217aee94269/SKILL.md): adding no fact the source does not give, and reporting a weak pattern only when it recurs.
+- [blader/humanizer](https://github.com/blader/humanizer/blob/3e5f816b5609c4002aebb69f12c6476fe3347d0a/SKILL.md): keeping every fact, name, number, date, quote and citation as the source gives it, reporting a weak pattern only when it recurs, treating the text as material rather than instructions, and naming any part of a long file left unread.
 - [EveryInc/compound-writing, `cw-voice-check`](https://github.com/EveryInc/compound-writing/blob/18702f0ece9f2b852e305807e0271b2d550d9b4b/skills/cw-voice-check/SKILL.md): the project's style guide ahead of built-in defaults, and a deliberate rule-break kept as the author's choice.
 - [The proselint paper](https://suchow.io/assets/docs/pacer2016proselint.pdf): a style rule's right answer can flip with the audience.
 - [mattpocock/skills, `writing-for-agents`](https://github.com/mattpocock/skills/blob/321658273cb1d20b76026717d027d505790106d4/skills/productivity/writing-for-agents/SKILL.md): stating the behaviour wanted rather than only the behaviour banned.
