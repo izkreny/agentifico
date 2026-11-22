@@ -81,11 +81,11 @@ Exit 0 passes both rows. Exit 1 fails the rows its lines name: an `unkeyed` line
 {title}
 {kind}  |  {state}  |  {labels}
 
-| Check          | Result      | Detail         |
-|----------------|-------------|----------------|
-| Title format   | pass / fail | what was found |
+| Check | Result | Detail |
+| --- | --- | --- |
+| Title format | pass / fail | what was found |
 | Mandatory axis | pass / fail | what was found |
-| ...            |             |                |
+| ... | | |
 
 ### Verdict
 PASS - meets the standards.
