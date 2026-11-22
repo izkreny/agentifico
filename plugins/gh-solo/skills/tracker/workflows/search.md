@@ -41,8 +41,8 @@ Prefer `--json` with `--jq` over the default table when the result feeds anythin
 Query: [the command that ran]
 Found: N
 
-| #   | Title | State | Labels |
-|-----|-------|-------|--------|
+| # | Title | State | Labels |
+| --- | --- | --- | --- |
 ```
 
 State the command you ran, not a paraphrase of it. It is how the owner tells an empty result from a wrong filter, and those look identical otherwise.

@@ -6,32 +6,32 @@ Picks a branch up where the issue tracker leaves off and carries it to `main`. O
 
 Each one starts only when you type its word or its shortcut. A sentence starts nothing: the reply names the word that would have.
 
-| Command                                 | What it does                                                                                                                                                                        |
-|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `plan`                                  | Check the issue is startable and the trunk current, write the plan file, commit it first and alone, open the PR as a draft, stop                                                    |
-| `ready`                                 | Audit that every stated gate ran and was ticked and that CI agrees - it runs nothing itself - then lift the PR out of draft                                                         |
-| `ready-review 60` (or `:rr 60`)         | The same audit, then straight into `review` when it passes - one wait instead of two. A refusal stops the chain                                                                     |
-| `auto 50`                               | One command from issue number to prepared review: plan, draft PR, implementation, `ready`, `review`. Skips your plan-reading stop, so keep it for small work you would wave through |
-| `go 60`                                 | The same chain entered after you read the plan on draft PR 60: implementation, `ready`, `review`, one stop at the end                                                               |
-| `review`                                | Run a full review round on every open PR: findings posted, fixes committed locally, then it stops for you                                                                           |
-| `review 60`                             | The same for one PR                                                                                                                                                                 |
-| `approve` (or `:ap`)                    | Typed at the stop a review round makes at its pass cap: buy exactly one more reviewer pass                                                                                          |
-| `discard`                               | Typed at the stop a push meets while a reviewer is reading: charge that pass as discarded and free the push                                                                         |
-| `reply 60` (or `:re 60`)                | Read your replies on the review threads and answer them, in the thread                                                                                                              |
-| `watch 60` (or `:wt 60`)                | Poll every 30s for your replies while you read, and answer as they arrive                                                                                                           |
-| `unwatch` (or `:uwt`)                   | Stop that polling. `:rp` stops it too; `reply` leaves it running, and it dies with the session                                                                                      |
-| `resolve-closed 60` (or `:rc 60`)       | Resolve every thread a closing verdict ended, and leave the rest open for you to read. It pushes nothing and leaves `watch` running                                                 |
-| `resolve 60` (or `:rp 60`)              | Record your authorisation, resolve the threads it covers, push the fixes, and post an index of what that push carried. It stops there                                               |
-| `implement 60` (or `:im 60`)            | Hand PR 60 to the `implement` skill to implement its plan                                                                                                                           |
-| `fix 60`                                | Hand PR 60 to the `implement` skill to land the review fixes you named, as `fix 60 RF2 RF4`                                                                                         |
-| `merge 60` (or `:mr 60`)                | Audit the checklists, gate on the review record, squash-merge, delete the branch, confirm the issue closed. Its own word: `:rp` never does this for you                             |
-| `view`                                  | Show the stack from trunk outward                                                                                                                                                   |
-| `init`                                  | Start a new stack from branches not stacked yet                                                                                                                                     |
-| `add`                                   | Add a dependent branch to the stack                                                                                                                                                 |
-| `submit`                                | Push the stack and open or update its PRs                                                                                                                                           |
-| `sync`                                  | Fetch, cascade-rebase the stack onto the trunk, and force-push every branch                                                                                                         |
-| `restack`                               | The cascade rebase alone (`gh stack rebase`), leaving the remote untouched                                                                                                          |
-| `help`                                  | This page                                                                                                                                                                           |
+| Command | What it does |
+| --- | --- |
+| `plan` | Check the issue is startable and the trunk current, write the plan file, commit it first and alone, open the PR as a draft, stop |
+| `ready` | Audit that every stated gate ran and was ticked and that CI agrees - it runs nothing itself - then lift the PR out of draft |
+| `ready-review 60` (or `:rr 60`) | The same audit, then straight into `review` when it passes - one wait instead of two. A refusal stops the chain |
+| `auto 50` | One command from issue number to prepared review: plan, draft PR, implementation, `ready`, `review`. Skips your plan-reading stop, so keep it for small work you would wave through |
+| `go 60` | The same chain entered after you read the plan on draft PR 60: implementation, `ready`, `review`, one stop at the end |
+| `review` | Run a full review round on every open PR: findings posted, fixes committed locally, then it stops for you |
+| `review 60` | The same for one PR |
+| `approve` (or `:ap`) | Typed at the stop a review round makes at its pass cap: buy exactly one more reviewer pass |
+| `discard` | Typed at the stop a push meets while a reviewer is reading: charge that pass as discarded and free the push |
+| `reply 60` (or `:re 60`) | Read your replies on the review threads and answer them, in the thread |
+| `watch 60` (or `:wt 60`) | Poll every 30s for your replies while you read, and answer as they arrive |
+| `unwatch` (or `:uwt`) | Stop that polling. `:rp` stops it too; `reply` leaves it running, and it dies with the session |
+| `resolve-closed 60` (or `:rc 60`) | Resolve every thread a closing verdict ended, and leave the rest open for you to read. It pushes nothing and leaves `watch` running |
+| `resolve 60` (or `:rp 60`) | Record your authorisation, resolve the threads it covers, push the fixes, and post an index of what that push carried. It stops there |
+| `implement 60` (or `:im 60`) | Hand PR 60 to the `implement` skill to implement its plan |
+| `fix 60` | Hand PR 60 to the `implement` skill to land the review fixes you named, as `fix 60 RF2 RF4` |
+| `merge 60` (or `:mr 60`) | Audit the checklists, gate on the review record, squash-merge, delete the branch, confirm the issue closed. Its own word: `:rp` never does this for you |
+| `view` | Show the stack from trunk outward |
+| `init` | Start a new stack from branches not stacked yet |
+| `add` | Add a dependent branch to the stack |
+| `submit` | Push the stack and open or update its PRs |
+| `sync` | Fetch, cascade-rebase the stack onto the trunk, and force-push every branch |
+| `restack` | The cascade rebase alone (`gh stack rebase`), leaving the remote untouched |
+| `help` | This page |
 
 ## A branch's life, in order
 

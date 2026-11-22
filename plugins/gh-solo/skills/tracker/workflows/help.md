@@ -4,21 +4,21 @@ For repositories you own and commit to alone. A client setting scope and dates i
 
 ## Commands
 
-| Command                               | What it does                                                                            |
-|---------------------------------------|-----------------------------------------------------------------------------------------|
-| `create [description]`                | Break a feature into issues, show the plan, create on confirmation                      |
-| `next`                                | Offer the top three startable issues, ordered, with why each is a candidate             |
-| `status`                              | Summarise the issue behind the current branch                                           |
-| `status 50`                           | Summarise a specific issue                                                              |
-| `validate`                            | Check the current branch's issue against the standards                                  |
-| `validate 50`                         | Check a specific issue                                                                  |
-| `search [query]`                      | Find issues by label, state or free text                                                |
-| `start 50`                            | Assign `@me` and cut the branch                                                         |
-| `pause 50`                            | Unassign `@me` from an issue you set aside unfinished                                   |
-| `finish 50`                           | Write a draft issue's missing description, run the split test, remove the `draft` label |
-| `close 50` / `reopen 50` / `block 50` | One state change, with the right close reason                                           |
-| `milestone`                           | Create one, move its date, close it on scope                                            |
-| `help`                                | This page                                                                               |
+| Command | What it does |
+| --- | --- |
+| `create [description]` | Break a feature into issues, show the plan, create on confirmation |
+| `next` | Offer the top three startable issues, ordered, with why each is a candidate |
+| `status` | Summarise the issue behind the current branch |
+| `status 50` | Summarise a specific issue |
+| `validate` | Check the current branch's issue against the standards |
+| `validate 50` | Check a specific issue |
+| `search [query]` | Find issues by label, state or free text |
+| `start 50` | Assign `@me` and cut the branch |
+| `pause 50` | Unassign `@me` from an issue you set aside unfinished |
+| `finish 50` | Write a draft issue's missing description, run the split test, remove the `draft` label |
+| `close 50` / `reopen 50` / `block 50` | One state change, with the right close reason |
+| `milestone` | Create one, move its date, close it on scope |
+| `help` | This page |
 
 Each one starts only when you type its word. A sentence, or a description with no word before it, starts nothing: the reply names the word that would have.
 
