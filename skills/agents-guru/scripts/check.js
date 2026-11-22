@@ -481,7 +481,6 @@ const proseFindings = unreadable.map(
 for (const file of valeFiles) {
   const rel = path.relative(base, file);
   for (const a of alerts[file] ?? []) {
-    // Stryker disable next-line ConditionalExpression,ArrayDeclaration,BlockStatement: a Vale check is named Style.Rule, and no skippable rule's name holds a dot.
     if (withholds([a.Check])) {
       continue;
     }
