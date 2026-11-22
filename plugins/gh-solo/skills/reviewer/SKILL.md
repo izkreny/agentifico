@@ -3,7 +3,7 @@ name: reviewer
 description: |
   The procedure the `reviewer` agent follows once a review round has spawned it: what to read, the axes, what every finding must carry, and the findings file it returns. Only that agent loads it, never the owner by typing it. Not a way to start a review - a round is started through the `pr-flow` skill, which spawns the agent that loads this. Loading it anywhere else, above all in a session that planned, wrote or fixed the code, produces a self-review, because that session has already reasoned its way to why every line looks the way it does.
 user-invocable: false
-allowed-tools: Bash(gh:*), Bash(git:*), Read, Write, Grep, Glob
+allowed-tools: Bash(gh:*) Bash(git:*) Read Write Grep Glob
 ---
 
 > **Tools used:** `Bash(gh:*)` to read the pull request and its issue, `Bash(git:*)` to fetch the head you were given and take its diff, and to read local commits the pull request does not carry yet, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
