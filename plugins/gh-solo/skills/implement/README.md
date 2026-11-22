@@ -4,7 +4,7 @@
 
 Turns an approved plan into commits, and review findings into fixes. This is the middle of a branch's life: `pr-flow`'s `open` creates the draft PR this skill requires, and its `ready`, `review` and `merge` take over the moment this skill's work is pushed.
 
-Run `/gh-solo:implement <pr-number>` to implement, `/gh-solo:implement fix <pr-number>` once you have said which findings stand. This page is the why.
+Run `/gh-solo:implement <pr-number>` to implement, and `/gh-solo:implement fix <pr-number>`, as `fix 60 RF1 RF3`, to land the findings you say stand. From a session where `pr-flow` is loaded, `implement 60`, `:im 60` and `fix 60` do the same. Those words are the only way in: a sentence starts nothing and gets the word back. This page is the why.
 
 ## Install
 
@@ -31,7 +31,7 @@ flowchart TD
     G --> I["<b>fix</b><br/>commits grouped by coherent change,<br/>replies in the threads - nothing pushed"]
     I --> RR["the re-review<br/>(pr-flow, round step 5):<br/>did each fix close its finding"]
     RR --> H(["<b>you</b> judge the findings"])
-    H --> J(["<b>you</b> type <b>:rp</b>,<br/>or say: resolve all and push"])
+    H --> J(["<b>you</b> type <b>:rp</b>"])
 ```
 
 The rounded steps are yours, same rule as everywhere in this flow: the skill will not do them for you or pretend it has.
@@ -52,9 +52,9 @@ The one legitimate plan edit is the opposite case. A decision you settled in a p
 
 **This skill never marks its own work ready.** It produces the record - ticked steps, ticked gates, green CI - and stops, printing the `ready review` command for you to run. What `ready` adds is a reconciliation with CI, which is a different environment and does not care who ticked the boxes; a session that flipped its own draft would skip the check it cannot influence. The same logic is why a judgement only you can make is never a `## Verification` box: every box there has to close before the branch merges, so one you alone could close would block the branch it sits on.
 
-**Fixes are the same skill through a different door, and they never push.** The doors: the review round calls it at its own step 4, where the work list is the fix plans it already posted, and you call it after judging - "fix all", "fix RF1 and RF3". Either way it lands the fixes as commits grouped by coherent change, each naming the RF ids it closes, replies in each finding's thread, and posts the finding-to-commit map as a PR comment.
+**Fixes are the same skill through a different door, and they never push.** The doors: the review round calls it at its own step 4, where the work list is the fix plans it already posted, and you call it after judging - `fix 60`, or `fix 60 RF1 RF3`. Either way it lands the fixes as commits grouped by coherent change, each naming the RF ids it closes, replies in each finding's thread, and posts the finding-to-commit map as a PR comment.
 
-Nothing leaves the machine: the threads stay anchored to the exact diff you are still reading, and the commits wait for you to type `:rp`, or say "resolve all and push", per the review protocol in `pr-flow`. It never resolves a thread itself either - that happens once, on the authority of those words.
+Nothing leaves the machine: the threads stay anchored to the exact diff you are still reading, and the commits wait for you to type `:rp`, per the review protocol in `pr-flow`. It never resolves a thread itself either - that happens once, on the authority of that word.
 
 **The repository says how it is built and tested; the skill never does.** How code is written here comes from the repo's own agent instructions, the check commands from its config, found where `../pr-flow/references/repo-config.md` says, and a repo silent on either gets that said in the handoff rather than improvised around. The floor underneath every repo: a behavior change carries a test, and a plan that names no gates stops the work with a question.
 

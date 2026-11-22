@@ -59,8 +59,11 @@ The workflows share these; each is stated once here.
 
 ## Routing
 
+**A workflow here starts only when the owner's own message names its word**, per *Routing* in `../pr-flow/SKILL.md`, which owns the rule. The words are this skill's slash command, and `implement`, `:im` and `fix` through `pr-flow`. An argument the agent composed from a sentence is none of them, while a workflow that enters this skill by name carries the word that started its chain.
+
 - If the argument starts with `fix` → read `workflows/fix.md` and follow it. The rest of the argument is the PR number and, when the owner named them, which findings stand.
-- Otherwise → read `workflows/implement.md` and follow it. The argument is the PR number; without one, the PR of the checked-out branch.
+- If the argument is a PR number, or empty → read `workflows/implement.md` and follow it. Without a number, the PR is the checked-out branch's.
+- Otherwise → start nothing, and name the nearest word, as `:im 60 (implement)`.
 
 ## Supporting files
 
