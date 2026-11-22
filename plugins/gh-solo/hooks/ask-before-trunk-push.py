@@ -221,7 +221,9 @@ def push_remote(cwd, overrides, branch):
         remote = config(cwd, overrides, key)
         if remote:
             return remote
-    return "origin"
+    # WHY: git 2.56 pushes to a sole remote whatever its name; a git that picks `origin` instead finds none there and fails, so asking costs nothing.
+    remotes = git(cwd, "remote").split()
+    return remotes[0] if len(remotes) == 1 else "origin"
 
 
 def destinations(args, cwd, overrides=()):

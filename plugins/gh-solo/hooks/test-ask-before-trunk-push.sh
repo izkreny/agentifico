@@ -8,7 +8,8 @@ ODD="$(mktemp -d)"
 CONF="$(mktemp -d)"
 BARE="$(mktemp -d)"
 TAGGED="$(mktemp -d)"
-trap 'rm -rf "$REPO" "$ODD" "$CONF" "$BARE" "$TAGGED"' EXIT
+SOLE="$(mktemp -d)"
+trap 'rm -rf "$REPO" "$ODD" "$CONF" "$BARE" "$TAGGED" "$SOLE"' EXIT
 
 git -C "$REPO" init -q -b main .
 git -C "$REPO" config user.email bench@example.invalid
@@ -30,7 +31,7 @@ git -C "$ODD" symbolic-ref refs/remotes/upstream/HEAD refs/remotes/upstream/deve
 git -C "$ODD" checkout -qb feature/main
 
 # WHY: config is set per case in a repository of its own, so the cases above keep testing the default `simple`.
-for dir in "$CONF" "$BARE" "$TAGGED"; do
+for dir in "$CONF" "$BARE" "$TAGGED" "$SOLE"; do
   git -C "$dir" init -q -b main .
   git -C "$dir" config user.email bench@example.invalid
   git -C "$dir" config user.name bench
@@ -46,10 +47,13 @@ git -C "$BARE" branch -qD main
 git -C "$TAGGED" tag main
 git -C "$TAGGED" checkout -qb feat
 git -C "$TAGGED" tag feat
+# WHY: with no config naming a push remote, git pushes to a repository's sole remote, whatever it is called.
+git -C "$SOLE" remote add upstream /dev/null
+git -C "$SOLE" checkout -qb feat
 
-python3 - "$HOOK" "$REPO" "$ODD" "$CONF" "$BARE" "$TAGGED" <<'PY'
+python3 - "$HOOK" "$REPO" "$ODD" "$CONF" "$BARE" "$TAGGED" "$SOLE" <<'PY'
 import json, subprocess, sys
-hook, cwd, odd, conf, bare, tagged = sys.argv[1:7]
+hook, cwd, odd, conf, bare, tagged, sole = sys.argv[1:8]
 
 def decision(cmd, branch, repo=None, config=None):
     repo = repo or cwd
@@ -211,6 +215,9 @@ TAGGED_MUST_ASK = [
     ("git push", "feat", {"push.default": "upstream", "branch.feat.remote": "origin",
                           "branch.feat.merge": "refs/heads/main"}),
 ]
+SOLE_MUST_ASK = [
+    ("git push", "feat", {"remote.upstream.push": "refs/heads/*:refs/heads/*"}),
+]
 
 fails = 0
 rounds = (
@@ -226,8 +233,10 @@ rounds = (
     ("silent", CONF_MUST_STAY_SILENT, conf),
     ("silent", BARE_MUST_STAY_SILENT, bare),
     ("ask", TAGGED_MUST_ASK, tagged),
+    ("ask", SOLE_MUST_ASK, sole),
 )
-NAMES = {odd: "odd repo", conf: "config repo", bare: "no-trunk repo", tagged: "tagged repo"}
+NAMES = {odd: "odd repo", conf: "config repo", bare: "no-trunk repo", tagged: "tagged repo",
+         sole: "sole-remote repo"}
 for want, cases, repo in rounds:
     print(f"must be {want}{f' [{NAMES[repo]}]' if repo else ''}:")
     for cmd, branch, *config in cases:
