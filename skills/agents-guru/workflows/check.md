@@ -1,4 +1,4 @@
-> **Tools used:** `Bash(node:*)` for the check, `npm` for the one-time install of what it needs, which prompts, `Glob` to enumerate skills.
+> **Tools used:** `Bash(node:*)` for the check, `npm` for the one-time install of what it needs, which prompts.
 
 The mechanical audit. Run it after writing or editing any skill, and in a review once the read is done and before any judgement is made. One command runs every rule this file names: markdownlint's general rules over every markdown file a skill keeps, this skill's own markdownlint custom rules, listed in `scripts/lint-config.js` beside the configuration, on what a file is and on how it lays its prose out, the YAML and plugin-file readers in `scripts/check.js`, and Vale with this skill's own rules on what a file says, which live under `assets/` and are named in `.vale.ini`.
 
@@ -19,7 +19,7 @@ node <skill-dir>/scripts/check.js --skip skill-hard-wrap path/to/the-skill
 node <skill-dir>/scripts/check.js --include 'vendor/**' path/to/the-skill
 ```
 
-**`--skip <rule>` switches a convention rule off for one run, and may be given more than once.** A rule takes it only where the check already reports it as a warning because a skill may decline it, for the reason that rule's own section in `workflows/new.md` gives. A rule that fails the run is one this skill holds every skill to, so no caller can decline it. The names it takes are `skill-hard-wrap`, `yaml-comment-wrap` and `Agentifico.CommentSentences`, each as the run reports it. Any other name refuses the run and prints the names that do take it.
+**`--skip <rule>` switches a convention rule off for one run, and may be given more than once.** A rule takes it only where the check already reports it as a warning because a skill may decline it, for the reason that rule's own section in `workflows/new.md` gives. A rule that fails the run is one this skill holds every skill to, so no caller can decline it. `--skip` takes each rule's name as the run reports it. Any other name refuses the run and prints the names that do take it, which `skippableRuleNames` in `scripts/lint-config.js` holds.
 
 The switch is the caller's, written in the command where whoever reads the run sees it, and nothing under the target can set it. A run that skipped anything names each skipped rule with how many findings it withheld, and its summary line adds `N rule(s) skipped`; the exit code is decided by the findings that remain.
 

@@ -1,15 +1,6 @@
 // A nested list is a list of its own, so it neither extends nor breaks its parent's run.
 import { isList, items } from "./skill-continuations.js";
-
-function walk(tokens, fn) {
-  for (const t of tokens) {
-    fn(t);
-    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (t.children) {
-      walk(t.children, fn);
-    }
-  }
-}
+import { walk } from "./walk.js";
 
 export const CAP = 5;
 

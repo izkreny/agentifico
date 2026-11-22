@@ -1,15 +1,10 @@
-> **Tools used:** `Write` to create the files, `Read` / `Glob` to check for an existing skill covering the same ground.
+> **Tools used:** `Write` to create the files, `Glob` / `Grep` / `Read` to check for an existing skill covering the same ground.
 
 Author a new skill. The description facts in `SKILL.md` apply throughout and are not repeated here.
 
 ## Step 1 - Check nothing already covers it
 
-Run from the skills directory of the agent in use:
-
-```bash
-ls
-grep -rl "<topic>" */SKILL.md
-```
+In the skills directory of the agent in use, list the skills with `Glob` on `*/SKILL.md`, and `Grep` those files for the topic.
 
 If an existing skill is within one section of the new idea, extend it instead. Two skills that both half-cover a topic is worse than one that covers it, because the trigger phrases compete and whichever loads first wins.
 
@@ -55,8 +50,6 @@ Whatever every workflow depends on belongs there, because a fact copied into thr
 ### Material a workflow does not need on every run goes to a reference file
 
 A workflow is loaded whole on every run that reaches it, so setup read once per repository, or a playbook for a rare failure, is context spent on every run that needs none of it. Move it to `references/<topic>.md` and leave the workflow one line saying when to read it. This holds whatever the size of the `SKILL.md`: *Let size decide whether to split* is about how much one file carries, and this is about what a run reads.
-
-A long reference file opens with its contents, so an agent previewing it with a partial read still sees everything it covers.
 
 ### State in `SKILL.md` that paths are relative to the skill's own directory
 

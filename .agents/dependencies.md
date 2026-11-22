@@ -16,7 +16,7 @@ Each entry is what to compare and the commands that read both sides:
 
 - **The npm packages**: `npm outdated`, `npm outdated --all` and `npm audit`, each after `npm ci`. `npm outdated` covers the direct dependencies. `npm outdated --all` adds the transitive ones, and a row whose current version is below its wanted version is one `npm update` moves. An audit finding is in scope even where nothing is outdated.
 - **Node**: `node --version` against `mise latest node`, and the `engines` field in each `<package-dir>/package.json` against what the package needs, per *Floors*.
-- **Vale**: `vale --version` against `mise latest vale`, and each `MIN_VALE` against what the package needs, per *Floors*. A package that runs Vale names its floor as `MIN_VALE` in its own check script.
+- **Vale**: `vale --version` against `mise latest vale`, and each Vale floor against what the package needs, per *Floors*. A package that runs Vale states its floor in its own check script, as `MIN_VALE` or as `MIN_VALE_MAJOR` and `MIN_VALE_MINOR`.
 
 **Rehearse the npm moves on a copy before writing the issue.** Copy the `<package-dir>/package.json` and `<package-dir>/package-lock.json` into a scratch directory, and run each move there with `--package-lock-only --ignore-scripts`. Comparing the copy's lockfile against the original shows every version that moves, which is what the issue names.
 
@@ -41,7 +41,7 @@ Then compare the lockfile against the one on the pull request's base branch, by 
 
 ## Floors
 
-**A package's floor rises only when the package needs a newer version, on that package's own branch.** A floor is the `MIN_VALE` in a package's check script, or the Node its `engines` field asks for, and a newer release alone moves neither. Raising a floor refuses every installer on an older version, so it is a breaking change and moves that package's major version.
+**A package's floor rises only when the package needs a newer version, on that package's own branch.** A floor is the Vale version a package's check script states, or the Node its `engines` field asks for, and a newer release alone moves neither. Raising a floor refuses every installer on an older version, so it is a breaking change and moves that package's major version.
 
 **A round runs each package's checks once under each of its floors**, with that floor's own install first on `PATH`, such as `d=$(mise where vale@3.23.0) && PATH="$d:$PATH" bash plugins/gh-solo/skills/pr-flow/scripts/test-plan-check.sh` or `d=$(mise where node@26.1.0) && PATH="$d/bin:$PATH" npm --prefix skills/agents-guru test`. `mise where` fails on a version that is not installed and installs nothing, while `mise exec` installs a missing version on its own. Every other run uses the latest version, so this run is the only test a floor gets. A floor's version is a machine-wide install, which the owner runs before the round needs it.
 

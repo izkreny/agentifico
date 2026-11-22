@@ -25,7 +25,7 @@ A skill that never fires looks identical to a skill that was never written. Ever
 | --- | --- |
 | `new <name>` | Author a skill from scratch |
 | `review <path>` | Review an existing skill, or a whole package, for the defects that actually occur |
-| `check [--skip <rule>]... [<path>...]`, or no argument | Mechanical audit of one skill or of named files, or a survey across a directory of them; `--skip` switches a convention rule off for one run |
+| `check [<option>]... [<path>...]`, or no argument | Mechanical audit of one skill or of named files, or a survey across a directory of them; `--skip` switches a convention rule off for one run, and `--exclude` and `--include` change which paths a folder target reads |
 | `export <path>` | Publish a local skill to a shared repository |
 | `manage` | Install, update or remove a skill someone else wrote, only when you type it |
 

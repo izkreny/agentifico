@@ -1,4 +1,4 @@
-# The counting half of "Write sentences that survive change" in workflows/new.md: a count of adjacent content is a cache of the list beside it, and whoever adds an item edits the list, never the sentence. Each token is a shape a review caught in this repository, named by the pull request or commit that removed it. A cap ("five sentences at most", "three times at most in a round") constrains future content and is not matched: none of these shapes reaches "at most", "no more than" or "roughly".
+# The counting half of "Write sentences that survive change" in workflows/new.md: a count of adjacent content is a cache of the list beside it, and whoever adds an item edits the list, never the sentence. Each token is a shape a review caught in this repository, named by the pull request or commit that removed it, or by the file a live occurrence sits in. A cap ("five sentences at most", "three times at most in a round") constrains future content and is not matched: none of these shapes reaches "at most", "no more than" or "roughly".
 extends: existence
 message: "Write sentences that survive change: '%s' counts adjacent content, and the list is the authority on its own length."
 link: https://github.com/izkreny/agentifico/blob/main/skills/agents-guru/workflows/new.md
@@ -41,9 +41,9 @@ tokens:
   - 'with one exception'
   # "whose failure modes are silent twice over;" ea116fe, PR 163, counting the two reasons after it.
   - 'twice over'
-  # "Both checks are per stack" PR 86; "under both refusals above" PR 86; "Both workflows end" and "required on both verdicts" ae1cd1a; nineteen removals of "both" across eight commits. The nouns are the ones the record and the first run over plugins/gh-solo carry, since a bare "both" also counts things no edit can add to, "both directions" among them. "binds both entrances" PR 181 and "carries both figures" 1715a44, PR 165, add "entrances" and "figures".
+  # "Both checks are per stack" PR 86; "under both refusals above" PR 86; "Both workflows end" and "required on both verdicts" ae1cd1a; nineteen removals of "both" across eight commits. The nouns are the ones the record and the first run over plugins/gh-solo carry, since a bare "both" also counts things no edit can add to, "both directions" among them. "binds both entrances" PR 181 and "carries both figures" 1715a44, PR 165, add "entrances" and "figures". "both criteria checks" 4bb9d5a, PR 413, false once the key checks arrived beside them, adds "criteria".
   # Narrows determiners: "its" is absent from the record, and the others never follow "both".
-  - 'both (?:the |these |those )?(?:checks|workflows|verdicts|refusals|passes|rules|files|sections|steps|entries|bullets|items|paragraphs|lists|tables|halves|forms|cases|reads|loops|surfaces|conditions|sides|skills|threads|variables|results|lines|jobs|inputs|questions|addresses|counts|copies|names|fields|keys|manifests|commands|sources|reasons|tests|places|axes|entrances|figures)\b'
+  - 'both (?:the |these |those )?(?:checks|workflows|verdicts|refusals|passes|rules|files|sections|steps|entries|bullets|items|paragraphs|lists|tables|halves|forms|cases|reads|loops|surfaces|conditions|sides|skills|threads|variables|results|lines|jobs|inputs|questions|addresses|counts|copies|names|fields|keys|manifests|commands|sources|reasons|tests|places|axes|entrances|figures|criteria)\b'
   # "both needing a one-time npm ci and Vale" PR 155 RF1, 312f745: the count went false the moment a third command, the lint, landed beside the two.
   - 'both needing'
   # "Both, like every validator that parses frontmatter" 783e1a9, counting the two neighbours the paragraph before it enumerated.
@@ -56,6 +56,8 @@ tokens:
   - 'replaces both(?=[,.;])'
   # "`references/baseline.md` draws on both" #431 RF3, 56bd15a, counting the two sources the sentence before it named. Punctuation after it keeps "draws on both the rule and the file" quiet, which names its members.
   - 'draws on both(?=[,.;])'
+  # "The `gh` CLI is declared in the frontmatter `compatibility` field, with its other use." #445 AGF10, 4433548, counting the CLI's uses as two, false once a third use arrived.
+  - 'its other use'
 tests:
   - name: fires on each recorded shape, once per line
     input: |
@@ -89,6 +91,8 @@ tests:
       Both observed on the gem's last release.
       The next run replaces both.
       The baseline draws on both, and says what it departs from.
+      The gh CLI is declared in the compatibility field, with its other use.
+      The draft label skips both criteria checks and the scope note.
     want: |
       3:11:Agentifico.Counts:Write sentences that survive change: 'all three' counts adjacent content, and the list is the authority on its own length.
       4:7:Agentifico.Counts:Write sentences that survive change: 'the two caps' counts adjacent content, and the list is the authority on its own length.
@@ -118,6 +122,8 @@ tests:
       28:1:Agentifico.Counts:Write sentences that survive change: 'Both observed' counts adjacent content, and the list is the authority on its own length.
       29:14:Agentifico.Counts:Write sentences that survive change: 'replaces both' counts adjacent content, and the list is the authority on its own length.
       30:14:Agentifico.Counts:Write sentences that survive change: 'draws on both' counts adjacent content, and the list is the authority on its own length.
+      31:57:Agentifico.Counts:Write sentences that survive change: 'its other use' counts adjacent content, and the list is the authority on its own length.
+      32:23:Agentifico.Counts:Write sentences that survive change: 'both criteria' counts adjacent content, and the list is the authority on its own length.
   - name: leaves caps, a bare both and code alone
     input: |
       # Title

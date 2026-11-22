@@ -885,11 +885,11 @@ describe("check.js", () => {
       assert.doesNotMatch(out, /agent-plugin-name/u);
     });
     it("a link to a file declares what the file declares, and a dangling one declares nothing", () => {
-      const dir = path.join(tmp, "linked", ".claude", "agents");
+      const dir = path.join(tmp, "linked-agent", ".claude", "agents");
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(path.join(dir, "same.md"), "---\nname: same\n---\n\nBody.\n");
-      fs.writeFileSync(path.join(tmp, "linked", "elsewhere.md"), "---\nname: same\n---\n\nBody.\n");
-      fs.symlinkSync(path.join(tmp, "linked", "elsewhere.md"), path.join(dir, "link.md"));
+      fs.writeFileSync(path.join(tmp, "linked-agent", "elsewhere.md"), "---\nname: same\n---\n\nBody.\n");
+      fs.symlinkSync(path.join(tmp, "linked-agent", "elsewhere.md"), path.join(dir, "link.md"));
       fs.symlinkSync("gone.md", path.join(dir, "dangling.md"));
       const r = run(path.join(dir, "same.md"));
       assert.match(r.out, /also declared by link\.md:/u);
@@ -2178,6 +2178,12 @@ describe("check.js, the run's own bookkeeping", () => {
     plugin(path.join(dir, "node_modules", "dep"), "dep");
     assert.match(run([dir, "--exclude", "**/node_modules/**"]).out, /^plugin files: none$/mu);
   });
+  it("a plugin inside an excluded folder stays unread when an --include names something else", () => {
+    const dir = path.join(tmp, "vendored-include");
+    mk(dir, block("vendored-include"));
+    plugin(path.join(dir, "node_modules", "dep"), "dep");
+    assert.match(run([dir, "--exclude", "**/node_modules/**", "--include", "notes/**"]).out, /^plugin files: none$/mu);
+  });
   it("a plugin reached through a linked folder is read", () => {
     const dir = path.join(tmp, "linked-plugin");
     mk(dir, block("linked-plugin"));
@@ -2256,6 +2262,21 @@ describe("check.js, what the walk leaves out and takes in", () => {
     assert.equal(r.code, 0, r.out);
     assert.equal(r.linted, 5, r.out);
     assert.doesNotMatch(r.out, /vendor/u);
+  });
+  it("a file git ignores by its own name, rather than by a folder it sits in, adds no file", () => {
+    const own = path.join(tmp, "ignoring-file");
+    const skill = path.join(own, "one");
+    fs.mkdirSync(own, { recursive: true });
+    assert.equal(spawnSync("git", ["init", "-q", own]).status, 0);
+    fs.writeFileSync(path.join(own, ".gitignore"), "one/notes/secret.md\n");
+    mk(skill, block("one"));
+    fs.mkdirSync(path.join(skill, "notes"));
+    fs.writeFileSync(path.join(skill, "notes", "secret.md"), flagged);
+    // WHY: a folder holding nothing git keeps is listed as the folder, so a kept file beside it makes git name the ignored file itself.
+    fs.writeFileSync(path.join(skill, "notes", "kept.md"), "# Kept\n\nbody\n");
+    const r = run(skill);
+    assert.equal(r.code, 0, r.out);
+    assert.doesNotMatch(r.out, /secret/u);
   });
   it("a path git does not ignore is read, under a skill, a plugin and a directory of skills", () => {
     assert.equal(run(ruby).linted, 5);
