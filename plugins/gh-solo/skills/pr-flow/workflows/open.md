@@ -2,7 +2,7 @@
 
 Open the pull request for a branch that has just been cut. The sequence is branch, plan file, commit, draft PR, **stop**. It runs once at the start of the work, not at the end.
 
-The branch itself is not created here. `gh issue develop` belongs to the issue that owns it, in `tracker` skill, and it is what links the branch to the issue - and only that. **It assigns nobody**: assignment is a separate command, run before branching per the *Start work* section of that skill's `state` workflow, so check that the issue carries `@me` rather than assuming the branch brought it.
+The branch itself is not created here. `gh issue develop` belongs to the issue that owns it, in `tracker` skill, and it is what links the branch to the issue - and only that. **It assigns nobody**: assignment is a separate command, run before branching per the *Start work* section of `../tracker/workflows/state.md`, so check that the issue carries `@me` rather than assuming the branch brought it.
 
 ## Step 1 - Confirm the branch and recover the issue
 

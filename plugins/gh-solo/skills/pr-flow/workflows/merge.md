@@ -142,7 +142,7 @@ git fetch <remote>
 
 Who holds `main` in `git worktree list` picks the case.
 
-**Each case names the worktree it runs from, and the session reaches it with `ExitWorktree` alone.** Where the session entered another worktree by `path`, `ExitWorktree` with `action: "keep"` returns it to the launch directory and removes nothing; the owner's global instructions authorise that, or the harness prompts. Then confirm in `git worktree list` that the session stands in the worktree its case names. **Where it does not, stop**, and print that case's whole block for the owner to run there.
+**Each case names the worktree it runs from, and the session reaches it with `ExitWorktree` alone.** Where the session entered another worktree by `path`, `ExitWorktree` with `action: "keep"` returns it to the launch directory and removes nothing; where the owner's instructions do not authorise that, the harness prompts. Then confirm in `git worktree list` that the session stands in the worktree its case names. **Where it does not, stop**, and print that case's whole block for the owner to run there.
 
 ### Another worktree holds `main`
 

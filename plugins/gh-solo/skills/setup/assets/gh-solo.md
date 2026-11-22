@@ -14,4 +14,4 @@ The label taxonomy is left out on purpose. The `mandatory_axis` key records it o
 
 ## Check commands
 
-The commands that prove a change works here, each with when it runs. The implement skill runs nothing it does not find here or in the repository's own agent instructions, so a repository that lists none gets no gates.
+The commands that prove a change works here, each with when it runs. A branch's plan draws its gates from here and from the repository's own agent instructions, and the implement skill refuses a branch whose plan names none.

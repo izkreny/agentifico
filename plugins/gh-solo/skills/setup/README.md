@@ -21,7 +21,7 @@ The plugin's own `README.md` has the requirements and what else installing it br
 
 Type `/gh-solo:setup` in the repository. The model never starts it on its own, because it rewrites repository settings.
 
-It prints every change it would make and waits for your yes before the first write. A repository already in that state gets nothing written, so running it again is safe. It needs admin permission, so on a repository where you have less it refuses before reading anything else.
+It prints every change it would make and waits for your yes before the first write. A repository already in that state gets nothing written, so running it again is safe. It needs admin permission on the repository, so where you have less it refuses before it writes or reads anything beyond that check.
 
 What it leaves to you: the required checks for a repository with CI, since their names come off a real pull request; the check commands in the scaffolded config; and the label taxonomy, which the `tracker` skill records once you settle it.
 

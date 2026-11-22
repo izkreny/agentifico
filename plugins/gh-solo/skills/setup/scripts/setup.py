@@ -77,7 +77,7 @@ def read_config_module():
 def read_state():
     repo = json.loads(must("api", "repos/{owner}/{repo}"))
     if not repo.get("permissions", {}).get("admin"):
-        raise Refused(f"{repo.get('full_name')}: setup needs admin permission, which only the repository's owner has")
+        raise Refused(f"{repo.get('full_name')}: setup needs admin permission on the repository")
     trunk = repo["default_branch"]
     code, out, err = gh("api", f"repos/{{owner}}/{{repo}}/branches/{trunk}/protection")
     if code == 0:
