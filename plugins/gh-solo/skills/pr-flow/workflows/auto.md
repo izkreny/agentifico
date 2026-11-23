@@ -13,7 +13,7 @@ The entrances here run the lifecycle's workflows back to back, removing the wait
 
 ## Step 1 - `auto` only: the branch, the plan, the draft PR
 
-If `git branch --show-current` already parses to the given issue number - the parse stated once in `SKILL.md`'s branch-format bullet - the branch exists and is checked out; continue. If a branch for the issue exists but is not checked out, check it out. Otherwise create it the tracker's way, per the *Start work* section of the `tracker` skill's `state` workflow, assignment included: branch creation belongs to that skill, so read its section and follow it rather than restating it here.
+If `git branch --show-current` already parses to the given issue number - the parse stated once in `SKILL.md`'s branch-format bullet - the branch exists and is checked out; continue. If a branch for the issue exists but is not checked out, check it out. Otherwise create it the tracker's way, per the *Start work* section of `../tracker/workflows/state.md`, assignment included: branch creation belongs to that skill, so read its section and follow it rather than restating it here.
 
 Then run `workflows/open.md` in full, through its Step 5. Its Step 6 stop is the wait this command waived: where that file says to stop and wait for the plan discussion, continue to Step 3 instead. The plan and the draft PR still land exactly as that workflow makes them - the owner can read the plan at any point afterwards, and a planning decision they would have argued with can still come back later, as a review finding. That trade is this entrance's premise, and it was made when the command was typed.
 

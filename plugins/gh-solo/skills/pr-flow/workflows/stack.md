@@ -4,20 +4,17 @@ Inspect or move a stack. The `gh-stack` skill is the command reference; this fil
 
 ## Prerequisites
 
-The `gh stack` extension is per developer and is not carried by a clone:
+The `gh stack` extension is per developer and is not carried by a clone. Look for `github/gh-stack`, and read its installed version, in what this prints:
 
 ```bash
-gh extension list                        # look for github/gh-stack
-gh extension install github/gh-stack     # if absent
+gh extension list
 ```
+
+Where it is absent, stop and say so: installing it is the owner's step, with `gh extension install github/gh-stack`, never one this workflow runs.
 
 **The repository must have stacked pull requests enabled**, per the `gh-stack` manual: without it `gh stack submit` exits `9`, non-interactively and with no fallback. Step 0 asks whether a stack is wanted; this is whether one is possible.
 
 **The `gh-stack` skill owns the CLI.** It is installed at user scope, from `github/gh-stack`, and it is the manual: every command, the JSON output shapes and the exit codes. Upstream splits it, so `SKILL.md` is the summary and the detail lives in its `references/` directory; follow the pointer rather than concluding the manual is silent. Consult it for command mechanics rather than guessing flags.
-
-```bash
-gh extension list | grep gh-stack              # read the installed binary version
-```
 
 **The `gh-stack` skill is a prerequisite this plugin does not bundle.** It ships from `github/gh-stack` alongside the extension it documents. How it gets onto a machine is that machine's business rather than this plugin's; what matters here is that the skill and the extension are both present, and that the extension's version is the one the skill documents.
 
@@ -73,9 +70,7 @@ gh stack checkout <stack-number|pr-number|pr-url>
 
 It discovers the stack, fetches its branches and sets up tracking, and running it when tracking already exists is harmless. Doing it unconditionally removes the whole class of confusion where a command half-works against a stack the tool cannot see.
 
-**It is the `git push -u` of stacks**, and for the same reason: one cheap step establishing the local pointer to remote state the tool reasons from, whose omission degrades silently instead of failing. Without `-u`, `git status` goes quiet about ahead and behind; without tracking, `gh stack view` says "not part of a stack". Neither errors, both mislead.
-
-The analogy stops short, and each gap is a limit *That rule has limits, and each matters* names. `-u` is once per branch and lives in the shared config; tracking is once per **worktree** and dies with it. And `-u` never touches your working tree, where `checkout` moves HEAD — so a forgotten `-u` costs information and reverses exactly, while a forgotten adoption followed by a write can leave a stack half-moved.
+**It is the `git push -u` of stacks**, and for the same reason: one cheap step establishing the local pointer to remote state the tool reasons from, whose omission degrades silently instead of failing. Without `-u`, `git status` goes quiet about ahead and behind; without tracking, `gh stack view` says "not part of a stack". Neither errors, both mislead. Tracking differs in one way that matters: it is once per **worktree** and dies with it.
 
 **That rule has limits, and each matters.** It does not apply to reads: "is this stacked" and "what is it on" come from layers 1 and 2 with no local state, and `checkout` mutates the working tree, so requiring it to answer a question is a needless collision with the worktree trap. And it is **never** satisfied by `gh stack init` — init is only for branches not stacked anywhere yet, and running it over PRs that already form a GitHub stack is what produces the local/remote divergence prompt during `sync`. If a branch is stacked on GitHub, the verb is always `checkout`.
 

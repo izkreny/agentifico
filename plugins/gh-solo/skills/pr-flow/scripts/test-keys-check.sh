@@ -151,6 +151,7 @@ says "a key quoted in a fence is not one of its items" issue "${ISSUE/'- [ ] a c
 
 echo "a body that cannot be checked is never a clean result:"
 GH_FAIL=1 check "a fetch that fails" 2 issue "$ISSUE"
+check "a body that is not UTF-8" 2 issue "$ISSUE"$'\n\xff'
 check "vale absent" 2 issue "$ISSUE" "$TREE/novale"
 check "vale older than the minimum" 2 issue "$ISSUE" "$TREE/oldvale"
 

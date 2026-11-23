@@ -3,7 +3,7 @@ name: tracker
 description: |
   Manage the GitHub issue tracker of a repository the user owns, as a solo developer, through the `gh` CLI. Use when asked to break a feature into issues, create an epic with sub-issues, open a spike, park an unfinished issue in the backlog as a draft or finish a draft's description, record blocked-by dependencies, pick the next task to work on or say what is in progress, summarise what is left on the issue for the current branch, search the tracker, validate an issue against the repo's standards, move an issue's state, mark one in progress, start work on one, close one, reopen one, set an issue aside or pause work on it, or create a milestone, move its date, or close one on scope. Also use when the user types `/gh-solo:tracker`, or names an issue number and asks what is on it. Not for branches, plans, pull requests, review or merging - that is the `pr-flow` skill - nor for implementing a plan, which is `implement`.
 argument-hint: "[create <description> | next | status [<number>] | search [query] | validate [<number>] | start [<number>] | pause [<number>] | finish [<number>] | close [<number>] | reopen [<number>] | block [<number>] | milestone | help]"
-allowed-tools: Read, Write, Bash(git:*), Bash(gh:*), Bash(python3:*)
+allowed-tools: Read Write Bash(git:*) Bash(gh:*) Bash(python3:*)
 ---
 
 > **Tools used:** `Bash(gh:*)` for every tracker read and write, `Bash(git:*)` for branch context, `Bash(python3:*)` for `../pr-flow/scripts/keys-check.py` in `workflows/validate.md` and `../pr-flow/scripts/read-config.py` wherever a config key is read, `Read` for the standards and the per-repo config, `Write` for issue body files passed to `--body-file`.
@@ -12,7 +12,7 @@ The user invoked this skill with the argument: **`$ARGUMENTS`**
 
 This is a **routing skill**. Read the word the owner typed, in `$ARGUMENTS` or in their own message, pick exactly one workflow per *Routing*, read that workflow file, and follow its instructions inline. Do nothing else.
 
-**Console output is markdown, and a printed table is compact, as every table in a file is**: one space each side of a cell's content, and `| --- |` for the header rule. *Console output* in `../pr-flow/SKILL.md` owns this rule. It is copied here because it binds every line this skill prints, where a pointer is followed only on the path that names it.
+**Console output is markdown, and a printed table is compact, as every table in a file is**: one space each side of a cell's content, and `| --- |` for the header rule. *Console output* in `../pr-flow/SKILL.md` owns this rule.
 
 All paths below are **relative to this skill's own directory**. Resolve them against wherever this skill is installed rather than assuming a location: it ships inside a plugin, so its root is whatever the harness installed the plugin to, and the working directory is the repository being tracked. **A sibling skill of the same plugin resolves as `../<name>/`**, so the `pr-flow` skill's `SKILL.md`, which this file points at for the AI disclaimer's wording among other things, is at `../pr-flow/SKILL.md`. Without that, a pointer at a sibling is unfollowable, and the disclaimer one is on a write path: an agent that cannot find the wording invents a line or omits it, and the omission lands in a public tracker under the owner's name.
 

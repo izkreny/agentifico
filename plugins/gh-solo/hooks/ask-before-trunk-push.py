@@ -169,7 +169,7 @@ def push_invocations(command, cwd, depth=0):
                     break
             if j < len(rest) and rest[j] == "push":
                 yield rest[j + 1:], where, overrides
-            # No `break`, because a segment may carry more than one `git` and abandoning it after a non-push hid every push behind it.
+            # WHY: no `break`, because a segment may carry more than one `git`, and stopping at a non-push would hide every push behind it.
 
 
 def config(cwd, overrides, key, every=False):

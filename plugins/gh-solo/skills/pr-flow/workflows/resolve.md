@@ -85,7 +85,7 @@ git push <remote> <branch>
 
 **This push sits outside the reviewer's push gate whenever no pass is out, which by step 7 is every ordinary round.** *The push gate, while a reviewer is reading* in `references/pass-cap.md` covers the gap between a spawn and its post, step 5's scoped spawns included; the owner gives the word for this step after those have returned and posted, so the window is shut before there is anything to authorise.
 
-**Where a scoped pass somehow is still out, the gate holds and this step waits for it.** The condition is written out rather than left as a standing exemption because either reading alone breaks something: an unconditional exemption pushes out from under a reviewer that is still reading, and a refusal applied uniformly parks the round's only push behind a gate that cannot open.
+**Where a scoped pass somehow is still out, the gate holds and this step waits for it**, since a push now would land under a reviewer that is still reading.
 
 Resolve `<remote>` by the recipe in `SKILL.md`'s remote-name convention. The checks are read at Step 8, after Steps 6 and 7 have posted whatever the push released and what it carried, so one read covers the whole of what this workflow put on the branch.
 
@@ -118,7 +118,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F
 
 ### Running it
 
-- **Run it inside the branch's repository**, from anywhere in it: the script resolves the top level itself and refuses outright where there is none, because it shifts each held finding's line forward with `git diff <the head it was anchored at>..HEAD` before anchoring anything - the stored number was counted before the round's later commits landed. An entry whose line the fixes rewrote is anchored on the line that replaced it, and its thread says where it was held. Every anchor, rewritten, moved or untouched alike, has to be a line the pull request's own diff shows, context included, since GitHub refuses an anchor outside it and the refusal sinks the whole post, so `--base` names the pull request's base: `<base-branch>` is `gh pr view <pr-number> --json baseRefName`, and the fetch before the script is what makes that ref current, because a stale one puts the merge-base behind GitHub's and passes an anchor GitHub refuses. A line matching the base's own text, more than three lines from any change the branch keeps, is outside that diff and leaves its finding unthreadable, which the script names rather than posting. An entry whose line the fixes deleted outright, or whose anchor head this clone does not have, has no line to anchor to, so the script names it and exits `2` rather than posting at a guess.
+- **Run it inside the branch's repository**, from anywhere in it, since it moves each held line past the round's later commits with `git`. `--base` names the pull request's base: `<base-branch>` is `gh pr view <pr-number> --json baseRefName`, and the fetch before the script is what makes that ref current, because a stale one passes an anchor GitHub refuses, and one refused anchor sinks the whole post. How each line moves, and which entries the script names rather than posts, is `release` in `scripts/post-review.py`, benched in `scripts/test-post-review.sh`. Relay every entry it names as unthreadable, and stop on its exit `2`, which means it would otherwise have posted at a guess.
 - **The reads come after the push**, never before it, because the whole reason the anchors resolve now is that the push landed. Running this step ahead of Step 5 answers `422` on every held finding.
 
 ### What each id gets
@@ -178,7 +178,7 @@ Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow
 
 **It opens no thread, resolves nothing, and assigns no id of any kind.** A Conversation comment rather than inline comments, because an inline comment opens a thread and `workflows/merge.md` refuses on any unresolved one - and a thread created after Step 3 could never be named by an authorisation that was written before it existed. A second id namespace beside `RF{n}` would be read by that thread audit and by the pass count as though it were one, so each would silently count something it was never meant to.
 
-**Nothing gates on it.** Checked rather than assumed: `workflows/merge.md`'s thread gate reads `reviewThreads`, and this is not one; `scripts/post-review.py`'s `highest-id` counts `::RF{n}::` and the legacy line-start form, so a bare id in a row is ignored, and its warning about an ignored bare id fires only for one *above* the answer, which an already-issued id never is; the pass count reads the reviews surface, where this comment never lands.
+**Nothing gates on it.** `workflows/merge.md`'s thread gate reads `reviewThreads`, and this is not one; `highest-id` in `scripts/post-review.py` ignores a bare id in a row; the pass count reads the reviews surface, where this comment never lands.
 
 **A span carrying nothing is a real answer.** Where the round made no commits - every finding declined - say so in the report and post no comment, rather than an empty table.
 
@@ -198,7 +198,7 @@ Then the record: how many threads were resolved and which ids, which were left a
 :mr <pr-number> (merge)
 ```
 
-**This file is where that wording is decided.** The split is not an ergonomic: one word that both released the push and landed the branch would read the checks at Step 8 *after* the merge, and the protocol's step 7 says a red check there stops the merge until it is diagnosed - which it cannot do to a merge the same word already made.
+**This file is where that wording is decided.** Why the push and the merge are separate words is the protocol's *Resolve and push, on the owner's word*, in `references/review-protocol.md`.
 
 ## Resolving only the closed threads
 

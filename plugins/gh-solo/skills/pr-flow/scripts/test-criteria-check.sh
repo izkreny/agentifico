@@ -109,6 +109,12 @@ check("no test_files key turns the gate off", c.check(423, "origin"), 0)
 config("Test files: spec/**/*_spec.rb\n")
 check("an old Test files line refuses", c.check(423, "origin"), 2)
 
+config(block({"test_files": "spec/**/*_spec.rb"}))
+faked_run = c.run
+c.run = lambda *args: (0, "not json", "") if args[:3] == ("gh", "pr", "view") else faked_run(*args)
+check("an unexpected failure exits 2, never the no-test 1", c.main(["423", "--remote", "origin"]), 2)
+c.run = faked_run
+
 config(block({"test_files": "spec/**/*_spec.rb", "reviewr_model": "opus"}))
 check("a block the reader refuses refuses", c.check(423, "origin"), 2)
 

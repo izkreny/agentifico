@@ -3,7 +3,7 @@ name: implement
 description: |
   Implement the plan on a branch whose draft PR already exists, or apply review fixes to it, on a GitHub repository the user owns. Use when asked to implement a plan, start or continue the implementation, work on or pick up a numbered PR or its branch, resume work after a break, or when the owner says which review findings to fix - fix all, fix specific ones. Not for opening the PR, marking it ready, reviewing or merging - that is the `pr-flow` skill - nor for the issue tracker, which is `tracker`.
 argument-hint: "[<pr-number> | fix <pr-number> [which findings]]"
-allowed-tools: Bash, Read, Write, Edit, Grep, Glob, TodoWrite, EnterWorktree
+allowed-tools: Bash Read Write Edit Grep Glob TodoWrite EnterWorktree
 ---
 
 > **Tools used:** bare `Bash` rather than a narrowed list, because this is the one skill in the flow that runs the repository's own commands - tests, linters, builds - and those cannot be enumerated here; `gh` and `git` carry the PR and branch work inside it. `Read` / `Write` / `Edit` / `Grep` / `Glob` carry the code itself; `TodoWrite` mirrors the plan's `## Steps` into the session todo list during implementation; `EnterWorktree` moves the session into the branch's worktree where the owner keeps one.

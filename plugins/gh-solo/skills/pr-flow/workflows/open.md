@@ -2,7 +2,7 @@
 
 Open the pull request for a branch that has just been cut. The sequence is branch, plan file, commit, draft PR, **stop**. It runs once at the start of the work, not at the end.
 
-The branch itself is not created here. `gh issue develop` belongs to the issue that owns it, in `tracker` skill, and it is what links the branch to the issue - and only that. **It assigns nobody**: assignment is a separate command, run before branching per the *Start work* section of that skill's `state` workflow, so check that the issue carries `@me` rather than assuming the branch brought it.
+The branch itself is not created here. `gh issue develop` belongs to the issue that owns it, in `tracker` skill, and it is what links the branch to the issue - and only that. **It assigns nobody**: assignment is a separate command, run before branching per the *Start work* section of `../tracker/workflows/state.md`, so check that the issue carries `@me` rather than assuming the branch brought it.
 
 ## Step 1 - Confirm the branch and recover the issue
 
@@ -104,7 +104,7 @@ The first push of a branch takes `-u`. Without it the branch has no upstream, wh
 gh pr create --draft --assignee @me --title "{type}({scope}): {issue title}" --body-file <file>
 ```
 
-**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` is the issue's **layer label**, read from the issue fetched in Step 1 and omitted when it would repeat the type (`docs: rewrite the readme`, never `docs(docs): …`) — each rule lives under *Branch and commit type* in `../tracker/references/formats.md`. A bare issue title would land without any of it, and `main` would be where the convention fails to hold; `workflows/merge.md` owns what happens to this title at merge time.
+**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` comes from the issue fetched in Step 1 — each rule lives under *Branch and commit type* in `../tracker/references/formats.md`. A bare issue title would land without any of it, and `main` would be where the convention fails to hold; `workflows/merge.md` owns what happens to this title at merge time.
 
 **`--draft` is not optional.** The PR is the workspace for this branch from here on, so it is open while the work is unfinished, and a draft is how everything else tells the difference. `workflows/review.md` skips drafts for exactly this reason: without the flag, the review loop would offer to review a PR containing nothing but a plan.
 

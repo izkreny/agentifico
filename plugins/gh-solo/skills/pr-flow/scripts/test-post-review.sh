@@ -79,7 +79,7 @@ index 3333333..4444444 100644
 +a line
 """
 SHAPELESS_DIFF = "these are notes about a diff, not a diff\n"
-# Taken from real ranges rather than written by hand, because a reader that required the `---`/`+++` pair refused each of these and took the re-review down with it.
+# WHY: taken from real ranges rather than written by hand, because these are the shapes a reader requiring the `---`/`+++` pair refuses, taking the re-review down with it.
 RENAME_DIFF = """diff --git a/app/models/group.rb b/app/models/team.rb
 similarity index 100%
 rename from app/models/group.rb
@@ -567,7 +567,7 @@ for name, reviews in [("no reviews at all", []),
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} nothing to release: {name}  (exit {proc.returncode})")
 
-# Counting any mention of an id as a posted thread dropped the held finding silently at exit 0.
+# WHY: counting any mention of an id as a posted thread would drop the held finding silently at exit 0.
 proc, out, replies = run_release(
     [ledger_review(held_entry(9))],
     [{"body": "> \U0001f916 h\n\nvia `implement` fix, closing reply\n\n"
@@ -580,7 +580,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a prose cross-reference does not count as a thread")
 
-# A reply naming the held id at the start of a line read as its thread, so the finding was skipped and merge passed it unthreaded.
+# WHY: a reply naming the held id at the start of a line must not read as its thread, or the finding is skipped and merge passes it unthreaded.
 proc, out, replies = run_release(
     [ledger_review(held_entry(9))],
     [{"id": 2, "in_reply_to_id": 1,
@@ -593,7 +593,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a reply opening a line with the id is not its thread")
 
-# Replaying the stored line anchored the thread to whatever now sat there, and where the shift moved it out of the diff every later release failed the same way.
+# WHY: replaying the stored line would anchor the thread to whatever now sits there, and where the shift moves it out of the diff every later release fails the same way.
 repo, at = git_fixture("shift", PRE, BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
 proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-shift", cwd=str(repo))
@@ -615,7 +615,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a change below the finding leaves its line alone")
 
-# From a subdirectory git matched nothing and answered empty at exit 0, indistinguishable from unchanged, so the stale line went out silently.
+# WHY: from a subdirectory a repo-relative git diff matches nothing and answers empty at exit 0, indistinguishable from unchanged, so the stale line would go out silently.
 repo, at = git_fixture("subdir", PRE, BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
 proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-subdir", cwd=str(repo / "app" / "models"))

@@ -132,6 +132,9 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 | `references/pass-cap.md` | the budget of reviewer passes, and the words that spend or buy one while a reviewer is reading |
 | `references/reviewer-appointment.md` | what changes when your repository names the model its reviewer runs on |
 | `references/repo-settings.md` | the repository settings and branch protection the loop checks, read when its gate refuses |
+| `references/repo-config.md` | where your repository's config is read from, its keys and their defaults |
+| `scripts/read-config.py` | reads a key from your config, refusing a config it cannot read exactly; `scripts/test-read-config.sh` is its bench |
+| `scripts/defaults.json` | the value each key takes when your config leaves it unset |
 | `scripts/post-review.py` | builds and validates the one call that posts a round, then reconciles it; also reads the highest `RF{n}` already on the pull request, and how many reviewer passes it has had; `scripts/test-post-review.sh` is its bench |
 | `references/post-caps.md` | how long a post carrying a `via` line may be, what falls outside that cap, and what sits inside a capped post without counting |
 | `scripts/docs-check.py` | path and fence checks, run before any docs or plan push; `scripts/test-docs-check.sh` is its bench |

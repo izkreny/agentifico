@@ -18,7 +18,7 @@ Each one starts only when you type its word or its shortcut. A sentence starts n
 | `approve` (or `:ap`) | Typed at the stop a review round makes at its pass cap: buy exactly one more reviewer pass |
 | `discard` | Typed at the stop a push meets while a reviewer is reading: charge that pass as discarded and free the push |
 | `reply 60` (or `:re 60`) | Read your replies on the review threads and answer them, in the thread |
-| `watch 60` (or `:wt 60`) | Poll every 30s for your replies while you read, and answer as they arrive |
+| `watch 60` (or `:wt 60`) | Poll for your replies while you read, and answer as they arrive |
 | `unwatch` (or `:uwt`) | Stop that polling. `:rp` stops it too; `reply` leaves it running, and it dies with the session |
 | `resolve-closed 60` (or `:rc 60`) | Resolve every thread a closing verdict ended, and leave the rest open for you to read. It pushes nothing and leaves `watch` running |
 | `resolve 60` (or `:rp 60`) | Record your authorisation, resolve the threads it covers, push the fixes, and post an index of what that push carried. It stops there |
