@@ -6,7 +6,7 @@ Read this before opening or working an update issue, bumping any package, editin
 
 ## An update round
 
-**One update issue covers every upgradable dependency in the repository**: the npm packages under each package directory, Node, and Vale. The exception is work in another package's files, which *Floors* sends to an issue of its own. There is no CI, so there are no GitHub Actions to move. The inventory under *The inventory* is taken whole before the issue's scope is fixed. Whatever it finds either moves in that round or is named in the issue as left where it is, with what holds it.
+**One update issue covers every upgradable dependency in the repository**: the npm packages under each package directory, the gems each `<package-dir>/Gemfile` pins, Node, and Vale. The exception is work in another package's files, which *Floors* sends to an issue of its own. There is no CI, so there are no GitHub Actions to move. The inventory under *The inventory* is taken whole before the issue's scope is fixed. Whatever it finds either moves in that round or is named in the issue as left where it is, with what holds it.
 
 **The npm commands run inside `<package-dir>`**, or with `--prefix <package-dir>` from the repository root. `<package-dir>` is any package directory that holds a `<package-dir>/package.json`.
 
@@ -15,6 +15,7 @@ Read this before opening or working an update issue, bumping any package, editin
 Each entry is what to compare and the commands that read it:
 
 - **The npm packages**: `npm outdated`, `npm outdated --all` and `npm audit`, each after `npm ci`. `npm outdated` covers the direct dependencies. `npm outdated --all` adds the transitive ones, and a row whose current version is below its wanted version is one `npm update` moves. An audit finding is in scope even where nothing is outdated.
+- **The gems**: `bundle outdated --only-explicit`, inside each `<package-dir>` that holds a `<package-dir>/Gemfile`. A pin moves only by the steps that package's README gives, whose own check is the gate, so a pin it cannot pass is named in the issue as left.
 - **Node**: `node --version` against `mise latest node`, and the `engines` field in each `<package-dir>/package.json` against what the package needs, per *Floors*.
 - **Vale**: `vale --version` against `mise latest vale`, and each Vale floor against what the package needs, per *Floors*. A package that runs Vale states its floor in its own check script, as `MIN_VALE` or as `MIN_VALE_MAJOR` and `MIN_VALE_MINOR`.
 
