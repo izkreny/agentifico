@@ -2,17 +2,17 @@
 name: tracker
 description: |
   Manage the GitHub issue tracker of a repository the user owns, as a solo developer, through the `gh` CLI. Use when asked to break a feature into issues, create an epic with sub-issues, open a spike, park an unfinished issue in the backlog as a draft or finish a draft's description, record blocked-by dependencies, pick the next task to work on or say what is in progress, summarise what is left on the issue for the current branch, search the tracker, validate an issue against the repo's standards, move an issue's state, mark one in progress, start work on one, close one, reopen one, set an issue aside or pause work on it, or create a milestone, move its date, or close one on scope. Also use when the user types `/gh-solo:tracker`, or names an issue number and asks what is on it. Not for branches, plans, pull requests, review or merging - that is the `pr-flow` skill - nor for implementing a plan, which is `implement`.
-argument-hint: "[create issues for X | next | status [<number>] | search [query] | validate [<number>] | state [<number>] | start [<number>] | finish [<number>] | close [<number>] | reopen [<number>] | block [<number>] | milestone | help]"
-allowed-tools: Read, Write, Bash(git:*), Bash(gh:*)
+argument-hint: "[create <description> | next | status [<number>] | search [query] | validate [<number>] | start [<number>] | pause [<number>] | finish [<number>] | close [<number>] | reopen [<number>] | block [<number>] | milestone | help]"
+allowed-tools: Read Write Bash(git:*) Bash(gh:*) Bash(python3:*)
 ---
 
-> **Tools used:** `Bash(gh:*)` for every tracker read and write, `Bash(git:*)` for branch context, `Read` for the standards and the per-repo config, `Write` for issue body files passed to `--body-file`.
+> **Tools used:** `Bash(gh:*)` for every tracker read and write, `Bash(git:*)` for branch context, `Bash(python3:*)` for `../pr-flow/scripts/keys-check.py` in `workflows/validate.md` and `../pr-flow/scripts/read-config.py` wherever a config key is read, `Read` for the standards and the per-repo config, `Write` for issue body files passed to `--body-file`.
 
 The user invoked this skill with the argument: **`$ARGUMENTS`**
 
-This is a **routing skill**. Read `$ARGUMENTS` and the conversation context, pick exactly one workflow, read that workflow file, and follow its instructions inline. Do nothing else.
+This is a **routing skill**. Read the word the owner typed, in `$ARGUMENTS` or in their own message, pick exactly one workflow per *Routing*, read that workflow file, and follow its instructions inline. Do nothing else.
 
-**Console output is markdown, and a printed table has its cells padded so the columns line up**, header rule included: a terminal that does not render markdown turns an unpadded table into a wall of `|` and `-`, and the alignment is the whole reason a table beats a list there. This is stated here rather than borrowed from a sibling skill, because a session invoked as `/gh-solo:tracker` loads this file and one workflow and reaches no other skill's rules.
+**Console output is markdown, and a printed table is compact, as every table in a file is**: one space each side of a cell's content, and `| --- |` for the header rule. *Console output* in `../pr-flow/SKILL.md` owns this rule.
 
 All paths below are **relative to this skill's own directory**. Resolve them against wherever this skill is installed rather than assuming a location: it ships inside a plugin, so its root is whatever the harness installed the plugin to, and the working directory is the repository being tracked. **A sibling skill of the same plugin resolves as `../<name>/`**, so the `pr-flow` skill's `SKILL.md`, which this file points at for the AI disclaimer's wording among other things, is at `../pr-flow/SKILL.md`. Without that, a pointer at a sibling is unfollowable, and the disclaimer one is on a write path: an agent that cannot find the wording invents a line or omits it, and the omission lands in a public tracker under the owner's name.
 
@@ -48,53 +48,47 @@ Do not probe any further than that. Setup, scopes and troubleshooting are in `re
 
 ## Per-repo config
 
-Optional. If `<repo-root>/.agents/gh-solo.md` exists in the repository, read it, falling back to `<repo-root>/.claude/gh-solo.md` where that is what the repository uses. **The file is the authority on its own contents**, and it carries more than this skill acts on - `pr-flow` and `implement` read the same file for their own keys.
+Optional. Read the repository's config where one exists, found by the lookup `../pr-flow/references/repo-config.md` owns. **The file is the authority on its own contents**, and it carries more than this skill acts on - `pr-flow` and `implement` read the same file for their own keys.
 
-What this skill takes from it: the label taxonomy and which axis is mandatory, the branch format and its `{type}` vocabulary, whether the repository uses GitHub issue types, the default branch's name where it is not `main`, and the remote's name where `git remote` alone cannot settle it. Where the file is absent, infer what you need with `gh label list` and `gh repo view`, and **never create it unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
+What this skill takes from it, each read with the call beside it, whose script owns every refusal while that reference owns every default:
+
+- the mandatory axis and its labels: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get mandatory_axis`
+- the branch format: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_name_format`
+- its `{type}` vocabulary: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_types`
+- whether the repository uses GitHub issue types: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get use_issue_types`
+- the default branch: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get default_branch`
+- the remote: `python3 <skill-dir>/../pr-flow/scripts/read-config.py get remote`
+
+Where the file is absent, each call prints the plugin's default, or exits `1` for a key that has none, per `../pr-flow/references/repo-config.md`. **Never create the file unprompted** - the one moment to offer is at the end of Step 3 of `workflows/create.md`, which owns the offer so it can actually fire.
 
 No other key is project configuration. `gh` resolves owner and repository from the working directory, so there is no key, no cloud ID, no board and no custom field ID to discover or store.
 
 ---
 
-## Auto-triggers
+## Routing
 
-These fire on conversation context. Read the matched workflow and execute it inline.
+**A workflow here starts only when the owner's own message names its word**, per *Routing* in `../pr-flow/SKILL.md`, which owns the rule. The words are those this section routes, and an argument the agent composed from a sentence is none of them. A sentence that names none starts nothing: where it asks for what a workflow does, reply with that word, as `status 50`, and stop.
 
-| Conversation signal                                                                                | Workflow                                                                            |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| A `#50` issue number is named, or the owner asks "what's on this issue", "what's left on this one" | `workflows/status.md`                                                               |
-| "close this issue", "reopen", "mark it in progress", "set it aside", "this is blocked"             | `workflows/state.md`                                                                |
-| "create a milestone", "move the milestone date", "close the milestone"                             | `workflows/state.md`                                                                |
-| "find the issue about X", "which issues are still open", "show me the `bug` ones"                  | `workflows/search.md`                                                               |
-| "give me the next task", "what should I work on", "what am I working on"                           | `workflows/search.md`                                                               |
-| "check this issue against the standards", "is this issue written properly"                         | `workflows/validate.md`                                                             |
-| "break this feature into issues", "write issues for X"                                             | `workflows/create.md`                                                               |
-| "park this as a draft", "finish the draft", "flesh out that draft issue"                           | `workflows/create.md`; the *finish* phrasings enter its *Finishing a draft* section |
-
-"I'm done" and "ready for review" are deliberately **not** triggers *here*. A pull request that says `Closes #50` closes the issue on merge without anybody transitioning anything, so reaching for a state change on those phrases would fight the platform. **They belong to the `pr-flow` skill**, which takes them as the signal to run its checks and lift a PR out of draft. Hand them over rather than treating them as unroutable: the phrases have an owner, just not this one.
-
-## Explicit routing
-
-Based on the argument, do exactly one of the following and nothing else:
+Based on the word, do exactly one of the following and nothing else:
 
 - If the argument is exactly `help` → read `workflows/help.md`, output its contents, stop.
 - If it starts with `status` → read `workflows/status.md` and follow it.
 - If it starts with `validate` → read `workflows/validate.md` and follow it.
 - If it starts with `search` or `next` → read `workflows/search.md` and follow it.
-- If it starts with `state`, `start`, `close`, `reopen`, `block` or `milestone` → read `workflows/state.md` and follow it.
+- If it starts with `start`, `pause`, `close`, `reopen`, `block` or `milestone` → read `workflows/state.md` and follow the section that word names.
 - If it starts with `finish` → read `workflows/create.md` and follow its *Finishing a draft* section.
-- If the argument reads as prose describing work to break down - `create issues for X`, or a bare description - → read `workflows/create.md` and follow it.
-- Otherwise → read `workflows/help.md`, output its contents, and say which argument failed to match any routing entry. A single unrecognised token is a typo or a verb this skill does not have, and sending it into the breakdown workflow would answer it with a proposed breakdown of the typo.
+- If it starts with `create` → read `workflows/create.md` and follow it. The rest of the argument describes the work to break down.
+- Otherwise → read `workflows/help.md`, output its contents, say which argument failed to match any routing entry, and name the nearest word. A description with no word before it is such an argument: it starts no breakdown until it follows `create`.
 
 ---
 
 ## Supporting files
 
-| File                           | What it holds                                                                                                                                                     |
-|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `workflows/`                   | one file per sub-command: `workflows/create.md`, `workflows/status.md`, `workflows/search.md`, `workflows/validate.md`, `workflows/state.md`, `workflows/help.md` |
-| `references/standards.md`      | the index of `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md`, and nothing else                                            |
-| `references/issue-shape.md`    | hierarchy and sizing, titles, bodies, acceptance criteria, spikes                                                                                                 |
-| `references/tracker-fields.md` | labels and the mandatory axis, dependencies, milestones, state, issue types                                                                                       |
-| `references/formats.md`        | branch names, commit subjects, pull request titles, plan filenames                                                                                                |
-| `references/github-access.md`  | `gh` authentication, the scopes each workflow needs, and the failures that read as something else                                                                 |
+| File | What it holds |
+| --- | --- |
+| `workflows/` | one file per sub-command: `workflows/create.md`, `workflows/status.md`, `workflows/search.md`, `workflows/validate.md`, `workflows/state.md`, `workflows/help.md` |
+| `references/standards.md` | the index of `references/issue-shape.md`, `references/tracker-fields.md` and `references/formats.md`, and nothing else |
+| `references/issue-shape.md` | hierarchy and sizing, titles, bodies, acceptance criteria, spikes |
+| `references/tracker-fields.md` | labels and the mandatory axis, dependencies, milestones, state, issue types |
+| `references/formats.md` | branch names, commit subjects, pull request titles, plan filenames, and the keys on an item |
+| `references/github-access.md` | `gh` authentication, the scopes each workflow needs, and the failures that read as something else |

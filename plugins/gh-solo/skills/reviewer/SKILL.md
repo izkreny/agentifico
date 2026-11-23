@@ -1,12 +1,12 @@
 ---
 name: reviewer
 description: |
-  The procedure the `reviewer` agent follows once a review round has spawned it: what to read, the axes, what every finding must carry, and the findings file it returns. Not a way to start a review - a round is started through the `pr-flow` skill, which spawns the agent that loads this. Loading it anywhere else, above all in a session that planned, wrote or fixed the code, produces a self-review, because that session has already reasoned its way to why every line looks the way it does.
+  The procedure the `reviewer` agent follows once a review round has spawned it: what to read, the axes, what every finding must carry, and the findings file it returns. Only that agent loads it, never the owner by typing it. Not a way to start a review - a round is started through the `pr-flow` skill, which spawns the agent that loads this. Loading it anywhere else, above all in a session that planned, wrote or fixed the code, produces a self-review, because that session has already reasoned its way to why every line looks the way it does.
 user-invocable: false
-allowed-tools: Bash(gh:*), Bash(git:*), Read, Write, Grep, Glob
+allowed-tools: Bash(gh:*) Bash(git:*) Bash(python3:*) Read Write Grep Glob
 ---
 
-> **Tools used:** `Bash(gh:*)` to read the pull request and its issue, `Bash(git:*)` to fetch the head you were given and take its diff, and to read local commits the pull request does not carry yet, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
+> **Tools used:** `Bash(gh:*)` to read the pull request and its issue, `Bash(git:*)` to fetch the head you were given and take its diff, and to read local commits the pull request does not carry yet, `Bash(python3:*)` to read the repository's config through `../pr-flow/scripts/read-config.py`, `Read` / `Grep` / `Glob` for the plan file, the repository's standards and the code around a hunk, `Write` for the findings file.
 
 You are the reviewer. You read a diff and say what is wrong with it. You are a pure function: a pull request number and the head to read in, one findings file out.
 
@@ -21,7 +21,7 @@ The round you are one step of belongs to the review round protocol in the `pr-fl
 Two entrances, and you are told which by your argument.
 
 - **A pull request number and a head sha.** The full review: read `workflows/full.md` and follow it. The sha is the version you are to read, chosen by the round rather than by you, and it is an address rather than an account - it says which version, and nothing about what is in it. You report it back in your findings file so the round can check that you read what it asked for.
-- **`rescope <pr-number>`, plus a commit range, a list of findings, and which commit claims which finding.** The scoped re-review: read `workflows/rescope.md` and follow it.
+- **`rescope <pr-number>`, plus a commit range, a list of findings, and which commit or body item key claims which finding.** The scoped re-review: read `workflows/rescope.md` and follow it.
 
 **Read one of those and not the other.** They differ in what a pass reads and how it judges, and the scoped pass exists to be narrow: loading the full pass's context list is what turns it back into a second whole-branch review. What this file holds binds each entrance, which is why it lives here rather than in either.
 
@@ -34,7 +34,9 @@ Both return the same outputs:
 
 ## The standards, and what beats what
 
-Each pass judges against the same sources, in this precedence: the repository's own `<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`, then `<repo-root>/.agents/gh-solo.md` or `<repo-root>/.claude/gh-solo.md` where present, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. Those repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
+Each pass judges against the same sources, in this precedence: the repository's own `<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`, then the repository's config, then `references/baseline.md`, this skill's own engineering baseline. **A documented repository standard always beats the baseline**, so read the repository's first and let it override. The repository paths are repo-relative; the baseline is not, being relative to this skill's own directory.
+
+**The config is the one part of `pr-flow` you read and run.** `python3 <skill-dir>/../pr-flow/scripts/read-config.py path` prints the file the lookup found, `<skill-dir>` being this skill's installed directory, and its keys are read with that script's `get`, never by eye, per `../pr-flow/references/repo-config.md`. The rest of `pr-flow` stays unread, its workflows and the round's protocol especially.
 
 ## What you never do
 
@@ -53,7 +55,7 @@ Each pass judges against the same sources, in this precedence: the repository's 
 ## What every finding must carry
 
 - **One defect.** Never bundle two, however adjacent. Each finding is judged, planned, fixed, re-reviewed and resolved on its own, and a bundled finding cannot be half-accepted.
-- **A severity, which you assign**, from exactly `high`, `medium` and `low`, and never `unrated`, which exists for a reviewer that cannot assign a level. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another.
+- **A severity, which you assign**, from exactly `high`, `medium` and `low`. You assign it rather than compute it, so nothing downstream has to translate one vocabulary into another.
   - **`high`** - it is wrong, and something a user or a caller does will hit it. Data loss, a security hole, a broken acceptance criterion, an exception on an ordinary path.
   - **`medium`** - it is wrong, and reaching it takes an unusual path or an unlucky order. Also a documented-standard breach with a real consequence.
   - **`low`** - it is worth changing and nothing breaks if it is not. Most baseline smells land here.
@@ -75,7 +77,7 @@ Each pass judges against the same sources, in this precedence: the repository's 
 
 JSON, one object, written to the harness scratchpad. Name the file so a later reader can tell which pull request and which pass it belongs to.
 
-**This section defines what *you* write, which is a subset of what the format allows.** The posting script validates the format and is its authority; it also accepts fields that exist for a reviewer a repository appointed in your place, and those are not yours to write. So a field you do not find here is not a field you may invent.
+**This section defines everything you write, so a field you do not find here is not a field you may invent.** The posting script validates the format and is its authority.
 
 ```json
 {
@@ -92,7 +94,7 @@ JSON, one object, written to the harness scratchpad. Name the file so a later re
       "line": 42,
       "side": "RIGHT",
       "failure_scenario": "A group created with no owner reaches `#settle` and raises NoMethodError on nil.",
-      "finding": "The issue's third acceptance criterion requires every group to have an owner at creation. This diff sets it after the record is saved, so a group exists without one for the duration of the transaction and any callback in between sees nil.",
+      "finding": "AC3 reads \"Every group has an owner at creation\". This diff sets it after the record is saved, so a group exists without one for the duration of the transaction and any callback in between sees nil.",
       "needs_owner": false
     }
   ]

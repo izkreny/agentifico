@@ -3,7 +3,7 @@ name: implement
 description: |
   Implement the plan on a branch whose draft PR already exists, or apply review fixes to it, on a GitHub repository the user owns. Use when asked to implement a plan, start or continue the implementation, work on or pick up a numbered PR or its branch, resume work after a break, or when the owner says which review findings to fix - fix all, fix specific ones. Not for opening the PR, marking it ready, reviewing or merging - that is the `pr-flow` skill - nor for the issue tracker, which is `tracker`.
 argument-hint: "[<pr-number> | fix <pr-number> [which findings]]"
-allowed-tools: Bash, Read, Write, Edit, Grep, Glob, TodoWrite, EnterWorktree
+allowed-tools: Bash Read Write Edit Grep Glob TodoWrite EnterWorktree
 ---
 
 > **Tools used:** bare `Bash` rather than a narrowed list, because this is the one skill in the flow that runs the repository's own commands - tests, linters, builds - and those cannot be enumerated here; `gh` and `git` carry the PR and branch work inside it. `Read` / `Write` / `Edit` / `Grep` / `Glob` carry the code itself; `TodoWrite` mirrors the plan's `## Steps` into the session todo list during implementation; `EnterWorktree` moves the session into the branch's worktree where the owner keeps one.
@@ -22,7 +22,7 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 
 ## Where this sits
 
-This skill is the implementation stage of a branch's life, the node the `pr-flow` and `tracker` lifecycle diagrams name *implement*. Everything around it stays there: `open` created the draft PR this skill requires, `ready` audits what this skill leaves behind, `review` and `merge` come later. **You never do their work from here** - never lift the draft, never post a review, never merge.
+This skill is the implementation stage of a branch's life, the node the `pr-flow` and `tracker` lifecycle diagrams name *implement*. Everything around it stays there: `plan` created the draft PR this skill requires, `ready` audits what this skill leaves behind, `review` and `merge` come later. **You never do their work from here** - never lift the draft, never post a review, never merge.
 
 It is also written to be **resumable across sessions**: all state lives on the PR and the branch - ticked boxes, commits - and none in the session. A fresh session picks up mid-implementation by reading that state, which is what `workflows/implement.md` Step 2 does.
 
@@ -32,12 +32,12 @@ The workflows share these; each is stated once here.
 
 ### What the repository owns
 
-- **The repository says how it is built and tested; this skill never does.** The carriers: the repo's own agent instructions (`<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`) for how code is written and tested here, and `<repo-root>/.agents/gh-solo.md` (or `<repo-root>/.claude/gh-solo.md`) for its check commands. Read both explicitly at the start rather than assuming the harness loaded either; `workflows/implement.md` Step 1 has the read, and a harness that does load one costs nothing by being read twice. Where either is absent or silent on testing, that is a **named finding for the handoff**, never a licence to improvise - the never-invent-check-commands rule in the `pr-flow` skill holds here too.
+- **The repository says how it is built and tested; this skill never does.** The carriers: the repo's own agent instructions (`<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md`) for how code is written and tested here, and the repository's config for its check commands, found by the lookup `../pr-flow/references/repo-config.md` owns. Read both explicitly at the start rather than assuming the harness loaded either; `workflows/implement.md` Step 1 has the read, and a harness that does load one costs nothing by being read twice. Where either is absent or silent on testing, that is a **named finding for the handoff**, never a licence to improvise - the never-invent-check-commands rule in the `pr-flow` skill holds here too.
 - **The floor under every repository:** a behavior change carries a test, the repo's stated gates are the gates that run, and a branch whose PR body names no gates in `## Verification` is refused rather than implemented, because shipping unverified code is the alternative.
 
 ### What a commit and a post carry
 
-- **Commit headers are `{type}: {description} (#{issue-number})`**, per *Quick reference* in `../tracker/references/formats.md` - the issue number, parsed from the branch name as the `pr-flow` skill's branch-format bullet states, never the PR number. The commit body carries the AI disclaimer line, per the AI-disclaimer bullet in the `pr-flow` skill's `SKILL.md`, which owns the wording and its fallback. Where the owner's global instructions file also sets a commit-body wrap and replaces the `Co-Authored-By` trailer, that file governs both.
+- **Commit headers are `{type}: {description} (#{issue-number})`**, per *Quick reference* in `../tracker/references/formats.md` - the issue number, parsed from the branch name as the `pr-flow` skill's branch-format bullet states, never the PR number. Where `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_scope` prints `label`, the header carries a scope as *Branch and commit type* in that file says. The commit body carries the AI disclaimer line, per the AI-disclaimer bullet in the `pr-flow` skill's `SKILL.md`, which owns the wording and its fallback. Where the owner's global instructions file also sets a commit-body wrap and replaces the `Co-Authored-By` trailer, that file governs both.
 - **Every PR comment and thread reply opens with the AI disclaimer and, under it, the `via` line** naming this skill and the workflow that posted it, per the standing convention in the `pr-flow` skill's `SKILL.md`. Every post lands under the owner's login, so the pair is what keeps an implementation record, a divergence note and a review finding tellable apart on the same PR. **The `via` line is also what puts a post inside the length cap**, stated under *Post caps* in the same file and never restated here, together with the rule against restating what the reader is already looking at.
 
 ### The record
@@ -59,10 +59,13 @@ The workflows share these; each is stated once here.
 
 ## Routing
 
+**A workflow here starts only when the owner's own message names its word**, per *Routing* in `../pr-flow/SKILL.md`, which owns the rule. The words are this skill's slash command, and `implement`, `:im` and `fix` through `pr-flow`. An argument the agent composed from a sentence is none of them, while a workflow that enters this skill by name carries the word that started its chain.
+
 - If the argument starts with `fix` → read `workflows/fix.md` and follow it. The rest of the argument is the PR number and, when the owner named them, which findings stand.
-- Otherwise → read `workflows/implement.md` and follow it. The argument is the PR number; without one, the PR of the checked-out branch.
+- If the argument is a PR number, or empty → read `workflows/implement.md` and follow it. Without a number, the PR is the checked-out branch's.
+- Otherwise → start nothing, and name the nearest word, as `:im 60 (implement)`.
 
 ## Supporting files
 
-- **`workflows/implement.md`** - the plan-to-commits work: locate, settle the plan record, establish where the branch stands, implement step by step, verify as the last act, push, hand off to `ready review`
-- **`workflows/fix.md`** - the fix entrance, from a review round's step 4, from a discuss round's order, or from the owner naming what stands: land the findings as review-fix commits grouped by coherent change, re-run what they invalidated, leave the threads for the owner
+- **`workflows/implement.md`** - the plan-to-commits work: locate, settle the plan record, establish where the branch stands, implement step by step, verify as the last act, push, hand off to `ready-review`
+- **`workflows/fix.md`** - the fix entrance, from a review round's step 4, from a reply round's order, or from the owner naming what stands: land the findings as review-fix commits grouped by coherent change, re-run what they invalidated, leave the threads for the owner

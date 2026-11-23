@@ -54,6 +54,30 @@ check("a reaction stamped at since emits", [k for k, _ in got], ["9/THUMBS_UP/o@
 check("and its key is the same next cycle", [k for k, _ in w.reactions(1, SINCE)], [k for k, _ in got])
 w.gh_json = real_gh_json
 
+print("\na failed read holds the window open, so its comments emit on the next poll:")
+POSTED = "2026-10-02T10:00:10Z"
+state = {"fail": True}
+def fake(*a, **k):
+    if a[1] == "graphql":
+        return {"data": {"repository": {"pullRequest": {"reviewThreads": {"nodes": []}}}}}
+    if "issues/1/comments" not in a[-1]:
+        return []
+    if state["fail"]:
+        return None
+    since = a[-1].split("since=")[1]
+    return [{"id": 7, "updated_at": POSTED, "body": "an answer", "user": {"login": "o"}}] if POSTED >= since else []
+real_now = w.now_iso
+w.gh_json = fake
+w.now_iso = lambda: "2026-10-02T10:00:30Z"
+seen, out = set(), []
+nxt = w.poll(1, SINCE, seen, out.append)
+check("a failed read keeps since", nxt, SINCE)
+state["fail"] = False
+w.now_iso = lambda: "2026-10-02T10:01:00Z"
+check("a clean poll moves since", w.poll(1, nxt, seen, out.append), "2026-10-02T10:01:00Z")
+check("the comment from the failed window emits", out, ["o  conversation  an answer"])
+w.gh_json, w.now_iso = real_gh_json, real_now
+
 print("\nfailure is skipped rather than fatal:")
 # A transient API error must not end a watch the owner is relying on mid-review.
 w.subprocess.run = lambda *a, **k: (_ for _ in ()).throw(OSError("no gh"))

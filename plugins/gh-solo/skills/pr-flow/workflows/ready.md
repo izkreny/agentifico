@@ -1,10 +1,10 @@
-> **Tools used:** `Bash(gh:*)` for `gh pr view`, `gh pr checks` and `gh pr ready`, `Bash(git:*)` for branch state. **Read-only apart from the flag** — no `gh pr edit`, and nothing here runs a project command.
+> **Tools used:** `Bash(gh:*)` for `gh pr view`, `gh issue view`, `gh pr checks` and `gh pr ready`, `Bash(git:*)` for branch state, `Bash(python3:*)` for `scripts/criteria-check.py` in Step 4 and `scripts/keys-check.py` in Step 5. **Read-only apart from the flag** — no `gh pr edit`, and nothing here runs a project command.
 
 Move a draft PR into the review loop, once the plan is implemented.
 
 This is the far end of `workflows/open.md`, not a continuation of it. That workflow opens the PR as a draft at the *start* of the work and stops; this one runs after the implementation - the `implement` skill's work - has landed on the branch, usually days and several sessions later.
 
-**The audit: every gate in `## Verification` accounted for, CI agreeing with that record, the rest of the body telling the truth, and then the flag - the gate audit being most of it.** **This is the workflow that can say no** — its whole value is refusing to flip a draft whose gates did not all run, so nothing here is a formality to be got through.
+**The audit: every gate in `## Verification` accounted for, CI agreeing with that record, the rest of the body telling the truth, a test naming each keyed criterion, every item in the body carrying its key, and then the flag - the gate audit being most of it.** **This is the workflow that can say no** — its whole value is refusing to flip a draft whose gates did not all run, so nothing here is a formality to be got through.
 
 ## Step 1 - Audit the gates. Do not run them
 
@@ -14,12 +14,12 @@ Read the body's `## Verification` and verify every box has a tick.
 
 **Every box ticked** — go to Step 2.
 
-**Any box unticked — stop and ask the owner what to do.** Do not run the missing gate, do not tick the box, and do not reason about whether it probably would have passed. Report which boxes are empty and name what an empty box can mean, because the right response differs and only the owner can pick:
+**Any box unticked — stop and ask the owner what to do.** Do not run the missing gate, do not tick the box, and do not reason about whether it probably would have passed. Report which boxes are empty, each by its `V{n}` key per *Keys* in `../tracker/references/formats.md`, and name what an empty box can mean, because the right response differs and only the owner can pick:
 
-| An empty box can mean       | Which needs                                           |
-|-----------------------------|-------------------------------------------------------|
+| An empty box can mean | Which needs |
+| --- | --- |
 | The gate ran and **failed** | A fix, a commit and a push — then this workflow again |
-| The gate was **never run**  | Someone to run it; the owner decides who and when     |
+| The gate was **never run** | Someone to run it; the owner decides who and when |
 
 ### What the audit never does
 
@@ -46,12 +46,36 @@ Step 1's boxes are self-reported from local runs, so a ticked box is evidence th
 Same posture: read, report, do not edit.
 
 - **`## Steps`** — every step that landed should already be ticked by the agent that landed it. An unticked box whose work is plainly done is a bookkeeping miss rather than a blocker; say so and let the owner decide whether to tick it or leave the gap visible.
-- **`## Open questions`** — the finished state is "None.", with every answered entry sitting in `## Settled` - here, or in the plan file's own `## Settled` heading where *Body caps* in `workflows/open.md` sent it - question and decision together, per the body template there. Anything still listed is either a decision nobody made - the owner's call, worth raising before reviewers read it as an open thread - or an answered question nobody moved, which is a bookkeeping miss to report like an unticked `## Steps` box, not a blocker.
+- **`## Open questions`** — the finished state is "None.", with every answered entry sitting in `## Settled` - here, or in the plan file's own `## Settled` heading where *Body caps* in `workflows/open.md` sent it - question and decision together, per the body template there. Anything still listed is either a decision nobody made - the owner's call, worth raising before reviewers read it as an open thread - or an answered question nobody moved, which is a bookkeeping miss to report by its `Q{n}` like an unticked `## Steps` box, not a blocker.
 - **Divergence from the plan** — where the work went somewhere the plan did not, say so. It belongs in a PR comment, never as an edit to the plan file: the plan records intent, and the gap between intent and outcome is the useful part.
 
-**Nothing in this workflow writes to the PR.** The one write it makes is Step 4, and that is a flag rather than content.
+**Nothing in this workflow writes to the PR.** The one write it makes is Step 6, and that is a flag rather than content.
 
-## Step 4 - Mark it ready
+## Step 4 - Audit the criteria's tests
+
+**A keyed criterion is proven by a test that names it**, per *Writing good acceptance criteria* in `../tracker/references/issue-shape.md`, which owns the rule. This step checks only that such a test exists. Whether it passes is the job of the check commands in `## Verification`, so a skipped test still passes here.
+
+**The gate is on where `python3 <skill-dir>/scripts/read-config.py get test_files` prints a glob**, per `references/repo-config.md`. The glob is a git pathspec glob. Where it exits `1`, the gate is off.
+
+```bash
+python3 <skill-dir>/scripts/criteria-check.py <pr-number>
+```
+
+The script reads the glob, the criterion keys of the issue the body's `Closes #{issue-number}` line names, and the PR's own head, then searches that head once per key. `scripts/criteria-check.py` owns which criteria it skips and what it prints. Pass `--remote <remote>` where the repository has several remotes, the trunk tracks none of them and `python3 <skill-dir>/scripts/read-config.py get remote` exits `1`. `scripts/test-criteria-check.sh` is its bench.
+
+**Exit 1 refuses the flip**: `⛔ REFUSED - no test names {keys}`, the keys being the ones its last line lists. **Any other non-zero exit refuses too**, because the check could not run, and the refusal quotes what the script printed. Exit 0 passes, and the verdict carries the script's output.
+
+## Step 5 - Audit the body's keys
+
+**Every item under the body's `## Steps`, `## Verification` and `## Open questions` opens with its key, and no key opens two items**, per *Keys* in `../tracker/references/formats.md`. The ticks every other step reads are found by those keys, so the check decides it rather than a reading:
+
+```bash
+python3 <skill-dir>/scripts/keys-check.py pr <pr-number>
+```
+
+**Exit 1 refuses the flip**: `⛔ REFUSED - the body's keys`, then each line the script printed. **Any other non-zero exit refuses too**, because the check could not run, and the refusal quotes what it printed. `scripts/test-keys-check.sh` is its bench.
+
+## Step 6 - Mark it ready
 
 ```bash
 gh pr ready <pr-number>
@@ -61,10 +85,14 @@ gh pr ready <pr-number>
 
 **If the branch is stacked, marking one PR ready says nothing about its siblings.** Check the stack with `workflows/stack.md` before assuming the whole thing is reviewable.
 
-## Step 5 - Confirm
+## Step 7 - Confirm
 
-Open with the verdict line per the standing convention in `SKILL.md`. `✅ ALL PASS` when Step 3 found nothing; `⚠️ PASSED WITH FINDINGS - {the bookkeeping misses}` when it did, naming each - an unticked `## Steps` box whose work is plainly done, or a `## Open questions` entry never moved to `## Settled`. Step 3 defines both as things to report rather than blockers, so the draft still lifts; printing green over them hides the one line the owner reads first. A refusal never reaches this step: the refusals in Steps 1-3 print `⛔ REFUSED - {reason}` as their first line instead. Then one line: the PR number and URL, that it is out of draft, and that every `## Verification` box was already ticked with CI green on the same head — which is the fact that authorised the flip.
+Open with the verdict line per the standing convention in `SKILL.md`. `✅ ALL PASS` when Step 3 found nothing; `⚠️ PASSED WITH FINDINGS - {the bookkeeping misses}` when it did, naming each by its key - an unticked `## Steps` box whose work is plainly done, by its `S{n}`, or a `## Open questions` entry never moved to `## Settled`, by its `Q{n}`. Step 3 defines both as things to report rather than blockers, so the draft still lifts; printing green over them hides the one line the owner reads first. A refusal never reaches this step: the refusals in Steps 1-5 print `⛔ REFUSED - {reason}` as their first line instead.
 
-**If the invocation was the `ready review` chain**, per the routing in `SKILL.md`, do not stop here: continue into `workflows/review.md` on this PR, as if the owner had named it. The chain exists only to remove the wait between `ready` and `review`; a refusal above never reaches this point, so the chain never carries a failed audit forward.
+Then one line: the PR number and URL, that it is out of draft, and that every `## Verification` box was already ticked with CI green on the same head — which is the fact that authorised the flip.
+
+Then Step 4's result: each key beside the `file:line` naming it, or that the gate is off, or that no criterion carries a key.
+
+**If the invocation was the `ready-review` chain**, per the routing in `SKILL.md`, do not stop here: continue into `workflows/review.md` on this PR, as if the owner had named it. The chain exists only to remove the wait between `ready` and `review`; a refusal above never reaches this point, so the chain never carries a failed audit forward.
 
 Otherwise stop here: marking ready and reviewing are separate requests, and `workflows/review.md` has its own confirmation gate.

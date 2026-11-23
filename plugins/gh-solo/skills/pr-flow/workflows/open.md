@@ -2,7 +2,7 @@
 
 Open the pull request for a branch that has just been cut. The sequence is branch, plan file, commit, draft PR, **stop**. It runs once at the start of the work, not at the end.
 
-The branch itself is not created here. `gh issue develop` belongs to the issue that owns it, in `tracker` skill, and it is what links the branch to the issue - and only that. **It assigns nobody**: assignment is a separate command, run before branching per the *Start work* section of that skill's `state` workflow, so check that the issue carries `@me` rather than assuming the branch brought it.
+The branch itself is not created here. `gh issue develop` belongs to the issue that owns it, in `tracker` skill, and it is what links the branch to the issue - and only that. **It assigns nobody**: assignment is a separate command, run before branching per the *Start work* section of `../tracker/workflows/state.md`, so check that the issue carries `@me` rather than assuming the branch brought it.
 
 ## Step 1 - Confirm the branch and recover the issue
 
@@ -48,11 +48,13 @@ On a *stacked* branch none of this applies: the trunk sitting ahead of a `--base
 **`## Steps` and `## Verification` are required and must carry those exact names**, because other things read them:
 
 - **`## Steps`** — the ordered work, as plain bullets. Other things read it, which is why the name is fixed rather than left to the planner: the PR body, where it becomes checkboxes, and the session's own todo list during implementation. Each box is ticked by whoever lands its step, at the moment it lands, per the standing convention in `SKILL.md`; the draft state only means the counter has no reader until `workflows/ready.md` audits it. Note that this file's own `## Step N` headings are the workflow's steps, not the plan's; only the backticked `## Steps` means the plan section.
-- **`## Verification`** — how you will know it worked. Which gate, which command, and what that gate *cannot* see. This is the section most likely to be skipped and most likely to be wanted later. **Only an entry with an exit code belongs in the list**: a `npm test` is a gate an agent can run and tick, while "restart the machine and read the row back" is a procedure the owner has to judge, and a judgement of theirs is never a checkbox. Write the gates as the section's list and the judgement as prose beneath it. Each entry becomes a box in the PR body that has to close before the branch merges, so an entry only the owner could close would block its own branch, and the cheap way out of that is to tick it untruthfully.
+- **`## Verification`** — how you will know it worked. Which gate, which command, and what that gate *cannot* see. This is the section most likely to be skipped and most likely to be wanted later. **Only an entry with an exit code belongs in the list**: a `npm test` is a gate an agent can run and tick, while "restart the machine and read the row back" is a procedure the owner has to judge, and a judgement of theirs is never a checkbox. Write the gates as the section's list and the judgement as prose beneath it. Each entry becomes a box in the PR body that has to close before the branch merges, so an entry only the owner could close would block its own branch, and the cheap way out of that is to tick it untruthfully. **A new test's entry names its seen-red run inside the item**: the command, and the pre-fix code it must be watched failing on. Where the test passes on the pre-fix code, the item names the mutation it must be watched failing on instead. Inside the item rather than in the prose beneath it, because the scoped re-review reads a gate by its key, one line, per `../reviewer/workflows/rescope.md`.
 
 Everything else is the planner's call. Planning mode already knows how to write a plan, and those names exist only because this workflow and the implementation todo list have to find those lists without guessing — not because the rest matters less. Any future required section gets named here explicitly, or it is not required.
 
 **A backticked path the branch will create or delete carries a tag**: one space after the closing backtick, then `(new)` or `(delete)`, lowercase, as in `` `lib/login.py` (new) ``. Every mention of such a file carries it, not only the one that says what happens, because an untagged mention fails the docs check whenever the file is absent. A file the branch only changes takes no tag. The docs check never reads a `(new)` path, so a wrong one is the review round's to catch.
+
+**Every step, gate and open question carries its key from the moment it is written**, per *Keys* in `../tracker/references/formats.md`.
 
 **Every required section is written as plain bullets in the plan, never checkboxes.** Each such list is the plan's *intent*, frozen at plan time and reviewed as a diff — it is what the draft PR exists for the owner to argue with. The same list appears in the PR body as `- [ ]`, where it carries *progress*. Two jobs, not two copies of one fact: a checkbox inside a committed file can only be ticked by another commit, and the intent should not change every time a box does.
 
@@ -66,7 +68,7 @@ If the plan is only restating the issue in different words, the issue was specif
 
 **Alone is the rule, not a preference.** Everywhere else the guidance is to use the fewest commits that make sense; the plan is the one standing exception, because the draft PR has to exist before any code does, and it can only do that if the plan is the first thing on the branch.
 
-**Run the plan check before committing the plan.** It fails a plan off Step 2's filename pattern, lacking `## Steps` or `## Verification`, with no list item under `## Verification`, or carrying a checkbox anywhere. A failure here costs an edit, not an amend of the branch's first commit. A missing or old Vale exits `2` with what to install, never clean. Its entry opens the template's `## Verification` in Step 4, so `workflows/ready.md` and `workflows/merge.md` audit it.
+**Run the plan check before committing the plan.** `scripts/plan-check.py` owns what it refuses. A failure here costs an edit, not an amend of the branch's first commit. A missing or old Vale exits `2` with what to install, never clean. Its entry opens the template's `## Verification` in Step 4, so `workflows/ready.md` and `workflows/merge.md` audit it.
 
 ```bash
 python3 <skill-dir>/scripts/plan-check.py <the plan file>
@@ -88,7 +90,7 @@ The commit header follows *Branch and commit type* in `../tracker/references/for
 
 **The bare command reads as a failure on most repositories**, because a plan legitimately names paths that do not exist here - the repo's own agent config, a file the plan will create - so establish the ignore set before treating its output as findings. A file the plan creates or deletes needs no ignore: pass `--plans` naming the plans directory, and the tagged spans in a plan are skipped.
 
-**A served repository's ignore set belongs in its `<repo-root>/.agents/gh-solo.md`**, and stays as narrow as the output allows, because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
+**A served repository's ignore set belongs in its config**, per `references/repo-config.md`, and stays as narrow as the output allows, because ignoring a span too broadly suppresses exactly the cross-links most worth checking.
 
 ```bash
 git push -u <remote> "$(git branch --show-current)"
@@ -102,7 +104,7 @@ The first push of a branch takes `-u`. Without it the branch has no upstream, wh
 gh pr create --draft --assignee @me --title "{type}({scope}): {issue title}" --body-file <file>
 ```
 
-**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` is the issue's **layer label**, read from the issue fetched in Step 1 and omitted when it would repeat the type (`docs: rewrite the readme`, never `docs(docs): …`) — each rule lives under *Branch and commit type* in `../tracker/references/formats.md`. A bare issue title would land without any of it, and `main` would be where the convention fails to hold; `workflows/merge.md` owns what happens to this title at merge time.
+**The title carries the commit convention, because on merge it becomes a commit.** The repository squash-merges, and GitHub builds the squash commit's subject from the PR title plus an appended `(#{pr-number})`. So `feat` + `frontend` + *add a login form* lands on `main` as `feat(frontend): add a login form (#60)` — conventional, lintable, and readable in `git log --oneline` without visiting the issue. Neither part is a fresh choice: the `{type}` is the branch's, and the `{scope}` comes from the issue fetched in Step 1 — each rule lives under *Branch and commit type* in `../tracker/references/formats.md`. A bare issue title would land without any of it, and `main` would be where the convention fails to hold; `workflows/merge.md` owns what happens to this title at merge time.
 
 **`--draft` is not optional.** The PR is the workspace for this branch from here on, so it is open while the work is unfinished, and a draft is how everything else tells the difference. `workflows/review.md` skips drafts for exactly this reason: without the flag, the review loop would offer to review a PR containing nothing but a plan.
 
@@ -121,24 +123,24 @@ Closes #{issue-number}
 
 ## Steps
 
-- [ ] Step 1
-- [ ] Step 2
+- [ ] ::S1:: Step 1
+- [ ] ::S2:: Step 2
 
 ## Verification
 
-- [ ] `python3 <skill-dir>/scripts/plan-check.py <the plan file>`
-- [ ] The command that proves it works
-- [ ] The other one
+- [ ] ::V1:: `python3 <skill-dir>/scripts/plan-check.py <the plan file>`
+- [ ] ::V2:: The command that proves it works
+- [ ] ::V3:: The other one
 
 [What these gates cannot see.]
 
 ## Open questions
 
-[Copied from the plan, because this is where the discussion happens. Ends on "None." once every entry is settled - a bare heading reads as unfinished.]
+- ::Q1:: [Copied from the plan, because this is where the discussion happens. Ends on "None." once every entry is settled - a bare heading reads as unfinished.]
 
 ## Settled
 
-["None yet." at creation, so the heading is never bare. Each answered question moves here from Open questions, question and decision together, the first one replacing the placeholder.]
+["None yet." at creation, so the heading is never bare. Each answered question moves here from Open questions under its own `Q{n}`, question and decision together, the first one replacing the placeholder.]
 ```
 
 The AI disclaimer opens the body, as it does on the plan file and in the commit body. The wording and the rule, including the default used when the owner's global instructions file defines no line, live in the AI-disclaimer bullet of `SKILL.md`; it is not repeated here, because a template is the wrong place to define a convention that applies everywhere.
@@ -159,8 +161,8 @@ Why each part earns its place:
 
 ### The discussion
 
-- **Open questions** are here because a PR body is where a comment thread can answer them. In the plan file alone they are rhetorical. An entry leaves this section the moment it is settled - moved into `## Settled`, never deleted.
-- **`## Settled`** is where an answered question lands, question and decision together, because the question is what makes the decision legible to a later reader. Moving rather than deleting matters to the audit and to the merge: `workflows/ready.md` audits `## Open questions` before lifting the draft, and `workflows/merge.md` has the squash merge write the whole PR body into the commit on `main` (`squash_merge_commit_message: PR_BODY`), so a decision recorded here survives in `git log` permanently, where a comment thread never lands. The move happens where the decision does: a discuss round moves an entry the moment the owner's closing decision settles it, per `workflows/discuss.md`, and Step 1's plan-record settle in the `implement` skill catches anything still unmoved before implementation starts - a body edit either way, like ticking a box, never a commit - except the relocation past the cap, whose whole route *Body caps* below owns. A decision settled in the terminal instead of a thread goes into the plan file under the same `## Settled` heading, per `workflows/discuss.md`: one name for the concept everywhere it appears, and the one sanctioned way a plan file changes after plan time.
+- **Open questions** are here because a PR body is where a comment thread can answer them. In the plan file alone they are rhetorical. An entry leaves this section the moment it is settled - moved into `## Settled` under its own `Q{n}`, never deleted.
+- **`## Settled`** is where an answered question lands, question and decision together, because the question is what makes the decision legible to a later reader. Moving rather than deleting matters to the audit and to the merge: `workflows/ready.md` audits `## Open questions` before lifting the draft, and `workflows/merge.md` has the squash merge write the whole PR body into the commit on `main` (`squash_merge_commit_message: PR_BODY`), so a decision recorded here survives in `git log` permanently, where a comment thread never lands. The move happens where the decision does: a reply round moves an entry the moment the owner's closing decision settles it, per `workflows/discuss.md`, and Step 1's plan-record settle in the `implement` skill catches anything still unmoved before implementation starts - a body edit either way, like ticking a box, never a commit - except the relocation past the cap, whose whole route *Body caps* below owns. A decision settled in the terminal instead of a thread goes into the plan file under the same `## Settled` heading, per `workflows/discuss.md`: one name for the concept everywhere it appears, and the one sanctioned way a plan file changes after plan time.
 
 For a branch that depends on another unmerged branch this is a stacked PR instead: add `--base <parent>`, and see `workflows/stack.md` for whether a stack is wanted at all.
 
@@ -168,7 +170,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 ### Body caps
 
-**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement. **This is not the post cap**, which `references/post-caps.md` owns and which puts the PR body outside its domain outright: this one exists because the body becomes a commit message on `main`, so they are separate caps that happen to agree, and neither is evidence for the other's number:
+**Each section named here is five sentences or bullets at most.** Count them; mechanical, not a judgement. **This is not the post cap**, which `references/post-caps.md` owns and which puts the PR body outside its domain outright: this one exists because, where the repository squashes with `PR_BODY` per *Repository settings this assumes* in `references/repo-settings.md`, the body becomes a commit message on `main` that nothing edits afterwards, so they are separate caps that happen to agree, and neither is evidence for the other's number:
 
 - **`## Plan overview`**, the approach.
 - **The paragraph under `## Verification`**, what the gates cannot see.
@@ -176,8 +178,6 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 - **`## Settled`**.
 
 **The unit is the section, never the entry.** A section that collects entries is counted whole, every entry in it summed into one total, which is the only reading under which a section that grows for the length of the branch can breach at all: per entry, a `## Settled` holding a dozen short entries passes forever. `workflows/discuss.md` states the trigger the same way.
-
-**The cap is here because this body becomes a commit message.** Where the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `references/repo-settings.md`, the whole body lands in `git log` on `main` and nothing edits a commit message afterwards. The overview is written once and reviewed at plan time; the rest accumulate for the length of the branch, so uncapped the commit message's length tracks how much discussion the branch had rather than what the branch did.
 
 #### What counts
 
@@ -187,7 +187,7 @@ For a branch that depends on another unmerged branch this is a stacked PR instea
 
 **The entry that would take a section past its cap moves to the plan file's own `## Settled` heading**, the heading `workflows/discuss.md` already gives a decision settled outside a thread. **The commit message is not the escape here**, however reliably *Post caps* sends overflow there: this body *is* the commit message, so that route is a circle. The plan file is committed under `<repo-root>/docs/plans/`, is already linked from `## Plan overview`, and outlives the branch, so moving rather than deleting holds exactly as it does inside the body.
 
-**This section owns the whole route, and each site elsewhere points at *Body caps*** rather than restating a leg of it, because a route stated in several places is one that gets half-fixed. Each part below earns its place:
+**This section owns the whole route.** Each part below earns its place:
 
 - **The relocation is a `docs:` commit, written where the decision settles**, and held exactly like the other commits that round makes. It is never a body edit, since no body edit can put text in a file.
 - **The body's own edit is owed from the moment that commit exists, never lands before its push, and stays owed until that edit lands.** An invariant rather than a trigger, because a trigger keyed on this round still holding the commit dies with the session that held it, and any push carries the branch rather than selected commits. What discharges it is the first pass to find the commit on the remote with its entry still in `## Open questions`: Step 1's plan-record settle in the `implement` skill, which writes the plan file, pushes it and edits the body in one pass, or the review protocol's step 7, per `workflows/resolve.md`. Both read that condition off the remote and the body, so neither needs to have been the session that made the commit.
@@ -203,8 +203,8 @@ One line: the issue number, the branch, the plan file path, and the PR URL with 
 
 The plan is the thing being reviewed, and it is cheaper to argue with as a diff on a PR than as a wall of chat. **Plan approval authorises the plan artifact, never the first implementation commit.** Wait for the discussion the open questions were written to start.
 
-**The one continuation that may pass this stop is the `auto` chain** in `workflows/auto.md`: there the owner's typed command waived this wait in advance, and the chain goes on into implementation. Anything else - including an `open` run on its own, however obvious the next step looks - ends here.
+**The one continuation that may pass this stop is the `auto` chain** in `workflows/auto.md`: there the owner's typed command waived this wait in advance, and the chain goes on into implementation. Anything else - including a `plan` run on its own, however obvious the next step looks - ends here.
 
 **Say where that discussion happens, because only one tab threads.** The owner comments inline on the plan's lines in the PR's **Files changed** tab - that is the surface that threads and resolves. Review bodies and Conversation comments are read too, per `workflows/discuss.md`, but they cannot be resolved and their answers land as flat Conversation comments, so inline stays the recommendation rather than the requirement. Replies come through `workflows/discuss.md`, in the threads; mention that `watch <pr-number>` exists for answers as they post, and per that file only the owner typing the command arms it.
 
-This workflow ends here. When the discussion settles, the owner has two ways into implementation: `/gh-solo:implement <pr-number>`, which stops at the implementation handoff, or `go <pr-number>` in `workflows/auto.md`, which continues through `ready` and the review round in the same pass. `workflows/ready.md` picks the branch up at the other end, once the work has landed, and marks the PR ready for review.
+This workflow ends here. When the discussion settles, the owner has two ways into implementation: `:im <pr-number> (implement)`, which stops at the implementation handoff, or `go <pr-number>` in `workflows/auto.md`, which continues through `ready` and the review round in the same pass. `workflows/ready.md` picks the branch up at the other end, once the work has landed, and marks the PR ready for review.

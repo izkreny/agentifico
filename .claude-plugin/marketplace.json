@@ -13,6 +13,13 @@
       "description": "The solo maintainer's GitHub loop: an issue tracker, plan-first pull requests, in-session implementation, review rounds judged by a fresh-context reviewer, and gated squash merges, all through the gh CLI.",
       "category": "development",
       "tags": ["github", "pull-requests", "code-review", "issue-tracker", "solo-developer", "gh-cli"]
+    },
+    {
+      "name": "typescript-native-lsp",
+      "source": "./plugins/typescript-native-lsp",
+      "description": "TypeScript and JavaScript code intelligence from the language server TypeScript 7's own tsc speaks, with no typescript-language-server and no older TypeScript.",
+      "category": "development",
+      "tags": ["typescript", "javascript", "lsp", "language-server", "code-intelligence"]
     }
   ]
 }

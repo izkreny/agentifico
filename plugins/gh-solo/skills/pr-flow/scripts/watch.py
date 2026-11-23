@@ -45,9 +45,12 @@ def now_iso():
 
 
 def inline_comments(pr, since):
+    data = gh_json("api", "--paginate",
+                   f"repos/{{owner}}/{{repo}}/pulls/{pr}/comments?since={since}")
+    if data is None:
+        return None
     out = []
-    for c in gh_json("api", "--paginate",
-                     f"repos/{{owner}}/{{repo}}/pulls/{pr}/comments?since={since}") or []:
+    for c in data:
         if mine(c.get("body")):
             continue
         line = c.get("line") or c.get("original_line")
@@ -57,9 +60,11 @@ def inline_comments(pr, since):
 
 
 def review_bodies(pr, since):
+    data = gh_json("api", "--paginate", f"repos/{{owner}}/{{repo}}/pulls/{pr}/reviews")
+    if data is None:
+        return None
     out = []
-    for r in gh_json("api", "--paginate",
-                     f"repos/{{owner}}/{{repo}}/pulls/{pr}/reviews") or []:
+    for r in data:
         submitted = r.get("submitted_at") or ""
         # Equal is admitted, since `since` was stamped before the request and a record posted later in that second carries the same stamp; `seen` drops the repeat.
         if submitted < since or not r.get("body") or mine(r.get("body")):
@@ -70,9 +75,12 @@ def review_bodies(pr, since):
 
 
 def conversation(pr, since):
+    data = gh_json("api", "--paginate",
+                   f"repos/{{owner}}/{{repo}}/issues/{pr}/comments?since={since}")
+    if data is None:
+        return None
     out = []
-    for c in gh_json("api", "--paginate",
-                     f"repos/{{owner}}/{{repo}}/issues/{pr}/comments?since={since}") or []:
+    for c in data:
         if mine(c.get("body")):
             continue
         out.append((f"{c['id']}@{c['updated_at']}",
@@ -94,13 +102,13 @@ def reactions(pr, since):
     """Reactions are GraphQL-only, and they are half the owner's vocabulary."""
     data = gh_json("api", "graphql", "-F", "owner={owner}", "-F", "repo={repo}",
                    "-F", f"pr={pr}", "-f", f"query={QUERY}")
-    if not data:
-        return []
+    if data is None:
+        return None
     out = []
     try:
         threads = data["data"]["repository"]["pullRequest"]["reviewThreads"]["nodes"]
     except (KeyError, TypeError):
-        return []
+        return None
     for t in threads:
         for c in t.get("comments", {}).get("nodes", []):
             for rx in c.get("reactions", {}).get("nodes", []):
@@ -113,6 +121,27 @@ def reactions(pr, since):
     return out
 
 
+def emit(text):
+    print(text, flush=True)
+
+
+def poll(pr, since, seen, out=emit):
+    """Return the `since` the next poll reads from, kept where it was when any read failed, so nothing posted in this window is lost."""
+    stamp = now_iso()
+    failed = False
+    for source in (inline_comments, review_bodies, conversation, reactions):
+        items = source(pr, since)
+        if items is None:
+            failed = True
+            continue
+        for key, text in items:
+            if key in seen:
+                continue
+            seen.add(key)
+            out(text)
+    return since if failed else stamp
+
+
 def main():
     if len(sys.argv) != 2 or not sys.argv[1].isdigit():
         sys.exit("usage: watch.py <pr-number>")
@@ -120,14 +149,7 @@ def main():
     seen = set()
     since = now_iso()
     while True:
-        stamp = now_iso()
-        for source in (inline_comments, review_bodies, conversation, reactions):
-            for key, text in source(pr, since):
-                if key in seen:
-                    continue
-                seen.add(key)
-                print(text, flush=True)
-        since = stamp
+        since = poll(pr, since, seen)
         time.sleep(POLL_SECONDS)
 
 

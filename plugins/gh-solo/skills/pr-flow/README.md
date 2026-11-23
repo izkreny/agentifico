@@ -23,7 +23,7 @@ The plugin's own `README.md` has the local-checkout variant, the requirements, a
 
 ```mermaid
 flowchart TD
-    A["branch exists"] --> B["<b>open</b><br/>writes the plan, commits it<br/>alone, opens a draft PR"]
+    A["branch exists"] --> B["<b>plan</b><br/>writes the plan, commits it<br/>alone, opens a draft PR"]
     B --> STOP(["<b>you</b> read the plan<br/>and argue with it"])
     STOP --> C["implementation<br/>(the implement skill)"]
     C --> D["<b>ready</b><br/>audits that every check ran<br/>and CI agrees, takes the PR out of draft"]
@@ -33,7 +33,7 @@ flowchart TD
     G --> Q(["<b>you</b> judge each thread:<br/>accept, question, or refuse in writing"])
     Q --> R["the agent answers, in the thread"]
     R --> Q
-    Q --> S(["<b>you</b> type <b>rnp</b>,<br/>or say: resolve all and push"])
+    Q --> S(["<b>you</b> type <b>:rp</b>"])
     S --> T["the fixes are pushed,<br/>and one comment indexes<br/>every hunk that push carried"]
     T --> U(["<b>you</b> type <b>merge</b>"])
     U --> J["<b>merge</b><br/>waits for green CI,<br/>squashes to the trunk, deletes the branch"]
@@ -44,24 +44,24 @@ The rounded steps are yours. They are not delegated, and the skill will not do t
 
 ## What is yours and what is not
 
-|                                                    | Who does it                                                                                  |
-|----------------------------------------------------|----------------------------------------------------------------------------------------------|
-| Writing the plan                                   | the agent, from the issue and the code                                                       |
-| **Deciding the plan is right**                     | **you** — this is a gate, and the work stops until you pass it                               |
-| Writing the code                                   | the agent, following the plan                                                                |
-| Running tests and the build before review          | the agent                                                                                    |
-| Checking the PR's own housekeeping                 | the agent                                                                                    |
-| **Starting the code review**                       | **you** — nothing else can start it                                                          |
-| **Reading every line, and every comment on it**    | **you**                                                                                      |
-| Reading the diff and finding what is wrong with it | the `reviewer` agent, in its own context - never the session that wrote it                   |
-| **Questioning a finding you disagree with**        | **you**, by replying in its thread, or reacting 👀                                           |
-| Answering that question, in the same thread        | the agent                                                                                    |
-| **Leaving a signal on every thread**               | **you** - a reaction is enough; a thread resolved with no recorded authority stops the merge |
-| **Authorising the resolve**                        | **you**, always — in words, which get recorded on the PR                                     |
-| Fixing what the review found                       | the agent - committed at once in coherent groups, pushed never                               |
-| **Saying when the fixes push**                     | **you** - `rnp`, or "resolve all and push", the round's only push                            |
-| **Saying when the branch lands**                   | **you** - `merge`, a word of its own; `rnp` stops at the push                                |
-| Merging, cleaning up, confirming the issue closed  | the agent                                                                                    |
+| | Who does it |
+| --- | --- |
+| Writing the plan | the agent, from the issue and the code |
+| **Deciding the plan is right** | **you** — this is a gate, and the work stops until you pass it |
+| Writing the code | the agent, following the plan |
+| Running tests and the build before review | the agent |
+| Checking the PR's own housekeeping | the agent |
+| **Starting the code review** | **you** — nothing else can start it |
+| **Reading every line, and every comment on it** | **you** |
+| Reading the diff and finding what is wrong with it | the `reviewer` agent, in its own context - never the session that wrote it |
+| **Questioning a finding you disagree with** | **you**, by replying in its thread, or reacting 👀 |
+| Answering that question, in the same thread | the agent |
+| **Leaving a signal on every thread** | **you** - a reaction is enough; a thread resolved with no recorded authority stops the merge |
+| **Authorising the resolve** | **you**, always — in words, which get recorded on the PR |
+| Fixing what the review found | the agent - committed at once in coherent groups, pushed never |
+| **Saying when the fixes push** | **you** - `:rp`, the round's only push |
+| **Saying when the branch lands** | **you** - `merge`, a word of its own; `:rp` stops at the push |
+| Merging, cleaning up, confirming the issue closed | the agent |
 
 Nobody else's approval gates a merge and nobody else is accountable for what ships. That is what makes reading the code your job rather than a formality.
 
@@ -77,13 +77,13 @@ Nobody else's approval gates a merge and nobody else is accountable for what shi
 
 ### The review
 
-**The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, spawned with a PR number and the sha to review, and nothing else, so that the session which wrote the code is not the session that judges it - and so that the round knows which version was judged rather than trusting a claim about it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check.
+**The judgement is yours; the reading of the diff is not.** The diff is read by the `reviewer` agent this plugin ships, per `references/reviewer-appointment.md`, spawned with a PR number and the sha to review, and nothing else, so that the session which wrote the code is not the session that judges it - and so that the round knows which version was judged rather than trusting a claim about it. It never suggests a fix: it names the defect, its consequence, and a failure scenario you can check.
 
-Where your harness cannot spawn one, appoint a capability to invoke instead of an agent to spawn - `<repo-root>/.agents/gh-solo.md` takes either - and the round posts its findings for it. What is never substitutable is that the analysis comes from something other than the author.
+Where your harness cannot spawn one, there is no review round. What is never substitutable is that the analysis comes from something other than the author.
 
 **Every review is recorded, including a clean one.** A pull request with no comments on it is ambiguous: it might have been read and found fine, or never read at all. So the outcome is always written onto the PR, even when the outcome is "nothing found". Later, that is the difference between knowing and guessing — and it is what merging checks before it will land anything.
 
-**A reviewer pass is a budget, and the pull request holds the count.** Reading the whole branch is the expensive act in a round, and the unattended block can be made to do it again: a post that will not anchor throws its findings away, and the answer to that is another pass. So a pull request gets a fixed number of them, per *The pass cap* in `references/pass-cap.md`, which owns the figure; every pass leaves a mark on the pull request itself - a discarded one included, since that is the pass that costs you most and shows least - and reaching the cap stops and tells you what is still open. Only your word buys another: `authorise`, typed at that stop.
+**A reviewer pass is a budget, and the pull request holds the count.** Reading the whole branch is the expensive act in a round, and the unattended block can be made to do it again: a post that will not anchor throws its findings away, and the answer to that is another pass. So a pull request gets a fixed number of them, per *The pass cap* in `references/pass-cap.md`, which owns the figure; every pass leaves a mark on the pull request itself - a discarded one included, since that is the pass that costs you most and shows least - and reaching the cap stops and tells you what is still open. Only your word buys another: `approve`, or `:ap`, typed at that stop.
 
 ### The records
 
@@ -103,7 +103,7 @@ Where your harness cannot spawn one, appoint a capability to invoke instead of a
 
 **Review fixes get their own commits, grouped by coherent change and never amended into the original work.** Not for the trunk's sake — squashing removes them anyway — but for yours, while the PR is open. It keeps "what changed because of the review" separable from the original work, which is the difference you most want to be able to see.
 
-**And they stay unpushed while you read.** A push moves the diff and drops the threads anchored to it behind "Show outdated" - the ground shifting under a review that is part-way through. So a fix is committed and answered in its thread on the spot, and nothing leaves the machine until you type `rnp`, or say "resolve all and push". That word ends at the push: merging is `merge`, typed separately, because the checks read straight after a push have to be able to stop a merge that has not happened yet. The full sequence lives in one place, `references/review-protocol.md`.
+**And they stay unpushed while you read.** A push moves the diff and drops the threads anchored to it behind "Show outdated" - the ground shifting under a review that is part-way through. So a fix is committed and answered in its thread on the spot, and nothing leaves the machine until you type `:rp`. That word ends at the push: merging is `merge`, typed separately, because the checks read straight after a push have to be able to stop a merge that has not happened yet. The full sequence lives in one place, `references/review-protocol.md`.
 
 ## Stacking, and when not to
 
@@ -115,27 +115,33 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 
 ## Layout
 
-| Path                                 | Holds                                                                                                                                                                                                                     |
-|--------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `SKILL.md`                           | routing, and the conventions that span workflows                                                                                                                                                                          |
-| `workflows/open.md`                  | plan, first commit, draft PR, stop                                                                                                                                                                                        |
-| `workflows/auto.md`                  | the `auto` and `go` chains: the same lifecycle, waits removed, gates intact                                                                                                                                               |
-| `workflows/ready.md`                 | auditing that every stated check actually ran and CI agrees, then out of draft                                                                                                                                            |
-| `workflows/review.md`                | the review round: conventions, the reviewer, the findings, the fixes                                                                                                                                                      |
-| `workflows/discuss.md`               | answering your replies, inside the thread you asked in                                                                                                                                                                    |
-| `workflows/resolve.md`               | your authorisation recorded, the threads resolved, the round's only push, and an index of what that push carried                                                                                                          |
-| `workflows/merge.md`                 | the reviewed-or-not gate, squash, cleanup                                                                                                                                                                                 |
-| `workflows/stack.md`                 | everything about stacks                                                                                                                                                                                                   |
-| `workflows/watch.md`                 | the `watch` poll loop: what arms it, and what ends it                                                                                                                                                                     |
-| `workflows/help.md`                  | printed to you on `help`                                                                                                                                                                                                  |
-| `references/review-protocol.md`      | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates                                                                                               |
-| `references/pass-cap.md`             | the budget of reviewer passes, and the words that spend or buy one while a reviewer is reading                                                                                                                            |
-| `references/reviewer-appointment.md` | what changes when your repository appoints its own reviewer, model or review command                                                                                                                                      |
-| `references/repo-settings.md`        | the repository settings and branch protection the merge assumes, read when a repository first takes this flow and when a merge misbehaves                                                                                 |
-| `scripts/post-review.py`             | builds and validates the one call that posts a round, then reconciles it; also reads the highest `RF{n}` already on the pull request, and how many reviewer passes it has had; `scripts/test-post-review.sh` is its bench |
-| `references/post-caps.md`            | how long a post carrying a `via` line may be, what falls outside that cap, and what sits inside a capped post without counting                                                                                            |
-| `scripts/docs-check.py`              | path and fence checks, run before any docs or plan push; `scripts/test-docs-check.sh` is its bench                                                                                                                        |
-| `scripts/plan-check.py`              | a plan's filename and required structure, run before the plan commit; `scripts/test-plan-check.sh` is its bench                                                                                                           |
-| `scripts/watch.py`                   | the `watch` poll loop as a script, so it needs no grant beyond `python3`; `scripts/test-watch.sh` is its bench                                                                                                            |
+| Path | Holds |
+| --- | --- |
+| `SKILL.md` | routing, and the conventions that span workflows |
+| `workflows/open.md` | plan, first commit, draft PR, stop |
+| `workflows/auto.md` | the `auto` and `go` chains: the same lifecycle, waits removed, gates intact |
+| `workflows/ready.md` | auditing that every stated check actually ran and CI agrees, then out of draft |
+| `workflows/review.md` | the review round: conventions, the reviewer, the findings, the fixes |
+| `workflows/discuss.md` | answering your replies, inside the thread you asked in |
+| `workflows/resolve.md` | your authorisation recorded, the threads resolved, the round's only push, and an index of what that push carried |
+| `workflows/merge.md` | the reviewed-or-not gate, squash, cleanup |
+| `workflows/stack.md` | everything about stacks |
+| `workflows/watch.md` | the `watch` poll loop: what arms it, and what ends it |
+| `workflows/help.md` | printed to you on `help` |
+| `references/review-protocol.md` | the review round, stated once: RF ids, fixes committed in-thread but never pushed, your closing words, and the thread gates |
+| `references/pass-cap.md` | the budget of reviewer passes, and the words that spend or buy one while a reviewer is reading |
+| `references/reviewer-appointment.md` | what changes when your repository names the model its reviewer runs on |
+| `references/repo-settings.md` | the repository settings and branch protection the loop checks, read when its gate refuses |
+| `references/repo-config.md` | where your repository's config is read from, its keys and their defaults |
+| `scripts/read-config.py` | reads a key from your config, refusing a config it cannot read exactly; `scripts/test-read-config.sh` is its bench |
+| `scripts/defaults.json` | the value each key takes when your config leaves it unset |
+| `scripts/post-review.py` | builds and validates the one call that posts a round, then reconciles it; also reads the highest `RF{n}` already on the pull request, and how many reviewer passes it has had; `scripts/test-post-review.sh` is its bench |
+| `references/post-caps.md` | how long a post carrying a `via` line may be, what falls outside that cap, and what sits inside a capped post without counting |
+| `scripts/docs-check.py` | path and fence checks, run before any docs or plan push; `scripts/test-docs-check.sh` is its bench |
+| `scripts/plan-check.py` | a plan's filename and required structure, run before the plan commit; `scripts/test-plan-check.sh` is its bench |
+| `scripts/keys-check.py` | the keys on an issue or pull request body, run by validate, ready and merge; `scripts/test-keys-check.sh` is its bench |
+| `scripts/criteria-check.py` | that a test names each keyed criterion, run by ready and merge; `scripts/test-criteria-check.sh` is its bench |
+| `scripts/settings-check.py` | that the repository settings back the loop, run by the preflight and by merge; `scripts/test-settings-check.sh` is its bench |
+| `scripts/watch.py` | the `watch` poll loop as a script, so it needs no grant beyond `python3`; `scripts/test-watch.sh` is its bench |
 
-Anything specific to one repository — its check commands, a convention that differs — belongs in `<repo-root>/.agents/gh-solo.md` in that repository, never in this skill. Check commands especially are never invented: they belong to the repo that runs them.
+Anything specific to one repository — its check commands, a convention that differs — belongs in that repository's config, never in this skill. Check commands especially are never invented: they belong to the repo that runs them.

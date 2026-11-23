@@ -1,17 +1,8 @@
 // The token tree is read rather than the raw lines because prose that mentions a home directory in words is not a path.
 import { ABSOLUTE_TO_ONE_MACHINE, HOME_DIR_PLACEHOLDER, TILDE_PATH } from "./paths.js";
+import { walk } from "./walk.js";
 
 const CARRIES_A_PATH = new Set(["codeTextData", "codeFlowValue", "resourceDestinationString"]);
-
-function walk(tokens, fn) {
-  for (const token of tokens) {
-    fn(token);
-    // Stryker disable next-line ConditionalExpression: markdownlint gives every micromark token a children array, so the guard always holds.
-    if (token.children) {
-      walk(token.children, fn);
-    }
-  }
-}
 
 export default {
   names: ["skill-portable-paths"],

@@ -8,12 +8,12 @@ A **round** is one pass of review-then-judgement; there may be several.
 
 Each cell of the table states its own rule, prohibitions included, so a row read out of its column keeps its meaning.
 
-| Who                  | Does                                                                                                      | Never                                                                                                  |
-|----------------------|-----------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
-| **The owner**        | Judges the findings, authorises the resolve and the push, reads the code last                             | Is never required to act before step 6                                                                 |
-| **The orchestrator** | Plans, implements, posts every comment, plans the fixes, fixes, replies, resolves, pushes                 | Never reviews its own diff, never alters a finding's text, never pushes before the owner authorises it |
-| **The reviewer**     | Reads what its entrance gives it - the reviewer skill's own fetch list says which - and produces findings | **Never suggests a fix**, never writes anything to the PR, never touches the working tree              |
-| **A mentor**         | Comments as a third party                                                                                 | Never holds authority, is never answered, never counts toward any gate                                 |
+| Who | Does | Never |
+| --- | --- | --- |
+| **The owner** | Judges the findings, authorises the resolve and the push, reads the code last | Is never required to act before step 6 |
+| **The orchestrator** | Plans, implements, posts every comment, plans the fixes, fixes, replies, resolves, pushes | Never reviews its own diff, never alters a finding's text, never pushes before the owner authorises it |
+| **The reviewer** | Reads what its entrance gives it - the reviewer skill's own fetch list says which - and produces findings | **Never suggests a fix**, never writes anything to the PR, never touches the working tree |
+| **A mentor** | Comments as a third party | Never holds authority, is never answered, never counts toward any gate |
 
 **Only the owner is answered, and only the owner's input authorises anything.** A mentor's comment, reaction or review is read and named in the round report, and then left alone: never answered in the thread, never treated as an order, never counted as the reply or the reaction a resolve rests on. This is not about whose advice is worth more. It is that authority here belongs to one person, and an agent that answers everyone turns a third party's opinion into work the owner never asked for, in their own repository, under their own login. Where a mentor's point deserves an answer, the owner gives it.
 
@@ -21,20 +21,18 @@ Each cell of the table states its own rule, prohibitions included, so a row read
 
 **The reviewer is a pure function: a PR number and the head to read in, one findings file out.** It is forbidden to write to the PR - a rule rather than a wall, because its bare `Bash` grant cannot express read-only - and it has no knowledge of this protocol's conventions - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence. **What it fetches depends on which entrance it came in by**, and the reviewer skill has one workflow file per entrance owning that list; a second copy here would drift from it.
 
-**A repository may appoint its own reviewer, and one form of appointment is invoked rather than spawned.** What holds across every form is the shape of the seam: the findings reach the orchestrator and the orchestrator posts them, so there is one writer and one set of conventions however the reading was done. `references/reviewer-appointment.md` owns each form and the file's shape.
+**Which reviewer runs, and what a repository may set about it, is `references/reviewer-appointment.md`'s to say.** The findings reach the orchestrator and the orchestrator posts them, so there is one writer and one set of conventions. The reviewer skill's *The findings file* owns the file's shape.
 
 ## The finding key
 
 ### Ids
 
-- **`RF{n}` ids are assigned by the orchestrator**, not the reviewer, which emits its own local index and nothing else. Continuing an id sequence needs the PR's existing threads, and that is state the reviewer needs for nothing else.
-- **Ids never restart for the life of the PR.** Before numbering, read the existing threads for the highest `RF{n}` already posted and continue from it. `RF3` must mean one thing on this PR forever, including in the fix-plan and fix-result replies that reuse it.
-- **An id is *issued* as `::RF{n}::` and named in prose as `RF{n}`.**
+- **`RF{n}` ids are assigned by the orchestrator**, not the reviewer, which emits its own local index and nothing else. Continuing an id sequence needs the ids the PR already carries, and that is state the reviewer needs for nothing else.
+- **Ids follow the numbering rule under *Keys* in `../tracker/references/formats.md`**, which also owns how one is issued and named. Before numbering, read the highest `RF{n}` already issued and continue from it. It is read from the threads and the review bodies both, since a held finding's id lives only in a review body until its push; Step 2 of `workflows/review.md` has the read.
 
 ### Severity and scenario
 
 - **Severity is `high`, `medium` or `low`, assigned by the reviewer**, and rendered with its emoji when posted: 🔴 high, 🟡 medium, 🔵 low. It is assigned rather than mapped: the reviewer's brief states the scale, so nothing has to translate one vocabulary into another.
-- **A reviewer that supplies no level is a real case, and it has exactly one honest answer.** Where a repository appoints a reviewer that cannot assign one, the orchestrator reads a level out of each finding's own account of what goes wrong, and **the record Review states the basis it used**. The value `unrated` carries a finding whose text supports no judgement at all. What is forbidden is a level whose source is not stated: a derived level published as though the reviewer gave it is the one failure this rule exists to prevent, and the posting script refuses a round that claims a derivation it did not make, or makes one it does not state.
 - **Every finding carries a failure scenario**: concrete inputs or state, then the wrong output. This is what makes a finding falsifiable, and it is what the orchestrator checks before it changes any code.
 - **No finding says how to fix itself.** The reviewer is forbidden from suggesting a fix, because a suggested fix anchors the fixer, who knows the code better than the reviewer does. What closes a finding is decided at step 3 and stated there.
 
@@ -68,17 +66,17 @@ One reply per finding saying what change would close it, with code in a plain fe
 
 ### 4. Fix, commit, report
 
-The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes on a `Closes:` line in its body, and **nothing is pushed** - step 7 is the round's only push, and says why. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
+The fixes land as commits grouped by coherent change, each naming the `RF{n}` ids it closes on a `Closes:` line in its body; a finding answered by a body item is claimed by that item's key, beside a commit or instead of one, per the `implement` skill's fix workflow. **Nothing is pushed** - step 7 is the round's only push, and says why. Then one reply per thread: the commit subject, the id, and **whether the fix departed from the step 3 plan and why**.
 
 - **Steps 3 and 4 are two posts and are never merged into one**, even though nothing reads them in between. The gap between the plan and the result is where a departure from the plan is visible; combined, it has nowhere to show.
 - **The fix workflow's carve-out applies to every fix in this block**: a fix the owner might independently reject gets its own commit. There it is the exception; here it is the rule, because nothing in this block has been judged yet.
 - Any gate in `## Verification` the fixes could have invalidated is re-run and re-ticked by whoever ran it, per the standing convention in `SKILL.md`.
-- **A fix that changes what the `## Plan overview` describes brings the overview up to date in the same round.** The overview summarises what the branch does, so a fix that adds or removes a behaviour makes it wrong - and wherever the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `references/repo-settings.md`, that text becomes the squash commit message on `main` and can never be corrected afterwards. The edit is a body edit, read-modify-write per the body-edit convention in `SKILL.md`, never a commit, and it stays inside the overview's cap in *Convention checks*. Name it in the round report next to the fix commits.
+- **A fix that changes what the `## Plan overview` describes brings the overview up to date in the same round.** The overview summarises what the branch does, so a fix that adds or removes a behaviour makes it wrong - and wherever the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `references/repo-settings.md`, that text becomes the squash commit message on `main` and can never be corrected afterwards. The edit is a body edit, read-modify-write per the body-edit convention in `SKILL.md`, never a commit, and it stays inside the cap *Body caps* in `workflows/open.md` sets for it. Name it in the round report next to the fix commits.
 - The mechanics are the `implement` skill's fix workflow, run by the orchestrator rather than handed to anyone.
 
 ### 5. Re-review, scoped
 
-The reviewer is spawned again with the fix commit *range*, the findings list, and which commit claims which id. A range rather than a diff on purpose: it reads the commits itself, so nothing the author produced sits between it and the code. It answers two questions and no others: for each finding claimed closed, does this diff close it; and did any fix introduce a new defect. It returns verdicts to the orchestrator, which posts them into the threads.
+The reviewer is spawned again with the fix commit *range*, the findings list, and which commit or body item key claims which id. A range rather than a diff on purpose: it reads the commits itself, so nothing the author produced sits between it and the code. A key is passed bare for the same reason, and the reviewer reads the one item it names. It answers two questions and no others: for each finding claimed closed, does this diff or this item close it; and did any fix introduce a new defect. It returns verdicts to the orchestrator, which posts them into the threads.
 
 - **The scope stops there**, and what it excludes is owned by `../reviewer/workflows/rescope.md`, under *You answer exactly two questions, and no others*.
 - **A new defect gets its own record, and the first index is left alone.** One record Review per analysis is the standing rule and the re-review is an analysis, so it posts its own, indexing its own pass and the new `RF{n}` ids in it. Nothing goes stale, because no index ever claimed to cover a pass that had not happened when it was written, and no submitted record is rewritten to make it true.
@@ -88,15 +86,17 @@ The reviewer is spawned again with the fix commit *range*, the findings list, an
 
 - **Each loop is capped, because no owner is watching.** A finding the re-review says is not closed gets **one** further plan-and-fix attempt; a second failure sends the thread to the owner instead, since two failures mean the finding is not understood and a third machine attempt costs more than reading it. A new defect the re-review raises gets a fix plan and a fix, and that fix is re-reviewed once, never recursively.
 - **One batched pass covers the loops together, never one pass per thread.** Every retry and every new-defect fix lands first, and then a single scoped spawn reads the whole range and answers about all of them. Per thread, the spawn count would follow how many findings a pass happened to raise.
-- **So the reviewer is spawned three times at most in a round:** the full pass at step 1, the scoped re-review here, and the one batched pass these loops get. What a pull request's own total is follows from that figure and the full passes it has had, since `authorise` under *The pass cap* in `references/pass-cap.md` buys a further pass and a further round with it.
+- **So the reviewer is spawned three times at most in a round:** the full pass at step 1, the scoped re-review here, and the one batched pass these loops get. What a pull request's own total is follows from that figure and the full passes it has had, since `approve` under *The pass cap* in `references/pass-cap.md` buys a further pass and a further round with it.
 
 ### 6. The owner judges
 
 The first step that waits for anything. They answer per thread, in the vocabulary *The owner's vocabulary* states.
 
+**They may clear the closed threads first** with `resolve-closed`, per *Resolving only the closed threads* in `workflows/resolve.md`. It resolves only what a closing verdict ended, pushes nothing, and leaves this step running.
+
 ### 7. Resolve and push, on the owner's word
 
-The batch is one word or sentence from the owner - `rnp`, or "resolve all and push", whose order is also the order this step runs in:
+The batch is one word from the owner, `:rp` or `resolve`, and this step runs in this order:
 
 - **First the authorisation comment**, before any thread is resolved.
 - **Then the resolves.** To resolve a thread is to mark it Resolved on GitHub: the state change that collapses it and takes it off the open list.
@@ -138,13 +138,13 @@ It carries a literal marker line a later reader can grep for, the owner's words,
 
 How they answer a thread at step 6. **Approval may be a word or a reaction; refusal must always be written.**
 
-| What they do                                                  | What it means                                                                                                                                                                                                                                      |
-|---------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Say "OK", "good", "cool" in the session, naming the finding   | Accepted. A bare word naming nothing is not a signal on any thread                                                                                                                                                                                 |
-| React 👍 `THUMBS_UP` or ❤️ `HEART`                            | Accepted. Exact synonyms of each other and of the words said in the session                                                                                                                                                                        |
+| What they do | What it means |
+| --- | --- |
+| Say "OK", "good", "cool" in the session, naming the finding | Accepted. A bare word naming nothing is not a signal on any thread |
+| React 👍 `THUMBS_UP` or ❤️ `HEART` | Accepted. Exact synonyms of each other and of the words said in the session |
 | React 👀 `EYES` or 😕 `CONFUSED`, or write "explain" or "?!?" | One canned question, answered in the thread: *"I do not understand. Explain to me like a non-technical person, but use real code names."* The reaction and the word mean exactly the same thing, so neither gets a different answer from the other |
-| Write a reply                                                 | A discussion. `workflows/discuss.md` classifies and answers it                                                                                                                                                                                     |
-| Nothing, or any other reaction                                | No signal. Step 7's batch covers it                                                                                                                                                                                                                |
+| Write a reply | A discussion. `workflows/discuss.md` classifies and answers it |
+| Nothing, or any other reaction | No signal. Step 7's batch covers it |
 
 - **Every other reaction is no signal, not an unknown to stop and ask about.** 👎 included: it is not a refusal, because a refusal is always written.
 - **Which comment carries the reaction decides what it refers to**, since a thread holds the finding, the fix plan and the fix result. A question on the finding asks about the finding; on the fix plan, about the plan; on the fix result, about what changed.

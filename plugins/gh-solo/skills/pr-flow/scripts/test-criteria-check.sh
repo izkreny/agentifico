@@ -1,0 +1,187 @@
+#!/usr/bin/env bash
+# WHY: the gate's whole value is refusing, so the bench drives check() end to end on a real git repository and fakes only gh and the fetch.
+set -euo pipefail
+
+HERE="$(cd "$(dirname "$0")" && pwd)"
+REPO="$(mktemp -d)"
+HOME_DIR="$(mktemp -d)"
+trap 'rm -rf "$REPO" "$HOME_DIR"' EXIT
+
+git -C "$REPO" init -q
+mkdir -p "$REPO/.agents" "$REPO/spec/models"
+printf 'it "GHI-287 AC1 shows an error"\nit "GHI-287 AC10 x"\n# GHI-287 AC3\n' > "$REPO/spec/models/a_spec.rb"
+printf 'GHI-2870 AC2\nGHI-287\nAC2\nGHI-287_AC2\n' > "$REPO/spec/b_spec.rb"
+printf 'GHI-287 AC2\n' > "$REPO/README.md"
+git -C "$REPO" add -A
+git -C "$REPO" -c commit.gpgsign=false -c user.name=bench -c user.email=bench@example.invalid commit -qm bench
+
+HOME="$HOME_DIR" XDG_CONFIG_HOME= python3 - "$HERE/criteria-check.py" "$REPO" <<'PY'
+import importlib.util, json, os, sys
+
+spec = importlib.util.spec_from_file_location("cc", sys.argv[1])
+c = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(c)
+repo = sys.argv[2]
+os.chdir(repo)
+
+fails = 0
+
+def check(name, got, want):
+    global fails
+    ok = got == want
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}: {got!r}" + ("" if ok else f" want {want!r}"))
+
+def block(obj):
+    return "```json\n" + json.dumps(obj) + "\n```\n"
+
+print("the Closes line:")
+check("the issue is read", c.closed_issue("> x\n\nCloses #287\n"), 287)
+check("no line is no issue", c.closed_issue("Refs #287"), None)
+
+print("\nthe criterion keys:")
+body = "\r\n".join([
+    "- [ ] ::AC1:: open",
+    "- [x] ::AC2:: ticked",
+    "- [X] ::AC3:: capital tick",
+    "- ::AC4::REMOVED:: superseded by AC5",
+    "- [ ] ::AC5::READ:: the owner reads it",
+    "- [ ] ::AC10:: two digits",
+    "  - [ ] ::AC6:: nested is not a criterion line",
+    "- [ ] Criterion without a key",
+    "* [ ] ::AC7:: star bullet",
+    "+ [x] ::AC8:: plus bullet",
+    "1. [ ] ::AC9:: numbered",
+    "2) [ ] ::AC11:: numbered with a paren",
+    "-  [ ]  ::AC12:: double spaces",
+    "-\t[ ]\t::AC13:: tabs",
+    "* [ ] ::AC14::READ:: a READ star bullet",
+])
+check("checkbox lines only, READ and removed skipped, CRLF read", c.criterion_keys(body), ["AC1", "AC2", "AC3", "AC10", "AC7", "AC8", "AC9", "AC11", "AC12", "AC13"])
+check("a star-bullet body is not read as unkeyed", c.criterion_keys("* [ ] ::AC1:: x\n* [ ] ::AC2:: y"), ["AC1", "AC2"])
+check("a top-level item indented one space counts", c.criterion_keys(" - [ ] ::AC1:: x"), ["AC1"])
+check("a top-level item indented three spaces counts", c.criterion_keys("   - [ ] ::AC1:: x"), ["AC1"])
+check("four spaces is not a list item", c.criterion_keys("    - [ ] ::AC1:: x"), [])
+check("an item under an indented item is nested", c.criterion_keys(" - [ ] ::AC1:: x\n   - [ ] ::AC2:: y"), ["AC1"])
+check("a paragraph ends the list, so the next item is top-level", c.criterion_keys("- [ ] ::AC1:: x\n\ntext\n  - [ ] ::AC2:: y"), ["AC1", "AC2"])
+check("a fence ends the list, so the next item is top-level", c.criterion_keys("## Acceptance criteria\n- [ ] ::AC1:: x\n```\ncode\n```\n  - [ ] ::AC2:: y"), ["AC1", "AC2"])
+check("a line opening with an issue reference is not a heading", c.criterion_keys("## Acceptance criteria\n- [ ] ::AC1:: x\n#270 explains\n  - [ ] ::AC2:: nested"), ["AC1"])
+check("an item inside a fence is not an item", c.criterion_keys("## Acceptance criteria\n```\n- x\n- [ ] ::AC2:: in the fence\n```\n  - [ ] ::AC1:: y"), ["AC1"])
+check("an unkeyed body has no keys", c.criterion_keys("- [ ] plain\n- [x] plain"), [])
+
+print("\nthe search, on a real repository:")
+head = c.must("git", "rev-parse", "HEAD").strip()
+glob = "spec/**/*_spec.rb"
+check("AC1 found, not AC10's line", c.search(287, "AC1", head, glob), ["spec/models/a_spec.rb:1"])
+check("a comment line counts", c.search(287, "AC3", head, glob), ["spec/models/a_spec.rb:3"])
+check("AC2 split, joined or outside the glob is not found", c.search(287, "AC2", head, glob), [])
+check("GHI-28 does not match GHI-287", c.search(28, "AC1", head, glob), [])
+check("AC10 is found on its own line", c.search(287, "AC10", head, glob), ["spec/models/a_spec.rb:2"])
+
+print("\nthe whole check, gh and the fetch faked:")
+real_run = c.run
+fetched = []
+
+def fake(issue_body, pr_body="Closes #287"):
+    def run(*args):
+        if args[:3] == ("gh", "repo", "view"):
+            return 0, "bench/repo\n", ""
+        if args[:3] == ("gh", "pr", "view"):
+            return 0, json.dumps({"body": pr_body, "headRefName": "feat/x"}), ""
+        if args[:3] == ("gh", "issue", "view"):
+            return 0, json.dumps({"body": issue_body}), ""
+        if args[:2] == ("git", "fetch"):
+            fetched.append(args[2])
+            return 0, "", ""
+        if args == ("git", "rev-parse", "FETCH_HEAD"):
+            return 0, head + "\n", ""
+        return real_run(*args)
+    c.run = run
+
+def config(text):
+    with open(os.path.join(repo, ".agents/gh-solo.md"), "w") as f:
+        f.write(text)
+
+config(block({"reviewer_model": "opus"}))
+fake("- [ ] ::AC1:: x")
+check("no test_files key turns the gate off", c.check(423, "origin"), 0)
+
+config("Test files: spec/**/*_spec.rb\n")
+check("an old Test files line refuses", c.check(423, "origin"), 2)
+
+config(block({"test_files": "spec/**/*_spec.rb"}))
+faked_run = c.run
+c.run = lambda *args: (0, "not json", "") if args[:3] == ("gh", "pr", "view") else faked_run(*args)
+check("an unexpected failure exits 2, never the no-test 1", c.main(["423", "--remote", "origin"]), 2)
+c.run = faked_run
+
+config(block({"test_files": "spec/**/*_spec.rb", "reviewr_model": "opus"}))
+check("a block the reader refuses refuses", c.check(423, "origin"), 2)
+
+config("# config\n\n" + block({"test_files": "spec/**/*_spec.rb"}))
+fake("- [ ] criterion with no key")
+check("an unkeyed issue passes", c.check(423, "origin"), 0)
+
+fake("- [x] ::AC1:: x\n- [ ] ::AC3:: y\n- [ ] ::AC2::READ:: z")
+check("every key named passes", c.check(423, "origin"), 0)
+
+fake("- [x] ::AC1:: x\n- [ ] ::AC2:: y")
+check("a key no test names refuses", c.check(423, "origin"), 1)
+
+fake("* [x] ::AC1:: x\n* [ ] ::AC2:: y")
+check("a star-bullet key no test names refuses", c.check(423, "origin"), 1)
+
+fake(" - [x] ::AC1:: x\n - [ ] ::AC2:: y")
+check("an indented key no test names refuses", c.check(423, "origin"), 1)
+
+fake("- [x] ::AC1:: x", pr_body="no closing line")
+check("a PR with no Closes line cannot run", c.main(["423", "--remote", "origin"]), 2)
+
+config(block({"test_files": "spec/**/*_spec.rb", "remote": "upstream"}))
+fake("- [x] ::AC1:: x")
+fetched.clear()
+c.check(423, None)
+check("the remote key names the remote fetched from", fetched, ["upstream"])
+fetched.clear()
+c.check(423, "origin")
+check("--remote beats the remote key", fetched, ["origin"])
+real_run("git", "remote", "add", "origin", "https://example.invalid/origin.git")
+real_run("git", "remote", "add", "fork", "https://example.invalid/fork.git")
+real_run("git", "config", "branch.trunk.remote", "fork")
+config(block({"test_files": "spec/**/*_spec.rb", "default_branch": "trunk"}))
+fetched.clear()
+c.check(423, None)
+check("with two remotes, the remote default_branch tracks is fetched from", fetched, ["fork"])
+config(block({"test_files": "spec/**/*_spec.rb"}))
+check("with two remotes and none tracked by main, the check cannot run", c.main(["423"]), 2)
+
+print("\nthe user-level config:")
+user_level = os.path.join(os.environ["HOME"], ".config/gh-solo/bench/repo.md")
+os.makedirs(os.path.dirname(user_level))
+os.remove(os.path.join(repo, ".agents/gh-solo.md"))
+with open(user_level, "w") as f:
+    f.write(block({"test_files": "spec/**/*_spec.rb"}))
+fake("- [x] ::AC1:: x\n- [ ] ::AC2:: y")
+check("a user-level file alone turns the gate on", c.check(423, "origin"), 1)
+
+with open(user_level, "w") as f:
+    f.write(block({"reviewer_model": "opus"}))
+config(block({"test_files": "spec/**/*_spec.rb"}))
+check("the user-level file beats the in-repo one", c.check(423, "origin"), 0)
+
+os.remove(os.path.join(repo, ".agents/gh-solo.md"))
+for root in (os.path.join(os.environ["HOME"], "xdg"), "relative/xdg"):
+    os.makedirs(os.path.join(root, "gh-solo/bench"))
+    with open(os.path.join(root, "gh-solo/bench/repo.md"), "w") as f:
+        f.write(block({"test_files": "spec/**/*_spec.rb"}))
+fake("- [x] ::AC1:: x\n- [ ] ::AC2:: y")
+os.environ["XDG_CONFIG_HOME"] = os.path.join(os.environ["HOME"], "xdg")
+check("XDG_CONFIG_HOME moves the user-level file", c.check(423, "origin"), 1)
+os.environ["XDG_CONFIG_HOME"] = "relative/xdg"
+check("a relative XDG_CONFIG_HOME is ignored", c.check(423, "origin"), 0)
+os.environ["XDG_CONFIG_HOME"] = ""
+
+c.run = real_run
+print(f"\n{'all passed' if not fails else f'{fails} failed'}")
+sys.exit(1 if fails else 0)
+PY

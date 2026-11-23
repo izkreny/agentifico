@@ -19,20 +19,33 @@ const nothingChecked = (why) => {
   process.exit(1);
 };
 
-// --skip is taken out before any argument resolves as a path, so a run naming only --skip still checks the working directory.
+// The options are taken out before any argument resolves as a path, so a run naming only options still checks the working directory.
 const skip = new Set();
+// Stryker disable next-line ArrayDeclaration: a seeded glob names no path, so nothing more is left out.
+const excludes = [];
+// Stryker disable next-line ArrayDeclaration: a seeded include matches no path and only stops the pruning, which the walk's own filter makes invisible.
+const includes = [];
 const paths = [];
 for (let i = 2; i < process.argv.length; i += 1) {
-  if (process.argv[i] !== "--skip") {
-    paths.push(process.argv[i]);
+  const option = process.argv[i];
+  if (!["--skip", "--exclude", "--include"].includes(option)) {
+    paths.push(option);
     continue;
   }
   i += 1;
-  const name = process.argv[i];
-  if (!skippableRuleNames.has(name)) {
-    nothingChecked(`${name === undefined ? "--skip names no rule" : `--skip ${name}`}: only ${[...skippableRuleNames].join(", ")} can be skipped`);
+  const value = process.argv[i];
+  if (option !== "--skip") {
+    if (value === undefined) {
+      nothingChecked(`${option} names no glob`);
+    }
+    // WHY: a glob is normalised before matching, since matchesGlob neither drops a leading ./ nor resolves .., and an empty one is kept empty so it matches nothing.
+    (option === "--exclude" ? excludes : includes).push(value === "" ? value : path.posix.normalize(value));
+    continue;
   }
-  skip.add(name);
+  if (!skippableRuleNames.has(value)) {
+    nothingChecked(`${value === undefined ? "--skip names no rule" : `--skip ${value}`}: only ${[...skippableRuleNames].join(", ")} can be skipped`);
+  }
+  skip.add(value);
 }
 // Stryker disable next-line StringLiteral: path.resolve reads an empty target as the working directory, as it reads ".".
 const targets = (paths.length > 0 ? paths : ["."]).map((arg) => path.resolve(arg));
@@ -42,23 +55,79 @@ const rootOf = new Map();
 const folders = [];
 // The walk matches names rather than files, so a folder named notes.md arrives beside the files inside it, and a link statSync cannot resolve arrives as a file nothing can read.
 const dangling = new Map();
+// The one list of what a reader takes, so the target test, the walk and the include filter cannot drift apart.
+const READER_EXTENSIONS = ["md", "js", "py", "yml", "yaml"];
+const readerTakes = (file) => READER_EXTENSIONS.includes(path.extname(file).slice(1));
 // WHY: every target is stat'ed before any folder is walked, so a mistyped one refuses at once rather than after the walks of the targets beside it.
 for (const target of targets) {
   const stat = fs.statSync(target, { throwIfNoEntry: false });
   if (!stat) {
     nothingChecked(`no such file or folder: ${target}`);
   }
-  if (!(stat.isDirectory() || /\.(?:md|js|py|ya?ml)$/u.test(target))) {
+  if (!(stat.isDirectory() || readerTakes(target))) {
     nothingChecked(`no reader takes ${target}`);
   }
 }
+const MEBIBYTE = 1_048_576;
+const GIT_LISTING_MEBIBYTES = 64;
+// WHY: git is asked once per folder target, and a failure of any kind, from no repository to no git, leaves nothing ignored, so a target git ignores as a whole is still read as named.
+const gitIgnored = (target) => {
+  // Stryker disable next-line BlockStatement: git -C on a file fails, which leaves nothing ignored, as the early return does.
+  if (!fs.statSync(target).isDirectory()) {
+    return new Set();
+  }
+  const listing = spawnSync("git", ["-C", target, "ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--directory"], {
+    encoding: "utf8",
+    maxBuffer: GIT_LISTING_MEBIBYTES * MEBIBYTE,
+  });
+  return new Set(
+    listing.status === 0
+      ? // Stryker disable next-line MethodExpression: the empty entry after the last NUL names no path a walk yields.
+        listing.stdout
+          .split("\0")
+          .filter(Boolean)
+          .map((entry) => entry.replace(/\/$/u, ""))
+      : // Stryker disable next-line ArrayDeclaration: a seeded entry names no path, so a failed listing still ignores nothing.
+        [],
+  );
+};
+// A listed folder covers everything under it, so a path is ignored when it, or a folder it sits in, is listed.
+const ignoredBy = (ignored, rel) => rel.split("/").some((_, i, parts) => ignored.has(parts.slice(0, i + 1).join("/")));
+// WHY: a glob naming a folder covers everything under it, so a path matches when it or a folder it sits in does, the target itself as ".", each tried with a trailing slash too because **/node_modules/** matches no bare folder name.
+const matchesUnder = (rel, pattern) =>
+  [".", ...rel.split("/").map((_, i, parts) => parts.slice(0, i + 1).join("/"))].some(
+    (at) => path.matchesGlob(at, pattern) || path.matchesGlob(`${at}/`, pattern),
+  );
+// The globs filter paths the walk found under the target, as RuboCop's Include and Exclude do, so no glob reads a path outside it however it is spelled.
+const leftOutBy = (ignored) => (rel) =>
+  (ignoredBy(ignored, rel) || excludes.some((pattern) => matchesUnder(rel, pattern))) && !includes.some((pattern) => matchesUnder(rel, pattern));
+const leftOut = targets.map((target) => leftOutBy(gitIgnored(target)));
+// Stryker disable next-line ArrowFunction: pruning only saves time, since the walk's filter drops every left-out path, and an include turns it off because what it keeps below a folder is known only by walking it.
+const pruner = (target, isLeftOut) => (entry) => includes.length === 0 && isLeftOut(path.relative(target, path.join(entry.parentPath, entry.name)));
 // Dot-directories stay out because an agent's skills directory and a fixture tree each keep their own, which nobody is auditing.
 const walks = await Promise.all(
-  targets.map((target) =>
+  targets.map(async (target, i) => {
     // WHY: a glob whose folder is a file or is missing yields nothing, so every target is walked and the loop's own stat decides which walk is read.
-    Array.fromAsync(glob(["**/*.md", "**/*.js", "**/*.py", "**/*.yml", "**/*.yaml"], { cwd: target, exclude: ["**/node_modules/**"], followSymlinks: true })),
-  ),
+    const walked = await Array.fromAsync(
+      glob(
+        READER_EXTENSIONS.map((extension) => `**/*.${extension}`),
+        { cwd: target, exclude: pruner(target, leftOut[i]), withFileTypes: true, followSymlinks: true },
+      ),
+    );
+    return walked.map((entry) => path.join(entry.parentPath, entry.name)).filter((file) => !leftOut[i](path.relative(target, file)));
+  }),
 );
+// A target inside a skill takes that skill as its root, so its pointers resolve as they would in a run over the whole skill.
+const skillAround = (dir) => {
+  for (let at = dir; ; at = path.dirname(at)) {
+    if (fs.existsSync(path.join(at, "SKILL.md"))) {
+      return at;
+    }
+    if (path.dirname(at) === at) {
+      return null;
+    }
+  }
+};
 for (const [i, target] of targets.entries()) {
   // WHY: a target can vanish while the walks are awaited, and it is refused in the script's own words rather than by a stack trace.
   const stat = fs.statSync(target, { throwIfNoEntry: false });
@@ -68,31 +137,29 @@ for (const [i, target] of targets.entries()) {
   let reached = [target];
   if (stat.isDirectory()) {
     const lost = [];
-    reached = walks[i]
-      .map((file) => path.join(target, file))
-      .filter((file) => {
-        try {
-          return fs.statSync(file).isFile();
-        } catch (error) {
-          // A plain file that cannot be stat'ed is no link, so it stops the run rather than being named as one.
-          // Stryker disable next-line BlockStatement: stat fails on a file that is no link only where lstat throws too
-          if (!fs.lstatSync(file).isSymbolicLink()) {
-            throw error;
-          }
-          lost.push([file, error.code]);
-          return false;
+    reached = walks[i].filter((file) => {
+      try {
+        return fs.statSync(file).isFile();
+      } catch (error) {
+        // A plain file that cannot be stat'ed is no link, so it stops the run rather than being named as one.
+        // Stryker disable next-line BlockStatement: stat fails on a file that is no link only where lstat throws too
+        if (!fs.lstatSync(file).isSymbolicLink()) {
+          throw error;
         }
-      });
+        lost.push([file, error.code]);
+        return false;
+      }
+    });
     for (const [file, code] of lost) {
       dangling.set(file, code);
     }
-    // A dangling link counts as markdown found, so a target holding nothing else reaches the group that names it.
-    if (![...reached, ...lost.map(([file]) => file)].some((file) => file.endsWith(".md"))) {
-      nothingChecked(`no markdown file found under ${target}`);
+    // A dangling link counts as a file found, so a target holding nothing else reaches the group that names it.
+    if (reached.length + lost.length === 0) {
+      nothingChecked(`no file the check reads found under ${target}`);
     }
   }
-  // A file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
-  const root = stat.isDirectory() ? target : process.cwd();
+  // Outside a skill, a file names no tree of its own, so its paths resolve against the folder the command runs in, which is the one its path was written against.
+  const root = skillAround(stat.isDirectory() ? target : path.dirname(target)) ?? (stat.isDirectory() ? target : process.cwd());
   for (const file of reached) {
     if (!rootOf.has(file)) {
       rootOf.set(file, root);
@@ -290,13 +357,16 @@ issues += yamlFindings.length - yamlWarnings;
 warnings += yamlWarnings;
 report("yaml files", yamlFindings, yamlWarnings > 0 ? `${yamlFindings.length - yamlWarnings} issues, ${yamlWarnings} warnings` : undefined);
 
-// Stryker disable next-line MethodExpression: a glob whose folder is a file yields nothing, so a file target adds no plugin either way.
-const searched = targets.filter((dir) => fs.statSync(dir).isDirectory());
-// The .claude-plugin folder is searched for by name, because the walk skips dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
+const searched = targets.flatMap((dir, i) => (fs.statSync(dir).isDirectory() ? [[dir, leftOut[i]]] : []));
+// The .claude-plugin folder is searched for by name, because the walk excludes dot-folders and a plugin holding no file the walk takes would otherwise go unseen.
 const markersPerDir = await Promise.all(
-  searched.map((dir) => Array.fromAsync(glob("**/.claude-plugin", { cwd: dir, exclude: ["**/node_modules/**"], followSymlinks: true }))),
+  searched.map(async ([dir, isLeftOut]) =>
+    (await Array.fromAsync(glob("**/.claude-plugin", { cwd: dir, exclude: pruner(dir, isLeftOut), withFileTypes: true, followSymlinks: true }))).filter(
+      (marker) => !isLeftOut(path.relative(dir, path.join(marker.parentPath, marker.name))),
+    ),
+  ),
 );
-const pluginDirs = new Set(searched.flatMap((dir, i) => markersPerDir[i].map((marker) => path.dirname(path.join(dir, marker)))));
+const pluginDirs = new Set(markersPerDir.flat().map((marker) => marker.parentPath));
 const pluginFiles = [];
 const pluginFindings = [];
 let pluginIssues = 0;
@@ -341,7 +411,7 @@ const MIN_VALE_MAJOR = 3;
 const MIN_VALE_MINOR = 25;
 const minVale = `${MIN_VALE_MAJOR}.${MIN_VALE_MINOR}`;
 
-// A Vale before 3.23 loads a rule naming a scope from config/scopes and matches nothing, so its run would pass with rules quietly off.
+// WHY: the floor stays at 3.23 or later, since an older Vale loads a rule naming a scope from config/scopes and matches nothing, passing with rules quietly off.
 const versionRun = spawnSync("vale", ["--version"], { encoding: "utf8" });
 // Stryker disable next-line StringLiteral: stdout is null only when Vale did not start, and no fallback text holds a version.
 const valeVersion = /(?<major>\d+)\.(?<minor>\d+)\.\d+/u.exec(versionRun.stdout ?? "");
@@ -361,7 +431,6 @@ if (valeVersion && (major < MIN_VALE_MAJOR || (major === MIN_VALE_MAJOR && minor
 
 // --no-global drops the user's own configuration and default styles directory, where a style of the same name would shadow this one.
 const valeFiles = [...files, ...codeFiles];
-const MEBIBYTE = 1_048_576;
 const VALE_OUTPUT_MEBIBYTES = 64;
 const runVale = (batch) =>
   spawnSync("vale", ["--config", valeConfig, "--no-global", "--output=JSON", ...batch], { encoding: "utf8", maxBuffer: VALE_OUTPUT_MEBIBYTES * MEBIBYTE });
@@ -416,7 +485,6 @@ const proseFindings = unreadable.map(
 for (const file of valeFiles) {
   const rel = path.relative(base, file);
   for (const a of alerts[file] ?? []) {
-    // Stryker disable next-line ConditionalExpression,ArrayDeclaration,BlockStatement: a Vale check is named Style.Rule, and no skippable rule's name holds a dot.
     if (withholds([a.Check])) {
       continue;
     }

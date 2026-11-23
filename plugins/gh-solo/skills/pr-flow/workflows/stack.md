@@ -4,20 +4,17 @@ Inspect or move a stack. The `gh-stack` skill is the command reference; this fil
 
 ## Prerequisites
 
-The `gh stack` extension is per developer and is not carried by a clone:
+The `gh stack` extension is per developer and is not carried by a clone. Look for `github/gh-stack`, and read its installed version, in what this prints:
 
 ```bash
-gh extension list                        # look for github/gh-stack
-gh extension install github/gh-stack     # if absent
+gh extension list
 ```
+
+Where it is absent, stop and say so: installing it is the owner's step, with `gh extension install github/gh-stack`, never one this workflow runs.
 
 **The repository must have stacked pull requests enabled**, per the `gh-stack` manual: without it `gh stack submit` exits `9`, non-interactively and with no fallback. Step 0 asks whether a stack is wanted; this is whether one is possible.
 
 **The `gh-stack` skill owns the CLI.** It is installed at user scope, from `github/gh-stack`, and it is the manual: every command, the JSON output shapes and the exit codes. Upstream splits it, so `SKILL.md` is the summary and the detail lives in its `references/` directory; follow the pointer rather than concluding the manual is silent. Consult it for command mechanics rather than guessing flags.
-
-```bash
-gh extension list | grep gh-stack              # read the installed binary version
-```
 
 **The `gh-stack` skill is a prerequisite this plugin does not bundle.** It ships from `github/gh-stack` alongside the extension it documents. How it gets onto a machine is that machine's business rather than this plugin's; what matters here is that the skill and the extension are both present, and that the extension's version is the one the skill documents.
 
@@ -28,7 +25,7 @@ gh extension list | grep gh-stack              # read the installed binary versi
 - Always `gh stack view --json`, never bare `view` or `view --short`.
 - Always `gh stack submit --auto`.
 - Always positional branch names.
-- `gh stack merge --yes --squash`, never `gh pr merge`, which does not work on stacked PRs. Without an explicit method the last-used one is reused, so the strategy must always be named.
+- `gh stack merge --yes --squash`, never `gh pr merge`, which does not work on stacked PRs. Step 3 of `workflows/merge.md` says why `--squash` stays.
 - `gh stack unstack --local` before a checkout that would conflict.
 - **A bare number given to `gh stack merge` resolves as a stack number first, then a PR number**, per `gh stack merge --help`. The manual presents PR number and stack number as a free choice; they are not. The merge is all-or-nothing and irreversible, so establish which the number is before running it.
 - **Always pass `-m` to `gh stack add`, including with `-A` and `-u`.** The `gh-stack` skill's own commands reference implies those flags supply a message; they do not, and without `-m` the command opens `$EDITOR` and hangs, which is the exact failure the non-interactive rules exist to prevent. Stage and commit with plain `git` instead where that is easier.
@@ -73,9 +70,7 @@ gh stack checkout <stack-number|pr-number|pr-url>
 
 It discovers the stack, fetches its branches and sets up tracking, and running it when tracking already exists is harmless. Doing it unconditionally removes the whole class of confusion where a command half-works against a stack the tool cannot see.
 
-**It is the `git push -u` of stacks**, and for the same reason: one cheap step establishing the local pointer to remote state the tool reasons from, whose omission degrades silently instead of failing. Without `-u`, `git status` goes quiet about ahead and behind; without tracking, `gh stack view` says "not part of a stack". Neither errors, both mislead.
-
-The analogy stops short, and each gap is a limit *That rule has limits, and each matters* names. `-u` is once per branch and lives in the shared config; tracking is once per **worktree** and dies with it. And `-u` never touches your working tree, where `checkout` moves HEAD — so a forgotten `-u` costs information and reverses exactly, while a forgotten adoption followed by a write can leave a stack half-moved.
+**It is the `git push -u` of stacks**, and for the same reason: one cheap step establishing the local pointer to remote state the tool reasons from, whose omission degrades silently instead of failing. Without `-u`, `git status` goes quiet about ahead and behind; without tracking, `gh stack view` says "not part of a stack". Neither errors, both mislead. Tracking differs in one way that matters: it is once per **worktree** and dies with it.
 
 **That rule has limits, and each matters.** It does not apply to reads: "is this stacked" and "what is it on" come from layers 1 and 2 with no local state, and `checkout` mutates the working tree, so requiring it to answer a question is a needless collision with the worktree trap. And it is **never** satisfied by `gh stack init` — init is only for branches not stacked anywhere yet, and running it over PRs that already form a GitHub stack is what produces the local/remote divergence prompt during `sync`. If a branch is stacked on GitHub, the verb is always `checkout`.
 
@@ -152,9 +147,9 @@ gh stack rebase
 gh stack sync
 ```
 
-**`sync` is refused while a review round holds unpushed fix commits on any branch in the stack.** The round's fix commits sit local for the owner's word, and `references/review-protocol.md` makes step 7 the round's only push; a `sync` in the middle of that pushes them early and re-anchors every thread under a part-finished read, which is the exact failure the push-hold exists to prevent. `rnp` is what releases them. Say which branch holds them, and offer `gh stack rebase` where the intent was only to move onto the trunk.
+**`sync` is refused while a review round holds unpushed fix commits on any branch in the stack.** The round's fix commits sit local for the owner's word, and `references/review-protocol.md` makes step 7 the round's only push; a `sync` in the middle of that pushes them early and re-anchors every thread under a part-finished read, which is the exact failure the push-hold exists to prevent. `:rp` is what releases them. Say which branch holds them, and offer `gh stack rebase` where the intent was only to move onto the trunk.
 
-**The reviewer's read refuses `sync` as well, and that window is the earlier one.** *The push gate, while a reviewer is reading* in `references/pass-cap.md` covers the gap between a spawn and its post, where no fix commit exists yet - so the unpushed-fixes refusal cannot fire there, and a `sync` walks straight through it and costs the pass. What releases this one is not `rnp`: it is the round posting, or the owner typing `discard` at the standing refusal, per *While it reads, a push is refused* in `workflows/review.md`.
+**The reviewer's read refuses `sync` as well, and that window is the earlier one.** *The push gate, while a reviewer is reading* in `references/pass-cap.md` covers the gap between a spawn and its post, where no fix commit exists yet - so the unpushed-fixes refusal cannot fire there, and a `sync` walks straight through it and costs the pass. What releases this one is not `:rp`: it is the round posting, or the owner typing `discard` at the standing refusal, per *While it reads, a push is refused* in `workflows/review.md`.
 
 **`gh stack push` and the drift playbook are refused on the same terms, because the verb is not what does the damage.** That command force-pushes per branch, as *When CI goes silent: the stack has drifted* states, so a rebase-then-push run to get around a refused `sync` moves the head under the reviewer exactly as `sync` would. A refusal keyed to one verb would leave its own documented alternative as the way through it.
 

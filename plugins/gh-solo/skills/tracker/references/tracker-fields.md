@@ -1,6 +1,6 @@
 # The fields GitHub carries
 
-Labels, dependencies, milestones, state and issue types. What an issue *says* is `references/issue-shape.md`; the names that encode an issue number are `references/formats.md`.
+Labels, dependencies, milestones, state and issue types. What an issue *says* is `references/issue-shape.md`; the names that encode an issue number, and the keys on an item, are `references/formats.md`.
 
 ## Labels
 
@@ -14,14 +14,14 @@ gh label create backend --color 1D76DB --description "Backend / API"
 
 Every axis but Layer has a **default**, and the default is expressed by carrying **no label at all**. The right-hand column is the value that never appears in the picker, because creating it is the mistake *Never label the default* is about.
 
-| Axis          | Question it answers                             | Labels that exist                               | The default, never labelled                                                                       |
-|---------------|-------------------------------------------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| **Layer**     | Where does the deliverable land?                | `backend` `frontend` `fullstack` `infra` `docs` | none - mandatory, exactly one, on everything except an epic                                       |
-| **Nature**    | Fixing, answering, or building?                 | `bug`, `spike`                                  | **task** - building a thing                                                                       |
-| **Structure** | Does it contain other work?                     | `epic`                                          | **leaf** - no sub-issues                                                                          |
-| **Priority**  | When?                                           | `urgent` `someday`                              | **normal** - in backlog order                                                                     |
-| **Readiness** | Is it specified enough to start?                | `draft`                                         | **ready** - startable as written                                                                  |
-| **Blocked**   | Is something outside the tracker holding it up? | `blocked`                                       | **unblocked** - or blocked by another issue, which is a relation, not a label; see *Dependencies* |
+| Axis | Question it answers | Labels that exist | The default, never labelled |
+| --- | --- | --- | --- |
+| **Layer** | Where does the deliverable land? | `backend` `frontend` `fullstack` `infra` `docs` | none - mandatory, exactly one, on everything except an epic |
+| **Nature** | Fixing, answering, or building? | `bug`, `spike` | **task** - building a thing |
+| **Structure** | Does it contain other work? | `epic` | **leaf** - no sub-issues |
+| **Priority** | When? | `urgent` `someday` | **normal** - in backlog order |
+| **Readiness** | Is it specified enough to start? | `draft` | **ready** - startable as written |
+| **Blocked** | Is something outside the tracker holding it up? | `blocked` | **unblocked** - or blocked by another issue, which is a relation, not a label; see *Dependencies* |
 
 **There is no Size axis.** How big an issue is gets decided once, while it is being written, and the answer is either "this is one issue" or "this is an epic with children" — see *How big is one issue*. A number recorded on the issue afterwards serves a planning session and a velocity chart, and this repository has neither.
 
@@ -33,13 +33,13 @@ Layer is the one mandatory axis, and since titles carry no prefix, the label is 
 
 **Exactly one layer label, on every issue that is not an epic.** An epic is exempt because it is a container: its children carry the layers, and it usually spans them, so a layer on the epic itself would either lie or read `fullstack` every time. On everything else: not zero, and never two. This is the axis rule from the table in *Labels*, and it is worth restating here because the layer is where two labels look defensible: an issue that touches the API and the UI seems to deserve both. It does not. `fullstack` exists precisely so that pair is never needed, and applying `backend` and `frontend` together is the mistake it was created to prevent.
 
-| Label       | The deliverable is                                                  |
-|-------------|---------------------------------------------------------------------|
-| `backend`   | An API, a service, a background job, a schema or a migration        |
-| `frontend`  | A view, a component, a route, styling                               |
-| `fullstack` | One thing that cannot be accepted from either side alone            |
-| `infra`     | A pipeline, a deployment, a container, tooling or repository config |
-| `docs`      | Prose that is the point in itself: a README, a guide, an ADR        |
+| Label | The deliverable is |
+| --- | --- |
+| `backend` | An API, a service, a background job, a schema or a migration |
+| `frontend` | A view, a component, a route, styling |
+| `fullstack` | One thing that cannot be accepted from either side alone |
+| `infra` | A pipeline, a deployment, a container, tooling or repository config |
+| `docs` | Prose that is the point in itself: a README, a guide, an ADR |
 
 **The layer is where the deliverable lands, not every file the branch touches.** This is what keeps the set from collapsing. Adding an endpoint and updating the README to describe it is `backend`: the endpoint is the deliverable and the README follows from it. Bumping a dependency to fix a UI bug is `frontend`, not `infra`, because the fix is the point and the lockfile is a means. Ask what the issue would be closed *for*, and label that.
 
@@ -50,7 +50,7 @@ Labels that would otherwise creep across the whole tracker depend on this rule:
 
 **`fullstack` is required, not optional, when an issue genuinely spans both.** It is also rarer than it looks. An issue that merely *calls* an endpoint owned by another issue is `frontend`. If each side could merge and be useful on its own, that is not one `fullstack` issue at all, it is a `backend` issue and a `frontend` issue, per the split test in *How big is one issue*.
 
-The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in `<repo-root>/.agents/gh-solo.md`. What matters is that the set is small, closed, and mandatory.
+The layer set is a **default, not a law**. A repository that is one Rust binary has no backend/frontend split and should record its own set in its config's `mandatory_axis` key, per `../pr-flow/references/repo-config.md`. What matters is that the set is small, closed, and mandatory.
 
 **Because this axis is mandatory, its absence is a defect rather than a default**, which is what separates it from the other axes in *Labels*. Nothing in a title reveals a missing layer label, so audit for it directly rather than expecting to notice:
 
@@ -59,7 +59,9 @@ gh issue list --state open --limit 100 \
   --search "-label:epic -label:backend -label:frontend -label:fullstack -label:infra -label:docs"
 ```
 
-**That exclusion list is the default layer set, so a repository that replaced the set must rebuild it before running this.** The query works by excluding every legal value and reporting what is left; run unchanged against a repository whose axis is named otherwise, it excludes only the epics and reports every other open issue as unlabelled, which reads as a wall of defects and gets the audit ignored. The same trap in the other direction is silent: a set that gains a value the query does not name makes every issue carrying it invisible to the audit. **A new value in the repository's set is a new exclusion here.**
+**That exclusion list is the default layer set, so build the list from the `mandatory_axis` key instead**: `-label:epic`, then one `-label:<label>` per key of its `labels`, read with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get mandatory_axis`, which prints this default set where the config sets none. The query works by excluding every legal value and reporting what is left. Run with the default list against a repository whose axis is named otherwise, it excludes only the epics and reports every other open issue as unlabelled, which reads as a wall of defects and gets the audit ignored.
+
+**A list written by hand fails the other way, silently**: a label added to the set but not to the list makes every issue carrying it invisible to the audit. Building the list from the key means a new label is excluded the moment the set gains it.
 
 Structure is a **separate** axis, not a fourth value of Nature. An epic with three sub-issues has not stopped being a task or a bug; it is simply also a container. The questions are orthogonal, and an issue answering "no" to each — no `bug`, no `spike`, no `epic` — is the most common issue in any tracker and carries no label on either axis. That is the design working, not a gap.
 
@@ -78,7 +80,7 @@ A draft may skip the body template. Overview, acceptance criteria, technical not
 
 `draft` is not `someday`. Priority says when, readiness says whether the spec exists, and the axes are independent as always: a draft can be `urgent`, and a fully specified issue can wait forever.
 
-Remove the label the moment the description is finished, and run the split test then, so a finished draft can leave as an epic with children rather than as one oversized issue. Until the label comes off, the issue is invisible to "next task" in `workflows/search.md`, which is the point: a draft cannot be started, only finished.
+Remove the label the moment the description is finished, and run the split test then, so a finished draft can leave as an epic with children rather than as one oversized issue. Until the label comes off, the issue is invisible to `next` in `workflows/search.md`, which is the point: a draft cannot be started, only finished.
 
 ### Never label the default
 
@@ -206,6 +208,6 @@ GitHub has an **issue type** field separate from labels, exposed as `gh issue cr
 
 So: **`epic`, `bug` and `spike` are labels here**, per *Labels*, and `--type` is never passed. Do not go looking for the field, and do not treat its absence as something misconfigured.
 
-The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in `<repo-root>/.agents/gh-solo.md` so no later session probes again. Passing an unknown type is an error rather than a no-op.
+The exception is a solo developer working in a repository owned by an org they belong to. There, check once with `gh repo view --json isInOrganization` and `gh issue list --limit 1 --json issueType`; if types exist, they replace the kind labels and nothing else, the layer label stays either way, and the answer belongs in the repository's config as `use_issue_types`, per `../pr-flow/references/repo-config.md`, so a later session reads it with `python3 <skill-dir>/../pr-flow/scripts/read-config.py get use_issue_types` instead of probing again. Passing an unknown type is an error rather than a no-op.
 
 ---

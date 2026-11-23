@@ -1,36 +1,38 @@
-# The formats that encode an issue number
+# The formats the tracker shares
 
-Branch names, commit subjects, pull request titles and plan filenames. They live with the tracker because every one of them encodes an issue key, and `pr-flow` and `implement` point here rather than restating them.
+Branch names, commit subjects, pull request titles and plan filenames. They live with the tracker because every one of them encodes an issue number, and `pr-flow` and `implement` point here rather than restating them. The keys on an item, under *Keys*, live here too, because every skill in the flow writes or reads them.
 
 ## Quick reference
 
-| Item          | Format                                                                                                    | Example                                                  |
-|---------------|-----------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| Epic          | Feature-area name, label `epic`                                                                           | `authentication`                                         |
-| Issue         | `action`, plus a layer label                                                                              | `add user lookup endpoint` + `backend`                   |
-| Spike         | `spike - question`, labels `spike` + layer                                                                | `spike - evaluate OpenAPI codegen` + `backend`           |
-| Bug           | `what is wrong`, labels `bug` + layer                                                                     | `profile card crashes on empty name` + `frontend`        |
-| Draft         | Any other kind, plus the `draft` label; body may be a stub                                                | `add receipt export` + `backend` + `draft`               |
-| Branch        | `{type}/GHI-{issue-number}_{slug}`                                                                        | `feat/GHI-50_login-form`                                 |
-| Commit header | `{type}: {description} (#{issue-number})`                                                                 | `fix: reject a blank email (#50)`                        |
-| Plan file     | `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`                                                                 | `<repo-root>/docs/plans/2026-08-16_GHI-50_login-form.md` |
-| PR title      | `{type}({scope}): {issue title}` - the scope is the issue's layer label, omitted when it repeats the type | `feat(backend): add user lookup endpoint`                |
-| PR body       | Must contain `Closes #{issue-number}`                                                                     | `Closes #50`                                             |
-| Assignee      | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation             | `--add-assignee @me`                                     |
+| Item | Format | Example |
+| --- | --- | --- |
+| Epic | Feature-area name, label `epic` | `authentication` |
+| Issue | `action`, plus a layer label | `add user lookup endpoint` + `backend` |
+| Spike | `spike - question`, labels `spike` + layer | `spike - evaluate OpenAPI codegen` + `backend` |
+| Bug | `what is wrong`, labels `bug` + layer | `profile card crashes on empty name` + `frontend` |
+| Draft | Any other kind, plus the `draft` label; body may be a stub | `add receipt export` + `backend` + `draft` |
+| Branch | `{type}/GHI-{issue-number}_{slug}` | `feat/GHI-50_login-form` |
+| Commit header | `{type}: {description} (#{issue-number})` | `fix: reject a blank email (#50)` |
+| Plan file | `YYYY-MM-DD_GHI-{issue-number}_{slug}.md` | `<repo-root>/docs/plans/2026-08-16_GHI-50_login-form.md` |
+| PR title | `{type}({scope}): {issue title}` - the scope is the issue's mandatory-axis label, omitted when it repeats the type | `feat(backend): add user lookup endpoint` |
+| PR body | Must contain `Closes #{issue-number}` | `Closes #50` |
+| Assignee | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation | `--add-assignee @me` |
+
+The Branch row is the default; the branch format in force is what `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_name_format` prints.
 
 ### Branch and commit type
 
 `{type}` in a branch name is a **Conventional Commits type**, and it is the same vocabulary as the `type:` on a commit header and on a pull request title. One vocabulary across all of them, so a `fix` branch carries `fix:` commits and opens a `fix:` PR.
 
-| Type       | For                                    |
-|------------|----------------------------------------|
-| `feat`     | New behaviour                          |
-| `fix`      | A defect                               |
+| Type | For |
+| --- | --- |
+| `feat` | New behaviour |
+| `fix` | A defect |
 | `refactor` | Restructuring with no behaviour change |
-| `docs`     | Prose                                  |
-| `chore`    | Tooling, dependencies, config          |
+| `docs` | Prose |
+| `chore` | Tooling, dependencies, config |
 
-That set is the one this skill assumes; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set in `<repo-root>/.agents/gh-solo.md` if it differs.
+That set is the default, and the set in force is what `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_types` prints; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set as `commit_types` in the repository's config if it differs, and a different branch format as `branch_name_format`, per `../pr-flow/references/repo-config.md`.
 
 **Type describes the change, labels describe the deliverable.** They are separate axes and neither derives from the other: a `docs` branch usually sits on a `docs`-labelled issue and a `fix` branch on a `bug` issue, but a `refactor` branch can serve a `feat`-shaped issue and a `chore` can close a `bug`. Never infer the label from the branch, or the branch from the label. **The word `docs` lives on each axis and asks a different question on each**: as a type it says the change is prose, as a label it says the deliverable is prose. They usually coincide, which is exactly why the scope rule omits the scope when it would repeat the type.
 
@@ -38,7 +40,9 @@ That set is the one this skill assumes; the Conventional Commits ecosystem allow
 
 **That format describes a commit on a branch.** Where the repository squash-merges, the commit that lands on the trunk is built from the *pull request* title instead and carries `(#{pr-number})`, so the trunk references PRs while branch history references issues. Both are correct and neither should be "fixed" to match the other; the `pr-flow` skill owns that transition.
 
-The spec's optional scope, `type(scope):`, is used in exactly one place: the **pull request title**, and from there the squash commit on the trunk. The scope is always the issue's **layer label**, never a fresh choice - decided once, on the issue, it cannot drift - and it is **omitted when it repeats the type**, so a `docs`-labelled issue with a `docs` type opens `docs: rewrite the readme`, never `docs(docs): …`. The trunk is where the layer is worth carrying: `git log --oneline` on `main` shows squash subjects two hops away from the issue's labels, and `feat(frontend): add login form (#60)` answers "what did this touch" without a hop. **Branch commits carry no scope.** Every commit on a branch would repeat the same value, and squashing deletes that history anyway; the header there stays `{type}: {description} (#{issue-number})`.
+The spec's optional scope, `type(scope):`, is used by default in one place: the **pull request title**, and from there the squash commit on the trunk. The scope is always the issue's **mandatory-axis label**, never a fresh choice - decided once, on the issue, it cannot drift - and it is **omitted when it repeats the type**, so a `docs`-labelled issue with a `docs` type opens `docs: rewrite the readme`, never `docs(docs): …`. The trunk is where the layer is worth carrying: `git log --oneline` on `main` shows squash subjects two hops away from the issue's labels, and `feat(frontend): add login form (#60)` answers "what did this touch" without a hop. **By default, branch commits carry no scope.** Every commit on a branch would repeat the same value, and squashing deletes that history anyway; the header there stays `{type}: {description} (#{issue-number})`.
+
+**Where `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_scope` prints `label`, every branch commit carries the issue's mandatory-axis label as its scope**, per `../pr-flow/references/repo-config.md`. The pull request title keeps its own rule either way.
 
 ### `#50` in prose, `GHI-50` in names
 
@@ -47,3 +51,28 @@ The spec's optional scope, `type(scope):`, is used in exactly one place: the **p
 **Use `GHI-50` only where `#` cannot go**: branch names and plan filenames. `#` is hostile in a shell and in a path, so the sigil that marks 50 as an issue number is unavailable, and a bare `50` in `git branch -a` or a directory listing says nothing about what it counts. `GHI` stands for GitHub Issue and supplies that missing label. This is a legibility rule, not a linking one — neither a branch name nor a filename autolinks anywhere.
 
 The separator does the parsing, not the prefix. `{type}/GHI-{issue-number}_{slug}` splits on the first `_`, so the number falls out with one regex and no knowledge of the slug, which is what a scheme like `feat/50-login-form` cannot promise once a slug begins with a digit.
+
+## Keys
+
+**An item a reader has to point at carries a key**, issued as `::{key}{n}::` and named in prose as `{key}{n}`: `::AC3::` where it is issued, `AC3` everywhere it is mentioned. A key is how every later reader addresses the item: an agent ticking it, a gate reporting it, a review finding naming it. The wording can change under a key without breaking a reference to it.
+
+| Key | Labels | Carried by | Written as |
+| --- | --- | --- | --- |
+| `AC` | an acceptance criterion | the issue and epic body templates in `references/issue-shape.md` | `- [ ] ::AC1:: …` |
+| `N` | a technical note, one bullet | the issue body template | `- ::N1:: …` |
+| `D` | a `## Done when` item | the epic and spike body templates | `- [ ] ::D1:: …` |
+| `RF` | a review finding | the review threads on a pull request, per *Ids* in `../pr-flow/references/review-protocol.md` | `::RF1:: …` |
+| `S` | a plan step | a plan's `## Steps` and its pull request body's, per Step 2 and Step 4 of `../pr-flow/workflows/open.md` | `- ::S1:: …` in the plan, `- [ ] ::S1:: …` in the body |
+| `V` | a verification gate | a plan's `## Verification` and its pull request body's | `- ::V1:: …` in the plan, `- [ ] ::V1:: …` in the body |
+| `Q` | an open question | a plan's and its pull request body's `## Open questions` and `## Settled` | `- ::Q1:: …` |
+| `::RF{n}::CLOSED::` | a marker, not a key: the re-review's verdict that `RF{n}` is closed, issuing no number of its own | the verdict reply in that finding's thread, per *Each verdict as a reply in its finding's thread* in `../pr-flow/workflows/review.md` | `::RF1::CLOSED:: …` |
+| `::AC{n}::READ::` | a marker, not a key: `AC{n}` is proven by the owner's reading rather than by a test | the criterion's own line in the issue body, per *Writing good acceptance criteria* in `references/issue-shape.md` | `- [ ] ::AC4::READ:: …` |
+| `::{key}{n}::REMOVED::` | a marker, not a key: the item is removed, and its line stays to keep the key issued | the removed item's own line, in whichever list issued its key, per *A removed item is never deleted* | `- ::AC3::REMOVED:: …` |
+
+A plan and its pull request body share their keys, and one `Q` sequence covers `## Open questions` and `## Settled`, so a moved question keeps its `Q{n}`.
+
+**Every key in the table follows one numbering rule.** The first list a key labels is numbered from `1`, in list order. An item added later takes the next free number, even when the list then reads out of order. No key is ever renumbered, and a removed item's number is never reused: a reference written against `AC3` has to mean the same item for the life of the issue or pull request that carries it. Each key numbers on its own, so `AC3` and `D3` on one epic are different items.
+
+**A removed item is never deleted: its line stays, keeping its key, marked `REMOVED` and saying why**, as in `- ::AC3::REMOVED:: superseded by AC4`. The marker replaces any other the line carried, so a removed `READ` criterion reads `::AC5::REMOVED::`. A checkbox it had goes, so GitHub's progress counter stops counting it, and the key stays in the body, which is the only record an issue keeps of the keys it has issued. The next free number is therefore one past the highest key the body carries, removed lines included.
+
+**Whoever writes an item issues its key**, whether that is the body's first writer or a later edit that adds an item.

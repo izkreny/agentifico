@@ -79,7 +79,7 @@ index 3333333..4444444 100644
 +a line
 """
 SHAPELESS_DIFF = "these are notes about a diff, not a diff\n"
-# Taken from real ranges rather than written by hand, because a reader that required the `---`/`+++` pair refused each of these and took the re-review down with it.
+# WHY: taken from real ranges rather than written by hand, because these are the shapes a reader requiring the `---`/`+++` pair refuses, taking the re-review down with it.
 RENAME_DIFF = """diff --git a/app/models/group.rb b/app/models/team.rb
 similarity index 100%
 rename from app/models/group.rb
@@ -285,18 +285,11 @@ def held_entry(rf=7, at=None, **changes):
     return entry
 
 
-UNRATED = {**FINDING, "severity": "unrated", "axis": "unrated"}
-
 MUST_REFUSE = [
     ("severity outside the scale", with_finding(REVIEW, severity="critical"), 0),
-    ("severity spelled unranked rather than unrated", with_finding(REVIEW, severity="unranked"), 0),
-    ("severity_source outside the two", mutate(REVIEW, severity_source="guessed"), 0),
-    ("derived severities with no basis stated",
-     mutate(REVIEW, severity_source="derived"), 0),
-    ("derived severities with a blank basis",
-     mutate(REVIEW, severity_source="derived", severity_basis="   "), 0),
-    ("a basis stated while the reviewer assigned the levels",
-     mutate(REVIEW, severity_basis="read from the finding text"), 0),
+    ("severity unrated, which no reviewer may give", with_finding(REVIEW, severity="unrated"), 0),
+    ("axis unrated, which no reviewer may give", with_finding(REVIEW, axis="unrated"), 0),
+    ("axes_run naming unrated", mutate(REVIEW, axes_run=["unrated"]), 0),
     ("severity missing", with_finding(REVIEW, severity=None), 0),
     ("side neither RIGHT nor LEFT", with_finding(REVIEW, side="BOTH"), 0),
     ("axis outside the set", with_finding(REVIEW, axis="performance"), 0),
@@ -324,19 +317,10 @@ MUST_REFUSE = [
     ("verdict with an empty why", mutate(RERdefault, verdicts=[{"rf": 3, "closed": True, "why": " "}]), 0),
     ("verdict closed not a boolean", mutate(RERdefault, verdicts=[{"rf": 3, "closed": "yes", "why": "x"}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
-    # A level the reviewer never gave, published as the reviewer's, is a derivation made and not stated, the half of the protocol's rule this case guards.
-    ("unrated severity while severity_source is reviewer",
-     mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED]), 0),
 ]
 
 MUST_BUILD = [
     ("one valid finding", REVIEW, 0, ["RF1", "round record"], None),
-    # Without both fields this fixture exercised a round claiming the reviewer assigned `unrated` itself, which no legitimate producer can emit.
-    ("an unrated finding from an appointed command",
-     mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED],
-            severity_source="derived",
-            severity_basis="unrated throughout: the appointed command supplies no level"),
-     0, ["RF1", "\u26aa", "arrived unrated", "round record"], None),
     ("continues from the highest id on the pull request", REVIEW, 7, ["RF8"], None),
     ("zero findings still builds the record", mutate(REVIEW, findings=[]), 0,
      ["no findings"], None),
@@ -353,10 +337,6 @@ MUST_BUILD = [
      mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "0 held"], MODE_DIFF),
     ("a binary-only range still names its file",
      mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "1 held"], BINARY_DIFF),
-    ("derived severities with a basis, which the record must publish",
-     mutate(REVIEW, severity_source="derived",
-            severity_basis="high where the branch does not do what the PR body claims"),
-     0, ["The severity basis", "does not do what the PR body claims"], None),
     # The finding points at a line only the unpushed fix commits carry, so it stays out of the `comments` array, which is what stops the atomic call answering 422.
     ("re-review whose new defect is on a file the fixes touched",
      mutate(RERdefault, findings=[FINDING]), 3,
@@ -437,6 +417,8 @@ cases = [
      "--head-now is not a commit sha"),
     ("a reported head that is not a sha",
      mutate(REVIEW, head="the-head"), PIN, PIN, "head is not a commit sha"),
+    ("a review pass whose reviewer reported no head",
+     mutate(REVIEW, head=None), PIN, PIN, "head is missing on a review pass"),
     ("--pinned-head on a re-review",
      mutate(RERdefault, findings=[FINDING]), PIN, None,
      "--pinned-head was given on a re-review"),
@@ -457,11 +439,8 @@ for name, data, pin, now, wants in cases:
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 print("\nthe record must say which head was reviewed (exit 0):")
-# A round that could not corroborate the pin must not read afterwards as one that did.
 cases = [
-    ("a corroborated pin says so", REVIEW, ["Reviewed at", PIN, "corroborated by the reviewer"]),
-    ("a reviewer reporting no head is not refused, and the row says uncorroborated",
-     mutate(REVIEW, head=None), ["Reviewed at", PIN, "not corroborated"]),
+    ("the record names the pin", REVIEW, ["Reviewed at", PIN]),
 ]
 for name, data, wants in cases:
     slug = "rh-" + "".join(c if c.isalnum() else "-" for c in name)
@@ -508,6 +487,10 @@ cases = [
     ("a later round missing, with an earlier round on the same lines",
      [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF7 old"},
       {"path": "b.rb", "line": 2, "body": "> 🤖 h\n\nRF8 old"}]),
+    # A closing verdict names RF2 without issuing it, so read as an issue it stands in for the thread that never landed.
+    ("a closing verdict standing in for a finding that never landed",
+     [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF1 x"},
+      {"path": "b.rb", "line": 2, "body": "> 🤖 h\n>\n> via v\n\n::RF2::CLOSED:: The fix closes it."}]),
 ]
 for name, comments in cases:
     proc = run_verify(payload, comments, name="".join(c if c.isalnum() else "-" for c in name))
@@ -584,7 +567,7 @@ for name, reviews in [("no reviews at all", []),
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} nothing to release: {name}  (exit {proc.returncode})")
 
-# Counting any mention of an id as a posted thread dropped the held finding silently at exit 0.
+# WHY: counting any mention of an id as a posted thread would drop the held finding silently at exit 0.
 proc, out, replies = run_release(
     [ledger_review(held_entry(9))],
     [{"body": "> \U0001f916 h\n\nvia `implement` fix, closing reply\n\n"
@@ -597,7 +580,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a prose cross-reference does not count as a thread")
 
-# A reply naming the held id at the start of a line read as its thread, so the finding was skipped and merge passed it unthreaded.
+# WHY: a reply naming the held id at the start of a line must not read as its thread, or the finding is skipped and merge passes it unthreaded.
 proc, out, replies = run_release(
     [ledger_review(held_entry(9))],
     [{"id": 2, "in_reply_to_id": 1,
@@ -610,7 +593,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a reply opening a line with the id is not its thread")
 
-# Replaying the stored line anchored the thread to whatever now sat there, and where the shift moved it out of the diff every later release failed the same way.
+# WHY: replaying the stored line would anchor the thread to whatever now sits there, and where the shift moves it out of the diff every later release fails the same way.
 repo, at = git_fixture("shift", PRE, BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
 proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-shift", cwd=str(repo))
@@ -632,7 +615,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a change below the finding leaves its line alone")
 
-# From a subdirectory git matched nothing and answered empty at exit 0, indistinguishable from unchanged, so the stale line went out silently.
+# WHY: from a subdirectory a repo-relative git diff matches nothing and answers empty at exit 0, indistinguishable from unchanged, so the stale line would go out silently.
 repo, at = git_fixture("subdir", PRE, BASE, ["new a", "new b", "new c", "new d", "new e", "new f"] + BASE)
 proc, out, replies = run_release([ledger_review(held_entry(9, at=at, line=42))], [],
                         name="release-subdir", cwd=str(repo / "app" / "models"))
@@ -886,6 +869,9 @@ cases = [
     # Without the word boundary PERF123 reads as RF123 and the next round starts at 124.
     ("PERF123 is not an id", [{"body": "PERF123 regressed"}, {"body": "RF2 x"}], "2"),
     ("a comment with no body field at all", [{"path": "a.rb", "line": 1}], "0"),
+    # A closing verdict issues nothing, so even one naming an id above every issued one leaves the answer where it was.
+    ("a closing verdict is not an issued id",
+     [{"body": "> 🤖 h\n\n::RF2:: x"}, {"body": "> 🤖 h\n\n::RF5::CLOSED:: The fix closes it."}], "2"),
 ]
 for name, comments, want in cases:
     proc = run_highest(comments, name="hi-" + "".join(c if c.isalnum() else "-" for c in name))

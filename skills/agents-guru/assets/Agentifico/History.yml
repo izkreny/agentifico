@@ -1,4 +1,4 @@
-# "Never write the file's own history" in workflows/new.md: a reader cannot locate the past being described, and in a file read as instructions a claim about a rule that no longer exists reads as a rule about the present. Each token is the wording of a history claim a review removed here, named by the pull request or commit. What survives is the durable reason, so the tokens are the words that anchor a sentence to a moment rather than to a reason.
+# "Never write the file's own history" in workflows/new.md: a reader cannot locate the past being described, and in a file read as instructions a claim about a rule that no longer exists reads as a rule about the present. Each token is the wording of a history claim a review removed here, named by the pull request or commit, or by the file a live occurrence sits in. What survives is the durable reason, so the tokens are the words that anchor a sentence to a moment rather than to a reason.
 extends: existence
 message: "Never write the file's own history: '%s' anchors the sentence to a past a reader cannot locate; state the durable reason instead."
 link: https://github.com/izkreny/agentifico/blob/main/skills/agents-guru/workflows/new.md
@@ -64,7 +64,8 @@ tokens:
   # "This supersedes the wording-only fix" #22; "a risk the gate has retired" #80; "rewritten rather than left standing" #101; "it currently forbids bundling a parser, which this issue reverses" #101; seventeen "currently" across the tracker, each dating the sentence it sits in.
   - 'supersede[sd]?'
   - 'has retired'
-  - 'left standing'
+  # Narrows to the recorded phrasing, #445 AGF4: "a defect found and left standing" in .agents/gh-solo.md states a present condition.
+  - 'rather than left standing'
   - 'currently'
   # The document narrating its own drafting: "The first draft of this issue" #7, "An earlier shape of this issue" #17, "the reasoning first written here was wrong" #55, "dropped that rule" #3.
   # Narrows determiners: the record holds only "the" and "its" before a first draft.
@@ -91,6 +92,10 @@ tokens:
   - 'this major release'
   # "A glossary format is the case, raised on agentifico#298" 93d3825 on #412, which the owner removed as historic fact: an issue cited as a sentence's source. Widened to the verbs and the repository forms, PR 426.
   - '(?:raised|found|reported) (?:on|in) (?:[\w.-]+/)?(?:[\w.-]+)?#\d+'
+  # "`workflows/create.md` has had a confirm-before-create gate all along" #270 SW12, 0cbc21b: a sentence measuring a file against its own past. "the" after it is kept out, since "all along the path" is a place.
+  - 'all along(?! the\b)'
+  # "the shell version needed the comparison interpolated" #270 SW5, fc51b7d: a sentence naming what code the file no longer carries did. Literal.
+  - 'the shell version needed'
 tests:
   - name: fires on each recorded shape, once per line
     input: |
@@ -129,7 +134,7 @@ tests:
       The rule has been moved to check.md.
       The script was dropped from the package.
       The analysis stands as it was written.
-      The draft is left standing.
+      The draft is rewritten rather than left standing.
       The criterion first said the field stays.
       The rebuild dropped that rule.
       Reading them back asks for a permanent ignore span, which is what the `scripts/*` span was.
@@ -161,6 +166,8 @@ tests:
       A glossary format is the case, raised on agentifico#298.
       The gap was found in #12 and is closed.
       The crash was reported on izkreny/agentifico#7 first.
+      The create workflow has had that gate all along, on the same grounds.
+      One reason is a script: the shell version needed the comparison quoted.
     want: |
       3:1:Agentifico.History:Never write the file's own history: 'This reverses' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       4:21:Agentifico.History:Never write the file's own history: 'any more' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
@@ -195,7 +202,7 @@ tests:
       33:10:Agentifico.History:Never write the file's own history: 'has been moved' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       34:12:Agentifico.History:Never write the file's own history: 'was dropped from' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       35:14:Agentifico.History:Never write the file's own history: 'stands as it was written' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
-      36:14:Agentifico.History:Never write the file's own history: 'left standing' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      36:24:Agentifico.History:Never write the file's own history: 'rather than left standing' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       37:15:Agentifico.History:Never write the file's own history: 'first said' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       38:13:Agentifico.History:Never write the file's own history: 'dropped that' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       39:53:Agentifico.History:Never write the file's own history: 'which is what the ********* span was' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
@@ -227,6 +234,8 @@ tests:
       65:32:Agentifico.History:Never write the file's own history: 'raised on agentifico#298' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       66:13:Agentifico.History:Never write the file's own history: 'found in #12' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
       67:15:Agentifico.History:Never write the file's own history: 'reported on izkreny/agentifico#7' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      68:39:Agentifico.History:Never write the file's own history: 'all along' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
+      69:25:Agentifico.History:Never write the file's own history: 'the shell version needed' anchors the sentence to a past a reader cannot locate; state the durable reason instead.
   - name: leaves imperatives and state alone
     input: |
       # Title
@@ -247,4 +256,6 @@ tests:
       Once used by a round, the token expires.
       A token once used is spent.
       Write that the finding was raised on #{issue-number} and found in #<pr-number>.
+      It walks all along the path to the gate.
+      A defect found and left standing makes that assertion false.
     want: ""

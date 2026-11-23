@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { walk } from "./walk.js";
 
 const SOURCE_SECTION = /^(?:inspiration|sources)$/iu;
 // WHY: only the domain is read, since a forge's link shapes have no end and the agent reading the warning can judge the page.
@@ -33,13 +34,6 @@ function headingOf(token) {
     return { text, level: token.text.trimEnd().endsWith("=") ? 1 : 2 };
   }
   return null;
-}
-
-function walk(tokens, fn) {
-  for (const token of tokens) {
-    fn(token);
-    walk(token.children, fn);
-  }
 }
 
 const childOf = (token, type) => token?.children.find((child) => child.type === type);

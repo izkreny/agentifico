@@ -1,10 +1,10 @@
 > **Tools used:** everything in `SKILL.md`'s header - this is the workflow the bare `Bash` exists for.
 
-Turn the plan on a draft PR into commits on its branch. Runs after `open` in the `pr-flow` skill has created the draft, and ends by handing the branch to that skill's `ready review`. It may run across many sessions; Step 2 is what makes session three indistinguishable from session one.
+Turn the plan on a draft PR into commits on its branch. Runs after `plan` in the `pr-flow` skill has created the draft, and ends by handing the branch to that skill's `ready-review`. It may run across many sessions; Step 2 is what makes session three indistinguishable from session one.
 
 ## Step 1 - Locate, settle the plan record, load
 
-Resolve the PR: the argument's number, or the PR of the checked-out branch (`gh pr view --json number,headRefName,isDraft,body`). **If no PR exists for the branch, stop with `⛔ REFUSED`** - the plan-first rule means there is nothing to implement yet; `open` in the `pr-flow` skill is what creates the plan and the draft.
+Resolve the PR: the argument's number, or the PR of the checked-out branch (`gh pr view --json number,headRefName,isDraft,body`). **If no PR exists for the branch, stop with `⛔ REFUSED`** - the plan-first rule means there is nothing to implement yet; `plan` in the `pr-flow` skill is what creates the plan and the draft.
 
 Check out the branch and pull - and where the owner keeps a worktree per branch, and their instructions authorise entering one without asking, move into it with `EnterWorktree` instead of switching this one.
 
@@ -12,21 +12,21 @@ Check out the branch and pull - and where the owner keeps a worktree per branch,
 
 **A hard stop, and this workflow's first act on the plan.** There is nowhere earlier to put it: the session that implements the plan is the session that settles its record, so the check lands before the first line of code rather than before a handover. **Never soften it into a warning, and never carry on having named it.** What it guards against is this session talking itself past an unsettled question in the plan it is about to implement, and a warning is precisely what that sounds like from the inside.
 
-1. **Read the plan-discussion threads whole**, with the GraphQL `reviewThreads` query from Step 1 of the `pr-flow` skill's discuss workflow - the REST comments endpoint has no resolution state - and drop the resolved ones. **An unsettled thread that affects the work stops everything:** `⛔ REFUSED - {which thread}`, and no code is written. The `discuss` workflow of the `pr-flow` skill is what ends that state.
-2. **Apply any settled decision the plan or body does not yet reflect**: a new `docs:` commit - never `git commit --amend` on the plan commit, which would force-push away the threads that record why the plan changed - and the PR body updated **whole**: each answered `## Open questions` entry moved to `## Settled` with its decision, question included - moved, never deleted, per the body template in the `pr-flow` skill's open workflow, and into the plan file's own `## Settled` heading instead where that file's *Body caps* sends what the body's section cannot hold - and `## Open questions` left reading "None." once nothing remains open.
-3. **Push the plan commits**, then read `gh pr checks <pr-number>`, per the contract. The discuss rounds held them for the owner's word, and the owner's command to implement is that word.
+1. **Read the plan-discussion threads whole**, with the GraphQL `reviewThreads` query from Step 1 of the `pr-flow` skill's reply workflow - the REST comments endpoint has no resolution state - and drop the resolved ones. **An unsettled thread that affects the work stops everything:** `⛔ REFUSED - {which thread}`, and no code is written. The `reply` workflow of the `pr-flow` skill is what ends that state.
+2. **Apply any settled decision the plan or body does not yet reflect**: a new `docs:` commit - never `git commit --amend` on the plan commit, which would force-push away the threads that record why the plan changed - and the PR body updated **whole**: each answered `## Open questions` entry moved to `## Settled` under its own `Q{n}` with its decision, question included - moved, never deleted, per the body template in the `pr-flow` skill's open workflow, and into the plan file's own `## Settled` heading instead where that file's *Body caps* sends what the body's section cannot hold - and `## Open questions` left reading "None." once nothing remains open.
+3. **Push the plan commits**, then read `gh pr checks <pr-number>`, per the contract. The reply rounds held them for the owner's word, and the owner's command to implement is that word.
 
 **Then read what is still unpushed** (`git log <remote>/<branch>..<branch> --oneline`). With the plan commits pushed in the settle, whatever is left is implementation commits, which is the ordinary resume rather than a fault: a session that died between its last commit and Step 6's backup push leaves exactly this state, and refusing on it would make the commonest resume unresumable. Say what is unpushed and carry on into Step 2, which reconciles those commits against the record; the work travels in Step 6's push as it always does. **Do not push them here** - whether they are finished work is Step 2's reconciliation to make, not this step's.
 
 Then read, in this order:
 
 1. **The plan file** - the branch's first commit; it lives in `<repo-root>/docs/plans/` unless the repository keeps plans elsewhere. This is the what and the how.
-2. **The issue's acceptance criteria** - `gh issue view <issue-number> --json title,body,labels`, the number parsed from the branch name. This is the why, and the definition of done. **If the labels include `draft`, stop with `⛔ REFUSED`** - the description is unfinished by its own declaration, so there is no definition of done to implement against; the `finish` argument of `tracker`, which enters *Finishing a draft* in that skill's `create` workflow, ends that state. `open` checks the same label, but it checks it once, and the label can arrive on the issue after the PR was opened.
-3. **The repository's own guidance** - its agent instructions file and `<repo-root>/.agents/gh-solo.md`, per the contract in `SKILL.md`. Where either is missing or silent on how this repo is tested, note it now as a finding for Step 7.
+2. **The issue's acceptance criteria** - `gh issue view <issue-number> --json title,body,labels`, the number parsed from the branch name. This is the why, and the definition of done. **If the labels include `draft`, stop with `⛔ REFUSED`** - the description is unfinished by its own declaration, so there is no definition of done to implement against; the `finish` argument of `tracker`, which enters *Finishing a draft* in that skill's `create` workflow, ends that state. `plan` checks the same label, but it checks it once, and the label can arrive on the issue after the PR was opened.
+3. **The repository's own guidance** - its agent instructions file and its config, found by the lookup `../pr-flow/references/repo-config.md` owns, per the contract in `SKILL.md`. Where either is missing or silent on how this repo is tested, note it now as a finding for Step 7.
 
-If the PR body has no `## Steps` or no `## Verification` section, stop with `⛔ REFUSED` and say which: the body is the state carrier for this whole workflow, and a missing section means `open` did not finish its job. That is fixed there, not improvised here.
+If the PR body has no `## Steps` or no `## Verification` section, stop with `⛔ REFUSED` and say which: the body is the state carrier for this whole workflow, and a missing section means `plan` did not finish its job. That is fixed there, not improvised here.
 
-**A `## Verification` section that is present but names no gate is the same refusal.** An empty list is not a branch with nothing to prove; it is a branch whose gates nobody wrote down, and it fails silently rather than loudly: Step 5 runs "every gate" over nothing, ticks nothing because there is nothing to tick, and reaches `✅ ALL PASS` on unverified code, which `ready` then cannot catch because it refuses only on an *empty box* and there are no boxes. Refuse with `⛔ REFUSED - no gates in ## Verification`. Where `<repo-root>/.agents/gh-solo.md` records the repository's check commands, name them so the owner can paste them into the body; where it does not, say that too, since a repository with no recorded gates is the finding underneath this one.
+**A `## Verification` section that is present but names no gate is the same refusal.** An empty list is not a branch with nothing to prove; it is a branch whose gates nobody wrote down, and it fails silently rather than loudly: Step 5 runs "every gate" over nothing, ticks nothing because there is nothing to tick, and reaches `✅ ALL PASS` on unverified code, which `ready` then cannot catch because it refuses only on an *empty box* and there are no boxes. Refuse with `⛔ REFUSED - no gates in ## Verification`. Where the repository's config, per `../pr-flow/references/repo-config.md`, records its check commands, name them so the owner can paste them into the body; where it does not, say that too, since a repository with no recorded gates is the finding underneath this one.
 
 ## Step 2 - Establish where it stands
 
@@ -46,8 +46,8 @@ git status
 Take the plan's steps in order unless a dependency forces otherwise - and when it does, say so in the Step 7 report. Mirror the steps into the session todo list (`TodoWrite`) before starting: it is the working view of progress, while the PR body's checkboxes stay the durable record.
 
 - **Commits group by coherent change, not by plan step.** Where the repository squash-merges, which the `pr-flow` skill's merge workflow establishes per repository rather than assuming, these commits never reach `main`; their readers are the owner's review diff and a mid-branch `git bisect`, and they are sized for those readers: each commit builds and makes sense alone, and its header describes one thing. A big step may take several commits, several small steps may share one, and both extremes serve nobody - a commit per keystroke, or one monolith carrying the whole branch. Headers and bodies per the contract in `SKILL.md`; the repo's own conventions govern the code itself, and the floor in `SKILL.md` governs where the repo is silent.
-- **After a step's work lands, tick its box** in the PR body's `## Steps` - read, modify, write, per the contract. The box is per step however the commits are grouped: ticked when its work is committed locally, pushed or not. Ticking as you go is not bookkeeping polish: it is what makes the branch resumable and what `ready` later audits.
-- **Tick any issue acceptance criterion that verifiably landed** with the step, the same way, on the issue body. "Verifiably" is literal - the criterion's own condition observed true, not inferred from the step being done.
+- **After a step's work lands, tick its box** in the PR body's `## Steps` - read, modify, write, per the contract. **Find the box by its key**, the `::S{n}::` after its checkbox per *Keys* in `../tracker/references/formats.md`, never by matching the step's wording. The box is per step however the commits are grouped: ticked when its work is committed locally, pushed or not. Ticking as you go is not bookkeeping polish: it is what makes the branch resumable and what `ready` later audits.
+- **Tick any issue acceptance criterion that verifiably landed** with the step, the same way, on the issue body. "Verifiably" is literal - the criterion's own condition observed true, not inferred from the step being done. **Find the box by its key**, the `::AC{n}::` after its checkbox per *Keys* in `../tracker/references/formats.md`, never by matching the criterion's wording.
 
 ## Step 4 - Divergence from the plan
 
@@ -57,7 +57,7 @@ Where reality contradicts the plan - an approach that does not work, a step that
 
 When the last step is ticked, run **every** gate in the PR body's `## Verification`, exactly as written there.
 
-- **Tick only the boxes whose command you watched pass, by the gate's own stated pass criterion.** For almost every gate that criterion is exit zero. Where a tool defines success differently - a differ whose exit 1 means "differences found, as expected" - that reading must already be in writing, on the gate's line in the plan or in the repository's own docs, never decided at the keyboard: a non-zero exit nothing documents as passing is a failing gate. A failing gate is fixed and re-run, or reported - never ticked, never reasoned into "would have passed".
+- **Tick only the boxes whose command you watched pass, by the gate's own stated pass criterion**, each found by its `::V{n}::` key rather than by its wording. For almost every gate that criterion is exit zero. Where a tool defines success differently - a differ whose exit 1 means "differences found, as expected" - that reading must already be in writing, on the gate's line in the plan or in the repository's own docs, never decided at the keyboard: a non-zero exit nothing documents as passing is a failing gate. A failing gate is fixed and re-run, or reported - never ticked, never reasoned into "would have passed".
 - **A gate you cannot run is a finding, not a box to leave empty.** `ready` refuses on any empty box, so it goes in the Step 7 handoff by name, with why it could not run, and the verdict there is `⚠️` rather than `✅`. Same shape as a plan step that needs an install: leave it unticked, name it, carry on with the rest.
 - Running the gates is the last act of implementation and not a substitute for `ready`: you produce the record here, `ready` audits it, and producing and auditing must not be the same hands doing one job twice.
 
@@ -89,10 +89,10 @@ Then the record: what landed (commits), the box states on PR and issue, CI state
 
 What the cap leaves untouched is the record itself: the commits, the box states and any unrunnable gate are a record row, which *Never counted* in the `pr-flow` skill's `../pr-flow/references/post-caps.md` excludes, so their length follows how many there are. Keep both the record rather than a second copy of the PR, with a pointer at the divergence comments and never a restatement of them.
 
-It lands in the Conversation tab, which is right: it expects no answer, and it opens with the disclaimer, so a later `discuss` round's read excludes it rather than treating it as the owner speaking.
+It lands in the Conversation tab, which is right: it expects no answer, and it opens with the disclaimer, so a later `reply` round's read excludes it rather than treating it as the owner speaking.
 
 End with the owner's next move, alone on its line, flush left:
 
 ```text
-/gh-solo:pr-flow ready review <pr-number>
+:rr <pr-number> (ready-review)
 ```

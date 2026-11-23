@@ -1,14 +1,14 @@
-> **Tools used:** `Bash(git:*)` for the branch, `Bash(gh:*)` for `gh issue view` and `gh label list`, `Read` for the standards.
+> **Tools used:** `Bash(git:*)` for the branch, `Bash(gh:*)` for `gh issue view` and `gh label list`, `Bash(python3:*)` for `../pr-flow/scripts/keys-check.py`, `Read` for the standards.
 
 Check an issue against the standards Step 2 loads and report what is wrong.
 
 ## Step 1 - Resolve the issue number
 
-Same as `status.md`: the argument, else the current branch, else ask.
+Same as Step 1 of `workflows/status.md`: the argument, else the current branch, else ask.
 
 ## Step 2 - Load the standards
 
-Read `references/issue-shape.md` and `references/tracker-fields.md`, and `<repo-root>/.agents/gh-solo.md` if the repository has one. **The per-repo file wins on every conflict.** A repository that declared its own layer set is not failing validation for using it.
+Read `references/issue-shape.md` and `references/tracker-fields.md`, and the repository's config if it has one, found by the lookup `../pr-flow/references/repo-config.md` owns, taking its mandatory axis from `python3 <skill-dir>/../pr-flow/scripts/read-config.py get mandatory_axis`. **The per-repo file wins on every conflict.** A repository that declared its own layer set is not failing validation for using it.
 
 ## Step 3 - Fetch
 
@@ -20,30 +20,41 @@ gh issue view <issue-number> --json number,title,state,body,labels,parent,subIss
 
 Decide first what the issue is: an epic carries the `epic` label, a spike carries `spike`, a bug carries `bug`, otherwise it is a plain issue. Apply only the checks for that kind.
 
-**A `draft` label relaxes the body checks, not the identity.** Title format and the layer label are checked as normal; Body sections, the summary cap, both criteria checks and the scope Note are skipped, because an unfinished body is exactly what the label declares, per *Drafts* in `references/tracker-fields.md`. List what the body is still missing under Notes, so finishing the draft has a checklist, and never fail the issue for being what it says it is. The one draft-specific defect to report under Notes: placeholder criteria checkboxes. An empty `## Acceptance criteria` heading is correct on a draft, but stub `- [ ]` items show a lying `0/N` counter on the issue and in every list view, per the stub-body rule in `workflows/create.md`.
+**A `draft` label relaxes the body checks, not the identity.** Title format and the layer label are checked as normal; Body sections, the summary cap, the criteria and key checks and the scope Note are skipped, because an unfinished body is exactly what the label declares, per *Drafts* in `references/tracker-fields.md`. List what the body is still missing under Notes, so finishing the draft has a checklist, and never fail the issue for being what it says it is. The one draft-specific defect to report under Notes: placeholder criteria checkboxes. An empty `## Acceptance criteria` heading is correct on a draft, but stub `- [ ]` items show a lying `0/N` counter on the issue and in every list view, per the stub-body rule in `workflows/create.md`.
+
+**The keys check decides the *Items are keyed* and *Keys are unique* rows, not a reading:**
+
+```bash
+python3 <skill-dir>/../pr-flow/scripts/keys-check.py issue <issue-number>
+```
+
+Exit 0 passes both rows. Exit 1 fails the rows its lines name: an `unkeyed` line under *Items are keyed*, a `repeated` line under *Keys are unique*. Any other exit means the check did not run, so report both rows as not checked, quoting what it printed, and never as a pass.
 
 ### Issues and spikes
 
-| Check                   | Rule                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Title format            | `imperative action`, all lowercase, under the length cap in *Titles* of `references/issue-shape.md`, no bracketed prefix or layer tag                                                                                                                                                                                                                                                                                                                  |
-| Mandatory axis          | Exactly one value of the repository's mandatory axis present - `layer` by default, and whatever `<repo-root>/.agents/gh-solo.md` names where it defines its own axis. It is the only record of that axis, so absent is a fail and two is a fail. Report the row under the axis's real name and the repository's real values, never the default set's. Two values means either one deliverable, and the axis has a combined value for it, or two issues |
-| Parent                  | Attached to an epic, unless the issue is genuinely standalone                                                                                                                                                                                                                                                                                                                                                                                          |
-| Body sections           | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when                                                                                                                                                                                                                                                                                                                |
-| Summary is capped       | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement                                                                                                                                                                                                                                                                                                     |
-| Criteria are checkboxes | `- [ ]`, so GitHub counts them                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Criteria are testable   | Each one observable; a reader can say pass or fail                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Dependencies            | Anything the body calls a blocker exists as a real `blockedBy` relation                                                                                                                                                                                                                                                                                                                                                                                |
+| Check | Rule |
+| --- | --- |
+| Title format | `imperative action`, all lowercase, under the length cap in *Titles* of `references/issue-shape.md`, no bracketed prefix or layer tag |
+| Mandatory axis | Exactly one value of the repository's mandatory axis present - `layer` by default, and whatever `get mandatory_axis` prints where the repository's config defines its own axis. It is the only record of that axis, so absent is a fail and two is a fail. Report the row under the axis's real name and the repository's real values, never the default set's. Two values means either one deliverable, and the axis has a combined value for it, or two issues |
+| Parent | Attached to an epic, unless the issue is genuinely standalone |
+| Body sections | Overview and Acceptance criteria - an issue has no Done when, per the standards. A spike has Question, Time box, Deliverable, Done when |
+| Summary is capped | The opening section — Overview, or Question on a spike — is five sentences or bullets at most. Count them; this one is mechanical, not a judgement |
+| Criteria are checkboxes | `- [ ]`, so GitHub counts them. A removed criterion's plain line is the exception, per *Keys* in `references/formats.md` |
+| Items are keyed | Every criterion, technical note and `## Done when` item carries its key, per *Keys* in `references/formats.md`. An item without one is a fail, named by its wording. The keys check decides it |
+| Keys are unique | No key appears on two items. A repeated key is a fail, naming the key and every item that carries it. The keys check decides it |
+| Dependencies | Anything the body calls a blocker exists as a real `blockedBy` relation |
 
 ### Epics
 
-| Check             | Rule                                                               |
-|-------------------|--------------------------------------------------------------------|
-| Title             | A feature-area name, all lowercase, no prefix or tag               |
-| `epic` label      | Present                                                            |
-| Body sections     | What this delivers, Why it matters, Acceptance criteria, Done when |
-| Summary is capped | `What this delivers` is five sentences or bullets at most          |
-| Sub-issues        | At least one, unless the epic was opened moments ago               |
+| Check | Rule |
+| --- | --- |
+| Title | A feature-area name, all lowercase, no prefix or tag |
+| `epic` label | Present |
+| Body sections | What this delivers, Why it matters, Acceptance criteria, Done when |
+| Summary is capped | `What this delivers` is five sentences or bullets at most |
+| Items are keyed | As the issues table's row of that name states |
+| Keys are unique | As the issues table's row of that name states |
+| Sub-issues | At least one, unless the epic was opened moments ago |
 
 ### Not checked, deliberately
 
@@ -70,11 +81,11 @@ Decide first what the issue is: an epic carries the `epic` label, a spike carrie
 {title}
 {kind}  |  {state}  |  {labels}
 
-| Check          | Result      | Detail         |
-|----------------|-------------|----------------|
-| Title format   | pass / fail | what was found |
+| Check | Result | Detail |
+| --- | --- | --- |
+| Title format | pass / fail | what was found |
 | Mandatory axis | pass / fail | what was found |
-| ...            |             |                |
+| ... | | |
 
 ### Verdict
 PASS - meets the standards.

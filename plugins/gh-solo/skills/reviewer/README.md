@@ -27,7 +27,7 @@ Those fail differently. Code can obey every convention while implementing the wr
 
 **Scope creep is a first-class finding**, not a footnote. Behaviour in the diff that nobody asked for is behaviour nobody has judged, and it lands on your trunk under an issue that never mentions it.
 
-**Your repository outranks the baseline, always.** It reads your `<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md` and your `<repo-root>/.agents/gh-solo.md` or `<repo-root>/.claude/gh-solo.md` first, and where those endorse something the baseline would flag, the baseline loses. A general rulebook that overruled your own conventions would just be reporting your style back to you as a defect.
+**Your repository outranks the baseline, always.** It reads your `<repo-root>/AGENTS.md` or `<repo-root>/CLAUDE.md` and your repository's config, found where `../pr-flow/references/repo-config.md` says, first, and where those endorse something the baseline would flag, the baseline loses. A general rulebook that overruled your own conventions would just be reporting your style back to you as a defect.
 
 **Anything your tooling already catches is skipped.** A linter reports the same thing for free, every time, and a review spent on it has bought you nothing.
 
@@ -46,18 +46,26 @@ After fixes land, the round spawns it again with only the fix commits and the fi
 
 That exists because the fixes were made by the author of the code under review, with nobody watching. A guard added on the wrong branch leaves every gate green and a thread asserting a closure that never happened.
 
-## If you want a different reviewer
+## If you want a different model
 
-Your repository can appoint one, in `<repo-root>/.agents/gh-solo.md`: another agent to spawn, or a capability to invoke instead. The `pr-flow` skill's reviewer-appointment reference, `../pr-flow/references/reviewer-appointment.md`, owns what each must produce. Whatever reads the diff, the round is what posts the findings, so they arrive marked and numbered the same way.
+Your repository's config can name the model a round asks this reviewer for, with the `reviewer_model` key in its `json` block:
+
+```json
+{
+  "reviewer_model": "opus"
+}
+```
+
+The `pr-flow` skill's `../pr-flow/references/reviewer-appointment.md` owns what that key changes, and which reviewer a round runs. The round is what posts the findings, so they arrive marked and numbered the same way.
 
 ## Layout
 
-| Path                     | Holds                                                                                                          |
-|--------------------------|----------------------------------------------------------------------------------------------------------------|
-| `SKILL.md`               | what binds each pass: what a finding carries, the file it returns, the report, and the standing prohibitions   |
-| `workflows/full.md`      | the full pass: what it reads, and the axes it judges on                                                        |
-| `workflows/rescope.md`   | the scoped re-review: the little it reads, its questions, and the verdicts it adds                             |
-| `references/baseline.md` | the engineering baseline for a repository that documents nothing, and where it came from                       |
+| Path | Holds |
+| --- | --- |
+| `SKILL.md` | what binds each pass: what a finding carries, the file it returns, the report, and the standing prohibitions |
+| `workflows/full.md` | the full pass: what it reads, and the axes it judges on |
+| `workflows/rescope.md` | the scoped re-review: the little it reads, its questions, and the verdicts it adds |
+| `references/baseline.md` | the engineering baseline for a repository that documents nothing, and where it came from |
 
 ## Install
 
@@ -69,3 +77,12 @@ claude plugin install gh-solo@agentifico
 ```
 
 The plugin's own `README.md` has the local-checkout variant, the requirements, and what else installing it brings.
+
+## Sources
+
+Each source feeds `references/baseline.md`, whose *Source and maintenance* section says what it departs from.
+
+| Source | What it gave | Licence |
+| --- | --- | --- |
+| mattpocock/skills *[code-review](https://github.com/mattpocock/skills/tree/6654f6b60cd9d5be8b54c6fafe44346dabeb3b76/skills/engineering/code-review)* | Pairing each smell with the refactorings that resolve it, and skipping anything tooling enforces | MIT, reproduced in `references/baseline.md` |
+| Martin Fowler, *Refactoring*, 2nd edition | Chapter 3's smells entire, with the refactoring column from the book's *Smells* table | Cited, not licensed |

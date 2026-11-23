@@ -12,7 +12,7 @@ Read every file in the skill's directory, whatever the layout: `SKILL.md`, what 
 
 **Read every file under the root, not only the files under its skills.** A package's manifest, its agents, its hooks and its own `README.md` belong to no skill, and a branch review reads a diff, so a sweep is what reads them whole.
 
-On Claude Code specifically, run `claude plugin validate --strict <plugin-dir>` on each plugin under the root and read a non-zero exit as a finding: it checks those files against what Claude Code loads, and it moves with Claude Code's releases where a copied rule would not. It leaves an agent's name limits to *The agent rule* in `workflows/check.md`, and the hooks and manifest defects it passes to *The plugin file rules*. Neither tool checks the value of a field such as `model`, `effort` or `isolation`, so the sweep reads those itself.
+On Claude Code specifically, run `claude plugin validate --strict <plugin-dir>` on each plugin under the root and read a non-zero exit as a finding: it checks those files against what Claude Code loads, and it moves with Claude Code's releases where a copied rule would not. Run it on each `.claude` folder at or under the root too, which Claude Code 2.1.322 or later validates as it does a plugin, since *The agent rule* leaves a standalone agent's missing `description` to it. It leaves an agent's name limits to *The agent rule* in `workflows/check.md`, and the hooks and manifest defects it passes to *The plugin file rules*. Neither tool checks the value of a field such as `model`, `effort` or `isolation`, so the sweep reads those itself.
 
 **Find them by walking the tree, never by following references out of the skills.** A plugin's agent is spawned by name at runtime and cited by path in no skill under it.
 
@@ -72,7 +72,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 **Enumerations that end in "and anything else".** The list was doing no work. Cut it to the rule.
 
-**A comment inside code that narrates the code, or tells its history.** *A comment inside code exists only where the solution is unconventional, and is one sentence saying why* in `workflows/new.md` owns the rule, and `CommentSentences` and `CommentLength` under `assets/` are its mechanical half, counting a comment's sentence ends and its words; what reading decides is whether the line the comment sits on is unconventional enough to earn one, and whether the sentence gives a reason rather than a description, since a regex reads neither.
+**A comment inside code that narrates the code, or tells its history.** *A comment inside code exists only where the solution is unconventional, and is one sentence saying why* in `workflows/new.md` owns the rule, and `CommentSentences` and `CommentLength` under `assets/` are its mechanical half, counting a comment's sentence ends and its words; what reading decides is whether the line the comment sits on is unconventional enough to earn one, and whether the sentence gives a reason rather than a description, since a regex reads neither. A comment the file's own language tooling requires raises no finding under it.
 
 **Rationale that restates the rule.** "Never do X. Doing X is bad." The second sentence should say what breaks, or go. Over-writing clusters where the author was least sure, so a section that reads as an essay is also the section to check for a defect underneath it.
 
@@ -92,7 +92,7 @@ First hold the skill against every rule in `workflows/new.md`: whatever authorin
 
 ## Step 4 - Report
 
-Rank findings by consequence, not by reading order. For each: the file and line, the specific defect, and what it costs when it bites. Propose the fix; apply it only when asked. **Name every skill read, by path**, alongside the files Step 1 asks for rather than instead of them, since the files it names as belonging to no skill are unaccounted for by a skill list.
+Rank findings by consequence, not by reading order, and give each an id in that order: `AGF1`, `AGF2` and on, so a record of the review and a fix commit can cite it. For each: the file and line, the specific defect, and what it costs when it bites. Propose the fix; apply it only when asked. **Name every skill read, by path**, alongside the files Step 1 asks for rather than instead of them, since the files it names as belonging to no skill are unaccounted for by a skill list.
 
 Separate what is wrong from what is merely different. A skill written in a style you would not choose is not defective, and expectations tier to the skill's size: a single-file skill needs no `workflows/` or `references/`, and the absence of structure it does not need is not a finding.
 
@@ -102,10 +102,12 @@ Separate what is wrong from what is merely different. A skill written in a style
 
 When the review ran in a subagent and its findings were then fixed, resume that same agent to judge the fixes rather than starting a fresh review. The resumed agent keeps its full audit context, every file it read and what each finding actually meant, so re-verification is cheaper and sharper than a second audit, and it judges the fixes against what it originally meant rather than re-deriving the findings.
 
-Keep the agent's id from the run that produced the findings. After the fixes are committed, send it the fix commit and ask for a verdict per finding:
+Keep the agent's id from the run that produced the findings. After the fixes are committed, send it the fix commit and ask for a verdict per `AGF{n}` id:
 
 - CLOSED - the fix resolves the finding as it stands.
 - NOT CLOSED - the finding stands, with what the fix missed.
 - REGRESSED - the fix broke something the finding did not name.
 
-Ask it also to judge any fix that resolved a finding by a different design than it proposed, to confirm or refute any finding set aside as phantom, and to run a short regression pass over the changed files. Have it list the file set first and read in full any file that did not exist at review time: new files are the resumed context's one blind spot, and fixes routinely add them. Report-only, no edits. If the harness cannot resume the agent, fall back to a fresh review pointed at the fix commit.
+Ask it also to judge any fix that resolved a finding by a different design than it proposed, to confirm or refute any finding set aside as phantom, and to run a short regression pass over the changed files. Have it list the file set first and read in full any file that did not exist at review time: new files are the resumed context's one blind spot, and fixes routinely add them. Report-only, no edits.
+
+If the harness cannot resume the agent, fall back to a fresh agent pointed at the fix commit and handed the findings with their ids. It gives its verdicts by those ids, and numbers anything new it finds from the next free id, so no id names two findings.
