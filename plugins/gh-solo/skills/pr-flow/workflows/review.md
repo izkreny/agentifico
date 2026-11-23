@@ -126,7 +126,7 @@ Never spawn first and check after: the spawn is the thing being counted, so a ch
 
 #### Which reviewer runs, and the spawn
 
-**Which reviewer runs, and which model, is a per-repo fact.** The default is the `reviewer` agent this plugin ships, spawned with no model parameter so its own frontmatter decides. Where `<repo-root>/.agents/gh-solo.md`, or `<repo-root>/.claude/gh-solo.md` where that is what the repository uses, carries a `Reviewer agent:`, `Reviewer model:` or `Reviewer command:` line, `references/reviewer-appointment.md` owns what it changes: read it before the spawn, and refuse as it says rather than falling back to the default.
+**Which reviewer runs, and which model, is a per-repo fact.** The default is the `reviewer` agent this plugin ships, spawned with no model parameter so its own frontmatter decides. Where the repository's config, found by the lookup `references/repo-config.md` owns, carries a `Reviewer agent:`, `Reviewer model:` or `Reviewer command:` line, `references/reviewer-appointment.md` owns what it changes: read it before the spawn, and refuse as it says rather than falling back to the default.
 
 **Read the head before the spawn and hand it over as the scope**, because every anchor the reviewer produces belongs to the version it read:
 

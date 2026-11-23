@@ -4,7 +4,8 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(mktemp -d)"
-trap 'rm -rf "$REPO"' EXIT
+HOME_DIR="$(mktemp -d)"
+trap 'rm -rf "$REPO" "$HOME_DIR"' EXIT
 
 git -C "$REPO" init -q
 mkdir -p "$REPO/.agents" "$REPO/spec/models"
@@ -14,7 +15,7 @@ printf 'GHI-287 AC2\n' > "$REPO/README.md"
 git -C "$REPO" add -A
 git -C "$REPO" -c commit.gpgsign=false -c user.name=bench -c user.email=bench@example.invalid commit -qm bench
 
-python3 - "$HERE/criteria-check.py" "$REPO" <<'PY'
+HOME="$HOME_DIR" XDG_CONFIG_HOME= python3 - "$HERE/criteria-check.py" "$REPO" <<'PY'
 import importlib.util, json, os, sys
 
 spec = importlib.util.spec_from_file_location("cc", sys.argv[1])
@@ -86,6 +87,8 @@ real_run = c.run
 
 def fake(issue_body, pr_body="Closes #287"):
     def run(*args):
+        if args[:3] == ("gh", "repo", "view"):
+            return 0, "bench/repo\n", ""
         if args[:3] == ("gh", "pr", "view"):
             return 0, json.dumps({"body": pr_body, "headRefName": "feat/x"}), ""
         if args[:3] == ("gh", "issue", "view"):
@@ -123,6 +126,32 @@ check("an indented key no test names refuses", c.check(423, "origin"), 1)
 
 fake("- [x] ::AC1:: x", pr_body="no closing line")
 check("a PR with no Closes line cannot run", c.main(["423", "--remote", "origin"]), 2)
+
+print("\nthe user-level config:")
+user_level = os.path.join(os.environ["HOME"], ".config/gh-solo/bench/repo.md")
+os.makedirs(os.path.dirname(user_level))
+os.remove(os.path.join(repo, ".agents/gh-solo.md"))
+with open(user_level, "w") as f:
+    f.write("Test files: spec/**/*_spec.rb\n")
+fake("- [x] ::AC1:: x\n- [ ] ::AC2:: y")
+check("a user-level file alone turns the gate on", c.check(423, "origin"), 1)
+
+with open(user_level, "w") as f:
+    f.write("Reviewer model: opus\n")
+config("Test files: spec/**/*_spec.rb\n")
+check("the user-level file beats the in-repo one", c.check(423, "origin"), 0)
+
+os.remove(os.path.join(repo, ".agents/gh-solo.md"))
+for root in (os.path.join(os.environ["HOME"], "xdg"), "relative/xdg"):
+    os.makedirs(os.path.join(root, "gh-solo/bench"))
+    with open(os.path.join(root, "gh-solo/bench/repo.md"), "w") as f:
+        f.write("Test files: spec/**/*_spec.rb\n")
+fake("- [x] ::AC1:: x\n- [ ] ::AC2:: y")
+os.environ["XDG_CONFIG_HOME"] = os.path.join(os.environ["HOME"], "xdg")
+check("XDG_CONFIG_HOME moves the user-level file", c.check(423, "origin"), 1)
+os.environ["XDG_CONFIG_HOME"] = "relative/xdg"
+check("a relative XDG_CONFIG_HOME is ignored", c.check(423, "origin"), 0)
+os.environ["XDG_CONFIG_HOME"] = ""
 
 c.run = real_run
 print(f"\n{'all passed' if not fails else f'{fails} failed'}")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check that a test names each keyed acceptance criterion of the issue a pull request closes.
 
-It reads the repository's `Test files:` glob, the criterion keys of the issue the PR body's `Closes #` line names, and the PR's head, then searches that head once per key. It writes only to stdout and stderr.
+It reads the `Test files:` glob from the repository's config, the first file the lookup in `references/repo-config.md` finds, then the criterion keys of the issue the PR body's `Closes #` line names, and the PR's head, then searches that head once per key. It writes only to stdout and stderr.
 
 Exit codes: 0 every key is named, or the gate is off, or no criterion carries a key; 1 a key no test names; 2 the check could not run.
 
@@ -10,12 +10,13 @@ Usage:
 """
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-CONFIG_FILES = (".agents/gh-solo.md", ".claude/gh-solo.md")
+IN_REPO_CONFIGS = (".agents/gh-solo.md", ".claude/gh-solo.md")
 GLOB_LINE = re.compile(r"^Test files:[ \t]*(\S.*?)[ \t]*$", re.M)
 CLOSES = re.compile(r"\bCloses #(\d+)\b")
 ITEM = re.compile(r"^( {0,3})((?:[-*+]|\d+[.)])[ \t]+)\S")
@@ -107,20 +108,31 @@ def resolve_remote():
     raise CheckError("more than one remote and none tracked by main: pass --remote")
 
 
-def read_config(root):
-    for name in CONFIG_FILES:
-        path = Path(root) / name
+def user_config_dir():
+    # WHY: the XDG Base Directory spec ignores a relative value, as it does an empty one.
+    xdg = os.environ.get("XDG_CONFIG_HOME", "")
+    return Path(xdg) if os.path.isabs(xdg) else Path.home() / ".config"
+
+
+def config_paths(root, name_with_owner):
+    user_level = user_config_dir() / "gh-solo" / f"{name_with_owner}.md"
+    return [user_level] + [Path(root) / name for name in IN_REPO_CONFIGS]
+
+
+def read_config(root, name_with_owner):
+    for path in config_paths(root, name_with_owner):
         if path.is_file():
-            return name, path.read_text()
+            return str(path), path.read_text()
     return None, ""
 
 
 def check(pr, remote):
     root = must("git", "rev-parse", "--show-toplevel").strip()
-    name, text = read_config(root)
+    name_with_owner = must("gh", "repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner").strip()
+    name, text = read_config(root, name_with_owner)
     glob = test_glob(text)
     if glob is None:
-        print(f"criteria-check: gate off, no `Test files:` line in {name or '.agents/gh-solo.md'}")
+        print(f"criteria-check: gate off, no `Test files:` line in {name or 'any config file'}")
         return 0
     view = json.loads(must("gh", "pr", "view", str(pr), "--json", "body,headRefName"))
     issue = closed_issue(view["body"])

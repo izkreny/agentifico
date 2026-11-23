@@ -99,6 +99,6 @@ The dotted line back is the point worth noticing: nothing gets moved by hand. Th
 | `references/github-access.md` | `gh` setup, and the failures that look like something else |
 | `workflows/` | one file per command |
 
-Anything specific to one repository — its own label set, a different branch convention — belongs in `<repo-root>/.agents/gh-solo.md` in that repository, never in this skill. `pr-flow` reads the same file, so the skills cannot disagree about a repository's conventions.
+Anything specific to one repository — its own label set, a different branch convention — belongs in that repository's config, found where `../pr-flow/references/repo-config.md` says, never in this skill. `pr-flow` reads the same file, so the skills cannot disagree about a repository's conventions.
 
 **The formats live here**, in `references/formats.md`: branch names, commit subjects, pull request titles, plan filenames, and the keys on an item, such as `AC3`. The names belong to the tracker because every one of them encodes an issue number, and `pr-flow` points back here instead of restating them. The keys live here too, because every skill in the flow writes or reads them.
