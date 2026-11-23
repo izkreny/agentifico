@@ -74,30 +74,30 @@ bundle exec ruby -e 'ARGV.each { require File.expand_path(it) }' scripts/test/*_
 
 Where the sources disagree, the skill takes one side:
 
-- `raise` everywhere, over Exceptional Ruby's `fail` and `raise` split, which its own author calls taste; RuboCop enforces it.
-- A `save` that raises on failure, paired with a predicate for code that branches, over Exceptional Ruby's `save` returning `false`, because a caller that ignores the result loses data silently.
+- `raise` everywhere, over *Exceptional Ruby*'s `fail` and `raise` split, which its own author calls taste; RuboCop enforces it.
+- A `save` that raises on failure, paired with a predicate for code that branches, over *Exceptional Ruby*'s `save` returning `false`, because a caller that ignores the result loses data silently.
 - Standard exception classes for plain misuse and one namespaced root error for anything callers rescue, over the Ruby Style Guide's "prefer standard exceptions" alone, because every exemplar gem defines a root.
-- Tests written before or after the code, whichever suits the work, with every new test seen to fail, over the test-first discipline of POODR and 99 Bottles.
-- Real collaborators in tests, your own classes included, with doubles only for what the code cannot control, over POODR's and 99 Bottles' mocks and fakes for your own roles, because a test that mocks your own objects pins how the code works rather than what it does; the shared role test both books teach still keeps every player honest.
+- Tests written before or after the code, whichever suits the work, with every new test seen to fail, over the test-first discipline of *POODR* and *99 Bottles*.
+- Real collaborators in tests, your own classes included, with doubles only for what the code cannot control, over *POODR*'s and *99 Bottles*' mocks and fakes for your own roles, because a test that mocks your own objects pins how the code works rather than what it does; the shared role test both books teach still keeps every player honest.
 - `Data` for values and `Struct` only for mutable records, over the `Struct` and `OpenStruct` examples of the pre-3.2 books.
-- Duck typing in the interior, with a class check allowed once at the boundary or on a stable core class, reconciling POODR and Confident Ruby with each other.
-- Composition by default and inheritance for small, stable families of specialisations: POODR's chapter 8 over its chapters 6 and 7, and 99 Bottles' afterword over its early inheritance refactoring.
+- Duck typing in the interior, with a class check allowed once at the boundary or on a stable core class, reconciling *POODR* and *Confident Ruby* with each other.
+- Composition by default and inheritance for small, stable families of specialisations: *POODR*'s chapter 8 over its chapters 6 and 7, and *99 Bottles*' afterword over its early inheritance refactoring.
 - Dependency constraints in a gemspec as a floor plus a ceiling at the next major for dependencies that follow semantic versioning, over [the RubyGems guides](https://guides.rubygems.org)' optimistic floor alone, because that is what the exemplar plugin ecosystems use and it still admits every compatible release.
-- Development dependencies in the Gemfile, over the gemspec's `add_development_dependency` that Practical Ruby Gems still shows, as the Bundler 4 `bundle gem` template does.
+- Development dependencies in the Gemfile, over the gemspec's `add_development_dependency` that *Practical Ruby Gems* still shows, as the Bundler 4 `bundle gem` template does.
 - Zeitwerk for gems of more than a handful of files and plain `require_relative` for small ones, because both appear in the exemplar gems and neither is wrong.
 - Separate `<repo-root>/sig/` files over inline RBS, which rbs 4 and Steep 2 still call experimental.
 - mutant for open-source projects in public repositories, and evilution or mutineer elsewhere, because mutant's licence requires a paid subscription for any other project.
 - concurrent-ruby's `Concurrent::Map` or a `Mutex` over `Concurrent::Hash` for compound operations, because on CRuby `Concurrent::Hash` is a plain `Hash`.
-- No `protected`, with Polished Ruby, over Eloquent Ruby's use of it for comparisons between instances, because a protected method is listed by `methods` yet refuses `respond_to?`.
-- Strict subclass substitutability, over Polished Ruby's deliberate exceptions, because an agent cannot guarantee that the stricter subclass never reaches code expecting the parent.
-- Request context passed as arguments, with Polished Ruby, and `Fiber[:key]` kept for diagnostics such as a request id, where the concurrency sources store all request context there.
-- Inner loops extracted into named methods, over Polished Ruby's keep-it-inline, because on Ruby 4.0.9 a named step measured as fast as the inline loops; only a yielding helper that hides the nesting cost more.
+- No `protected`, with *Polished Ruby*, over *Eloquent Ruby*'s use of it for comparisons between instances, because a protected method is listed by `methods` yet refuses `respond_to?`.
+- Strict subclass substitutability, over *Polished Ruby*'s deliberate exceptions, because an agent cannot guarantee that the stricter subclass never reaches code expecting the parent.
+- Request context passed as arguments, with *Polished Ruby*, and `Fiber[:key]` kept for diagnostics such as a request id, where the concurrency sources store all request context there.
+- Inner loops extracted into named methods, over *Polished Ruby*'s keep-it-inline, because on Ruby 4.0.9 a named step measured as fast as the inline loops; only a yielding helper that hides the nesting cost more.
 - A trailing comma after the last element of a multi-line array, hash or argument list whose elements each have their own line, over the Ruby Style Guide, Standard and rubocop-rails-omakase, which forbid it, because adding an element is then a one-line diff; in a survey of 361 Ruby projects, code that no rule constrains used it on 86.8% of such lists.
-- A method-level `rescue`, with a mid-method `begin` read as a method waiting to be extracted, over The Well-Grounded Rubyist's narrow `begin`/`rescue` around the one risky line.
-- A new exception class only when it carries data a handler needs or callers handle it differently, with Exceptional Ruby and the exemplar gems, over The Well-Grounded Rubyist's custom class wherever no built-in name fits.
-- A builder that yields itself as the default DSL, over The Well-Grounded Rubyist's `instance_eval` constructor, because rebinding `self` hides the caller's instance variables and private methods.
-- `Comparable` always paired with `<=>` for a natural order, over The Well-Grounded Rubyist's `<=>` alone for sorting, so every comparison agrees.
-- Processes first for CPU-bound work, Ractors only where processes cannot serve and the owner accepts an experimental API, because Ruby 4.0.9 still warns that it is, and JRuby only as a last resort, where Polished Ruby ranks it before Ractors.
+- A method-level `rescue`, with a mid-method `begin` read as a method waiting to be extracted, over *The Well-Grounded Rubyist*'s narrow `begin`/`rescue` around the one risky line.
+- A new exception class only when it carries data a handler needs or callers handle it differently, with *Exceptional Ruby* and the exemplar gems, over *The Well-Grounded Rubyist*'s custom class wherever no built-in name fits.
+- A builder that yields itself as the default DSL, over *The Well-Grounded Rubyist*'s `instance_eval` constructor, because rebinding `self` hides the caller's instance variables and private methods.
+- `Comparable` always paired with `<=>` for a natural order, over *The Well-Grounded Rubyist*'s `<=>` alone for sorting, so every comparison agrees.
+- Processes first for CPU-bound work, Ractors only where processes cannot serve and the owner accepts an experimental API, because Ruby 4.0.9 still warns that it is, and JRuby only as a last resort, where *Polished Ruby* ranks it before Ractors.
 
 The books, from 2011 to 2026, predate parts of Ruby 3 and 4, so each rule was checked against the Ruby 4.0 release notes and, where it named behaviour, against Ruby 4.0.9 itself.
 
@@ -112,14 +112,14 @@ The books, from 2011 to 2026, predate parts of Ruby 3 and 4, so each rule was ch
 Books, distilled and never quoted beyond a phrase, each read in full, most of them twice by independent agents whose notes were then compared:
 
 - Russ Olsen, *Eloquent Ruby*, 2nd edition, Pragmatic Bookshelf, 2026.
-- Avdi Grimm, *Confident Ruby*, 2013.
-- Avdi Grimm, *Exceptional Ruby*, ShipRise, 2011.
-- Sandi Metz, *Practical Object-Oriented Design: An Agile Primer Using Ruby*, 2nd edition, Addison-Wesley, 2018.
-- Sandi Metz, Katrina Owen and TJ Stankus, *99 Bottles of OOP*, 2nd edition (Ruby), Potato Canyon Software, 2021.
 - Noel Rappin, *Programming Ruby 4*, Pragmatic Bookshelf, 2026.
 - David A. Black and Joseph Leo III, *The Well-Grounded Rubyist*, 4th edition, Manning, 2026.
 - Jeremy Evans, *Polished Ruby Programming*, 2nd edition, Packt, 2026.
 - David Berube, *Practical Ruby Gems*, 2nd edition, Apress, 2025.
+- Sandi Metz, Katrina Owen and TJ Stankus, *99 Bottles of OOP*, 2nd edition (Ruby), Potato Canyon Software, 2021.
+- Sandi Metz, *Practical Object-Oriented Design: An Agile Primer Using Ruby*, 2nd edition, Addison-Wesley, 2018.
+- Avdi Grimm, *Confident Ruby*, 2013.
+- Avdi Grimm, *Exceptional Ruby*, ShipRise, 2011.
 
 Ruby itself, each pinned to the commit read:
 
