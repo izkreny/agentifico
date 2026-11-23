@@ -22,6 +22,7 @@ Every key the plugin reads is in this block, per `plugins/gh-solo/skills/pr-flow
       "socratic-tutor": "skills/socratic-tutor/",
       "action-policy-guru": "skills/action-policy-guru/",
       "glossary-guru": "skills/glossary-guru/",
+      "ruby-sensei": "skills/ruby-sensei/",
       "repo": "the repository itself: README.md, .claude-plugin/marketplace.json, LICENSE, AGENTS.md, this file"
     }
   },
@@ -86,6 +87,7 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 - `skills/agents-guru`
 - `skills/socratic-tutor`
 - `skills/action-policy-guru`
+- `skills/ruby-sensei`
 
 `<package-dir>` is each of them the branch owes the run on:
 
