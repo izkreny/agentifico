@@ -105,7 +105,7 @@ gh stack checkout <stack-number|pr-number|pr-url>   # unless already tracked her
 gh stack add <branch>
 ```
 
-Only when the parent is in no stack at all does the plain path apply, and that opens a base-only stack which `gh stack link` can promote later. The command is Step 4 of `workflows/open.md` with `--base <parent>` added and nothing taken away, since a child opened without `--draft` is born ready and `workflows/review.md` lists it for a round while it holds only a plan:
+Only when the parent is in no stack at all does the plain path apply, and that opens a base-only stack which `gh stack link` can promote later. The command is Step 4 of `workflows/plan.md` with `--base <parent>` added and nothing taken away, since a child opened without `--draft` is born ready and `workflows/review.md` lists it for a round while it holds only a plan:
 
 ```bash
 gh pr create --draft --base <parent> --assignee @me --title "{type}({scope}): {issue title}" --body-file <file>
@@ -121,7 +121,7 @@ gh stack submit --auto
 
 Always `--auto`. Without it the command prompts in ways that do not survive a non-interactive run.
 
-**Never add `--open`.** It marks every PR it touches ready for review, and drafts-at-creation is the rule in `workflows/open.md` - `--auto`'s default of opening new PRs as drafts is the correct behaviour, not an accident to fix. `workflows/ready.md` alone lifts a draft.
+**Never add `--open`.** It marks every PR it touches ready for review, and drafts-at-creation is the rule in `workflows/plan.md` - `--auto`'s default of opening new PRs as drafts is the correct behaviour, not an accident to fix. `workflows/ready.md` alone lifts a draft.
 
 **Then repair every PR it opened, immediately.** `gh stack submit` has no flag for a title, a body or an assignee, and `--auto` humanizes the branch name into the title once a branch carries more than one commit - which is always here, since the plan commit lands first and alone. Every stacked PR is therefore born breaking three conventions at once, and `workflows/review.md` would flag all of them by construction. Per PR, after every submit:
 
@@ -129,7 +129,7 @@ Always `--auto`. Without it the command prompts in ways that do not survive a no
 gh pr edit <pr-number> --title "{type}({scope}): {issue title}" --add-assignee @me --body-file <file>
 ```
 
-The body carries `Closes #{issue-number}` and the rest of the template in `workflows/open.md`, built read-modify-write per `SKILL.md`.
+The body carries `Closes #{issue-number}` and the rest of the template in `workflows/plan.md`, built read-modify-write per `SKILL.md`.
 
 ### Sync or restack
 

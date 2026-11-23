@@ -319,7 +319,7 @@ The sweep issue carries the step as its last acceptance criterion, naming the so
 
 ## An epic child's blocker is its stack parent, not a wait
 
-**`plugins/gh-solo/skills/pr-flow/workflows/open.md` stops on an open `blockedBy`, and a child cut from that blocker's own branch tip is the exception.** Per *An epic's work is stacked, and the stack is the release train* in `AGENTS.md`, every child of an epic but the bottom one is cut from the branch below it and lands with the stack rather than before it, so the stop fires on the epic's normal shape.
+**`plugins/gh-solo/skills/pr-flow/workflows/plan.md` stops on an open `blockedBy`, and a child cut from that blocker's own branch tip is the exception.** Per *An epic's work is stacked, and the stack is the release train* in `AGENTS.md`, every child of an epic but the bottom one is cut from the branch below it and lands with the stack rather than before it, so the stop fires on the epic's normal shape.
 
 **The stop's reasons are void in that shape.** The plan is written against a tree that already contains the blocker's work, so landing the blocker rewrites nothing; and not merging first is what the stack is for rather than an obstacle to it.
 

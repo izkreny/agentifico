@@ -62,7 +62,7 @@ The separator does the parsing, not the prefix. `{type}/GHI-{issue-number}_{slug
 | `N` | a technical note, one bullet | the issue body template | `- ::N1:: …` |
 | `D` | a `## Done when` item | the epic and spike body templates | `- [ ] ::D1:: …` |
 | `RF` | a review finding | the review threads on a pull request, per *Ids* in `../pr-flow/references/review-protocol.md` | `::RF1:: …` |
-| `S` | a plan step | a plan's `## Steps` and its pull request body's, per Step 2 and Step 4 of `../pr-flow/workflows/open.md` | `- ::S1:: …` in the plan, `- [ ] ::S1:: …` in the body |
+| `S` | a plan step | a plan's `## Steps` and its pull request body's, per Step 2 and Step 4 of `../pr-flow/workflows/plan.md` | `- ::S1:: …` in the plan, `- [ ] ::S1:: …` in the body |
 | `V` | a verification gate | a plan's `## Verification` and its pull request body's | `- ::V1:: …` in the plan, `- [ ] ::V1:: …` in the body |
 | `Q` | an open question | a plan's and its pull request body's `## Open questions` and `## Settled` | `- ::Q1:: …` |
 | `::RF{n}::CLOSED::` | a marker, not a key: the re-review's verdict that `RF{n}` is closed, issuing no number of its own | the verdict reply in that finding's thread, per *Each verdict as a reply in its finding's thread* in `../pr-flow/workflows/review.md` | `::RF1::CLOSED:: …` |

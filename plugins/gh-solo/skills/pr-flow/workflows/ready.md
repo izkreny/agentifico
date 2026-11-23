@@ -2,7 +2,7 @@
 
 Move a draft PR into the review loop, once the plan is implemented.
 
-This is the far end of `workflows/open.md`, not a continuation of it. That workflow opens the PR as a draft at the *start* of the work and stops; this one runs after the implementation - the `implement` skill's work - has landed on the branch, usually days and several sessions later.
+This is the far end of `workflows/plan.md`, not a continuation of it. That workflow opens the PR as a draft at the *start* of the work and stops; this one runs after the implementation - the `implement` skill's work - has landed on the branch, usually days and several sessions later.
 
 **The audit: every gate in `## Verification` accounted for, CI agreeing with that record, the rest of the body telling the truth, a test naming each keyed criterion, every item in the body carrying its key, and then the flag - the gate audit being most of it.** **This is the workflow that can say no** — its whole value is refusing to flip a draft whose gates did not all run, so nothing here is a formality to be got through.
 
@@ -27,7 +27,7 @@ Read the body's `## Verification` and verify every box has a tick.
 
 **Never tick a box.** Not for a gate you ran in a previous step, not for one that obviously passed, not to tidy the list. A ticked box is indistinguishable from a passed check to everyone who reads the PR afterwards — including `workflows/merge.md`, which treats the body as evidence.
 
-**If the PR body has no `## Verification` section at all**, stop and say so. It is a required section of the plan and of the body that carries it, per `workflows/open.md`, and its absence means the branch was never told how it would be proved. That is not something to fix by inventing gates.
+**If the PR body has no `## Verification` section at all**, stop and say so. It is a required section of the plan and of the body that carries it, per `workflows/plan.md`, and its absence means the branch was never told how it would be proved. That is not something to fix by inventing gates.
 
 **One thing to check that no box covers:** hooks fire only where the hooks path is actually wired, and worktrees frequently are not, so a whole branch of commits can carry messages no linter ever saw. That surfaces as a failing conventions job on the PR long after the commits are written. Mention it if the branch was worked in a worktree.
 
@@ -46,7 +46,7 @@ Step 1's boxes are self-reported from local runs, so a ticked box is evidence th
 Same posture: read, report, do not edit.
 
 - **`## Steps`** — every step that landed should already be ticked by the agent that landed it. An unticked box whose work is plainly done is a bookkeeping miss rather than a blocker; say so and let the owner decide whether to tick it or leave the gap visible.
-- **`## Open questions`** — the finished state is "None.", with every answered entry sitting in `## Settled` - here, or in the plan file's own `## Settled` heading where *Body caps* in `workflows/open.md` sent it - question and decision together, per the body template there. Anything still listed is either a decision nobody made - the owner's call, worth raising before reviewers read it as an open thread - or an answered question nobody moved, which is a bookkeeping miss to report by its `Q{n}` like an unticked `## Steps` box, not a blocker.
+- **`## Open questions`** — the finished state is "None.", with every answered entry sitting in `## Settled` - here, or in the plan file's own `## Settled` heading where *Body caps* in `workflows/plan.md` sent it - question and decision together, per the body template there. Anything still listed is either a decision nobody made - the owner's call, worth raising before reviewers read it as an open thread - or an answered question nobody moved, which is a bookkeeping miss to report by its `Q{n}` like an unticked `## Steps` box, not a blocker.
 - **Divergence from the plan** — where the work went somewhere the plan did not, say so. It belongs in a PR comment, never as an edit to the plan file: the plan records intent, and the gap between intent and outcome is the useful part.
 
 **Nothing in this workflow writes to the PR.** The one write it makes is Step 6, and that is a flag rather than content.

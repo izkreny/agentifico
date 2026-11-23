@@ -118,11 +118,11 @@ Stacks are also the one part of this that bites when handled carelessly, so thei
 | Path | Holds |
 | --- | --- |
 | `SKILL.md` | routing, and the conventions that span workflows |
-| `workflows/open.md` | plan, first commit, draft PR, stop |
+| `workflows/plan.md` | plan, first commit, draft PR, stop |
 | `workflows/auto.md` | the `auto` and `go` chains: the same lifecycle, waits removed, gates intact |
 | `workflows/ready.md` | auditing that every stated check actually ran and CI agrees, then out of draft |
 | `workflows/review.md` | the review round: conventions, the reviewer, the findings, the fixes |
-| `workflows/discuss.md` | answering your replies, inside the thread you asked in |
+| `workflows/reply.md` | answering your replies, inside the thread you asked in |
 | `workflows/resolve.md` | your authorisation recorded, the threads resolved, the round's only push, and an index of what that push carried |
 | `workflows/merge.md` | the reviewed-or-not gate, squash, cleanup |
 | `workflows/stack.md` | everything about stacks |

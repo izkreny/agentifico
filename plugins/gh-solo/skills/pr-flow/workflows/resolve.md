@@ -22,7 +22,7 @@ If a watch is running on this PR, stop it with `TaskStop` before anything else, 
 
 ## Step 2 - Read the threads and decide what the batch covers
 
-The same GraphQL query `workflows/discuss.md` Step 1 uses, which already carries everything needed: each thread's `id` for the mutation, `isResolved`, its `path` and `line` for the report, and per comment the `author { login }`, the `body` and the `reactions` with their own `user { login }`.
+The same GraphQL query `workflows/reply.md` Step 1 uses, which already carries everything needed: each thread's `id` for the mutation, `isResolved`, its `path` and `line` for the report, and per comment the `author { login }`, the `body` and the `reactions` with their own `user { login }`.
 
 Sort every unresolved thread into its pile, per the protocol's account of what a batch covers:
 
@@ -89,7 +89,7 @@ git push <remote> <branch>
 
 Resolve `<remote>` by the recipe in `SKILL.md`'s remote-name convention. The checks are read at Step 8, after Steps 6 and 7 have posted whatever the push released and what it carried, so one read covers the whole of what this workflow put on the branch.
 
-**Where a relocation commit is on the remote with its entry still in `## Open questions`, this step lands the PR body edit it owes**, per *Body caps* in `workflows/open.md`, which owns the route and states the invariant this discharges. Read the condition off the remote and the body rather than off what this round holds: an earlier push may already have carried the commit up, and this step owes the edit either way. Where nothing meets it, this step does nothing.
+**Where a relocation commit is on the remote with its entry still in `## Open questions`, this step lands the PR body edit it owes**, per *Body caps* in `workflows/plan.md`, which owns the route and states the invariant this discharges. Read the condition off the remote and the body rather than off what this round holds: an earlier push may already have carried the commit up, and this step owes the edit either way. Where nothing meets it, this step does nothing.
 
 ## Step 6 - Release the held findings
 
@@ -170,7 +170,7 @@ It hashes the path and not the content, so it survives every commit on the branc
 ### The rows
 
 - **Attribution is commit-level, and that is the point.** A rename made while fixing `RF3` carries `RF3`, so the index shows what that fix actually cost rather than only the lines the finding named.
-- **The `-` rows are the half with no other home**: a commit whose body names no id. An owner-raised change is always one, because `references/review-protocol.md` makes ids mandatory for agent posts only, and so is the relocation `docs:` commit *Body caps* in `workflows/open.md` sends an over-cap entry to.
+- **The `-` rows are the half with no other home**: a commit whose body names no id. An owner-raised change is always one, because `references/review-protocol.md` makes ids mandatory for agent posts only, and so is the relocation `docs:` commit *Body caps* in `workflows/plan.md` sends an over-cap entry to.
 
 Disclaimer and `via` line first per `SKILL.md`, the latter reading: via `pr-flow` resolve, the delta index.
 

@@ -1,6 +1,6 @@
 # A script rather than an occurrence count, because a fenced block quoting the heading would satisfy a raw-scope count with no real section behind it.
 extends: script
-message: "A plan needs a '## Verification' section, per Step 2 of workflows/open.md in the pr-flow skill."
+message: "A plan needs a '## Verification' section, per Step 2 of workflows/plan.md in the pr-flow skill."
 level: error
 scope: raw
 script: |

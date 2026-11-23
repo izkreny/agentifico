@@ -1,6 +1,6 @@
 # A script rather than a regex, because a "#" comment inside a fenced block would read as the next heading.
 extends: script
-message: "A plan's '## Verification' section needs at least one list item before the next heading, per Step 2 of workflows/open.md in the pr-flow skill."
+message: "A plan's '## Verification' section needs at least one list item before the next heading, per Step 2 of workflows/plan.md in the pr-flow skill."
 level: error
 scope: raw
 script: |
