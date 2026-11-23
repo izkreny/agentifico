@@ -44,6 +44,27 @@ claude plugin marketplace add /path/to/your/agentifico/checkout
 claude plugin install gh-solo@agentifico
 ```
 
+## Update
+
+An update takes two separate steps. The first refreshes the agentifico catalog, so Claude Code sees the new version. The second updates gh-solo to that version. Refreshing the catalog alone installs nothing.
+
+In a shell:
+
+```bash
+claude plugin marketplace update agentifico
+claude plugin update gh-solo@agentifico
+```
+
+In a session, run `/plugin marketplace update agentifico`. Then run `/plugin manage`, select gh-solo on the **Installed** tab, and choose **Update now**.
+
+No command updates every installed plugin at once, and `claude plugin update` takes exactly one plugin. To update every plugin you installed from agentifico in one go, run `/plugin`, open the **Marketplaces** tab, select agentifico and choose **Update marketplace**. That one action refreshes the catalog and updates those plugins.
+
+The new version loads when you start your next session. To switch a running session to it, run `/reload-plugins`, which moves hooks, MCP servers and LSP servers to the new version's path. Closing the `/plugin` panel after an update made there runs it for you.
+
+Background auto-update is set per marketplace. A third-party marketplace such as agentifico starts with it off. To turn it on, run `/plugin`, open the **Marketplaces** tab, select agentifico and choose **Enable auto-update**.
+
+Each version lives in its own directory in the plugin cache, and an update marks the outgoing version's directory as orphaned. Claude Code deletes it in a background sweep about fourteen days later. The delay is a grace period, so a session already running on the old copy keeps working. You never need to delete an old version by hand.
+
 ## Keys, and the gates that read them
 
 Every item a reader has to point at carries a key: `::AC1::` on an acceptance criterion, `::S1::` on a plan step, `::V1::` on a gate, `::Q1::` on an open question. *Keys* in `skills/tracker/references/formats.md` owns the full table. A key is never renumbered or reused, so `AC3` names the same item for the life of its issue. A removed item keeps its line, marked as in `::AC3::REMOVED:: why`, and `::AC4::READ::` marks a criterion you prove by reading rather than by a test.
