@@ -80,6 +80,7 @@ flowchart LR
     M --> U(["installers can update"])
     M -->|"outside an epic"| SW["the sweep reads the whole package"]
     SW --> T["annotated tag name_version · on the package's last squash commit"]
+    M -.->|"inside an epic · already swept"| T
 ```
 
 Inside an epic, the sweep is the stack's top branch, so it runs before the merge, as *An epic ships as a stack* shows.
