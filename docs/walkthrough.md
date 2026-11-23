@@ -78,9 +78,11 @@ A package's version field is its release. When a version bump reaches `main`, ev
 flowchart LR
     B["a branch moves the package version"] --> M["merged to main"]
     M --> U(["installers can update"])
-    M --> SW["the sweep reads the whole package"]
+    M -->|"outside an epic"| SW["the sweep reads the whole package"]
     SW --> T["annotated tag name_version · on the package's last squash commit"]
 ```
+
+Inside an epic, the sweep is the stack's top branch, so it runs before the merge, as the diagram above shows.
 
 More detail: *How a package is released* in [AGENTS.md](../AGENTS.md).
 
