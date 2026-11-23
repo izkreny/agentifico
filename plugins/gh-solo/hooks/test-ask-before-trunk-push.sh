@@ -5,7 +5,11 @@ set -euo pipefail
 HOOK="$(cd "$(dirname "$0")" && pwd)/ask-before-trunk-push.py"
 REPO="$(mktemp -d)"
 ODD="$(mktemp -d)"
-trap 'rm -rf "$REPO" "$ODD"' EXIT
+CONF="$(mktemp -d)"
+BARE="$(mktemp -d)"
+TAGGED="$(mktemp -d)"
+SOLE="$(mktemp -d)"
+trap 'rm -rf "$REPO" "$ODD" "$CONF" "$BARE" "$TAGGED" "$SOLE"' EXIT
 
 git -C "$REPO" init -q -b main .
 git -C "$REPO" config user.email bench@example.invalid
@@ -26,15 +30,42 @@ git -C "$ODD" remote add upstream /dev/null
 git -C "$ODD" symbolic-ref refs/remotes/upstream/HEAD refs/remotes/upstream/develop
 git -C "$ODD" checkout -qb feature/main
 
-python3 - "$HOOK" "$REPO" "$ODD" <<'PY'
-import json, subprocess, sys
-hook, cwd, odd = sys.argv[1], sys.argv[2], sys.argv[3]
+# WHY: config is set per case in a repository of its own, so the cases above keep testing the default `simple`.
+for dir in "$CONF" "$BARE" "$TAGGED" "$SOLE"; do
+  git -C "$dir" init -q -b main .
+  git -C "$dir" config user.email bench@example.invalid
+  git -C "$dir" config user.name bench
+  echo x > "$dir/a.txt"
+  git -C "$dir" add .
+  git -C "$dir" commit -qm init
+done
+git -C "$CONF" checkout -qb feat/GHI-50_login-form
+# WHY: `matching` asks only when a local trunk branch exists, so one fixture must have none.
+git -C "$BARE" checkout -qb work
+git -C "$BARE" branch -qD main
+# WHY: a tag sharing a branch's name makes git print that branch's short name as `heads/<name>`.
+git -C "$TAGGED" tag main
+git -C "$TAGGED" checkout -qb feat
+git -C "$TAGGED" tag feat
+# WHY: with no config naming a push remote, git pushes to a repository's sole remote, whatever it is called.
+git -C "$SOLE" remote add upstream /dev/null
+git -C "$SOLE" checkout -qb feat
 
-def decision(cmd, branch, repo=None):
+python3 - "$HOOK" "$REPO" "$ODD" "$CONF" "$BARE" "$TAGGED" "$SOLE" <<'PY'
+import json, subprocess, sys
+hook, cwd, odd, conf, bare, tagged, sole = sys.argv[1:8]
+
+def decision(cmd, branch, repo=None, config=None):
     repo = repo or cwd
     subprocess.run(["git", "checkout", "-q", branch], cwd=repo, check=True)
-    p = subprocess.run(["python3", hook], capture_output=True, text=True, input=json.dumps(
-        {"tool_name": "Bash", "cwd": repo, "tool_input": {"command": cmd}}))
+    for key, value in (config or {}).items():
+        subprocess.run(["git", "config", "--add", key, value], cwd=repo, check=True)
+    try:
+        p = subprocess.run(["python3", hook], capture_output=True, text=True, input=json.dumps(
+            {"tool_name": "Bash", "cwd": repo, "tool_input": {"command": cmd}}))
+    finally:
+        for key in config or {}:
+            subprocess.run(["git", "config", "--unset-all", key], cwd=repo, check=True)
     if not p.stdout.strip():
         return "silent"
     return json.loads(p.stdout)["hookSpecificOutput"]["permissionDecision"]
@@ -145,6 +176,51 @@ CROSS_C_MUST_STAY_SILENT = [
     (f"git -C {cwd} push origin develop", "feature/main"),
 ]
 
+# WHY: git sends a push with no refspec wherever its config says, and under `upstream` that is the trunk from a branch named anything.
+TRACKS_MAIN = {f"branch.{FEAT}.remote": "origin", f"branch.{FEAT}.merge": "refs/heads/main"}
+CONF_MUST_ASK = [
+    ("git push", FEAT, {"push.default": "upstream", **TRACKS_MAIN}),
+    ("git push", FEAT, {"push.default": "tracking", **TRACKS_MAIN}),
+    ("git push origin", FEAT, {"push.default": "upstream", **TRACKS_MAIN}),
+    ("git push", FEAT, {"push.default": "matching"}),            # a local main exists, so git pushes it
+    ("git push", FEAT, {"remote.origin.push": "refs/heads/*:refs/heads/*"}),
+    # The push remote comes from remote.pushDefault, so its own push refspec is the one git reads.
+    ("git push", FEAT, {"remote.pushDefault": "fork", "remote.fork.push": "HEAD:refs/heads/main"}),
+    ("git push origin 'refs/heads/*:refs/heads/*'", FEAT, {}),
+    ("git push origin '+refs/heads/*:refs/heads/*'", FEAT, {}),
+    ("git push origin 'refs/*:refs/*'", FEAT, {}),               # the pattern covers every ref, branches included
+    ("git push origin :", FEAT, {}),                              # a bare colon is git's matching refspec
+    # WHY: a `-c` on the command line wins over the repository's config for that one push.
+    ("git -c push.default=upstream push", FEAT, TRACKS_MAIN),
+    ("git -c remote.origin.push=refs/heads/*:refs/heads/* push", FEAT, {}),
+]
+CONF_MUST_STAY_SILENT = [
+    ("git push", FEAT, {"push.default": "upstream", f"branch.{FEAT}.remote": "origin",
+                        f"branch.{FEAT}.merge": f"refs/heads/{FEAT}"}),
+    # git refuses an `upstream` push to a remote other than the branch's upstream remote.
+    ("git push other", FEAT, {"push.default": "upstream", **TRACKS_MAIN}),
+    ("git push", "main", {"push.default": "nothing"}),
+    # `--tags` with no refspec pushes tags only, so neither HEAD nor `matching` reaches a branch.
+    ("git push origin --tags", "main", {}),
+    ("git push origin --tags", FEAT, {"push.default": "matching"}),
+    ("git push origin 'refs/heads/feat/*:refs/heads/feat/*'", FEAT, {}),
+]
+BARE_MUST_STAY_SILENT = [
+    ("git push", "work", {"push.default": "matching"}),          # no local trunk branch to match
+]
+TAGGED_MUST_ASK = [
+    ("git push", "feat", {"push.default": "matching"}),          # a tag named main must not hide the branch
+    ("git push origin :", "feat", {}),
+    # A tag named feat must not hide the branch's own upstream config.
+    ("git push", "feat", {"push.default": "upstream", "branch.feat.remote": "origin",
+                          "branch.feat.merge": "refs/heads/main"}),
+]
+SOLE_MUST_ASK = [
+    ("git push", "feat", {"remote.upstream.push": "refs/heads/*:refs/heads/*"}),
+    # A remote defined by `-c` counts too, so git falls back to `origin` and reads its pattern.
+    ("git -c remote.origin.url=/dev/null -c remote.origin.push=refs/heads/*:refs/heads/* push", "feat", {}),
+]
+
 fails = 0
 rounds = (
     ("ask", MUST_ASK, None),
@@ -155,14 +231,22 @@ rounds = (
     ("silent", ODD_MUST_STAY_SILENT, odd),
     ("ask", CROSS_C_MUST_ASK, None),
     ("silent", CROSS_C_MUST_STAY_SILENT, odd),
+    ("ask", CONF_MUST_ASK, conf),
+    ("silent", CONF_MUST_STAY_SILENT, conf),
+    ("silent", BARE_MUST_STAY_SILENT, bare),
+    ("ask", TAGGED_MUST_ASK, tagged),
+    ("ask", SOLE_MUST_ASK, sole),
 )
+NAMES = {odd: "odd repo", conf: "config repo", bare: "no-trunk repo", tagged: "tagged repo",
+         sole: "sole-remote repo"}
 for want, cases, repo in rounds:
-    print(f"must be {want}{' [odd repo]' if repo else ''}:")
-    for cmd, branch in cases:
-        got = decision(cmd, branch, repo)
+    print(f"must be {want}{f' [{NAMES[repo]}]' if repo else ''}:")
+    for cmd, branch, *config in cases:
+        config = config[0] if config else None
+        got = decision(cmd, branch, repo, config)
         ok = got == want
         fails += not ok
-        print(f"  {'ok  ' if ok else 'FAIL'} [{branch}] {cmd!r} -> {got}")
+        print(f"  {'ok  ' if ok else 'FAIL'} [{branch}] {cmd!r}{f' {config}' if config else ''} -> {got}")
 print(f"\n{fails} failure(s)")
 sys.exit(1 if fails else 0)
 PY
