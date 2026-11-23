@@ -82,7 +82,7 @@ flowchart LR
     SW --> T["annotated tag name_version · on the package's last squash commit"]
 ```
 
-Inside an epic, the sweep is the stack's top branch, so it runs before the merge, as the diagram above shows.
+Inside an epic, the sweep is the stack's top branch, so it runs before the merge, as *An epic ships as a stack* shows.
 
 More detail: *How a package is released* in [AGENTS.md](../AGENTS.md).
 
