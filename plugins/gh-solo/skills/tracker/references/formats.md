@@ -18,6 +18,8 @@ Branch names, commit subjects, pull request titles and plan filenames. They live
 | PR body       | Must contain `Closes #{issue-number}`                                                                     | `Closes #50`                                             |
 | Assignee      | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation             | `--add-assignee @me`                                     |
 
+The Branch row is the default; the branch format in force is what `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_name_format` prints.
+
 ### Branch and commit type
 
 `{type}` in a branch name is a **Conventional Commits type**, and it is the same vocabulary as the `type:` on a commit header and on a pull request title. One vocabulary across all of them, so a `fix` branch carries `fix:` commits and opens a `fix:` PR.
@@ -30,7 +32,7 @@ Branch names, commit subjects, pull request titles and plan filenames. They live
 | `docs`     | Prose                                  |
 | `chore`    | Tooling, dependencies, config          |
 
-That set is the one this skill assumes; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set in the repository's config, per `../pr-flow/references/repo-config.md`, if it differs.
+That set is the default, and the set in force is what `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_types` prints; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set as `commit_types` in the repository's config if it differs, and a different branch format as `branch_name_format`, per `../pr-flow/references/repo-config.md`.
 
 **Type describes the change, labels describe the deliverable.** They are separate axes and neither derives from the other: a `docs` branch usually sits on a `docs`-labelled issue and a `fix` branch on a `bug` issue, but a `refactor` branch can serve a `feat`-shaped issue and a `chore` can close a `bug`. Never infer the label from the branch, or the branch from the label. **The word `docs` lives on each axis and asks a different question on each**: as a type it says the change is prose, as a label it says the deliverable is prose. They usually coincide, which is exactly why the scope rule omits the scope when it would repeat the type.
 
@@ -39,6 +41,8 @@ That set is the one this skill assumes; the Conventional Commits ecosystem allow
 **That format describes a commit on a branch.** Where the repository squash-merges, the commit that lands on the trunk is built from the *pull request* title instead and carries `(#{pr-number})`, so the trunk references PRs while branch history references issues. Both are correct and neither should be "fixed" to match the other; the `pr-flow` skill owns that transition.
 
 The spec's optional scope, `type(scope):`, is used in exactly one place: the **pull request title**, and from there the squash commit on the trunk. The scope is always the issue's **layer label**, never a fresh choice - decided once, on the issue, it cannot drift - and it is **omitted when it repeats the type**, so a `docs`-labelled issue with a `docs` type opens `docs: rewrite the readme`, never `docs(docs): …`. The trunk is where the layer is worth carrying: `git log --oneline` on `main` shows squash subjects two hops away from the issue's labels, and `feat(frontend): add login form (#60)` answers "what did this touch" without a hop. **Branch commits carry no scope.** Every commit on a branch would repeat the same value, and squashing deletes that history anyway; the header there stays `{type}: {description} (#{issue-number})`.
+
+**Where `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_scope` prints `label`, every branch commit carries the issue's layer label as its scope**, per `../pr-flow/references/repo-config.md`. The pull request title keeps its own rule either way.
 
 ### `#50` in prose, `GHI-50` in names
 
