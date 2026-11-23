@@ -62,7 +62,7 @@ It checks RuboCop's defaults. Add `--config <repo-root>/.rubocop.yml` to check a
 
 ## Developing it
 
-To move the floor to newer releases, change the pins in `Gemfile`, run `bundle install` from the skill's directory, run the check there with `bundle exec`, and commit `Gemfile.lock` once it passes. `.bundle/config` installs the bundle into the skill's own `vendor/bundle`, which git ignores.
+To move the floor to newer releases, change the pins in `Gemfile`, run `bundle install` from the skill's directory, run the check and the suite under `scripts/test/` there with `bundle exec`, and commit `Gemfile.lock` once both pass. `.bundle/config` installs the bundle into the skill's own `vendor/bundle`, which git ignores.
 
 `scripts/check_floor.rb` only calls into `scripts/check_floor/`, one file per part, laid out as `references/gems.md` lays out a gem. Its Minitest suite is under `scripts/test/`, in spec style, and the integration tests in `scripts/test/check_floor_test.rb` run the real check, skipping when the bundle running them holds no RuboCop. Run it from the skill's directory:
 
