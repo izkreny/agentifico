@@ -195,7 +195,7 @@ Then the record: how many threads were resolved and which ids, which were left a
 **Then say that this workflow is over and merging is a word of its own**, since the owner's `:rp` did not ask for one and nothing here is about to run it. The command, flush left:
 
 ```text
-/gh-solo:pr-flow merge <pr-number>
+:mr <pr-number> (merge)
 ```
 
 **This file is where that wording is decided.** The split is not an ergonomic: one word that both released the push and landed the branch would read the checks at Step 8 *after* the merge, and the protocol's step 7 says a red check there stops the merge until it is diagnosed - which it cannot do to a merge the same word already made.
@@ -232,5 +232,5 @@ git log --oneline @{u}..HEAD
 Then what pushes them, flush left:
 
 ```text
-/gh-solo:pr-flow :rp <pr-number>
+:rp <pr-number> (resolve and push)
 ```
