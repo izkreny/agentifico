@@ -68,6 +68,8 @@ flowchart LR
 
 Work outside an epic is not stacked. It goes straight from its branch to `main`.
 
+More detail: *A stack is the release train* in [AGENTS.md](../AGENTS.md).
+
 ## How a package is released
 
 A package's version field is its release. When a version bump reaches `main`, everyone who installed the package can update to it. The tag comes later, by hand, and only after the package's sweep has read it whole.
