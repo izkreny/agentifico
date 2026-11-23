@@ -17,7 +17,6 @@
 - Decide at load time, in the class body, which methods a class defines when the choice depends on the platform or configuration, so the decision runs once and not on every call.
 - Generate a family of methods from a table when they must stay in step with another API, as minitest generates each expectation from its assertion.
 - Build a wrapping macro, such as memoization, from one anonymous module per class, prepended, with the wrappers defined in it calling `super`, so the original method stays callable and the wrapping shows in `ancestors`.
-- Remember that a block never changes constant nesting: `class Name` inside `Other.class_eval do ... end` reopens the top-level `Name`, not `Other::Name`.
 
 ## method_missing
 

@@ -19,7 +19,7 @@ end
 ```
 
 - Turn a hash or array with known keys or positions into a `Data` record at the boundary where it enters, so callers send `wheel.rim` instead of indexing `row[2]`, and the shape is known in one place.
-- Replace a `case` that maps keys to values or classes with a frozen hash lookup when the mapping is data that may grow.
+- Replace a `case` that maps keys to classes with a frozen hash lookup when the mapping is data that may grow.
 - Remember that a lookup hash keyed by class misses subclasses: walk `superclass` on a miss, or keep the `case`, whose `when` honours inheritance.
 - Never use a mutable object as a hash key unless its `hash` cannot change, because a key mutated after insertion cannot be found. String keys are safe, because `Hash` copies and freezes them.
 
@@ -41,7 +41,7 @@ end
 - Remember that `any?`, `none?` and `one?` without a block test truthiness, so they differ from `count.positive?` when the collection holds `nil` or `false`.
 - Decide what an aggregate means on empty input, because `max_by`, `min` and `first` return `nil` there and `sum` returns `0`, and decide how a tie in `max_by` is broken, because it picks one element silently.
 - In `inject`, make the block's last expression the new accumulator, or use `sum` or `each_with_object`, because the block's value replaces the accumulator, and a trailing `puts` resets it to `nil`.
-- Never write a descending range, `10..1`, which is empty and iterates nothing: count down with `downto` or `reverse_each`. Test a value against bounds with `cover?`, because on a range of strings `include?` asks whether the range enumerates the value, and `("a".."z").include?("bb")` is false.
+- Never write a descending range, `10..1`, which is empty and iterates nothing: count down with `downto` or `reverse_each`.
 - Process a large file line by line with `File.foreach` or `each_line`, never `read` or `readlines`, so only one line is in memory at a time.
 - Reach for `lazy` only for large or infinite sequences, `(1..).lazy.map { ... }.first(5)`, because on a small collection it only adds overhead, and end the chain with `first(n)` or `to_a`, because `take` and `map` on a lazy enumerator return another lazy enumerator.
 - Use the newer methods where they say exactly what you mean: `Hash#except`, `transform_keys(old: :new)`, `Array#intersect?`, `Range#overlap?`, `Enumerator.produce` for a sequence built from its previous value, and in Ruby 4.0 `Array#rfind`.

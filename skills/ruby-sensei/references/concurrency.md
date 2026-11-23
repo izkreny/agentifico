@@ -22,7 +22,7 @@ Ractor and the Fiber scheduler changed in every release from 3.0 on, so *Precede
 - Never use `@value ||= compute` on an object shared between threads. Compute it eagerly, or check again inside the lock. `||=` is fine on an object only one thread or fiber ever uses.
 - Never yield to caller code or call out to unknown code while holding a lock: copy what you need under the lock and yield after it, because a caller that takes the same lock deadlocks.
 - Use `Concurrent::Map`, for instance `compute_if_absent`, or a `Mutex` for a shared cache, never `Concurrent::Hash` or `Concurrent::Array` for compound operations, because on CRuby those are plain `Hash` and `Array` without a lock.
-- Keep configuration and registries in objects frozen once loading finishes, never in mutable class-level instance variables, because class-level state is shared by every thread.
+- Freeze configuration and registries once loading finishes, because every thread shares them afterwards.
 - Give a non-thread-safe resource, such as a database connection or an HTTP client, to one thread or fiber at a time, through a pool.
 - Never mutate a collection while another thread enumerates it: build a new one and swap the reference, or guard every access with the lock.
 - Hand work between threads through `Thread::Queue`, and `close` the queue to tell consumers to stop. When several workers push to one results queue, have each push a sentinel when it finishes and count them, because closing the queue makes a still-running worker's push raise `ClosedQueueError`.

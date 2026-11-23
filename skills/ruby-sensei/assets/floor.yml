@@ -11,6 +11,8 @@ owned:
     - Style/RedundantBegin
     - Style/DoubleNegation
     - Style/AndOr
+    - Style/CaseLikeIf
+    - Style/IdenticalConditionalBranches
   Exceptions:
     - Lint/RescueException
     - Lint/RaiseException
@@ -36,6 +38,7 @@ owned:
     - Style/MissingRespondToMissing
     - Lint/MissingSuper
     - Lint/NestedMethodDefinition
+    - Performance/RedundantBlockCall
   Names:
     - Naming/MethodName
     - Naming/VariableName
@@ -53,6 +56,8 @@ owned:
     - Performance/StartWith
     - Style/SlicingWithRange
     - Style/StringConcatenation
+    - Style/HashLikeCase
+    - Performance/RangeInclude
   Security:
     - Security/Eval
     - Security/MarshalLoad
@@ -71,6 +76,7 @@ owned:
     - Minitest/GlobalExpectations
     - ThreadSafety/ClassInstanceVariable
     - ThreadSafety/MutableClassInstanceVariable
+    - ThreadSafety/ClassAndModuleAttributes
     - ThreadSafety/DirChdir
     - ThreadSafety/NewThread
   Size and complexity:
@@ -88,6 +94,7 @@ owned:
     - Lint/Debugger
     - Style/EvalWithLocation
     - Style/PerlBackrefs
+    - Style/StderrPuts
     - Performance/UnfreezeString
     - Performance/CompareWithBlock
     - RBS/Lint/TopLevelInterface

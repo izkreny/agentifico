@@ -84,6 +84,7 @@ Where the sources disagree, the skill takes one side:
 - Composition by default and inheritance for small, stable families of specialisations: *POODR*'s chapter 8 over its chapters 6 and 7, and *99 Bottles*' afterword over its early inheritance refactoring.
 - Dependency constraints in a gemspec as a floor plus a ceiling at the next major for dependencies that follow semantic versioning, over [the RubyGems guides](https://guides.rubygems.org)' optimistic floor alone, because that is what the exemplar plugin ecosystems use and it still admits every compatible release.
 - Development dependencies in the Gemfile, over the gemspec's `add_development_dependency` that *Practical Ruby Gems* still shows, as the Bundler 4 `bundle gem` template does.
+- A gemspec's `files` from `git ls-files` or an explicit `Dir[...]`, over rubocop-packaging's `Packaging/GemspecGit`, which forbids the first for packagers who build without git, because the `bundle gem` template writes it; a repository that runs rubocop-packaging follows the cop, per *Precedence* in `SKILL.md`.
 - Zeitwerk for gems of more than a handful of files and plain `require_relative` for small ones, because both appear in the exemplar gems and neither is wrong.
 - Separate `<repo-root>/sig/` files over inline RBS, which rbs 4 and Steep 2 still call experimental.
 - mutant for open-source projects in public repositories, and evilution or mutineer elsewhere, because mutant's licence requires a paid subscription for any other project.

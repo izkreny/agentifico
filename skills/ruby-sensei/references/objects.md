@@ -37,7 +37,7 @@ Contents: responsibility, dependencies, messages and roles, inheritance, modules
 - Ask for what you want, not how to do it: `mechanic.prepare(bike)`, not four calls into the mechanic's procedure, because the sender should not change when the receiver's procedure does.
 - Keep the public interface small and stable, and everything else private, because callers depend on all of the public interface and on none of the rest.
 - Never branch on what an object is, with `is_a?`, `respond_to?` before a call, or a `case` on a type attribute, to decide what it does. Give each kind of object the method, so the difference lives in one place, except the temporary guard that `references/testing.md` *Refactoring* allows during a staged change, and a conversion protocol checked once at the boundary, as `references/methods.md` *Input at the boundary* shows.
-- Check a class only once, at the boundary where untrusted data enters, or for a stable core class such as `Array`, and nowhere in the interior. When you do, use `is_a?`, never `instance_of?` or `obj.class ==`, which reject every subclass. Test the exact class only where a subclass must not pass: `==` and `eql?` on a value, as *Value objects* says, and a test asserting which class a factory built, `assert_instance_of BottleNumber0, BottleNumber.for(0)`.
+- Check a class only once, at the boundary where untrusted data enters, or for a stable core class such as `Array`, and nowhere in the interior. When you do, use `is_a?`, never `instance_of?` or `obj.class ==`, which reject every subclass, and rewrite an `obj.class ==` the linter flags as `is_a?`, not as the `instance_of?` it suggests. Test the exact class only where a subclass must not pass: `==` and `eql?` on a value, as *Value objects* says, and a test asserting which class a factory built, `assert_instance_of BottleNumber0, BottleNumber.for(0)`.
 - Replace a category attribute that many methods switch on (`style == :road`) with small classes that each answer for themselves, and convert to them once, at the boundary.
 - Represent a recurring absent value with a special-case object, such as `GuestUser`, and a do-nothing collaborator with a null object, such as `NullLogger`, when the same `nil` would otherwise be checked in many places. Keep the null object's interface explicit and small, and convert it back to `nil` at a public API, because Ruby cannot make it falsey. Never test whether an object is the special case; where a condition cannot be removed, ask a predicate both answer, `authenticated?`, so the condition states its intent.
 - Convert foreign data with magic indexes or keys into an object at the boundary, in one place, so the shape of the raw data is known once.
@@ -109,8 +109,8 @@ end
 - Expose a value callers need through a method rather than a public constant when its shape may change, because a public constant freezes its shape into the API.
 - Make a singleton a plain object in a constant with singleton methods, `Registry = Object.new`, or a module, rather than `include Singleton`, because the constant already is the one instance.
 - Delete private methods nothing calls.
-- Where a class variable would go, which the linter forbids, use a class-level instance variable behind a reader, or a frozen constant.
-- Avoid class-level mutable state such as registries filled by `inherited`, and where it is unavoidable, handle it as `references/concurrency.md` *Shared state* says.
+- Where a class variable would go, use a frozen constant, because the linter forbids class variables and class-level instance variables alike.
+- Where class-level mutable state, such as a registry filled by `inherited`, is unavoidable, handle it as `references/concurrency.md` *Shared state* says.
 - Never define a method at the top level outside a script, because it lands on `Object` and leaks everywhere.
 
 ## Factories
