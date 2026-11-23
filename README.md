@@ -41,7 +41,7 @@ flowchart LR
     SM --> ANY(["any agent that reads Agent Skills"])
 ```
 
-[`docs/walkthrough.md`](docs/walkthrough.md) shows the rest in diagrams: the gh-solo loop, the review round, how an epic ships and how a package is released.
+[`docs/walkthrough.md`](docs/walkthrough.md) shows the rest in diagrams: the gh-solo loop, how an epic ships and how a package is released.
 
 ## Install
 

@@ -24,35 +24,7 @@ flowchart TD
 
 `go` runs implement, ready and review back to back once you have read the plan, and stops where you judge the findings. `auto` does the same from the issue, without waiting for you to read the plan.
 
-More detail: [tracker](../plugins/gh-solo/skills/tracker/README.md), [pr-flow](../plugins/gh-solo/skills/pr-flow/README.md), [implement](../plugins/gh-solo/skills/implement/README.md).
-
-## The review round
-
-The code is never reviewed by the session that wrote it. A `reviewer` agent gets the pull request number and the commit to read, and nothing else. Every finding becomes a thread on the exact line it concerns. Fixes are committed but held until you say so.
-
-```mermaid
-sequenceDiagram
-    actor You
-    participant S as Session
-    participant R as Reviewer agent
-    participant G as GitHub PR
-    You->>S: review
-    Note over S,G: everything up to your judgement runs without you
-    S->>R: PR number and head commit, nothing else
-    R-->>S: findings
-    S->>G: one thread per finding, posted in one call
-    S->>G: a fix plan in each thread
-    S->>S: fix commits, held locally
-    S->>R: the fix commits and the findings they claim
-    R-->>S: closed or not, and any new defect
-    S->>G: the verdicts, in the threads
-    You->>G: react or reply in each thread
-    You->>S: resolve
-    S->>G: your authorisation, the resolves, the push
-    You->>S: merge
-```
-
-More detail: [the review protocol](../plugins/gh-solo/skills/pr-flow/references/review-protocol.md).
+More detail: [tracker](../plugins/gh-solo/skills/tracker/README.md), [pr-flow](../plugins/gh-solo/skills/pr-flow/README.md), [implement](../plugins/gh-solo/skills/implement/README.md), [the review protocol](../plugins/gh-solo/skills/pr-flow/references/review-protocol.md).
 
 ## An epic ships as a stack
 
