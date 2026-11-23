@@ -14,14 +14,14 @@ gh label create backend --color 1D76DB --description "Backend / API"
 
 Every axis but Layer has a **default**, and the default is expressed by carrying **no label at all**. The right-hand column is the value that never appears in the picker, because creating it is the mistake *Never label the default* is about.
 
-| Axis          | Question it answers                             | Labels that exist                               | The default, never labelled                                                                       |
-|---------------|-------------------------------------------------|-------------------------------------------------|---------------------------------------------------------------------------------------------------|
-| **Layer**     | Where does the deliverable land?                | `backend` `frontend` `fullstack` `infra` `docs` | none - mandatory, exactly one, on everything except an epic                                       |
-| **Nature**    | Fixing, answering, or building?                 | `bug`, `spike`                                  | **task** - building a thing                                                                       |
-| **Structure** | Does it contain other work?                     | `epic`                                          | **leaf** - no sub-issues                                                                          |
-| **Priority**  | When?                                           | `urgent` `someday`                              | **normal** - in backlog order                                                                     |
-| **Readiness** | Is it specified enough to start?                | `draft`                                         | **ready** - startable as written                                                                  |
-| **Blocked**   | Is something outside the tracker holding it up? | `blocked`                                       | **unblocked** - or blocked by another issue, which is a relation, not a label; see *Dependencies* |
+| Axis | Question it answers | Labels that exist | The default, never labelled |
+| --- | --- | --- | --- |
+| **Layer** | Where does the deliverable land? | `backend` `frontend` `fullstack` `infra` `docs` | none - mandatory, exactly one, on everything except an epic |
+| **Nature** | Fixing, answering, or building? | `bug`, `spike` | **task** - building a thing |
+| **Structure** | Does it contain other work? | `epic` | **leaf** - no sub-issues |
+| **Priority** | When? | `urgent` `someday` | **normal** - in backlog order |
+| **Readiness** | Is it specified enough to start? | `draft` | **ready** - startable as written |
+| **Blocked** | Is something outside the tracker holding it up? | `blocked` | **unblocked** - or blocked by another issue, which is a relation, not a label; see *Dependencies* |
 
 **There is no Size axis.** How big an issue is gets decided once, while it is being written, and the answer is either "this is one issue" or "this is an epic with children" — see *How big is one issue*. A number recorded on the issue afterwards serves a planning session and a velocity chart, and this repository has neither.
 
@@ -33,13 +33,13 @@ Layer is the one mandatory axis, and since titles carry no prefix, the label is 
 
 **Exactly one layer label, on every issue that is not an epic.** An epic is exempt because it is a container: its children carry the layers, and it usually spans them, so a layer on the epic itself would either lie or read `fullstack` every time. On everything else: not zero, and never two. This is the axis rule from the table in *Labels*, and it is worth restating here because the layer is where two labels look defensible: an issue that touches the API and the UI seems to deserve both. It does not. `fullstack` exists precisely so that pair is never needed, and applying `backend` and `frontend` together is the mistake it was created to prevent.
 
-| Label       | The deliverable is                                                  |
-|-------------|---------------------------------------------------------------------|
-| `backend`   | An API, a service, a background job, a schema or a migration        |
-| `frontend`  | A view, a component, a route, styling                               |
-| `fullstack` | One thing that cannot be accepted from either side alone            |
-| `infra`     | A pipeline, a deployment, a container, tooling or repository config |
-| `docs`      | Prose that is the point in itself: a README, a guide, an ADR        |
+| Label | The deliverable is |
+| --- | --- |
+| `backend` | An API, a service, a background job, a schema or a migration |
+| `frontend` | A view, a component, a route, styling |
+| `fullstack` | One thing that cannot be accepted from either side alone |
+| `infra` | A pipeline, a deployment, a container, tooling or repository config |
+| `docs` | Prose that is the point in itself: a README, a guide, an ADR |
 
 **The layer is where the deliverable lands, not every file the branch touches.** This is what keeps the set from collapsing. Adding an endpoint and updating the README to describe it is `backend`: the endpoint is the deliverable and the README follows from it. Bumping a dependency to fix a UI bug is `frontend`, not `infra`, because the fix is the point and the lockfile is a means. Ask what the issue would be closed *for*, and label that.
 

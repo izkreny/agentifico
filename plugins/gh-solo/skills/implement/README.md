@@ -68,10 +68,10 @@ Independence still matters, and it moved to where it buys something: the `review
 
 ## Layout
 
-| Path                     | Holds                                                                                         |
-|--------------------------|-----------------------------------------------------------------------------------------------|
-| `SKILL.md`               | routing, and the contract the workflows share                                                 |
-| `workflows/implement.md` | plan to commits: load, reconcile, implement, verify, push, hand off                           |
-| `workflows/fix.md`       | review findings to fix commits - replied in-thread, gates re-run, held unpushed for your word |
+| Path | Holds |
+| --- | --- |
+| `SKILL.md` | routing, and the contract the workflows share |
+| `workflows/implement.md` | plan to commits: load, reconcile, implement, verify, push, hand off |
+| `workflows/fix.md` | review findings to fix commits - replied in-thread, gates re-run, held unpushed for your word |
 
 Anything specific to one repository - its check commands, its testing philosophy - belongs in that repository's own agent instructions and its config, never in this skill.

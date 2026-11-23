@@ -4,19 +4,19 @@ Branch names, commit subjects, pull request titles and plan filenames. They live
 
 ## Quick reference
 
-| Item          | Format                                                                                                    | Example                                                  |
-|---------------|-----------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| Epic          | Feature-area name, label `epic`                                                                           | `authentication`                                         |
-| Issue         | `action`, plus a layer label                                                                              | `add user lookup endpoint` + `backend`                   |
-| Spike         | `spike - question`, labels `spike` + layer                                                                | `spike - evaluate OpenAPI codegen` + `backend`           |
-| Bug           | `what is wrong`, labels `bug` + layer                                                                     | `profile card crashes on empty name` + `frontend`        |
-| Draft         | Any other kind, plus the `draft` label; body may be a stub                                                | `add receipt export` + `backend` + `draft`               |
-| Branch        | `{type}/GHI-{issue-number}_{slug}`                                                                        | `feat/GHI-50_login-form`                                 |
-| Commit header | `{type}: {description} (#{issue-number})`                                                                 | `fix: reject a blank email (#50)`                        |
-| Plan file     | `YYYY-MM-DD_GHI-{issue-number}_{slug}.md`                                                                 | `<repo-root>/docs/plans/2026-08-16_GHI-50_login-form.md` |
-| PR title      | `{type}({scope}): {issue title}` - the scope is the issue's layer label, omitted when it repeats the type | `feat(backend): add user lookup endpoint`                |
-| PR body       | Must contain `Closes #{issue-number}`                                                                     | `Closes #50`                                             |
-| Assignee      | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation             | `--add-assignee @me`                                     |
+| Item | Format | Example |
+| --- | --- | --- |
+| Epic | Feature-area name, label `epic` | `authentication` |
+| Issue | `action`, plus a layer label | `add user lookup endpoint` + `backend` |
+| Spike | `spike - question`, labels `spike` + layer | `spike - evaluate OpenAPI codegen` + `backend` |
+| Bug | `what is wrong`, labels `bug` + layer | `profile card crashes on empty name` + `frontend` |
+| Draft | Any other kind, plus the `draft` label; body may be a stub | `add receipt export` + `backend` + `draft` |
+| Branch | `{type}/GHI-{issue-number}_{slug}` | `feat/GHI-50_login-form` |
+| Commit header | `{type}: {description} (#{issue-number})` | `fix: reject a blank email (#50)` |
+| Plan file | `YYYY-MM-DD_GHI-{issue-number}_{slug}.md` | `<repo-root>/docs/plans/2026-08-16_GHI-50_login-form.md` |
+| PR title | `{type}({scope}): {issue title}` - the scope is the issue's layer label, omitted when it repeats the type | `feat(backend): add user lookup endpoint` |
+| PR body | Must contain `Closes #{issue-number}` | `Closes #50` |
+| Assignee | Issue: `@me` once work has started, cleared when set aside. PR: `@me` always, set at creation | `--add-assignee @me` |
 
 The Branch row is the default; the branch format in force is what `python3 <skill-dir>/../pr-flow/scripts/read-config.py get branch_name_format` prints.
 
@@ -24,13 +24,13 @@ The Branch row is the default; the branch format in force is what `python3 <skil
 
 `{type}` in a branch name is a **Conventional Commits type**, and it is the same vocabulary as the `type:` on a commit header and on a pull request title. One vocabulary across all of them, so a `fix` branch carries `fix:` commits and opens a `fix:` PR.
 
-| Type       | For                                    |
-|------------|----------------------------------------|
-| `feat`     | New behaviour                          |
-| `fix`      | A defect                               |
+| Type | For |
+| --- | --- |
+| `feat` | New behaviour |
+| `fix` | A defect |
 | `refactor` | Restructuring with no behaviour change |
-| `docs`     | Prose                                  |
-| `chore`    | Tooling, dependencies, config          |
+| `docs` | Prose |
+| `chore` | Tooling, dependencies, config |
 
 That set is the default, and the set in force is what `python3 <skill-dir>/../pr-flow/scripts/read-config.py get commit_types` prints; the Conventional Commits ecosystem allows more (`test`, `build`, `ci`, `perf`, `style`). **A repository's existing branch names win over this default** — record the set as `commit_types` in the repository's config if it differs, and a different branch format as `branch_name_format`, per `../pr-flow/references/repo-config.md`.
 

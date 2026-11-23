@@ -12,7 +12,7 @@ The user invoked this skill with the argument: **`$ARGUMENTS`**
 
 This is a **routing skill**. Read `$ARGUMENTS` and the conversation context, pick exactly one workflow, read that workflow file, and follow its instructions inline. Do nothing else.
 
-**Console output is markdown, and a printed table has its cells padded so the columns line up**, header rule included: a terminal that does not render markdown turns an unpadded table into a wall of `|` and `-`, and the alignment is the whole reason a table beats a list there. *Console output* in `../pr-flow/SKILL.md` owns this rule. It is copied here because it binds every line this skill prints, where a pointer is followed only on the path that names it.
+**Console output is markdown, and a printed table is compact, as every table in a file is**: one space each side of a cell's content, and `| --- |` for the header rule. *Console output* in `../pr-flow/SKILL.md` owns this rule. It is copied here because it binds every line this skill prints, where a pointer is followed only on the path that names it.
 
 All paths below are **relative to this skill's own directory**. Resolve them against wherever this skill is installed rather than assuming a location: it ships inside a plugin, so its root is whatever the harness installed the plugin to, and the working directory is the repository being tracked. **A sibling skill of the same plugin resolves as `../<name>/`**, so the `pr-flow` skill's `SKILL.md`, which this file points at for the AI disclaimer's wording among other things, is at `../pr-flow/SKILL.md`. Without that, a pointer at a sibling is unfollowable, and the disclaimer one is on a write path: an agent that cannot find the wording invents a line or omits it, and the omission lands in a public tracker under the owner's name.
 
@@ -69,16 +69,16 @@ No other key is project configuration. `gh` resolves owner and repository from t
 
 These fire on conversation context. Read the matched workflow and execute it inline.
 
-| Conversation signal                                                                                | Workflow                                                                            |
-|----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| A `#50` issue number is named, or the owner asks "what's on this issue", "what's left on this one" | `workflows/status.md`                                                               |
-| "close this issue", "reopen", "mark it in progress", "set it aside", "this is blocked"             | `workflows/state.md`                                                                |
-| "create a milestone", "move the milestone date", "close the milestone"                             | `workflows/state.md`                                                                |
-| "find the issue about X", "which issues are still open", "show me the `bug` ones"                  | `workflows/search.md`                                                               |
-| "give me the next task", "what should I work on", "what am I working on"                           | `workflows/search.md`                                                               |
-| "check this issue against the standards", "is this issue written properly"                         | `workflows/validate.md`                                                             |
-| "break this feature into issues", "write issues for X"                                             | `workflows/create.md`                                                               |
-| "park this as a draft", "finish the draft", "flesh out that draft issue"                           | `workflows/create.md`; the *finish* phrasings enter its *Finishing a draft* section |
+| Conversation signal | Workflow |
+| --- | --- |
+| A `#50` issue number is named, or the owner asks "what's on this issue", "what's left on this one" | `workflows/status.md` |
+| "close this issue", "reopen", "mark it in progress", "set it aside", "this is blocked" | `workflows/state.md` |
+| "create a milestone", "move the milestone date", "close the milestone" | `workflows/state.md` |
+| "find the issue about X", "which issues are still open", "show me the `bug` ones" | `workflows/search.md` |
+| "give me the next task", "what should I work on", "what am I working on" | `workflows/search.md` |
+| "check this issue against the standards", "is this issue written properly" | `workflows/validate.md` |
+| "break this feature into issues", "write issues for X" | `workflows/create.md` |
+| "park this as a draft", "finish the draft", "flesh out that draft issue" | `workflows/create.md`; the *finish* phrasings enter its *Finishing a draft* section |
 
 "I'm done" and "ready for review" are deliberately **not** triggers *here*. A pull request that says `Closes #50` closes the issue on merge without anybody transitioning anything, so reaching for a state change on those phrases would fight the platform. **They belong to the `pr-flow` skill**, which takes them as the signal to run its checks and lift a PR out of draft. Hand them over rather than treating them as unroutable: the phrases have an owner, just not this one.
 

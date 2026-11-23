@@ -16,10 +16,10 @@ Read the body's `## Verification` and verify every box has a tick.
 
 **Any box unticked — stop and ask the owner what to do.** Do not run the missing gate, do not tick the box, and do not reason about whether it probably would have passed. Report which boxes are empty, each by its `V{n}` key per *Keys* in `../tracker/references/formats.md`, and name what an empty box can mean, because the right response differs and only the owner can pick:
 
-| An empty box can mean       | Which needs                                           |
-|-----------------------------|-------------------------------------------------------|
+| An empty box can mean | Which needs |
+| --- | --- |
 | The gate ran and **failed** | A fix, a commit and a push — then this workflow again |
-| The gate was **never run**  | Someone to run it; the owner decides who and when     |
+| The gate was **never run** | Someone to run it; the owner decides who and when |
 
 ### What the audit never does
 

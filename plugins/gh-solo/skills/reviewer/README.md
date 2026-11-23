@@ -60,12 +60,12 @@ The `pr-flow` skill's `../pr-flow/references/reviewer-appointment.md` owns what 
 
 ## Layout
 
-| Path                     | Holds                                                                                                          |
-|--------------------------|----------------------------------------------------------------------------------------------------------------|
-| `SKILL.md`               | what binds each pass: what a finding carries, the file it returns, the report, and the standing prohibitions   |
-| `workflows/full.md`      | the full pass: what it reads, and the axes it judges on                                                        |
-| `workflows/rescope.md`   | the scoped re-review: the little it reads, its questions, and the verdicts it adds                             |
-| `references/baseline.md` | the engineering baseline for a repository that documents nothing, and where it came from                       |
+| Path | Holds |
+| --- | --- |
+| `SKILL.md` | what binds each pass: what a finding carries, the file it returns, the report, and the standing prohibitions |
+| `workflows/full.md` | the full pass: what it reads, and the axes it judges on |
+| `workflows/rescope.md` | the scoped re-review: the little it reads, its questions, and the verdicts it adds |
+| `references/baseline.md` | the engineering baseline for a repository that documents nothing, and where it came from |
 
 ## Install
 
