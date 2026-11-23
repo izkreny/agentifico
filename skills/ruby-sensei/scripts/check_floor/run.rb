@@ -67,6 +67,9 @@ module CheckFloor
       return if problems.empty?
 
       failures << cop
+      plugin = missing_plugin(cop)
+      return puts("  FAIL #{cop} #{not_installed(plugin)}") if plugin
+
       puts "  FAIL #{cop}: #{problems.join(", ")}"
     end
 
@@ -85,12 +88,19 @@ module CheckFloor
     def watched_problem(cop, home, state)
       return "is now enabled by default: remove its rule from #{home} and add the cop to `owned`" if state
 
-      department = cop.split("/").first
-      plugin = GEMS.find { |_, gem| gem[:department] == department }&.first
-      return "cannot be checked: its plugin #{plugin} is not installed" if plugin && !versions.installed?(plugin)
+      plugin = missing_plugin(cop)
+      return not_installed(plugin) if plugin
 
       "is unknown to this release: check the rule in #{home} against its notes"
     end
+
+    def missing_plugin(cop)
+      department = cop.split("/").first
+      plugin = GEMS.find { |_, gem| gem[:department] == department }&.first
+      plugin unless plugin.nil? || versions.installed?(plugin)
+    end
+
+    def not_installed(plugin) = "cannot be checked: its plugin #{plugin} is not installed"
 
     def finish
       raise Failure, "FAILED: #{failures.join(", ")}" if failures.any?

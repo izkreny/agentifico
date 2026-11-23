@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "bundler"
 require "fileutils"
 require "minitest/autorun"
 require "open3"
@@ -25,9 +26,8 @@ describe "scripts/check_floor.rb" do
 
   after { FileUtils.rm_rf(skill) }
 
-  def write_floor(pinned: "999.0.0", watched: {})
-    owned = { "Core" => ["Lint/Debugger", "Style/GuardClause"] }
-    File.write(floor, { "owned" => owned, "watched" => watched }.to_yaml)
+  def write_floor(pinned: "999.0.0", owned: ["Lint/Debugger", "Style/GuardClause"], watched: {})
+    File.write(floor, { "owned" => { "Core" => owned }, "watched" => watched }.to_yaml)
     File.write(File.join(skill, "Gemfile.lock"), <<~LOCK)
       GEM
         remote: https://rubygems.org/
@@ -38,6 +38,17 @@ describe "scripts/check_floor.rb" do
 
   def check(*)
     Open3.capture2e("bundle", "exec", RbConfig.ruby, File.join(skill, "scripts", "check_floor.rb"), *)
+  end
+
+  def check_without_plugins
+    home = Gem.paths.home
+    Dir.mktmpdir("rubocop-only") do |dir|
+      gemfile = File.join(dir, "Gemfile")
+      File.write(gemfile, "source \"https://rubygems.org\"\ngem \"rubocop\"\n")
+      env = { "BUNDLE_GEMFILE" => gemfile, "GEM_HOME" => home, "GEM_PATH" => home }
+      script = File.join(skill, "scripts", "check_floor.rb")
+      Bundler.with_unbundled_env { Open3.capture2e(env, "bundle", "exec", RbConfig.ruby, script, chdir: dir) }
+    end
   end
 
   it "passes when every owned cop is enabled by default" do
@@ -54,6 +65,14 @@ describe "scripts/check_floor.rb" do
 
     expect(status.success?).must_equal false, out
     expect(out).must_match "FAIL Qxzv/Wqjk is unknown to this release: check the rule in references/methods.md *Names*"
+  end
+
+  it "names the missing plugin of an owned cop" do
+    write_floor(owned: ["Minitest/AssertNil"])
+    out, status = check_without_plugins
+
+    expect(status.success?).must_equal false, out
+    expect(out).must_match "FAIL Minitest/AssertNil cannot be checked: its plugin rubocop-minitest is not installed"
   end
 
   it "fails an owned cop that a config switches off" do
