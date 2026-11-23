@@ -285,18 +285,11 @@ def held_entry(rf=7, at=None, **changes):
     return entry
 
 
-UNRATED = {**FINDING, "severity": "unrated", "axis": "unrated"}
-
 MUST_REFUSE = [
     ("severity outside the scale", with_finding(REVIEW, severity="critical"), 0),
-    ("severity spelled unranked rather than unrated", with_finding(REVIEW, severity="unranked"), 0),
-    ("severity_source outside the two", mutate(REVIEW, severity_source="guessed"), 0),
-    ("derived severities with no basis stated",
-     mutate(REVIEW, severity_source="derived"), 0),
-    ("derived severities with a blank basis",
-     mutate(REVIEW, severity_source="derived", severity_basis="   "), 0),
-    ("a basis stated while the reviewer assigned the levels",
-     mutate(REVIEW, severity_basis="read from the finding text"), 0),
+    ("severity unrated, which no reviewer may give", with_finding(REVIEW, severity="unrated"), 0),
+    ("axis unrated, which no reviewer may give", with_finding(REVIEW, axis="unrated"), 0),
+    ("axes_run naming unrated", mutate(REVIEW, axes_run=["unrated"]), 0),
     ("severity missing", with_finding(REVIEW, severity=None), 0),
     ("side neither RIGHT nor LEFT", with_finding(REVIEW, side="BOTH"), 0),
     ("axis outside the set", with_finding(REVIEW, axis="performance"), 0),
@@ -324,19 +317,10 @@ MUST_REFUSE = [
     ("verdict with an empty why", mutate(RERdefault, verdicts=[{"rf": 3, "closed": True, "why": " "}]), 0),
     ("verdict closed not a boolean", mutate(RERdefault, verdicts=[{"rf": 3, "closed": "yes", "why": "x"}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
-    # A level the reviewer never gave, published as the reviewer's, is a derivation made and not stated, the half of the protocol's rule this case guards.
-    ("unrated severity while severity_source is reviewer",
-     mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED]), 0),
 ]
 
 MUST_BUILD = [
     ("one valid finding", REVIEW, 0, ["RF1", "round record"], None),
-    # Without both fields this fixture exercised a round claiming the reviewer assigned `unrated` itself, which no legitimate producer can emit.
-    ("an unrated finding from an appointed command",
-     mutate(REVIEW, axes_run=["unrated"], findings=[UNRATED],
-            severity_source="derived",
-            severity_basis="unrated throughout: the appointed command supplies no level"),
-     0, ["RF1", "\u26aa", "arrived unrated", "round record"], None),
     ("continues from the highest id on the pull request", REVIEW, 7, ["RF8"], None),
     ("zero findings still builds the record", mutate(REVIEW, findings=[]), 0,
      ["no findings"], None),
@@ -353,10 +337,6 @@ MUST_BUILD = [
      mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "0 held"], MODE_DIFF),
     ("a binary-only range still names its file",
      mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "1 held"], BINARY_DIFF),
-    ("derived severities with a basis, which the record must publish",
-     mutate(REVIEW, severity_source="derived",
-            severity_basis="high where the branch does not do what the PR body claims"),
-     0, ["The severity basis", "does not do what the PR body claims"], None),
     # The finding points at a line only the unpushed fix commits carry, so it stays out of the `comments` array, which is what stops the atomic call answering 422.
     ("re-review whose new defect is on a file the fixes touched",
      mutate(RERdefault, findings=[FINDING]), 3,
@@ -437,6 +417,8 @@ cases = [
      "--head-now is not a commit sha"),
     ("a reported head that is not a sha",
      mutate(REVIEW, head="the-head"), PIN, PIN, "head is not a commit sha"),
+    ("a review pass whose reviewer reported no head",
+     mutate(REVIEW, head=None), PIN, PIN, "head is missing on a review pass"),
     ("--pinned-head on a re-review",
      mutate(RERdefault, findings=[FINDING]), PIN, None,
      "--pinned-head was given on a re-review"),
@@ -457,11 +439,8 @@ for name, data, pin, now, wants in cases:
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 print("\nthe record must say which head was reviewed (exit 0):")
-# A round that could not corroborate the pin must not read afterwards as one that did.
 cases = [
-    ("a corroborated pin says so", REVIEW, ["Reviewed at", PIN, "corroborated by the reviewer"]),
-    ("a reviewer reporting no head is not refused, and the row says uncorroborated",
-     mutate(REVIEW, head=None), ["Reviewed at", PIN, "not corroborated"]),
+    ("the record names the pin", REVIEW, ["Reviewed at", PIN]),
 ]
 for name, data, wants in cases:
     slug = "rh-" + "".join(c if c.isalnum() else "-" for c in name)

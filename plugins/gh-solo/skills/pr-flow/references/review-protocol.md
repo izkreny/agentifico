@@ -21,7 +21,7 @@ Each cell of the table states its own rule, prohibitions included, so a row read
 
 **The reviewer is a pure function: a PR number and the head to read in, one findings file out.** It is forbidden to write to the PR - a rule rather than a wall, because its bare `Bash` grant cannot express read-only - and it has no knowledge of this protocol's conventions - not the disclaimer, not the `via` line, not `RF` ids. It fetches its own context rather than being handed a summary, because evidence chosen by the author of the code is not independent evidence. **What it fetches depends on which entrance it came in by**, and the reviewer skill has one workflow file per entrance owning that list; a second copy here would drift from it.
 
-**A repository may appoint its own reviewer, and one form of appointment is invoked rather than spawned.** What holds across every form is the shape of the seam: the findings reach the orchestrator and the orchestrator posts them, so there is one writer and one set of conventions however the reading was done. `references/reviewer-appointment.md` owns each form and the file's shape.
+**Which reviewer runs, and what a repository may set about it, is `references/reviewer-appointment.md`'s to say.** The findings reach the orchestrator and the orchestrator posts them, so there is one writer and one set of conventions. The reviewer skill's *The findings file* owns the file's shape.
 
 ## The finding key
 
@@ -33,7 +33,6 @@ Each cell of the table states its own rule, prohibitions included, so a row read
 ### Severity and scenario
 
 - **Severity is `high`, `medium` or `low`, assigned by the reviewer**, and rendered with its emoji when posted: 🔴 high, 🟡 medium, 🔵 low. It is assigned rather than mapped: the reviewer's brief states the scale, so nothing has to translate one vocabulary into another.
-- **A reviewer that supplies no level is a real case, and it has exactly one honest answer.** Where a repository appoints a reviewer that cannot assign one, the orchestrator reads a level out of each finding's own account of what goes wrong, and **the record Review states the basis it used**. The value `unrated` carries a finding whose text supports no judgement at all. What is forbidden is a level whose source is not stated: a derived level published as though the reviewer gave it is the one failure this rule exists to prevent, and the posting script refuses a round that claims a derivation it did not make, or makes one it does not state.
 - **Every finding carries a failure scenario**: concrete inputs or state, then the wrong output. This is what makes a finding falsifiable, and it is what the orchestrator checks before it changes any code.
 - **No finding says how to fix itself.** The reviewer is forbidden from suggesting a fix, because a suggested fix anchors the fixer, who knows the code better than the reviewer does. What closes a finding is decided at step 3 and stated there.
 
