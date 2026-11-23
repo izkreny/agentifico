@@ -16,25 +16,25 @@ This repository is canonical from the merge on, per Step 1 of `skills/agents-gur
 
 ## Steps
 
-- Copy the skill's directory into `skills/ruby-sensei/` (new) unchanged, as its own commit.
-- Replace the README's install section with `npx skills add izkreny/agentifico -g -y -s ruby-sensei` and the sentence naming the skills CLI.
-- Grep the copy for the author's username and home directory, expecting hits only in the install command and the README's byline.
-- Run `npm --prefix skills/agents-guru ci`, then watch the agents-guru check fail on a scratchpad copy whose description is a plain scalar carrying a space and a `#`, and record the red run in the commit body.
-- Run the agents-guru check on `skills/ruby-sensei` until it exits zero.
-- In `.agents/gh-solo.md`, add the `ruby-sensei` row to the label table, its exclusion to the mandatory-axis audit query, and `skills/ruby-sensei` to the agents-guru check's list. The issue's technical notes record the owner's approval for this edit.
-- Add a `ruby-sensei` row to the package table in the root `README.md`, approved by the owner with the issue.
-- Run the sweep with the invocation the issue gives, and record its findings on the issue with short ids.
-- Fix each finding in a commit citing its id, or refute it per `skills/agents-guru/workflows/review.md` Step 5.
-- Resume the sweep reviewer on the fix commits for a verdict per finding, and record the verdicts on the issue.
+- ::S1:: Copy the skill's directory into `skills/ruby-sensei/` (new) unchanged, as its own commit.
+- ::S2:: Replace the README's install section with `npx skills add izkreny/agentifico -g -y -s ruby-sensei` and the sentence naming the skills CLI.
+- ::S3:: Grep the copy for the author's username and home directory, expecting hits only in the install command and the README's byline.
+- ::S4:: Run `npm --prefix skills/agents-guru ci`, then watch the agents-guru check fail on a scratchpad copy whose description is a plain scalar carrying a space and a `#`, and record the red run in the commit body.
+- ::S5:: Run the agents-guru check on `skills/ruby-sensei` until it exits zero.
+- ::S6:: In `.agents/gh-solo.md`, add the `ruby-sensei` row to the label table, its exclusion to the mandatory-axis audit query, and `skills/ruby-sensei` to the agents-guru check's list. The issue's technical notes record the owner's approval for this edit.
+- ::S7:: Add a `ruby-sensei` row to the package table in the root `README.md`, approved by the owner with the issue.
+- ::S8:: Run the sweep with the invocation the issue gives, and record its findings on the issue with short ids.
+- ::S9:: Fix each finding in a commit citing its id, or refute it per `skills/agents-guru/workflows/review.md` Step 5.
+- ::S10:: Resume the sweep reviewer on the fix commits for a verdict per finding, and record the verdicts on the issue.
 
 ## Verification
 
-- `python3 plugins/gh-solo/skills/pr-flow/scripts/plan-check.py $(git diff --name-only origin/main...HEAD -- docs/plans)`
-- `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md .agents/dependencies.md AGENTS.md $(git diff --name-only origin/main...HEAD -- docs/plans) --plans docs/plans`
-- `python3 scripts/version-check.py`
-- `node skills/agents-guru/scripts/check.js skills/ruby-sensei`
-- `ruby -c skills/ruby-sensei/scripts/check_floor.rb`
-- `BUNDLE_GEMFILE=skills/ruby-sensei/Gemfile bundle exec ruby -e 'ARGV.each { require File.expand_path(it) }' skills/ruby-sensei/scripts/test/*_test.rb`
+- ::V1:: `python3 plugins/gh-solo/skills/pr-flow/scripts/plan-check.py $(git diff --name-only origin/main...HEAD -- docs/plans)`
+- ::V2:: `python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .agents/gh-solo.md .agents/dependencies.md AGENTS.md $(git diff --name-only origin/main...HEAD -- docs/plans) --plans docs/plans`
+- ::V3:: `python3 scripts/version-check.py`
+- ::V4:: `node skills/agents-guru/scripts/check.js skills/ruby-sensei`
+- ::V5:: `ruby -c skills/ruby-sensei/scripts/check_floor.rb`
+- ::V6:: `BUNDLE_GEMFILE=skills/ruby-sensei/Gemfile bundle exec ruby -e 'ARGV.each { require File.expand_path(it) }' skills/ruby-sensei/scripts/test/*_test.rb`
 
 The version check sees a new package, so it passes on any version, and `1.0.0` is checked by reading the frontmatter. `ruby -c` proves the floor check parses, not that it passes: running it needs a bundle holding the versions `skills/ruby-sensei/assets/floor.yml` (new) records, which is installed only on the owner's approval and only if a sweep fix touches a rule the floor covers. No gate can say whether a rule is right, which the sweep and the owner's own reading of the pull request judge. The README's install command cannot resolve until the branch merges, because the skills CLI reads the default branch.
 
