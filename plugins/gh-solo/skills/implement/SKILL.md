@@ -22,7 +22,7 @@ All paths below are **relative to this skill's own directory**. Resolve them aga
 
 ## Where this sits
 
-This skill is the implementation stage of a branch's life, the node the `pr-flow` and `tracker` lifecycle diagrams name *implement*. Everything around it stays there: `open` created the draft PR this skill requires, `ready` audits what this skill leaves behind, `review` and `merge` come later. **You never do their work from here** - never lift the draft, never post a review, never merge.
+This skill is the implementation stage of a branch's life, the node the `pr-flow` and `tracker` lifecycle diagrams name *implement*. Everything around it stays there: `plan` created the draft PR this skill requires, `ready` audits what this skill leaves behind, `review` and `merge` come later. **You never do their work from here** - never lift the draft, never post a review, never merge.
 
 It is also written to be **resumable across sessions**: all state lives on the PR and the branch - ticked boxes, commits - and none in the session. A fresh session picks up mid-implementation by reading that state, which is what `workflows/implement.md` Step 2 does.
 
@@ -59,10 +59,13 @@ The workflows share these; each is stated once here.
 
 ## Routing
 
+**A workflow here starts only when the owner's own message names its word**, per *Routing* in `../pr-flow/SKILL.md`, which owns the rule. The words are this skill's slash command, and `implement`, `:im` and `fix` through `pr-flow`. An argument the agent composed from a sentence is none of them, while a workflow that enters this skill by name carries the word that started its chain.
+
 - If the argument starts with `fix` → read `workflows/fix.md` and follow it. The rest of the argument is the PR number and, when the owner named them, which findings stand.
-- Otherwise → read `workflows/implement.md` and follow it. The argument is the PR number; without one, the PR of the checked-out branch.
+- If the argument is a PR number, or empty → read `workflows/implement.md` and follow it. Without a number, the PR is the checked-out branch's.
+- Otherwise → start nothing, and name the nearest word, as `:im 60 (implement)`.
 
 ## Supporting files
 
-- **`workflows/implement.md`** - the plan-to-commits work: locate, settle the plan record, establish where the branch stands, implement step by step, verify as the last act, push, hand off to `ready review`
+- **`workflows/implement.md`** - the plan-to-commits work: locate, settle the plan record, establish where the branch stands, implement step by step, verify as the last act, push, hand off to `ready-review`
 - **`workflows/fix.md`** - the fix entrance, from a review round's step 4, from a reply round's order, or from the owner naming what stands: land the findings as review-fix commits grouped by coherent change, re-run what they invalidated, leave the threads for the owner

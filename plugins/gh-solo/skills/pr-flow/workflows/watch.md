@@ -39,4 +39,4 @@ Only these end a watch, and the owner needs to know `unwatch` at minimum. A `rep
 
 **A fired event is a notification, not the data.** The REST line has no thread grouping and no resolution state, so on any event go to `workflows/discuss.md` Step 1 and read every surface properly. Do not answer from the notification text.
 
-**Watching is optional and adds nothing except immediacy.** The owner saying "I replied on the PR" reaches the same place. If a watch was never armed, nothing is lost.
+**Watching is optional and adds nothing except immediacy.** The owner typing `reply` reaches the same place. If a watch was never armed, nothing is lost.

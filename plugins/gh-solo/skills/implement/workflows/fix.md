@@ -5,7 +5,7 @@ Land review fixes on a branch whose review round has posted findings. This is th
 **The entrances differ in where the work list comes from.**
 
 - **The review round's step 4**, run by the orchestrator inside the round's unattended block. The work list is the fix plans it posted at step 3, which is every finding except the kinds the protocol routes to the owner instead. **Nothing has been judged yet, and that is the design**: the round's own step 5 re-review is what checks each fix closed the finding it claims, because the fixes were made by the author of the code under review with nobody watching.
-- **The owner naming what stands**, after they have read the threads at step 6. "fix all", "fix RF1 and RF3, skip RF2". Their words are the whole scope.
+- **The owner naming what stands**, after they have read the threads at step 6. `fix 60` for every finding, `fix 60 RF1 RF3` for the ones named. Their words are the whole scope.
 - **An order inside one thread**, from a reply round, which enters here for the repository's own gates rather than for the whole workflow. The scope is that one order, the thread is its own; Steps 2, 4, 5 and 6 apply unchanged, and the departure clause in Step 3 and the id map in the handoff apply only where a fix plan and an `RF{n}` exist. That round owns its own reply wording.
 
 The round, its steps and its caps are the review round protocol in the `pr-flow` skill.
@@ -63,7 +63,7 @@ Most rounds change nothing here: a fix that corrects an implementation without c
 
 ## Step 6 - Hold the push
 
-**Do not push.** The owner may still be mid-read, and a push moves the diff and marks their threads outdated beneath them. The commits wait locally until the owner says, in the session, "resolve all and push", or types `:rp`; the resolve, the push and the CI read are that protocol's step 7, owned by `pr-flow`.
+**Do not push.** The owner may still be mid-read, and a push moves the diff and marks their threads outdated beneath them. The commits wait locally until the owner types `:rp` in the session; the resolve, the push and the CI read are that protocol's step 7, owned by `pr-flow`.
 
 ## Step 7 - Hand off
 
@@ -71,4 +71,4 @@ Open with the verdict line - `✅ ALL PASS` when every standing finding is fixed
 
 Then the map the owner re-reads by: each finding (`RF{n}`, `file:line`) to the commit or key answering it, which gates were re-run and re-ticked, and that every commit is **local and unpushed** - so the threads stay anchored to the exact diff the owner is still reading, which is the point of holding the push. **Post that map as a PR comment first** (`gh pr comment <pr-number> --body-file <body-file>`, disclaimer and `via` line first, the latter reading: via `implement` fix, the fix map): the owner walks the threads on GitHub, and the map is most useful on the page being walked, where it outlives the session. Its rows are a record row, which *Never counted* in the `pr-flow` skill's `../pr-flow/references/post-caps.md` excludes, so the cap bounds only the prose around them.
 
-End by naming what releases the commits, per the review-protocol reference in the `pr-flow` skill: the owner typing **`:rp`**, or saying **"resolve all and push"**, once they have been through the threads, which is that protocol's step 7 and the round's only push. Until they say it, nothing leaves the machine. On the round's step 4 this is not the next thing that happens - step 5's re-review is - so say which entrance this was and what follows it.
+End by naming what releases the commits, per the review-protocol reference in the `pr-flow` skill: the owner typing **`:rp`** once they have been through the threads, which is that protocol's step 7 and the round's only push. Until they type it, nothing leaves the machine. On the round's step 4 this is not the next thing that happens - step 5's re-review is - so say which entrance this was and what follows it.

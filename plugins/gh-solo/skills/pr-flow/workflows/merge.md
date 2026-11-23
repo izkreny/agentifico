@@ -4,13 +4,13 @@ Land a reviewed PR on `main` and clean up after it. This is the last step of a b
 
 ## Step 1 - Confirm it was actually reviewed
 
-**First, confirm nothing is still sitting local.** Every other gate in this step reads the *remote* PR, so this is the check that can catch a review round whose fix commits were never pushed - the protocol in `references/review-protocol.md` deliberately holds them local until the owner authorises the push at its step 7, and "merge it" said mid-round would otherwise pass every remote gate green and land the branch without its fixes. Where the branch exists locally:
+**First, confirm nothing is still sitting local.** Every other gate in this step reads the *remote* PR, so this is the check that can catch a review round whose fix commits were never pushed - the protocol in `references/review-protocol.md` deliberately holds them local until the owner authorises the push at its step 7, and `merge` typed mid-round would otherwise pass every remote gate green and land the branch without its fixes. Where the branch exists locally:
 
 ```bash
 git fetch <remote> && git log <remote>/<branch>..<branch> --oneline
 ```
 
-Any output is a refusal: `⛔ REFUSED - {n} unpushed commit(s) on {branch}`, naming `:rp`, or "resolve all and push" - the protocol's step 7 - as what releases them. Where the branch is not in any local tree, compare `gh pr view <pr-number> --json headRefOid` against `git rev-parse <branch>` if the ref exists at all, and otherwise say plainly that local state could not be checked rather than implying it was.
+Any output is a refusal: `⛔ REFUSED - {n} unpushed commit(s) on {branch}`, naming `:rp` - the protocol's step 7 - as what releases them. Where the branch is not in any local tree, compare `gh pr view <pr-number> --json headRefOid` against `git rev-parse <branch>` if the ref exists at all, and otherwise say plainly that local state could not be checked rather than implying it was.
 
 **Then confirm the repository still backs the merge:**
 

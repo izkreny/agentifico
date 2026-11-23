@@ -51,9 +51,9 @@ If the count equals the limit exactly, say the result is probably truncated and 
 
 ---
 
-## "Give me the next task"
+## `next`
 
-A distinct request from a search, and worth its own procedure. "Next task", "next ticket" and "what should I pick up" are one question: which open issue is ready to start.
+A distinct request from a search, and worth its own procedure. `next` asks one question: which open issue is ready to start.
 
 **First, say what is already in progress.** More than one issue can carry `@me` at once, and the honest answer to "what next" sometimes is "finish one of these three".
 

@@ -203,7 +203,7 @@ One line: the issue number, the branch, the plan file path, and the PR URL with 
 
 The plan is the thing being reviewed, and it is cheaper to argue with as a diff on a PR than as a wall of chat. **Plan approval authorises the plan artifact, never the first implementation commit.** Wait for the discussion the open questions were written to start.
 
-**The one continuation that may pass this stop is the `auto` chain** in `workflows/auto.md`: there the owner's typed command waived this wait in advance, and the chain goes on into implementation. Anything else - including an `open` run on its own, however obvious the next step looks - ends here.
+**The one continuation that may pass this stop is the `auto` chain** in `workflows/auto.md`: there the owner's typed command waived this wait in advance, and the chain goes on into implementation. Anything else - including a `plan` run on its own, however obvious the next step looks - ends here.
 
 **Say where that discussion happens, because only one tab threads.** The owner comments inline on the plan's lines in the PR's **Files changed** tab - that is the surface that threads and resolves. Review bodies and Conversation comments are read too, per `workflows/discuss.md`, but they cannot be resolved and their answers land as flat Conversation comments, so inline stays the recommendation rather than the requirement. Replies come through `workflows/discuss.md`, in the threads; mention that `watch <pr-number>` exists for answers as they post, and per that file only the owner typing the command arms it.
 

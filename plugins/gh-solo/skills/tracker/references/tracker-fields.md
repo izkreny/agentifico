@@ -80,7 +80,7 @@ A draft may skip the body template. Overview, acceptance criteria, technical not
 
 `draft` is not `someday`. Priority says when, readiness says whether the spec exists, and the axes are independent as always: a draft can be `urgent`, and a fully specified issue can wait forever.
 
-Remove the label the moment the description is finished, and run the split test then, so a finished draft can leave as an epic with children rather than as one oversized issue. Until the label comes off, the issue is invisible to "next task" in `workflows/search.md`, which is the point: a draft cannot be started, only finished.
+Remove the label the moment the description is finished, and run the split test then, so a finished draft can leave as an epic with children rather than as one oversized issue. Until the label comes off, the issue is invisible to `next` in `workflows/search.md`, which is the point: a draft cannot be started, only finished.
 
 ### Never label the default
 

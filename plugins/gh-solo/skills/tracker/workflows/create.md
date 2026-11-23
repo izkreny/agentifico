@@ -133,4 +133,4 @@ This section is entered directly by `finish`, so it carries Steps 2 to 4 with it
 3. **Run the split test now** - *How big is one issue* in `references/issue-shape.md`. This is the moment `workflows/create.md`'s plan gate deferred it to, and nothing downstream runs it again.
 4. **If it passes as one issue**: update the body, then `gh issue edit <issue-number> --remove-label draft`. **If it fails**: the draft becomes an epic with children - present that split through the same Step 5 confirm gate, create the children on confirmation, and relabel the original (`--add-label epic`, `--remove-label draft`, layer label off per the epic exemption).
 
-Removing the label is what makes the issue visible to "next task" in `workflows/search.md` again, so it is the last step, after the body is true.
+Removing the label is what makes the issue visible to `next` in `workflows/search.md` again, so it is the last step, after the body is true.

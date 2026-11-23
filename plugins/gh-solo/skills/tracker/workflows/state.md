@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(gh:*)` for `gh issue close` / `reopen` / `edit` / `develop`, `Bash(git:*)` for branch context.
 
-Move an issue's state: close it, reopen it, record that it is blocked, or start work on it.
+Move an issue's state: close it, reopen it, record that it is blocked, start work on it, or pause that work.
 
 Deliberately absent rather than emulated: **there is no time logging**, and **no story-point gate on any transition**. Each serves an audience this repository does not have. If the owner asks to log hours, say plainly that GitHub has no worklog and ask whether they want a comment on the issue instead.
 
@@ -23,8 +23,6 @@ Do not skip this. Closing a closed issue and reopening an open one both succeed 
 ## Step 3 - Do what was asked
 
 **One state change per invocation.** If the owner asks for two, do them in sequence and confirm each.
-
-**A state change reached by an auto-trigger rather than a typed verb states the command and waits.** `SKILL.md`'s trigger table fires this workflow on ordinary phrasing - "mark it in progress", "set it aside", "this is blocked" - so an aside can otherwise add a dependency and a label to a real issue, with Step 4 reporting it afterwards. Print the exact `gh` command and the issue it names, and run nothing until the owner says so. A typed verb needs no such gate: it is already their instruction. `workflows/create.md` gates creation the same way, on the same grounds.
 
 ### Start work
 
