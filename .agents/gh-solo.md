@@ -186,12 +186,18 @@ bash plugins/gh-solo/skills/pr-flow/scripts/test-watch.sh
 bash plugins/gh-solo/skills/pr-flow/scripts/test-read-config.sh
 ```
 
-#### The setup bench
+#### The setup and settings benches
 
 **The setup script's bench**, after any edit to `plugins/gh-solo/skills/setup/scripts/setup.py`, its template `plugins/gh-solo/skills/setup/assets/gh-solo.md` or `plugins/gh-solo/skills/pr-flow/scripts/read-config.py`, whose lookup it imports:
 
 ```bash
 bash plugins/gh-solo/skills/setup/scripts/test-setup.sh
+```
+
+**The settings gate's bench**, after any edit to `plugins/gh-solo/skills/pr-flow/scripts/settings-check.py` or `plugins/gh-solo/skills/setup/scripts/setup.py`, whose expected values and protection test it loads:
+
+```bash
+bash plugins/gh-solo/skills/pr-flow/scripts/test-settings-check.sh
 ```
 
 #### The criteria, keys and trunk-push benches

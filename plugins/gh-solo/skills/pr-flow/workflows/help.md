@@ -76,7 +76,7 @@ Two kinds of thread wait for you specifically, and the round will have said whic
 
 ## Hard rules
 
-Never commit or push directly to `main`, and never omit a merge method - `--squash` on `gh pr merge`, `--squash` on `gh stack merge`. Both fall back to something other than policy when it is left off.
+Never commit or push directly to `main`, and never omit a merge method - `--squash` on `gh pr merge`, `--squash` on `gh stack merge`. Left off, either one may ask or fail instead of running unattended.
 
 ## Stacking is for one case only
 
