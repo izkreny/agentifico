@@ -86,7 +86,7 @@ The reviewer is spawned again with the fix commit *range*, the findings list, an
 
 - **Each loop is capped, because no owner is watching.** A finding the re-review says is not closed gets **one** further plan-and-fix attempt; a second failure sends the thread to the owner instead, since two failures mean the finding is not understood and a third machine attempt costs more than reading it. A new defect the re-review raises gets a fix plan and a fix, and that fix is re-reviewed once, never recursively.
 - **One batched pass covers the loops together, never one pass per thread.** Every retry and every new-defect fix lands first, and then a single scoped spawn reads the whole range and answers about all of them. Per thread, the spawn count would follow how many findings a pass happened to raise.
-- **So the reviewer is spawned three times at most in a round:** the full pass at step 1, the scoped re-review here, and the one batched pass these loops get. What a pull request's own total is follows from that figure and the full passes it has had, since `authorise` under *The pass cap* in `references/pass-cap.md` buys a further pass and a further round with it.
+- **So the reviewer is spawned three times at most in a round:** the full pass at step 1, the scoped re-review here, and the one batched pass these loops get. What a pull request's own total is follows from that figure and the full passes it has had, since `approve` under *The pass cap* in `references/pass-cap.md` buys a further pass and a further round with it.
 
 ### 6. The owner judges
 
