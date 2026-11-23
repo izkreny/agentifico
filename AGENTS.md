@@ -12,6 +12,7 @@ This file is for any agent working in this repository, whatever its harness, and
 | `plugins/<name>/` | one plugin, with its own manifest, skills, agents and hooks |
 | `skills/<name>/` | a skill that ships on its own, outside any plugin |
 | `docs/plans/` | one implementation plan per branch |
+| `docs/walkthrough.md` | the repository and the gh-solo loop, in diagrams |
 | `scripts/` | this repository's own checks, and their benches |
 | `.agents/gh-solo.md` | the per-repository facts the `gh-solo` plugin reads |
 | `.agents/dependencies.md` | what an update round covers, and how each dependency moves |

@@ -19,6 +19,30 @@ AI agent skills, instructions and gotchas. Each package here is published one of
 
 Each package's own README has its requirements and the full picture.
 
+A plugin reaches you through the marketplace manifest. A standalone skill reaches you through a skill manager, into any agent that reads the Agent Skills format.
+
+```mermaid
+flowchart LR
+    subgraph plugins["plugins/"]
+        GS["gh-solo"]
+        TNL["typescript-native-lsp"]
+    end
+    subgraph skills["skills/"]
+        RS["rails-style"]
+        RT["review-text"]
+        AG["agents-guru"]
+        ST["socratic-tutor"]
+        AP["action-policy-guru"]
+        GG["glossary-guru"]
+    end
+    plugins --> MP[".claude-plugin/marketplace.json"]
+    MP --> CC(["Claude Code · claude plugin install"])
+    skills --> SM["a skill manager · npx skills add"]
+    SM --> ANY(["any agent that reads Agent Skills"])
+```
+
+[`docs/walkthrough.md`](docs/walkthrough.md) shows the rest in diagrams: the gh-solo loop, the review round, how an epic ships and how a package is released.
+
 ## Install
 
 Each package's own README has its installation instructions.
