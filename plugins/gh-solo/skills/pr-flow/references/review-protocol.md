@@ -71,7 +71,7 @@ The fixes land as commits grouped by coherent change, each naming the `RF{n}` id
 - **Steps 3 and 4 are two posts and are never merged into one**, even though nothing reads them in between. The gap between the plan and the result is where a departure from the plan is visible; combined, it has nowhere to show.
 - **The fix workflow's carve-out applies to every fix in this block**: a fix the owner might independently reject gets its own commit. There it is the exception; here it is the rule, because nothing in this block has been judged yet.
 - Any gate in `## Verification` the fixes could have invalidated is re-run and re-ticked by whoever ran it, per the standing convention in `SKILL.md`.
-- **A fix that changes what the `## Plan overview` describes brings the overview up to date in the same round.** The overview summarises what the branch does, so a fix that adds or removes a behaviour makes it wrong - and wherever the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `references/repo-settings.md`, that text becomes the squash commit message on `main` and can never be corrected afterwards. The edit is a body edit, read-modify-write per the body-edit convention in `SKILL.md`, never a commit, and it stays inside the cap *Body caps* in `workflows/open.md` sets for it. Name it in the round report next to the fix commits.
+- **A fix that changes what the `## Plan overview` describes brings the overview up to date in the same round.** The overview summarises what the branch does, so a fix that adds or removes a behaviour makes it wrong - and wherever the repository sets `squash_merge_commit_message` to `PR_BODY`, per *Repository settings this assumes* in `references/repo-settings.md`, that text becomes the squash commit message on `main` and can never be corrected afterwards. The edit is a body edit, read-modify-write per the body-edit convention in `SKILL.md`, never a commit, and it stays inside the cap *Body caps* in `workflows/plan.md` sets for it. Name it in the round report next to the fix commits.
 - The mechanics are the `implement` skill's fix workflow, run by the orchestrator rather than handed to anyone.
 
 ### 5. Re-review, scoped
@@ -143,12 +143,12 @@ How they answer a thread at step 6. **Approval may be a word or a reaction; refu
 | Say "OK", "good", "cool" in the session, naming the finding | Accepted. A bare word naming nothing is not a signal on any thread |
 | React 👍 `THUMBS_UP` or ❤️ `HEART` | Accepted. Exact synonyms of each other and of the words said in the session |
 | React 👀 `EYES` or 😕 `CONFUSED`, or write "explain" or "?!?" | One canned question, answered in the thread: *"I do not understand. Explain to me like a non-technical person, but use real code names."* The reaction and the word mean exactly the same thing, so neither gets a different answer from the other |
-| Write a reply | A discussion. `workflows/discuss.md` classifies and answers it |
+| Write a reply | A discussion. `workflows/reply.md` classifies and answers it |
 | Nothing, or any other reaction | No signal. Step 7's batch covers it |
 
 - **Every other reaction is no signal, not an unknown to stop and ask about.** 👎 included: it is not a refusal, because a refusal is always written.
 - **Which comment carries the reaction decides what it refers to**, since a thread holds the finding, the fix plan and the fix result. A question on the finding asks about the finding; on the fix plan, about the plan; on the fix result, about what changed.
-- **Only the owner's reactions count**, so a reaction is judged by who left it, never by the comment it sits on. Every agent post is made with the owner's credentials and so carries their login, which means no test on a *comment's* author can tell agent from human, and a mentor's 👍 is not an authorisation. `workflows/discuss.md` owns how they are read.
+- **Only the owner's reactions count**, so a reaction is judged by who left it, never by the comment it sits on. Every agent post is made with the owner's credentials and so carries their login, which means no test on a *comment's* author can tell agent from human, and a mentor's 👍 is not an authorisation. `workflows/reply.md` owns how they are read.
 
 ## The conclusions
 

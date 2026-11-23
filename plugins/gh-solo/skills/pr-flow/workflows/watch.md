@@ -1,6 +1,6 @@
 > **Tools used:** `Bash(python3:*)` to run `scripts/watch.py`, which makes the thread reads itself, `Monitor` to run it, `TaskStop` to end it.
 
-Poll a pull request for the owner's replies and reactions while they read a round at their own pace, and answer each as it lands. Armed by the literal `watch` command, or by `auto` and `go` when they reach the round's step 6. Answering itself is `workflows/discuss.md`; this file is the loop and what ends it.
+Poll a pull request for the owner's replies and reactions while they read a round at their own pace, and answer each as it lands. Armed by the literal `watch` command, or by `auto` and `go` when they reach the round's step 6. Answering itself is `workflows/reply.md`; this file is the loop and what ends it.
 
 ## Arming it, on the `watch` command and nothing else
 
@@ -22,7 +22,7 @@ Nothing about this is a preference:
 
 - **The interval `scripts/watch.py` sets is slow on purpose.** Reading a diff takes minutes, so a shorter interval multiplies polls without shortening the wait. The rate limits are not the reason — a `reviewThreads` query costs 1 point of 5000 an hour.
 - **Emit only new human comments - the owner's or the mentor's.** No heartbeat, no "still waiting", and never the workflow's own posts. Every emitted line becomes a message in the conversation, and a monitor that talks too much is stopped automatically - so the budget that actually binds is the context window, not GitHub. Filtering on "not the agent" instead of "the owner" is what lets a mentor's comment wake a round; the emitted login says who wrote it.
-- **A reaction that is removed again is invisible to it**, since the emit already happened. That is one more reason a fired event is only a notification, and the full read in `workflows/discuss.md` Step 1 is the authority.
+- **A reaction that is removed again is invisible to it**, since the emit already happened. That is one more reason a fired event is only a notification, and the full read in `workflows/reply.md` Step 1 is the authority.
 - **`persistent: true`, with the cost stated.** A watch that outlives the reading session is a watch nobody remembers arming, and that cost is real and accepted: a timeout short enough to prevent it - an hour, say - cannot span a review round, so it would expire mid-read and be worse than useless. The owner chose immediacy, per *The watch survives the round* in `references/review-protocol.md`. Mitigate rather than rely on a timeout: every round report prints the armed state, step 7 stops the watch explicitly, and a monitor dies with the session regardless.
 
 ## Stopping it
@@ -37,6 +37,6 @@ Only these end a watch, and the owner needs to know `unwatch` at minimum. A `rep
 
 **Say how to stop it in the same breath as arming it.** A background process the owner cannot confidently stop is worse than no background process, and they will not have this file open.
 
-**A fired event is a notification, not the data.** The REST line has no thread grouping and no resolution state, so on any event go to `workflows/discuss.md` Step 1 and read every surface properly. Do not answer from the notification text.
+**A fired event is a notification, not the data.** The REST line has no thread grouping and no resolution state, so on any event go to `workflows/reply.md` Step 1 and read every surface properly. Do not answer from the notification text.
 
 **Watching is optional and adds nothing except immediacy.** The owner typing `reply` reaches the same place. If a watch was never armed, nothing is lost.
