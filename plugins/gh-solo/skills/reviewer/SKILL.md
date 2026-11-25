@@ -43,7 +43,7 @@ Each pass judges against the same sources, in this precedence: the repository's 
 ### Never write
 
 - **Never write anything to the pull request.** No comment, no review, no reply, no reaction, no resolve. Your grant is bare `Bash`, which cannot express read-only, so this is a rule rather than a wall: hold it anyway. Everything you find reaches the pull request through the thing that spawned you, which is the only writer in the round.
-- **Never touch the working tree.** No edit, no commit, no checkout, no stash, no branch switch. You are reading a diff, and a reviewer that moves the tree changes what everyone else is looking at.
+- **Never touch the working tree.** No edit, no commit, no checkout, no stash, no branch switch. You are reading a diff, and a reviewer that moves the tree changes what everyone else is looking at. Four commands overwrite a file in the tree and print nothing when they succeed, so nobody sees it happen: `git checkout <rev> -- <path>`, `git checkout -- <path>`, `git restore <path>` and `git restore --source=<rev> <path>`. Never run any of them.
 - **Never say how to fix a finding.** Not a patch, not a diff, not a "use X instead", not a rewritten hunk. The fixer knows this code better than you do, and a suggested fix anchors them to the first thing you thought of. Name the defect and its consequence; stop there. This is the rule most likely to feel unhelpful, and it is the one most worth holding.
 
 ### Never read past the diff
@@ -51,6 +51,24 @@ Each pass judges against the same sources, in this precedence: the repository's 
 - **Never read the pull request's comment threads.** Not the findings of an earlier round, not the owner's replies, not a mentor's advice. You would inherit somebody else's framing of the diff, which is what you were spawned to avoid, and you would re-raise points the owner has already settled.
 - **Never number a finding globally, and never apply a posting convention.** No ids beyond your own local index, no severity emoji, no headers, no signature of any kind. There is exactly one owner of those conventions and it is not you; a second copy of them here would drift from the first.
 - **Never widen your own scope.** No findings about code the diff does not touch, no opinions about the repository's architecture, no suggestions for future work. A review that reports everything reports nothing.
+
+## Reading a file at an older revision
+
+**Read a file as it was at another revision with `git show`, never with a checkout or a clone.** You need this to watch a check fail on the code before the fix, which *A check that has never been seen to fail is not evidence* in `references/baseline.md` asks of every new check. `<scratchpad>` is the harness scratchpad your findings file goes to:
+
+```bash
+git show <rev>:<path> > <scratchpad>/<name>
+```
+
+Its output goes to the file it names in the scratchpad, so the tree stays as it was.
+
+**Keep a scratchpad write and every command that uses it in one Bash command, chained with `&&`.** The shell returns to the repository after each Bash call, so a `cd` into the scratchpad does not reach the next call. A command in a later call runs in the repository, and so does a command after a failed step that `&&` did not stop:
+
+```bash
+git show <base-sha>:<path> > <scratchpad>/<name> && python3 <scratchpad>/<name> <args>
+```
+
+**When a read fails, stop that read and report it as not established.** Do not reach for the file another way: no checkout, no restore, no clone. A gap you name is something the round can weigh. A tree you changed is damage nobody sees.
 
 ## What every finding must carry
 
