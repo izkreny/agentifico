@@ -81,7 +81,6 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 
 **The agents-guru check, on every package it runs clean on**, after any edit under that package's own directory. An edit under `skills/agents-guru/` owes the run on every listed package, since that package's rules judge them all. The packages are:
 
-- `plugins/gh-solo`
 - `plugins/typescript-native-lsp`
 - `skills/review-text`
 - `skills/agents-guru`
@@ -129,6 +128,7 @@ npm --prefix skills/agents-guru run mutate
 A listed package that fails on a finding no branch caused comes off the list on the branch that finds it, and the issue tracking that finding puts it back once the check exits zero on it again.
 
 - `skills/glossary-guru`, waiting on #448
+- `plugins/gh-solo`, waiting on #241
 
 ### The benches
 
