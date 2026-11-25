@@ -42,7 +42,7 @@ A drifted word is a warning, which leaves the run at exit 0. To make it fail, ad
 
 ## Changing the script
 
-[`scripts/test-glossary-rule.sh`](scripts/test-glossary-rule.sh) is the script's bench. It runs the script on sample glossaries, checks what it writes and what it refuses, and runs Vale on the generated rule, so it proves the rule flags a drifted word, not only that the file was written. Run it after any edit to `scripts/glossary-rule.py` or `assets/vale.ini.template`. It needs Vale on your `PATH`.
+[`scripts/test-glossary-rule.sh`](scripts/test-glossary-rule.sh) is the script's bench. It runs the script on sample glossaries, checks what it writes and what it refuses, and runs Vale on the generated rule, so it proves the rule flags a drifted word, not only that the file was written.
 
 ```bash
 bash <skill-dir>/scripts/test-glossary-rule.sh
