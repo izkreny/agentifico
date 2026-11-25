@@ -88,6 +88,7 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 - `skills/socratic-tutor`
 - `skills/action-policy-guru`
 - `skills/ruby-sensei`
+- `skills/glossary-guru`
 
 `<package-dir>` is each of them the branch owes the run on:
 
@@ -127,8 +128,6 @@ npm --prefix skills/agents-guru run mutate
 #### Packages off the list
 
 A listed package that fails on a finding no branch caused comes off the list on the branch that finds it, and the issue tracking that finding puts it back once the check exits zero on it again.
-
-- `skills/glossary-guru`, waiting on #448
 
 ### The benches
 
