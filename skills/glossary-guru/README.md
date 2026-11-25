@@ -40,6 +40,14 @@ Where your project runs its checks on your own machine, run the script before Va
 
 A drifted word is a warning, which leaves the run at exit 0. To make it fail, add `Glossary.Terms = error`, as the comments in `assets/vale.ini.template` explain.
 
+## Changing the script
+
+[`scripts/test-glossary-rule.sh`](scripts/test-glossary-rule.sh) is the script's bench. It runs the script on sample glossaries, checks what it writes and what it refuses, and runs Vale on the generated rule, so it proves the rule flags a drifted word, not only that the file was written. Run it after any edit to `scripts/glossary-rule.py` or `assets/vale.ini.template`. It needs Vale on your `PATH`.
+
+```bash
+bash <skill-dir>/scripts/test-glossary-rule.sh
+```
+
 ## Sources
 
 Adapted from these sources, keeping only the glossary half of each. Each is MIT licensed, and its licence is reproduced under `assets/`. Each link is pinned to the upstream commit this skill was adapted from, so a later version can be compared against it.
