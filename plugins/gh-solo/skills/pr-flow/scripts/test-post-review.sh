@@ -224,6 +224,11 @@ def pass_review(*, marker=True):
     return {"body": body}
 
 
+GIT_ENV = {"GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
+           "GIT_AUTHOR_NAME": "b", "GIT_AUTHOR_EMAIL": "b@b",
+           "GIT_COMMITTER_NAME": "b", "GIT_COMMITTER_EMAIL": "b@b", "PATH": "/usr/bin:/bin"}
+
+
 def git_fixture(name, first_lines, second_lines, third_lines=None):
     """A throwaway repository whose commits move the lines of one file.
 
@@ -235,9 +240,7 @@ def git_fixture(name, first_lines, second_lines, third_lines=None):
     repo = work / f"repo-{name}"
     (repo / "app" / "models").mkdir(parents=True)
     target = repo / "app" / "models" / "group.rb"
-    env = {"GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
-           "GIT_AUTHOR_NAME": "b", "GIT_AUTHOR_EMAIL": "b@b",
-           "GIT_COMMITTER_NAME": "b", "GIT_COMMITTER_EMAIL": "b@b", "PATH": "/usr/bin:/bin"}
+    env = GIT_ENV
 
     def git(*args):
         subprocess.run(["git", *args], cwd=repo, env=env, check=True,
@@ -756,11 +759,8 @@ print(f"  {'ok  ' if ok else 'FAIL'} a LEFT line the diff does not show  (exit {
 repo8, at8 = git_fixture("added", PRE, BASE, BASE + ["appended"])
 (repo8 / "docs").mkdir()
 (repo8 / "docs" / "a plan.md").write_text("".join(f"plan {n}\n" for n in range(1, 11)), encoding="utf-8")
-bare_env = {"GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
-            "GIT_AUTHOR_NAME": "b", "GIT_AUTHOR_EMAIL": "b@b",
-            "GIT_COMMITTER_NAME": "b", "GIT_COMMITTER_EMAIL": "b@b", "PATH": "/usr/bin:/bin"}
 for args in (["add", "-A"], ["commit", "-q", "-m", "add"]):
-    subprocess.run(["git", *args], cwd=repo8, env=bare_env, check=True, capture_output=True)
+    subprocess.run(["git", *args], cwd=repo8, env=GIT_ENV, check=True, capture_output=True)
 proc, out, replies = run_release(
     [ledger_review(held_entry(9, at=at8, path="docs/a plan.md", line=5, side="LEFT"),
                    held_entry(10, at=at8, line=42))], [],
