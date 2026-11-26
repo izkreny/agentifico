@@ -118,7 +118,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/comments/<comment-id>/replies" -F
 
 ### Running it
 
-- **Run it inside the branch's repository**, from anywhere in it, since it moves each held line past the round's later commits with `git`. `--base` names the pull request's base: `<base-branch>` is `gh pr view <pr-number> --json baseRefName`, and the fetch before the script is what makes that ref current, because a stale one passes an anchor GitHub refuses, and one refused anchor sinks the whole post. How each line moves, and which entries the script names rather than posts, is `release` in `scripts/post-review.py`, benched in `scripts/test-post-review.sh`. Relay every entry it names as unthreadable rather than posting it at a guess, and post the payload it wrote for the rest.
+- **Run it inside the branch's repository**, from anywhere in it, since it moves each held line past the round's later commits with `git`. `--base` names the pull request's base: `<base-branch>` is `gh pr view <pr-number> --json baseRefName`, and the fetch before the script is what makes that ref current, because a stale one passes an anchor GitHub refuses, and one refused anchor sinks the whole post. How each line moves, and which entries the script names rather than posts, is `release` in `scripts/post-review.py`, benched in `scripts/test-post-review.sh`.
 - **The reads come after the push**, never before it, because the whole reason the anchors resolve now is that the push landed. Running this step ahead of Step 5 answers `422` on every held finding.
 
 ### What each id gets
