@@ -249,6 +249,23 @@ def diff_lines(base: str, path: str, root: str, side: str = "RIGHT") -> set[int]
     return lines
 
 
+def nul_paths(text: str) -> set[str]:
+    """Read from `-z` output, because git's default output quotes a path holding an unusual character."""
+    return {path for path in text.split("\0") if path}
+
+
+def added_paths(base: str, root: str) -> set[str] | None:
+    proc = subprocess.run(
+        ["git", "diff", f"{base}...HEAD", "--name-only", "-z", "--diff-filter=A"],
+        capture_output=True, text=True, cwd=root,
+    )
+    return None if proc.returncode != 0 else nul_paths(proc.stdout)
+
+
+def no_base_side(where: str, path: str) -> str:
+    return f"{where} is LEFT on {path}, which the pull request adds, so it has no base side to anchor to"
+
+
 def threaded_ids(bodies: list[str]) -> set[int]:
     """Takes thread roots only, because a reply naming a held id at the start of a line would otherwise stand in for the thread that id never got."""
     found: set[int] = set()
@@ -552,8 +569,17 @@ def build(args: argparse.Namespace) -> int:
             for position, verdict in enumerate(verdicts):
                 check_verdict(verdict, position, problems)
 
+    try:
+        added = nul_paths(Path(args.added_paths).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        sys.exit(f"post-review: added paths not found: {args.added_paths}")
+
     for position, finding in enumerate(findings):
         check_finding(finding, position, problems)
+        # Refused here rather than left to GitHub, whose 422 fails the whole atomic post, and whose held copy would reserve an id release can never thread.
+        if (isinstance(finding, dict) and finding.get("side") == "LEFT"
+                and isinstance(finding.get("path"), str) and finding["path"] in added):
+            problems.append(no_base_side(f"findings[{position}] side", finding["path"]))
     check_indices(findings, problems)
 
     if problems:
@@ -758,7 +784,13 @@ def release(args: argparse.Namespace) -> int:
     anchored: list[dict] = []
     notes: dict[int, str] = {}
     unthreadable: list[str] = []
+    added = added_paths(args.base, root) or set()
     for entry in unique:
+        if entry["side"] == "LEFT" and entry["path"] in added:
+            unthreadable.append(
+                no_base_side(f"RF{entry['rf']} - {entry['path']}:{entry['line']}", entry["path"])
+            )
+            continue
         if entry["side"] == "LEFT":
             # A LEFT anchor counts base lines, which no commit on the branch can move or rewrite.
             moved, rewritten = entry["line"], False
@@ -1020,6 +1052,12 @@ def main() -> int:
         "--head-now",
         help="the head the ref holds now, read immediately before this build; required "
              "on a review pass and refused on a re-review",
+    )
+    b.add_argument(
+        "--added-paths",
+        required=True,
+        help="the paths the pull request adds, as `git diff --name-only -z "
+             "--diff-filter=A` writes them; a LEFT finding on one is refused",
     )
     b.add_argument("--out", required=True, help="where to write the payload JSON")
 

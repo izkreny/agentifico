@@ -97,7 +97,8 @@ Binary files /dev/null and b/app/models/group.rb differ
 
 
 def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
-              anchored_at="__auto__", pinned_head="__auto__", head_now="__auto__"):
+              anchored_at="__auto__", pinned_head="__auto__", head_now="__auto__",
+              added_paths=""):
     findings = work / f"{name}.json"
     findings.write_text(json.dumps(data), encoding="utf-8")
     out = work / f"{name}.payload.json"
@@ -124,6 +125,10 @@ def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
         head_now = PIN if review_pass else None
     if head_now is not None:
         cmd += ["--head-now", head_now]
+    if added_paths is not None:
+        a = work / f"{name}.added"
+        a.write_text(added_paths, encoding="utf-8")
+        cmd += ["--added-paths", str(a)]
     return subprocess.run(cmd, capture_output=True, text=True), out
 
 
@@ -395,6 +400,35 @@ for name, data, diff, at in cases:
     slug = "aa-" + "".join(c if c.isalnum() else "-" for c in name)
     proc, out = run_build(data, continue_from=3, name=slug, diff=diff, anchored_at=at)
     ok = proc.returncode == 2 and not out.exists()
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+print("\nmust refuse a LEFT anchor on a path the pull request adds (exit 2):")
+# An added file has no base side, so GitHub answers the whole atomic post 422, and a held one would reserve an id release can never thread.
+ADDED = "docs/a plan.md\0app/models/group.rb\0"
+cases = [
+    ("a LEFT finding on an added path", with_finding(REVIEW, side="LEFT"), None),
+    ("a held LEFT finding on an added path",
+     mutate(RERdefault, findings=[dict(FINDING, side="LEFT")]), GROUP_DIFF),
+]
+for name, data, diff in cases:
+    slug = "ap-" + "".join(c if c.isalnum() else "-" for c in name)
+    proc, out = run_build(data, continue_from=3, name=slug, diff=diff, added_paths=ADDED)
+    ok = (proc.returncode == 2 and not out.exists()
+          and "findings[0]" in proc.stderr and "the pull request adds" in proc.stderr)
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+print("\nmust build an anchor whose side the file has (exit 0):")
+cases = [
+    ("a RIGHT finding on an added path", REVIEW, ADDED),
+    ("a LEFT finding on a path the pull request only changes",
+     with_finding(REVIEW, side="LEFT"), "docs/a plan.md\0"),
+]
+for name, data, added in cases:
+    slug = "ab-" + "".join(c if c.isalnum() else "-" for c in name)
+    proc, out = run_build(data, continue_from=3, name=slug, added_paths=added)
+    ok = proc.returncode == 0 and out.exists()
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
@@ -718,6 +752,28 @@ ok = proc.returncode == 2 and not out.exists() and "RF9" in proc.stderr and "out
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a LEFT line the diff does not show  (exit {proc.returncode})")
 
+# An added file has no base side, which is the reason to name rather than "outside the diff", and its entry must not cost the sound one its thread.
+repo8, at8 = git_fixture("added", PRE, BASE, BASE + ["appended"])
+(repo8 / "docs").mkdir()
+(repo8 / "docs" / "a plan.md").write_text("".join(f"plan {n}\n" for n in range(1, 11)), encoding="utf-8")
+bare_env = {"GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null",
+            "GIT_AUTHOR_NAME": "b", "GIT_AUTHOR_EMAIL": "b@b",
+            "GIT_COMMITTER_NAME": "b", "GIT_COMMITTER_EMAIL": "b@b", "PATH": "/usr/bin:/bin"}
+for args in (["add", "-A"], ["commit", "-q", "-m", "add"]):
+    subprocess.run(["git", *args], cwd=repo8, env=bare_env, check=True, capture_output=True)
+proc, out, replies = run_release(
+    [ledger_review(held_entry(9, at=at8, path="docs/a plan.md", line=5, side="LEFT"),
+                   held_entry(10, at=at8, line=42))], [],
+    name="release-added-left", cwd=str(repo8), base="HEAD~3")
+ok = (proc.returncode == 2 and out.exists() and "RF9" in proc.stderr
+      and "the pull request adds" in proc.stderr)
+if ok:
+    comments = json.loads(out.read_text(encoding="utf-8"))["comments"]
+    ok = len(comments) == 1 and "::RF10:: " in comments[0]["body"]
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a LEFT entry on an added file is named for that, beside a sound one"
+      f"  (exit {proc.returncode})")
+
 # A replacement that restores the base's own text is outside the pull request's diff, where GitHub refuses the anchor and sinks the whole atomic post.
 restored_branch = BASE[:41] + ["branch text"] + BASE[42:]
 repo3, at3 = git_fixture("restore", BASE, restored_branch, BASE)
@@ -981,6 +1037,10 @@ proc = subprocess.run(["python3", script, "unthreaded", "--comments", str(work /
 ok = proc.returncode == 1 and "--reviews" in proc.stderr
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a missing --reviews  (exit {proc.returncode})")
+proc, out = run_build(REVIEW, name="no-added-paths", added_paths=None)
+ok = proc.returncode == 1 and "--added-paths" in proc.stderr and not out.exists()
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a build missing --added-paths  (exit {proc.returncode})")
 proc = subprocess.run(["python3", script, "nosuch"], capture_output=True, text=True)
 ok = proc.returncode == 1
 fails += not ok
