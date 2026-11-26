@@ -28,7 +28,7 @@ Inside a post the cap does reach, none of this counts toward the five, because n
 - a record row - one line per item, where the length is set by how many items there are rather than by how much was written. The fix map's `RF{n}`-to-commit rows and a convention check's failure list are both this, so a seven-failure Review is not a breach;
 - the owner's own words, quoted;
 - a literal a gate reads, such as `RESOLVE AUTHORISED:`;
-- text relayed verbatim from another producer, which is the reviewer's report and carries its own word cap in `../reviewer/SKILL.md`.
+- text relayed verbatim from another producer, which is the reviewer's report and carries its own word cap in `../reviewer/SKILL.md`, still counting as verbatim once item 7 of Step 2 in `workflows/review.md` has removed its local paths.
 
 ## The `via` forms in use
 
