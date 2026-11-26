@@ -125,7 +125,9 @@ def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
         head_now = PIN if review_pass else None
     if head_now is not None:
         cmd += ["--head-now", head_now]
-    if added_paths is not None:
+    if isinstance(added_paths, Path):
+        cmd += ["--added-paths", str(added_paths)]
+    elif added_paths is not None:
         a = work / f"{name}.added"
         a.write_text(added_paths, encoding="utf-8")
         cmd += ["--added-paths", str(a)]
@@ -421,6 +423,12 @@ for name, data, diff in cases:
           and "findings[0]" in proc.stderr and "the pull request adds" in proc.stderr)
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+# A failed `git diff --output` writes no file, and this stop is what keeps that from reading as a branch that adds nothing.
+proc, out = run_build(REVIEW, name="ap-missing", added_paths=work / "no-such.added")
+ok = proc.returncode != 0 and not out.exists() and "added paths not found" in proc.stderr
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} an added-paths file git never wrote  (exit {proc.returncode})")
 
 print("\nmust build an anchor whose side the file has (exit 0):")
 cases = [
