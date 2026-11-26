@@ -215,7 +215,7 @@ python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> \
   --added-paths <added-paths-file> --out <payload-file>
 ```
 
-`<base-branch>` is `gh pr view <pr-number> --json baseRefName`. **`--added-paths` lists the files the pull request adds, at the pin the reviewer read.** An added file has no base side, so `build` refuses a `LEFT` finding on one rather than letting GitHub fail the whole post. `-z` keeps every path unquoted.
+`<base-branch>` is `gh pr view <pr-number> --json baseRefName`. **`--added-paths` lists the files the pull request adds, at the pin the reviewer read.** An added file has no base side, so `build` refuses a `LEFT` finding on one rather than letting GitHub fail the whole post. `-z` keeps every path unquoted. **A non-zero exit from that `git diff` stops the round before `build` runs**, because the redirect still leaves an empty file, which `build` would read as a branch that adds nothing.
 
 **Both head arguments are required here**, exactly as `--unpushed-diff` and `--anchored-at` are required on the re-review's own block in Step 5, and the script refuses a full pass missing either. This block and Step 5's are read together whenever either moves, since `scripts/test-post-review.sh` builds its own argument list rather than reading this file.
 
@@ -303,7 +303,7 @@ git diff --name-only -z --diff-filter=A <remote>/<base-branch>...HEAD > <added-p
 python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head read before the spawn> --added-paths <added-paths-file> --out <payload-file>
 ```
 
-**The added paths are listed at local `HEAD` here, not at the pin**, because an unpushed fix can add a file, and a held `LEFT` finding on it would reserve an id `release` can never thread.
+**The added paths are listed at local `HEAD` here, not at the pin**, because an unpushed fix can add a file, and a held `LEFT` finding on it would reserve an id `release` can never thread. A non-zero exit from that `git diff` stops the round here too, for the reason Step 2 gives.
 
 **`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against.
 
