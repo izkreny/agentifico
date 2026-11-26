@@ -243,7 +243,7 @@ python3 <skill-dir>/scripts/post-review.py verify --payload <payload-file> --com
 
 Post it with `gh pr comment <pr-number> --body-file <body-file>`, disclaimer and `via` line first: via `pr-flow` review, round report. The reviewer's report text goes below it, verbatim apart from the paths the next paragraph removes, which *Never counted* in `references/post-caps.md` excludes; the cap bounds what you write around it, and never re-list findings that are already threads.
 
-**Leave every absolute local path out of the relayed report.** Drop the line naming the findings file, and cut any other absolute local path in the report to its bare file name. The rest stays verbatim. The reviewer prints that path because you cannot see its tool calls, and by this item you have read the file and posted from it, so the comment would give the path to no reader. On a public repository it would publish a session id and the machine's layout under the owner's login, permanently.
+**Leave every absolute local path out of the relayed report.** Drop the line naming the findings file, and cut any other absolute local path in the report to its bare file name. The rest stays verbatim. By this item you have read the file and posted from it, so the path has no reader on the pull request, and on a public repository it would permanently publish a session id and the machine's layout under the owner's login.
 
 ### Step 3 - Plan the fix, in the thread
 
