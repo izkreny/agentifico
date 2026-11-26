@@ -41,7 +41,7 @@ claude plugin install typescript-native-lsp@agentifico
 claude plugin disable typescript-lsp@claude-plugins-official
 ```
 
-Start a new session afterwards, since a plugin's server loads when a session starts.
+Then start a new session, or run `/reload-plugins` in the current one, to load the server.
 
 ## Use
 
