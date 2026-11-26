@@ -1,6 +1,6 @@
 {
   "name": "typescript-native-lsp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TypeScript and JavaScript code intelligence from the language server TypeScript 7's own tsc speaks, with no typescript-language-server and no older TypeScript.",
   "author": {
     "name": "izkreny",
