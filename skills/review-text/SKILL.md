@@ -24,7 +24,7 @@ The arguments are a target, then an optional scope, then an optional action. A l
 
 Only `fix` edits the text, because an edit the user did not ask for is one they have to find and undo.
 
-`fix` applies every `error` in scope, and every `suggestion` too when `style` is the stated scope. It lists each `warning` with its suggested wording and applies none, because a `warning` has a deliberate reading that only the author can choose.
+`fix` applies every `error` in scope, and every `suggestion` too when `style` is the stated scope, and never a `warning`. It lists each `warning`, and each `suggestion` it did not apply, with its suggested wording, because a `warning` has a deliberate reading that only the author can choose and a `suggestion` is a preference the user did not ask to have applied.
 
 ## Instructions
 
@@ -43,7 +43,7 @@ Only `fix` edits the text, because an edit the user did not ask for is one they 
 ## Response Pattern
 
 - For a report, say whether anything was found, then list the findings `error` first, `warning` next and `suggestion` last, and by consequence within each level, so the one that matters most is read first. Give each the quoted original, a short explanation and the suggested wording. Add a cleaned-up snippet only where the list alone is hard to apply, because otherwise it repeats the list.
-- For an edit, make the edits, then show a numbered table of them with the columns `#`, `Original`, `Revised` and `Why`, so the user can check each change without diffing the file and undo one by its number ("revert 3"). For inline text, return the corrected text in full before the table, because there is no file for the user to open.
+- For an edit, make the edits, then show a numbered table of them with the columns `#`, `Original`, `Revised` and `Why`, so the user can check each change without diffing the file and undo one by its number ("revert 3"). For inline text, return the corrected text in full before the table, because there is no file for the user to open. List the findings left unapplied after the table, in the report's order, so the user can still apply one by hand.
 
 ## Style Heuristics
 
