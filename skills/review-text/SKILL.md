@@ -1,7 +1,7 @@
 ---
 name: review-text
 description: |
-  Review prose for spelling, grammar, punctuation, style, clarity, tone and readability, reporting the issues or applying minimal edits when asked. Use for proofreading, or tightening the phrasing of, selected text, markdown, documentation, prompts, AGENTS.md, README files, code comments, UI copy, emails and commit messages. Invoked explicitly only, by the user typing `/review-text`: an agent never loads it on its own. Not for reviewing code logic or a pull request, translating, or rewriting text in a new voice.
+  Reviews prose for spelling, grammar, punctuation, style, clarity, tone and readability, and reports the issues or applies minimal edits when asked. Use for proofreading, or tightening the phrasing of, selected text, markdown, documentation, prompts, AGENTS.md, README files, code comments, UI copy, emails and commit messages. Invoked explicitly only, by the user typing `/review-text`: an agent never loads it on its own. Not for reviewing code logic or a pull request, translating, or rewriting text in a new voice.
 argument-hint: '[text | file] [issues | style] [fix]'
 user-invocable: true
 disable-model-invocation: true
@@ -11,17 +11,9 @@ metadata:
 
 # Review text
 
-## When to Use
-
-- Proofread selected text or a whole file for spelling, grammar, punctuation, style or clarity.
-- Review markdown, documentation, prompts, AGENTS.md files, code comments, UI copy, emails or commit messages.
-- Tighten phrasing without changing meaning.
-
 ## Arguments
 
 The arguments are a target, then an optional scope, then an optional action. A last word of `fix` is the action, a last remaining word of `issues` or `style` is the scope, and everything before them is the target; to review text that ends in one of those words, quote the text. The target is the text to review, or the path of a file holding it. With no target, review the active selection or the active file where the harness exposes them, and otherwise ask, because a review of a guessed target wastes the whole pass.
-
-`issues` and `style` set the scope, and `fix` is the one action; without it the skill reports, which is the default:
 
 | Argument | What it does |
 | --- | --- |
