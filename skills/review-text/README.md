@@ -24,7 +24,7 @@ Type `/review-text`, optionally followed by the text or a file path, then option
 | --- | --- |
 | `issues` | Reports spelling, grammar and punctuation errors. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
-| `fix` | Applies the corrections for the stated scope: `issues`, `style`, or both when no scope is stated. |
+| `fix` | Applies the corrections for the stated scope: `issues`, `style`, or both when no scope is stated. It applies every error, and every suggestion only when the scope is `style`. A warning is listed with its suggested wording and never applied. |
 | none | Reports what `issues` and `style` find, and fixes nothing. |
 
 ## Inspiration

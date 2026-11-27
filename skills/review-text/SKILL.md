@@ -32,6 +32,8 @@ The arguments are a target, then an optional scope, then an optional action. A l
 
 Only `fix` edits the text, because an edit the user did not ask for is one they have to find and undo.
 
+`fix` applies every `error` in scope, and every `suggestion` too when `style` is the stated scope. It lists each `warning` with its suggested wording and applies none, because a `warning` has a deliberate reading that only the author can choose.
+
 ## Instructions
 
 - Read the exact current text before making any claim about it, because a claim about text you have not read is a guess. Read a long file in parts until every section is covered, then say how many sections you reviewed and name any you could not cover, because a report that silently skips a section looks as if it checked the whole file.
@@ -65,4 +67,5 @@ Only `fix` edits the text, because an edit the user did not ask for is one they 
 
 - Ask before any change that would alter the meaning, because only the author knows which meaning was intended.
 - Keep every fact, name, number, date, quote and citation as the source gives it, and each claim at the scope and certainty it was written with, because a proofread that changes what the text claims has edited its content.
+- Report a name that looks misspelt as a `warning` with the likely spelling, so `fix` never changes it, because a name is spelled however its owner chose.
 - Flag domain terminology you would change instead of replacing it, because a term that looks wrong to a general reader is often right for the intended one.
