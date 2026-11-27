@@ -19,12 +19,12 @@ The arguments are a target, then an optional scope, then an optional action. A l
 | --- | --- |
 | `issues` | Reports spelling, grammar and punctuation errors. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
-| `fix` | Applies the corrections for the stated scope: `issues`, `style`, or both when no scope is stated. |
+| `fix` | Applies every `error` in the stated scope, `issues`, `style` or both when no scope is stated, every `suggestion` too when `style` is stated, and never a `warning`. |
 | none | Reports what `issues` and `style` find, and fixes nothing. |
 
 Only `fix` edits the text, because an edit the user did not ask for is one they have to find and undo.
 
-`fix` applies every `error` in scope, and every `suggestion` too when `style` is the stated scope, and never a `warning`, because a `warning` has a deliberate reading that only the author can choose and a `suggestion` is a preference the user has to ask for.
+A `suggestion` waits for `style` to be named because it is a preference the user has to ask for, and a `warning` is never applied because its deliberate reading is the author's to choose.
 
 ## Instructions
 
