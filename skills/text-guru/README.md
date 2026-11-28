@@ -24,7 +24,7 @@ Type `/text-guru`, optionally followed by the text or a file path, then optional
 | --- | --- |
 | `errors` | Reports spelling, grammar and punctuation errors, at the `error` and `warning` levels. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
-| `fix` | Applies every `error` in the stated scope, `errors`, `style` or both when no scope is stated, every `suggestion` too when `style` is stated, and never a `warning`. |
+| `fix` | Applies every `error` in the stated scope, or in both scopes when none is stated. Applies every `suggestion` too, only when `style` is named. Never applies a `warning`. |
 | none | Reports what `errors` and `style` find, and fixes nothing. |
 
 ## Inspiration
