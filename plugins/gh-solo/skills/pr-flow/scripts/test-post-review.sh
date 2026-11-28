@@ -914,8 +914,7 @@ if ok:
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a released thread's replies stay separate and in order")
 
-# The held route renders through the same function as the direct one, so the two cannot word one state differently.
-# A ledger an older version posted has no `closed` and may carry its marker in the text, so it is copied rather than refused or marked twice.
+# The held route renders through the same function as the direct one, and a ledger an older version posted has no `closed`, so it is copied rather than refused or marked twice.
 for name, verdict, want, unwanted in [
     ("a released closed verdict opens with its marker",
      {"rf": 9, "kind": "verdict", "closed": True, "text": "The guard now fires."},
