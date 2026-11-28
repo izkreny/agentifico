@@ -332,6 +332,9 @@ MUST_REFUSE = [
     ("re-review with verdicts not a list", mutate(RERdefault, verdicts={}, findings=[FINDING]), 0),
     ("verdict with an empty why", mutate(RERdefault, verdicts=[{"rf": 3, "closed": True, "why": " "}]), 0),
     ("verdict closed not a boolean", mutate(RERdefault, verdicts=[{"rf": 3, "closed": "yes", "why": "x"}]), 0),
+    # A typed marker under the rendered one would show two states, and resolve-closed reads a closing one wherever it sits.
+    ("a verdict's why carrying a marker",
+     mutate(RERdefault, verdicts=[{"rf": 3, "closed": False, "why": "::RF3::CLOSED:: Still reachable."}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
     # The why is now posted as the thread reply, so a fence in it renders the same commit button a finding's would.
     ("suggestion fence in a verdict's why",
@@ -960,6 +963,8 @@ for name, entries in [
     ("a verdict with no closed flag", [{"rf": 9, "kind": "verdict", "text": "x"}]),
     ("a verdict whose closed is not a boolean",
      [{"rf": 9, "kind": "verdict", "closed": "yes", "text": "x"}]),
+    ("a flagged verdict whose text carries a marker",
+     [{"rf": 9, "kind": "verdict", "closed": False, "text": "::RF9::CLOSED:: The guard still misses a rename."}]),
 ]:
     proc, out = run_followup(entries, name="fur-" + "".join(c if c.isalnum() else "-" for c in name))
     ok = proc.returncode == 2 and not out.exists()
