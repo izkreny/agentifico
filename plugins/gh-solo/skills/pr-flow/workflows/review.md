@@ -230,7 +230,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
 
 The JSON travels in a **file**, per the unattended-command bullet in `SKILL.md`, kept outside the working tree so a copy of it cannot get committed.
 
-**A `422` reading `Line could not be resolved` is an anchor that will not resolve.** Item 4 refuses an anchor the diff at the pin does not show, so what reaches GitHub is one `build` could not test, such as a path git quoted, or one where GitHub's diff and git's disagree. Name the finding that could not be anchored and stop - **posting the discard record before you do**.
+**A `422` reading `Line could not be resolved` is an anchor that will not resolve.** `build` in item 4 already tested every anchor against the diff at the pin, per `scripts/post-review.py`, so this is one it passed and GitHub did not. Name the finding that could not be anchored and stop - **posting the discard record before you do**.
 
 #### 6. Reconcile what landed
 
