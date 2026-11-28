@@ -283,9 +283,9 @@ Then post what it returns:
 
 #### Each verdict as a reply in its finding's thread
 
-The same endpoint as step 3, via `pr-flow` review, re-review verdict, under the same post cap.
+The same endpoint as step 3, one reply per verdict.
 
-**A verdict that closes its finding opens with `::RF{n}::CLOSED::`**, per *Keys* in `../tracker/references/formats.md`.
+**Post each body that the `build` call under *Its own record Review* writes to `--verdicts-out`, unchanged.** The script opens each with the verdict's state, `::RF{n}::CLOSED::` or `::RF{n}::OPEN::`, per *Keys* in `../tracker/references/formats.md`. Never type either marker, and never reword a body. A verdict on a held finding has no thread yet, so it goes into the follow-up entries instead.
 
 #### Re-read the head before building this payload
 
@@ -302,12 +302,12 @@ One record per analysis is the standing rule and a re-review is an analysis. Sam
 ```bash
 git diff @{u}..HEAD -U0 > <unpushed-diff-file>
 git diff --name-only -z --diff-filter=A <remote>/<base-branch>...HEAD --output=<added-paths-file>
-python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head read before the spawn> --added-paths <added-paths-file> --out <payload-file>
+python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head read before the spawn> --added-paths <added-paths-file> --verdicts-out <verdicts-file> --out <payload-file>
 ```
 
 **The added paths are listed at local `HEAD` here, not at the pin**, because an unpushed fix can add a file, and a held `LEFT` finding on it would reserve an id `release` can never thread. It takes `--output`, and a non-zero exit from it stops the round, for the reasons Step 2 gives.
 
-**`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against.
+**`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against. **`--verdicts-out` is required and refused the same way**, since only a re-review carries verdicts.
 
 **`--anchored-at` is the *local* head, and never the pin Step 1 handed the reviewer.** Every line number this pass returns counts lines at local `HEAD`, after the fix commits. Passing the pushed head instead puts the fix commits inside the shift `release` computes, which moves a held line a second time or drops it as rewritten. Read it before the spawn, since a commit made afterwards would make it a head the reviewer never saw.
 
@@ -317,7 +317,7 @@ Every finding in a file the unpushed commits touch is held: the id is assigned f
 
 **The line is brought forward at release, never replayed.** A held finding's `line` counts lines as they stood at `--anchored-at`, and the round goes on committing after the hold, so `release` shifts the number through `git diff <that head>..HEAD` before it anchors anything. A line the fixes rewrote is anchored on the line that replaced it. One they deleted outright is named for the owner rather than posted at a guess, per Step 6 of `workflows/resolve.md`.
 
-**A held finding's fix plan, fix result and verdict go into a follow-up Review, one entry each.** None of them exists when the record Review is posted, and this flow never rewrites a posted Review. At the end of the round, write them as a JSON array of `{rf, kind, text}` - `kind` being `plan`, `result` or `verdict` - and post the Review the script builds from it. A closing `verdict` entry follows *Each verdict as a reply in its finding's thread*:
+**A held finding's fix plan, fix result and verdict go into a follow-up Review, one entry each.** None of them exists when the record Review is posted, and this flow never rewrites a posted Review. At the end of the round, write them as a JSON array of `{rf, kind, text}` - `kind` being `plan`, `result` or `verdict` - and post the Review the script builds from it. **A `verdict` entry adds `closed`**: its `closed` and `text` are the reviewer's `closed` and `why`, copied unchanged. `followup` refuses a verdict entry without the flag, and `release` renders the marker from it, as `build` does for a threaded verdict:
 
 ```bash
 python3 <skill-dir>/scripts/post-review.py followup --entries <entries-file> --disclaimer-file <disclaimer-file> --out <followup-file>

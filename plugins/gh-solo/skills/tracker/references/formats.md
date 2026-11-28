@@ -66,6 +66,7 @@ The separator does the parsing, not the prefix. `{type}/GHI-{issue-number}_{slug
 | `V` | a verification gate | a plan's `## Verification` and its pull request body's | `- ::V1:: …` in the plan, `- [ ] ::V1:: …` in the body |
 | `Q` | an open question | a plan's and its pull request body's `## Open questions` and `## Settled` | `- ::Q1:: …` |
 | `::RF{n}::CLOSED::` | a marker, not a key: the re-review's verdict that `RF{n}` is closed, issuing no number of its own | the verdict reply in that finding's thread, per *Each verdict as a reply in its finding's thread* in `../pr-flow/workflows/review.md` | `::RF1::CLOSED:: …` |
+| `::RF{n}::OPEN::` | a marker, not a key: the re-review's verdict that `RF{n}` is not closed, issuing no number of its own | the same reply as `::RF{n}::CLOSED::` | `::RF1::OPEN:: …` |
 | `::AC{n}::READ::` | a marker, not a key: `AC{n}` is proven by the owner's reading rather than by a test | the criterion's own line in the issue body, per *Writing good acceptance criteria* in `references/issue-shape.md` | `- [ ] ::AC4::READ:: …` |
 | `::{key}{n}::REMOVED::` | a marker, not a key: the item is removed, and its line stays to keep the key issued | the removed item's own line, in whichever list issued its key, per *A removed item is never deleted* | `- ::AC3::REMOVED:: …` |
 
