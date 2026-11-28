@@ -245,14 +245,37 @@ def diff_lines(base: str, path: str, root: str, side: str = "RIGHT") -> set[int]
     )
     if proc.returncode != 0:
         return None
+    return hunk_lines(proc.stdout, side)
+
+
+def hunk_lines(diff_text: str, side: str) -> set[int]:
     lines: set[int] = set()
     hunk = (r"^@@ -(\d+)(?:,(\d+))? \+\d+(?:,\d+)? @@" if side == "LEFT"
             else r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
-    for match in re.finditer(hunk, proc.stdout, re.M):
+    for match in re.finditer(hunk, diff_text, re.M):
         start = int(match.group(1))
         length = 1 if match.group(2) is None else int(match.group(2))
         lines.update(range(start, start + length))
     return lines
+
+
+def shown_files(diff_text: str) -> tuple[dict[str, str], bool]:
+    """Each file's section of the pull request's diff, keyed by the path a finding names, and whether git quoted any path it holds."""
+    sections: dict[str, str] = {}
+    quoted = False
+    for section in re.split(r"^(?=diff --git )", diff_text, flags=re.M):
+        new = re.search(r"^\+\+\+ (.*)$", section, re.M)
+        old = re.search(r"^--- (.*)$", section, re.M)
+        if new is None or old is None:
+            continue
+        # A deleted file's comments name its old path, since it has no new one.
+        # git ends the line with a tab after a path holding a space.
+        name = (old.group(1) if new.group(1) == "/dev/null" else new.group(1)).rstrip("\t")
+        if name.startswith('"'):
+            quoted = True
+            continue
+        sections[name[2:]] = section
+    return sections, quoted
 
 
 def nul_paths(text: str) -> set[str]:
@@ -606,12 +629,28 @@ def build(args: argparse.Namespace) -> int:
     except FileNotFoundError:
         sys.exit(f"post-review: added paths not found: {args.added_paths}")
 
+    try:
+        shown, quoted = shown_files(Path(args.pr_diff).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        sys.exit(f"post-review: pr diff not found: {args.pr_diff}")
+
     for position, finding in enumerate(findings):
         check_finding(finding, position, problems)
         # Refused here rather than left to GitHub, whose 422 fails the whole atomic post, and whose held copy would reserve an id release can never thread.
         if (isinstance(finding, dict) and finding.get("side") == "LEFT"
                 and isinstance(finding.get("path"), str) and finding["path"] in added):
             problems.append(no_base_side(f"findings[{position}] side", finding["path"]))
+        # WHY: a held finding is skipped because release tests its anchor after the push, and a path git quoted is left to GitHub, since misreading it would refuse a valid finding and spend a pass.
+        if (isinstance(finding, dict) and isinstance(finding.get("path"), str)
+                and isinstance(finding.get("line"), int) and finding.get("side") in SIDES
+                and finding["path"] not in held_paths
+                and not (quoted and finding["path"] not in shown)
+                and finding["line"] not in hunk_lines(shown.get(finding["path"], ""), finding["side"])):
+            problems.append(
+                f"findings[{position}] (index {finding.get('index')}) "
+                f"{finding['path']}:{finding['line']} {finding['side']} is not a line the pull "
+                "request's diff shows, so GitHub would refuse the whole post on it"
+            )
     check_indices(findings, problems)
 
     if problems:
@@ -1104,6 +1143,12 @@ def main() -> int:
         required=True,
         help="the paths the pull request adds, as `git diff --name-only -z "
              "--diff-filter=A` writes them; a LEFT finding on one is refused",
+    )
+    b.add_argument(
+        "--pr-diff",
+        required=True,
+        help="the pull request's diff, as `git diff --unified=3` writes it; an unheld "
+             "finding on a line it does not show is refused",
     )
     b.add_argument(
         "--verdicts-out",

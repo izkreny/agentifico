@@ -78,6 +78,32 @@ index 3333333..4444444 100644
 @@ -1,0 +2 @@
 +a line
 """
+# The pull request's own diff, which shows FINDING's line 42 on both sides, so every case not about the anchor check passes it.
+PR_DIFF = """diff --git a/app/models/group.rb b/app/models/group.rb
+index 1111111..2222222 100644
+--- a/app/models/group.rb
++++ b/app/models/group.rb
+@@ -39,7 +39,8 @@ class Group
+   belongs_to :owner
+   has_many :members
+
++  validates :owner, presence: true
+   def settle
+     members.each(&:settle)
+   end
+ end
+diff --git a/docs/a plan.md b/docs/a plan.md
+index 5555555..6666666 100644
+--- a/docs/a plan.md\t
++++ b/docs/a plan.md\t
+@@ -40,5 +40,5 @@
+ one
+ two
+-three
++three, changed
+ four
+ five
+"""
 SHAPELESS_DIFF = "these are notes about a diff, not a diff\n"
 # WHY: taken from real ranges rather than written by hand, because these are the shapes a reader requiring the `---`/`+++` pair refuses, taking the re-review down with it.
 RENAME_DIFF = """diff --git a/app/models/group.rb b/app/models/team.rb
@@ -98,7 +124,7 @@ Binary files /dev/null and b/app/models/group.rb differ
 
 def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
               anchored_at="__auto__", pinned_head="__auto__", head_now="__auto__",
-              added_paths="", verdicts_out="__auto__"):
+              added_paths="", verdicts_out="__auto__", pr_diff=PR_DIFF):
     findings = work / f"{name}.json"
     findings.write_text(json.dumps(data), encoding="utf-8")
     out = work / f"{name}.payload.json"
@@ -135,6 +161,12 @@ def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
         a = work / f"{name}.added"
         a.write_text(added_paths, encoding="utf-8")
         cmd += ["--added-paths", str(a)]
+    if isinstance(pr_diff, Path):
+        cmd += ["--pr-diff", str(pr_diff)]
+    elif pr_diff is not None:
+        p = work / f"{name}.pr.diff"
+        p.write_text(pr_diff, encoding="utf-8")
+        cmd += ["--pr-diff", str(p)]
     return subprocess.run(cmd, capture_output=True, text=True), out
 
 
@@ -493,6 +525,89 @@ for name, data, added in cases:
     slug = "ab-" + "".join(c if c.isalnum() else "-" for c in name)
     proc, out = run_build(data, continue_from=3, name=slug, added_paths=added)
     ok = proc.returncode == 0 and out.exists()
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+# WHY: the bases differ by side, so a LEFT line the RIGHT range happens to cover is the case that tells a side-blind check apart.
+SPLIT_DIFF = """diff --git a/app/models/group.rb b/app/models/group.rb
+index 1111111..2222222 100644
+--- a/app/models/group.rb
++++ b/app/models/group.rb
+@@ -10,3 +40,5 @@ class Group
+ a
++b
++c
+ d
+ e
+"""
+RENAMED_DIFF = """diff --git a/app/models/old.rb b/app/models/team.rb
+similarity index 90%
+rename from app/models/old.rb
+rename to app/models/team.rb
+index 1111111..2222222 100644
+--- a/app/models/old.rb
++++ b/app/models/team.rb
+@@ -40,3 +40,4 @@ class Team
+ a
++b
+ c
+ d
+"""
+QUOTED_DIFF = PR_DIFF + """diff --git "a/docs/\\303\\251t\\303\\251.md" "b/docs/\\303\\251t\\303\\251.md"
+index 7777777..8888888 100644
+--- "a/docs/\\303\\251t\\303\\251.md"
++++ "b/docs/\\303\\251t\\303\\251.md"
+@@ -1 +1 @@
+-x
++y
+"""
+
+print("\nmust refuse an anchor the pull request's diff does not show (exit 2):")
+# GitHub answers such an anchor 422 for the whole atomic post without naming it, so build names it instead.
+cases = [
+    ("a RIGHT finding outside every hunk", with_finding(REVIEW, line=120), PR_DIFF, None,
+     "app/models/group.rb:120"),
+    ("a finding on a file the diff does not touch", with_finding(REVIEW, path="lib/other.rb"),
+     PR_DIFF, None, "lib/other.rb:42"),
+    ("a LEFT finding on a line only the RIGHT side shows", with_finding(REVIEW, side="LEFT"),
+     SPLIT_DIFF, None, "app/models/group.rb:42"),
+    ("a finding under a renamed file's old path",
+     with_finding(REVIEW, path="app/models/old.rb"), RENAMED_DIFF, None, "app/models/old.rb:42"),
+    ("an unheld re-review finding outside every hunk",
+     mutate(RERdefault, findings=[dict(FINDING, line=120)]), PR_DIFF, OTHER_DIFF,
+     "app/models/group.rb:120"),
+]
+for name, data, pr_diff, diff, where in cases:
+    slug = "ad-" + "".join(c if c.isalnum() else "-" for c in name)
+    proc, out = run_build(data, continue_from=3, name=slug, diff=diff, pr_diff=pr_diff)
+    ok = (proc.returncode == 2 and not out.exists()
+          and "findings[0] (index 1)" in proc.stderr and where in proc.stderr)
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+proc, out = run_build(REVIEW, name="ad-missing", pr_diff=work / "no-such.pr.diff")
+ok = proc.returncode != 0 and not out.exists() and "pr diff not found" in proc.stderr
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a pr-diff file git never wrote  (exit {proc.returncode})")
+
+print("\nmust build an anchor the pull request's diff shows, or cannot test (exit 0):")
+cases = [
+    ("a RIGHT finding on a line the diff shows", REVIEW, PR_DIFF, None, "0 held"),
+    ("a finding on a path holding a space, which git ends with a tab",
+     with_finding(REVIEW, path="docs/a plan.md"), PR_DIFF, None, "0 held"),
+    ("a LEFT finding on a line the base side shows",
+     with_finding(REVIEW, side="LEFT", line=11), SPLIT_DIFF, None, "0 held"),
+    ("a finding under a renamed file's new path",
+     with_finding(REVIEW, path="app/models/team.rb"), RENAMED_DIFF, None, "0 held"),
+    ("a held finding outside every hunk",
+     mutate(RERdefault, findings=[dict(FINDING, line=120)]), PR_DIFF, GROUP_DIFF, "1 held"),
+    ("a finding git quoted the path of, which is left to GitHub",
+     with_finding(REVIEW, path="docs/été.md", line=99), QUOTED_DIFF, None, "0 held"),
+]
+for name, data, pr_diff, diff, want in cases:
+    slug = "as-" + "".join(c if c.isalnum() else "-" for c in name)
+    proc, out = run_build(data, continue_from=3, name=slug, diff=diff, pr_diff=pr_diff)
+    ok = proc.returncode == 0 and out.exists() and want in proc.stdout
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
@@ -1142,6 +1257,13 @@ proc, out = run_build(REVIEW, name="no-added-paths", added_paths=None)
 ok = proc.returncode == 1 and "--added-paths" in proc.stderr and not out.exists()
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a build missing --added-paths  (exit {proc.returncode})")
+for name, data, diff in [("a review build missing --pr-diff", REVIEW, None),
+                         ("a re-review build missing --pr-diff", RERdefault, GROUP_DIFF)]:
+    slug = "npd-" + "".join(c if c.isalnum() else "-" for c in name)
+    proc, out = run_build(data, name=slug, diff=diff, pr_diff=None)
+    ok = proc.returncode == 1 and "--pr-diff" in proc.stderr and not out.exists()
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 proc = subprocess.run(["python3", script, "nosuch"], capture_output=True, text=True)
 ok = proc.returncode == 1
 fails += not ok
