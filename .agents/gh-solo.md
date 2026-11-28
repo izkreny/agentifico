@@ -17,7 +17,7 @@ Every key the plugin reads is in this block, per `plugins/gh-solo/skills/pr-flow
       "gh-solo": "plugins/gh-solo/",
       "typescript-native-lsp": "plugins/typescript-native-lsp/",
       "rails-style": "skills/rails-style/",
-      "review-text": "skills/review-text/",
+      "text-guru": "skills/text-guru/",
       "agents-guru": "skills/agents-guru/",
       "socratic-tutor": "skills/socratic-tutor/",
       "action-policy-guru": "skills/action-policy-guru/",
@@ -83,7 +83,7 @@ Every branch's plan lists it in `## Verification`, which is what makes it a gate
 
 - `plugins/gh-solo`
 - `plugins/typescript-native-lsp`
-- `skills/review-text`
+- `skills/text-guru`
 - `skills/agents-guru`
 - `skills/socratic-tutor`
 - `skills/action-policy-guru`
