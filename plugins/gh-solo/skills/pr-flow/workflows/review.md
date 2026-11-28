@@ -275,7 +275,7 @@ Read the local head with `git rev-parse HEAD` and keep the value, then spawn the
 
 Pass `rescope <pr-number>` and, in the prompt, exactly this: the commit range the fixes landed in, the findings it is answering about with their `RF{n}` ids, and which commit or body item key claims which id, the key bare, as `V3`, per step 5 of `references/review-protocol.md`. **Where `python3 <skill-dir>/scripts/read-config.py get reviewer_model` printed one, the model travels on this spawn too**, as a parameter beside the prompt, exactly as in Step 1.
 
-**A commit that claims no finding id rides in the range only where another commit or a body key claims one.** The reviewer reads it under its second question, as it does every fix. A range where nothing claims an id is never handed to `rescope`, whose first question it cannot answer. It belongs to a full pass, which the owner buys with `approve` under *The pass cap* in `references/pass-cap.md`.
+**A commit that claims no finding id rides in the range only where another commit or a body key claims one.** The reviewer reads it under its second question, as it does every fix. A range where nothing claims an id is never handed to `rescope`, whose first question it cannot answer. The round report names its commits as unread, and they wait for the push at the protocol's step 7. A `review` after that push reads them as a full pass, which the owner buys with `approve` at Step 1's *At the cap* refusal.
 
 **The commits are unpushed, so it reads them with `git` locally**; never hand it a diff you generated.
 
