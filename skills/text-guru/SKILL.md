@@ -1,12 +1,12 @@
 ---
-name: review-text
+name: text-guru
 description: |
-  Review prose for spelling, grammar, punctuation, style, clarity, tone and readability, reporting the issues or applying minimal edits when asked. Use for proofreading, or tightening the phrasing of, selected text, markdown, documentation, prompts, AGENTS.md, README files, code comments, UI copy, emails and commit messages. Invoked explicitly only, by the user typing `/review-text`: an agent never loads it on its own. Not for reviewing code logic or a pull request, translating, or rewriting text in a new voice.
-argument-hint: '[text | file] [issues | style] [fix]'
+  Review prose for spelling, grammar, punctuation, style, clarity, tone and readability, reporting the issues or applying minimal edits when asked. Use for proofreading, or tightening the phrasing of, selected text, markdown, documentation, prompts, AGENTS.md, README files, code comments, UI copy, emails and commit messages. Invoked explicitly only, by the user typing `/text-guru`: an agent never loads it on its own. Not for reviewing code logic or a pull request, translating, or rewriting text in a new voice.
+argument-hint: '[text | file] [errors | style] [fix]'
 user-invocable: true
 disable-model-invocation: true
 metadata:
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Review text
@@ -19,16 +19,16 @@ metadata:
 
 ## Arguments
 
-The arguments are a target, then an optional scope, then an optional action. A last word of `fix` is the action, a last remaining word of `issues` or `style` is the scope, and everything before them is the target; to review text that ends in one of those words, quote the text. The target is the text to review, or the path of a file holding it. With no target, review the active selection or the active file where the harness exposes them, and otherwise ask, because a review of a guessed target wastes the whole pass.
+The arguments are a target, then an optional scope, then an optional action. A last word of `fix` is the action, a last remaining word of `errors` or `style` is the scope, and everything before them is the target; to review text that ends in one of those words, quote the text. The target is the text to review, or the path of a file holding it. With no target, review the active selection or the active file where the harness exposes them, and otherwise ask, because a review of a guessed target wastes the whole pass.
 
-`issues` and `style` set the scope, and `fix` is the one action; without it the skill reports, which is the default:
+`errors` and `style` set the scope, and `fix` is the one action; without it the skill reports, which is the default:
 
 | Argument | What it does |
 | --- | --- |
-| `issues` | Reports spelling, grammar and punctuation errors. |
+| `errors` | Reports spelling, grammar and punctuation errors, at the `error` and `warning` levels. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
-| `fix` | Applies the corrections for the stated scope: `issues`, `style`, or both when no scope is stated. |
-| none | Reports what `issues` and `style` find, and fixes nothing. |
+| `fix` | Applies the corrections for the stated scope: `errors`, `style`, or both when no scope is stated. |
+| none | Reports what `errors` and `style` find, and fixes nothing. |
 
 Only `fix` edits the text, because an edit the user did not ask for is one they have to find and undo.
 

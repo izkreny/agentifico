@@ -1,6 +1,6 @@
 > 🤖 Written by AI --- read/modified by izkreny! 🤓
 
-# review-text
+# text-guru
 
 A proofreader for prose: markdown, documentation, prompts, agent instruction files, code comments, UI copy, emails and commit messages. It reports spelling, grammar and punctuation errors apart from optional style suggestions, and edits the text only when you ask it to. Findings come ranked as `error`, `warning` or `suggestion`, and edits come back as a numbered table you can revert by number. It is not for reviewing code logic or a pull request, translating, or rewriting text in a new voice.
 
@@ -11,21 +11,21 @@ An agent asked to check some text tends to rewrite it: it shifts the tone, restr
 ## Install
 
 ```bash
-npx skills add izkreny/agentifico -g -y -s review-text
+npx skills add izkreny/agentifico -g -y -s text-guru
 ```
 
 That is the [skills CLI](https://skills.sh).
 
 ## Invocation
 
-Type `/review-text`, optionally followed by the text or a file path, then optionally a scope, `issues` or `style`, then optionally `fix`. Without `fix` it only reports, and without a scope it covers both. A last word of `issues`, `style` or `fix` is always read as an argument, so quote text that ends in one of those words. With no target it reviews your editor selection or active file where the harness exposes them, and otherwise asks for one. The skill never fires on its own: its frontmatter sets `disable-model-invocation: true`, and its description says so for agents that ignore that field.
+Type `/text-guru`, optionally followed by the text or a file path, then optionally a scope, `errors` or `style`, then optionally `fix`. Without `fix` it only reports, and without a scope it covers both. A last word of `errors`, `style` or `fix` is always read as an argument, so quote text that ends in one of those words. With no target it reviews your editor selection or active file where the harness exposes them, and otherwise asks for one. The skill never fires on its own: its frontmatter sets `disable-model-invocation: true`, and its description says so for agents that ignore that field.
 
 | Argument | What it does |
 | --- | --- |
-| `issues` | Reports spelling, grammar and punctuation errors. |
+| `errors` | Reports spelling, grammar and punctuation errors, at the `error` and `warning` levels. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
-| `fix` | Applies the corrections for the stated scope: `issues`, `style`, or both when no scope is stated. |
-| none | Reports what `issues` and `style` find, and fixes nothing. |
+| `fix` | Applies the corrections for the stated scope: `errors`, `style`, or both when no scope is stated. |
+| none | Reports what `errors` and `style` find, and fixes nothing. |
 
 ## Inspiration
 
