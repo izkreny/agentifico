@@ -98,7 +98,7 @@ Binary files /dev/null and b/app/models/group.rb differ
 
 def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
               anchored_at="__auto__", pinned_head="__auto__", head_now="__auto__",
-              added_paths=""):
+              added_paths="", verdicts_out="__auto__"):
     findings = work / f"{name}.json"
     findings.write_text(json.dumps(data), encoding="utf-8")
     out = work / f"{name}.payload.json"
@@ -125,6 +125,10 @@ def run_build(data, disclaimer=None, continue_from=0, name="case", diff=None,
         head_now = PIN if review_pass else None
     if head_now is not None:
         cmd += ["--head-now", head_now]
+    if verdicts_out == "__auto__":
+        verdicts_out = True if data.get("pass") == "re-review" else None
+    if verdicts_out:
+        cmd += ["--verdicts-out", str(work / f"{name}.verdicts.json")]
     if isinstance(added_paths, Path):
         cmd += ["--added-paths", str(added_paths)]
     elif added_paths is not None:
@@ -329,6 +333,9 @@ MUST_REFUSE = [
     ("verdict with an empty why", mutate(RERdefault, verdicts=[{"rf": 3, "closed": True, "why": " "}]), 0),
     ("verdict closed not a boolean", mutate(RERdefault, verdicts=[{"rf": 3, "closed": "yes", "why": "x"}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
+    # The why is now posted as the thread reply, so a fence in it renders the same commit button a finding's would.
+    ("suggestion fence in a verdict's why",
+     mutate(RERdefault, verdicts=[{"rf": 3, "closed": False, "why": "```suggestion\nx = 1\n```"}]), 0),
 ]
 
 MUST_BUILD = [
@@ -414,6 +421,37 @@ for name, data, diff, at in cases:
     ok = proc.returncode == 2 and not out.exists()
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+print("\nmust refuse on the verdicts file (exit 2):")
+# Missing on a re-review the orchestrator would have nothing rendered to post and would type the verdict's state itself again.
+for name, data, flag in [("--verdicts-out on a review pass", REVIEW, True),
+                         ("--verdicts-out missing on a re-review", RERdefault, False)]:
+    slug = "vo-" + "".join(c if c.isalnum() else "-" for c in name)
+    proc, out = run_build(data, continue_from=3, name=slug, diff=GROUP_DIFF if flag is False else None,
+                          verdicts_out=flag)
+    ok = proc.returncode == 2 and not out.exists() and "--verdicts-out" in proc.stderr
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
+
+print("\nbuild renders every verdict's state (exit 0):")
+# The owner asked "So this is CLOSED or what?!?" of a verdict whose prose explained the state without naming it.
+VERDICTS = [{"rf": 3, "closed": True, "why": "The owner is assigned inside the transaction."},
+            {"rf": 4, "closed": False, "why": "The scenario still reaches the nil through Group#close."}]
+proc, out = run_build(mutate(RERdefault, verdicts=VERDICTS), continue_from=4, name="vo-render",
+                      diff=GROUP_DIFF)
+rendered = work / "vo-render.verdicts.json"
+ok = proc.returncode == 0 and rendered.exists()
+if ok:
+    got = {v["rf"]: v for v in json.loads(rendered.read_text(encoding="utf-8"))}
+    ok = (sorted(got) == [3, 4]
+          and got[3]["closed"] is True and got[4]["closed"] is False
+          and all(v["body"].startswith("> \U0001f916") and "re-review verdict" in v["body"]
+                  for v in got.values())
+          and "\n\n::RF3::CLOSED:: The owner is assigned" in got[3]["body"]
+          and "\n\n::RF4::OPEN:: The scenario still reaches" in got[4]["body"]
+          and "CLOSED" not in got[4]["body"])
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a closed and a not-closed verdict each open with their own marker")
 
 print("\nmust refuse a LEFT anchor on a path the pull request adds (exit 2):")
 # An added file has no base side, so GitHub answers the whole atomic post 422, and a held one would reserve an id release can never thread.
@@ -543,6 +581,9 @@ cases = [
     ("a closing verdict standing in for a finding that never landed",
      [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF1 x"},
       {"path": "b.rb", "line": 2, "body": "> 🤖 h\n>\n> via v\n\n::RF2::CLOSED:: The fix closes it."}]),
+    ("a not-closed verdict standing in for a finding that never landed",
+     [{"path": "a.rb", "line": 1, "body": "> 🤖 h\n\nRF1 x"},
+      {"path": "b.rb", "line": 2, "body": "> 🤖 h\n>\n> via v\n\n::RF2::OPEN:: The scenario survives."}]),
 ]
 for name, comments in cases:
     proc = run_verify(payload, comments, name="".join(c if c.isalnum() else "-" for c in name))
@@ -845,7 +886,7 @@ for name, reviews, comments, want in [
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode}, want {want})")
 
 # The plan, the result and the verdict stay separate so a released thread collects the same reply-per-step shape a threaded finding does.
-FU = [{"rf": 9, "kind": "verdict", "text": "Closed: the guard now fires."},
+FU = [{"rf": 9, "kind": "verdict", "closed": True, "text": "The guard now fires."},
       {"rf": 9, "kind": "plan", "text": "Tighten the guard in `unpushed_paths`."},
       {"rf": 9, "kind": "result", "text": "Closed by `fix: tighten the guard (#8)`."}]
 proc, out, replies = run_release(
@@ -864,6 +905,30 @@ if ok:
           and "Tighten the guard" not in json.loads(out.read_text())["comments"][0]["body"])
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a released thread's replies stay separate and in order")
+
+# The held route renders through the same function as the direct one, so the two cannot word one state differently.
+# A ledger an older version posted has no `closed` and may carry its marker in the text, so it is copied rather than refused or marked twice.
+for name, verdict, want, unwanted in [
+    ("a released closed verdict opens with its marker",
+     {"rf": 9, "kind": "verdict", "closed": True, "text": "The guard now fires."},
+     "\n\n::RF9::CLOSED:: The guard now fires.", "::OPEN::"),
+    ("a released not-closed verdict opens with its own marker",
+     {"rf": 9, "kind": "verdict", "closed": False, "text": "The guard still misses a rename."},
+     "\n\n::RF9::OPEN:: The guard still misses a rename.", "CLOSED"),
+    ("a legacy verdict with no closed flag is copied as it stands",
+     {"rf": 9, "kind": "verdict", "text": "::RF9::CLOSED:: Posted by an older version."},
+     "\n\n::RF9::CLOSED:: Posted by an older version.", "::RF9::CLOSED:: ::RF9::CLOSED::"),
+]:
+    proc, out, replies = run_release(
+        [ledger_review(held_entry(9)), followup_review(verdict)], [],
+        name="rv-" + "".join(c if c.isalnum() else "-" for c in name), cwd=str(SHARED_REPO))
+    ok = proc.returncode == 0 and replies.exists()
+    if ok:
+        plan = json.loads(replies.read_text(encoding="utf-8"))
+        body = plan[0]["bodies"][0] if plan and plan[0]["bodies"] else ""
+        ok = want in body and unwanted not in body and body.count("::RF9::") == 1
+    fails += not ok
+    print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 proc, out, replies = run_release([ledger_review(held_entry(9))], [],
                                  name="release-nofollowup", cwd=str(SHARED_REPO))
@@ -891,6 +956,10 @@ for name, entries in [
     ("an entry with empty text", [{"rf": 9, "kind": "plan", "text": "  "}]),
     # A suggestion fence renders a button that commits straight to the branch, and a released reply is no different.
     ("a suggestion fence", [{"rf": 9, "kind": "plan", "text": "```suggestion\nx = 1\n```"}]),
+    # Without the flag the released verdict can only be the prose that was typed, which is the ambiguity this flag ends.
+    ("a verdict with no closed flag", [{"rf": 9, "kind": "verdict", "text": "x"}]),
+    ("a verdict whose closed is not a boolean",
+     [{"rf": 9, "kind": "verdict", "closed": "yes", "text": "x"}]),
 ]:
     proc, out = run_followup(entries, name="fur-" + "".join(c if c.isalnum() else "-" for c in name))
     ok = proc.returncode == 2 and not out.exists()
@@ -943,6 +1012,8 @@ cases = [
     # A closing verdict issues nothing, so even one naming an id above every issued one leaves the answer where it was.
     ("a closing verdict is not an issued id",
      [{"body": "> 🤖 h\n\n::RF2:: x"}, {"body": "> 🤖 h\n\n::RF5::CLOSED:: The fix closes it."}], "2"),
+    ("a not-closed verdict is not an issued id",
+     [{"body": "> 🤖 h\n\n::RF2:: x"}, {"body": "> 🤖 h\n\n::RF5::OPEN:: The scenario survives."}], "2"),
 ]
 for name, comments, want in cases:
     proc = run_highest(comments, name="hi-" + "".join(c if c.isalnum() else "-" for c in name))

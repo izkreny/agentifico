@@ -24,8 +24,8 @@ SIDES = ("RIGHT", "LEFT")
 PASSES = ("review", "re-review")
 DISCLAIMER_PREFIX = "> 🤖"
 SUGGESTION_FENCE = "```suggestion"
-# An issued id is delimited with `::` so prose can name one without being counted, `::` rather than brackets because `[RF8]` is markdown link syntax, and a closing verdict's `::RF3::CLOSED::` is skipped because it names an id rather than issuing one.
-ID_PATTERN = r"::RF(\d+)::(?!CLOSED::)"
+# An issued id is delimited with `::` so prose can name one without being counted, `::` rather than brackets because `[RF8]` is markdown link syntax, and a verdict's `::RF3::CLOSED::` or `::RF3::OPEN::` is skipped because it names an id rather than issuing one.
+ID_PATTERN = r"::RF(\d+)::(?!(?:CLOSED|OPEN)::)"
 # A legacy finding post opened a line with the bare id, and under-reading it would hand a live id to a second finding.
 LEGACY_PATTERN = r"^RF(\d+) "
 # A legacy post put bare ids mid-line too, so an ignored one is reported rather than silently dropped.
@@ -148,6 +148,8 @@ def check_verdict(verdict: object, position: int, problems: list[str]) -> None:
     why = verdict.get("why")
     if not isinstance(why, str) or not why.strip():
         problems.append(f"{where} why is empty, so the verdict cannot be checked")
+    elif SUGGESTION_FENCE in why:
+        problems.append(f"{where} why carries a {SUGGESTION_FENCE} fence")
 
 
 def check_indices(findings: list[object], problems: list[str]) -> None:
@@ -332,6 +334,8 @@ def followup(args: argparse.Namespace) -> int:
             problems.append(f"{where} text is empty or not a string")
         elif SUGGESTION_FENCE in text:
             problems.append(f"{where} text carries a {SUGGESTION_FENCE} fence")
+        if kind == "verdict" and not isinstance(entry.get("closed"), bool):
+            problems.append(f"{where} closed is not true or false: {entry.get('closed')!r}")
 
     if problems:
         print(f"post-review: {len(problems)} problem(s), nothing built", file=sys.stderr)
@@ -362,10 +366,19 @@ def header(disclaimer: str, via: str) -> str:
     return f"{disclaimer}\n>\n> via `pr-flow` review, {via}"
 
 
-def finding_note(kind: str, text: str, disclaimer: str) -> str:
+def verdict_text(rf: int, closed: bool, why: str) -> str:
+    """The one rendering of a verdict's state, so neither route can word it differently."""
+    return f"::RF{rf}::{'CLOSED' if closed else 'OPEN'}:: {why.strip()}"
+
+
+def finding_note(entry: dict, disclaimer: str) -> str:
     via = {"plan": "released fix plan", "result": "released fix result",
-           "verdict": "released re-review verdict"}[kind]
-    return f"{header(disclaimer, via)}\n\n{text.strip()}"
+           "verdict": "released re-review verdict"}[entry["kind"]]
+    text = entry["text"].strip()
+    # WHY: a ledger an older version posted has no flag and may carry its marker in the text, so it is copied rather than refused or marked twice.
+    if entry["kind"] == "verdict" and isinstance(entry.get("closed"), bool):
+        text = verdict_text(entry["rf"], entry["closed"], text)
+    return f"{header(disclaimer, via)}\n\n{text}"
 
 
 def finding_body(finding: dict, rf: int, disclaimer: str, via: str) -> str:
@@ -545,6 +558,16 @@ def build(args: argparse.Namespace) -> int:
                 f"--anchored-at is not a commit sha: {args.anchored_at!r}"
             )
 
+    if which_pass == "review" and args.verdicts_out is not None:
+        problems.append(
+            "--verdicts-out was given on a review pass, which carries no verdicts to render"
+        )
+    elif which_pass == "re-review" and args.verdicts_out is None:
+        problems.append(
+            "--verdicts-out is missing on a re-review, so its verdicts would reach their "
+            "threads with no rendered state"
+        )
+
     held_paths: set[str] = set()
     if which_pass == "re-review" and args.unpushed_diff is not None:
         try:
@@ -633,6 +656,20 @@ def build(args: argparse.Namespace) -> int:
     Path(args.out).write_text(
         json.dumps(payload, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
     )
+
+    if which_pass == "re-review" and args.verdicts_out is not None:
+        rendered = [
+            {"rf": v["rf"], "closed": v["closed"],
+             "body": f"{header(disclaimer, 're-review verdict')}\n\n"
+                     f"{verdict_text(v['rf'], v['closed'], v['why'])}"}
+            for v in data["verdicts"]
+        ]
+        Path(args.verdicts_out).write_text(
+            json.dumps(rendered, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+        )
+        print(f"post-review: {len(rendered)} verdict(s) -> {args.verdicts_out}")
+        for v in rendered:
+            print(f"  RF{v['rf']}  {'CLOSED' if v['closed'] else 'OPEN'}")
 
     print(
         f"post-review: {len(assigned)} finding(s) -> {args.out} "
@@ -886,7 +923,7 @@ def release(args: argparse.Namespace) -> int:
         {
             "rf": rf,
             "bodies": [
-                finding_note(f["kind"], f["text"], disclaimer)
+                finding_note(f, disclaimer)
                 for f in sorted(
                     (f for f in follow_ups if f.get("rf") == rf),
                     key=lambda f: FOLLOWUP_KINDS.index(f["kind"])
@@ -1061,6 +1098,11 @@ def main() -> int:
         help="the paths the pull request adds, as `git diff --name-only -z "
              "--diff-filter=A` writes them; a LEFT finding on one is refused",
     )
+    b.add_argument(
+        "--verdicts-out",
+        help="where to write each verdict's rendered thread reply; required on a "
+             "re-review and refused on a review pass",
+    )
     b.add_argument("--out", required=True, help="where to write the payload JSON")
 
     r = sub.add_parser("release", help="post-push: the held ledger back into threads")
@@ -1097,7 +1139,8 @@ def main() -> int:
     f.add_argument(
         "--entries",
         required=True,
-        help="JSON array of {rf, kind, text}, kind being plan, result or verdict",
+        help="JSON array of {rf, kind, text}, kind being plan, result or verdict; a "
+             "verdict entry also carries closed, true or false",
     )
     f.add_argument(
         "--disclaimer-file",
