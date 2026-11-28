@@ -630,7 +630,10 @@ def build(args: argparse.Namespace) -> int:
         sys.exit(f"post-review: added paths not found: {args.added_paths}")
 
     try:
-        shown, quoted = shown_files(Path(args.pr_diff).read_text(encoding="utf-8"))
+        # WHY: a content line may carry any encoding, while the headers and paths read here are git's own UTF-8 or quoted ASCII.
+        shown, quoted = shown_files(
+            Path(args.pr_diff).read_text(encoding="utf-8", errors="replace")
+        )
     except FileNotFoundError:
         sys.exit(f"post-review: pr diff not found: {args.pr_diff}")
 

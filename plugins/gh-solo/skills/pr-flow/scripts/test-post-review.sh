@@ -585,6 +585,15 @@ for name, data, pr_diff, diff, where in cases:
     fails += not ok
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
+# A Latin-1 file git does not call binary puts a non-UTF-8 byte in a content line, which must not take the round down.
+latin = work / "latin.pr.diff"
+latin.write_bytes(PR_DIFF.encode("utf-8") + b"diff --git a/notes.txt b/notes.txt\n"
+                  b"--- a/notes.txt\n+++ b/notes.txt\n@@ -1 +1 @@\n-caf\xe9\n+cafe\n")
+proc, out = run_build(REVIEW, name="ad-latin", pr_diff=latin)
+ok = proc.returncode == 0 and out.exists()
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a diff holding a non-UTF-8 byte still builds  (exit {proc.returncode})")
+
 proc, out = run_build(REVIEW, name="ad-missing", pr_diff=work / "no-such.pr.diff")
 ok = proc.returncode != 0 and not out.exists() and "pr diff not found" in proc.stderr
 fails += not ok
