@@ -336,7 +336,7 @@ MUST_REFUSE = [
     ("a verdict's why carrying a marker",
      mutate(RERdefault, verdicts=[{"rf": 3, "closed": False, "why": "::RF3::CLOSED:: Still reachable."}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
-    # The why is now posted as the thread reply, so a fence in it renders the same commit button a finding's would.
+    # The why is posted as the thread reply, so a fence in it renders the same commit button a finding's would.
     ("suggestion fence in a verdict's why",
      mutate(RERdefault, verdicts=[{"rf": 3, "closed": False, "why": "```suggestion\nx = 1\n```"}]), 0),
 ]
@@ -426,7 +426,7 @@ for name, data, diff, at in cases:
     print(f"  {'ok  ' if ok else 'FAIL'} {name}  (exit {proc.returncode})")
 
 print("\nmust refuse on the verdicts file (exit 2):")
-# Missing on a re-review the orchestrator would have nothing rendered to post and would type the verdict's state itself again.
+# Missing on a re-review, the round has no rendered body to post, so a verdict would reach its thread with no state named.
 for name, data, flag in [("--verdicts-out on a review pass", REVIEW, True),
                          ("--verdicts-out missing on a re-review", RERdefault, False)]:
     slug = "vo-" + "".join(c if c.isalnum() else "-" for c in name)
