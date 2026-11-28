@@ -209,7 +209,7 @@ Its wording is per the AI-disclaimer bullet in `SKILL.md`. The script refuses a 
 ```bash
 git fetch <remote> <base-branch> --quiet
 git diff --name-only -z --diff-filter=A <remote>/<base-branch>...<the pin from Step 1> --output=<added-paths-file>
-git diff --unified=3 --src-prefix=a/ --dst-prefix=b/ <remote>/<base-branch>...<the pin from Step 1> --output=<pr-diff-file>
+git diff --unified=3 --inter-hunk-context=0 --src-prefix=a/ --dst-prefix=b/ <remote>/<base-branch>...<the pin from Step 1> --output=<pr-diff-file>
 python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> \
   --disclaimer-file <disclaimer-file> --continue-from <highest-id> \
   --pinned-head <the pin from Step 1> --head-now <the value item 1 just read> \
@@ -303,7 +303,7 @@ One record per analysis is the standing rule and a re-review is an analysis. Sam
 ```bash
 git diff @{u}..HEAD -U0 > <unpushed-diff-file>
 git diff --name-only -z --diff-filter=A <remote>/<base-branch>...HEAD --output=<added-paths-file>
-git diff --unified=3 --src-prefix=a/ --dst-prefix=b/ <remote>/<base-branch>...HEAD --output=<pr-diff-file>
+git diff --unified=3 --inter-hunk-context=0 --src-prefix=a/ --dst-prefix=b/ <remote>/<base-branch>...HEAD --output=<pr-diff-file>
 python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head read before the spawn> --added-paths <added-paths-file> --pr-diff <pr-diff-file> --verdicts-out <verdicts-file> --out <payload-file>
 ```
 
