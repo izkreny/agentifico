@@ -348,6 +348,11 @@ MUST_BUILD = [
      ["no findings"], None),
     ("re-review with verdicts and no new defect", RERdefault, 3,
      ["no findings", "re-review record"], GROUP_DIFF),
+    # Resolve-closed reads only a marker naming the thread's own id, so a quoted one for another id misleads nothing, and a reviewer quoting the input it tested must not stop the round.
+    ("a verdict's why quoting another finding's marker",
+     mutate(RERdefault, verdicts=[{"rf": 3, "closed": True,
+                                   "why": "The entry `::RF9::CLOSED:: x` now exits 2."}]), 3,
+     ["re-review record"], GROUP_DIFF),
     ("re-review with findings and no verdicts",
      mutate(RERdefault, verdicts=[], findings=[FINDING]), 3,
      ["RF4", "re-review record", "1 new finding(s) threaded"], OTHER_DIFF),
@@ -951,6 +956,12 @@ if ok:
           and "comments" not in payload)
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a Review carrying the ledger and no inline comments")
+
+proc, out = run_followup([{"rf": 9, "kind": "verdict", "closed": True,
+                           "text": "The entry `::RF4::CLOSED:: x` now exits 2."}], name="fu-other-id")
+ok = proc.returncode == 0 and out.exists()
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a verdict quoting another finding's marker  (exit {proc.returncode})")
 
 print("\nfollowup must refuse (exit 2):")
 for name, entries in [

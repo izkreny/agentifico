@@ -26,8 +26,8 @@ DISCLAIMER_PREFIX = "> 🤖"
 SUGGESTION_FENCE = "```suggestion"
 # An issued id is delimited with `::` so prose can name one without being counted, `::` rather than brackets because `[RF8]` is markdown link syntax, and a verdict's `::RF3::CLOSED::` or `::RF3::OPEN::` is skipped because it names an id rather than issuing one.
 ID_PATTERN = r"::RF(\d+)::(?!(?:CLOSED|OPEN)::)"
-# The script renders a verdict's marker itself, so one typed into its text would stack a second state under the first.
-VERDICT_MARKER = r"::RF\d+::(?:CLOSED|OPEN)::"
+# The script renders a verdict's marker itself, so one for the same id typed into its text would stack a second state under the first; another id's marker is a quote, which resolve-closed never reads as this thread's verdict.
+VERDICT_MARKER = r"::RF{rf}::(?:CLOSED|OPEN)::"
 # A legacy finding post opened a line with the bare id, and under-reading it would hand a live id to a second finding.
 LEGACY_PATTERN = r"^RF(\d+) "
 # A legacy post put bare ids mid-line too, so an ignored one is reported rather than silently dropped.
@@ -152,8 +152,8 @@ def check_verdict(verdict: object, position: int, problems: list[str]) -> None:
         problems.append(f"{where} why is empty, so the verdict cannot be checked")
     elif SUGGESTION_FENCE in why:
         problems.append(f"{where} why carries a {SUGGESTION_FENCE} fence")
-    elif re.search(VERDICT_MARKER, why):
-        problems.append(f"{where} why carries a verdict marker, which the script renders itself")
+    elif isinstance(rf, int) and re.search(VERDICT_MARKER.format(rf=rf), why):
+        problems.append(f"{where} why carries its own verdict marker, which the script renders itself")
 
 
 def check_indices(findings: list[object], problems: list[str]) -> None:
@@ -340,8 +340,9 @@ def followup(args: argparse.Namespace) -> int:
             problems.append(f"{where} text carries a {SUGGESTION_FENCE} fence")
         if kind == "verdict" and not isinstance(entry.get("closed"), bool):
             problems.append(f"{where} closed is not true or false: {entry.get('closed')!r}")
-        elif kind == "verdict" and isinstance(text, str) and re.search(VERDICT_MARKER, text):
-            problems.append(f"{where} text carries a verdict marker, which the script renders itself")
+        elif (kind == "verdict" and isinstance(rf, int) and isinstance(text, str)
+              and re.search(VERDICT_MARKER.format(rf=rf), text)):
+            problems.append(f"{where} text carries its own verdict marker, which the script renders itself")
 
     if problems:
         print(f"post-review: {len(problems)} problem(s), nothing built", file=sys.stderr)
