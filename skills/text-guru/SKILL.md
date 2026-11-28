@@ -60,4 +60,5 @@ A `suggestion` waits for `style` to be named because it is a preference the user
 - Ask before any change that would alter the meaning, because only the author knows which meaning was intended.
 - Keep every fact, name, number, date, quote and citation as the source gives it, and each claim at the scope and certainty it was written with, because a proofread that changes what the text claims has edited its content.
 - Report a name that looks misspelt as a `warning` with the likely spelling, so `fix` never changes it, because a name is spelled however its owner chose.
+- Report an error inside code, an identifier or a quoted literal, and one whose correction would pick between two meanings, as a `warning`, so `fix` leaves it to the user, because those are the edits this skill leaves alone or asks about first.
 - Flag domain terminology you would change instead of replacing it, because a term that looks wrong to a general reader is often right for the intended one.
