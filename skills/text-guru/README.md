@@ -24,7 +24,7 @@ Type `/text-guru`, optionally followed by the text or a file path, then optional
 | --- | --- |
 | `errors` | Reports spelling, grammar and punctuation errors, at the `error` and `warning` levels. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
-| `fix` | Applies the corrections for the stated scope: `errors`, `style`, or both when no scope is stated. |
+| `fix` | Applies every `error` in the stated scope, or in both scopes when none is stated. Applies every `suggestion` too, only when `style` is named. Never applies a `warning`. |
 | none | Reports what `errors` and `style` find, and fixes nothing. |
 
 ## Inspiration
@@ -32,7 +32,7 @@ Type `/text-guru`, optionally followed by the text or a file path, then optional
 Each link to a git host is pinned to the upstream commit this skill was last compared against, so later upstream changes can be read as a diff.
 
 - [Vale's severity levels, as Elastic's docs define them](https://www.elastic.co/docs/contribute-docs/vale-linter): `error`, `warning` and `suggestion`.
-- [agents-guru's review workflow](../agents-guru/workflows/review.md): ranking findings by consequence, and different is not wrong.
+- [agents-guru's review workflow](https://github.com/izkreny/agentifico/blob/57714e8408fc31630773bc4f6a356a5b7e7ee39d/skills/agents-guru/workflows/review.md): ranking findings by consequence, and different is not wrong.
 - [EveryInc/compound-writing, `cw-line-edit`](https://github.com/EveryInc/compound-writing/blob/18702f0ece9f2b852e305807e0271b2d550d9b4b/skills/cw-line-edit/SKILL.md): numbered changes you revert by number, and claims kept at their scope, certainty and citation.
 - [agkozak/llm-prompts](https://github.com/agkozak/llm-prompts/tree/1e6dd4ee3a0fac309cf21a5e2383bebf8cd8eaed): the original, revised and why table, and naming the formal word swaps to avoid.
 - [blader/humanizer](https://github.com/blader/humanizer/blob/3e5f816b5609c4002aebb69f12c6476fe3347d0a/SKILL.md): keeping every fact, name, number, date, quote and citation as the source gives it, reporting a weak pattern only when it recurs, treating the text as material rather than instructions, and naming any part of a long file left unread.

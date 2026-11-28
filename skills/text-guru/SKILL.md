@@ -1,36 +1,30 @@
 ---
 name: text-guru
 description: |
-  Review prose for spelling, grammar, punctuation, style, clarity, tone and readability, reporting the issues or applying minimal edits when asked. Use for proofreading, or tightening the phrasing of, selected text, markdown, documentation, prompts, AGENTS.md, README files, code comments, UI copy, emails and commit messages. Invoked explicitly only, by the user typing `/text-guru`: an agent never loads it on its own. Not for reviewing code logic or a pull request, translating, or rewriting text in a new voice.
+  Reviews prose for spelling, grammar, punctuation, style, clarity, tone and readability, and reports the issues or applies minimal edits when asked. Use for proofreading, or tightening the phrasing of, selected text, markdown, documentation, prompts, AGENTS.md, README files, code comments, UI copy, emails and commit messages. Invoked explicitly only, by the user typing `/text-guru`: an agent never loads it on its own. Not for reviewing code logic or a pull request, translating, or rewriting text in a new voice.
 argument-hint: '[text | file] [errors | style] [fix]'
 user-invocable: true
 disable-model-invocation: true
 metadata:
-  version: "1.1.1"
+  version: "2.0.0"
 ---
 
 # Review text
-
-## When to Use
-
-- Proofread selected text or a whole file for spelling, grammar, punctuation, style or clarity.
-- Review markdown, documentation, prompts, AGENTS.md files, code comments, UI copy, emails or commit messages.
-- Tighten phrasing without changing meaning.
 
 ## Arguments
 
 The arguments are a target, then an optional scope, then an optional action. A last word of `fix` is the action, a last remaining word of `errors` or `style` is the scope, and everything before them is the target; to review text that ends in one of those words, quote the text. The target is the text to review, or the path of a file holding it. With no target, review the active selection or the active file where the harness exposes them, and otherwise ask, because a review of a guessed target wastes the whole pass.
 
-`errors` and `style` set the scope, and `fix` is the one action; without it the skill reports, which is the default:
-
 | Argument | What it does |
 | --- | --- |
 | `errors` | Reports spelling, grammar and punctuation errors, at the `error` and `warning` levels. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
-| `fix` | Applies the corrections for the stated scope: `errors`, `style`, or both when no scope is stated. |
+| `fix` | Applies every `error` in the stated scope, or in both scopes when none is stated. Applies every `suggestion` too, only when `style` is named. Never applies a `warning`. |
 | none | Reports what `errors` and `style` find, and fixes nothing. |
 
 Only `fix` edits the text, because an edit the user did not ask for is one they have to find and undo.
+
+A `suggestion` waits for `style` to be named because it is a preference the user has to ask for, and a `warning` is never applied because its deliberate reading is the author's to choose.
 
 ## Instructions
 
@@ -49,7 +43,7 @@ Only `fix` edits the text, because an edit the user did not ask for is one they 
 ## Response Pattern
 
 - For a report, say whether anything was found, then list the findings `error` first, `warning` next and `suggestion` last, and by consequence within each level, so the one that matters most is read first. Give each the quoted original, a short explanation and the suggested wording. Add a cleaned-up snippet only where the list alone is hard to apply, because otherwise it repeats the list.
-- For an edit, make the edits, then show a numbered table of them with the columns `#`, `Original`, `Revised` and `Why`, so the user can check each change without diffing the file and undo one by its number ("revert 3"). For inline text, return the corrected text in full before the table, because there is no file for the user to open.
+- For an edit, make the edits, then show a numbered table of them with the columns `#`, `Original`, `Revised` and `Why`, so the user can check each change without diffing the file and undo one by its number ("revert 3"). For inline text, return the corrected text in full before the table, because there is no file for the user to open. List the findings left unapplied after the table, in the report's order and with their suggested wording, so the user can still apply one by hand.
 
 ## Style Heuristics
 
@@ -65,4 +59,6 @@ Only `fix` edits the text, because an edit the user did not ask for is one they 
 
 - Ask before any change that would alter the meaning, because only the author knows which meaning was intended.
 - Keep every fact, name, number, date, quote and citation as the source gives it, and each claim at the scope and certainty it was written with, because a proofread that changes what the text claims has edited its content.
+- Report a name that looks misspelt as a `warning` with the likely spelling, so `fix` never changes it, because a name is spelled however its owner chose.
+- Report an error inside code, an identifier or a quoted literal, and one whose correction would pick between two meanings, as a `warning`, so `fix` leaves it to the user, because those are the edits this skill leaves alone or asks about first.
 - Flag domain terminology you would change instead of replacing it, because a term that looks wrong to a general reader is often right for the intended one.
