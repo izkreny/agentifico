@@ -157,7 +157,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
 
 **It is what charges the pass**: a discard without it leaves the count reading as though the pass never ran. It carries no `comments` array, so it cannot fail on an anchor.
 
-**Every stop that throws a pass away owes this record**, and each of them says so where it stops: the missing findings-file path in this step, the head disagreement and the malformed findings file in Step 2, and the unanchorable finding in Step 2's item 5.
+**Every stop that throws a pass away owes this record**, and each of them says so where it stops: the missing findings-file path in this step, the head disagreement, the malformed findings file and the unanchorable finding in Step 2, whether `build` refuses it in item 4 or GitHub does in item 5.
 
 #### While it reads, a push is refused
 
@@ -209,13 +209,14 @@ Its wording is per the AI-disclaimer bullet in `SKILL.md`. The script refuses a 
 ```bash
 git fetch <remote> <base-branch> --quiet
 git diff --name-only -z --diff-filter=A <remote>/<base-branch>...<the pin from Step 1> --output=<added-paths-file>
+git diff --unified=3 <remote>/<base-branch>...<the pin from Step 1> --output=<pr-diff-file>
 python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> \
   --disclaimer-file <disclaimer-file> --continue-from <highest-id> \
   --pinned-head <the pin from Step 1> --head-now <the value item 1 just read> \
-  --added-paths <added-paths-file> --out <payload-file>
+  --added-paths <added-paths-file> --pr-diff <pr-diff-file> --out <payload-file>
 ```
 
-`<base-branch>` is `gh pr view <pr-number> --json baseRefName`. **`--added-paths` lists the files the pull request adds, at the pin the reviewer read.** An added file has no base side, so `build` refuses a `LEFT` finding on one rather than letting GitHub fail the whole post. `-z` keeps every path unquoted. **A non-zero exit from that `git diff` stops the round before `build` runs**, because `build` would read an empty file as a branch that adds nothing. `--output` rather than a redirect makes the early failures stop on their own: git writes no file when it cannot read its arguments, and `build` refuses a missing file. A later failure, such as `no merge base` on a shallow clone, still leaves an empty file, so the exit code is the check that catches it.
+`<base-branch>` is `gh pr view <pr-number> --json baseRefName`. **`--added-paths` lists the files the pull request adds, at the pin the reviewer read.** An added file has no base side, so `build` refuses a `LEFT` finding on one rather than letting GitHub fail the whole post. `-z` keeps every path unquoted. **`--pr-diff` is the pull request's diff at the same pin**, at GitHub's own three lines of context, and `build` refuses a finding whose line it does not show, naming the finding. **A non-zero exit from either `git diff` stops the round before `build` runs**, because `build` would read an empty file as a branch that adds nothing and shows no line. `--output` rather than a redirect makes the early failures stop on their own: git writes no file when it cannot read its arguments, and `build` refuses a missing file. A later failure, such as `no merge base` on a shallow clone, still leaves an empty file, so the exit code is the check that catches it.
 
 **Both head arguments are required here**, exactly as `--unpushed-diff` and `--anchored-at` are required on the re-review's own block in Step 5, and the script refuses a full pass missing either. This block and Step 5's are read together whenever either moves, since `scripts/test-post-review.sh` builds its own argument list rather than reading this file.
 
@@ -229,7 +230,7 @@ gh api "repos/{owner}/{repo}/pulls/<pr-number>/reviews" --input <payload-file>
 
 The JSON travels in a **file**, per the unattended-command bullet in `SKILL.md`, kept outside the working tree so a copy of it cannot get committed.
 
-**A `422` reading `Line could not be resolved` is an anchor that will not resolve**, which after item 1 leaves one cause: the reviewer gave a `line` or `side` the diff at the pin does not carry. Name the finding that could not be anchored and stop - **posting the discard record before you do**.
+**A `422` reading `Line could not be resolved` is an anchor that will not resolve.** Item 4 refuses an anchor the diff at the pin does not show, so what reaches GitHub is one `build` could not test, such as a path git quoted, or one where GitHub's diff and git's disagree. Name the finding that could not be anchored and stop - **posting the discard record before you do**.
 
 #### 6. Reconcile what landed
 
@@ -302,10 +303,11 @@ One record per analysis is the standing rule and a re-review is an analysis. Sam
 ```bash
 git diff @{u}..HEAD -U0 > <unpushed-diff-file>
 git diff --name-only -z --diff-filter=A <remote>/<base-branch>...HEAD --output=<added-paths-file>
-python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head read before the spawn> --added-paths <added-paths-file> --verdicts-out <verdicts-file> --out <payload-file>
+git diff --unified=3 <remote>/<base-branch>...HEAD --output=<pr-diff-file>
+python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head read before the spawn> --added-paths <added-paths-file> --pr-diff <pr-diff-file> --verdicts-out <verdicts-file> --out <payload-file>
 ```
 
-**The added paths are listed at local `HEAD` here, not at the pin**, because an unpushed fix can add a file, and a held `LEFT` finding on it would reserve an id `release` can never thread. It takes `--output`, and a non-zero exit from it stops the round, for the reasons Step 2 gives.
+**The added paths and the diff are listed at local `HEAD` here, not at the pin**, because an unpushed fix can add a file, and a held `LEFT` finding on it would reserve an id `release` can never thread. A finding `build` threads now is on a file the fixes did not touch, so local `HEAD` shows its lines as the pushed head does; a held one is tested by `release` after the push. Each takes `--output`, and a non-zero exit from either stops the round, for the reasons Step 2 gives.
 
 **`--unpushed-diff` and `--anchored-at` are both required on a re-review and both refused on a full pass**, so the round cannot post a rescope payload without saying which lines only this machine has and which head those line numbers were counted against. **`--verdicts-out` is required and refused the same way**, since only a re-review carries verdicts.
 
