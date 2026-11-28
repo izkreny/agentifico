@@ -260,26 +260,32 @@ def hunk_lines(diff_text: str, side: str) -> set[int]:
     return lines
 
 
-def header_path(raw: str) -> str:
-    """The path a `---` or `+++` line names, decoded where git quoted it."""
+def header_path(raw: str, prefix: str) -> str | None:
+    """The path a `---` or `+++` line names, decoded where git quoted it, or None where it lacks its prefix."""
     # git ends the line with a tab after a path holding a space.
     raw = raw.rstrip("\t")
     if raw.startswith('"') and raw.endswith('"'):
         raw = codecs.escape_decode(raw[1:-1].encode("utf-8"))[0].decode("utf-8", errors="replace")
-    return raw[2:]
+    return raw[len(prefix):] if raw.startswith(prefix) else None
 
 
-def shown_files(diff_text: str) -> dict[str, str]:
-    """Each file's section of the pull request's diff, keyed by the path a finding names."""
+def shown_files(diff_text: str) -> tuple[dict[str, str], list[str]]:
+    """Each file's section of the pull request's diff, keyed by the path a finding names, and every header line whose path lacks its prefix."""
     sections: dict[str, str] = {}
+    unprefixed: list[str] = []
     for section in re.split(r"^(?=diff --git )", diff_text, flags=re.M):
         new = re.search(r"^\+\+\+ (.*)$", section, re.M)
         old = re.search(r"^--- (.*)$", section, re.M)
         if new is None or old is None:
             continue
         # A deleted file's comments name its old path, since it has no new one.
-        sections[header_path(old.group(1) if new.group(1) == "/dev/null" else new.group(1))] = section
-    return sections
+        header, prefix = (old, "a/") if new.group(1) == "/dev/null" else (new, "b/")
+        name = header_path(header.group(1), prefix)
+        if name is None:
+            unprefixed.append(header.group(0).rstrip("\t"))
+        else:
+            sections[name] = section
+    return sections, unprefixed
 
 
 def nul_paths(text: str) -> set[str]:
@@ -635,11 +641,16 @@ def build(args: argparse.Namespace) -> int:
 
     try:
         # WHY: a content line may carry any encoding, while the headers and paths read here are git's own UTF-8 or quoted ASCII.
-        shown = shown_files(
+        shown, unprefixed = shown_files(
             Path(args.pr_diff).read_text(encoding="utf-8", errors="replace")
         )
     except FileNotFoundError:
         sys.exit(f"post-review: pr diff not found: {args.pr_diff}")
+    for line in unprefixed:
+        problems.append(
+            f"the pr diff's {line!r} carries no a/ or b/ prefix, so its path cannot be read; "
+            "write it with --src-prefix=a/ --dst-prefix=b/"
+        )
 
     for position, finding in enumerate(findings):
         check_finding(finding, position, problems)

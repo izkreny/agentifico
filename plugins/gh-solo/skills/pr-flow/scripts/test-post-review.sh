@@ -598,6 +598,14 @@ ok = proc.returncode == 0 and out.exists()
 fails += not ok
 print(f"  {'ok  ' if ok else 'FAIL'} a diff holding a non-UTF-8 byte still builds  (exit {proc.returncode})")
 
+# Under `diff.noprefix` git drops the a/ and b/ prefixes, and stripping two characters regardless would refuse every valid finding.
+NOPREFIX_DIFF = PR_DIFF.replace("--- a/", "--- ").replace("+++ b/", "+++ ")
+proc, out = run_build(REVIEW, name="ad-noprefix", pr_diff=NOPREFIX_DIFF)
+ok = (proc.returncode == 2 and not out.exists()
+      and "+++ app/models/group.rb" in proc.stderr and "--src-prefix=a/" in proc.stderr)
+fails += not ok
+print(f"  {'ok  ' if ok else 'FAIL'} a diff written without the a/ and b/ prefixes  (exit {proc.returncode})")
+
 proc, out = run_build(REVIEW, name="ad-missing", pr_diff=work / "no-such.pr.diff")
 ok = proc.returncode != 0 and not out.exists() and "pr diff not found" in proc.stderr
 fails += not ok

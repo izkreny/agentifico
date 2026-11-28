@@ -209,14 +209,14 @@ Its wording is per the AI-disclaimer bullet in `SKILL.md`. The script refuses a 
 ```bash
 git fetch <remote> <base-branch> --quiet
 git diff --name-only -z --diff-filter=A <remote>/<base-branch>...<the pin from Step 1> --output=<added-paths-file>
-git diff --unified=3 <remote>/<base-branch>...<the pin from Step 1> --output=<pr-diff-file>
+git diff --unified=3 --src-prefix=a/ --dst-prefix=b/ <remote>/<base-branch>...<the pin from Step 1> --output=<pr-diff-file>
 python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> \
   --disclaimer-file <disclaimer-file> --continue-from <highest-id> \
   --pinned-head <the pin from Step 1> --head-now <the value item 1 just read> \
   --added-paths <added-paths-file> --pr-diff <pr-diff-file> --out <payload-file>
 ```
 
-`<base-branch>` is `gh pr view <pr-number> --json baseRefName`. **`--added-paths` lists the files the pull request adds, at the pin the reviewer read.** An added file has no base side, so `build` refuses a `LEFT` finding on one rather than letting GitHub fail the whole post. `-z` keeps every path unquoted. **`--pr-diff` is the pull request's diff at the same pin**, at GitHub's own three lines of context, and `build` refuses a finding whose line it does not show, naming the finding. **A non-zero exit from either `git diff` stops the round before `build` runs**, because `build` would read an empty file as a branch that adds nothing and shows no line. `--output` rather than a redirect makes the early failures stop on their own: git writes no file when it cannot read its arguments, and `build` refuses a missing file. A later failure, such as `no merge base` on a shallow clone, still leaves an empty file, so the exit code is the check that catches it.
+`<base-branch>` is `gh pr view <pr-number> --json baseRefName`. **`--added-paths` lists the files the pull request adds, at the pin the reviewer read.** An added file has no base side, so `build` refuses a `LEFT` finding on one rather than letting GitHub fail the whole post. `-z` keeps every path unquoted. **`--pr-diff` is the pull request's diff at the same pin**, at GitHub's own three lines of context, and `build` refuses a finding whose line it does not show, naming the finding. The prefixes are pinned because `build` reads each path after its `a/` or `b/`, and a `diff.noprefix` setting would drop them. **A non-zero exit from either `git diff` stops the round before `build` runs**, because `build` would read an empty file as a branch that adds nothing and shows no line. `--output` rather than a redirect makes the early failures stop on their own: git writes no file when it cannot read its arguments, and `build` refuses a missing file. A later failure, such as `no merge base` on a shallow clone, still leaves an empty file, so the exit code is the check that catches it.
 
 **Both head arguments are required here**, exactly as `--unpushed-diff` and `--anchored-at` are required on the re-review's own block in Step 5, and the script refuses a full pass missing either. This block and Step 5's are read together whenever either moves, since `scripts/test-post-review.sh` builds its own argument list rather than reading this file.
 
@@ -303,7 +303,7 @@ One record per analysis is the standing rule and a re-review is an analysis. Sam
 ```bash
 git diff @{u}..HEAD -U0 > <unpushed-diff-file>
 git diff --name-only -z --diff-filter=A <remote>/<base-branch>...HEAD --output=<added-paths-file>
-git diff --unified=3 <remote>/<base-branch>...HEAD --output=<pr-diff-file>
+git diff --unified=3 --src-prefix=a/ --dst-prefix=b/ <remote>/<base-branch>...HEAD --output=<pr-diff-file>
 python3 <skill-dir>/scripts/post-review.py build --findings <findings-file> --disclaimer-file <disclaimer-file> --continue-from <highest-id> --unpushed-diff <unpushed-diff-file> --anchored-at <the local head read before the spawn> --added-paths <added-paths-file> --pr-diff <pr-diff-file> --verdicts-out <verdicts-file> --out <payload-file>
 ```
 
