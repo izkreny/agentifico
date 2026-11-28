@@ -25,7 +25,7 @@ The arguments are a target, then an optional scope, then an optional action. A l
 
 | Argument | What it does |
 | --- | --- |
-| `errors` | Reports spelling, grammar and punctuation errors. |
+| `errors` | Reports spelling, grammar and punctuation errors, at the `error` and `warning` levels. |
 | `style` | Reports wording, structure, ambiguity, tone and readability suggestions. |
 | `fix` | Applies the corrections for the stated scope: `errors`, `style`, or both when no scope is stated. |
 | none | Reports what `errors` and `style` find, and fixes nothing. |
