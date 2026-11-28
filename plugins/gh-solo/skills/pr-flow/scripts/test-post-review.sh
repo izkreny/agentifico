@@ -323,7 +323,9 @@ MUST_REFUSE = [
     ("review pass with empty axes_run", mutate(REVIEW, axes_run=[]), 0),
     ("review pass with axes_run missing", mutate(REVIEW, axes_run=None), 0),
     ("axes_run holds something that is not an axis", mutate(REVIEW, axes_run=["vibes"]), 0),
-    ("re-review with no verdicts", mutate(RERdefault, verdicts=[]), 0),
+    ("re-review with neither verdicts nor findings", mutate(RERdefault, verdicts=[]), 0),
+    ("re-review with verdicts missing", mutate(RERdefault, verdicts=None, findings=[FINDING]), 0),
+    ("re-review with verdicts not a list", mutate(RERdefault, verdicts="none", findings=[FINDING]), 0),
     ("verdict with an empty why", mutate(RERdefault, verdicts=[{"rf": 3, "closed": True, "why": " "}]), 0),
     ("verdict closed not a boolean", mutate(RERdefault, verdicts=[{"rf": 3, "closed": "yes", "why": "x"}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
@@ -336,6 +338,9 @@ MUST_BUILD = [
      ["no findings"], None),
     ("re-review with verdicts and no new defect", RERdefault, 3,
      ["no findings", "re-review record"], GROUP_DIFF),
+    ("re-review with findings and no verdicts",
+     mutate(RERdefault, verdicts=[], findings=[FINDING]), 3,
+     ["RF4", "re-review record", "1 new finding(s) threaded"], OTHER_DIFF),
     ("re-review whose new defect is on a file the fixes did not touch",
      mutate(RERdefault, findings=[FINDING]), 3, ["RF4", "1 new finding(s) threaded, 0 held"],
      OTHER_DIFF),
@@ -360,7 +365,9 @@ fails = 0
 print("must refuse (exit 2):")
 for name, data, continue_from in MUST_REFUSE:
     slug = "".join(c if c.isalnum() else "-" for c in name)
-    proc, out = run_build(data, continue_from=continue_from, name=slug)
+    # WHY: a re-review given no diff refuses on that alone, so without one these cases would never reach the check they name.
+    diff = OTHER_DIFF if data.get("pass") == "re-review" else None
+    proc, out = run_build(data, continue_from=continue_from, name=slug, diff=diff)
     ok = proc.returncode == 2 and not out.exists()
     fails += not ok
     detail = "" if ok else f"  (exit {proc.returncode}, payload written: {out.exists()})"

@@ -561,9 +561,11 @@ def build(args: argparse.Namespace) -> int:
             problems.append(f"axes_run holds something that is not an axis: {axes_run!r}")
     elif which_pass == "re-review":
         verdicts = data.get("verdicts")
-        if not isinstance(verdicts, list) or not verdicts:
+        if not isinstance(verdicts, list):
+            problems.append("verdicts is missing or not a list")
+        elif not verdicts and not findings:
             problems.append(
-                "a re-review with no verdicts answers neither of its two questions"
+                "a re-review with neither verdicts nor findings has nothing to record"
             )
         else:
             for position, verdict in enumerate(verdicts):
