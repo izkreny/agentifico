@@ -41,7 +41,7 @@ python3 plugins/gh-solo/skills/pr-flow/scripts/docs-check.py plugins/gh-solo .ag
   $(git diff --name-only origin/main...HEAD -- docs/plans) --plans docs/plans
 ```
 
-**A merged plan is not read, and the open branch's own plan is.** A plan is a record of intent and stays as written, so the paths a merged one names go stale by design: reading them back asks for a permanent ignore span per rewrite the repository has ever done. The substitution names every plan still being written, which on the upper branch of a stack is one per branch in it, per *The stacked release train asks nothing of this script, and the reason is not that each branch is checked alone*. It is unquoted on purpose: the script falls back to the whole tree when it is handed no target, and `Path("")` is the current directory, so a quoted substitution on a branch that carries no plan yet would hand it an empty string and scan the repository root. Unquoted, an empty result contributes no word at all and the named targets stand alone; plan filenames carry no spaces, so nothing else splits.
+**A merged plan is not read, and the open branch's own plan is.** A plan is a record of intent and stays as written, so the paths a merged one names go stale by design: reading them back asks for a permanent ignore span per rewrite the repository has ever done. The substitution names every plan still being written, which on the upper branch of a stack is one per branch in it, per *On a stacked branch the range is the pull request's base, because the trunk range spans the whole stack*. It is unquoted on purpose: the script falls back to the whole tree when it is handed no target, and `Path("")` is the current directory, so a quoted substitution on a branch that carries no plan yet would hand it an empty string and scan the repository root. Unquoted, an empty result contributes no word at all and the named targets stand alone; plan filenames carry no spaces, so nothing else splits.
 
 ### Running the docs check
 
@@ -65,15 +65,18 @@ The substitution is the docs check's, unquoted for the same reason. A branch car
 
 ### The version check
 
-**Every package a branch touches has moved its own version**, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`, which owns the rule:
+**Every package a branch touches has moved its own version**, per *Each plugin, and each skill under `skills/`, is a package* in `AGENTS.md`, which owns the rule. Fetch first, then compare the branch with its pull request's base:
 
 ```bash
-python3 scripts/version-check.py
+git fetch origin
+python3 scripts/version-check.py "origin/$(gh pr view --json baseRefName -q .baseRefName)...HEAD"
 ```
 
-It compares `origin/main...HEAD` by default and takes a range or a single commit instead. It reads the paths a change touches rather than the issue's package label, so relabelling an issue cannot satisfy it; which part of the version moved is left to a reader, since one branch can carry several commit types.
+It takes a range or a single commit, and compares `origin/main...HEAD` when given none. It reads the paths a change touches rather than the issue's package label, so relabelling an issue cannot satisfy it; which part of the version moved is left to a reader, since one branch can carry several commit types.
 
-**The stacked release train asks nothing of this script, and the reason is not that each branch is checked alone.** `origin/main...HEAD` resolves through `git merge-base`, which on an upper branch of a stack predates every branch below it, so the range spans the whole stack and a lower branch's bump satisfies an upper branch that moved no version. What the check still gates is the thing the tag depends on: that the stack as a whole moved the package's version before `gh stack merge` publishes it. Per-branch bumping inside a stack is a rule this script cannot see, and nothing else here catches it either: it holds because each branch is written to hold it, not because a gate refuses when it does not.
+**On a stacked branch the range is the pull request's base, because the trunk range spans the whole stack.** `origin/main...HEAD` resolves through `git merge-base`, which on an upper branch of a stack predates every branch below it. A lower branch's bump would then satisfy an upper branch that moved no version. The base is the branch below in a stack and `main` otherwise, so one command serves both. A stale `origin/<base>` puts the parent's later commits back in the range, which is why the fetch comes first. With no pull request the substitution is empty, and the script exits 2 rather than passing.
+
+**A sweep branch runs the bare `python3 scripts/version-check.py` instead.** Its version is measured from the trunk, per *What the sweep does*, so in a patch release it sits below the branch under it and the base range would refuse it. The trunk range checks what the tag depends on: that the stack as a whole moved the package's version before `gh stack merge` publishes it.
 
 Every branch's plan lists it in `## Verification`, which is what makes it a gate rather than a command nobody runs: `ready` and `merge` both refuse on an unticked box. A branch touching no package passes it without exercising anything, and that is the correct answer for such a branch rather than a reason to leave it out.
 

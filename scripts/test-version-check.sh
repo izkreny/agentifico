@@ -114,6 +114,18 @@ skill 1.0.0 'body, on another branch'
 fgit commit -qam 'change it on a branch without moving the version'
 SIDE_STUCK="$(fgit rev-parse HEAD)"
 
+# A two-branch stack off ADDED: the lower branch moves the version, and the upper branch
+# changes the package without moving it. Against the trunk the lower bump hides the
+# upper branch's miss, so the gate passes the pull request's base as the range instead.
+fgit checkout -q -b stack-lower "$ADDED"
+skill 1.0.1 'body, on the lower branch'
+fgit commit -qam 'change it on the lower branch and move the version'
+
+fgit checkout -q -b stack-upper
+skill 1.0.1 'body, on the upper branch'
+fgit commit -qam 'change it on the upper branch without moving the version'
+STACK_UPPER="$(fgit rev-parse HEAD)"
+
 fgit checkout -q main
 
 # A second package, carrying a file beside its manifest, so the manifest can be deleted
@@ -156,6 +168,7 @@ expect 1 "$SYNTH" "main...$SIDE_STUCK" 'the three-dot form over a standing-still
 expect 1 "$SYNTH" "$SHORTENED" 'a version rewritten with one dotted part fewer' 'stayed at 1.1 ('
 expect 1 "$SYNTH" "$ORPHANED" 'a manifest deleted while its package survives' 'carries no skills/other/SKILL.md'
 expect 1 "$SYNTH" "$UNMANIFESTED" 'a live directory that carries no manifest' 'carries no skills/legacy/SKILL.md'
+expect 1 "$SYNTH" "stack-lower...$STACK_UPPER" 'an upper stack branch against its parent, the version standing still' 'stayed at 1.0.1'
 
 echo 'must stay quiet:'
 expect 0 "$HERE" 91933a2 'a real commit touching no package'
@@ -167,6 +180,7 @@ expect 0 "$SYNTH" "$STRAY" 'a file directly under skills, owned by no package'
 expect 0 "$SYNTH" "$REPO_ONLY" 'repository-level files only'
 expect 0 "$SYNTH" "$ADDED..$MOVED" 'the two-dot form over a moved version'
 expect 0 "$SYNTH" "main...$SIDE_MOVED" 'the three-dot form over a moved version'
+expect 0 "$SYNTH" "main...$STACK_UPPER" 'an upper stack branch against the trunk, which the lower bump satisfies'
 
 printf '\n%s failure(s)\n' "$fails"
 [ "$fails" = 0 ]
