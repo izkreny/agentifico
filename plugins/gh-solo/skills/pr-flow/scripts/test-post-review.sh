@@ -573,6 +573,10 @@ cases = [
      SPLIT_DIFF, None, "app/models/group.rb:42"),
     ("a finding under a renamed file's old path",
      with_finding(REVIEW, path="app/models/old.rb"), RENAMED_DIFF, None, "app/models/old.rb:42"),
+    ("a finding on an untouched path beside a path git quoted",
+     with_finding(REVIEW, path="lib/other.rb"), QUOTED_DIFF, None, "lib/other.rb:42"),
+    ("a finding outside the hunks of a path git quoted",
+     with_finding(REVIEW, path="docs/été.md", line=99), QUOTED_DIFF, None, "docs/été.md:99"),
     ("an unheld re-review finding outside every hunk",
      mutate(RERdefault, findings=[dict(FINDING, line=120)]), PR_DIFF, OTHER_DIFF,
      "app/models/group.rb:120"),
@@ -610,8 +614,8 @@ cases = [
      with_finding(REVIEW, path="app/models/team.rb"), RENAMED_DIFF, None, "0 held"),
     ("a held finding outside every hunk",
      mutate(RERdefault, findings=[dict(FINDING, line=120)]), PR_DIFF, GROUP_DIFF, "1 held"),
-    ("a finding git quoted the path of, which is left to GitHub",
-     with_finding(REVIEW, path="docs/été.md", line=99), QUOTED_DIFF, None, "0 held"),
+    ("a finding on a path git quoted, read decoded",
+     with_finding(REVIEW, path="docs/été.md", line=1), QUOTED_DIFF, None, "0 held"),
 ]
 for name, data, pr_diff, diff, want in cases:
     slug = "as-" + "".join(c if c.isalnum() else "-" for c in name)

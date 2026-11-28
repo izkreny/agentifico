@@ -12,6 +12,7 @@ Exit status: 0 all checks passed, 2 a check failed, 1 the arguments or the files
 from __future__ import annotations
 
 import argparse
+import codecs
 import json
 import re
 import subprocess
@@ -259,23 +260,26 @@ def hunk_lines(diff_text: str, side: str) -> set[int]:
     return lines
 
 
-def shown_files(diff_text: str) -> tuple[dict[str, str], bool]:
-    """Each file's section of the pull request's diff, keyed by the path a finding names, and whether git quoted any path it holds."""
+def header_path(raw: str) -> str:
+    """The path a `---` or `+++` line names, decoded where git quoted it."""
+    # git ends the line with a tab after a path holding a space.
+    raw = raw.rstrip("\t")
+    if raw.startswith('"') and raw.endswith('"'):
+        raw = codecs.escape_decode(raw[1:-1].encode("utf-8"))[0].decode("utf-8", errors="replace")
+    return raw[2:]
+
+
+def shown_files(diff_text: str) -> dict[str, str]:
+    """Each file's section of the pull request's diff, keyed by the path a finding names."""
     sections: dict[str, str] = {}
-    quoted = False
     for section in re.split(r"^(?=diff --git )", diff_text, flags=re.M):
         new = re.search(r"^\+\+\+ (.*)$", section, re.M)
         old = re.search(r"^--- (.*)$", section, re.M)
         if new is None or old is None:
             continue
         # A deleted file's comments name its old path, since it has no new one.
-        # git ends the line with a tab after a path holding a space.
-        name = (old.group(1) if new.group(1) == "/dev/null" else new.group(1)).rstrip("\t")
-        if name.startswith('"'):
-            quoted = True
-            continue
-        sections[name[2:]] = section
-    return sections, quoted
+        sections[header_path(old.group(1) if new.group(1) == "/dev/null" else new.group(1))] = section
+    return sections
 
 
 def nul_paths(text: str) -> set[str]:
@@ -631,7 +635,7 @@ def build(args: argparse.Namespace) -> int:
 
     try:
         # WHY: a content line may carry any encoding, while the headers and paths read here are git's own UTF-8 or quoted ASCII.
-        shown, quoted = shown_files(
+        shown = shown_files(
             Path(args.pr_diff).read_text(encoding="utf-8", errors="replace")
         )
     except FileNotFoundError:
@@ -643,11 +647,10 @@ def build(args: argparse.Namespace) -> int:
         if (isinstance(finding, dict) and finding.get("side") == "LEFT"
                 and isinstance(finding.get("path"), str) and finding["path"] in added):
             problems.append(no_base_side(f"findings[{position}] side", finding["path"]))
-        # WHY: a held finding is skipped because release tests its anchor after the push, and a path git quoted is left to GitHub, since misreading it would refuse a valid finding and spend a pass.
+        # WHY: a held finding is skipped because release tests its anchor after the push.
         if (isinstance(finding, dict) and isinstance(finding.get("path"), str)
                 and isinstance(finding.get("line"), int) and finding.get("side") in SIDES
                 and finding["path"] not in held_paths
-                and not (quoted and finding["path"] not in shown)
                 and finding["line"] not in hunk_lines(shown.get(finding["path"], ""), finding["side"])):
             problems.append(
                 f"findings[{position}] (index {finding.get('index')}) "
