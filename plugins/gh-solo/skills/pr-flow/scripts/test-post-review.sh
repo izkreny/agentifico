@@ -325,7 +325,7 @@ MUST_REFUSE = [
     ("axes_run holds something that is not an axis", mutate(REVIEW, axes_run=["vibes"]), 0),
     ("re-review with neither verdicts nor findings", mutate(RERdefault, verdicts=[]), 0),
     ("re-review with verdicts missing", mutate(RERdefault, verdicts=None, findings=[FINDING]), 0),
-    ("re-review with verdicts not a list", mutate(RERdefault, verdicts="none", findings=[FINDING]), 0),
+    ("re-review with verdicts not a list", mutate(RERdefault, verdicts={}, findings=[FINDING]), 0),
     ("verdict with an empty why", mutate(RERdefault, verdicts=[{"rf": 3, "closed": True, "why": " "}]), 0),
     ("verdict closed not a boolean", mutate(RERdefault, verdicts=[{"rf": 3, "closed": "yes", "why": "x"}]), 0),
     ("verdict rf not a positive integer", mutate(RERdefault, verdicts=[{"rf": 0, "closed": True, "why": "x"}]), 0),
